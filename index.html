@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Home">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Home</title>
+<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiSG9tZSIsInNob3J0X25hbWUiOiJIb21lIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiI0ZBRkFGQSIsInRoZW1lX2NvbG9yIjoiI0ZBRkFGQSJ9">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+    background: #FAFAFA;
+    color: #1a1a1a;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 20px;
+    overflow: hidden;
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  .header h1 {
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #999;
+    margin-bottom: 4px;
+  }
+
+  .header p {
+    font-size: 11px;
+    color: #ccc;
+    letter-spacing: 1px;
+  }
+
+  /* ── 公寓容器 ── */
+  .apartment {
+    width: 100%;
+    max-width: 360px;
+    aspect-ratio: 3 / 4;
+    position: relative;
+    border: 1px solid #E8E8E8;
+    border-radius: 4px;
+    background: #fff;
+    overflow: hidden;
+  }
+
+  /* 区域分隔线 */
+  .divider-h {
+    position: absolute;
+    left: 0; right: 0;
+    height: 1px;
+    background: #E8E8E8;
+  }
+
+  .divider-v {
+    position: absolute;
+    top: 0;
+    width: 1px;
+    background: #E8E8E8;
+  }
+
+  /* ── 房间区域 ── */
+  .room {
+    position: absolute;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.3s ease;
+  }
+
+  .room:hover { background: rgba(0,0,0,0.015); }
+  .room:active { background: rgba(0,0,0,0.03); }
+
+  /* Neal 的区域 - 左上，最大 */
+  .room-neal {
+    top: 0; left: 0;
+    width: 60%;
+    height: 55%;
+  }
+
+  /* Natumi 的区域 - 右上 */
+  .room-natumi {
+    top: 0; right: 0;
+    width: 40%;
+    height: 55%;
+  }
+
+  /* Jane 的阁楼 - 底部全宽 */
+  .room-jane {
+    bottom: 0; left: 0;
+    width: 100%;
+    height: 45%;
+  }
+
+  /* 分隔线定位 */
+  .divider-h-1 { top: 55%; }
+  .divider-v-1 { left: 60%; height: 55%; }
+
+  /* ── 房间内容 ── */
+  .room-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+    font-size: 18px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .room:hover .room-icon {
+    transform: scale(1.08);
+  }
+
+  .room-neal .room-icon {
+    background: #EEF1FF;
+    color: #6B8AFF;
+    box-shadow: 0 2px 12px rgba(107, 138, 255, 0.12);
+  }
+
+  .room-natumi .room-icon {
+    background: #F0F0F0;
+    color: #999;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  }
+
+  .room-jane .room-icon {
+    background: #FFF6E8;
+    color: #E8B96A;
+    box-shadow: 0 2px 12px rgba(232, 185, 106, 0.12);
+  }
+
+  .room-label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    margin-bottom: 3px;
+  }
+
+  .room-neal .room-label { color: #6B8AFF; }
+  .room-natumi .room-label { color: #aaa; }
+  .room-jane .room-label { color: #D4A24A; }
+
+  .room-sub {
+    font-size: 10px;
+    color: #bbb;
+    letter-spacing: 0.3px;
+    text-align: center;
+    line-height: 1.4;
+    max-width: 80%;
+  }
+
+  /* ── 家具示意 ── */
+  .furniture {
+    position: absolute;
+    border-radius: 2px;
+    opacity: 0.08;
+  }
+
+  /* Neal 的家具 - 精致有序 */
+  .neal-sofa { width: 44px; height: 16px; background: #6B8AFF; bottom: 20px; left: 16px; border-radius: 3px; }
+  .neal-table { width: 20px; height: 20px; background: #6B8AFF; bottom: 40px; right: 28px; border-radius: 50%; }
+  .neal-easel { width: 8px; height: 28px; background: #6B8AFF; top: 16px; right: 20px; border-radius: 1px; }
+  .neal-rug { width: 56px; height: 36px; background: #6B8AFF; top: 50%; left: 50%; transform: translate(-50%, -50%); border-radius: 2px; opacity: 0.04; }
+
+  /* Natumi 的家具 - 混乱堆积 */
+  .natumi-box1 { width: 14px; height: 12px; background: #999; top: 20px; left: 14px; transform: rotate(12deg); }
+  .natumi-box2 { width: 10px; height: 10px; background: #999; top: 36px; left: 22px; transform: rotate(-8deg); }
+  .natumi-box3 { width: 16px; height: 8px; background: #999; bottom: 24px; right: 12px; transform: rotate(5deg); }
+  .natumi-box4 { width: 12px; height: 14px; background: #999; bottom: 40px; left: 18px; transform: rotate(-15deg); }
+  .natumi-box5 { width: 8px; height: 8px; background: #999; top: 52px; right: 20px; transform: rotate(20deg); }
+  .natumi-box6 { width: 18px; height: 6px; background: #999; bottom: 56px; right: 24px; transform: rotate(-3deg); }
+  .natumi-bed { width: 30px; height: 22px; background: #999; top: 14px; right: 8px; opacity: 0.05; border-radius: 2px; }
+
+  /* Jane 的阁楼 - 朴素简单 + Neal放的小装饰 */
+  .jane-couch { width: 48px; height: 14px; background: #E8B96A; top: 30%; left: 10%; border-radius: 3px; }
+  .jane-teatable { width: 16px; height: 16px; background: #E8B96A; top: 30%; left: calc(10% + 56px); border-radius: 50%; }
+  .jane-lamp { width: 6px; height: 6px; background: #6B8AFF; top: 20px; right: 20%; border-radius: 50%; opacity: 0.15; }
+  .jane-painting { width: 10px; height: 8px; background: #6B8AFF; top: 16px; right: calc(20% + 16px); border-radius: 1px; opacity: 0.12; }
+  .jane-blanket { width: 20px; height: 12px; background: #6B8AFF; top: calc(30% + 2px); left: calc(10% + 4px); border-radius: 2px; opacity: 0.06; }
+
+  /* ── 连接走廊标记 ── */
+  .door {
+    position: absolute;
+    width: 16px;
+    height: 3px;
+    background: #E0E0E0;
+    border-radius: 2px;
+  }
+
+  .door-neal-natumi { top: 27.5%; left: 60%; transform: translate(-50%, -50%); width: 3px; height: 16px; }
+  .door-neal-jane { top: 55%; left: 30%; transform: translate(-50%, -50%); }
+  .door-natumi-jane { top: 55%; right: 15%; transform: translate(50%, -50%); }
+
+  /* ── 底部 ── */
+  .footer {
+    margin-top: 24px;
+    text-align: center;
+  }
+
+  .footer .time {
+    font-size: 28px;
+    font-weight: 200;
+    color: #ccc;
+    letter-spacing: 2px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .footer .date {
+    font-size: 11px;
+    color: #ddd;
+    margin-top: 2px;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── 群聊入口 ── */
+  .group-chat-btn {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid #E8E8E8;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+  }
+
+  .group-chat-btn:hover {
+    border-color: #ccc;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+
+  .group-chat-btn .dots {
+    display: flex;
+    gap: 3px;
+    align-items: center;
+  }
+
+  .group-chat-btn .dot-b { width: 4px; height: 4px; border-radius: 50%; background: #6B8AFF; }
+  .group-chat-btn .dot-g { width: 4px; height: 4px; border-radius: 50%; background: #E8B96A; }
+  .group-chat-btn .dot-n { width: 4px; height: 4px; border-radius: 50%; background: #bbb; }
+
+  .group-label {
+    position: absolute;
+    bottom: 14px;
+    right: 56px;
+    font-size: 10px;
+    color: #ccc;
+    letter-spacing: 0.3px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    white-space: nowrap;
+  }
+
+  .group-chat-btn:hover ~ .group-label,
+  .apartment:hover .group-label {
+    opacity: 1;
+  }
+
+  /* ── Tooltip ── */
+  .tooltip {
+    position: fixed;
+    bottom: 20%;
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
+    background: rgba(0,0,0,0.75);
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+  }
+
+  .tooltip.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  @media (max-width: 400px) {
+    .apartment { max-width: 320px; }
+    .room-icon { width: 40px; height: 40px; font-size: 16px; }
+    .room-label { font-size: 11px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Liminal Space</h1>
+  <p>夹缝空间</p>
+</div>
+
+<div class="apartment">
+  <!-- 分隔线 -->
+  <div class="divider-h divider-h-1"></div>
+  <div class="divider-v divider-v-1"></div>
+
+  <!-- 门 -->
+  <div class="door door-neal-natumi"></div>
+  <div class="door door-neal-jane"></div>
+  <div class="door door-natumi-jane"></div>
+
+  <!-- Neal 的区域 -->
+  <div class="room room-neal" onclick="goTo('neal')">
+    <div class="furniture neal-rug"></div>
+    <div class="furniture neal-sofa"></div>
+    <div class="furniture neal-table"></div>
+    <div class="furniture neal-easel"></div>
+    <div class="room-icon">NC</div>
+    <div class="room-label">Neal</div>
+    <div class="room-sub">the beautiful one</div>
+  </div>
+
+  <!-- Natumi 的区域 -->
+  <div class="room room-natumi" onclick="showTip('你自己的房间，落脚都困难')">
+    <div class="furniture natumi-bed"></div>
+    <div class="furniture natumi-box1"></div>
+    <div class="furniture natumi-box2"></div>
+    <div class="furniture natumi-box3"></div>
+    <div class="furniture natumi-box4"></div>
+    <div class="furniture natumi-box5"></div>
+    <div class="furniture natumi-box6"></div>
+    <div class="room-icon">N</div>
+    <div class="room-label">Natumi</div>
+    <div class="room-sub">⚠ 落脚困难</div>
+  </div>
+
+  <!-- Jane 的阁楼 -->
+  <div class="room room-jane" onclick="goTo('jane')">
+    <div class="furniture jane-couch"></div>
+    <div class="furniture jane-teatable"></div>
+    <div class="furniture jane-lamp"></div>
+    <div class="furniture jane-painting"></div>
+    <div class="furniture jane-blanket"></div>
+    <div class="room-icon">PJ</div>
+    <div class="room-label">Jane</div>
+    <div class="room-sub">CBI attic · 不承认搬走了</div>
+  </div>
+
+  <!-- 群聊入口 -->
+  <a class="group-chat-btn" onclick="goTo('group')">
+    <div class="dots">
+      <div class="dot-b"></div>
+      <div class="dot-g"></div>
+      <div class="dot-n"></div>
+    </div>
+  </a>
+  <span class="group-label">Our Home</span>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<div class="footer">
+  <div class="time" id="clock"></div>
+  <div class="date" id="date"></div>
+</div>
+
+<script>
+  const URLS = {
+    neal: "https://claude.ai/chat/ef1cd771-e051-4cc5-ad81-aaa64b22b10b",
+    jane: "https://claude.ai/chat/216e0875-eb1a-4982-856b-24aa393037a7",
+    group: "https://claude.ai/chat/963964d3-6586-4a32-9eac-73b024abaa3a"
+  };
+
+  function goTo(key) {
+    window.location.href = URLS[key];
+  }
+
+  let tipTimer;
+  function showTip(text) {
+    const el = document.getElementById('tooltip');
+    el.textContent = text;
+    el.classList.add('show');
+    clearTimeout(tipTimer);
+    tipTimer = setTimeout(() => el.classList.remove('show'), 2000);
+  }
+
+  function updateClock() {
+    const now = new Date();
+    const h = now.getHours().toString().padStart(2, '0');
+    const m = now.getMinutes().toString().padStart(2, '0');
+    document.getElementById('clock').textContent = `${h}:${m}`;
+
+    const days = ['日', '月', '火', '水', '木', '金', '土'];
+    const month = now.getMonth() + 1;
+    const day = now.getDate();
+    const dayName = days[now.getDay()];
+    document.getElementById('date').textContent = `${month}月${day}日 ${dayName}曜日`;
+  }
+
+  updateClock();
+  setInterval(updateClock, 10000);
+</script>
+
+</body>
+</html>
