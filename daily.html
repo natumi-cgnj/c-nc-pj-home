@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Daily">
+<title>Daily</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;background:#FAFAFA;color:#1a1a1a;min-height:100vh;min-height:100dvh;padding-bottom:80px}
+
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;padding-top:24px;border-bottom:1px solid #eee;background:#fff;position:sticky;top:0;z-index:50}
+.top-bar h1{font-size:15px;font-weight:600;letter-spacing:1px;color:#666}
+.top-bar .back{font-size:13px;color:#999;text-decoration:none}
+.top-bar .btn-s{font-size:11px;color:#999;background:none;border:1px solid #ddd;border-radius:6px;padding:4px 10px;cursor:pointer}
+
+/* Status bar */
+.status-bar{display:flex;justify-content:space-around;padding:14px 20px;background:#fff;border-bottom:1px solid #f0f0f0}
+.status-item{text-align:center}
+.status-label{font-size:10px;color:#bbb;margin-bottom:2px}
+.status-value{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
+.status-value.neal-color{color:#6B8AFF}
+.status-value.jane-color{color:#5BA66B}
+
+/* Tabs */
+.tabs{display:flex;background:#fff;border-bottom:1px solid #eee}
+.tab{flex:1;text-align:center;padding:12px;font-size:12px;font-weight:500;color:#aaa;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s}
+.tab.active{color:#1a1a1a;border-bottom-color:#1a1a1a}
+
+.content{padding:16px 20px}
+
+/* Sign-in */
+.signin-card{background:#fff;border:1px solid #eee;border-radius:12px;padding:20px;text-align:center;margin-bottom:16px}
+.signin-card h2{font-size:16px;font-weight:500;margin-bottom:4px;color:#333}
+.signin-streak{font-size:12px;color:#aaa;margin-bottom:16px}
+.signin-btn{padding:14px 40px;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.2s}
+.signin-btn.available{background:#1a1a1a;color:#fff}
+.signin-btn.done{background:#e8e8e8;color:#aaa;cursor:default}
+.signin-btn:active:not(.done){transform:scale(0.97)}
+.signin-reward{font-size:12px;color:#5BA66B;margin-top:10px;min-height:18px}
+
+/* Streak calendar */
+.streak-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:16px}
+.streak-day{aspect-ratio:1;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-variant-numeric:tabular-nums}
+.streak-day.signed{background:#1a1a1a;color:#fff}
+.streak-day.today{border:2px solid #1a1a1a;font-weight:600}
+.streak-day.empty{background:transparent}
+.streak-day.future{background:#f5f5f5;color:#ccc}
+.streak-day.past{background:#f0f0f0;color:#bbb}
+
+/* Streak rewards */
+.streak-rewards{display:flex;gap:8px;margin-top:16px;overflow-x:auto;padding-bottom:4px}
+.streak-reward{flex-shrink:0;background:#fff;border:1px solid #eee;border-radius:8px;padding:8px 12px;text-align:center;min-width:70px}
+.streak-reward.claimed{border-color:#5BA66B;background:#f0faf2}
+.streak-reward.current{border-color:#E8B96A}
+.streak-reward .sr-day{font-size:10px;color:#aaa;margin-bottom:2px}
+.streak-reward .sr-reward{font-size:11px;font-weight:500;color:#555}
+
+/* Tasks */
+.task-section{margin-bottom:12px}
+.task-section-header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.task-section-header .dot{width:8px;height:8px;border-radius:50%}
+.task-section-header .name{font-size:13px;font-weight:500}
+.task-card{background:#fff;border:1px solid #eee;border-radius:10px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;transition:all 0.2s}
+.task-card.completed{opacity:0.5}
+.task-check{width:22px;height:22px;border-radius:50%;border:2px solid #ddd;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;font-size:12px;color:#fff}
+.task-check.checked{background:#1a1a1a;border-color:#1a1a1a}
+.task-body{flex:1;min-width:0}
+.task-name{font-size:13px;color:#333;margin-bottom:2px}
+.task-meta{font-size:10px;color:#bbb;display:flex;gap:8px}
+.task-actions{display:flex;gap:6px;flex-shrink:0}
+.task-actions button{font-size:10px;padding:4px 8px;border:1px solid #e8e8e8;border-radius:6px;background:#fff;cursor:pointer;color:#999}
+.task-actions button.swap{color:#E8B96A;border-color:#f5e6c8}
+.task-reward-toast{font-size:11px;color:#5BA66B;text-align:center;padding:6px;min-height:20px}
+
+/* Request more */
+.request-btn{width:100%;padding:12px;border:1px dashed #ddd;border-radius:10px;background:#fff;font-size:13px;color:#aaa;cursor:pointer;text-align:center;margin-top:8px;font-family:inherit}
+.request-btn:active{background:#f8f8f8}
+
+/* Task pool editor */
+.pool-item{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f5f5f5}
+.pool-item .pool-name{flex:1;font-size:12px;color:#555}
+.pool-item .pool-meta{font-size:10px;color:#aaa}
+.pool-item button{font-size:10px;color:#e07;background:none;border:none;cursor:pointer}
+
+/* Modals */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.modal-bg.show{display:flex}
+.modal{background:#fff;border-radius:16px 16px 0 0;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;padding:20px;animation:slideUp 0.25s ease-out}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal h2{font-size:15px;font-weight:600;margin-bottom:16px;color:#333}
+.modal label{display:block;font-size:12px;color:#999;margin-bottom:4px;margin-top:12px}
+.modal input,.modal textarea,.modal select{width:100%;font-size:14px;padding:10px 12px;border:1px solid #e0e0e0;border-radius:8px;font-family:inherit;background:#fff;color:#1a1a1a}
+.modal .btn-row{display:flex;gap:8px;margin-top:20px}
+.modal .btn{flex:1;padding:12px;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit}
+.modal .btn-primary{background:#1a1a1a;color:#fff}
+.modal .btn-cancel{background:#f0f0f0;color:#666}
+.empty{text-align:center;padding:40px 20px;color:#ccc;font-size:13px;line-height:1.6}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <a class="back" href="index.html">&larr; Home</a>
+  <h1>DAILY</h1>
+  <button class="btn-s" onclick="showModal('exportModal')">备份</button>
+</div>
+
+<div class="status-bar">
+  <div class="status-item">
+    <div class="status-label">Neal 好感</div>
+    <div class="status-value neal-color" id="nealAff">0</div>
+  </div>
+  <div class="status-item">
+    <div class="status-label">Jane 好感</div>
+    <div class="status-value jane-color" id="janeAff">0</div>
+  </div>
+  <div class="status-item">
+    <div class="status-label">祖母绿</div>
+    <div class="status-value" id="gemE">0</div>
+  </div>
+  <div class="status-item">
+    <div class="status-label">蓝宝石</div>
+    <div class="status-value" id="gemS">0</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" data-tab="signin" onclick="switchTab('signin')">签到</div>
+  <div class="tab" data-tab="tasks" onclick="switchTab('tasks')">任务</div>
+  <div class="tab" data-tab="pool" onclick="switchTab('pool')">任务池</div>
+</div>
+
+<div class="content" id="content"></div>
+
+<!-- Add task to pool -->
+<div class="modal-bg" id="addTaskModal">
+  <div class="modal">
+    <h2 id="taskModalTitle">添加任务</h2>
+    <label>任务内容</label>
+    <input type="text" id="taskContent" placeholder="如: 陪Neal去锻炼">
+    <label>归属角色</label>
+    <select id="taskOwner">
+      <option value="neal">Neal</option>
+      <option value="jane">Jane</option>
+    </select>
+    <label>完成好感 +</label>
+    <input type="number" id="taskAffGain" placeholder="如: 5" value="5">
+    <label>换任务好感 -</label>
+    <input type="number" id="taskAffCost" placeholder="如: 2" value="2">
+    <label>完成宝石奖励（对应角色的宝石）</label>
+    <input type="number" id="taskGemReward" placeholder="如: 2" value="2">
+    <div class="btn-row">
+      <button class="btn btn-cancel" onclick="closeModal('addTaskModal')">取消</button>
+      <button class="btn btn-primary" onclick="savePoolTask()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Export/Import -->
+<div class="modal-bg" id="exportModal">
+  <div class="modal">
+    <h2>数据备份</h2>
+    <div style="padding:8px 0;">
+      <button class="btn btn-cancel" style="margin-bottom:8px;width:100%;" onclick="exportData()">导出所有数据</button>
+      <button class="btn btn-cancel" style="width:100%;" onclick="document.getElementById('importFile').click()">从备份导入</button>
+      <input type="file" id="importFile" accept=".json" onchange="importData(this)" style="display:none;">
+    </div>
+    <div class="btn-row"><button class="btn btn-cancel" onclick="closeModal('exportModal')">关闭</button></div>
+  </div>
+</div>
+
+<script>
+// ── State ──
+let db;
+try{db=JSON.parse(localStorage.getItem('daily_db'));}catch(e){db=null;}
+if(!db)db={affinity:{neal:0,jane:0},gems:{emerald:0,sapphire:0},signin:{streak:0,lastDate:null,history:[]},pool:[],todayTasks:[],todayDate:null,completedToday:0};
+let currentTab='signin';
+let editingPoolIdx=null;
+function save(){try{localStorage.setItem('daily_db',JSON.stringify(db));}catch(e){}}
+
+const today=()=>new Date().toISOString().slice(0,10);
+const STREAK_REWARDS=[
+  {day:3,emerald:3,sapphire:3},
+  {day:7,emerald:5,sapphire:5},
+  {day:14,emerald:8,sapphire:8},
+  {day:21,emerald:10,sapphire:10},
+  {day:30,emerald:15,sapphire:15},
+];
+const BASE_SIGNIN={emerald:2,sapphire:2};
+
+// ── Init today ──
+function initToday(){
+  if(db.todayDate!==today()){
+    db.todayDate=today();
+    db.todayTasks=[];
+    db.completedToday=0;
+    // Auto-assign initial tasks
+    assignTasks(3+Math.floor(Math.random()*3)); // 3-5
+    save();
+  }
+}
+
+function assignTasks(count){
+  const available=db.pool.filter(p=>!db.todayTasks.some(t=>t.poolIdx===db.pool.indexOf(p)&&!t.swapped));
+  const shuffled=[...available].sort(()=>Math.random()-0.5);
+  const toAssign=shuffled.slice(0,Math.min(count,shuffled.length));
+  toAssign.forEach(task=>{
+    db.todayTasks.push({
+      poolIdx:db.pool.indexOf(task),
+      content:task.content,
+      owner:task.owner,
+      affGain:task.affGain||5,
+      affCost:task.affCost||2,
+      gemReward:task.gemReward||2,
+      completed:false,
+      swapped:false
+    });
+  });
+}
+
+// ── Render ──
+function render(){
+  initToday();
+  document.getElementById('nealAff').textContent=db.affinity.neal;
+  document.getElementById('janeAff').textContent=db.affinity.jane;
+  document.getElementById('gemE').textContent=db.gems.emerald;
+  document.getElementById('gemS').textContent=db.gems.sapphire;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===currentTab));
+  const c=document.getElementById('content');
+  if(currentTab==='signin')renderSignin(c);
+  else if(currentTab==='tasks')renderTasks(c);
+  else if(currentTab==='pool')renderPool(c);
+}
+
+function switchTab(t){currentTab=t;render();}
+
+// ── Sign-in ──
+function renderSignin(c){
+  const signed=db.signin.lastDate===today();
+  const streak=db.signin.streak;
+
+  // Calendar for current month
+  const now=new Date();
+  const year=now.getFullYear(),month=now.getMonth();
+  const firstDay=new Date(year,month,1).getDay();
+  const daysInMonth=new Date(year,month+1,0).getDate();
+  const todayDate=now.getDate();
+
+  let calHtml='';
+  // Empty cells before first day
+  for(let i=0;i<firstDay;i++)calHtml+=`<div class="streak-day empty"></div>`;
+  for(let d=1;d<=daysInMonth;d++){
+    const dateStr=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isSigned=db.signin.history.includes(dateStr);
+    const isToday=d===todayDate;
+    let cls='streak-day';
+    if(isSigned)cls+=' signed';
+    if(isToday)cls+=' today';
+    else if(d>todayDate)cls+=' future';
+    else if(!isSigned)cls+=' past';
+    calHtml+=`<div class="${cls}">${d}</div>`;
+  }
+
+  // Streak rewards
+  let streakHtml=STREAK_REWARDS.map(sr=>{
+    const claimed=streak>=sr.day;
+    const current=streak<sr.day&&(STREAK_REWARDS.indexOf(sr)===0||streak>=STREAK_REWARDS[STREAK_REWARDS.indexOf(sr)-1].day);
+    return`<div class="streak-reward ${claimed?'claimed':''} ${current?'current':''}">
+      <div class="sr-day">${sr.day}日</div>
+      <div class="sr-reward">💎×${sr.emerald+sr.sapphire}</div>
+    </div>`;
+  }).join('');
+
+  c.innerHTML=`
+    <div class="signin-card">
+      <h2>${signed?'今日已签到 ✓':'今日签到'}</h2>
+      <div class="signin-streak">连续签到 ${streak} 天</div>
+      <button class="signin-btn ${signed?'done':'available'}" onclick="${signed?'':'doSignin()'}" ${signed?'disabled':''}>
+        ${signed?'已签到':'签到领取 💎'}
+      </button>
+      <div class="signin-reward" id="signinReward"></div>
+      <div class="streak-rewards">${streakHtml}</div>
+      <div style="margin-top:16px;">
+        <div style="font-size:11px;color:#bbb;margin-bottom:6px;text-align:left;">${month+1}月</div>
+        <div class="streak-grid">${calHtml}</div>
+      </div>
+    </div>`;
+}
+
+function doSignin(){
+  if(db.signin.lastDate===today())return;
+  const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);
+  const yesterdayStr=yesterday.toISOString().slice(0,10);
+
+  if(db.signin.lastDate===yesterdayStr){
+    db.signin.streak++;
+  }else{
+    db.signin.streak=1;
+  }
+  db.signin.lastDate=today();
+  if(!db.signin.history.includes(today()))db.signin.history.push(today());
+
+  // Base reward
+  let totalE=BASE_SIGNIN.emerald,totalS=BASE_SIGNIN.sapphire;
+
+  // Check streak milestones
+  STREAK_REWARDS.forEach(sr=>{
+    if(db.signin.streak===sr.day){
+      totalE+=sr.emerald;totalS+=sr.sapphire;
+    }
+  });
+
+  db.gems.emerald+=totalE;
+  db.gems.sapphire+=totalS;
+  save();render();
+
+  setTimeout(()=>{
+    const el=document.getElementById('signinReward');
+    if(el){
+      let msg=`✦ 祖母绿 +${totalE}  蓝宝石 +${totalS}`;
+      const milestone=STREAK_REWARDS.find(sr=>sr.day===db.signin.streak);
+      if(milestone)msg+=` (${db.signin.streak}日连续奖励！)`;
+      el.textContent=msg;
+    }
+  },50);
+}
+
+// ── Tasks ──
+function renderTasks(c){
+  if(db.pool.length===0){
+    c.innerHTML=`<div class="empty">还没有任务池<br>先去「任务池」tab 添加一些任务吧</div>`;
+    return;
+  }
+
+  const active=db.todayTasks.filter(t=>!t.swapped);
+  const nealTasks=active.filter(t=>t.owner==='neal');
+  const janeTasks=active.filter(t=>t.owner==='jane');
+
+  let html='<div class="task-reward-toast" id="taskToast"></div>';
+
+  if(nealTasks.length){
+    html+=`<div class="task-section">
+      <div class="task-section-header">
+        <div class="dot" style="background:#6B8AFF"></div>
+        <div class="name" style="color:#6B8AFF">Neal 的委托</div>
+      </div>
+      ${nealTasks.map((t,i)=>renderTaskCard(t,db.todayTasks.indexOf(t))).join('')}
+    </div>`;
+  }
+
+  if(janeTasks.length){
+    html+=`<div class="task-section">
+      <div class="task-section-header">
+        <div class="dot" style="background:#5BA66B"></div>
+        <div class="name" style="color:#5BA66B">Jane 的委托</div>
+      </div>
+      ${janeTasks.map((t,i)=>renderTaskCard(t,db.todayTasks.indexOf(t))).join('')}
+    </div>`;
+  }
+
+  if(!active.length){
+    html+=`<div class="empty">今天的任务都完成了！</div>`;
+  }
+
+  html+=`<button class="request-btn" onclick="requestMore()">再来一个 +</button>`;
+  c.innerHTML=html;
+}
+
+function renderTaskCard(t,idx){
+  const gemType=t.owner==='neal'?'蓝宝石':'祖母绿';
+  return`<div class="task-card ${t.completed?'completed':''}">
+    <div class="task-check ${t.completed?'checked':''}" onclick="completeTask(${idx})">${t.completed?'✓':''}</div>
+    <div class="task-body">
+      <div class="task-name">${t.content}</div>
+      <div class="task-meta">
+        <span>好感 +${t.affGain}</span>
+        <span>${gemType} +${t.gemReward}</span>
+      </div>
+    </div>
+    ${!t.completed?`<div class="task-actions">
+      <button class="swap" onclick="swapTask(${idx})">换 (-${t.affCost})</button>
+    </div>`:''}
+  </div>`;
+}
+
+function completeTask(idx){
+  const t=db.todayTasks[idx];
+  if(t.completed)return;
+  t.completed=true;
+  db.affinity[t.owner]+=t.affGain;
+  if(t.owner==='neal')db.gems.sapphire+=t.gemReward;
+  else db.gems.emerald+=t.gemReward;
+  db.completedToday++;
+  save();render();
+  setTimeout(()=>{
+    const el=document.getElementById('taskToast');
+    const gemName=t.owner==='neal'?'蓝宝石':'祖母绿';
+    if(el)el.textContent=`✦ ${t.owner==='neal'?'Neal':'Jane'} 好感 +${t.affGain}  ${gemName} +${t.gemReward}`;
+  },50);
+}
+
+function swapTask(idx){
+  const t=db.todayTasks[idx];
+  if(t.completed)return;
+  // Deduct affinity
+  db.affinity[t.owner]=Math.max(0,db.affinity[t.owner]-t.affCost);
+  t.swapped=true;
+  // Assign a new one from pool
+  const usedIdxs=db.todayTasks.filter(x=>!x.swapped).map(x=>x.poolIdx);
+  const available=db.pool.filter((p,i)=>!usedIdxs.includes(i)&&p.owner===t.owner);
+  if(available.length){
+    const newTask=available[Math.floor(Math.random()*available.length)];
+    const newIdx=db.pool.indexOf(newTask);
+    db.todayTasks.push({
+      poolIdx:newIdx,content:newTask.content,owner:newTask.owner,
+      affGain:newTask.affGain||5,affCost:newTask.affCost||2,
+      gemReward:newTask.gemReward||2,completed:false,swapped:false
+    });
+  }else{
+    // No more tasks from this owner, try the other
+    const otherOwner=t.owner==='neal'?'jane':'neal';
+    const otherAvail=db.pool.filter((p,i)=>!usedIdxs.includes(i)&&p.owner===otherOwner);
+    if(otherAvail.length){
+      const newTask=otherAvail[Math.floor(Math.random()*otherAvail.length)];
+      const newIdx=db.pool.indexOf(newTask);
+      db.todayTasks.push({
+        poolIdx:newIdx,content:newTask.content,owner:newTask.owner,
+        affGain:newTask.affGain||5,affCost:newTask.affCost||2,
+        gemReward:newTask.gemReward||2,completed:false,swapped:false
+      });
+    }
+  }
+  save();render();
+  setTimeout(()=>{
+    const el=document.getElementById('taskToast');
+    if(el)el.textContent=`${t.owner==='neal'?'Neal':'Jane'} 好感 -${t.affCost}  任务已更换`;
+  },50);
+}
+
+function requestMore(){
+  const usedIdxs=db.todayTasks.filter(x=>!x.swapped).map(x=>x.poolIdx);
+  const available=db.pool.filter((p,i)=>!usedIdxs.includes(i));
+  if(!available.length){
+    alert('任务池里的任务今天都派过了！');return;
+  }
+  const newTask=available[Math.floor(Math.random()*available.length)];
+  const newIdx=db.pool.indexOf(newTask);
+  db.todayTasks.push({
+    poolIdx:newIdx,content:newTask.content,owner:newTask.owner,
+    affGain:newTask.affGain||5,affCost:newTask.affCost||2,
+    gemReward:newTask.gemReward||2,completed:false,swapped:false
+  });
+  save();render();
+}
+
+// ── Task Pool ──
+function renderPool(c){
+  const nealPool=db.pool.filter(p=>p.owner==='neal');
+  const janePool=db.pool.filter(p=>p.owner==='jane');
+
+  let html=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+    <span style="font-size:13px;color:#666;">任务池 (${db.pool.length})</span>
+    <button class="btn-s" onclick="showAddTask()" style="font-size:11px;color:#999;background:none;border:1px solid #ddd;border-radius:6px;padding:4px 10px;cursor:pointer;">+ 添加任务</button>
+  </div>`;
+
+  if(!db.pool.length){
+    html+=`<div class="empty">还没有任务<br>点上方 + 添加任务 开始构建你的任务池</div>`;
+  }else{
+    if(nealPool.length){
+      html+=`<div class="task-section"><div class="task-section-header">
+        <div class="dot" style="background:#6B8AFF"></div>
+        <div class="name" style="color:#6B8AFF">Neal 相关 (${nealPool.length})</div>
+      </div>`;
+      nealPool.forEach(p=>{
+        const idx=db.pool.indexOf(p);
+        html+=`<div class="pool-item">
+          <span class="pool-name">${p.content}</span>
+          <span class="pool-meta">+${p.affGain} / -${p.affCost} / 💎${p.gemReward}</span>
+          <button onclick="editPoolTask(${idx})">编辑</button>
+          <button onclick="deletePoolTask(${idx})">删除</button>
+        </div>`;
+      });
+      html+=`</div>`;
+    }
+    if(janePool.length){
+      html+=`<div class="task-section"><div class="task-section-header">
+        <div class="dot" style="background:#5BA66B"></div>
+        <div class="name" style="color:#5BA66B">Jane 相关 (${janePool.length})</div>
+      </div>`;
+      janePool.forEach(p=>{
+        const idx=db.pool.indexOf(p);
+        html+=`<div class="pool-item">
+          <span class="pool-name">${p.content}</span>
+          <span class="pool-meta">+${p.affGain} / -${p.affCost} / 💎${p.gemReward}</span>
+          <button onclick="editPoolTask(${idx})">编辑</button>
+          <button onclick="deletePoolTask(${idx})">删除</button>
+        </div>`;
+      });
+      html+=`</div>`;
+    }
+  }
+  c.innerHTML=html;
+}
+
+function showAddTask(){
+  editingPoolIdx=null;
+  document.getElementById('taskModalTitle').textContent='添加任务';
+  document.getElementById('taskContent').value='';
+  document.getElementById('taskOwner').value='neal';
+  document.getElementById('taskAffGain').value='5';
+  document.getElementById('taskAffCost').value='2';
+  document.getElementById('taskGemReward').value='2';
+  showModal('addTaskModal');
+}
+
+function editPoolTask(idx){
+  editingPoolIdx=idx;
+  const p=db.pool[idx];
+  document.getElementById('taskModalTitle').textContent='编辑任务';
+  document.getElementById('taskContent').value=p.content;
+  document.getElementById('taskOwner').value=p.owner;
+  document.getElementById('taskAffGain').value=p.affGain||5;
+  document.getElementById('taskAffCost').value=p.affCost||2;
+  document.getElementById('taskGemReward').value=p.gemReward||2;
+  showModal('addTaskModal');
+}
+
+function savePoolTask(){
+  const content=document.getElementById('taskContent').value.trim();
+  if(!content)return;
+  const task={
+    content,
+    owner:document.getElementById('taskOwner').value,
+    affGain:Number(document.getElementById('taskAffGain').value)||5,
+    affCost:Number(document.getElementById('taskAffCost').value)||2,
+    gemReward:Number(document.getElementById('taskGemReward').value)||2
+  };
+  if(editingPoolIdx!==null){
+    db.pool[editingPoolIdx]=task;
+  }else{
+    db.pool.push(task);
+  }
+  save();closeModal('addTaskModal');render();
+}
+
+function deletePoolTask(idx){
+  if(!confirm('删除这个任务？'))return;
+  db.pool.splice(idx,1);save();render();
+}
+
+// ── Export/Import ──
+function exportData(){
+  const blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`daily_backup_${new Date().toISOString().slice(0,10)}.json`;a.click();
+}
+function importData(input){
+  if(!input.files||!input.files[0])return;
+  const reader=new FileReader();
+  reader.onload=(ev)=>{try{
+    const imp=JSON.parse(ev.target.result);
+    if(confirm('导入数据？')){db=imp;save();render();closeModal('exportModal');}
+  }catch(e){alert('导入失败');}};
+  reader.readAsText(input.files[0]);
+}
+
+function showModal(id){document.getElementById(id).classList.add('show');}
+function closeModal(id){document.getElementById(id).classList.remove('show');}
+document.querySelectorAll('.modal-bg').forEach(bg=>{bg.addEventListener('click',e=>{if(e.target===bg)bg.classList.remove('show');});});
+
+// ── Init ──
+render();
+</script>
+</body>
+</html>
