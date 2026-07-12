@@ -89,9 +89,9 @@
   .room:active { background: rgba(0,0,0,0.03); }
 
   /*
-    新布局：
+    布局：
     Neal 的大公寓 - 上方全宽，占 55%
-    下方左右各一半：左边 Natumi（群聊入口），右边 Jane 阁楼
+    下方左右各一半：左边 Jane 阁楼，右边 Natumi（群聊入口）
   */
   .room-neal {
     top: 0; left: 0;
@@ -99,13 +99,13 @@
     height: 55%;
   }
 
-  .room-natumi {
+  .room-jane {
     bottom: 0; left: 0;
     width: 50%;
     height: 45%;
   }
 
-  .room-jane {
+  .room-natumi {
     bottom: 0; right: 0;
     width: 50%;
     height: 45%;
@@ -213,9 +213,9 @@
     z-index: 3;
   }
 
-  .door-neal-natumi { top: 55%; left: 25%; transform: translate(-50%, -50%); }
-  .door-neal-jane { top: 55%; right: 25%; transform: translate(50%, -50%); }
-  .door-natumi-jane { top: 77.5%; left: 50%; transform: translate(-50%, -50%); width: 3px; height: 16px; }
+  .door-neal-jane { top: 55%; left: 25%; transform: translate(-50%, -50%); }
+  .door-neal-natumi { top: 55%; right: 25%; transform: translate(50%, -50%); }
+  .door-jane-natumi { top: 77.5%; left: 50%; transform: translate(-50%, -50%); width: 3px; height: 16px; }
 
   /* ── 群聊小标记（在 Natumi 房间里） ── */
   .group-hint {
@@ -274,6 +274,50 @@
     transform: translateX(-50%) translateY(0);
   }
 
+  /* ── Shortcuts ── */
+  .shortcuts {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 20px;
+  }
+
+  .shortcut {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+
+  .shortcut:active { opacity: 0.6; }
+
+  .shortcut-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    border: 1px solid #E8E8E8;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: #999;
+    transition: box-shadow 0.2s;
+  }
+
+  .shortcut:hover .shortcut-icon {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+
+  .shortcut-label {
+    font-size: 10px;
+    color: #bbb;
+    letter-spacing: 0.3px;
+  }
+
   @media (max-width: 400px) {
     .apartment { max-width: 320px; }
     .room-icon { width: 40px; height: 40px; font-size: 16px; }
@@ -294,9 +338,9 @@
   <div class="divider-v divider-v-1"></div>
 
   <!-- 门 -->
-  <div class="door door-neal-natumi"></div>
   <div class="door door-neal-jane"></div>
-  <div class="door door-natumi-jane"></div>
+  <div class="door door-neal-natumi"></div>
+  <div class="door door-jane-natumi"></div>
 
   <!-- Neal 的区域 - 上方全宽大公寓 -->
   <div class="room room-neal" onclick="goTo('neal')">
@@ -312,7 +356,19 @@
     <div class="room-sub">June's penthouse</div>
   </div>
 
-  <!-- Natumi 的区域 - 左下，群聊入口 -->
+  <!-- Jane 的阁楼 - 左下 -->
+  <div class="room room-jane" onclick="goTo('jane')">
+    <div class="furniture jane-couch"></div>
+    <div class="furniture jane-teatable"></div>
+    <div class="furniture jane-lamp"></div>
+    <div class="furniture jane-painting"></div>
+    <div class="furniture jane-blanket"></div>
+    <div class="room-icon">PJ</div>
+    <div class="room-label">Jane</div>
+    <div class="room-sub">CBI attic · 不承認搬走了</div>
+  </div>
+
+  <!-- Natumi 的区域 - 右下，群聊入口 -->
   <div class="room room-natumi" onclick="goTo('group')">
     <div class="furniture natumi-bed"></div>
     <div class="furniture natumi-box1"></div>
@@ -331,21 +387,20 @@
       <div class="dot-n"></div>
     </div>
   </div>
-
-  <!-- Jane 的阁楼 - 右下 -->
-  <div class="room room-jane" onclick="goTo('jane')">
-    <div class="furniture jane-couch"></div>
-    <div class="furniture jane-teatable"></div>
-    <div class="furniture jane-lamp"></div>
-    <div class="furniture jane-painting"></div>
-    <div class="furniture jane-blanket"></div>
-    <div class="room-icon">PJ</div>
-    <div class="room-label">Jane</div>
-    <div class="room-sub">CBI attic · 不承認搬走了</div>
-  </div>
 </div>
 
 <div class="tooltip" id="tooltip"></div>
+
+<div class="shortcuts">
+  <a class="shortcut" href="bjd.html">
+    <div class="shortcut-icon">✦</div>
+    <div class="shortcut-label">BJD 系统</div>
+  </a>
+  <a class="shortcut" href="techo.html">
+    <div class="shortcut-icon">✎</div>
+    <div class="shortcut-label">手账系统</div>
+  </a>
+</div>
 
 <div class="footer">
   <div class="time" id="clock"></div>
