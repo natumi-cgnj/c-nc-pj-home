@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="BJD">
+<title>BJD</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  background:#FAFAFA; color:#1a1a1a; min-height:100vh; min-height:100dvh; padding-bottom:80px;
+}
+.top-bar {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:16px 20px; padding-top:24px; border-bottom:1px solid #eee;
+  background:#fff; position:sticky; top:0; z-index:50;
+}
+.top-bar h1 { font-size:15px; font-weight:600; letter-spacing:1px; color:#666; }
+.top-bar .back { font-size:13px; color:#999; text-decoration:none; }
+.top-bar .btn-s { font-size:11px; color:#999; background:none; border:1px solid #ddd; border-radius:6px; padding:4px 10px; cursor:pointer; }
+
+/* ── Tag filter bar (ABOVE tabs) ── */
+.filter-bar {
+  display:flex; gap:6px; padding:10px 20px; background:#fff;
+  border-bottom:1px solid #f0f0f0; overflow-x:auto; -webkit-overflow-scrolling:touch; align-items:center;
+}
+.filter-tag {
+  flex-shrink:0; font-size:11px; padding:5px 12px; border-radius:14px;
+  border:1px solid #e0e0e0; color:#999; cursor:pointer; transition:all 0.2s; white-space:nowrap;
+}
+.filter-tag.active { background:#1a1a1a; color:#fff; border-color:#1a1a1a; }
+.filter-tag .dot { display:inline-block; width:6px; height:6px; border-radius:50%; margin-right:4px; vertical-align:middle; }
+.manage-tags-btn { flex-shrink:0; font-size:11px; color:#bbb; cursor:pointer; padding:5px 8px; white-space:nowrap; }
+
+/* ── Tabs (BELOW filter) ── */
+.tabs {
+  display:flex; gap:0; background:#fff; border-bottom:1px solid #eee;
+  overflow-x:auto; -webkit-overflow-scrolling:touch;
+}
+.tab {
+  flex-shrink:0; padding:12px 14px; font-size:12px; font-weight:500;
+  color:#aaa; cursor:pointer; border-bottom:2px solid transparent;
+  transition:all 0.2s; white-space:nowrap; letter-spacing:0.3px;
+}
+.tab.active { color:#1a1a1a; border-bottom-color:#1a1a1a; }
+
+/* ── Sort controls ── */
+.sort-bar {
+  display:flex; align-items:center; gap:8px; padding:8px 20px;
+  background:#fff; border-bottom:1px solid #f5f5f5; font-size:11px; color:#bbb;
+}
+.sort-bar button {
+  font-size:11px; padding:3px 10px; border:1px solid #e0e0e0; border-radius:6px;
+  background:#fff; cursor:pointer; color:#999;
+}
+.sort-bar button.active { background:#1a1a1a; color:#fff; border-color:#1a1a1a; }
+.sort-bar .drag-hint { font-size:10px; color:#ccc; margin-left:auto; }
+
+.content { padding:0; }
+
+/* ── LOG: compact lines ── */
+.log-item {
+  display:flex; align-items:baseline; gap:10px;
+  padding:11px 20px; border-bottom:1px solid #f3f3f3; cursor:pointer; transition:background 0.15s;
+}
+.log-item:active { background:#f8f8f8; }
+.log-date { font-size:11px; color:#bbb; flex-shrink:0; width:72px; font-variant-numeric:tabular-nums; }
+.log-title { font-size:13px; color:#333; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.log-tags { display:flex; gap:4px; flex-shrink:0; }
+.mini-tag { font-size:9px; padding:2px 6px; border-radius:8px; border:1px solid #e8e8e8; color:#aaa; }
+.log-detail { padding:12px 20px 16px; background:#fafafa; border-bottom:1px solid #eee; display:none; }
+.log-detail.show { display:block; }
+.log-detail .note { font-size:13px; color:#666; line-height:1.6; margin-bottom:8px; }
+.log-detail img { width:100%; max-height:280px; object-fit:cover; border-radius:8px; margin-top:6px; }
+.log-detail .actions { display:flex; gap:8px; margin-top:10px; justify-content:flex-end; }
+.log-detail .actions button, .detail-content .actions button { font-size:11px; padding:4px 10px; border:1px solid #e8e8e8; border-radius:6px; background:#fff; cursor:pointer; color:#999; }
+.del { color:#e07!important; border-color:#fcc!important; }
+
+/* ── CLOTHES: table ── */
+.clothes-table { width:100%; border-collapse:collapse; font-size:11px; }
+.clothes-table th {
+  font-size:10px; font-weight:500; color:#bbb; text-align:left;
+  padding:8px 6px; border-bottom:1px solid #eee; white-space:nowrap; background:#fff;
+  position:sticky; top:0;
+}
+.clothes-table th:first-child { padding-left:16px; }
+.clothes-table td { color:#555; padding:8px 6px; border-bottom:1px solid #f5f5f5; white-space:nowrap; }
+.clothes-table td:first-child { padding-left:16px; }
+.clothes-table td.wrap { white-space:normal; max-width:100px; }
+.clothes-table tr { cursor:pointer; transition:background 0.15s; }
+.clothes-table tr:active { background:#f8f8f8; }
+
+/* ── OOTD / Life: photo grid ── */
+.grid-controls { padding:10px 20px; display:flex; gap:8px; align-items:center; }
+.grid-controls span { font-size:11px; color:#bbb; }
+.grid-controls button {
+  width:28px; height:28px; border-radius:6px; border:1px solid #e0e0e0;
+  background:#fff; cursor:pointer; font-size:12px; color:#999;
+}
+.grid-controls button.active { background:#1a1a1a; color:#fff; border-color:#1a1a1a; }
+.photo-grid { display:grid; gap:3px; padding:0 3px; }
+.photo-grid.cols-2 { grid-template-columns:1fr 1fr; }
+.photo-grid.cols-3 { grid-template-columns:1fr 1fr 1fr; }
+.photo-grid.cols-4 { grid-template-columns:1fr 1fr 1fr 1fr; }
+.photo-cell { aspect-ratio:1; overflow:hidden; cursor:pointer; background:#f0f0f0; position:relative; }
+.photo-cell img { width:100%; height:100%; object-fit:cover; }
+.photo-cell .photo-label {
+  position:absolute; bottom:0; left:0; right:0;
+  padding:4px 6px; font-size:9px; color:#fff;
+  background:linear-gradient(transparent, rgba(0,0,0,0.5));
+}
+
+/* ── OUTING: blog cards ── */
+.outing-card {
+  background:#fff; border:1px solid #eee; border-radius:10px;
+  margin:12px 20px; overflow:hidden; cursor:pointer; transition:box-shadow 0.2s;
+}
+.outing-card:active { box-shadow:0 1px 6px rgba(0,0,0,0.04); }
+.outing-card img { width:100%; max-height:200px; object-fit:cover; }
+.outing-card .outing-body { padding:14px 16px; }
+.outing-card .outing-date { font-size:11px; color:#bbb; margin-bottom:3px; }
+.outing-card .outing-title { font-size:15px; font-weight:500; margin-bottom:4px; }
+.outing-card .outing-text { font-size:13px; color:#888; line-height:1.5; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+.outing-card .outing-tags { display:flex; gap:5px; margin-top:8px; }
+
+.empty { text-align:center; padding:60px 20px; color:#ccc; }
+.empty p { font-size:13px; margin-bottom:8px; }
+
+.fab {
+  position:fixed; bottom:24px; right:24px; width:48px; height:48px; border-radius:50%;
+  background:#1a1a1a; color:#fff; border:none; font-size:24px; cursor:pointer; z-index:100;
+  display:flex; align-items:center; justify-content:center; box-shadow:0 2px 12px rgba(0,0,0,0.15);
+}
+.fab:active { transform:scale(0.92); }
+
+/* ── Modals ── */
+.modal-bg { position:fixed; inset:0; background:rgba(0,0,0,0.3); z-index:200; display:none; align-items:flex-end; justify-content:center; }
+.modal-bg.show { display:flex; }
+.modal {
+  background:#fff; border-radius:16px 16px 0 0; width:100%; max-width:480px; max-height:85vh;
+  overflow-y:auto; padding:20px; animation:slideUp 0.25s ease-out;
+}
+@keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+.modal h2 { font-size:15px; font-weight:600; margin-bottom:16px; color:#333; }
+.modal label { display:block; font-size:12px; color:#999; margin-bottom:4px; margin-top:12px; }
+.modal input, .modal textarea, .modal select {
+  width:100%; font-size:14px; padding:10px 12px; border:1px solid #e0e0e0; border-radius:8px;
+  font-family:inherit; background:#fff; color:#1a1a1a;
+}
+.modal textarea { height:80px; resize:vertical; }
+.modal .btn-row { display:flex; gap:8px; margin-top:20px; }
+.modal .btn { flex:1; padding:12px; border:none; border-radius:10px; font-size:14px; font-weight:500; cursor:pointer; font-family:inherit; }
+.modal .btn-primary { background:#1a1a1a; color:#fff; }
+.modal .btn-cancel { background:#f0f0f0; color:#666; }
+.modal .img-preview { width:100%; max-height:160px; object-fit:cover; border-radius:8px; margin-top:8px; }
+.modal .file-label {
+  display:inline-block; padding:8px 16px; border:1px dashed #ccc;
+  border-radius:8px; font-size:12px; color:#999; cursor:pointer; text-align:center; width:100%; margin-top:4px;
+}
+.modal .tag-checkboxes { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
+.modal .tag-cb { display:flex; align-items:center; gap:4px; font-size:12px; color:#666; cursor:pointer; }
+.modal .tag-cb input { margin:0; }
+.modal .tag-cb .dot { display:inline-block; width:6px; height:6px; border-radius:50%; }
+.tag-list { margin-top:8px; }
+.tag-row { display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid #f5f5f5; }
+.tag-row .dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.tag-row .tag-name { flex:1; font-size:13px; }
+.tag-row button { font-size:11px; color:#e07; background:none; border:none; cursor:pointer; }
+.add-tag-row { display:flex; gap:8px; margin-top:12px; }
+.add-tag-row input { flex:1; }
+.add-tag-row button { padding:8px 14px; border:1px solid #e0e0e0; border-radius:8px; background:#fff; cursor:pointer; font-size:12px; }
+.color-row { display:flex; gap:6px; margin-top:8px; }
+.color-dot { width:24px; height:24px; border-radius:50%; border:2px solid transparent; cursor:pointer; }
+.color-dot.sel { border-color:#1a1a1a; }
+.detail-content { padding:4px 0; }
+.detail-content .d-date { font-size:11px; color:#bbb; margin-bottom:6px; }
+.detail-content .d-title { font-size:16px; font-weight:500; margin-bottom:6px; }
+.detail-content .d-meta { font-size:12px; color:#999; margin-bottom:6px; }
+.detail-content .d-note { font-size:13px; color:#666; line-height:1.6; margin-bottom:8px; }
+.detail-content img { width:100%; border-radius:8px; margin-bottom:8px; }
+.detail-content .d-tags { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:10px; }
+.detail-content .actions { display:flex; gap:8px; justify-content:flex-end; }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <a class="back" href="index.html">&larr; Home</a>
+  <h1>BJD</h1>
+  <button class="btn-s" onclick="showModal('exportModal')">备份</button>
+</div>
+
+<!-- Filter ABOVE tabs -->
+<div class="filter-bar" id="filterBar"></div>
+
+<div class="tabs">
+  <div class="tab active" data-tab="log" onclick="switchTab('log')">组装日志</div>
+  <div class="tab" data-tab="clothes" onclick="switchTab('clothes')">服装记录</div>
+  <div class="tab" data-tab="ootd" onclick="switchTab('ootd')">OOTD</div>
+  <div class="tab" data-tab="outing" onclick="switchTab('outing')">出游记录</div>
+  <div class="tab" data-tab="life" onclick="switchTab('life')">生活日志</div>
+</div>
+
+<div id="sortBar" class="sort-bar" style="display:none;"></div>
+<div id="gridControls" class="grid-controls" style="display:none;">
+  <span>列数</span>
+  <button onclick="setGridCols(2)" class="active" data-cols="2">2</button>
+  <button onclick="setGridCols(3)" data-cols="3">3</button>
+  <button onclick="setGridCols(4)" data-cols="4">4</button>
+</div>
+
+<div class="content" id="content"></div>
+<button class="fab" onclick="showAddEntry()">+</button>
+
+<!-- Entry Modal -->
+<div class="modal-bg" id="entryModal">
+  <div class="modal">
+    <h2 id="modalTitle">添加记录</h2>
+    <label>日期</label>
+    <input type="date" id="entryDate">
+    <label>标题</label>
+    <input type="text" id="entryTitle" placeholder="简短描述">
+    <div id="extraFields"></div>
+    <label>备注</label>
+    <textarea id="entryNote" placeholder="详细说明（选填）"></textarea>
+    <label>图片</label>
+    <label class="file-label" id="fileLabel">点击选择图片</label>
+    <input type="file" accept="image/*" id="entryImg" onchange="previewImg(this)" style="display:none;">
+    <img id="imgPreview" class="img-preview" style="display:none;">
+    <label>标签</label>
+    <div class="tag-checkboxes" id="tagCheckboxes"></div>
+    <div class="btn-row">
+      <button class="btn btn-cancel" onclick="closeModal('entryModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveEntry()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Tag Manager -->
+<div class="modal-bg" id="tagModal">
+  <div class="modal">
+    <h2>管理标签</h2>
+    <div class="tag-list" id="tagList"></div>
+    <div class="add-tag-row">
+      <input type="text" id="newTagName" placeholder="新标签名称">
+      <button onclick="addTag()">添加</button>
+    </div>
+    <div class="color-row" id="newTagColors"></div>
+    <div class="btn-row"><button class="btn btn-cancel" onclick="closeModal('tagModal')">关闭</button></div>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-bg" id="detailModal">
+  <div class="modal">
+    <div class="detail-content" id="detailContent"></div>
+    <div class="btn-row"><button class="btn btn-cancel" onclick="closeModal('detailModal')">关闭</button></div>
+  </div>
+</div>
+
+<!-- Export/Import -->
+<div class="modal-bg" id="exportModal">
+  <div class="modal">
+    <h2>数据备份</h2>
+    <div style="padding:8px 0;">
+      <button class="btn btn-cancel" style="margin-bottom:8px;width:100%;" onclick="exportData()">导出所有数据</button>
+      <button class="btn btn-cancel" style="width:100%;" onclick="document.getElementById('importFile').click()">从备份导入</button>
+      <input type="file" id="importFile" accept=".json" onchange="importData(this)" style="display:none;">
+      <p style="font-size:11px;color:#bbb;text-align:center;margin-top:12px;">建议定期导出备份</p>
+    </div>
+    <div class="btn-row"><button class="btn btn-cancel" onclick="closeModal('exportModal')">关闭</button></div>
+  </div>
+</div>
+
+<script>
+const COLORS = ['#6B8AFF','#5BA66B','#E8B96A','#D85A30','#D4537E','#888780','#534AB7','#1D9E75','#993C1D'];
+const TAB_LABELS = {log:'组装日志',clothes:'服装记录',ootd:'OOTD',outing:'出游记录',life:'生活日志'};
+const DATE_SORTED = ['log','outing','life']; // always by date
+const MANUAL_SORTED = ['clothes','ootd']; // always manual/custom order
+let db;
+try { db = JSON.parse(localStorage.getItem('bjd_db3')); } catch(e) { db = null; }
+if (!db||!db.tags||!db.entries) db = {tags:[],entries:[]};
+let currentTab = 'log';
+let activeFilter = null;
+let gridCols = 2;
+let editingId = null;
+let sortMode = 'date'; // 'date' or 'manual'
+
+function save() { try{localStorage.setItem('bjd_db3',JSON.stringify(db));}catch(e){} }
+
+// ── Filter bar ──
+function renderFilterBar() {
+  const bar = document.getElementById('filterBar');
+  let h = `<div class="filter-tag ${activeFilter===null?'active':''}" onclick="setFilter(null)">全部</div>`;
+  db.tags.forEach(t => {
+    h += `<div class="filter-tag ${activeFilter===t.id?'active':''}" onclick="setFilter('${t.id}')"><span class="dot" style="background:${t.color}"></span>${t.name}</div>`;
+  });
+  h += `<div class="manage-tags-btn" onclick="showTagManager()">管理 +</div>`;
+  bar.innerHTML = h;
+}
+function setFilter(id) { activeFilter=id; renderFilterBar(); renderEntries(); }
+
+// ── Tag manager ──
+function showTagManager() {
+  renderTagList();
+  const c = document.getElementById('newTagColors'); c.innerHTML='';
+  COLORS.forEach((cl,i) => {
+    const d=document.createElement('div'); d.className='color-dot'+(i===0?' sel':'');
+    d.style.background=cl; d.onclick=()=>{c.querySelectorAll('.color-dot').forEach(x=>x.classList.remove('sel'));d.classList.add('sel');};
+    c.appendChild(d);
+  });
+  showModal('tagModal');
+}
+function renderTagList() {
+  const l=document.getElementById('tagList');
+  if(!db.tags.length){l.innerHTML='<p style="font-size:12px;color:#ccc;padding:8px 0;">还没有标签</p>';return;}
+  l.innerHTML=db.tags.map(t=>`<div class="tag-row"><div class="dot" style="background:${t.color}"></div><div class="tag-name">${t.name}</div><button onclick="deleteTag('${t.id}')">删除</button></div>`).join('');
+}
+function addTag() {
+  const name=document.getElementById('newTagName').value.trim(); if(!name)return;
+  const sc=document.querySelector('#newTagColors .color-dot.sel');
+  db.tags.push({id:'t_'+Date.now(),name,color:sc?sc.style.background:'#888'});
+  document.getElementById('newTagName').value=''; save(); renderTagList(); renderFilterBar();
+}
+function deleteTag(id) {
+  const t=db.tags.find(x=>x.id===id);
+  if(!confirm('删除标签「'+t.name+'」？'))return;
+  db.tags=db.tags.filter(x=>x.id!==id);
+  db.entries.forEach(e=>{e.tagIds=(e.tagIds||[]).filter(x=>x!==id);});
+  if(activeFilter===id)activeFilter=null;
+  save(); renderTagList(); renderFilterBar(); renderEntries();
+}
+
+// ── Entries ──
+function getFiltered() {
+  let entries = db.entries.filter(e=>e.tab===currentTab);
+  if (activeFilter) entries = entries.filter(e=>(e.tagIds||[]).includes(activeFilter));
+  if (MANUAL_SORTED.includes(currentTab)) {
+    entries.sort((a,b)=>(a.order||0)-(b.order||0));
+  } else {
+    entries.sort((a,b)=>b.date.localeCompare(a.date));
+  }
+  return entries;
+}
+
+function renderSortBar() {
+  document.getElementById('sortBar').style.display = 'none';
+}
+
+function renderEntries() {
+  const c = document.getElementById('content');
+  const entries = getFiltered();
+  const showGrid = currentTab==='ootd'||currentTab==='life';
+  document.getElementById('gridControls').style.display = showGrid?'flex':'none';
+  renderSortBar();
+
+  if (!entries.length) {
+    c.innerHTML = `<div class="empty"><p>还没有${TAB_LABELS[currentTab]}</p><p style="font-size:11px;">点右下角 + 添加</p></div>`;
+    return;
+  }
+  if (currentTab==='log') renderLog(c,entries);
+  else if (currentTab==='clothes') renderClothes(c,entries);
+  else if (currentTab==='ootd') renderOotd(c,entries);
+  else if (currentTab==='outing') renderOuting(c,entries);
+  else if (currentTab==='life') renderLife(c,entries);
+}
+
+function tagDots(ids) { return(ids||[]).map(id=>{const t=db.tags.find(x=>x.id===id);return t?`<span class="mini-tag">${t.name}</span>`:''}).join(''); }
+
+// ── LOG ──
+function renderLog(c, entries) {
+  c.innerHTML = entries.map(e=>`
+    <div class="log-item" onclick="toggleLog(this)">
+      <span class="log-date">${e.date}</span>
+      <span class="log-title">${e.title}</span>
+      <span class="log-tags">${tagDots(e.tagIds)}</span>
+    </div>
+    <div class="log-detail" data-id="${e.id}">
+      ${e.note?`<div class="note">${e.note.replace(/\n/g,'<br>')}</div>`:''}
+      ${e.img?`<img src="${e.img}">`:''}
+      <div class="actions">
+        <button onclick="event.stopPropagation();editEntry('${e.id}')">编辑</button>
+        <button class="del" onclick="event.stopPropagation();deleteEntry('${e.id}')">删除</button>
+      </div>
+    </div>`).join('');
+}
+function toggleLog(el) { el.nextElementSibling.classList.toggle('show'); }
+
+// ── CLOTHES ──
+function renderClothes(c, entries) {
+  c.innerHTML = `<div style="overflow-x:auto;"><table class="clothes-table">
+    <thead><tr><th>品牌</th><th>类型</th><th>标题</th><th>色系</th><th>系列</th><th>归属</th></tr></thead>
+    <tbody>${entries.map(e=>`<tr onclick="showDetail('${e.id}')">
+      <td>${e.brand||''}</td>
+      <td>${e.clothesType||''}</td>
+      <td class="wrap" style="color:#333;">${e.title}</td>
+      <td>${e.colorTag||''}</td>
+      <td>${e.series||''}</td>
+      <td>${tagDots(e.tagIds)}</td>
+    </tr>`).join('')}</tbody>
+  </table></div>`;
+}
+
+// ── OOTD ──
+function renderOotd(c, entries) {
+  const withImg = entries.filter(e=>e.img);
+  if(!withImg.length){c.innerHTML='<div class="empty"><p>还没有照片</p></div>';return;}
+  c.innerHTML = `<div class="photo-grid cols-${gridCols}">${withImg.map(e=>
+    `<div class="photo-cell" onclick="showDetail('${e.id}')"><img src="${e.img}"><span class="photo-label">${e.date.slice(5)}</span></div>`
+  ).join('')}</div>`;
+}
+
+// ── LIFE ──
+function renderLife(c, entries) {
+  const withImg = entries.filter(e=>e.img);
+  if(!withImg.length){c.innerHTML='<div class="empty"><p>还没有照片</p></div>';return;}
+  c.innerHTML = `<div class="photo-grid cols-${gridCols}">${withImg.map(e=>
+    `<div class="photo-cell" onclick="showDetail('${e.id}')"><img src="${e.img}"><span class="photo-label">${e.title||e.date.slice(5)}</span></div>`
+  ).join('')}</div>`;
+}
+
+// ── OUTING ──
+function renderOuting(c, entries) {
+  c.innerHTML = entries.map(e=>`
+    <div class="outing-card" onclick="showDetail('${e.id}')">
+      ${e.img?`<img src="${e.img}">`:''}
+      <div class="outing-body">
+        <div class="outing-date">${e.date}</div>
+        <div class="outing-title">${e.title}</div>
+        ${e.note?`<div class="outing-text">${e.note.replace(/\n/g,'<br>')}</div>`:''}
+        <div class="outing-tags">${tagDots(e.tagIds)}</div>
+      </div>
+    </div>`).join('');
+}
+
+function setGridCols(n) {
+  gridCols=n;
+  document.querySelectorAll('.grid-controls button').forEach(b=>b.classList.toggle('active',Number(b.dataset.cols)===n));
+  renderEntries();
+}
+
+// ── Detail ──
+function showDetail(id) {
+  const e=db.entries.find(x=>x.id===id); if(!e)return;
+  const dc=document.getElementById('detailContent');
+  let meta = '';
+  if (e.tab==='clothes') {
+    const parts = [e.brand,e.clothesType,e.colorTag,e.series].filter(Boolean);
+    if (parts.length) meta = `<div class="d-meta">${parts.join(' · ')}</div>`;
+  }
+  dc.innerHTML = `
+    <div class="d-date">${e.date}</div>
+    <div class="d-title">${e.title}</div>
+    ${meta}
+    ${e.note?`<div class="d-note">${e.note.replace(/\n/g,'<br>')}</div>`:''}
+    ${e.img?`<img src="${e.img}">`:''}
+    <div class="d-tags">${tagDots(e.tagIds)}</div>
+    <div class="actions">
+      <button onclick="closeModal('detailModal');editEntry('${e.id}')">编辑</button>
+      <button class="del" onclick="closeModal('detailModal');deleteEntry('${e.id}')">删除</button>
+    </div>`;
+  showModal('detailModal');
+}
+
+// ── Tab ──
+function switchTab(tab) {
+  currentTab=tab; sortMode='date';
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===tab));
+  renderEntries();
+}
+
+// ── Add/Edit ──
+function showAddEntry() {
+  editingId=null;
+  document.getElementById('modalTitle').textContent='添加记录';
+  document.getElementById('entryDate').value=new Date().toISOString().slice(0,10);
+  document.getElementById('entryTitle').value='';
+  document.getElementById('entryNote').value='';
+  document.getElementById('imgPreview').style.display='none';
+  document.getElementById('entryImg').value='';
+  renderExtraFields(currentTab); renderTagCheckboxes([]);
+  showModal('entryModal');
+}
+
+function editEntry(id) {
+  const e=db.entries.find(x=>x.id===id); if(!e)return;
+  editingId=id;
+  document.getElementById('modalTitle').textContent='编辑记录';
+  document.getElementById('entryDate').value=e.date;
+  document.getElementById('entryTitle').value=e.title;
+  document.getElementById('entryNote').value=e.note||'';
+  renderExtraFields(e.tab,e); renderTagCheckboxes(e.tagIds||[]);
+  if(e.img){document.getElementById('imgPreview').src=e.img;document.getElementById('imgPreview').style.display='block';}
+  else{document.getElementById('imgPreview').style.display='none';}
+  showModal('entryModal');
+}
+
+function renderExtraFields(tab, entry) {
+  const ex=document.getElementById('extraFields');
+  if(tab==='clothes'){
+    ex.innerHTML=`
+      <label>品牌</label><input type="text" id="cBrand" placeholder="品牌名" value="${entry&&entry.brand||''}">
+      <label>类型</label><select id="clothesType">
+        <option>上衣</option><option>下装</option><option>外套</option>
+        <option>鞋子</option><option>配饰</option><option>套装</option><option>其他</option>
+      </select>
+      <label>色系</label><input type="text" id="cColor" placeholder="如: 黑白, 蓝色系" value="${entry&&entry.colorTag||''}">
+      <label>系列</label><input type="text" id="cSeries" placeholder="如: 校园风, 正装" value="${entry&&entry.series||''}">`;
+    if(entry&&entry.clothesType) document.getElementById('clothesType').value=entry.clothesType;
+  } else { ex.innerHTML=''; }
+}
+
+function renderTagCheckboxes(selected) {
+  const box=document.getElementById('tagCheckboxes');
+  if(!db.tags.length){box.innerHTML='<span style="font-size:11px;color:#ccc;">先去管理标签创建标签</span>';return;}
+  box.innerHTML=db.tags.map(t=>`<label class="tag-cb"><input type="checkbox" value="${t.id}" ${selected.includes(t.id)?'checked':''}><span class="dot" style="background:${t.color}"></span>${t.name}</label>`).join('');
+}
+
+function previewImg(input) {
+  if(!input.files||!input.files[0])return;
+  const reader=new FileReader();
+  reader.onload=(ev)=>{
+    const img=new Image();
+    img.onload=()=>{
+      const canvas=document.createElement('canvas');
+      const MAX=800; let w=img.width,h=img.height;
+      if(w>MAX||h>MAX){if(w>h){h=h*MAX/w;w=MAX;}else{w=w*MAX/h;h=MAX;}}
+      canvas.width=w;canvas.height=h;canvas.getContext('2d').drawImage(img,0,0,w,h);
+      document.getElementById('imgPreview').src=canvas.toDataURL('image/jpeg',0.7);
+      document.getElementById('imgPreview').style.display='block';
+    };
+    img.src=ev.target.result;
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+function saveEntry() {
+  const date=document.getElementById('entryDate').value;
+  const title=document.getElementById('entryTitle').value.trim();
+  if(!title)return;
+  const note=document.getElementById('entryNote').value;
+  const preview=document.getElementById('imgPreview');
+  const img=preview.style.display!=='none'?preview.src:'';
+  const tagIds=[...document.querySelectorAll('#tagCheckboxes input:checked')].map(x=>x.value);
+  const ct=document.getElementById('clothesType');
+  const brand=document.getElementById('cBrand');
+  const colorTag=document.getElementById('cColor');
+  const series=document.getElementById('cSeries');
+
+  if(editingId) {
+    const e=db.entries.find(x=>x.id===editingId);
+    if(e){
+      e.date=date;e.title=title;e.note=note;e.tagIds=tagIds;
+      if(ct)e.clothesType=ct.value;
+      if(brand)e.brand=brand.value.trim();
+      if(colorTag)e.colorTag=colorTag.value.trim();
+      if(series)e.series=series.value.trim();
+      if(img)e.img=img;
+    }
+  } else {
+    const entry = {id:'e_'+Date.now(),tab:currentTab,date,title,note,img,tagIds,created:new Date().toISOString()};
+    if(ct)entry.clothesType=ct.value;
+    if(brand)entry.brand=brand.value.trim();
+    if(colorTag)entry.colorTag=colorTag.value.trim();
+    if(series)entry.series=series.value.trim();
+    db.entries.push(entry);
+  }
+  save();closeModal('entryModal');renderEntries();
+}
+
+function deleteEntry(id) {
+  if(!confirm('确定删除？'))return;
+  db.entries=db.entries.filter(e=>e.id!==id);
+  save();renderEntries();
+}
+
+// ── Export/Import ──
+function exportData() {
+  const blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`bjd_backup_${new Date().toISOString().slice(0,10)}.json`;a.click();
+}
+function importData(input) {
+  if(!input.files||!input.files[0])return;
+  const reader=new FileReader();
+  reader.onload=(ev)=>{
+    try{
+      const imp=JSON.parse(ev.target.result);
+      if(imp.tags&&imp.entries){if(confirm(`导入 ${imp.tags.length} 标签 ${imp.entries.length} 条记录？`)){db=imp;save();activeFilter=null;renderFilterBar();renderEntries();closeModal('exportModal');}}
+      else alert('格式不对');
+    }catch(e){alert('导入失败');}
+  };
+  reader.readAsText(input.files[0]);
+}
+
+// ── Modal ──
+function showModal(id){document.getElementById(id).classList.add('show');}
+function closeModal(id){document.getElementById(id).classList.remove('show');}
+document.querySelectorAll('.modal-bg').forEach(bg=>{bg.addEventListener('click',e=>{if(e.target===bg)bg.classList.remove('show');});});
+document.getElementById('fileLabel').addEventListener('click',()=>document.getElementById('entryImg').click());
+
+// ── Init ──
+renderFilterBar(); renderEntries();
+</script>
+</body>
+</html>
