@@ -179,8 +179,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 let db;
 try{db=JSON.parse(localStorage.getItem('daily_db'));}catch(e){db=null;}
 if(!db)db={affinity:{neal:0,jane:0},gems:{emerald:0,sapphire:0},signin:{streak:0,lastDate:null,history:[]},pool:[],todayTasks:[],todayDate:null,completedToday:0};
+// Migrate: ensure all pool tasks have unique IDs
+db.pool.forEach((p,i)=>{if(!p.id)p.id='pt_'+Date.now()+'_'+i;});
 let currentTab='tasks';
-let editingPoolIdx=null;
+let editingPoolId=null;
 function save(){try{localStorage.setItem('daily_db',JSON.stringify(db));}catch(e){}}
 
 const today=()=>new Date().toISOString().slice(0,10);
@@ -206,12 +208,13 @@ function initToday(){
 }
 
 function assignTasks(count){
-  const available=db.pool.filter(p=>!db.todayTasks.some(t=>t.poolIdx===db.pool.indexOf(p)&&!t.swapped));
+  const usedIds=new Set(db.todayTasks.filter(t=>!t.swapped).map(t=>t.poolId));
+  const available=db.pool.filter(p=>!usedIds.has(p.id));
   const shuffled=[...available].sort(()=>Math.random()-0.5);
   const toAssign=shuffled.slice(0,Math.min(count,shuffled.length));
   toAssign.forEach(task=>{
     db.todayTasks.push({
-      poolIdx:db.pool.indexOf(task),
+      poolId:task.id,
       content:task.content,
       owner:task.owner,
       affGain:task.affGain||5,
@@ -407,29 +410,24 @@ function completeTask(idx){
 function swapTask(idx){
   const t=db.todayTasks[idx];
   if(t.completed)return;
-  // Deduct affinity
   db.affinity[t.owner]=Math.max(0,db.affinity[t.owner]-t.affCost);
   t.swapped=true;
-  // Assign a new one from pool
-  const usedIdxs=db.todayTasks.filter(x=>!x.swapped).map(x=>x.poolIdx);
-  const available=db.pool.filter((p,i)=>!usedIdxs.includes(i)&&p.owner===t.owner);
+  const usedIds=new Set(db.todayTasks.filter(x=>!x.swapped).map(x=>x.poolId));
+  const available=db.pool.filter(p=>!usedIds.has(p.id)&&p.owner===t.owner);
   if(available.length){
     const newTask=available[Math.floor(Math.random()*available.length)];
-    const newIdx=db.pool.indexOf(newTask);
     db.todayTasks.push({
-      poolIdx:newIdx,content:newTask.content,owner:newTask.owner,
+      poolId:newTask.id,content:newTask.content,owner:newTask.owner,
       affGain:newTask.affGain||5,affCost:newTask.affCost||2,
       gemReward:newTask.gemReward||2,completed:false,swapped:false
     });
   }else{
-    // No more tasks from this owner, try the other
     const otherOwner=t.owner==='neal'?'jane':'neal';
-    const otherAvail=db.pool.filter((p,i)=>!usedIdxs.includes(i)&&p.owner===otherOwner);
+    const otherAvail=db.pool.filter(p=>!usedIds.has(p.id)&&p.owner===otherOwner);
     if(otherAvail.length){
       const newTask=otherAvail[Math.floor(Math.random()*otherAvail.length)];
-      const newIdx=db.pool.indexOf(newTask);
       db.todayTasks.push({
-        poolIdx:newIdx,content:newTask.content,owner:newTask.owner,
+        poolId:newTask.id,content:newTask.content,owner:newTask.owner,
         affGain:newTask.affGain||5,affCost:newTask.affCost||2,
         gemReward:newTask.gemReward||2,completed:false,swapped:false
       });
@@ -443,15 +441,14 @@ function swapTask(idx){
 }
 
 function requestMore(){
-  const usedIdxs=db.todayTasks.filter(x=>!x.swapped).map(x=>x.poolIdx);
-  const available=db.pool.filter((p,i)=>!usedIdxs.includes(i));
+  const usedIds=new Set(db.todayTasks.filter(x=>!x.swapped).map(x=>x.poolId));
+  const available=db.pool.filter(p=>!usedIds.has(p.id));
   if(!available.length){
     alert('任务池里的任务今天都派过了！');return;
   }
   const newTask=available[Math.floor(Math.random()*available.length)];
-  const newIdx=db.pool.indexOf(newTask);
   db.todayTasks.push({
-    poolIdx:newIdx,content:newTask.content,owner:newTask.owner,
+    poolId:newTask.id,content:newTask.content,owner:newTask.owner,
     affGain:newTask.affGain||5,affCost:newTask.affCost||2,
     gemReward:newTask.gemReward||2,completed:false,swapped:false
   });
@@ -477,12 +474,11 @@ function renderPool(c){
         <div class="name" style="color:#6B8AFF">Neal 相关 (${nealPool.length})</div>
       </div>`;
       nealPool.forEach(p=>{
-        const idx=db.pool.indexOf(p);
         html+=`<div class="pool-item">
           <span class="pool-name">${p.content}</span>
           <span class="pool-meta">+${p.affGain} / -${p.affCost} / 💎${p.gemReward}</span>
-          <button onclick="editPoolTask(${idx})">编辑</button>
-          <button onclick="deletePoolTask(${idx})">删除</button>
+          <button onclick="editPoolTask('${p.id}')">编辑</button>
+          <button onclick="deletePoolTask('${p.id}')">删除</button>
         </div>`;
       });
       html+=`</div>`;
@@ -493,12 +489,11 @@ function renderPool(c){
         <div class="name" style="color:#5BA66B">Jane 相关 (${janePool.length})</div>
       </div>`;
       janePool.forEach(p=>{
-        const idx=db.pool.indexOf(p);
         html+=`<div class="pool-item">
           <span class="pool-name">${p.content}</span>
           <span class="pool-meta">+${p.affGain} / -${p.affCost} / 💎${p.gemReward}</span>
-          <button onclick="editPoolTask(${idx})">编辑</button>
-          <button onclick="deletePoolTask(${idx})">删除</button>
+          <button onclick="editPoolTask('${p.id}')">编辑</button>
+          <button onclick="deletePoolTask('${p.id}')">删除</button>
         </div>`;
       });
       html+=`</div>`;
@@ -508,7 +503,7 @@ function renderPool(c){
 }
 
 function showAddTask(){
-  editingPoolIdx=null;
+  editingPoolId=null;
   document.getElementById('taskModalTitle').textContent='添加任务';
   document.getElementById('taskContent').value='';
   document.getElementById('taskOwner').value='neal';
@@ -518,9 +513,9 @@ function showAddTask(){
   showModal('addTaskModal');
 }
 
-function editPoolTask(idx){
-  editingPoolIdx=idx;
-  const p=db.pool[idx];
+function editPoolTask(id){
+  editingPoolId=id;
+  const p=db.pool.find(x=>x.id===id);if(!p)return;
   document.getElementById('taskModalTitle').textContent='编辑任务';
   document.getElementById('taskContent').value=p.content;
   document.getElementById('taskOwner').value=p.owner;
@@ -533,24 +528,33 @@ function editPoolTask(idx){
 function savePoolTask(){
   const content=document.getElementById('taskContent').value.trim();
   if(!content)return;
-  const task={
-    content,
-    owner:document.getElementById('taskOwner').value,
-    affGain:Number(document.getElementById('taskAffGain').value)||5,
-    affCost:Number(document.getElementById('taskAffCost').value)||2,
-    gemReward:Number(document.getElementById('taskGemReward').value)||2
-  };
-  if(editingPoolIdx!==null){
-    db.pool[editingPoolIdx]=task;
+  if(editingPoolId!==null){
+    const p=db.pool.find(x=>x.id===editingPoolId);
+    if(p){
+      p.content=content;
+      p.owner=document.getElementById('taskOwner').value;
+      p.affGain=Number(document.getElementById('taskAffGain').value)||5;
+      p.affCost=Number(document.getElementById('taskAffCost').value)||2;
+      p.gemReward=Number(document.getElementById('taskGemReward').value)||2;
+    }
   }else{
-    db.pool.push(task);
+    db.pool.push({
+      id:'pt_'+Date.now(),
+      content,
+      owner:document.getElementById('taskOwner').value,
+      affGain:Number(document.getElementById('taskAffGain').value)||5,
+      affCost:Number(document.getElementById('taskAffCost').value)||2,
+      gemReward:Number(document.getElementById('taskGemReward').value)||2
+    });
   }
   save();closeModal('addTaskModal');render();
 }
 
-function deletePoolTask(idx){
-  if(!confirm('删除这个任务？'))return;
-  db.pool.splice(idx,1);save();render();
+function deletePoolTask(id){
+  const p=db.pool.find(x=>x.id===id);
+  if(!p||!confirm('删除这个任务？'))return;
+  db.pool=db.pool.filter(x=>x.id!==id);
+  save();render();
 }
 
 // ── Export/Import ──
