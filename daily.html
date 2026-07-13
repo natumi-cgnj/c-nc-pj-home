@@ -181,9 +181,24 @@ try{db=JSON.parse(localStorage.getItem('daily_db'));}catch(e){db=null;}
 if(!db)db={affinity:{neal:0,jane:0},gems:{emerald:0,sapphire:0},signin:{streak:0,lastDate:null,history:[]},pool:[],todayTasks:[],todayDate:null,completedToday:0};
 // Migrate: ensure all pool tasks have unique IDs
 db.pool.forEach((p,i)=>{if(!p.id)p.id='pt_'+Date.now()+'_'+i;});
+
 let currentTab='tasks';
 let editingPoolId=null;
 function save(){try{localStorage.setItem('daily_db',JSON.stringify(db));}catch(e){}}
+
+// ── Shared gem storage (reads/writes gacha_st) ──
+function getGacha(){try{return JSON.parse(localStorage.getItem('gacha_st'))||{emerald:0,sapphire:0};}catch(e){return{emerald:0,sapphire:0};}}
+function saveGacha(g){try{localStorage.setItem('gacha_st',JSON.stringify(g));}catch(e){}}
+function getGems(){const g=getGacha();return{emerald:g.emerald||0,sapphire:g.sapphire||0};}
+function addGemsToGacha(e,s){const g=getGacha();g.emerald=(g.emerald||0)+e;g.sapphire=(g.sapphire||0)+s;saveGacha(g);}
+function addEmerald(n){addGemsToGacha(n,0);}
+function addSapphire(n){addGemsToGacha(0,n);}
+
+// Migrate: move any locally stored gems into gacha shared storage
+if(db.gems&&(db.gems.emerald>0||db.gems.sapphire>0)){
+  addGemsToGacha(db.gems.emerald,db.gems.sapphire);
+  db.gems={emerald:0,sapphire:0};save();
+}
 
 const today=()=>new Date().toISOString().slice(0,10);
 const STREAK_REWARDS=[
@@ -231,8 +246,9 @@ function render(){
   initToday();
   document.getElementById('nealAff').textContent=db.affinity.neal;
   document.getElementById('janeAff').textContent=db.affinity.jane;
-  document.getElementById('gemE').textContent=db.gems.emerald;
-  document.getElementById('gemS').textContent=db.gems.sapphire;
+  const gems=getGems();
+  document.getElementById('gemE').textContent=gems.emerald;
+  document.getElementById('gemS').textContent=gems.sapphire;
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===currentTab));
   const c=document.getElementById('content');
   if(currentTab==='signin')renderSignin(c);
@@ -318,8 +334,7 @@ function doSignin(){
     }
   });
 
-  db.gems.emerald+=totalE;
-  db.gems.sapphire+=totalS;
+  addGemsToGacha(totalE,totalS);
   save();render();
 
   setTimeout(()=>{
@@ -396,8 +411,8 @@ function completeTask(idx){
   if(t.completed)return;
   t.completed=true;
   db.affinity[t.owner]+=t.affGain;
-  if(t.owner==='neal')db.gems.sapphire+=t.gemReward;
-  else db.gems.emerald+=t.gemReward;
+  if(t.owner==='neal')addSapphire(t.gemReward);
+  else addEmerald(t.gemReward);
   db.completedToday++;
   save();render();
   setTimeout(()=>{
