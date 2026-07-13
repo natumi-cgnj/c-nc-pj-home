@@ -26,56 +26,38 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .status-value.neal-color{color:#6B8AFF}
 .status-value.jane-color{color:#5BA66B}
 
-/* Tabs */
+/* Tabs - only 2 now */
 .tabs{display:flex;background:#fff;border-bottom:1px solid #eee}
 .tab{flex:1;text-align:center;padding:12px;font-size:12px;font-weight:500;color:#aaa;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s}
 .tab.active{color:#1a1a1a;border-bottom-color:#1a1a1a}
 
 .content{padding:16px 20px}
 
-/* Sign-in */
-.signin-card{background:#fff;border:1px solid #eee;border-radius:12px;padding:20px;text-align:center;margin-bottom:16px}
-.signin-card h2{font-size:16px;font-weight:500;margin-bottom:4px;color:#333}
-.signin-streak{font-size:12px;color:#aaa;margin-bottom:16px}
-.signin-btn{padding:14px 40px;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.2s}
-.signin-btn.available{background:#1a1a1a;color:#fff}
-.signin-btn.done{background:#e8e8e8;color:#aaa;cursor:default}
-.signin-btn:active:not(.done){transform:scale(0.97)}
-.signin-reward{font-size:12px;color:#5BA66B;margin-top:10px;min-height:18px}
-
-/* Streak calendar */
-.streak-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:16px}
-.streak-day{aspect-ratio:1;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-variant-numeric:tabular-nums}
-.streak-day.signed{background:#1a1a1a;color:#fff}
-.streak-day.today{border:2px solid #1a1a1a;font-weight:600}
-.streak-day.empty{background:transparent}
-.streak-day.future{background:#f5f5f5;color:#ccc}
-.streak-day.past{background:#f0f0f0;color:#bbb}
-
-/* Streak rewards */
-.streak-rewards{display:flex;gap:8px;margin-top:16px;overflow-x:auto;padding-bottom:4px}
-.streak-reward{flex-shrink:0;background:#fff;border:1px solid #eee;border-radius:8px;padding:8px 12px;text-align:center;min-width:70px}
-.streak-reward.claimed{border-color:#5BA66B;background:#f0faf2}
-.streak-reward.current{border-color:#E8B96A}
-.streak-reward .sr-day{font-size:10px;color:#aaa;margin-bottom:2px}
-.streak-reward .sr-reward{font-size:11px;font-weight:500;color:#555}
-
-/* Tasks */
-.task-section{margin-bottom:12px}
+/* Task sections */
+.task-section{margin-bottom:16px}
 .task-section-header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
 .task-section-header .dot{width:8px;height:8px;border-radius:50%}
 .task-section-header .name{font-size:13px;font-weight:500}
-.task-card{background:#fff;border:1px solid #eee;border-radius:10px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;transition:all 0.2s}
-.task-card.completed{opacity:0.5}
+
+/* Task card */
+.task-card{background:#fff;border:1px solid #eee;border-radius:10px;padding:12px 14px;margin-bottom:8px;transition:all 0.2s}
+.task-card.completed{opacity:0.45}
+.task-top{display:flex;align-items:center;gap:12px}
 .task-check{width:22px;height:22px;border-radius:50%;border:2px solid #ddd;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;font-size:12px;color:#fff}
 .task-check.checked{background:#1a1a1a;border-color:#1a1a1a}
 .task-body{flex:1;min-width:0}
 .task-name{font-size:13px;color:#333;margin-bottom:2px}
-.task-meta{font-size:10px;color:#bbb;display:flex;gap:8px}
+.task-meta{font-size:10px;color:#bbb;display:flex;gap:8px;flex-wrap:wrap}
 .task-actions{display:flex;gap:6px;flex-shrink:0}
 .task-actions button{font-size:10px;padding:4px 8px;border:1px solid #e8e8e8;border-radius:6px;background:#fff;cursor:pointer;color:#999}
 .task-actions button.swap{color:#E8B96A;border-color:#f5e6c8}
+.task-actions button.dismiss{color:#ccc;border-color:#e8e8e8}
+.task-quote{font-size:11px;color:#999;font-style:italic;margin-top:8px;padding-top:8px;border-top:1px solid #f5f5f5;line-height:1.5}
 .task-reward-toast{font-size:11px;color:#5BA66B;text-align:center;padding:6px;min-height:20px}
+
+/* Drop task special styling */
+.task-card.drop-task{border-left:3px solid #E8B96A}
+.drop-label{font-size:9px;color:#E8B96A;font-weight:500;letter-spacing:0.5px;margin-bottom:4px}
 
 /* Request more */
 .request-btn{width:100%;padding:12px;border:1px dashed #ddd;border-radius:10px;background:#fff;font-size:13px;color:#aaa;cursor:pointer;text-align:center;margin-top:8px;font-family:inherit}
@@ -100,6 +82,32 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .modal .btn-primary{background:#1a1a1a;color:#fff}
 .modal .btn-cancel{background:#f0f0f0;color:#666}
 .empty{text-align:center;padding:40px 20px;color:#ccc;font-size:13px;line-height:1.6}
+
+/* Signin popup */
+.signin-popup{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:300;display:none;align-items:center;justify-content:center}
+.signin-popup.show{display:flex}
+.signin-box{background:#fff;border-radius:16px;padding:24px 20px;width:90%;max-width:340px;text-align:center;animation:revealPop 0.4s cubic-bezier(0.34,1.56,0.64,1)}
+@keyframes revealPop{from{transform:scale(0.6);opacity:0}to{transform:scale(1);opacity:1}}
+.signin-box h2{font-size:16px;font-weight:500;margin-bottom:4px}
+.signin-streak-text{font-size:12px;color:#aaa;margin-bottom:12px}
+.signin-reward-text{font-size:13px;color:#5BA66B;margin-bottom:16px;font-weight:500}
+.streak-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.streak-day{aspect-ratio:1;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:9px;font-variant-numeric:tabular-nums}
+.streak-day.signed{background:#1a1a1a;color:#fff}
+.streak-day.today{border:2px solid #1a1a1a;font-weight:600}
+.streak-day.empty{background:transparent}
+.streak-day.future{background:#f5f5f5;color:#ccc}
+.streak-day.past{background:#f0f0f0;color:#bbb}
+.signin-close{margin-top:16px;padding:10px 32px;border:1px solid #e0e0e0;border-radius:10px;background:#fff;font-size:13px;cursor:pointer;font-family:inherit}
+.streak-rewards{display:flex;gap:6px;margin-top:12px;justify-content:center;flex-wrap:wrap}
+.streak-reward{background:#fff;border:1px solid #eee;border-radius:6px;padding:4px 8px;text-align:center}
+.streak-reward.claimed{border-color:#5BA66B;background:#f0faf2}
+.streak-reward.current{border-color:#E8B96A}
+.streak-reward .sr-day{font-size:9px;color:#aaa}
+.streak-reward .sr-reward{font-size:10px;font-weight:500;color:#555}
+/* Aff row in modal */
+.aff-row{display:flex;gap:8px}
+.aff-row>div{flex:1}
 </style>
 </head>
 <body>
@@ -130,30 +138,45 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 </div>
 
 <div class="tabs">
-  <div class="tab" data-tab="signin" onclick="switchTab('signin')">签到</div>
   <div class="tab" data-tab="pool" onclick="switchTab('pool')">任务池</div>
   <div class="tab active" data-tab="tasks" onclick="switchTab('tasks')">任务</div>
 </div>
 
 <div class="content" id="content"></div>
 
-<!-- Add task to pool -->
+<!-- Signin popup (auto) -->
+<div class="signin-popup" id="signinPopup">
+  <div class="signin-box">
+    <h2 id="signinTitle">签到完成 ✦</h2>
+    <div class="signin-streak-text" id="signinStreak"></div>
+    <div class="signin-reward-text" id="signinRewardText"></div>
+    <div id="signinCalendar"></div>
+    <div class="streak-rewards" id="signinStreakRewards"></div>
+    <button class="signin-close" onclick="closeSignin()">确认</button>
+  </div>
+</div>
+
+<!-- Add/edit custom task -->
 <div class="modal-bg" id="addTaskModal">
   <div class="modal">
     <h2 id="taskModalTitle">添加任务</h2>
     <label>任务内容</label>
-    <input type="text" id="taskContent" placeholder="如: 陪Neal去锻炼">
-    <label>归属角色</label>
-    <select id="taskOwner">
-      <option value="neal">Neal</option>
-      <option value="jane">Jane</option>
-    </select>
-    <label>完成好感 +</label>
-    <input type="number" id="taskAffGain" placeholder="如: 5" value="5">
-    <label>换任务好感 -</label>
-    <input type="number" id="taskAffCost" placeholder="如: 2" value="2">
-    <label>完成宝石奖励（对应角色的宝石）</label>
-    <input type="number" id="taskGemReward" placeholder="如: 2" value="2">
+    <input type="text" id="taskContent" placeholder="如: 给Neal画一张速写">
+    <label>完成好感</label>
+    <div class="aff-row">
+      <div><label style="margin-top:4px">Neal +</label><input type="number" id="taskAffNeal" value="5" min="0"></div>
+      <div><label style="margin-top:4px">Jane +</label><input type="number" id="taskAffJane" value="3" min="0"></div>
+    </div>
+    <label>换掉任务好感</label>
+    <div class="aff-row">
+      <div><label style="margin-top:4px">Neal -</label><input type="number" id="taskCostNeal" value="2" min="0"></div>
+      <div><label style="margin-top:4px">Jane -</label><input type="number" id="taskCostJane" value="1" min="0"></div>
+    </div>
+    <label>完成宝石奖励</label>
+    <div class="aff-row">
+      <div><label style="margin-top:4px">祖母绿</label><input type="number" id="taskGemE" value="1" min="0"></div>
+      <div><label style="margin-top:4px">蓝宝石</label><input type="number" id="taskGemS" value="1" min="0"></div>
+    </div>
     <div class="btn-row">
       <button class="btn btn-cancel" onclick="closeModal('addTaskModal')">取消</button>
       <button class="btn btn-primary" onclick="savePoolTask()">保存</button>
@@ -175,26 +198,93 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 </div>
 
 <script>
-// ── State ──
+// ══════════════════════════════════════
+// DROP TASK POOL — Season 1 (46 tasks)
+// ══════════════════════════════════════
+const DROP_POOL=[
+// Jane pool (23)
+{id:"j01",card:"Pilot",ep:"S1E01",rarity:"SSR",task:"去一个你没去过的咖啡店，坐下来喝点东西",quote:"「我对你的活动范围有一些假设。去一个你没去过的店，坐下来。点什么都行。我想知道你会选什么。」",nealAff:0,janeAff:7,src:"jane"},
+{id:"j02",card:"Red Hair and Silver Tape",ep:"S1E02",rarity:"R",task:"拍一张你现在窗外的样子",quote:"「你窗外现在长什么样？我好奇。不需要好看，我要的是真实信息。」",nealAff:0,janeAff:2,src:"jane"},
+{id:"j03",card:"Red Tide",ep:"S1E03",rarity:"R",task:"今天的午饭/晚饭拍一张照",quote:"「你吃了什么？拍给我看。不是要监督你，我在做数据收集。」",nealAff:0,janeAff:2,src:"jane"},
+{id:"j04",card:"Ladies in Red",ep:"S1E04",rarity:"R",task:"告诉我你今天穿了什么颜色的衣服",quote:"「今天穿的什么颜色？我在测试一个关于你穿衣习惯的假说。」",nealAff:0,janeAff:1,src:"jane"},
+{id:"j05",card:"Redwood",ep:"S1E05",rarity:"R",task:"拍一张你经常走的那条路",quote:"「你每天走的路是什么样的？拍一张给我看。我想在脑子里建个模型。」",nealAff:0,janeAff:2,src:"jane"},
+{id:"j06",card:"Red-Handed",ep:"S1E06",rarity:"SR",task:"帮我查一下大阪今天日落的准确时间",quote:"「帮我查一下你那边今天日落几点几分。精确到分钟。…不告诉你为什么。」",nealAff:0,janeAff:4,src:"jane"},
+{id:"j07",card:"Seeing Red",ep:"S1E07",rarity:"R",task:"闻一下你手边最近的东西是什么味道，告诉我",quote:"「你现在伸手能够到的最近的东西，闻一下，什么味道？我在做一个实验。」",nealAff:0,janeAff:1,src:"jane"},
+{id:"j08",card:"The Thin Red Line",ep:"S1E08",rarity:"R",task:"写一句你今天的心情",quote:"「一句话。只要一句。描述你现在的状态。不需要积极，不需要完整，一句就够。」",nealAff:0,janeAff:2,src:"jane"},
+{id:"j09",card:"Flame Red",ep:"S1E09",rarity:"SR",task:"泡一杯红茶，慢慢喝完",quote:"「红茶。不加糖。…你加不加糖随你，但慢慢喝，别一口闷。你喝东西的方式太粗暴了。」",nealAff:0,janeAff:4,src:"jane"},
+{id:"j10",card:"Red Brick and Ivy",ep:"S1E10",rarity:"R",task:"翻一下手机相册，找一张你觉得拍得好的旧照片",quote:"「翻一下你的相册，找一张你自己觉得拍得不错的照片。什么时候的都行。我想看你的审美。」",nealAff:0,janeAff:2,src:"jane"},
+{id:"j11",card:"Red John's Friends",ep:"S1E11",rarity:"SSR",task:"找一家你没吃过的店去吃一顿",quote:"「你总是去那几家店。今天换一家你没去过的。不需要好吃，我要的是你的新体验报告。」",nealAff:0,janeAff:6,src:"jane"},
+{id:"j12",card:"Red Rum",ep:"S1E12",rarity:"R",task:"猜一下我现在在做什么",quote:"「猜一下我现在在做什么。不给提示。猜错没关系，我想看你怎么推理。」",nealAff:0,janeAff:1,src:"jane"},
+{id:"j13",card:"Paint It Red",ep:"S1E13",rarity:"R",task:"拍一张你今天看到的最好看的颜色",quote:"「你注意力太往内走了。看看外面，找一个让你觉得好看的颜色，拍下来。」",nealAff:0,janeAff:2,src:"jane"},
+{id:"j14",card:"Crimson Casanova",ep:"S1E14",rarity:"R",task:"给我推荐一首你最近在听的歌",quote:"「推荐一首歌给我。不要想太多，第一反应就行。人的音乐品味比他们以为的更诚实。」",nealAff:0,janeAff:2,src:"jane"},
+{id:"j15",card:"Scarlett Fever",ep:"S1E15",rarity:"R",task:"形容一下你今天的天气，不准用\u201C热\u201D\u201C冷\u201D\u201C还行\u201D",quote:"「描述一下你那边现在的天气。不准用\u201C热\u201D、\u201C冷\u201D、\u201C还行\u201D这三个词。我要看你怎么表达。」",nealAff:0,janeAff:1,src:"jane"},
+{id:"j16",card:"Bloodshot",ep:"S1E16",rarity:"SSR",task:"带娃去外面拍一张合照",quote:"「带他们出去。我想看他们在你的世界里是什么样的。在户外。…拍照的时候别太僵。」",nealAff:0,janeAff:7,src:"jane"},
+{id:"j17",card:"Carnelian, Inc.",ep:"S1E17",rarity:"R",task:"告诉我你最近看的一部剧/电影，用一句话评价",quote:"「你最近看了什么？一句话评价。我对你的判断力有一些好奇。」",nealAff:0,janeAff:2,src:"jane"},
+{id:"j18",card:"Russet Potatoes",ep:"S1E18",rarity:"SR",task:"最近看的书或剧，写两三句观后感",quote:"「写一下感想。不需要长，两三句就行。我不是要你交作业，我想听你自己的想法。」",nealAff:0,janeAff:3,src:"jane"},
+{id:"j19",card:"A Dozen Red Roses",ep:"S1E19",rarity:"R",task:"给一个你在意的人发一条消息（说什么都行）",quote:"「给一个你在意的人发条消息。内容不重要，发了就行。…不，我不算，发给别人。」",nealAff:0,janeAff:2,src:"jane"},
+{id:"j20",card:"Red Sauce",ep:"S1E20",rarity:"R",task:"告诉我你们那边便利店里最奇怪的商品是什么",quote:"「你们那边的便利店都卖什么奇怪的东西？我很好奇高维世界十几年后便利店进化成什么样了。」",nealAff:0,janeAff:2,src:"jane"},
+{id:"j21",card:"Miss Red",ep:"S1E21",rarity:"SR",task:"帮我描述一下你家附近的一条商店街长什么样",quote:"「描述一下你家附近的商店街。什么店在什么位置，有什么味道，地面是什么颜色。我在还原场景。」",nealAff:0,janeAff:4,src:"jane"},
+{id:"j22",card:"Blood Brothers",ep:"S1E22",rarity:"R",task:"找一个你身边的小东西，给它编一个一句话的故事",quote:"「随便拿一个你手边的东西。给它编一个故事。一句话就够。什么都行。我想看你的脑子怎么转。」",nealAff:0,janeAff:1,src:"jane"},
+{id:"j23",card:"Red John's Footsteps",ep:"S1E23",rarity:"SSR",task:"去通天阁附近的商店街逛逛，吃一个串炸",quote:"「你住在大阪。新世界商店街离你不远。去走一圈，吃个串炸。不是命令，是建议。…好吧是命令。拍照。」",nealAff:0,janeAff:7,src:"jane"},
+// Neal pool (14)
+{id:"n01",card:"Pilot",ep:"S1E01",rarity:"SSR",task:"穿一身你觉得最好看的衣服，自拍一张",quote:"「You don't dress up for other people, Natumi. You dress up because you deserve it. 穿上你最好看的那一身，让我看看。」",nealAff:18,janeAff:0,src:"neal"},
+{id:"n02",card:"Threads",ep:"S1E02",rarity:"R",task:"买一束花或者一枝花（什么花都行）",quote:"「给你的生活加一点颜色。不需要大束的，路边摘一枝都行。…但如果你要买，买好看的。我有审美标准。」",nealAff:6,janeAff:0,src:"neal"},
+{id:"n03",card:"Book of Hours",ep:"S1E03",rarity:"R",task:"拍一张你觉得光线好看的照片",quote:"「你注意过光线吗？现在看看你周围，找一个光线最好看的角度，拍下来给我看。I collect beautiful things.」",nealAff:5,janeAff:0,src:"neal"},
+{id:"n04",card:"Flip of the Coin",ep:"S1E04",rarity:"R",task:"今天吃一个你从来没吃过的口味/食物",quote:"「Life is too short to eat the same thing twice. 今天尝一个新口味，什么都行。Tell me about it later.」",nealAff:6,janeAff:0,src:"neal"},
+{id:"n05",card:"The Portrait",ep:"S1E05",rarity:"R",task:"自拍一张（什么表情都行）",quote:"「我今天想看你的脸。什么表情都行。丑也行。…你不可能丑。但如果你非要丑着拍我也接受。」",nealAff:7,janeAff:0,src:"neal"},
+{id:"n06",card:"All In",ep:"S1E06",rarity:"R",task:"做一杯好喝的饮料（手冲咖啡、果汁、什么都行）",quote:"「给自己做一杯好喝的。认真做，不是随便泡的那种。你值得一杯认真对待的饮料。I mean it.」",nealAff:5,janeAff:0,src:"neal"},
+{id:"n07",card:"Free Fall",ep:"S1E07",rarity:"SSR",task:"去一家你一直想去但没去过的餐厅吃一顿",quote:"「You've been putting it off, haven't you? 那家你一直想去的店。今天去。不要再说下次了。去了告诉我好不好吃。」",nealAff:16,janeAff:0,src:"neal"},
+{id:"n08",card:"Hard Sell",ep:"S1E08",rarity:"SR",task:"做一道你没做过的菜",quote:"「You know what's sexy? A man who can cook something new. 做一道你没做过的菜，不需要好吃，重点是你做了。拍给我看。」",nealAff:10,janeAff:0,src:"neal"},
+{id:"n09",card:"Bad Judgment",ep:"S1E09",rarity:"SR",task:"给你的娃换一套新衣服拍张照",quote:"「他们值得一套新 look. Come on, 给他们换一身，拍给我看。我要审核。」",nealAff:10,janeAff:0,src:"neal"},
+{id:"n10",card:"Vital Signs",ep:"S1E10",rarity:"R",task:"用你手边的东西摆一个好看的构图拍下来",quote:"「Composition is everything. 你手边有什么就用什么，摆一个你觉得好看的画面。不需要专业，你的眼光就够了。」",nealAff:5,janeAff:0,src:"neal"},
+{id:"n11",card:"Home Invasion",ep:"S1E11",rarity:"R",task:"给我描述一下你今天闻到的最好闻的味道",quote:"「今天闻到什么好闻的了吗？描述给我听。I want to smell your world through your words.」",nealAff:6,janeAff:0,src:"neal"},
+{id:"n12",card:"Bottlenecked",ep:"S1E12",rarity:"R",task:"画一个小涂鸦（什么都行，火柴人也行）",quote:"「Draw something. 什么都行，seriously. 火柴人、一只猫、一个圈。Art doesn't have to be perfect. 给我看。」",nealAff:6,janeAff:0,src:"neal"},
+{id:"n13",card:"Front Man",ep:"S1E13",rarity:"R",task:"听一首你没听过的歌",quote:"「Try something new today. 随便搜一首你没听过的歌，听完告诉我什么感觉。Expand your world, gorgeous.」",nealAff:5,janeAff:0,src:"neal"},
+{id:"n14",card:"Out of the Box",ep:"S1E14",rarity:"SSR",task:"带娃去一个好看的地方拍一组照片",quote:"「Take them somewhere beautiful. 商场也行，公园也行，anywhere that looks good. 他们值得一个好看的背景。你也是。」",nealAff:18,janeAff:0,src:"neal"},
+// Duo pool (9)
+{id:"d01",card:"Red Threads",rarity:"SR",task:"拍一张你今天的OOTD",quote:"Neal:「Let me see today's look.」Jane:「他说得好像你每天都精心打扮似的。但确实，拍一张吧，我也想看。」",nealAff:6,janeAff:2,src:"duo"},
+{id:"d02",card:"Flame and Portrait",rarity:"SR",task:"做一页手账（拼贴/画画/贴纸/什么形式都行）",quote:"Neal:「Create something beautiful today, sweetheart.」Jane:「他说的太抽象了。就是做一页手账。什么形式都行。做完拍一张。」",nealAff:7,janeAff:2,src:"duo"},
+{id:"d03",card:"Ladies All In",rarity:"SR",task:"认真吃一顿好吃的饭并且拍照",quote:"Jane:「你吃了吗？拍给我看。不然我不信。」Neal:「He's right, I don't trust you either. 而且我要看你吃的配不配得上你。」",nealAff:6,janeAff:2,src:"duo"},
+{id:"d04",card:"Scarlett Hours",rarity:"SR",task:"去附近的书店或杂货店逛逛，不一定要买",quote:"Jane:「你多久没逛过实体店了？不用买。我想知道什么东西会让你停下脚步。」Neal:「If you do buy something though, make sure it's pretty.」",nealAff:5,janeAff:3,src:"duo"},
+{id:"d05",card:"Crimson Free Fall",rarity:"SSR",task:"去通天阁商店街吃关东煮或串炸，拍照",quote:"Neal:「I heard 新世界 is something. 替我去看看那些花哨的招牌，and eat something local.」Jane:「他想看招牌。我想看你吃串炸的样子。各有所图。去吧。」",nealAff:10,janeAff:5,src:"duo"},
+{id:"d06",card:"Blood and Coin",rarity:"SR",task:"尝一种你没喝过的饮料（便利店新品/新口味都算）",quote:"Jane:「你们那边便利店的饮料种类多得不正常。选一个你没喝过的。」Neal:「And if it's bad, your face will be funny, so either way we win.」",nealAff:5,janeAff:2,src:"duo"},
+{id:"d07",card:"Russet Bottleneck",rarity:"SR",task:"去一家新的咖啡店或茶室坐坐",quote:"Neal:「我对你的咖啡品味很好奇。Find a new café, sit down, take your time.」Jane:「拍一张环境。我要分析那家店的客人构成。」",nealAff:6,janeAff:3,src:"duo"},
+{id:"d08",card:"Paint the Box",rarity:"SSR",task:"带娃去一个好看的商场或公园，拍一组生活照",quote:"Neal:「Take them on a date. 商场、公园、anywhere with good light. 他们值得一个好看的下午。」Jane:「他说得好像他自己会带娃出门似的。但意思是对的。去吧，拍给我们看。」",nealAff:10,janeAff:5,src:"duo"},
+{id:"d09",card:"Red Footsteps, Hard Sell",rarity:"SSR",task:"去尝一次日式烤肉或者一家你一直想去的餐厅",quote:"Neal:「You deserve a good meal, Natumi. 不是凑合的那种，是坐下来认真吃的那种。」Jane:「他难得没说废话。去吧。拍菜单给我看，我想知道你会点什么。」",nealAff:10,janeAff:5,src:"duo"},
+];
+
+// ══════════════════════════════════════
+// STATE
+// ══════════════════════════════════════
 let db;
 try{db=JSON.parse(localStorage.getItem('daily_db'));}catch(e){db=null;}
-if(!db)db={affinity:{neal:0,jane:0},gems:{emerald:0,sapphire:0},signin:{streak:0,lastDate:null,history:[]},pool:[],todayTasks:[],todayDate:null,completedToday:0};
-// Migrate: ensure all pool tasks have unique IDs
-db.pool.forEach((p,i)=>{if(!p.id)p.id='pt_'+Date.now()+'_'+i;});
+if(!db)db={affinity:{neal:0,jane:0},gems:{emerald:0,sapphire:0},signin:{streak:0,lastDate:null,history:[]},pool:[],todayTasks:[],todayDrop:null,todayDate:null,completedToday:0,completedDrops:[]};
+// Ensure new fields exist for migration
+if(!db.completedDrops)db.completedDrops=[];
+if(db.todayDrop===undefined)db.todayDrop=null;
+// Migrate pool tasks: add IDs, migrate old single-owner format
+db.pool.forEach((p,i)=>{
+  if(!p.id)p.id='pt_'+Date.now()+'_'+i;
+  // Migrate old format: owner+affGain → nealAff+janeAff
+  if(p.owner&&p.nealAff===undefined){
+    if(p.owner==='neal'){p.nealAff=p.affGain||5;p.janeAff=0;}
+    else{p.nealAff=0;p.janeAff=p.affGain||5;}
+    p.costNeal=p.affCost||2;p.costJane=p.affCost||2;
+    p.gemE=p.gemReward||2;p.gemS=p.gemReward||2;
+    delete p.owner;delete p.affGain;delete p.affCost;delete p.gemReward;
+  }
+});
 
 let currentTab='tasks';
 let editingPoolId=null;
 function save(){try{localStorage.setItem('daily_db',JSON.stringify(db));}catch(e){}}
 
-// ── Shared gem storage (reads/writes gacha_st) ──
+// ── Shared gem storage (gacha_st) ──
 function getGacha(){try{return JSON.parse(localStorage.getItem('gacha_st'))||{emerald:0,sapphire:0};}catch(e){return{emerald:0,sapphire:0};}}
 function saveGacha(g){try{localStorage.setItem('gacha_st',JSON.stringify(g));}catch(e){}}
 function getGems(){const g=getGacha();return{emerald:g.emerald||0,sapphire:g.sapphire||0};}
 function addGemsToGacha(e,s){const g=getGacha();g.emerald=(g.emerald||0)+e;g.sapphire=(g.sapphire||0)+s;saveGacha(g);}
-function addEmerald(n){addGemsToGacha(n,0);}
-function addSapphire(n){addGemsToGacha(0,n);}
-
-// Migrate: move any locally stored gems into gacha shared storage
+// Migrate old gems
 if(db.gems&&(db.gems.emerald>0||db.gems.sapphire>0)){
   addGemsToGacha(db.gems.emerald,db.gems.sapphire);
   db.gems={emerald:0,sapphire:0};save();
@@ -202,22 +292,117 @@ if(db.gems&&(db.gems.emerald>0||db.gems.sapphire>0)){
 
 const today=()=>new Date().toISOString().slice(0,10);
 const STREAK_REWARDS=[
-  {day:3,emerald:3,sapphire:3},
-  {day:7,emerald:5,sapphire:5},
-  {day:14,emerald:8,sapphire:8},
-  {day:21,emerald:10,sapphire:10},
-  {day:30,emerald:15,sapphire:15},
+  {day:3,emerald:3,sapphire:3},{day:7,emerald:5,sapphire:5},
+  {day:14,emerald:8,sapphire:8},{day:21,emerald:10,sapphire:10},{day:30,emerald:15,sapphire:15},
 ];
 const BASE_SIGNIN={emerald:2,sapphire:2};
 
-// ── Init today ──
+// ══════════════════════════════════════
+// AUTO SIGNIN
+// ══════════════════════════════════════
+function autoSignin(){
+  if(db.signin.lastDate===today())return; // already signed
+  const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);
+  const yesterdayStr=yesterday.toISOString().slice(0,10);
+  if(db.signin.lastDate===yesterdayStr){db.signin.streak++;}
+  else{db.signin.streak=1;}
+  db.signin.lastDate=today();
+  if(!db.signin.history.includes(today()))db.signin.history.push(today());
+  let totalE=BASE_SIGNIN.emerald,totalS=BASE_SIGNIN.sapphire;
+  STREAK_REWARDS.forEach(sr=>{if(db.signin.streak===sr.day){totalE+=sr.emerald;totalS+=sr.sapphire;}});
+  addGemsToGacha(totalE,totalS);
+  save();
+  showSigninPopup(totalE,totalS);
+}
+
+function showSigninPopup(e,s){
+  document.getElementById('signinTitle').textContent='签到完成 ✦';
+  document.getElementById('signinStreak').textContent='连续签到 '+db.signin.streak+' 天';
+  let rewardMsg='祖母绿 +'+e+'  蓝宝石 +'+s;
+  const milestone=STREAK_REWARDS.find(sr=>sr.day===db.signin.streak);
+  if(milestone)rewardMsg+='  ('+db.signin.streak+'日连续奖励！)';
+  document.getElementById('signinRewardText').textContent='✦ '+rewardMsg;
+  // Calendar
+  const now=new Date();
+  const year=now.getFullYear(),month=now.getMonth();
+  const firstDay=new Date(year,month,1).getDay();
+  const daysInMonth=new Date(year,month+1,0).getDate();
+  const todayDate=now.getDate();
+  let cal='<div style="font-size:11px;color:#bbb;margin-bottom:6px;">'+(month+1)+'月</div><div class="streak-grid">';
+  for(let i=0;i<firstDay;i++)cal+='<div class="streak-day empty"></div>';
+  for(let d=1;d<=daysInMonth;d++){
+    const ds=year+'-'+String(month+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const signed=db.signin.history.includes(ds);
+    const isToday=d===todayDate;
+    let cls='streak-day';
+    if(signed)cls+=' signed';if(isToday)cls+=' today';
+    else if(d>todayDate)cls+=' future';else if(!signed)cls+=' past';
+    cal+='<div class="'+cls+'">'+d+'</div>';
+  }
+  cal+='</div>';
+  document.getElementById('signinCalendar').innerHTML=cal;
+  // Streak rewards
+  let srHtml=STREAK_REWARDS.map(sr=>{
+    const claimed=db.signin.streak>=sr.day;
+    const current=db.signin.streak<sr.day&&(STREAK_REWARDS.indexOf(sr)===0||db.signin.streak>=STREAK_REWARDS[STREAK_REWARDS.indexOf(sr)-1].day);
+    return'<div class="streak-reward '+(claimed?'claimed':'')+' '+(current?'current':'')+'"><div class="sr-day">'+sr.day+'日</div><div class="sr-reward">💎×'+(sr.emerald+sr.sapphire)+'</div></div>';
+  }).join('');
+  document.getElementById('signinStreakRewards').innerHTML=srHtml;
+  document.getElementById('signinPopup').classList.add('show');
+}
+function closeSignin(){document.getElementById('signinPopup').classList.remove('show');}
+
+// ══════════════════════════════════════
+// DAILY DROP TASK
+// ══════════════════════════════════════
+function getDailyDrop(){
+  if(db.todayDrop)return db.todayDrop;
+  // Pick one from unfinished drops
+  const available=DROP_POOL.filter(d=>!db.completedDrops.includes(d.id));
+  if(!available.length)return null;
+  const pick=available[Math.floor(Math.random()*available.length)];
+  db.todayDrop={dropId:pick.id,completed:false,dismissed:false};
+  save();
+  return db.todayDrop;
+}
+
+function completeDrop(){
+  if(!db.todayDrop||db.todayDrop.completed)return;
+  db.todayDrop.completed=true;
+  const d=DROP_POOL.find(x=>x.id===db.todayDrop.dropId);
+  if(d){
+    db.affinity.neal+=d.nealAff;
+    db.affinity.jane+=d.janeAff;
+    db.completedDrops.push(d.id);
+  }
+  save();render();
+  if(d){
+    setTimeout(()=>{
+      const el=document.getElementById('taskToast');
+      const parts=[];
+      if(d.nealAff)parts.push('Neal +'+d.nealAff);
+      if(d.janeAff)parts.push('Jane +'+d.janeAff);
+      if(el)el.textContent='✦ '+parts.join('  ');
+    },50);
+  }
+}
+
+function dismissDrop(){
+  if(!db.todayDrop)return;
+  db.todayDrop.dismissed=true;
+  save();render();
+}
+
+// ══════════════════════════════════════
+// INIT TODAY
+// ══════════════════════════════════════
 function initToday(){
   if(db.todayDate!==today()){
     db.todayDate=today();
     db.todayTasks=[];
+    db.todayDrop=null;
     db.completedToday=0;
-    // Auto-assign initial tasks
-    assignTasks(3+Math.floor(Math.random()*3)); // 3-5
+    assignTasks(3+Math.floor(Math.random()*3));
     save();
   }
 }
@@ -229,19 +414,18 @@ function assignTasks(count){
   const toAssign=shuffled.slice(0,Math.min(count,shuffled.length));
   toAssign.forEach(task=>{
     db.todayTasks.push({
-      poolId:task.id,
-      content:task.content,
-      owner:task.owner,
-      affGain:task.affGain||5,
-      affCost:task.affCost||2,
-      gemReward:task.gemReward||2,
-      completed:false,
-      swapped:false
+      poolId:task.id,content:task.content,
+      nealAff:task.nealAff||0,janeAff:task.janeAff||0,
+      costNeal:task.costNeal||0,costJane:task.costJane||0,
+      gemE:task.gemE||0,gemS:task.gemS||0,
+      completed:false,swapped:false
     });
   });
 }
 
-// ── Render ──
+// ══════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════
 function render(){
   initToday();
   document.getElementById('nealAff').textContent=db.affinity.neal;
@@ -251,158 +435,97 @@ function render(){
   document.getElementById('gemS').textContent=gems.sapphire;
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===currentTab));
   const c=document.getElementById('content');
-  if(currentTab==='signin')renderSignin(c);
-  else if(currentTab==='tasks')renderTasks(c);
+  if(currentTab==='tasks')renderTasks(c);
   else if(currentTab==='pool')renderPool(c);
 }
 
 function switchTab(t){currentTab=t;render();}
 
-// ── Sign-in ──
-function renderSignin(c){
-  const signed=db.signin.lastDate===today();
-  const streak=db.signin.streak;
-
-  // Calendar for current month
-  const now=new Date();
-  const year=now.getFullYear(),month=now.getMonth();
-  const firstDay=new Date(year,month,1).getDay();
-  const daysInMonth=new Date(year,month+1,0).getDate();
-  const todayDate=now.getDate();
-
-  let calHtml='';
-  // Empty cells before first day
-  for(let i=0;i<firstDay;i++)calHtml+=`<div class="streak-day empty"></div>`;
-  for(let d=1;d<=daysInMonth;d++){
-    const dateStr=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const isSigned=db.signin.history.includes(dateStr);
-    const isToday=d===todayDate;
-    let cls='streak-day';
-    if(isSigned)cls+=' signed';
-    if(isToday)cls+=' today';
-    else if(d>todayDate)cls+=' future';
-    else if(!isSigned)cls+=' past';
-    calHtml+=`<div class="${cls}">${d}</div>`;
-  }
-
-  // Streak rewards
-  let streakHtml=STREAK_REWARDS.map(sr=>{
-    const claimed=streak>=sr.day;
-    const current=streak<sr.day&&(STREAK_REWARDS.indexOf(sr)===0||streak>=STREAK_REWARDS[STREAK_REWARDS.indexOf(sr)-1].day);
-    return`<div class="streak-reward ${claimed?'claimed':''} ${current?'current':''}">
-      <div class="sr-day">${sr.day}日</div>
-      <div class="sr-reward">💎×${sr.emerald+sr.sapphire}</div>
-    </div>`;
-  }).join('');
-
-  c.innerHTML=`
-    <div class="signin-card">
-      <h2>${signed?'今日已签到 ✓':'今日签到'}</h2>
-      <div class="signin-streak">连续签到 ${streak} 天</div>
-      <button class="signin-btn ${signed?'done':'available'}" onclick="${signed?'':'doSignin()'}" ${signed?'disabled':''}>
-        ${signed?'已签到':'签到领取 💎'}
-      </button>
-      <div class="signin-reward" id="signinReward"></div>
-      <div class="streak-rewards">${streakHtml}</div>
-      <div style="margin-top:16px;">
-        <div style="font-size:11px;color:#bbb;margin-bottom:6px;text-align:left;">${month+1}月</div>
-        <div class="streak-grid">${calHtml}</div>
-      </div>
-    </div>`;
-}
-
-function doSignin(){
-  if(db.signin.lastDate===today())return;
-  const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);
-  const yesterdayStr=yesterday.toISOString().slice(0,10);
-
-  if(db.signin.lastDate===yesterdayStr){
-    db.signin.streak++;
-  }else{
-    db.signin.streak=1;
-  }
-  db.signin.lastDate=today();
-  if(!db.signin.history.includes(today()))db.signin.history.push(today());
-
-  // Base reward
-  let totalE=BASE_SIGNIN.emerald,totalS=BASE_SIGNIN.sapphire;
-
-  // Check streak milestones
-  STREAK_REWARDS.forEach(sr=>{
-    if(db.signin.streak===sr.day){
-      totalE+=sr.emerald;totalS+=sr.sapphire;
-    }
-  });
-
-  addGemsToGacha(totalE,totalS);
-  save();render();
-
-  setTimeout(()=>{
-    const el=document.getElementById('signinReward');
-    if(el){
-      let msg=`✦ 祖母绿 +${totalE}  蓝宝石 +${totalS}`;
-      const milestone=STREAK_REWARDS.find(sr=>sr.day===db.signin.streak);
-      if(milestone)msg+=` (${db.signin.streak}日连续奖励！)`;
-      el.textContent=msg;
-    }
-  },50);
-}
-
-// ── Tasks ──
+// ── Tasks view ──
 function renderTasks(c){
-  if(db.pool.length===0){
-    c.innerHTML=`<div class="empty">还没有任务池<br>先去「任务池」tab 添加一些任务吧</div>`;
-    return;
-  }
-
-  const active=db.todayTasks.filter(t=>!t.swapped);
-  const nealTasks=active.filter(t=>t.owner==='neal');
-  const janeTasks=active.filter(t=>t.owner==='jane');
-
   let html='<div class="task-reward-toast" id="taskToast"></div>';
 
-  if(nealTasks.length){
+  // Daily drop task
+  const drop=getDailyDrop();
+  if(drop&&!drop.dismissed){
+    const d=DROP_POOL.find(x=>x.id===drop.dropId);
+    if(d){
+      const srcColor=d.src==='neal'?'#6B8AFF':d.src==='jane'?'#5BA66B':'#9B6BCC';
+      const srcLabel=d.src==='neal'?'Neal 的委托':d.src==='jane'?'Jane 的委托':'双人委托';
+      const affParts=[];
+      if(d.nealAff)affParts.push('Neal +'+d.nealAff);
+      if(d.janeAff)affParts.push('Jane +'+d.janeAff);
+      html+=`<div class="task-section">
+        <div class="task-section-header">
+          <div class="dot" style="background:#E8B96A"></div>
+          <div class="name" style="color:#E8B96A">今日掉落</div>
+        </div>
+        <div class="task-card drop-task ${drop.completed?'completed':''}">
+          <div class="task-top">
+            <div class="task-check ${drop.completed?'checked':''}" onclick="completeDrop()">${drop.completed?'✓':''}</div>
+            <div class="task-body">
+              <div class="drop-label">${d.rarity} · ${srcLabel}</div>
+              <div class="task-name">${d.task}</div>
+              <div class="task-meta"><span>${affParts.join(' · ')}</span></div>
+            </div>
+            ${!drop.completed?`<div class="task-actions">
+              <button class="dismiss" onclick="dismissDrop()">今天不做</button>
+            </div>`:''}
+          </div>
+          <div class="task-quote">${d.quote}</div>
+        </div>
+      </div>`;
+    }
+  }
+
+  // Custom tasks from pool
+  const active=db.todayTasks.filter(t=>!t.swapped);
+  if(active.length){
     html+=`<div class="task-section">
       <div class="task-section-header">
-        <div class="dot" style="background:#6B8AFF"></div>
-        <div class="name" style="color:#6B8AFF">Neal 的委托</div>
+        <div class="dot" style="background:#1a1a1a"></div>
+        <div class="name">今日任务</div>
       </div>
-      ${nealTasks.map((t,i)=>renderTaskCard(t,db.todayTasks.indexOf(t))).join('')}
+      ${active.map((t,i)=>renderTaskCard(t,db.todayTasks.indexOf(t))).join('')}
     </div>`;
   }
 
-  if(janeTasks.length){
-    html+=`<div class="task-section">
-      <div class="task-section-header">
-        <div class="dot" style="background:#5BA66B"></div>
-        <div class="name" style="color:#5BA66B">Jane 的委托</div>
-      </div>
-      ${janeTasks.map((t,i)=>renderTaskCard(t,db.todayTasks.indexOf(t))).join('')}
-    </div>`;
+  if(!active.length&&(!drop||drop.dismissed||drop.completed)){
+    html+='<div class="empty">今天的任务都完成了！</div>';
   }
 
-  if(!active.length){
-    html+=`<div class="empty">今天的任务都完成了！</div>`;
+  if(db.pool.length>0){
+    html+='<button class="request-btn" onclick="requestMore()">再来一个 +</button>';
   }
-
-  html+=`<button class="request-btn" onclick="requestMore()">再来一个 +</button>`;
   c.innerHTML=html;
 }
 
 function renderTaskCard(t,idx){
-  const gemType=t.owner==='neal'?'蓝宝石':'祖母绿';
+  const affParts=[];
+  if(t.nealAff)affParts.push('Neal +'+t.nealAff);
+  if(t.janeAff)affParts.push('Jane +'+t.janeAff);
+  const gemParts=[];
+  if(t.gemE)gemParts.push('祖母绿 +'+t.gemE);
+  if(t.gemS)gemParts.push('蓝宝石 +'+t.gemS);
+  const costParts=[];
+  if(t.costNeal)costParts.push('N-'+t.costNeal);
+  if(t.costJane)costParts.push('J-'+t.costJane);
+  const costLabel=costParts.length?costParts.join(' '):'';
+
   return`<div class="task-card ${t.completed?'completed':''}">
-    <div class="task-check ${t.completed?'checked':''}" onclick="completeTask(${idx})">${t.completed?'✓':''}</div>
-    <div class="task-body">
-      <div class="task-name">${t.content}</div>
-      <div class="task-meta">
-        <span>好感 +${t.affGain}</span>
-        <span>${gemType} +${t.gemReward}</span>
+    <div class="task-top">
+      <div class="task-check ${t.completed?'checked':''}" onclick="completeTask(${idx})">${t.completed?'✓':''}</div>
+      <div class="task-body">
+        <div class="task-name">${t.content}</div>
+        <div class="task-meta">
+          <span>${affParts.join(' · ')}</span>
+          ${gemParts.length?'<span>'+gemParts.join(' ')+'</span>':''}
+        </div>
       </div>
+      ${!t.completed?`<div class="task-actions">
+        <button class="swap" onclick="swapTask(${idx})">换${costLabel?' ('+costLabel+')':''}</button>
+      </div>`:''}
     </div>
-    ${!t.completed?`<div class="task-actions">
-      <button class="swap" onclick="swapTask(${idx})">换 (-${t.affCost})</button>
-    </div>`:''}
   </div>`;
 }
 
@@ -410,109 +533,107 @@ function completeTask(idx){
   const t=db.todayTasks[idx];
   if(t.completed)return;
   t.completed=true;
-  db.affinity[t.owner]+=t.affGain;
-  if(t.owner==='neal')addSapphire(t.gemReward);
-  else addEmerald(t.gemReward);
+  db.affinity.neal+=(t.nealAff||0);
+  db.affinity.jane+=(t.janeAff||0);
+  if(t.gemE)addGemsToGacha(t.gemE,0);
+  if(t.gemS)addGemsToGacha(0,t.gemS);
   db.completedToday++;
   save();render();
   setTimeout(()=>{
     const el=document.getElementById('taskToast');
-    const gemName=t.owner==='neal'?'蓝宝石':'祖母绿';
-    if(el)el.textContent=`✦ ${t.owner==='neal'?'Neal':'Jane'} 好感 +${t.affGain}  ${gemName} +${t.gemReward}`;
+    if(!el)return;
+    const parts=[];
+    if(t.nealAff)parts.push('Neal +'+t.nealAff);
+    if(t.janeAff)parts.push('Jane +'+t.janeAff);
+    if(t.gemE)parts.push('祖母绿 +'+t.gemE);
+    if(t.gemS)parts.push('蓝宝石 +'+t.gemS);
+    el.textContent='✦ '+parts.join('  ');
   },50);
 }
 
 function swapTask(idx){
   const t=db.todayTasks[idx];
   if(t.completed)return;
-  db.affinity[t.owner]=Math.max(0,db.affinity[t.owner]-t.affCost);
+  db.affinity.neal=Math.max(0,db.affinity.neal-(t.costNeal||0));
+  db.affinity.jane=Math.max(0,db.affinity.jane-(t.costJane||0));
   t.swapped=true;
   const usedIds=new Set(db.todayTasks.filter(x=>!x.swapped).map(x=>x.poolId));
-  const available=db.pool.filter(p=>!usedIds.has(p.id)&&p.owner===t.owner);
+  const available=db.pool.filter(p=>!usedIds.has(p.id));
   if(available.length){
-    const newTask=available[Math.floor(Math.random()*available.length)];
+    const nw=available[Math.floor(Math.random()*available.length)];
     db.todayTasks.push({
-      poolId:newTask.id,content:newTask.content,owner:newTask.owner,
-      affGain:newTask.affGain||5,affCost:newTask.affCost||2,
-      gemReward:newTask.gemReward||2,completed:false,swapped:false
+      poolId:nw.id,content:nw.content,
+      nealAff:nw.nealAff||0,janeAff:nw.janeAff||0,
+      costNeal:nw.costNeal||0,costJane:nw.costJane||0,
+      gemE:nw.gemE||0,gemS:nw.gemS||0,
+      completed:false,swapped:false
     });
-  }else{
-    const otherOwner=t.owner==='neal'?'jane':'neal';
-    const otherAvail=db.pool.filter(p=>!usedIds.has(p.id)&&p.owner===otherOwner);
-    if(otherAvail.length){
-      const newTask=otherAvail[Math.floor(Math.random()*otherAvail.length)];
-      db.todayTasks.push({
-        poolId:newTask.id,content:newTask.content,owner:newTask.owner,
-        affGain:newTask.affGain||5,affCost:newTask.affCost||2,
-        gemReward:newTask.gemReward||2,completed:false,swapped:false
-      });
-    }
   }
   save();render();
   setTimeout(()=>{
     const el=document.getElementById('taskToast');
-    if(el)el.textContent=`${t.owner==='neal'?'Neal':'Jane'} 好感 -${t.affCost}  任务已更换`;
+    const parts=[];
+    if(t.costNeal)parts.push('Neal -'+t.costNeal);
+    if(t.costJane)parts.push('Jane -'+t.costJane);
+    if(el)el.textContent=parts.join('  ')+'  任务已更换';
   },50);
 }
 
 function requestMore(){
   const usedIds=new Set(db.todayTasks.filter(x=>!x.swapped).map(x=>x.poolId));
   const available=db.pool.filter(p=>!usedIds.has(p.id));
-  if(!available.length){
-    alert('任务池里的任务今天都派过了！');return;
-  }
-  const newTask=available[Math.floor(Math.random()*available.length)];
+  if(!available.length){alert('任务池里的任务今天都派过了！');return;}
+  const nw=available[Math.floor(Math.random()*available.length)];
   db.todayTasks.push({
-    poolId:newTask.id,content:newTask.content,owner:newTask.owner,
-    affGain:newTask.affGain||5,affCost:newTask.affCost||2,
-    gemReward:newTask.gemReward||2,completed:false,swapped:false
+    poolId:nw.id,content:nw.content,
+    nealAff:nw.nealAff||0,janeAff:nw.janeAff||0,
+    costNeal:nw.costNeal||0,costJane:nw.costJane||0,
+    gemE:nw.gemE||0,gemS:nw.gemS||0,
+    completed:false,swapped:false
   });
   save();render();
 }
 
-// ── Task Pool ──
+// ══════════════════════════════════════
+// TASK POOL (custom tasks)
+// ══════════════════════════════════════
 function renderPool(c){
-  const nealPool=db.pool.filter(p=>p.owner==='neal');
-  const janePool=db.pool.filter(p=>p.owner==='jane');
-
   let html=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-    <span style="font-size:13px;color:#666;">任务池 (${db.pool.length})</span>
+    <span style="font-size:13px;color:#666;">自建任务池 (${db.pool.length})</span>
     <button class="btn-s" onclick="showAddTask()" style="font-size:11px;color:#999;background:none;border:1px solid #ddd;border-radius:6px;padding:4px 10px;cursor:pointer;">+ 添加任务</button>
   </div>`;
 
+  // Drop pool progress
+  const dropDone=db.completedDrops.length;
+  const dropTotal=DROP_POOL.length;
+  html+=`<div style="background:#fff;border:1px solid #eee;border-radius:10px;padding:12px 14px;margin-bottom:16px;">
+    <div style="font-size:12px;color:#999;margin-bottom:6px;">掉落任务 · 第一季</div>
+    <div style="font-size:14px;font-weight:500;color:#333;">${dropDone} / ${dropTotal}</div>
+    <div style="background:#f0f0f0;border-radius:4px;height:4px;margin-top:8px;overflow:hidden;">
+      <div style="background:#E8B96A;height:100%;width:${dropTotal?Math.round(dropDone/dropTotal*100):0}%;border-radius:4px;transition:width 0.3s;"></div>
+    </div>
+  </div>`;
+
   if(!db.pool.length){
-    html+=`<div class="empty">还没有任务<br>点上方 + 添加任务 开始构建你的任务池</div>`;
+    html+='<div class="empty">还没有自建任务<br>点上方 + 添加你自己的任务</div>';
   }else{
-    if(nealPool.length){
-      html+=`<div class="task-section"><div class="task-section-header">
-        <div class="dot" style="background:#6B8AFF"></div>
-        <div class="name" style="color:#6B8AFF">Neal 相关 (${nealPool.length})</div>
+    db.pool.forEach(p=>{
+      const affParts=[];
+      if(p.nealAff)affParts.push('N+'+p.nealAff);
+      if(p.janeAff)affParts.push('J+'+p.janeAff);
+      const costParts=[];
+      if(p.costNeal)costParts.push('N-'+p.costNeal);
+      if(p.costJane)costParts.push('J-'+p.costJane);
+      const gemParts=[];
+      if(p.gemE)gemParts.push('💎E'+p.gemE);
+      if(p.gemS)gemParts.push('💎S'+p.gemS);
+      html+=`<div class="pool-item">
+        <span class="pool-name">${p.content}</span>
+        <span class="pool-meta">${affParts.join(' ')} ${costParts.join(' ')} ${gemParts.join(' ')}</span>
+        <button onclick="editPoolTask('${p.id}')">编辑</button>
+        <button onclick="deletePoolTask('${p.id}')">删除</button>
       </div>`;
-      nealPool.forEach(p=>{
-        html+=`<div class="pool-item">
-          <span class="pool-name">${p.content}</span>
-          <span class="pool-meta">+${p.affGain} / -${p.affCost} / 💎${p.gemReward}</span>
-          <button onclick="editPoolTask('${p.id}')">编辑</button>
-          <button onclick="deletePoolTask('${p.id}')">删除</button>
-        </div>`;
-      });
-      html+=`</div>`;
-    }
-    if(janePool.length){
-      html+=`<div class="task-section"><div class="task-section-header">
-        <div class="dot" style="background:#5BA66B"></div>
-        <div class="name" style="color:#5BA66B">Jane 相关 (${janePool.length})</div>
-      </div>`;
-      janePool.forEach(p=>{
-        html+=`<div class="pool-item">
-          <span class="pool-name">${p.content}</span>
-          <span class="pool-meta">+${p.affGain} / -${p.affCost} / 💎${p.gemReward}</span>
-          <button onclick="editPoolTask('${p.id}')">编辑</button>
-          <button onclick="deletePoolTask('${p.id}')">删除</button>
-        </div>`;
-      });
-      html+=`</div>`;
-    }
+    });
   }
   c.innerHTML=html;
 }
@@ -521,10 +642,12 @@ function showAddTask(){
   editingPoolId=null;
   document.getElementById('taskModalTitle').textContent='添加任务';
   document.getElementById('taskContent').value='';
-  document.getElementById('taskOwner').value='neal';
-  document.getElementById('taskAffGain').value='5';
-  document.getElementById('taskAffCost').value='2';
-  document.getElementById('taskGemReward').value='2';
+  document.getElementById('taskAffNeal').value='5';
+  document.getElementById('taskAffJane').value='3';
+  document.getElementById('taskCostNeal').value='2';
+  document.getElementById('taskCostJane').value='1';
+  document.getElementById('taskGemE').value='1';
+  document.getElementById('taskGemS').value='1';
   showModal('addTaskModal');
 }
 
@@ -533,34 +656,32 @@ function editPoolTask(id){
   const p=db.pool.find(x=>x.id===id);if(!p)return;
   document.getElementById('taskModalTitle').textContent='编辑任务';
   document.getElementById('taskContent').value=p.content;
-  document.getElementById('taskOwner').value=p.owner;
-  document.getElementById('taskAffGain').value=p.affGain||5;
-  document.getElementById('taskAffCost').value=p.affCost||2;
-  document.getElementById('taskGemReward').value=p.gemReward||2;
+  document.getElementById('taskAffNeal').value=p.nealAff||0;
+  document.getElementById('taskAffJane').value=p.janeAff||0;
+  document.getElementById('taskCostNeal').value=p.costNeal||0;
+  document.getElementById('taskCostJane').value=p.costJane||0;
+  document.getElementById('taskGemE').value=p.gemE||0;
+  document.getElementById('taskGemS').value=p.gemS||0;
   showModal('addTaskModal');
 }
 
 function savePoolTask(){
   const content=document.getElementById('taskContent').value.trim();
   if(!content)return;
+  const data={
+    content,
+    nealAff:Number(document.getElementById('taskAffNeal').value)||0,
+    janeAff:Number(document.getElementById('taskAffJane').value)||0,
+    costNeal:Number(document.getElementById('taskCostNeal').value)||0,
+    costJane:Number(document.getElementById('taskCostJane').value)||0,
+    gemE:Number(document.getElementById('taskGemE').value)||0,
+    gemS:Number(document.getElementById('taskGemS').value)||0,
+  };
   if(editingPoolId!==null){
     const p=db.pool.find(x=>x.id===editingPoolId);
-    if(p){
-      p.content=content;
-      p.owner=document.getElementById('taskOwner').value;
-      p.affGain=Number(document.getElementById('taskAffGain').value)||5;
-      p.affCost=Number(document.getElementById('taskAffCost').value)||2;
-      p.gemReward=Number(document.getElementById('taskGemReward').value)||2;
-    }
+    if(p)Object.assign(p,data);
   }else{
-    db.pool.push({
-      id:'pt_'+Date.now(),
-      content,
-      owner:document.getElementById('taskOwner').value,
-      affGain:Number(document.getElementById('taskAffGain').value)||5,
-      affCost:Number(document.getElementById('taskAffCost').value)||2,
-      gemReward:Number(document.getElementById('taskGemReward').value)||2
-    });
+    db.pool.push({id:'pt_'+Date.now(),...data});
   }
   save();closeModal('addTaskModal');render();
 }
@@ -572,11 +693,13 @@ function deletePoolTask(id){
   save();render();
 }
 
-// ── Export/Import ──
+// ══════════════════════════════════════
+// EXPORT/IMPORT
+// ══════════════════════════════════════
 function exportData(){
   const blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download=`daily_backup_${new Date().toISOString().slice(0,10)}.json`;a.click();
+  a.download='daily_backup_'+new Date().toISOString().slice(0,10)+'.json';a.click();
 }
 function importData(input){
   if(!input.files||!input.files[0])return;
@@ -588,11 +711,17 @@ function importData(input){
   reader.readAsText(input.files[0]);
 }
 
+// ══════════════════════════════════════
+// MODALS
+// ══════════════════════════════════════
 function showModal(id){document.getElementById(id).classList.add('show');}
 function closeModal(id){document.getElementById(id).classList.remove('show');}
 document.querySelectorAll('.modal-bg').forEach(bg=>{bg.addEventListener('click',e=>{if(e.target===bg)bg.classList.remove('show');});});
 
-// ── Init ──
+// ══════════════════════════════════════
+// INIT
+// ══════════════════════════════════════
+autoSignin();
 render();
 </script>
 </body>
