@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Backup">
+<title>Backup</title>
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="apple-touch-icon.png">
+<link rel="icon" href="favicon.ico">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;background:#FAFAFA;color:#1a1a1a;min-height:100vh;min-height:100dvh}
+
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;padding-top:24px;border-bottom:1px solid #eee;background:#fff;position:sticky;top:0;z-index:50}
+.top-bar h1{font-size:15px;font-weight:600;letter-spacing:1px;color:#666}
+.top-bar .back{font-size:13px;color:#999;text-decoration:none}
+
+.content{padding:20px;max-width:400px;margin:0 auto}
+
+.section{margin-bottom:24px}
+.section-title{font-size:12px;font-weight:500;color:#999;letter-spacing:0.5px;margin-bottom:10px;padding-left:2px}
+
+.card{background:#fff;border:1px solid #eee;border-radius:10px;padding:16px;margin-bottom:8px}
+
+.system-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f5f5f5}
+.system-row:last-child{border-bottom:none}
+.system-info{display:flex;align-items:center;gap:10px}
+.system-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.system-name{font-size:13px;font-weight:500;color:#333}
+.system-status{font-size:11px;color:#bbb}
+.system-size{font-size:11px;color:#ccc;font-variant-numeric:tabular-nums}
+
+.action-btn{width:100%;padding:14px;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;transition:all 0.2s;border:none;letter-spacing:0.3px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:8px}
+.action-btn:active{transform:scale(0.98)}
+
+.btn-export{background:#1a1a1a;color:#fff}
+.btn-export:hover{background:#333}
+.btn-import{background:#fff;color:#333;border:1px solid #ddd}
+.btn-import:hover{background:#f8f8f8}
+
+.hint{font-size:11px;color:#bbb;text-align:center;line-height:1.6;margin-top:4px;padding:0 8px}
+
+.last-backup{font-size:11px;color:#999;text-align:center;margin-bottom:16px;padding:8px;background:#fff;border-radius:8px;border:1px solid #f0f0f0}
+
+/* Toast */
+.toast{position:fixed;bottom:20%;left:50%;transform:translateX(-50%) translateY(10px);background:rgba(0,0,0,0.8);color:#fff;padding:12px 24px;border-radius:10px;font-size:13px;font-weight:500;opacity:0;pointer-events:none;transition:all 0.3s ease;white-space:nowrap;z-index:100}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.success{background:rgba(91,166,107,0.9)}
+.toast.error{background:rgba(216,90,48,0.9)}
+
+/* Confirm overlay */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;z-index:200;padding:20px}
+.overlay.show{display:flex}
+.confirm-box{background:#fff;border-radius:14px;padding:24px;max-width:320px;width:100%;text-align:center}
+.confirm-title{font-size:15px;font-weight:600;color:#333;margin-bottom:8px}
+.confirm-msg{font-size:12px;color:#999;line-height:1.6;margin-bottom:20px}
+.confirm-msg strong{color:#D85A30;font-weight:500}
+.confirm-btns{display:flex;gap:8px}
+.confirm-btns button{flex:1;padding:12px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all 0.2s}
+.confirm-btns button:active{transform:scale(0.97)}
+.cbtn-cancel{background:#f5f5f5;color:#999}
+.cbtn-danger{background:#D85A30;color:#fff}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <a class="back" href="index.html">&larr; 主页</a>
+  <h1>数据备份</h1>
+  <span style="width:36px"></span>
+</div>
+
+<div class="content">
+
+  <div id="lastBackup" class="last-backup" style="display:none"></div>
+
+  <div class="section">
+    <div class="section-title">系统数据概况</div>
+    <div class="card" id="systemList"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">备份操作</div>
+    <button class="action-btn btn-export" onclick="exportAll()">&#8681; 导出全部数据</button>
+    <button class="action-btn btn-import" onclick="document.getElementById('importFile').click()">&#8679; 从备份文件恢复</button>
+    <input type="file" id="importFile" accept=".json" onchange="handleImport(this)" style="display:none">
+    <p class="hint">导出的 JSON 文件包含所有系统数据。<br>换浏览器或清缓存前请务必备份。</p>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-title">确认恢复数据？</div>
+    <div class="confirm-msg" id="confirmMsg"></div>
+    <div class="confirm-btns">
+      <button class="cbtn-cancel" onclick="hideConfirm()">取消</button>
+      <button class="cbtn-danger" onclick="doImport()">覆盖恢复</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SYSTEMS = [
+  {key:'daily_db',  name:'日常系统',  color:'#E8B96A', desc:function(d){
+    if(!d) return '无数据';
+    const a=d.affinity||{neal:0,jane:0};
+    const parts=[];
+    parts.push('Neal\u2764'+a.neal+' Jane\u2764'+a.jane);
+    if(d.signin&&d.signin.streak) parts.push('\u8FDE\u7B7E'+d.signin.streak+'\u5929');
+    return parts.join(' \u00B7 ');
+  }},
+  {key:'gacha_st',  name:'抽卡系统',  color:'#B388FF', desc:function(d){
+    if(!d) return '无数据';
+    const parts=[];
+    parts.push('\u7FE0\u7FE1'+((d.emerald||0))+' \u84DD\u5B9D'+(d.sapphire||0));
+    if(d.owned) parts.push(d.owned.length+'\u5F20\u5361');
+    return parts.join(' \u00B7 ');
+  }},
+  {key:'story_db',  name:'剧情系统',  color:'#9C6ADE', desc:function(d){
+    if(!d) return '无数据';
+    const eps=d.completedEps||[];
+    return eps.length>0 ? '\u5DF2\u5B8C\u6210'+eps.length+'\u6BB5' : '\u672A\u5F00\u59CB';
+  }},
+  {key:'bjd_db3',   name:'BJD 系统',  color:'#6B8AFF', desc:function(d){
+    if(!d) return '无数据';
+    const n=(d.entries||[]).length;
+    return n>0 ? n+'\u6761\u8BB0\u5F55' : '\u65E0\u8BB0\u5F55';
+  }},
+  {key:'techo_db2', name:'手账系统',  color:'#5BA66B', desc:function(d){
+    if(!d) return '无数据';
+    const n=(d.entries||[]).length;
+    return n>0 ? n+'\u6761\u8BB0\u5F55' : '\u65E0\u8BB0\u5F55';
+  }}
+];
+
+function getData(key){
+  try{const v=localStorage.getItem(key);return v?JSON.parse(v):null;}catch(e){return null;}
+}
+
+function getSize(key){
+  const v=localStorage.getItem(key);
+  if(!v) return '-';
+  const bytes=new Blob([v]).size;
+  if(bytes<1024) return bytes+'B';
+  return (bytes/1024).toFixed(1)+'KB';
+}
+
+function renderSystems(){
+  const el=document.getElementById('systemList');
+  el.innerHTML=SYSTEMS.map(s=>{
+    const d=getData(s.key);
+    const status=s.desc(d);
+    const size=getSize(s.key);
+    return '<div class="system-row">'+
+      '<div class="system-info">'+
+        '<div class="system-dot" style="background:'+s.color+'"></div>'+
+        '<div><div class="system-name">'+s.name+'</div>'+
+        '<div class="system-status">'+status+'</div></div>'+
+      '</div>'+
+      '<div class="system-size">'+size+'</div>'+
+    '</div>';
+  }).join('');
+}
+
+function showLastBackup(){
+  const el=document.getElementById('lastBackup');
+  const t=localStorage.getItem('last_backup_time');
+  if(t){
+    const d=new Date(parseInt(t));
+    const m=d.getMonth()+1, day=d.getDate(), h=d.getHours(), min=d.getMinutes().toString().padStart(2,'0');
+    el.textContent='\u4E0A\u6B21\u5907\u4EFD\uFF1A'+m+'\u6708'+day+'\u65E5 '+h+':'+min;
+    el.style.display='block';
+  }
+}
+
+function exportAll(){
+  const backup={
+    _meta:{
+      app:'Liminal Space',
+      version:1,
+      exportTime:new Date().toISOString(),
+      keys:SYSTEMS.map(s=>s.key)
+    }
+  };
+  SYSTEMS.forEach(s=>{
+    const d=getData(s.key);
+    if(d) backup[s.key]=d;
+  });
+
+  const json=JSON.stringify(backup,null,2);
+  const blob=new Blob([json],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const now=new Date();
+  const stamp=now.getFullYear()+
+    String(now.getMonth()+1).padStart(2,'0')+
+    String(now.getDate()).padStart(2,'0')+'_'+
+    String(now.getHours()).padStart(2,'0')+
+    String(now.getMinutes()).padStart(2,'0');
+  a.href=url;
+  a.download='liminal_backup_'+stamp+'.json';
+  a.click();
+  URL.revokeObjectURL(url);
+
+  localStorage.setItem('last_backup_time',String(Date.now()));
+  showLastBackup();
+  showToast('\u2705 \u5907\u4EFD\u6587\u4EF6\u5DF2\u4FDD\u5B58','success');
+}
+
+let pendingData=null;
+
+function handleImport(input){
+  const file=input.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const data=JSON.parse(e.target.result);
+      if(!data._meta||data._meta.app!=='Liminal Space'){
+        showToast('\u274C \u8FD9\u4E0D\u662F Liminal Space \u7684\u5907\u4EFD\u6587\u4EF6','error');
+        input.value='';
+        return;
+      }
+      pendingData=data;
+      const keys=SYSTEMS.filter(s=>data[s.key]).map(s=>s.name);
+      const time=data._meta.exportTime?new Date(data._meta.exportTime).toLocaleString('zh-CN'):'未知时间';
+      document.getElementById('confirmMsg').innerHTML=
+        '\u5907\u4EFD\u65F6\u95F4\uFF1A'+time+'<br>'+
+        '\u5305\u542B\uFF1A'+keys.join('\u3001')+'<br><br>'+
+        '<strong>\u6062\u590D\u5C06\u8986\u76D6\u5F53\u524D\u6240\u6709\u6570\u636E\uFF0C\u4E14\u65E0\u6CD5\u64A4\u9500\u3002</strong>';
+      showConfirm();
+    }catch(err){
+      showToast('\u274C \u6587\u4EF6\u683C\u5F0F\u9519\u8BEF','error');
+    }
+    input.value='';
+  };
+  reader.readAsText(file);
+}
+
+function doImport(){
+  if(!pendingData) return;
+  SYSTEMS.forEach(s=>{
+    if(pendingData[s.key]){
+      try{localStorage.setItem(s.key,JSON.stringify(pendingData[s.key]));}catch(e){}
+    }
+  });
+  pendingData=null;
+  hideConfirm();
+  renderSystems();
+  showToast('\u2705 \u6570\u636E\u5DF2\u6062\u590D','success');
+}
+
+function showConfirm(){document.getElementById('confirmOverlay').classList.add('show');}
+function hideConfirm(){document.getElementById('confirmOverlay').classList.remove('show');pendingData=null;}
+
+let toastTimer;
+function showToast(msg,type){
+  const el=document.getElementById('toast');
+  el.textContent=msg;
+  el.className='toast '+(type||'')+' show';
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>el.classList.remove('show'),2500);
+}
+
+renderSystems();
+showLastBackup();
+</script>
+</body>
+</html>

@@ -321,6 +321,47 @@
     letter-spacing: 0.3px;
   }
 
+  /* ── Drawer ── */
+  .drawer-wrap {
+    width: 100%;
+    max-width: 360px;
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .drawer-handle {
+    width: 32px;
+    height: 4px;
+    border-radius: 2px;
+    background: #ddd;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .drawer-handle:hover { background: #ccc; }
+
+  .drawer-tray {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+    opacity: 0;
+    width: 100%;
+  }
+
+  .drawer-tray.open {
+    max-height: 80px;
+    opacity: 1;
+  }
+
+  .drawer-items {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    padding: 10px 0 2px;
+  }
+
 
   .room-char {
     height: 110px;
@@ -438,22 +479,38 @@
 <div class="tooltip" id="tooltip"></div>
 
 <div class="shortcuts">
-  <a class="shortcut" href="bjd.html">
-    <div class="shortcut-icon">✦</div>
-    <div class="shortcut-label">BJD 系统</div>
-  </a>
-  <a class="shortcut" href="techo.html">
-    <div class="shortcut-icon">✎</div>
-    <div class="shortcut-label">手账系统</div>
+  <a class="shortcut" href="daily.html">
+    <div class="shortcut-icon">☀</div>
+    <div class="shortcut-label">日常</div>
   </a>
   <a class="shortcut" href="gacha.html">
     <div class="shortcut-icon">💎</div>
     <div class="shortcut-label">抽卡</div>
   </a>
-  <a class="shortcut" href="daily.html">
-    <div class="shortcut-icon">☀</div>
-    <div class="shortcut-label">日常</div>
+  <a class="shortcut" href="story.html">
+    <div class="shortcut-icon">📖</div>
+    <div class="shortcut-label">剧情</div>
   </a>
+</div>
+
+<div class="drawer-wrap">
+  <div class="drawer-handle" id="drawerHandle"></div>
+  <div class="drawer-tray" id="drawerTray">
+    <div class="drawer-items">
+      <a class="shortcut" href="bjd.html">
+        <div class="shortcut-icon">✦</div>
+        <div class="shortcut-label">BJD</div>
+      </a>
+      <a class="shortcut" href="techo.html">
+        <div class="shortcut-icon">✎</div>
+        <div class="shortcut-label">手账</div>
+      </a>
+      <a class="shortcut" href="backup.html">
+        <div class="shortcut-icon">☁</div>
+        <div class="shortcut-label">备份</div>
+      </a>
+    </div>
+  </div>
 </div>
 
 <div class="footer">
@@ -496,6 +553,10 @@
 
   updateClock();
   setInterval(updateClock, 10000);
+
+  const handle = document.getElementById('drawerHandle');
+  const tray = document.getElementById('drawerTray');
+  handle.addEventListener('click', () => tray.classList.toggle('open'));
 </script>
 
 </body>
