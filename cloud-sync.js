@@ -177,9 +177,9 @@
     }
 
     if (conflicts.length) {
-      const choice = await showConflictChoice(conflicts.map(c => c.key));
+      const choices = await showConflictChoices(conflicts.map(c => c.key));
       for (const item of conflicts) {
-        if (choice === 'local') toUpload.set(item.key, item.localValue);
+        if (choices[item.key] === 'local') toUpload.set(item.key, item.localValue);
         else {
           applyRemote(item.key, item.remoteRow);
           pulledKeys.push(item.key);
@@ -466,6 +466,7 @@
       #liminalCloudBadge.working{color:#8a6b21;border-color:#ead9ad}#liminalCloudBadge.ok{color:#4c7857;border-color:#cfe4d4}#liminalCloudBadge.error{color:#b15b43;border-color:#efd1c8;cursor:pointer}#liminalCloudBadge.update{color:#66529c;border-color:#dcd4ee;cursor:pointer}
       .liminal-cloud-overlay{position:fixed;inset:0;z-index:10000;background:rgba(20,20,20,.48);display:flex;align-items:center;justify-content:center;padding:20px;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif}
       .liminal-cloud-dialog{width:min(360px,100%);background:#fff;border-radius:16px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.22);color:#222}.liminal-cloud-dialog h2{font-size:17px;margin:0 0 10px}.liminal-cloud-dialog p{font-size:12px;line-height:1.7;color:#777;margin:0 0 18px}.liminal-cloud-actions{display:grid;gap:8px}.liminal-cloud-actions button{border:0;border-radius:10px;padding:12px;font-size:13px;cursor:pointer}.liminal-cloud-primary{background:#1a1a1a;color:#fff}.liminal-cloud-secondary{background:#f3f3f3;color:#555}
+      .liminal-cloud-conflicts{display:grid;gap:9px;margin:0 0 18px}.liminal-cloud-conflict-row{display:flex;align-items:center;justify-content:space-between;gap:12px}.liminal-cloud-conflict-name{font-size:12px;color:#444;min-width:42px}.liminal-cloud-choice{display:flex;padding:2px;border-radius:9px;background:#f3f3f3}.liminal-cloud-choice button{border:0;background:transparent;color:#999;padding:7px 9px;border-radius:7px;font-size:11px;cursor:pointer}.liminal-cloud-choice button.active{background:#fff;color:#222;box-shadow:0 1px 4px rgba(0,0,0,.08)}
     `;
     (document.head || document.documentElement).appendChild(style);
   }
@@ -495,18 +496,30 @@
     });
   }
 
-  function showConflictChoice(keys) {
+  function showConflictChoices(keys) {
     const labels = {
       daily_db: '日常', gacha_st: '抽卡', bean_st: '豆叶', habit_db: '习惯',
       story_db: '剧情', bjd_db3: 'BJD', techo_db2: '手账', shop_db: '商城'
     };
-    return showChoice({
-      title: '发现两份不同的存档',
-      message: `以下数据在本机和云端都存在：${keys.map(k => labels[k] || k).join('、')}。请选择保留哪一边；另一边不会再覆盖回来。`,
-      primary: '使用云端数据',
-      primaryValue: 'cloud',
-      secondary: '使用这台设备的数据',
-      secondaryValue: 'local'
+    return new Promise(resolve => {
+      const choices = Object.fromEntries(keys.map(key => [key, 'cloud']));
+      const overlay = document.createElement('div');
+      overlay.className = 'liminal-cloud-overlay';
+      const rows = keys.map(key => `<div class="liminal-cloud-conflict-row" data-key="${key}"><span class="liminal-cloud-conflict-name">${labels[key] || key}</span><span class="liminal-cloud-choice"><button class="active" data-value="cloud">云端</button><button data-value="local">这台设备</button></span></div>`).join('');
+      overlay.innerHTML = `<div class="liminal-cloud-dialog"><h2>分别选择要保留的存档</h2><p>每一项都可以单独选择。日常通常选手机上传的“云端”，BJD 和手账可以选整理它们的“这台设备”。</p><div class="liminal-cloud-conflicts">${rows}</div><div class="liminal-cloud-actions"><button class="liminal-cloud-primary">确认这些选择</button></div></div>`;
+      overlay.querySelectorAll('.liminal-cloud-conflict-row').forEach(row => {
+        row.querySelectorAll('button').forEach(button => {
+          button.onclick = () => {
+            choices[row.dataset.key] = button.dataset.value;
+            row.querySelectorAll('button').forEach(item => item.classList.toggle('active', item === button));
+          };
+        });
+      });
+      overlay.querySelector('.liminal-cloud-primary').onclick = () => {
+        overlay.remove();
+        resolve(choices);
+      };
+      document.body.appendChild(overlay);
     });
   }
 
