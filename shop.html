@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Shop">
+<title>Shop</title>
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="apple-touch-icon.png">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;background:#FAFAFA;color:#1a1a1a;min-height:100vh;min-height:100dvh;padding-bottom:100px}
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;padding-top:24px;border-bottom:1px solid #eee;background:#fff;position:sticky;top:0;z-index:50}
+.top-bar h1{font-size:15px;font-weight:600;letter-spacing:1px;color:#666}
+.top-bar .back{font-size:13px;color:#999;text-decoration:none}
+.wallet{display:flex;justify-content:center;gap:16px;padding:10px 20px;background:#fff;border-bottom:1px solid #f0f0f0;font-size:12px;color:#999}
+.wallet span{font-weight:600;font-variant-numeric:tabular-nums}
+.w-coffee{color:#8B6914}.w-tea{color:#5A7247}
+.tabs{display:flex;background:#fff;border-bottom:1px solid #eee}
+.tab{flex:1;text-align:center;padding:12px;font-size:11px;font-weight:500;color:#aaa;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s}
+.tab.active{color:#1a1a1a;border-bottom-color:#1a1a1a}
+.content{padding:16px 20px}
+.series{margin-bottom:20px}
+.series-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.series-name{font-size:12px;font-weight:600;color:#333;display:flex;align-items:center;gap:6px}
+.series-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.series-progress{font-size:10px;color:#bbb;font-variant-numeric:tabular-nums}
+.series-bar{height:3px;background:#f0f0f0;border-radius:2px;margin-bottom:8px;overflow:hidden}
+.series-fill{height:100%;border-radius:2px;transition:width 0.3s}
+.items{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.item{background:#fff;border:1px solid #eee;border-radius:8px;padding:8px 4px;text-align:center;cursor:pointer;transition:all 0.15s;position:relative;min-height:72px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.item:active{transform:scale(0.97)}
+.item.owned{border-color:#E8B96A;background:#FFFDF5}
+.item-placeholder{width:32px;height:32px;border-radius:6px;background:#f5f5f5;margin-bottom:4px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#ddd}
+.item.owned .item-placeholder{background:#FFF8E6;color:#E8B96A}
+.item-name{font-size:9px;color:#555;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;padding:0 2px}
+.item-price{font-size:9px;color:#bbb;margin-top:2px}
+.item-badge{position:absolute;top:3px;right:3px;width:12px;height:12px;border-radius:50%;background:#E8B96A;color:#fff;font-size:7px;display:flex;align-items:center;justify-content:center}
+/* Catalog */
+.catalog-total{text-align:center;margin-bottom:16px}
+.catalog-total .num{font-size:20px;font-weight:600;color:#333}
+.catalog-total .lbl{font-size:11px;color:#999}
+.coll-card{background:#fff;border:1px solid #eee;border-radius:8px;padding:8px 4px;text-align:center;min-height:72px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.coll-card.owned{border-color:#E8B96A;background:#FFFDF5}
+.coll-card.locked{opacity:0.35}
+.coll-aff{font-size:8px;color:#bbb;margin-top:2px}
+/* Modal */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.modal-bg.show{display:flex}
+.modal{background:#fff;border-radius:16px 16px 0 0;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;padding:20px;animation:slideUp 0.25s ease-out}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal h2{font-size:15px;font-weight:600;margin-bottom:16px;color:#333;text-align:center}
+.modal label{display:block;font-size:12px;color:#999;margin-bottom:4px;margin-top:12px}
+.modal input,.modal select{width:100%;font-size:14px;padding:10px 12px;border:1px solid #e0e0e0;border-radius:8px;font-family:inherit;background:#fff;color:#1a1a1a}
+.btn-row{display:flex;gap:8px;margin-top:20px}
+.btn{flex:1;padding:12px;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit}
+.btn:active{transform:scale(0.97)}
+.btn-primary{background:#1a1a1a;color:#fff}
+.btn-cancel{background:#f0f0f0;color:#666}
+.aff-row{display:flex;gap:8px}.aff-row>div{flex:1}
+.buy-detail{text-align:center;padding:16px 0}
+.buy-icon{font-size:36px;margin-bottom:6px;width:56px;height:56px;border-radius:10px;background:#f5f5f5;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;color:#ccc}
+.buy-name{font-size:15px;font-weight:500;color:#333;margin-bottom:4px}
+.buy-series{font-size:11px;color:#999;margin-bottom:10px}
+.buy-price{font-size:14px;font-weight:600;color:#8B6914;margin-bottom:4px}
+.buy-aff{font-size:12px;color:#bbb}
+.gift-result{text-align:center;padding:20px 0}
+.gift-icon{font-size:36px;width:56px;height:56px;border-radius:10px;background:#FFF8E6;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;color:#E8B96A}
+.gift-msg{font-size:14px;color:#333;margin-bottom:4px}
+.gift-aff{font-size:18px;font-weight:600;margin-top:8px}
+.empty{text-align:center;padding:40px 20px;color:#ccc;font-size:13px;line-height:1.6}
+.add-btn{position:fixed;bottom:24px;right:24px;width:48px;height:48px;border-radius:50%;background:#1a1a1a;color:#fff;border:none;font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:40}
+.add-btn:active{transform:scale(0.92)}
+.recharge-box{background:#fff;border:1px solid #eee;border-radius:10px;padding:16px;margin-top:8px}
+.recharge-btn{background:#1a1a1a;color:#fff;border:none;border-radius:8px;padding:10px 16px;font-size:13px;cursor:pointer;margin-top:10px;width:100%;font-family:inherit}
+</style>
+</head>
+<body>
+<div class="top-bar">
+  <a class="back" href="index.html">&larr; Home</a>
+  <h1>SHOP</h1>
+  <span style="width:36px"></span>
+</div>
+<div class="wallet">☕ <span class="w-coffee" id="wC">0</span> &nbsp; 🍃 <span class="w-tea" id="wT">0</span></div>
+<div class="tabs">
+  <div class="tab active" data-tab="preset" onclick="sw('preset')">精选</div>
+  <div class="tab" data-tab="custom" onclick="sw('custom')">自选</div>
+  <div class="tab" data-tab="catalog" onclick="sw('catalog')">图鉴</div>
+  <div class="tab" data-tab="recharge" onclick="sw('recharge')">充值</div>
+</div>
+<div class="content" id="content"></div>
+<button class="add-btn" id="addBtn" onclick="openAdd()" style="display:none">+</button>
+
+<div class="modal-bg" id="buyModal"><div class="modal">
+  <div class="buy-detail" id="buyDetail"></div>
+  <div class="btn-row"><button class="btn btn-cancel" onclick="cm('buyModal')">取消</button><button class="btn btn-primary" onclick="confirmBuy()">购买并送出</button></div>
+</div></div>
+
+<div class="modal-bg" id="giftModal"><div class="modal">
+  <div class="gift-result" id="giftResult"></div>
+  <div class="btn-row"><button class="btn btn-primary" onclick="cm('giftModal')">收下</button></div>
+</div></div>
+
+<div class="modal-bg" id="addModal"><div class="modal">
+  <h2>添加商品</h2>
+  <label>商品名称</label><input type="text" id="aName" placeholder="如: Hermès Twilly（蓝色系）">
+  <label>所属系列（可选）</label><input type="text" id="aSeries" placeholder="留空为「自选」">
+  <label>送给谁</label>
+  <select id="aTarget"><option value="neal">Neal</option><option value="jane">Jane</option></select>
+  <label>价格</label>
+  <div class="aff-row">
+    <div><label style="margin-top:4px">数量</label><input type="number" id="aPrice" value="400" min="1"></div>
+    <div><label style="margin-top:4px">货币</label><select id="aCurr"><option value="coffee">咖啡豆</option><option value="tea">茶叶</option><option value="both">通用</option></select></div>
+  </div>
+  <label>好感范围</label>
+  <div class="aff-row">
+    <div><label style="margin-top:4px">最低</label><input type="number" id="aAffMin" value="8" min="1"></div>
+    <div><label style="margin-top:4px">最高</label><input type="number" id="aAffMax" value="14" min="1"></div>
+  </div>
+  <div class="btn-row"><button class="btn btn-cancel" onclick="cm('addModal')">取消</button><button class="btn btn-primary" onclick="saveItem()">保存</button></div>
+</div></div>
+
+<script>
+// ══════════════════════════════════════
+// PRESET ITEMS — S1 inspired
+// ══════════════════════════════════════
+// Neal pool S1: Pilot, Threads, Book of Hours, Flip of the Coin, The Portrait, All In, Free Fall, Hard Sell, Bad Judgment, Vital Signs, Home Invasion, Bottlenecked, Front Man, Out of the Box
+// Jane pool S1: Pilot, Red Hair and Silver Tape, Red Tide, Ladies in Red, Redwood, Red-Handed, Seeing Red, The Thin Red Line, Flame Red, Red Brick and Ivy, Red John's Friends, Red Rum, Paint It Red, Crimson Casanova, Scarlett Fever, Bloodshot, Carnelian Inc., Russet Potatoes, A Dozen Red Roses, Red Sauce, Miss Red, Blood Brothers, Red John's Footsteps
+
+const PRESETS=[
+// ── Neal's Taste (14 items, inspired by White Collar S1 ep titles) ──
+{id:'ps_n01',name:'飞行员夹克',series:"Neal's Taste",target:'neal',price:480,currency:'coffee',affMin:7,affMax:12},
+{id:'ps_n02',name:'金丝袖扣',series:"Neal's Taste",target:'neal',price:350,currency:'coffee',affMin:6,affMax:10},
+{id:'ps_n03',name:'中世纪祈祷书（复制品）',series:"Neal's Taste",target:'neal',price:2500,currency:'coffee',affMin:16,affMax:22},
+{id:'ps_n04',name:'双色硬币收藏盒',series:"Neal's Taste",target:'neal',price:300,currency:'coffee',affMin:5,affMax:8},
+{id:'ps_n05',name:'自画像画框',series:"Neal's Taste",target:'neal',price:1800,currency:'coffee',affMin:12,affMax:18},
+{id:'ps_n06',name:'筹码套装',series:"Neal's Taste",target:'neal',price:450,currency:'coffee',affMin:7,affMax:11},
+{id:'ps_n07',name:'降落伞丝围巾',series:"Neal's Taste",target:'neal',price:8500,currency:'coffee',affMin:26,affMax:34},
+{id:'ps_n08',name:'古董拍卖图录',series:"Neal's Taste",target:'neal',price:1500,currency:'coffee',affMin:11,affMax:16},
+{id:'ps_n09',name:'伪造鉴定放大镜',series:"Neal's Taste",target:'neal',price:500,currency:'coffee',affMin:8,affMax:12},
+{id:'ps_n10',name:'急救锡盒',series:"Neal's Taste",target:'neal',price:380,currency:'coffee',affMin:6,affMax:9},
+{id:'ps_n11',name:'June公寓的钥匙（复刻）',series:"Neal's Taste",target:'neal',price:10000,currency:'coffee',affMin:30,affMax:38},
+{id:'ps_n12',name:'红酒醒酒器',series:"Neal's Taste",target:'neal',price:2800,currency:'coffee',affMin:16,affMax:22},
+{id:'ps_n13',name:'舞台聚光灯模型',series:"Neal's Taste",target:'neal',price:1600,currency:'coffee',affMin:12,affMax:16},
+{id:'ps_n14',name:'密室逃脱礼盒',series:"Neal's Taste",target:'neal',price:12000,currency:'coffee',affMin:32,affMax:40},
+// ── Jane's Collection (14 items, inspired by The Mentalist S1 ep titles) ──
+{id:'ps_j01',name:'红发丝带',series:"Jane's Collection",target:'jane',price:300,currency:'tea',affMin:3,affMax:6},
+{id:'ps_j02',name:'潮汐瓶',series:"Jane's Collection",target:'jane',price:420,currency:'tea',affMin:4,affMax:7},
+{id:'ps_j03',name:'红色蕾丝手帕',series:"Jane's Collection",target:'jane',price:350,currency:'tea',affMin:3,affMax:6},
+{id:'ps_j04',name:'红杉木香薰',series:"Jane's Collection",target:'jane',price:500,currency:'tea',affMin:5,affMax:8},
+{id:'ps_j05',name:'CBI红色档案夹',series:"Jane's Collection",target:'jane',price:380,currency:'tea',affMin:3,affMax:6},
+{id:'ps_j06',name:'火焰色红茶罐',series:"Jane's Collection",target:'jane',price:1800,currency:'tea',affMin:9,affMax:14},
+{id:'ps_j07',name:'红砖常春藤盆栽',series:"Jane's Collection",target:'jane',price:480,currency:'tea',affMin:5,affMax:8},
+{id:'ps_j08',name:'深红色扑克牌',series:"Jane's Collection",target:'jane',price:2500,currency:'tea',affMin:11,affMax:16},
+{id:'ps_j09',name:'猩红热侦探小说',series:"Jane's Collection",target:'jane',price:400,currency:'tea',affMin:4,affMax:7},
+{id:'ps_j10',name:'红宝石玫瑰干花束',series:"Jane's Collection",target:'jane',price:1500,currency:'tea',affMin:8,affMax:13},
+{id:'ps_j11',name:'红酱秘方笔记',series:"Jane's Collection",target:'jane',price:350,currency:'tea',affMin:3,affMax:6},
+{id:'ps_j12',name:'兄弟之证怀旧相框',series:"Jane's Collection",target:'jane',price:8000,currency:'tea',affMin:22,affMax:30},
+{id:'ps_j13',name:'足迹追踪地图（手绘）',series:"Jane's Collection",target:'jane',price:10000,currency:'tea',affMin:26,affMax:34},
+{id:'ps_j14',name:'催眠术皮革典籍',series:"Jane's Collection",target:'jane',price:12000,currency:'tea',affMin:28,affMax:36},
+];
+
+// ══════════════════════════════════════
+// STATE
+// ══════════════════════════════════════
+let shop;
+try{shop=JSON.parse(localStorage.getItem('shop_db'));}catch(e){shop=null;}
+if(!shop)shop={owned:[],custom:[],giftLog:[]};
+if(!shop.giftLog)shop.giftLog=[];
+function ss(){try{localStorage.setItem('shop_db',JSON.stringify(shop));}catch(e){}}
+
+function gB(){try{return JSON.parse(localStorage.getItem('bean_st'))||{coffee:0,tea:0};}catch(e){return{coffee:0,tea:0};}}
+function sB(b){try{localStorage.setItem('bean_st',JSON.stringify(b));}catch(e){}}
+function gD(){try{return JSON.parse(localStorage.getItem('daily_db'))||{affinity:{neal:0,jane:0}};}catch(e){return{affinity:{neal:0,jane:0}};}}
+function sD(d){try{localStorage.setItem('daily_db',JSON.stringify(d));}catch(e){}}
+
+let tab='preset',buyItem=null;
+function allPreset(){return PRESETS;}
+function allCustom(){return shop.custom;}
+function allItems(){return[...PRESETS,...shop.custom];}
+
+// ══════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════
+function render(){
+  const b=gB();
+  document.getElementById('wC').textContent=b.coffee||0;
+  document.getElementById('wT').textContent=b.tea||0;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===tab));
+  document.getElementById('addBtn').style.display=tab==='custom'?'flex':'none';
+  const c=document.getElementById('content');
+  if(tab==='preset')renderPreset(c);
+  else if(tab==='custom')renderCustom(c);
+  else if(tab==='catalog')renderCatalog(c);
+  else if(tab==='recharge')renderRecharge(c);
+}
+function sw(t){tab=t;render();}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// ── Preset tab ──
+function renderPreset(c){
+  const items=allPreset();
+  const groups=grp(items);
+  let h='';
+  groups.forEach(s=>{
+    const owned=s.items.filter(i=>shop.owned.includes(i.id)).length;
+    const total=s.items.length;
+    const pct=total?Math.round(owned/total*100):0;
+    const clr=s.items[0]?.target==='neal'?'#6B8AFF':'#5BA66B';
+    h+='<div class="series"><div class="series-header"><div class="series-name"><div class="series-dot" style="background:'+clr+'"></div>'+esc(s.name)+'</div>';
+    h+='<div class="series-progress">'+owned+'/'+total+'</div></div>';
+    h+='<div class="series-bar"><div class="series-fill" style="width:'+pct+'%;background:'+clr+'"></div></div>';
+    h+='<div class="items">';
+    s.items.forEach(i=>{
+      const o=shop.owned.includes(i.id);
+      const ci=i.currency==='coffee'?'☕':(i.currency==='tea'?'🍃':'☕🍃');
+      h+='<div class="item'+(o?' owned':'')+'" onclick="'+(o?'':'openBuy(\''+i.id+'\')')+'">';
+      if(o)h+='<div class="item-badge">\u2713</div>';
+      h+='<div class="item-placeholder">'+(o?'\u2726':'?')+'</div>';
+      h+='<div class="item-name">'+(o?esc(i.name):'???')+'</div>';
+      if(!o)h+='<div class="item-price">'+ci+' '+i.price+'</div>';
+      h+='</div>';
+    });
+    h+='</div></div>';
+  });
+  c.innerHTML=h;
+}
+
+// ── Custom tab ──
+function renderCustom(c){
+  const items=allCustom();
+  if(!items.length){c.innerHTML='<div class="empty">\u8FD8\u6CA1\u6709\u81EA\u9009\u5546\u54C1<br>\u70B9\u53F3\u4E0B\u89D2 + \u6DFB\u52A0</div>';return;}
+  const groups=grp(items);
+  let h='';
+  groups.forEach(s=>{
+    const owned=s.items.filter(i=>shop.owned.includes(i.id)).length;
+    const total=s.items.length;
+    const clr=s.items[0]?.target==='neal'?'#6B8AFF':'#5BA66B';
+    h+='<div class="series"><div class="series-header"><div class="series-name"><div class="series-dot" style="background:'+clr+'"></div>'+esc(s.name)+'</div>';
+    h+='<div class="series-progress">'+owned+'/'+total+'</div></div>';
+    h+='<div class="items">';
+    s.items.forEach(i=>{
+      const o=shop.owned.includes(i.id);
+      const ci=i.currency==='coffee'?'☕':(i.currency==='tea'?'🍃':'☕🍃');
+      h+='<div class="item'+(o?' owned':'')+'" onclick="'+(o?'':'openBuy(\''+i.id+'\')')+'">';
+      if(o)h+='<div class="item-badge">\u2713</div>';
+      h+='<div class="item-placeholder">'+(o?'\u2726':'?')+'</div>';
+      h+='<div class="item-name">'+(o?esc(i.name):'???')+'</div>';
+      if(!o)h+='<div class="item-price">'+ci+' '+i.price+'</div>';
+      h+='</div>';
+    });
+    h+='</div></div>';
+  });
+  c.innerHTML=h;
+}
+
+// ── Catalog tab ──
+function renderCatalog(c){
+  const all=allItems();
+  const groups=grp(all);
+  let tOwn=0,tAll=0;
+  groups.forEach(s=>{tOwn+=s.items.filter(i=>shop.owned.includes(i.id)).length;tAll+=s.items.length;});
+  let h='<div class="catalog-total"><div class="lbl">\u6536\u96C6\u8FDB\u5EA6</div><div class="num">'+tOwn+' / '+tAll+'</div></div>';
+  groups.forEach(s=>{
+    const owned=s.items.filter(i=>shop.owned.includes(i.id)).length;
+    const total=s.items.length;
+    const pct=total?Math.round(owned/total*100):0;
+    const clr=s.items[0]?.target==='neal'?'#6B8AFF':'#5BA66B';
+    h+='<div class="series"><div class="series-header"><div class="series-name"><div class="series-dot" style="background:'+clr+'"></div>'+esc(s.name)+'</div>';
+    h+='<div class="series-progress">'+owned+'/'+total+(owned===total?' \u2728':'')+'</div></div>';
+    h+='<div class="series-bar"><div class="series-fill" style="width:'+pct+'%;background:'+clr+'"></div></div>';
+    h+='<div class="items">';
+    s.items.forEach(i=>{
+      const o=shop.owned.includes(i.id);
+      const log=shop.giftLog.find(g=>g.itemId===i.id);
+      h+='<div class="coll-card'+(o?' owned':' locked')+'">';
+      h+='<div class="item-placeholder">'+(o?'\u2726':'?')+'</div>';
+      h+='<div class="item-name">'+(o?esc(i.name):'???')+'</div>';
+      if(o&&log)h+='<div class="coll-aff">\u2764 '+(i.target==='neal'?'N':'J')+'+'+log.aff+'</div>';
+      h+='</div>';
+    });
+    h+='</div></div>';
+  });
+  c.innerHTML=h;
+}
+
+// ── Recharge tab ──
+function renderRecharge(c){
+  const b=gB();
+  let h='<div style="text-align:center;padding:16px 0;font-size:12px;color:#999;line-height:1.8">\u5F53\u524D\u4F59\u989D<br>';
+  h+='<span style="font-size:16px;font-weight:600;color:#8B6914">☕ '+(b.coffee||0)+'</span> &nbsp; ';
+  h+='<span style="font-size:16px;font-weight:600;color:#5A7247">🍃 '+(b.tea||0)+'</span></div>';
+  h+='<div class="recharge-box"><div style="font-size:12px;color:#999;margin-bottom:8px">\u624B\u52A8\u5145\u503C</div>';
+  h+='<div class="aff-row"><div><label>☕ \u5496\u5561\u8C46</label><input type="number" id="rC" value="0" min="0"></div>';
+  h+='<div><label>🍃 \u8336\u53F6</label><input type="number" id="rT" value="0" min="0"></div></div>';
+  h+='<button class="recharge-btn" onclick="doRecharge()">\u5145\u503C</button></div>';
+  c.innerHTML=h;
+}
+
+function doRecharge(){
+  const coffee=parseInt(document.getElementById('rC').value)||0;
+  const tea=parseInt(document.getElementById('rT').value)||0;
+  if(coffee<=0&&tea<=0)return;
+  const b=gB();b.coffee=(b.coffee||0)+coffee;b.tea=(b.tea||0)+tea;sB(b);
+  document.getElementById('rC').value='0';document.getElementById('rT').value='0';
+  render();
+}
+
+// ══════════════════════════════════════
+// BUY / GIFT
+// ══════════════════════════════════════
+function openBuy(id){
+  const item=allItems().find(x=>x.id===id);
+  if(!item||shop.owned.includes(id))return;
+  buyItem=item;
+  const ci=item.currency==='coffee'?'☕ \u5496\u5561\u8C46':(item.currency==='tea'?'🍃 \u8336\u53F6':'☕🍃 \u901A\u7528');
+  const tn=item.target==='neal'?'Neal':'Jane';
+  let h='<div class="buy-icon">\u2726</div>';
+  h+='<div class="buy-name">'+esc(item.name)+'</div>';
+  h+='<div class="buy-series">'+esc(item.series||'\u81EA\u9009')+'</div>';
+  h+='<div class="buy-price">'+ci+' \u00D7'+item.price+'</div>';
+  h+='<div class="buy-aff">\u9001\u7ED9 '+tn+' \u00B7 \u597D\u611F +'+item.affMin+'~'+item.affMax+'</div>';
+  document.getElementById('buyDetail').innerHTML=h;
+  sm('buyModal');
+}
+
+function confirmBuy(){
+  if(!buyItem)return;
+  const item=buyItem;const beans=gB();
+  if(item.currency==='coffee'){
+    if((beans.coffee||0)<item.price){cm('buyModal');return;}beans.coffee-=item.price;
+  }else if(item.currency==='tea'){
+    if((beans.tea||0)<item.price){cm('buyModal');return;}beans.tea-=item.price;
+  }else{
+    const t=item.price;
+    if((beans.coffee||0)>=t)beans.coffee-=t;
+    else if((beans.tea||0)>=t)beans.tea-=t;
+    else if((beans.coffee||0)+(beans.tea||0)>=t){const fc=beans.coffee||0;beans.coffee=0;beans.tea-=(t-fc);}
+    else{cm('buyModal');return;}
+  }
+  sB(beans);
+  const aff=item.affMin+Math.floor(Math.random()*(item.affMax-item.affMin+1));
+  const daily=gD();
+  if(item.target==='neal')daily.affinity.neal=(daily.affinity.neal||0)+aff;
+  else daily.affinity.jane=(daily.affinity.jane||0)+aff;
+  sD(daily);
+  shop.owned.push(item.id);
+  shop.giftLog.push({itemId:item.id,target:item.target,aff:aff,time:new Date().toISOString()});
+  ss();cm('buyModal');buyItem=null;
+  const tn=item.target==='neal'?'Neal':'Jane';
+  const tc=item.target==='neal'?'#6B8AFF':'#5BA66B';
+  let h='<div class="gift-icon">\u2726</div>';
+  h+='<div class="gift-msg">\u9001\u7ED9\u4E86 '+tn+'</div>';
+  h+='<div class="gift-aff" style="color:'+tc+'">\u2764 \u597D\u611F +'+aff+'</div>';
+  document.getElementById('giftResult').innerHTML=h;
+  sm('giftModal');render();
+}
+
+// ══════════════════════════════════════
+// ADD CUSTOM
+// ══════════════════════════════════════
+function openAdd(){
+  document.getElementById('aName').value='';
+  document.getElementById('aSeries').value='';
+  document.getElementById('aTarget').value='neal';
+  document.getElementById('aPrice').value='400';
+  document.getElementById('aCurr').value='coffee';
+  document.getElementById('aAffMin').value='8';
+  document.getElementById('aAffMax').value='14';
+  sm('addModal');
+}
+
+function saveItem(){
+  const name=document.getElementById('aName').value.trim();
+  if(!name)return;
+  const item={
+    id:'ci_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),
+    name:name,
+    series:document.getElementById('aSeries').value.trim()||'\u81EA\u9009',
+    target:document.getElementById('aTarget').value,
+    price:Math.max(1,parseInt(document.getElementById('aPrice').value)||400),
+    currency:document.getElementById('aCurr').value,
+    affMin:Math.max(1,parseInt(document.getElementById('aAffMin').value)||5),
+    affMax:Math.max(1,parseInt(document.getElementById('aAffMax').value)||10)
+  };
+  if(item.affMax<item.affMin)item.affMax=item.affMin;
+  shop.custom.push(item);ss();cm('addModal');render();
+}
+
+// ══════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════
+function grp(items){
+  const m=new Map();
+  items.forEach(i=>{const s=i.series||'\u81EA\u9009';if(!m.has(s))m.set(s,{name:s,items:[]});m.get(s).items.push(i);});
+  return Array.from(m.values());
+}
+function sm(id){document.getElementById(id).classList.add('show');}
+function cm(id){document.getElementById(id).classList.remove('show');}
+document.querySelectorAll('.modal-bg').forEach(bg=>{bg.addEventListener('click',e=>{if(e.target===bg)bg.classList.remove('show');});});
+
+render();
+</script>
+</body>
+</html>
