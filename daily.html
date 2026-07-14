@@ -157,27 +157,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <div class="status-value neal-color" id="nealAff">0</div>
   </div>
   <div class="status-item">
-    <div class="status-label">蓝宝石</div>
-    <div class="status-value" id="gemS">0</div>
-  </div>
-  <div class="status-item">
     <div class="status-label">Jane 好感</div>
     <div class="status-value jane-color" id="janeAff">0</div>
   </div>
-  <div class="status-item">
-    <div class="status-label">祖母绿</div>
-    <div class="status-value" id="gemE">0</div>
-  </div>
 </div>
 
+<div class="bean-bar">
+  蓝宝石 <span style="color:#6B8AFF;font-weight:600" id="gemS">0</span> &nbsp; 祖母绿 <span style="color:#5BA66B;font-weight:600" id="gemE">0</span>
+</div>
 <div class="bean-bar">
   咖啡豆 <span class="bean-coffee" id="beanCoffee">0</span> &nbsp; 茶叶 <span class="bean-tea" id="beanTea">0</span>
 </div>
 
 <div class="tabs">
-  <div class="tab active" data-tab="drop" onclick="switchTab('drop')">掉落</div>
-  <div class="tab" data-tab="todo" onclick="switchTab('todo')">待办</div>
-  <div class="tab" data-tab="habits" onclick="switchTab('habits')">习惯</div>
+  <div class="tab" data-tab="drop" onclick="switchTab('drop')">委托</div>
+  <div class="tab active" data-tab="todo" onclick="switchTab('todo')">日程</div>
+  <div class="tab" data-tab="habits" onclick="switchTab('habits')">日课</div>
 </div>
 
 <div class="content" id="content"></div>
@@ -197,11 +192,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- Add/edit todo -->
 <div class="modal-bg" id="todoModal">
   <div class="modal">
-    <h2 id="todoModalTitle">添加待办</h2>
+    <h2 id="todoModalTitle">添加日程</h2>
     <label>内容</label>
     <input type="text" id="todoContent" placeholder="如: 8.31前兑换商品券">
     <label>截止日期（可选）</label>
     <input type="date" id="todoDate" value="">
+    <label>完成好感</label>
+    <div class="aff-row">
+      <div><label style="margin-top:4px">Neal +</label><input type="number" id="todoAffNeal" value="3" min="0"></div>
+      <div><label style="margin-top:4px">Jane +</label><input type="number" id="todoAffJane" value="2" min="0"></div>
+    </div>
     <div class="btn-row">
       <button class="btn btn-cancel" onclick="closeModal('todoModal')">取消</button>
       <button class="btn btn-primary" onclick="saveTodo()">保存</button>
@@ -212,18 +212,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- Add/edit habit -->
 <div class="modal-bg" id="habitModal">
   <div class="modal">
-    <h2 id="habitModalTitle">添加习惯</h2>
-    <label>习惯名称</label>
+    <h2 id="habitModalTitle">添加日课</h2>
+    <label>名称</label>
     <input type="text" id="habitName" placeholder="如: 记10个韩语单词">
-    <label>产出类型</label>
-    <select id="habitCurrency">
-      <option value="coffee">咖啡豆（Neal）</option>
-      <option value="tea">茶叶（Jane）</option>
-      <option value="both">两种各一半</option>
-    </select>
     <label>每次打卡产出</label>
-    <input type="number" id="habitReward" value="20" min="1" max="100">
-    <div style="font-size:10px;color:#bbb;margin-top:4px">建议 15-30，目标每天总计约 100-150</div>
+    <div class="aff-row">
+      <div><label style="margin-top:4px">咖啡豆</label><input type="number" id="habitCoffee" value="10" min="0" max="100"></div>
+      <div><label style="margin-top:4px">茶叶</label><input type="number" id="habitTea" value="10" min="0" max="100"></div>
+    </div>
+    <div style="font-size:10px;color:#bbb;margin-top:4px">建议每个习惯总计 15-30，目标每天约 100-150</div>
     <div class="btn-row">
       <button class="btn btn-cancel" onclick="closeModal('habitModal')">取消</button>
       <button class="btn btn-primary" onclick="saveHabit()">保存</button>
@@ -321,7 +318,7 @@ if(db.pool&&db.pool.length>0){
   db.pool=[];
 }
 
-let currentTab='drop';
+let currentTab='todo';
 let editingTodoId=null;
 let editingHabitId=null;
 function save(){try{localStorage.setItem('daily_db',JSON.stringify(db));}catch(e){}}
@@ -479,28 +476,41 @@ function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(
 // ── Drop tab ──
 function renderDrop(c){
   let html='<div class="task-reward-toast" id="taskToast"></div>';
-  // Progress
+  // Progress - clickable to expand
   const dropDone=db.completedDrops.length;
   const dropTotal=DROP_POOL.length;
   const pct=dropTotal?Math.round(dropDone/dropTotal*100):0;
-  html+='<div style="background:#fff;border:1px solid #eee;border-radius:10px;padding:12px 14px;margin-bottom:16px;">';
-  html+='<div style="font-size:12px;color:#999;margin-bottom:6px;">\u6389\u843D\u4EFB\u52A1 \u00B7 \u7B2C\u4E00\u5B63</div>';
-  html+='<div style="font-size:14px;font-weight:500;color:#333;">'+dropDone+' / '+dropTotal+'</div>';
-  html+='<div style="background:#f0f0f0;border-radius:4px;height:4px;margin-top:8px;overflow:hidden;">';
-  html+='<div style="background:#E8B96A;height:100%;width:'+pct+'%;border-radius:4px;transition:width 0.3s;"></div></div></div>';
+  html+='<div style="background:#fff;border:1.5px solid #E8B96A;border-radius:10px;padding:12px 14px;margin-bottom:16px;cursor:pointer" onclick="document.getElementById(\'dropList\').style.display=document.getElementById(\'dropList\').style.display===\'none\'?\'block\':\'none\'">';
+  html+='<div style="display:flex;justify-content:space-between;align-items:center">';
+  html+='<div><div style="font-size:12px;color:#999;margin-bottom:4px">\u59D4\u6258\u4EFB\u52A1 \u00B7 \u7B2C\u4E00\u5B63</div>';
+  html+='<div style="font-size:14px;font-weight:500;color:#333">'+dropDone+' / '+dropTotal+'</div></div>';
+  html+='<div style="font-size:10px;color:#bbb">\u70B9\u51FB\u5C55\u5F00 \u25BE</div></div>';
+  html+='<div style="background:#f0f0f0;border-radius:4px;height:4px;margin-top:8px;overflow:hidden">';
+  html+='<div style="background:#E8B96A;height:100%;width:'+pct+'%;border-radius:4px;transition:width 0.3s"></div></div>';
+  // Expanded list
+  html+='<div id="dropList" style="display:none;margin-top:12px;max-height:300px;overflow-y:auto">';
+  DROP_POOL.forEach(d=>{
+    const done=db.completedDrops.includes(d.id);
+    const srcColor=d.src==='neal'?'#6B8AFF':d.src==='jane'?'#5BA66B':'#9B6BCC';
+    html+='<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f5f5f5;opacity:'+(done?'0.4':'1')+'">';
+    html+='<div style="width:6px;height:6px;border-radius:50%;background:'+srcColor+';flex-shrink:0"></div>';
+    html+='<div style="flex:1;font-size:11px;color:#555;'+(done?'text-decoration:line-through':'')+'">'+(done?'\u2713 ':'')+d.rarity+' \u00B7 '+d.task+'</div></div>';
+  });
+  html+='</div></div>';
 
   const drop=getDailyDrop();
   if(drop&&!drop.dismissed){
     const d=DROP_POOL.find(x=>x.id===drop.dropId);
     if(d){
+      const srcColor=d.src==='neal'?'#6B8AFF':d.src==='jane'?'#5BA66B':'#9B6BCC';
       const srcLabel=d.src==='neal'?'Neal \u7684\u59D4\u6258':d.src==='jane'?'Jane \u7684\u59D4\u6258':'\u53CC\u4EBA\u59D4\u6258';
       const affParts=[];
       if(d.nealAff)affParts.push('Neal +'+d.nealAff);
       if(d.janeAff)affParts.push('Jane +'+d.janeAff);
-      html+='<div class="task-card drop-task '+(drop.completed?'completed':'')+'">';
+      html+='<div class="task-card" style="border-left:3px solid '+srcColor+';'+(drop.completed?'opacity:0.45':'')+'">';
       html+='<div class="task-top">';
       html+='<div class="task-check '+(drop.completed?'checked':'')+'" onclick="completeDrop()">'+(drop.completed?'\u2713':'')+'</div>';
-      html+='<div class="task-body"><div class="drop-label">'+d.rarity+' \u00B7 '+srcLabel+'</div>';
+      html+='<div class="task-body"><div class="drop-label" style="color:'+srcColor+'">'+d.rarity+' \u00B7 '+srcLabel+'</div>';
       html+='<div class="task-name">'+d.task+'</div>';
       html+='<div class="task-meta"><span>'+affParts.join(' \u00B7 ')+'</span></div></div>';
       if(!drop.completed)html+='<div class="task-actions"><button class="dismiss" onclick="dismissDrop()">\u4ECA\u5929\u4E0D\u505A</button></div>';
@@ -509,9 +519,9 @@ function renderDrop(c){
       html+='</div>';
     }
   }else if(!drop){
-    html+='<div class="empty">\u6240\u6709\u6389\u843D\u4EFB\u52A1\u90FD\u5B8C\u6210\u4E86\uFF01</div>';
+    html+='<div class="empty">\u6240\u6709\u59D4\u6258\u4EFB\u52A1\u90FD\u5B8C\u6210\u4E86\uFF01</div>';
   }else{
-    html+='<div class="empty">\u4ECA\u5929\u7684\u6389\u843D\u4EFB\u52A1\u5DF2\u8DF3\u8FC7\uFF0C\u660E\u5929\u518D\u6765\u5427</div>';
+    html+='<div class="empty">\u4ECA\u5929\u7684\u59D4\u6258\u5DF2\u8DF3\u8FC7\uFF0C\u660E\u5929\u518D\u6765\u5427</div>';
   }
   c.innerHTML=html;
 }
@@ -548,21 +558,27 @@ function renderTodoCard(t){
   let dateHtml='';
   if(t.date){
     const isOverdue=!isDone&&t.date<today();
-    dateHtml='<div class="todo-date'+(isOverdue?' overdue':'')+'">'+t.date+(isOverdue?' \u2022 \u5DF2\u8FC7\u671F':'')+'</div>';
+    dateHtml='<span class="todo-date'+(isOverdue?' overdue':'')+'">'+t.date+(isOverdue?' \u2022 \u5DF2\u8FC7\u671F':'')+'</span>';
   }
+  const affParts=[];
+  if(t.nealAff)affParts.push('N+'+t.nealAff);
+  if(t.janeAff)affParts.push('J+'+t.janeAff);
+  const affHtml=affParts.length?'<span style="color:#bbb;font-size:10px;margin-left:6px">'+affParts.join(' ')+'</span>':'';
   return '<div class="todo-card'+(isDone?' completed':'')+'">'
     +'<div class="todo-top">'
     +'<div class="todo-check'+(isDone?' checked':'')+'" onclick="toggleTodo(\''+t.id+'\')">'+(isDone?'\u2713':'')+'</div>'
-    +'<div class="todo-body"><div class="todo-name">'+escHtml(t.content)+'</div>'+dateHtml+'</div>'
+    +'<div class="todo-body"><div class="todo-name">'+escHtml(t.content)+'</div>'+dateHtml+affHtml+'</div>'
     +'<button class="todo-del" onclick="deleteTodo(\''+t.id+'\')">\u00D7</button>'
     +'</div></div>';
 }
 
 function openAddTodo(){
   editingTodoId=null;
-  document.getElementById('todoModalTitle').textContent='\u6DFB\u52A0\u5F85\u529E';
+  document.getElementById('todoModalTitle').textContent='\u6DFB\u52A0\u65E5\u7A0B';
   document.getElementById('todoContent').value='';
   document.getElementById('todoDate').value='';
+  document.getElementById('todoAffNeal').value='3';
+  document.getElementById('todoAffJane').value='2';
   showModal('todoModal');
 }
 
@@ -570,13 +586,23 @@ function saveTodo(){
   const content=document.getElementById('todoContent').value.trim();
   if(!content)return;
   const date=document.getElementById('todoDate').value||null;
-  db.todos.push({id:'td_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),content:content,date:date,completed:false});
+  const nealAff=Number(document.getElementById('todoAffNeal').value)||0;
+  const janeAff=Number(document.getElementById('todoAffJane').value)||0;
+  db.todos.push({id:'td_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),content:content,date:date,nealAff:nealAff,janeAff:janeAff,completed:false});
   save();closeModal('todoModal');render();
 }
 
 function toggleTodo(id){
   const t=db.todos.find(x=>x.id===id);
-  if(t)t.completed=!t.completed;
+  if(!t)return;
+  t.completed=!t.completed;
+  if(t.completed){
+    db.affinity.neal+=(t.nealAff||0);
+    db.affinity.jane+=(t.janeAff||0);
+  }else{
+    db.affinity.neal=Math.max(0,db.affinity.neal-(t.nealAff||0));
+    db.affinity.jane=Math.max(0,db.affinity.jane-(t.janeAff||0));
+  }
   save();render();
 }
 
@@ -636,11 +662,17 @@ function renderHabits(c){
 function renderHabitCard(h,isDone){
   const streak=getStreak(h.id);
   const bonus=getStreakBonus(streak);
-  const currLabel=h.currency==='coffee'?'\u2615\u8C46':(h.currency==='tea'?'\u2615\u53F6':'\u2615\u5404\u534A');
-  const base=h.reward||20;
-  const bonusAmt=Math.round(base*bonus);
-  let meta=currLabel+' +'+base;
-  if(bonus>0)meta+=' <span style="color:#E8B96A">(+'+bonusAmt+')</span>';
+  const baseCoffee=h.coffee||0;
+  const baseTea=h.tea||0;
+  const bonusCoffee=Math.round(baseCoffee*bonus);
+  const bonusTea=Math.round(baseTea*bonus);
+  let meta='';
+  if(baseCoffee)meta+='\u2615\u8C46+'+baseCoffee;
+  if(baseTea)meta+=(meta?' ':'')+'🍃\u53F6+'+baseTea;
+  if(bonus>0){
+    const totalBonus=bonusCoffee+bonusTea;
+    if(totalBonus>0)meta+=' <span style="color:#E8B96A">(+'+totalBonus+')</span>';
+  }
   let streakHtml='';
   if(streak>0)streakHtml=' <span class="habit-streak">\u2605'+streak+'\u5929</span>';
 
@@ -663,31 +695,27 @@ function checkHabit(id){
   if(!h)return;
   const streak=getStreak(id);
   const bonus=getStreakBonus(streak);
-  const base=h.reward||20;
-  const total=base+Math.round(base*bonus);
-  let coffee=0,tea=0;
-  if(h.currency==='coffee')coffee=total;
-  else if(h.currency==='tea')tea=total;
-  else{coffee=Math.ceil(total/2);tea=Math.floor(total/2);}
+  const coffee=(h.coffee||0)+Math.round((h.coffee||0)*bonus);
+  const tea=(h.tea||0)+Math.round((h.tea||0)*bonus);
   addBeans(coffee,tea);
   render();
 }
 
 function openAddHabit(){
   editingHabitId=null;
-  document.getElementById('habitModalTitle').textContent='\u6DFB\u52A0\u4E60\u60EF';
+  document.getElementById('habitModalTitle').textContent='\u6DFB\u52A0\u65E5\u8BFE';
   document.getElementById('habitName').value='';
-  document.getElementById('habitCurrency').value='coffee';
-  document.getElementById('habitReward').value='20';
+  document.getElementById('habitCoffee').value='10';
+  document.getElementById('habitTea').value='10';
   showModal('habitModal');
 }
 
 function saveHabit(){
   const name=document.getElementById('habitName').value.trim();
   if(!name)return;
-  const currency=document.getElementById('habitCurrency').value;
-  const reward=Math.max(1,Math.min(100,parseInt(document.getElementById('habitReward').value)||20));
-  hdb.habits.push({id:'hb_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),name:name,currency:currency,reward:reward});
+  const coffee=Math.max(0,Math.min(100,parseInt(document.getElementById('habitCoffee').value)||0));
+  const tea=Math.max(0,Math.min(100,parseInt(document.getElementById('habitTea').value)||0));
+  hdb.habits.push({id:'hb_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),name:name,coffee:coffee,tea:tea});
   saveHabits();closeModal('habitModal');render();
 }
 
