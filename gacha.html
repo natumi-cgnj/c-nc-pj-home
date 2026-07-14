@@ -170,11 +170,34 @@ const RATES={SSR:0.05,SR:0.15,R:0.80};
 const PITY=30;
 
 // ── State ──
-let st;
-try{st=JSON.parse(localStorage.getItem('gacha_st'));}catch(e){st=null;}
-if(!st)st={emerald:0,sapphire:0,owned:[],pity:{jane:0,neal:0,duo:0},pulls:{jane:0,neal:0,duo:0},history:[],dailyBudget:0,currency:'JPY'};
+function safeCount(value){
+  const n=Number(value);
+  return Number.isFinite(n)?Math.max(0,Math.floor(n)):0;
+}
+function safePoolCounts(value){
+  const v=value&&typeof value==='object'&&!Array.isArray(value)?value:{};
+  return {jane:safeCount(v.jane),neal:safeCount(v.neal),duo:safeCount(v.duo)};
+}
+function normalizeGachaState(value){
+  const v=value&&typeof value==='object'&&!Array.isArray(value)?value:{};
+  return {
+    ...v,
+    emerald:safeCount(v.emerald),
+    sapphire:safeCount(v.sapphire),
+    owned:Array.isArray(v.owned)?v.owned.filter(id=>typeof id==='string'):[],
+    pity:safePoolCounts(v.pity),
+    pulls:safePoolCounts(v.pulls),
+    history:Array.isArray(v.history)?v.history.filter(item=>item&&typeof item==='object'):[],
+    dailyBudget:safeCount(v.dailyBudget),
+    currency:typeof v.currency==='string'&&v.currency?v.currency:'JPY'
+  };
+}
+let storedState;
+try{storedState=JSON.parse(localStorage.getItem('gacha_st'));}catch(e){storedState=null;}
+let st=normalizeGachaState(storedState);
 let pool='jane',view='pull';
 function save(){try{localStorage.setItem('gacha_st',JSON.stringify(st));}catch(e){}}
+if(JSON.stringify(storedState)!==JSON.stringify(st))save();
 
 // ── Render ──
 function render(){renderGems();renderPoolTabs();renderViewTabs();renderContent();}
@@ -368,7 +391,7 @@ function renderHistory(c){
   c.innerHTML=h.map(x=>`<div class="hist-item">
     <span class="hist-rarity" style="color:${colors[x.rarity]}">${x.rarity}</span>
     <span class="hist-name">${x.name}${x.isNew?'<span class="hist-new">NEW</span>':'<span class="hist-dup">重复</span>'}</span>
-    <span class="hist-meta">${x.time.slice(5,16).replace('T',' ')}</span>
+    <span class="hist-meta">${typeof x.time==='string'?x.time.slice(5,16).replace('T',' '):''}</span>
   </div>`).join('');
 }
 
