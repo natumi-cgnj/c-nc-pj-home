@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Habits">
+<title>Habits</title>
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="apple-touch-icon.png">
+<link rel="icon" href="favicon.ico">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;background:#FAFAFA;color:#1a1a1a;min-height:100vh;min-height:100dvh;padding-bottom:100px}
+
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;padding-top:24px;border-bottom:1px solid #eee;background:#fff;position:sticky;top:0;z-index:50}
+.top-bar h1{font-size:15px;font-weight:600;letter-spacing:1px;color:#666}
+.top-bar .back{font-size:13px;color:#999;text-decoration:none}
+.top-bar .btn-s{font-size:11px;color:#999;background:none;border:1px solid #ddd;border-radius:6px;padding:4px 10px;cursor:pointer}
+
+.status-bar{display:flex;justify-content:space-around;padding:14px 20px;background:#fff;border-bottom:1px solid #f0f0f0}
+.status-item{text-align:center}
+.status-label{font-size:10px;color:#bbb;margin-bottom:2px}
+.status-value{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
+
+.content{padding:16px 20px}
+
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;margin-top:8px}
+.section-title{font-size:12px;font-weight:500;color:#999;letter-spacing:0.5px}
+.section-action{font-size:11px;color:#6B8AFF;cursor:pointer}
+
+.habit-card{background:#fff;border:1px solid #eee;border-radius:10px;padding:12px 14px;margin-bottom:8px;transition:all 0.2s}
+.habit-top{display:flex;align-items:center;gap:12px}
+.habit-check{width:26px;height:26px;border-radius:50%;border:2px solid #ddd;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;font-size:13px;color:#fff}
+.habit-check.checked{background:#1a1a1a;border-color:#1a1a1a}
+.habit-check.done-today{background:#ccc;border-color:#ccc;cursor:default}
+.habit-body{flex:1;min-width:0}
+.habit-name{font-size:13px;color:#333;margin-bottom:2px}
+.habit-meta{font-size:10px;color:#bbb;display:flex;gap:8px;flex-wrap:wrap}
+.habit-streak{font-size:10px;color:#E8B96A;font-weight:500}
+.habit-actions{display:flex;gap:6px;flex-shrink:0}
+.habit-actions button{font-size:10px;padding:4px 8px;border:1px solid #e8e8e8;border-radius:6px;background:#fff;cursor:pointer;color:#999}
+
+.habit-card.completed{opacity:0.5}
+.habit-card.completed .habit-name{text-decoration:line-through;color:#bbb}
+
+.reward-toast{position:fixed;bottom:20%;left:50%;transform:translateX(-50%) translateY(10px);background:rgba(0,0,0,0.8);color:#fff;padding:12px 24px;border-radius:10px;font-size:13px;font-weight:500;opacity:0;pointer-events:none;transition:all 0.3s ease;white-space:nowrap;z-index:100}
+.reward-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.empty{text-align:center;padding:60px 20px;color:#ccc;font-size:13px;line-height:1.8}
+
+.add-btn{position:fixed;bottom:24px;right:24px;width:48px;height:48px;border-radius:50%;background:#1a1a1a;color:#fff;border:none;font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform 0.2s}
+.add-btn:active{transform:scale(0.92)}
+
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;z-index:200;padding:20px}
+.modal-bg.show{display:flex}
+.modal{background:#fff;border-radius:14px;padding:24px;max-width:340px;width:100%}
+.modal h2{font-size:15px;font-weight:600;color:#333;margin-bottom:16px;text-align:center}
+.modal label{font-size:11px;color:#999;display:block;margin-bottom:4px;margin-top:12px}
+.modal input[type=text],.modal input[type=number],.modal select{width:100%;padding:10px;border:1px solid #e8e8e8;border-radius:8px;font-size:13px;outline:none}
+.modal input:focus{border-color:#6B8AFF}
+.reward-row{display:flex;gap:8px}
+.reward-row>div{flex:1}
+.btn-row{display:flex;gap:8px;margin-top:20px}
+.btn{flex:1;padding:12px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;text-align:center}
+.btn-cancel{background:#f5f5f5;color:#999}
+.btn-primary{background:#1a1a1a;color:#fff}
+.btn-danger{background:#D85A30;color:#fff}
+.btn:active{transform:scale(0.97)}
+
+.streak-bonus{font-size:11px;color:#E8B96A;background:#FFF8E6;border:1px solid #f5e6c8;border-radius:8px;padding:8px 12px;margin-bottom:12px;text-align:center}
+
+.progress-row{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.progress-label{font-size:11px;color:#999;flex-shrink:0}
+.progress-bar{flex:1;height:4px;background:#f0f0f0;border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;border-radius:2px;transition:width 0.3s ease}
+.progress-count{font-size:11px;color:#bbb;flex-shrink:0;font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <a class="back" href="index.html">&larr; 主页</a>
+  <h1>习惯养成</h1>
+  <button class="btn-s" onclick="showModal('manageModal')">管理</button>
+</div>
+
+<div class="status-bar">
+  <div class="status-item">
+    <div class="status-label">咖啡豆</div>
+    <div class="status-value" style="color:#8B6914" id="beanCoffee">0</div>
+  </div>
+  <div class="status-item">
+    <div class="status-label">茶叶</div>
+    <div class="status-value" style="color:#5A7247" id="beanTea">0</div>
+  </div>
+  <div class="status-item">
+    <div class="status-label">今日完成</div>
+    <div class="status-value" id="todayCount">0/0</div>
+  </div>
+</div>
+
+<div class="content" id="content"></div>
+
+<button class="add-btn" onclick="openAdd()">+</button>
+
+<div class="reward-toast" id="toast"></div>
+
+<!-- Add/edit habit -->
+<div class="modal-bg" id="habitModal">
+  <div class="modal">
+    <h2 id="habitModalTitle">添加习惯</h2>
+    <label>习惯名称</label>
+    <input type="text" id="habitName" placeholder="如: 记10个韩语单词">
+    <label>产出类型</label>
+    <select id="habitCurrency">
+      <option value="coffee">咖啡豆（Neal）</option>
+      <option value="tea">茶叶（Jane）</option>
+      <option value="both">两种各一半</option>
+    </select>
+    <label>每次打卡产出</label>
+    <input type="number" id="habitReward" value="20" min="1" max="100">
+    <div style="font-size:10px;color:#bbb;margin-top:4px">建议 15-30，目标每天总计约 100-150</div>
+    <div class="btn-row">
+      <button class="btn btn-cancel" onclick="closeModal('habitModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveHabit()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Manage habits -->
+<div class="modal-bg" id="manageModal">
+  <div class="modal">
+    <h2>管理习惯</h2>
+    <div id="manageList"></div>
+    <div class="btn-row" style="margin-top:16px">
+      <button class="btn btn-cancel" onclick="closeModal('manageModal')">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm delete -->
+<div class="modal-bg" id="deleteModal">
+  <div class="modal">
+    <h2>确认删除</h2>
+    <p style="font-size:13px;color:#666;text-align:center;margin-bottom:8px" id="deleteMsg"></p>
+    <div class="btn-row">
+      <button class="btn btn-cancel" onclick="closeModal('deleteModal')">取消</button>
+      <button class="btn btn-danger" onclick="confirmDelete()">删除</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+// SHARED CURRENCY: bean_st
+// ══════════════════════════════════════
+function getBeans(){try{return JSON.parse(localStorage.getItem('bean_st'))||{coffee:0,tea:0};}catch(e){return{coffee:0,tea:0};}}
+function saveBeans(b){try{localStorage.setItem('bean_st',JSON.stringify(b));}catch(e){}}
+function addBeans(coffee,tea){const b=getBeans();b.coffee=(b.coffee||0)+coffee;b.tea=(b.tea||0)+tea;saveBeans(b);}
+
+// ══════════════════════════════════════
+// STATE
+// ══════════════════════════════════════
+const today=()=>{const d=new Date(Date.now()-4*3600*1000);return d.toISOString().slice(0,10);};
+
+let db;
+try{db=JSON.parse(localStorage.getItem('habit_db'));}catch(e){db=null;}
+if(!db)db={habits:[],log:{}};
+if(!db.log)db.log={};
+
+let editingId=null;
+let deletingId=null;
+
+function save(){try{localStorage.setItem('habit_db',JSON.stringify(db));}catch(e){}}
+
+// ══════════════════════════════════════
+// STREAK CALC
+// ══════════════════════════════════════
+function getStreak(habitId){
+  let streak=0;
+  const d=new Date(Date.now()-4*3600*1000);
+  d.setDate(d.getDate()-1);
+  while(true){
+    const key=d.toISOString().slice(0,10);
+    if(db.log[key]&&db.log[key].includes(habitId)){
+      streak++;
+      d.setDate(d.getDate()-1);
+    }else break;
+  }
+  if(isDoneToday(habitId))streak++;
+  return streak;
+}
+
+function isDoneToday(habitId){
+  const t=today();
+  return db.log[t]&&db.log[t].includes(habitId);
+}
+
+// Streak bonus: 7-day = +50%, 14-day = +100%, 30-day = +150%
+function getStreakBonus(streak){
+  if(streak>=30)return 1.5;
+  if(streak>=14)return 1.0;
+  if(streak>=7)return 0.5;
+  return 0;
+}
+
+// ══════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════
+function render(){
+  const beans=getBeans();
+  document.getElementById('beanCoffee').textContent=beans.coffee||0;
+  document.getElementById('beanTea').textContent=beans.tea||0;
+
+  const t=today();
+  const todayLog=db.log[t]||[];
+  const totalHabits=db.habits.length;
+  const doneCount=db.habits.filter(h=>todayLog.includes(h.id)).length;
+  document.getElementById('todayCount').textContent=doneCount+'/'+totalHabits;
+
+  const c=document.getElementById('content');
+
+  if(!db.habits.length){
+    c.innerHTML='<div class="empty">还没有添加习惯<br>点右下角 + 开始设置</div>';
+    return;
+  }
+
+  // Progress bar
+  const pct=totalHabits?Math.round(doneCount/totalHabits*100):0;
+  let html='<div class="progress-row">';
+  html+='<div class="progress-label">今日</div>';
+  html+='<div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%;background:'+(pct>=100?'#5BA66B':'#E8B96A')+'"></div></div>';
+  html+='<div class="progress-count">'+doneCount+'/'+totalHabits+'</div>';
+  html+='</div>';
+
+  // Streak bonus notification
+  if(doneCount===totalHabits&&totalHabits>0){
+    html+='<div class="streak-bonus">\u2728 \u4ECA\u65E5\u5168\u90E8\u5B8C\u6210\uFF01</div>';
+  }
+
+  // Habits list
+  const undone=db.habits.filter(h=>!isDoneToday(h.id));
+  const done=db.habits.filter(h=>isDoneToday(h.id));
+
+  if(undone.length){
+    html+='<div class="section-header"><div class="section-title">\u5F85\u5B8C\u6210</div></div>';
+    undone.forEach(h=>{html+=renderHabitCard(h,false);});
+  }
+  if(done.length){
+    html+='<div class="section-header"><div class="section-title">\u5DF2\u5B8C\u6210</div></div>';
+    done.forEach(h=>{html+=renderHabitCard(h,true);});
+  }
+
+  c.innerHTML=html;
+}
+
+function renderHabitCard(h,isDone){
+  const streak=getStreak(h.id);
+  const bonus=getStreakBonus(streak);
+  const currLabel=h.currency==='coffee'?'\u2615 \u5496\u5561\u8C46':(h.currency==='tea'?'\u2615 \u8336\u53F6':'\u2615 \u5404\u534A');
+  const baseReward=h.reward||20;
+  const bonusAmt=Math.round(baseReward*bonus);
+  const totalReward=baseReward+bonusAmt;
+
+  let meta=currLabel+' +'+baseReward;
+  if(bonus>0)meta+=' <span style="color:#E8B96A">(+'+bonusAmt+' \u8FDE\u7EED\u52A0\u6210)</span>';
+
+  let streakHtml='';
+  if(streak>0)streakHtml='<span class="habit-streak">\u2605 \u8FDE\u7EED '+streak+' \u5929</span>';
+
+  return '<div class="habit-card'+(isDone?' completed':'')+'">'+
+    '<div class="habit-top">'+
+      '<div class="habit-check'+(isDone?' done-today':'')+'" onclick="'+(isDone?'':'checkHabit(\''+h.id+'\')')+'">'+
+        (isDone?'\u2713':'')+
+      '</div>'+
+      '<div class="habit-body">'+
+        '<div class="habit-name">'+escHtml(h.name)+'</div>'+
+        '<div class="habit-meta">'+meta+' '+streakHtml+'</div>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+}
+
+function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// ══════════════════════════════════════
+// CHECK IN
+// ══════════════════════════════════════
+function checkHabit(id){
+  const t=today();
+  if(!db.log[t])db.log[t]=[];
+  if(db.log[t].includes(id))return;
+  db.log[t].push(id);
+  save();
+
+  // Calculate reward
+  const h=db.habits.find(x=>x.id===id);
+  if(!h)return;
+  const streak=getStreak(id);
+  const bonus=getStreakBonus(streak);
+  const base=h.reward||20;
+  const bonusAmt=Math.round(base*bonus);
+  const total=base+bonusAmt;
+
+  let coffee=0,tea=0;
+  if(h.currency==='coffee'){coffee=total;}
+  else if(h.currency==='tea'){tea=total;}
+  else{coffee=Math.ceil(total/2);tea=Math.floor(total/2);}
+
+  addBeans(coffee,tea);
+
+  // Toast
+  let msg='\u2713 '+h.name;
+  if(coffee>0)msg+=' \u2615\u8C46+'+coffee;
+  if(tea>0)msg+=' \u2615\u53F6+'+tea;
+  if(bonusAmt>0)msg+=' (\u8FDE\u7EED'+streak+'\u5929\u52A0\u6210!)';
+  showToast(msg);
+
+  render();
+}
+
+// ══════════════════════════════════════
+// ADD / EDIT
+// ══════════════════════════════════════
+function openAdd(){
+  editingId=null;
+  document.getElementById('habitModalTitle').textContent='\u6DFB\u52A0\u4E60\u60EF';
+  document.getElementById('habitName').value='';
+  document.getElementById('habitCurrency').value='coffee';
+  document.getElementById('habitReward').value='20';
+  showModal('habitModal');
+}
+
+function openEdit(id){
+  const h=db.habits.find(x=>x.id===id);
+  if(!h)return;
+  editingId=id;
+  document.getElementById('habitModalTitle').textContent='\u7F16\u8F91\u4E60\u60EF';
+  document.getElementById('habitName').value=h.name;
+  document.getElementById('habitCurrency').value=h.currency||'coffee';
+  document.getElementById('habitReward').value=h.reward||20;
+  showModal('habitModal');
+}
+
+function saveHabit(){
+  const name=document.getElementById('habitName').value.trim();
+  if(!name)return;
+  const currency=document.getElementById('habitCurrency').value;
+  const reward=parseInt(document.getElementById('habitReward').value)||20;
+
+  if(editingId){
+    const h=db.habits.find(x=>x.id===editingId);
+    if(h){h.name=name;h.currency=currency;h.reward=Math.max(1,Math.min(100,reward));}
+  }else{
+    db.habits.push({
+      id:'hb_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),
+      name:name,
+      currency:currency,
+      reward:Math.max(1,Math.min(100,reward)),
+      created:today()
+    });
+  }
+  save();
+  closeModal('habitModal');
+  render();
+}
+
+// ══════════════════════════════════════
+// MANAGE
+// ══════════════════════════════════════
+function renderManage(){
+  const el=document.getElementById('manageList');
+  if(!db.habits.length){
+    el.innerHTML='<div style="text-align:center;color:#ccc;padding:20px;font-size:13px">\u6CA1\u6709\u4E60\u60EF</div>';
+    return;
+  }
+  el.innerHTML=db.habits.map(h=>{
+    const currIcon=h.currency==='coffee'?'\u2615\u8C46':(h.currency==='tea'?'\u2615\u53F6':'\u2615\u5404');
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f5f5f5">'+
+      '<div style="flex:1;min-width:0">'+
+        '<div style="font-size:13px;color:#333">'+escHtml(h.name)+'</div>'+
+        '<div style="font-size:10px;color:#bbb">'+currIcon+' +'+h.reward+'</div>'+
+      '</div>'+
+      '<div style="display:flex;gap:6px">'+
+        '<button style="font-size:10px;padding:4px 8px;border:1px solid #e8e8e8;border-radius:6px;background:#fff;cursor:pointer;color:#6B8AFF" onclick="closeModal(\'manageModal\');openEdit(\''+h.id+'\')">\u7F16\u8F91</button>'+
+        '<button style="font-size:10px;padding:4px 8px;border:1px solid #e8e8e8;border-radius:6px;background:#fff;cursor:pointer;color:#D85A30" onclick="askDelete(\''+h.id+'\')">\u5220\u9664</button>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+function askDelete(id){
+  deletingId=id;
+  const h=db.habits.find(x=>x.id===id);
+  document.getElementById('deleteMsg').textContent='\u5220\u9664\u300C'+(h?h.name:'')+'\u300D\uFF1F\u8FDE\u7EED\u6253\u5361\u8BB0\u5F55\u4E5F\u4F1A\u6E05\u9664\u3002';
+  showModal('deleteModal');
+}
+
+function confirmDelete(){
+  if(!deletingId)return;
+  db.habits=db.habits.filter(x=>x.id!==deletingId);
+  // Clean logs
+  Object.keys(db.log).forEach(k=>{
+    db.log[k]=db.log[k].filter(x=>x!==deletingId);
+    if(!db.log[k].length)delete db.log[k];
+  });
+  deletingId=null;
+  save();
+  closeModal('deleteModal');
+  renderManage();
+  render();
+}
+
+// ══════════════════════════════════════
+// CLEANUP OLD LOGS (keep 60 days)
+// ══════════════════════════════════════
+function cleanOldLogs(){
+  const cutoff=new Date(Date.now()-60*24*3600*1000).toISOString().slice(0,10);
+  Object.keys(db.log).forEach(k=>{
+    if(k<cutoff)delete db.log[k];
+  });
+  save();
+}
+
+// ══════════════════════════════════════
+// UI HELPERS
+// ══════════════════════════════════════
+function showModal(id){
+  document.getElementById(id).classList.add('show');
+  if(id==='manageModal')renderManage();
+}
+function closeModal(id){document.getElementById(id).classList.remove('show');}
+document.querySelectorAll('.modal-bg').forEach(bg=>{
+  bg.addEventListener('click',e=>{if(e.target===bg)bg.classList.remove('show');});
+});
+
+let toastTimer;
+function showToast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>el.classList.remove('show'),2500);
+}
+
+// ══════════════════════════════════════
+// INIT
+// ══════════════════════════════════════
+cleanOldLogs();
+render();
+</script>
+</body>
+</html>
