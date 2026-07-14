@@ -121,9 +121,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <div class="btn-row"><button class="btn btn-cancel" onclick="cm('addModal')">取消</button><button class="btn btn-primary" onclick="saveItem()">保存</button></div>
 </div></div>
 
-<script src="cloud-sync.js?v=20260714-3"></script>
 <script>
-if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 // ══════════════════════════════════════
 // PRESET ITEMS — S1 inspired
 // ══════════════════════════════════════
@@ -131,36 +129,45 @@ if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 // Jane pool S1: Pilot, Red Hair and Silver Tape, Red Tide, Ladies in Red, Redwood, Red-Handed, Seeing Red, The Thin Red Line, Flame Red, Red Brick and Ivy, Red John's Friends, Red Rum, Paint It Red, Crimson Casanova, Scarlett Fever, Bloodshot, Carnelian Inc., Russet Potatoes, A Dozen Red Roses, Red Sauce, Miss Red, Blood Brothers, Red John's Footsteps
 
 const PRESETS=[
-// ── Neal's Taste (14 items, inspired by White Collar S1 ep titles) ──
-{id:'ps_n01',name:'飞行员夹克',series:"Neal's Taste",target:'neal',price:480,currency:'coffee',affMin:7,affMax:12},
-{id:'ps_n02',name:'金丝袖扣',series:"Neal's Taste",target:'neal',price:350,currency:'coffee',affMin:6,affMax:10},
-{id:'ps_n03',name:'中世纪祈祷书（复制品）',series:"Neal's Taste",target:'neal',price:2500,currency:'coffee',affMin:16,affMax:22},
-{id:'ps_n04',name:'双色硬币收藏盒',series:"Neal's Taste",target:'neal',price:300,currency:'coffee',affMin:5,affMax:8},
-{id:'ps_n05',name:'自画像画框',series:"Neal's Taste",target:'neal',price:1800,currency:'coffee',affMin:12,affMax:18},
-{id:'ps_n06',name:'筹码套装',series:"Neal's Taste",target:'neal',price:450,currency:'coffee',affMin:7,affMax:11},
-{id:'ps_n07',name:'降落伞丝围巾',series:"Neal's Taste",target:'neal',price:8500,currency:'coffee',affMin:26,affMax:34},
-{id:'ps_n08',name:'古董拍卖图录',series:"Neal's Taste",target:'neal',price:1500,currency:'coffee',affMin:11,affMax:16},
-{id:'ps_n09',name:'伪造鉴定放大镜',series:"Neal's Taste",target:'neal',price:500,currency:'coffee',affMin:8,affMax:12},
-{id:'ps_n10',name:'急救锡盒',series:"Neal's Taste",target:'neal',price:380,currency:'coffee',affMin:6,affMax:9},
-{id:'ps_n11',name:'June公寓的钥匙（复刻）',series:"Neal's Taste",target:'neal',price:10000,currency:'coffee',affMin:30,affMax:38},
-{id:'ps_n12',name:'红酒醒酒器',series:"Neal's Taste",target:'neal',price:2800,currency:'coffee',affMin:16,affMax:22},
-{id:'ps_n13',name:'舞台聚光灯模型',series:"Neal's Taste",target:'neal',price:1600,currency:'coffee',affMin:12,affMax:16},
-{id:'ps_n14',name:'密室逃脱礼盒',series:"Neal's Taste",target:'neal',price:12000,currency:'coffee',affMin:32,affMax:40},
-// ── Jane's Collection (14 items, inspired by The Mentalist S1 ep titles) ──
-{id:'ps_j01',name:'红发丝带',series:"Jane's Collection",target:'jane',price:300,currency:'tea',affMin:3,affMax:6},
-{id:'ps_j02',name:'潮汐瓶',series:"Jane's Collection",target:'jane',price:420,currency:'tea',affMin:4,affMax:7},
-{id:'ps_j03',name:'红色蕾丝手帕',series:"Jane's Collection",target:'jane',price:350,currency:'tea',affMin:3,affMax:6},
-{id:'ps_j04',name:'红杉木香薰',series:"Jane's Collection",target:'jane',price:500,currency:'tea',affMin:5,affMax:8},
-{id:'ps_j05',name:'CBI红色档案夹',series:"Jane's Collection",target:'jane',price:380,currency:'tea',affMin:3,affMax:6},
-{id:'ps_j06',name:'火焰色红茶罐',series:"Jane's Collection",target:'jane',price:1800,currency:'tea',affMin:9,affMax:14},
-{id:'ps_j07',name:'红砖常春藤盆栽',series:"Jane's Collection",target:'jane',price:480,currency:'tea',affMin:5,affMax:8},
-{id:'ps_j08',name:'深红色扑克牌',series:"Jane's Collection",target:'jane',price:2500,currency:'tea',affMin:11,affMax:16},
-{id:'ps_j09',name:'猩红热侦探小说',series:"Jane's Collection",target:'jane',price:400,currency:'tea',affMin:4,affMax:7},
-{id:'ps_j10',name:'红宝石玫瑰干花束',series:"Jane's Collection",target:'jane',price:1500,currency:'tea',affMin:8,affMax:13},
-{id:'ps_j11',name:'红酱秘方笔记',series:"Jane's Collection",target:'jane',price:350,currency:'tea',affMin:3,affMax:6},
-{id:'ps_j12',name:'兄弟之证怀旧相框',series:"Jane's Collection",target:'jane',price:8000,currency:'tea',affMin:22,affMax:30},
-{id:'ps_j13',name:'足迹追踪地图（手绘）',series:"Jane's Collection",target:'jane',price:10000,currency:'tea',affMin:26,affMax:34},
-{id:'ps_j14',name:'催眠术皮革典籍',series:"Jane's Collection",target:'jane',price:12000,currency:'tea',affMin:28,affMax:36},
+// ── Neal's Taste (14 items, White Collar S1) ──
+{id:'ps_n01',name:'飞行员夹克',series:"Neal's Taste",target:'neal',price:480,currency:'coffee',affMin:7,affMax:12,quote:'A leather jacket? For me? …You have better taste than I gave you credit for, sweetheart.'},
+{id:'ps_n02',name:'金丝袖扣',series:"Neal's Taste",target:'neal',price:350,currency:'coffee',affMin:6,affMax:10,quote:'Cufflinks. 金丝。You understand that details make the man. I\'m impressed.'},
+{id:'ps_n03',name:'中世纪祈祷书（复制品）',series:"Neal's Taste",target:'neal',price:2500,currency:'coffee',affMin:16,affMax:22,quote:'A Book of Hours. 复制品だけど… the craftsmanship is exquisite. You know me too well.'},
+{id:'ps_n04',name:'双色硬币收藏盒',series:"Neal's Taste",target:'neal',price:300,currency:'coffee',affMin:5,affMax:8,quote:'Every coin has two sides, Natumi. Just like every good con. …Thank you.'},
+{id:'ps_n05',name:'自画像画框',series:"Neal's Taste",target:'neal',price:1800,currency:'coffee',affMin:12,affMax:18,quote:'A frame for a self-portrait I haven\'t painted yet? That\'s either very thoughtful or very presumptuous. I love it.'},
+{id:'ps_n06',name:'筹码套装',series:"Neal's Taste",target:'neal',price:450,currency:'coffee',affMin:7,affMax:11,quote:'Poker chips. 本物みたい。You\'re inviting me to play? I should warn you — I never lose.'},
+{id:'ps_n07',name:'降落伞丝围巾',series:"Neal's Taste",target:'neal',price:8500,currency:'coffee',affMin:26,affMax:34,quote:'Parachute silk. 最高級の素材だ。…You remembered. That means more than the scarf itself.'},
+{id:'ps_n08',name:'古董拍卖图录',series:"Neal's Taste",target:'neal',price:1500,currency:'coffee',affMin:11,affMax:16,quote:'An auction catalog from \'89. Some of these pieces… I\'ve seen them up close. Don\'t ask how.'},
+{id:'ps_n09',name:'伪造鉴定放大镜',series:"Neal's Taste",target:'neal',price:500,currency:'coffee',affMin:8,affMax:12,quote:'A loupe? Are you asking me to authenticate something, or admitting you know what I do with one?'},
+{id:'ps_n10',name:'急救锡盒',series:"Neal's Taste",target:'neal',price:380,currency:'coffee',affMin:6,affMax:9,quote:'First aid kit. Practical. 僕のことを心配してくれてるんだね。…I\'ll try to need it less.'},
+{id:'ps_n11',name:'June公寓的钥匙（复刻）',series:"Neal's Taste",target:'neal',price:10000,currency:'coffee',affMin:30,affMax:38,quote:'…This is the key to June\'s place. A replica, but… 完璧だ。You just gave me back something I thought I\'d lost.'},
+{id:'ps_n12',name:'红酒醒酒器',series:"Neal's Taste",target:'neal',price:2800,currency:'coffee',affMin:16,affMax:22,quote:'A decanter. Crystal. You\'re learning — wine needs to breathe. 人間もね。'},
+{id:'ps_n13',name:'舞台聚光灯模型',series:"Neal's Taste",target:'neal',price:1600,currency:'coffee',affMin:12,affMax:16,quote:'A spotlight. Every good performance needs one. …Are you saying I\'m always performing? Because you\'re not wrong.'},
+{id:'ps_n14',name:'密室逃脱礼盒',series:"Neal's Taste",target:'neal',price:12000,currency:'coffee',affMin:32,affMax:40,quote:'An escape room in a box? Natumi, I escaped federal prison. …But I appreciate the sentiment. Let\'s play together sometime.'},
+// ── Jane's Collection (23 items, The Mentalist S1) ──
+{id:'ps_j01',name:'复古飞行员手记',series:"Jane's Collection",target:'jane',price:420,currency:'tea',affMin:4,affMax:7,quote:'「这是什么？飞行员的笔记？…嗯。里面的观察方式不错。这个人会看。」'},
+{id:'ps_j02',name:'红发丝带',series:"Jane's Collection",target:'jane',price:300,currency:'tea',affMin:3,affMax:6,quote:'「丝带。红色的。…你记得我说过的一些事。这让我有一点不安。」'},
+{id:'ps_j03',name:'潮汐瓶',series:"Jane's Collection",target:'jane',price:450,currency:'tea',affMin:4,affMax:7,quote:'「潮汐瓶？…有意思。你在试图给我一些无法被控制的东西。我接受这个隐喻。」'},
+{id:'ps_j04',name:'红色蕾丝手帕',series:"Jane's Collection",target:'jane',price:350,currency:'tea',affMin:3,affMax:6,quote:'「蕾丝手帕。红色。…这不像你平时会选的东西。你在猜我喜欢什么。猜得还行。」'},
+{id:'ps_j05',name:'红杉木香薰',series:"Jane's Collection",target:'jane',price:500,currency:'tea',affMin:5,affMax:8,quote:'「红杉木。…这个味道能帮助集中注意力。你比我以为的更细心。」'},
+{id:'ps_j06',name:'CBI红色档案夹',series:"Jane's Collection",target:'jane',price:380,currency:'tea',affMin:3,affMax:6,quote:'「CBI的档案夹。…你从哪弄到的？不用回答。我不确定我想知道。」'},
+{id:'ps_j07',name:'火焰色红茶罐',series:"Jane's Collection",target:'jane',price:1800,currency:'tea',affMin:9,affMax:14,quote:'「茶叶罐。火焰色。…好的茶叶需要好的容器。你理解这个道理。谢谢。」'},
+{id:'ps_j08',name:'红砖常春藤盆栽',series:"Jane's Collection",target:'jane',price:480,currency:'tea',affMin:5,affMax:8,quote:'「常春藤。…给我植物是在暗示我需要照顾活的东西吗？你可能是对的。」'},
+{id:'ps_j09',name:'Red John案件笔记本',series:"Jane's Collection",target:'jane',price:2500,currency:'tea',affMin:11,affMax:16,quote:'「……你不应该碰这个话题。但这个本子的质感不错。我会用它写别的东西。」'},
+{id:'ps_j10',name:'深红色扑克牌',series:"Jane's Collection",target:'jane',price:500,currency:'tea',affMin:5,affMax:8,quote:'「扑克牌。深红色。手感不错。…你想看我洗牌吗？不是魔术，只是习惯。」'},
+{id:'ps_j11',name:'猩红热侦探小说',series:"Jane's Collection",target:'jane',price:400,currency:'tea',affMin:4,affMax:7,quote:'「侦探小说。…作者的推理方法全是错的。但文笔还行。我会在沙发上读完它。」'},
+{id:'ps_j12',name:'血色墨水瓶',series:"Jane's Collection",target:'jane',price:350,currency:'tea',affMin:3,affMax:6,quote:'「红色墨水。…你觉得我会用它写什么？说实话，我自己也不确定。」'},
+{id:'ps_j13',name:'深红漆器茶托',series:"Jane's Collection",target:'jane',price:1500,currency:'tea',affMin:8,affMax:13,quote:'「漆器茶托。…这个做工让我想起京都。你有时候能选到对的东西。」'},
+{id:'ps_j14',name:'绯色丝绒领带',series:"Jane's Collection",target:'jane',price:2000,currency:'tea',affMin:10,affMax:15,quote:'「领带？…我不怎么打领带。但这个颜色，我会考虑。为了特殊场合。」'},
+{id:'ps_j15',name:'猩红热病理学图鉴',series:"Jane's Collection",target:'jane',price:800,currency:'tea',affMin:6,affMax:9,quote:'「医学图鉴。…人体是最诚实的证人。这本书证明了这一点。谢谢。」'},
+{id:'ps_j16',name:'红宝石玫瑰干花束',series:"Jane's Collection",target:'jane',price:1500,currency:'tea',affMin:8,affMax:13,quote:'「干花。…不会枯萎的花。你在说什么呢。…放在阁楼的窗台上吧。」'},
+{id:'ps_j17',name:'红酱秘方笔记',series:"Jane's Collection",target:'jane',price:350,currency:'tea',affMin:3,affMax:6,quote:'「食谱？…你在暗示我应该学做饭。不过这个酱料配方确实有意思。」'},
+{id:'ps_j18',name:'Miss Red限定茶杯',series:"Jane's Collection",target:'jane',price:480,currency:'tea',affMin:5,affMax:8,quote:'「限定茶杯。…杯子对茶的味道有影响。这是个好杯子。你花了心思。」'},
+{id:'ps_j19',name:'兄弟之证怀旧相框',series:"Jane's Collection",target:'jane',price:8000,currency:'tea',affMin:22,affMax:30,quote:'「……相框。…你想让我放什么照片？不用回答。我知道。…谢谢你。」'},
+{id:'ps_j20',name:'红棕色羊皮笔记本',series:"Jane's Collection",target:'jane',price:600,currency:'tea',affMin:5,affMax:9,quote:'「羊皮笔记本。…纸的触感很好。我会用它记一些不适合放在档案里的想法。」'},
+{id:'ps_j21',name:'足迹追踪地图（手绘）',series:"Jane's Collection",target:'jane',price:10000,currency:'tea',affMin:26,affMax:34,quote:'「手绘地图。…你画的？不管是不是，这张地图上的标注方式很专业。我很在意这些细节。」'},
+{id:'ps_j22',name:'催眠术皮革典籍',series:"Jane's Collection",target:'jane',price:12000,currency:'tea',affMin:28,affMax:36,quote:'「催眠术典籍。…你知道我不对朋友用催眠。但这本书写得比大多数教科书好。珍贵的礼物。」'},
+{id:'ps_j23',name:'Red John封印蜡章',series:"Jane's Collection",target:'jane',price:15000,currency:'tea',affMin:32,affMax:40,quote:'「…………你知道这意味着什么吗。…知道还是送了。…我收下了。那段时间结束了。」'},
 ];
 
 // ══════════════════════════════════════
@@ -355,6 +362,7 @@ function confirmBuy(){
   let h='<div class="gift-icon">\u2726</div>';
   h+='<div class="gift-msg">\u9001\u7ED9\u4E86 '+tn+'</div>';
   h+='<div class="gift-aff" style="color:'+tc+'">\u2764 \u597D\u611F +'+aff+'</div>';
+  if(item.quote)h+='<div style="margin-top:14px;font-size:12px;color:#888;line-height:1.6;font-style:italic;padding:0 8px">'+esc(item.quote)+'</div>';
   document.getElementById('giftResult').innerHTML=h;
   sm('giftModal');render();
 }
