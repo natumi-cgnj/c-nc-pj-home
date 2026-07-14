@@ -70,6 +70,37 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .pool-item .pool-name{flex:1;font-size:12px;color:#555}
 .pool-item .pool-meta{font-size:10px;color:#aaa}
 .pool-item button{font-size:10px;color:#e07;background:none;border:none;cursor:pointer}
+/* Todo items */
+.todo-card{background:#fff;border:1px solid #eee;border-radius:10px;padding:12px 14px;margin-bottom:8px}
+.todo-card.completed{opacity:0.4}
+.todo-card.completed .todo-name{text-decoration:line-through;color:#bbb}
+.todo-top{display:flex;align-items:center;gap:12px}
+.todo-check{width:22px;height:22px;border-radius:50%;border:2px solid #ddd;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;font-size:12px;color:#fff}
+.todo-check.checked{background:#1a1a1a;border-color:#1a1a1a}
+.todo-body{flex:1;min-width:0}
+.todo-name{font-size:13px;color:#333;margin-bottom:2px}
+.todo-date{font-size:10px;color:#E8B96A}
+.todo-date.overdue{color:#D85A30}
+.todo-del{font-size:10px;color:#ccc;background:none;border:none;cursor:pointer;padding:4px}
+/* Habit items in daily */
+.habit-card{background:#fff;border:1px solid #eee;border-radius:10px;padding:12px 14px;margin-bottom:8px}
+.habit-card.completed{opacity:0.4}
+.habit-card.completed .habit-name{text-decoration:line-through;color:#bbb}
+.habit-top{display:flex;align-items:center;gap:12px}
+.habit-check{width:22px;height:22px;border-radius:50%;border:2px solid #ddd;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;font-size:12px;color:#fff}
+.habit-check.checked{background:#1a1a1a;border-color:#1a1a1a}
+.habit-body{flex:1;min-width:0}
+.habit-name{font-size:13px;color:#333;margin-bottom:2px}
+.habit-meta{font-size:10px;color:#bbb}
+.habit-streak{font-size:10px;color:#E8B96A;font-weight:500}
+.habit-actions button{font-size:10px;padding:4px 8px;border:1px solid #e8e8e8;border-radius:6px;background:#fff;cursor:pointer;color:#999}
+.add-inline{width:100%;padding:12px;border:1px dashed #ddd;border-radius:10px;background:#fff;font-size:13px;color:#aaa;cursor:pointer;text-align:center;margin-top:8px;font-family:inherit}
+.add-inline:active{background:#f8f8f8}
+/* Bean status */
+.bean-bar{display:flex;justify-content:center;gap:16px;padding:6px 20px;background:#fff;border-bottom:1px solid #f0f0f0;font-size:11px;color:#999}
+.bean-bar span{font-weight:600;font-variant-numeric:tabular-nums}
+.bean-coffee{color:#8B6914}
+.bean-tea{color:#5A7247}
 
 /* Modals */
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:200;display:none;align-items:flex-end;justify-content:center}
@@ -139,9 +170,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   </div>
 </div>
 
+<div class="bean-bar">
+  咖啡豆 <span class="bean-coffee" id="beanCoffee">0</span> &nbsp; 茶叶 <span class="bean-tea" id="beanTea">0</span>
+</div>
+
 <div class="tabs">
-  <div class="tab active" data-tab="tasks" onclick="switchTab('tasks')">任务</div>
-  <div class="tab" data-tab="pool" onclick="switchTab('pool')">任务池</div>
+  <div class="tab active" data-tab="drop" onclick="switchTab('drop')">掉落</div>
+  <div class="tab" data-tab="todo" onclick="switchTab('todo')">待办</div>
+  <div class="tab" data-tab="habits" onclick="switchTab('habits')">习惯</div>
 </div>
 
 <div class="content" id="content"></div>
@@ -158,30 +194,39 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   </div>
 </div>
 
-<!-- Add/edit custom task -->
-<div class="modal-bg" id="addTaskModal">
+<!-- Add/edit todo -->
+<div class="modal-bg" id="todoModal">
   <div class="modal">
-    <h2 id="taskModalTitle">添加任务</h2>
-    <label>任务内容</label>
-    <input type="text" id="taskContent" placeholder="如: 给Neal画一张速写">
-    <label>完成好感</label>
-    <div class="aff-row">
-      <div><label style="margin-top:4px">Neal +</label><input type="number" id="taskAffNeal" value="5" min="0"></div>
-      <div><label style="margin-top:4px">Jane +</label><input type="number" id="taskAffJane" value="3" min="0"></div>
-    </div>
-    <label>换掉任务好感</label>
-    <div class="aff-row">
-      <div><label style="margin-top:4px">Neal -</label><input type="number" id="taskCostNeal" value="2" min="0"></div>
-      <div><label style="margin-top:4px">Jane -</label><input type="number" id="taskCostJane" value="1" min="0"></div>
-    </div>
-    <label>完成宝石奖励</label>
-    <div class="aff-row">
-      <div><label style="margin-top:4px">祖母绿</label><input type="number" id="taskGemE" value="1" min="0"></div>
-      <div><label style="margin-top:4px">蓝宝石</label><input type="number" id="taskGemS" value="1" min="0"></div>
-    </div>
+    <h2 id="todoModalTitle">添加待办</h2>
+    <label>内容</label>
+    <input type="text" id="todoContent" placeholder="如: 8.31前兑换商品券">
+    <label>截止日期（可选）</label>
+    <input type="date" id="todoDate" value="">
     <div class="btn-row">
-      <button class="btn btn-cancel" onclick="closeModal('addTaskModal')">取消</button>
-      <button class="btn btn-primary" onclick="savePoolTask()">保存</button>
+      <button class="btn btn-cancel" onclick="closeModal('todoModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveTodo()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add/edit habit -->
+<div class="modal-bg" id="habitModal">
+  <div class="modal">
+    <h2 id="habitModalTitle">添加习惯</h2>
+    <label>习惯名称</label>
+    <input type="text" id="habitName" placeholder="如: 记10个韩语单词">
+    <label>产出类型</label>
+    <select id="habitCurrency">
+      <option value="coffee">咖啡豆（Neal）</option>
+      <option value="tea">茶叶（Jane）</option>
+      <option value="both">两种各一半</option>
+    </select>
+    <label>每次打卡产出</label>
+    <input type="number" id="habitReward" value="20" min="1" max="100">
+    <div style="font-size:10px;color:#bbb;margin-top:4px">建议 15-30，目标每天总计约 100-150</div>
+    <div class="btn-row">
+      <button class="btn btn-cancel" onclick="closeModal('habitModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveHabit()">保存</button>
     </div>
   </div>
 </div>
@@ -264,25 +309,21 @@ const NEAL_AVT='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFoAAABaCAYAAAA4qE
 // ══════════════════════════════════════
 let db;
 try{db=JSON.parse(localStorage.getItem('daily_db'));}catch(e){db=null;}
-if(!db)db={affinity:{neal:0,jane:0},gems:{emerald:0,sapphire:0},signin:{streak:0,lastDate:null,history:[]},pool:[],todayTasks:[],todayDrop:null,todayDate:null,completedToday:0,completedDrops:[]};
-// Ensure new fields exist for migration
+if(!db)db={affinity:{neal:0,jane:0},gems:{emerald:0,sapphire:0},signin:{streak:0,lastDate:null,history:[]},pool:[],todayTasks:[],todayDrop:null,todayDate:null,completedToday:0,completedDrops:[],todos:[]};
 if(!db.completedDrops)db.completedDrops=[];
 if(db.todayDrop===undefined)db.todayDrop=null;
-// Migrate pool tasks: add IDs, migrate old single-owner format
-db.pool.forEach((p,i)=>{
-  if(!p.id)p.id='pt_'+Date.now()+'_'+i;
-  // Migrate old format: owner+affGain → nealAff+janeAff
-  if(p.owner&&p.nealAff===undefined){
-    if(p.owner==='neal'){p.nealAff=p.affGain||5;p.janeAff=0;}
-    else{p.nealAff=0;p.janeAff=p.affGain||5;}
-    p.costNeal=p.affCost||2;p.costJane=p.affCost||2;
-    p.gemE=p.gemReward||2;p.gemS=p.gemReward||2;
-    delete p.owner;delete p.affGain;delete p.affCost;delete p.gemReward;
-  }
-});
+if(!db.todos)db.todos=[];
+// Migrate old pool tasks to todos
+if(db.pool&&db.pool.length>0){
+  db.pool.forEach(p=>{
+    db.todos.push({id:'td_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),content:p.content,date:null,completed:false});
+  });
+  db.pool=[];
+}
 
-let currentTab='tasks';
-let editingPoolId=null;
+let currentTab='drop';
+let editingTodoId=null;
+let editingHabitId=null;
 function save(){try{localStorage.setItem('daily_db',JSON.stringify(db));}catch(e){}}
 
 // ── Shared gem storage (gacha_st) ──
@@ -290,13 +331,24 @@ function getGacha(){try{return JSON.parse(localStorage.getItem('gacha_st'))||{em
 function saveGacha(g){try{localStorage.setItem('gacha_st',JSON.stringify(g));}catch(e){}}
 function getGems(){const g=getGacha();return{emerald:g.emerald||0,sapphire:g.sapphire||0};}
 function addGemsToGacha(e,s){const g=getGacha();g.emerald=(g.emerald||0)+e;g.sapphire=(g.sapphire||0)+s;saveGacha(g);}
-// Migrate old gems
 if(db.gems&&(db.gems.emerald>0||db.gems.sapphire>0)){
   addGemsToGacha(db.gems.emerald,db.gems.sapphire);
   db.gems={emerald:0,sapphire:0};save();
 }
 
-// Daily reset at 4:00 AM — subtract 4 hours so "today" doesn't change until 4AM
+// ── Shared bean storage (bean_st) ──
+function getBeans(){try{return JSON.parse(localStorage.getItem('bean_st'))||{coffee:0,tea:0};}catch(e){return{coffee:0,tea:0};}}
+function saveBeans(b){try{localStorage.setItem('bean_st',JSON.stringify(b));}catch(e){}}
+function addBeans(coffee,tea){const b=getBeans();b.coffee=(b.coffee||0)+coffee;b.tea=(b.tea||0)+tea;saveBeans(b);}
+
+// ── Habit storage (habit_db) ──
+let hdb;
+try{hdb=JSON.parse(localStorage.getItem('habit_db'));}catch(e){hdb=null;}
+if(!hdb)hdb={habits:[],log:{}};
+if(!hdb.log)hdb.log={};
+function saveHabits(){try{localStorage.setItem('habit_db',JSON.stringify(hdb));}catch(e){}}
+
+// Daily reset at 4:00 AM
 const today=()=>{const d=new Date(Date.now()-4*3600*1000);return d.toISOString().slice(0,10);};
 const STREAK_REWARDS=[
   {day:3,emerald:3,sapphire:3},{day:7,emerald:5,sapphire:5},
@@ -308,7 +360,7 @@ const BASE_SIGNIN={emerald:2,sapphire:2};
 // AUTO SIGNIN
 // ══════════════════════════════════════
 function autoSignin(){
-  if(db.signin.lastDate===today())return; // already signed
+  if(db.signin.lastDate===today())return;
   const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);
   const yesterdayStr=yesterday.toISOString().slice(0,10);
   if(db.signin.lastDate===yesterdayStr){db.signin.streak++;}
@@ -318,24 +370,25 @@ function autoSignin(){
   let totalE=BASE_SIGNIN.emerald,totalS=BASE_SIGNIN.sapphire;
   STREAK_REWARDS.forEach(sr=>{if(db.signin.streak===sr.day){totalE+=sr.emerald;totalS+=sr.sapphire;}});
   addGemsToGacha(totalE,totalS);
+  // Signin also gives beans
+  addBeans(10,10);
   save();
   showSigninPopup(totalE,totalS);
 }
 
 function showSigninPopup(e,s){
-  document.getElementById('signinTitle').textContent='签到完成 ✦';
-  document.getElementById('signinStreak').textContent='连续签到 '+db.signin.streak+' 天';
-  let rewardMsg='祖母绿 +'+e+'  蓝宝石 +'+s;
+  document.getElementById('signinTitle').textContent='\u7B7E\u5230\u5B8C\u6210 \u2726';
+  document.getElementById('signinStreak').textContent='\u8FDE\u7EED\u7B7E\u5230 '+db.signin.streak+' \u5929';
+  let rewardMsg='\u7956\u6BCD\u7EFF +'+e+'  \u84DD\u5B9D\u77F3 +'+s+'  \u8C46/\u53F6 +10';
   const milestone=STREAK_REWARDS.find(sr=>sr.day===db.signin.streak);
-  if(milestone)rewardMsg+='  ('+db.signin.streak+'日连续奖励！)';
-  document.getElementById('signinRewardText').textContent='✦ '+rewardMsg;
-  // Calendar
+  if(milestone)rewardMsg+='  ('+db.signin.streak+'\u65E5\u8FDE\u7EED\u5956\u52B1\uFF01)';
+  document.getElementById('signinRewardText').textContent='\u2726 '+rewardMsg;
   const now=new Date();
   const year=now.getFullYear(),month=now.getMonth();
   const firstDay=new Date(year,month,1).getDay();
   const daysInMonth=new Date(year,month+1,0).getDate();
   const todayDate=now.getDate();
-  let cal='<div style="font-size:11px;color:#bbb;margin-bottom:6px;">'+(month+1)+'月</div><div class="streak-grid">';
+  let cal='<div style="font-size:11px;color:#bbb;margin-bottom:6px;">'+(month+1)+'\u6708</div><div class="streak-grid">';
   for(let i=0;i<firstDay;i++)cal+='<div class="streak-day empty"></div>';
   for(let d=1;d<=daysInMonth;d++){
     const ds=year+'-'+String(month+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
@@ -348,11 +401,10 @@ function showSigninPopup(e,s){
   }
   cal+='</div>';
   document.getElementById('signinCalendar').innerHTML=cal;
-  // Streak rewards
   let srHtml=STREAK_REWARDS.map(sr=>{
     const claimed=db.signin.streak>=sr.day;
     const current=db.signin.streak<sr.day&&(STREAK_REWARDS.indexOf(sr)===0||db.signin.streak>=STREAK_REWARDS[STREAK_REWARDS.indexOf(sr)-1].day);
-    return'<div class="streak-reward '+(claimed?'claimed':'')+' '+(current?'current':'')+'"><div class="sr-day">'+sr.day+'日</div><div class="sr-reward">💎×'+(sr.emerald+sr.sapphire)+'</div></div>';
+    return'<div class="streak-reward '+(claimed?'claimed':'')+' '+(current?'current':'')+'"><div class="sr-day">'+sr.day+'\u65E5</div><div class="sr-reward">\uD83D\uDC8E\u00D7'+(sr.emerald+sr.sapphire)+'</div></div>';
   }).join('');
   document.getElementById('signinStreakRewards').innerHTML=srHtml;
   document.getElementById('signinPopup').classList.add('show');
@@ -362,9 +414,17 @@ function closeSignin(){document.getElementById('signinPopup').classList.remove('
 // ══════════════════════════════════════
 // DAILY DROP TASK
 // ══════════════════════════════════════
+function initToday(){
+  if(db.todayDate!==today()){
+    db.todayDate=today();
+    db.todayDrop=null;
+    db.completedToday=0;
+    save();
+  }
+}
+
 function getDailyDrop(){
   if(db.todayDrop)return db.todayDrop;
-  // Pick one from unfinished drops
   const available=DROP_POOL.filter(d=>!db.completedDrops.includes(d.id));
   if(!available.length)return null;
   const pick=available[Math.floor(Math.random()*available.length)];
@@ -383,51 +443,13 @@ function completeDrop(){
     db.completedDrops.push(d.id);
   }
   save();render();
-  if(d){
-    setTimeout(()=>{
-      const el=document.getElementById('taskToast');
-      const parts=[];
-      if(d.nealAff)parts.push('Neal +'+d.nealAff);
-      if(d.janeAff)parts.push('Jane +'+d.janeAff);
-      if(el)el.textContent='✦ '+parts.join('  ');
-    },50);
-  }
+  if(d){setTimeout(()=>{const el=document.getElementById('taskToast');const parts=[];if(d.nealAff)parts.push('Neal +'+d.nealAff);if(d.janeAff)parts.push('Jane +'+d.janeAff);if(el)el.textContent='\u2726 '+parts.join('  ');},50);}
 }
 
 function dismissDrop(){
   if(!db.todayDrop)return;
   db.todayDrop.dismissed=true;
   save();render();
-}
-
-// ══════════════════════════════════════
-// INIT TODAY
-// ══════════════════════════════════════
-function initToday(){
-  if(db.todayDate!==today()){
-    db.todayDate=today();
-    db.todayTasks=[];
-    db.todayDrop=null;
-    db.completedToday=0;
-    assignTasks(3+Math.floor(Math.random()*3));
-    save();
-  }
-}
-
-function assignTasks(count){
-  const usedIds=new Set(db.todayTasks.filter(t=>!t.swapped).map(t=>t.poolId));
-  const available=db.pool.filter(p=>!usedIds.has(p.id));
-  const shuffled=[...available].sort(()=>Math.random()-0.5);
-  const toAssign=shuffled.slice(0,Math.min(count,shuffled.length));
-  toAssign.forEach(task=>{
-    db.todayTasks.push({
-      poolId:task.id,content:task.content,
-      nealAff:task.nealAff||0,janeAff:task.janeAff||0,
-      costNeal:task.costNeal||0,costJane:task.costJane||0,
-      gemE:task.gemE||0,gemS:task.gemS||0,
-      completed:false,swapped:false
-    });
-  });
 }
 
 // ══════════════════════════════════════
@@ -440,265 +462,243 @@ function render(){
   const gems=getGems();
   document.getElementById('gemE').textContent=gems.emerald;
   document.getElementById('gemS').textContent=gems.sapphire;
+  const beans=getBeans();
+  document.getElementById('beanCoffee').textContent=beans.coffee||0;
+  document.getElementById('beanTea').textContent=beans.tea||0;
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===currentTab));
   const c=document.getElementById('content');
-  if(currentTab==='tasks')renderTasks(c);
-  else if(currentTab==='pool')renderPool(c);
+  if(currentTab==='drop')renderDrop(c);
+  else if(currentTab==='todo')renderTodo(c);
+  else if(currentTab==='habits')renderHabits(c);
 }
 
 function switchTab(t){currentTab=t;render();}
 
-// ── Tasks view ──
-function renderTasks(c){
-  let html='<div class="task-reward-toast" id="taskToast"></div>';
+function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
-  // Daily drop task
+// ── Drop tab ──
+function renderDrop(c){
+  let html='<div class="task-reward-toast" id="taskToast"></div>';
+  // Progress
+  const dropDone=db.completedDrops.length;
+  const dropTotal=DROP_POOL.length;
+  const pct=dropTotal?Math.round(dropDone/dropTotal*100):0;
+  html+='<div style="background:#fff;border:1px solid #eee;border-radius:10px;padding:12px 14px;margin-bottom:16px;">';
+  html+='<div style="font-size:12px;color:#999;margin-bottom:6px;">\u6389\u843D\u4EFB\u52A1 \u00B7 \u7B2C\u4E00\u5B63</div>';
+  html+='<div style="font-size:14px;font-weight:500;color:#333;">'+dropDone+' / '+dropTotal+'</div>';
+  html+='<div style="background:#f0f0f0;border-radius:4px;height:4px;margin-top:8px;overflow:hidden;">';
+  html+='<div style="background:#E8B96A;height:100%;width:'+pct+'%;border-radius:4px;transition:width 0.3s;"></div></div></div>';
+
   const drop=getDailyDrop();
   if(drop&&!drop.dismissed){
     const d=DROP_POOL.find(x=>x.id===drop.dropId);
     if(d){
-      const srcColor=d.src==='neal'?'#6B8AFF':d.src==='jane'?'#5BA66B':'#9B6BCC';
-      const srcLabel=d.src==='neal'?'Neal 的委托':d.src==='jane'?'Jane 的委托':'双人委托';
+      const srcLabel=d.src==='neal'?'Neal \u7684\u59D4\u6258':d.src==='jane'?'Jane \u7684\u59D4\u6258':'\u53CC\u4EBA\u59D4\u6258';
       const affParts=[];
       if(d.nealAff)affParts.push('Neal +'+d.nealAff);
       if(d.janeAff)affParts.push('Jane +'+d.janeAff);
-      html+=`<div class="task-section">
-        <div class="task-section-header">
-          <div class="dot" style="background:#E8B96A"></div>
-          <div class="name" style="color:#E8B96A">今日掉落</div>
-        </div>
-        <div class="task-card drop-task ${drop.completed?'completed':''}">
-          <div class="task-top">
-            <div class="task-check ${drop.completed?'checked':''}" onclick="completeDrop()">${drop.completed?'✓':''}</div>
-            <div class="task-body">
-              <div class="drop-label">${d.rarity} · ${srcLabel}</div>
-              <div class="task-name">${d.task}</div>
-              <div class="task-meta"><span>${affParts.join(' · ')}</span></div>
-            </div>
-            ${!drop.completed?`<div class="task-actions">
-              <button class="dismiss" onclick="dismissDrop()">今天不做</button>
-            </div>`:''}
-          </div>
-          <div class="task-quote">${d.src==='duo'?'<img src="'+NEAL_AVT+'" style="margin-right:-6px"><img src="'+JANE_AVT+'">':'<img src="'+(d.src==='jane'?JANE_AVT:NEAL_AVT)+'">'}<span>${d.quote}</span></div>
-        </div>
-      </div>`;
+      html+='<div class="task-card drop-task '+(drop.completed?'completed':'')+'">';
+      html+='<div class="task-top">';
+      html+='<div class="task-check '+(drop.completed?'checked':'')+'" onclick="completeDrop()">'+(drop.completed?'\u2713':'')+'</div>';
+      html+='<div class="task-body"><div class="drop-label">'+d.rarity+' \u00B7 '+srcLabel+'</div>';
+      html+='<div class="task-name">'+d.task+'</div>';
+      html+='<div class="task-meta"><span>'+affParts.join(' \u00B7 ')+'</span></div></div>';
+      if(!drop.completed)html+='<div class="task-actions"><button class="dismiss" onclick="dismissDrop()">\u4ECA\u5929\u4E0D\u505A</button></div>';
+      html+='</div>';
+      html+='<div class="task-quote">'+(d.src==='duo'?'<img src="'+NEAL_AVT+'" style="margin-right:-6px"><img src="'+JANE_AVT+'">':'<img src="'+(d.src==='jane'?JANE_AVT:NEAL_AVT)+'">')+'<span>'+d.quote+'</span></div>';
+      html+='</div>';
+    }
+  }else if(!drop){
+    html+='<div class="empty">\u6240\u6709\u6389\u843D\u4EFB\u52A1\u90FD\u5B8C\u6210\u4E86\uFF01</div>';
+  }else{
+    html+='<div class="empty">\u4ECA\u5929\u7684\u6389\u843D\u4EFB\u52A1\u5DF2\u8DF3\u8FC7\uFF0C\u660E\u5929\u518D\u6765\u5427</div>';
+  }
+  c.innerHTML=html;
+}
+
+// ── Todo tab ──
+function renderTodo(c){
+  const active=db.todos.filter(t=>!t.completed);
+  const done=db.todos.filter(t=>t.completed);
+  const dated=active.filter(t=>t.date).sort((a,b)=>a.date.localeCompare(b.date));
+  const undated=active.filter(t=>!t.date);
+
+  let html='';
+  if(dated.length){
+    html+='<div class="section-header"><div class="section-title">\u6709\u622A\u6B62\u65E5\u671F</div></div>';
+    dated.forEach(t=>{html+=renderTodoCard(t);});
+  }
+  if(undated.length){
+    html+='<div class="section-header" style="margin-top:12px"><div class="section-title">\u5F85\u529E</div></div>';
+    undated.forEach(t=>{html+=renderTodoCard(t);});
+  }
+  if(done.length){
+    html+='<div class="section-header" style="margin-top:12px"><div class="section-title">\u5DF2\u5B8C\u6210 ('+done.length+')</div></div>';
+    done.slice(0,10).forEach(t=>{html+=renderTodoCard(t);});
+  }
+  if(!active.length&&!done.length){
+    html+='<div class="empty">\u8FD8\u6CA1\u6709\u5F85\u529E\u4E8B\u9879</div>';
+  }
+  html+='<button class="add-inline" onclick="openAddTodo()">+ \u6DFB\u52A0\u5F85\u529E</button>';
+  c.innerHTML=html;
+}
+
+function renderTodoCard(t){
+  const isDone=t.completed;
+  let dateHtml='';
+  if(t.date){
+    const isOverdue=!isDone&&t.date<today();
+    dateHtml='<div class="todo-date'+(isOverdue?' overdue':'')+'">'+t.date+(isOverdue?' \u2022 \u5DF2\u8FC7\u671F':'')+'</div>';
+  }
+  return '<div class="todo-card'+(isDone?' completed':'')+'">'
+    +'<div class="todo-top">'
+    +'<div class="todo-check'+(isDone?' checked':'')+'" onclick="toggleTodo(\''+t.id+'\')">'+(isDone?'\u2713':'')+'</div>'
+    +'<div class="todo-body"><div class="todo-name">'+escHtml(t.content)+'</div>'+dateHtml+'</div>'
+    +'<button class="todo-del" onclick="deleteTodo(\''+t.id+'\')">\u00D7</button>'
+    +'</div></div>';
+}
+
+function openAddTodo(){
+  editingTodoId=null;
+  document.getElementById('todoModalTitle').textContent='\u6DFB\u52A0\u5F85\u529E';
+  document.getElementById('todoContent').value='';
+  document.getElementById('todoDate').value='';
+  showModal('todoModal');
+}
+
+function saveTodo(){
+  const content=document.getElementById('todoContent').value.trim();
+  if(!content)return;
+  const date=document.getElementById('todoDate').value||null;
+  db.todos.push({id:'td_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),content:content,date:date,completed:false});
+  save();closeModal('todoModal');render();
+}
+
+function toggleTodo(id){
+  const t=db.todos.find(x=>x.id===id);
+  if(t)t.completed=!t.completed;
+  save();render();
+}
+
+function deleteTodo(id){
+  db.todos=db.todos.filter(x=>x.id!==id);
+  save();render();
+}
+
+// ── Habits tab ──
+function isDoneToday(habitId){
+  const t=today();
+  return hdb.log[t]&&hdb.log[t].includes(habitId);
+}
+
+function getStreak(habitId){
+  let streak=0;
+  const d=new Date(Date.now()-4*3600*1000);
+  d.setDate(d.getDate()-1);
+  while(true){
+    const key=d.toISOString().slice(0,10);
+    if(hdb.log[key]&&hdb.log[key].includes(habitId)){streak++;d.setDate(d.getDate()-1);}
+    else break;
+  }
+  if(isDoneToday(habitId))streak++;
+  return streak;
+}
+
+function getStreakBonus(streak){
+  if(streak>=30)return 1.5;
+  if(streak>=14)return 1.0;
+  if(streak>=7)return 0.5;
+  return 0;
+}
+
+function renderHabits(c){
+  const beans=getBeans();
+  let html='';
+
+  if(!hdb.habits.length){
+    html+='<div class="empty">\u8FD8\u6CA1\u6709\u6DFB\u52A0\u4E60\u60EF</div>';
+  }else{
+    const undone=hdb.habits.filter(h=>!isDoneToday(h.id));
+    const done=hdb.habits.filter(h=>isDoneToday(h.id));
+    if(undone.length){
+      html+='<div class="section-header"><div class="section-title">\u5F85\u5B8C\u6210</div></div>';
+      undone.forEach(h=>{html+=renderHabitCard(h,false);});
+    }
+    if(done.length){
+      html+='<div class="section-header" style="margin-top:12px"><div class="section-title">\u5DF2\u5B8C\u6210</div></div>';
+      done.forEach(h=>{html+=renderHabitCard(h,true);});
     }
   }
-
-  // Custom tasks from pool
-  const active=db.todayTasks.filter(t=>!t.swapped);
-  if(active.length){
-    html+=`<div class="task-section">
-      <div class="task-section-header">
-        <div class="dot" style="background:#1a1a1a"></div>
-        <div class="name">今日任务</div>
-      </div>
-      ${active.map((t,i)=>renderTaskCard(t,db.todayTasks.indexOf(t))).join('')}
-    </div>`;
-  }
-
-  if(!active.length&&(!drop||drop.dismissed||drop.completed)){
-    html+='<div class="empty">今天的任务都完成了！</div>';
-  }
-
-  if(db.pool.length>0){
-    html+='<button class="request-btn" onclick="requestMore()">再来一个 +</button>';
-  }
+  html+='<button class="add-inline" onclick="openAddHabit()">+ \u6DFB\u52A0\u4E60\u60EF</button>';
   c.innerHTML=html;
 }
 
-function renderTaskCard(t,idx){
-  const affParts=[];
-  if(t.nealAff)affParts.push('Neal +'+t.nealAff);
-  if(t.janeAff)affParts.push('Jane +'+t.janeAff);
-  const gemParts=[];
-  if(t.gemE)gemParts.push('祖母绿 +'+t.gemE);
-  if(t.gemS)gemParts.push('蓝宝石 +'+t.gemS);
-  const costParts=[];
-  if(t.costNeal)costParts.push('N-'+t.costNeal);
-  if(t.costJane)costParts.push('J-'+t.costJane);
-  const costLabel=costParts.length?costParts.join(' '):'';
+function renderHabitCard(h,isDone){
+  const streak=getStreak(h.id);
+  const bonus=getStreakBonus(streak);
+  const currLabel=h.currency==='coffee'?'\u2615\u8C46':(h.currency==='tea'?'\u2615\u53F6':'\u2615\u5404\u534A');
+  const base=h.reward||20;
+  const bonusAmt=Math.round(base*bonus);
+  let meta=currLabel+' +'+base;
+  if(bonus>0)meta+=' <span style="color:#E8B96A">(+'+bonusAmt+')</span>';
+  let streakHtml='';
+  if(streak>0)streakHtml=' <span class="habit-streak">\u2605'+streak+'\u5929</span>';
 
-  return`<div class="task-card ${t.completed?'completed':''}">
-    <div class="task-top">
-      <div class="task-check ${t.completed?'checked':''}" onclick="completeTask(${idx})">${t.completed?'✓':''}</div>
-      <div class="task-body">
-        <div class="task-name">${t.content}</div>
-        <div class="task-meta">
-          <span>${affParts.join(' · ')}</span>
-          ${gemParts.length?'<span>'+gemParts.join(' ')+'</span>':''}
-        </div>
-      </div>
-      ${!t.completed?`<div class="task-actions">
-        <button class="swap" onclick="swapTask(${idx})">换${costLabel?' ('+costLabel+')':''}</button>
-      </div>`:''}
-    </div>
-  </div>`;
+  return '<div class="habit-card'+(isDone?' completed':'')+'">'
+    +'<div class="habit-top">'
+    +'<div class="habit-check'+(isDone?' checked':'')+'" onclick="'+(isDone?'':'checkHabit(\''+h.id+'\')')+'">'+(isDone?'\u2713':'')+'</div>'
+    +'<div class="habit-body"><div class="habit-name">'+escHtml(h.name)+'</div>'
+    +'<div class="habit-meta">'+meta+streakHtml+'</div></div>'
+    +'<button class="todo-del" onclick="deleteHabit(\''+h.id+'\')">\u00D7</button>'
+    +'</div></div>';
 }
 
-function completeTask(idx){
-  const t=db.todayTasks[idx];
-  if(t.completed)return;
-  t.completed=true;
-  db.affinity.neal+=(t.nealAff||0);
-  db.affinity.jane+=(t.janeAff||0);
-  if(t.gemE)addGemsToGacha(t.gemE,0);
-  if(t.gemS)addGemsToGacha(0,t.gemS);
-  db.completedToday++;
-  save();render();
-  setTimeout(()=>{
-    const el=document.getElementById('taskToast');
-    if(!el)return;
-    const parts=[];
-    if(t.nealAff)parts.push('Neal +'+t.nealAff);
-    if(t.janeAff)parts.push('Jane +'+t.janeAff);
-    if(t.gemE)parts.push('祖母绿 +'+t.gemE);
-    if(t.gemS)parts.push('蓝宝石 +'+t.gemS);
-    el.textContent='✦ '+parts.join('  ');
-  },50);
+function checkHabit(id){
+  const t=today();
+  if(!hdb.log[t])hdb.log[t]=[];
+  if(hdb.log[t].includes(id))return;
+  hdb.log[t].push(id);
+  saveHabits();
+  const h=hdb.habits.find(x=>x.id===id);
+  if(!h)return;
+  const streak=getStreak(id);
+  const bonus=getStreakBonus(streak);
+  const base=h.reward||20;
+  const total=base+Math.round(base*bonus);
+  let coffee=0,tea=0;
+  if(h.currency==='coffee')coffee=total;
+  else if(h.currency==='tea')tea=total;
+  else{coffee=Math.ceil(total/2);tea=Math.floor(total/2);}
+  addBeans(coffee,tea);
+  render();
 }
 
-function swapTask(idx){
-  const t=db.todayTasks[idx];
-  if(t.completed)return;
-  db.affinity.neal=Math.max(0,db.affinity.neal-(t.costNeal||0));
-  db.affinity.jane=Math.max(0,db.affinity.jane-(t.costJane||0));
-  t.swapped=true;
-  const usedIds=new Set(db.todayTasks.filter(x=>!x.swapped).map(x=>x.poolId));
-  const available=db.pool.filter(p=>!usedIds.has(p.id));
-  if(available.length){
-    const nw=available[Math.floor(Math.random()*available.length)];
-    db.todayTasks.push({
-      poolId:nw.id,content:nw.content,
-      nealAff:nw.nealAff||0,janeAff:nw.janeAff||0,
-      costNeal:nw.costNeal||0,costJane:nw.costJane||0,
-      gemE:nw.gemE||0,gemS:nw.gemS||0,
-      completed:false,swapped:false
-    });
-  }
-  save();render();
-  setTimeout(()=>{
-    const el=document.getElementById('taskToast');
-    const parts=[];
-    if(t.costNeal)parts.push('Neal -'+t.costNeal);
-    if(t.costJane)parts.push('Jane -'+t.costJane);
-    if(el)el.textContent=parts.join('  ')+'  任务已更换';
-  },50);
+function openAddHabit(){
+  editingHabitId=null;
+  document.getElementById('habitModalTitle').textContent='\u6DFB\u52A0\u4E60\u60EF';
+  document.getElementById('habitName').value='';
+  document.getElementById('habitCurrency').value='coffee';
+  document.getElementById('habitReward').value='20';
+  showModal('habitModal');
 }
 
-function requestMore(){
-  const usedIds=new Set(db.todayTasks.filter(x=>!x.swapped).map(x=>x.poolId));
-  const available=db.pool.filter(p=>!usedIds.has(p.id));
-  if(!available.length){alert('任务池里的任务今天都派过了！');return;}
-  const nw=available[Math.floor(Math.random()*available.length)];
-  db.todayTasks.push({
-    poolId:nw.id,content:nw.content,
-    nealAff:nw.nealAff||0,janeAff:nw.janeAff||0,
-    costNeal:nw.costNeal||0,costJane:nw.costJane||0,
-    gemE:nw.gemE||0,gemS:nw.gemS||0,
-    completed:false,swapped:false
-  });
-  save();render();
+function saveHabit(){
+  const name=document.getElementById('habitName').value.trim();
+  if(!name)return;
+  const currency=document.getElementById('habitCurrency').value;
+  const reward=Math.max(1,Math.min(100,parseInt(document.getElementById('habitReward').value)||20));
+  hdb.habits.push({id:'hb_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),name:name,currency:currency,reward:reward});
+  saveHabits();closeModal('habitModal');render();
 }
 
-// ══════════════════════════════════════
-// TASK POOL (custom tasks)
-// ══════════════════════════════════════
-function renderPool(c){
-  let html=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-    <span style="font-size:13px;color:#666;">自建任务池 (${db.pool.length})</span>
-    <button class="btn-s" onclick="showAddTask()" style="font-size:11px;color:#999;background:none;border:1px solid #ddd;border-radius:6px;padding:4px 10px;cursor:pointer;">+ 添加任务</button>
-  </div>`;
-
-  // Drop pool progress
-  const dropDone=db.completedDrops.length;
-  const dropTotal=DROP_POOL.length;
-  html+=`<div style="background:#fff;border:1px solid #eee;border-radius:10px;padding:12px 14px;margin-bottom:16px;">
-    <div style="font-size:12px;color:#999;margin-bottom:6px;">掉落任务 · 第一季</div>
-    <div style="font-size:14px;font-weight:500;color:#333;">${dropDone} / ${dropTotal}</div>
-    <div style="background:#f0f0f0;border-radius:4px;height:4px;margin-top:8px;overflow:hidden;">
-      <div style="background:#E8B96A;height:100%;width:${dropTotal?Math.round(dropDone/dropTotal*100):0}%;border-radius:4px;transition:width 0.3s;"></div>
-    </div>
-  </div>`;
-
-  if(!db.pool.length){
-    html+='<div class="empty">还没有自建任务<br>点上方 + 添加你自己的任务</div>';
-  }else{
-    db.pool.forEach(p=>{
-      const affParts=[];
-      if(p.nealAff)affParts.push('N+'+p.nealAff);
-      if(p.janeAff)affParts.push('J+'+p.janeAff);
-      const costParts=[];
-      if(p.costNeal)costParts.push('N-'+p.costNeal);
-      if(p.costJane)costParts.push('J-'+p.costJane);
-      const gemParts=[];
-      if(p.gemE)gemParts.push('💎E'+p.gemE);
-      if(p.gemS)gemParts.push('💎S'+p.gemS);
-      html+=`<div class="pool-item">
-        <span class="pool-name">${p.content}</span>
-        <span class="pool-meta">${affParts.join(' ')} ${costParts.join(' ')} ${gemParts.join(' ')}</span>
-        <button onclick="editPoolTask('${p.id}')">编辑</button>
-        <button onclick="deletePoolTask('${p.id}')">删除</button>
-      </div>`;
-    });
-  }
-  c.innerHTML=html;
+function deleteHabit(id){
+  hdb.habits=hdb.habits.filter(x=>x.id!==id);
+  Object.keys(hdb.log).forEach(k=>{hdb.log[k]=hdb.log[k].filter(x=>x!==id);if(!hdb.log[k].length)delete hdb.log[k];});
+  saveHabits();render();
 }
 
-function showAddTask(){
-  editingPoolId=null;
-  document.getElementById('taskModalTitle').textContent='添加任务';
-  document.getElementById('taskContent').value='';
-  document.getElementById('taskAffNeal').value='5';
-  document.getElementById('taskAffJane').value='3';
-  document.getElementById('taskCostNeal').value='2';
-  document.getElementById('taskCostJane').value='1';
-  document.getElementById('taskGemE').value='1';
-  document.getElementById('taskGemS').value='1';
-  showModal('addTaskModal');
-}
-
-function editPoolTask(id){
-  editingPoolId=id;
-  const p=db.pool.find(x=>x.id===id);if(!p)return;
-  document.getElementById('taskModalTitle').textContent='编辑任务';
-  document.getElementById('taskContent').value=p.content;
-  document.getElementById('taskAffNeal').value=p.nealAff||0;
-  document.getElementById('taskAffJane').value=p.janeAff||0;
-  document.getElementById('taskCostNeal').value=p.costNeal||0;
-  document.getElementById('taskCostJane').value=p.costJane||0;
-  document.getElementById('taskGemE').value=p.gemE||0;
-  document.getElementById('taskGemS').value=p.gemS||0;
-  showModal('addTaskModal');
-}
-
-function savePoolTask(){
-  const content=document.getElementById('taskContent').value.trim();
-  if(!content)return;
-  const data={
-    content,
-    nealAff:Number(document.getElementById('taskAffNeal').value)||0,
-    janeAff:Number(document.getElementById('taskAffJane').value)||0,
-    costNeal:Number(document.getElementById('taskCostNeal').value)||0,
-    costJane:Number(document.getElementById('taskCostJane').value)||0,
-    gemE:Number(document.getElementById('taskGemE').value)||0,
-    gemS:Number(document.getElementById('taskGemS').value)||0,
-  };
-  if(editingPoolId!==null){
-    const p=db.pool.find(x=>x.id===editingPoolId);
-    if(p)Object.assign(p,data);
-  }else{
-    db.pool.push({id:'pt_'+Date.now(),...data});
-  }
-  save();closeModal('addTaskModal');render();
-}
-
-function deletePoolTask(id){
-  const p=db.pool.find(x=>x.id===id);
-  if(!p||!confirm('删除这个任务？'))return;
-  db.pool=db.pool.filter(x=>x.id!==id);
-  save();render();
-}
+// Clean old habit logs (keep 60 days)
+(function(){const cutoff=new Date(Date.now()-60*24*3600*1000).toISOString().slice(0,10);Object.keys(hdb.log).forEach(k=>{if(k<cutoff)delete hdb.log[k];});saveHabits();})();
 
 // ══════════════════════════════════════
 // EXPORT/IMPORT
@@ -713,8 +713,8 @@ function importData(input){
   const reader=new FileReader();
   reader.onload=(ev)=>{try{
     const imp=JSON.parse(ev.target.result);
-    if(confirm('导入数据？')){db=imp;save();render();closeModal('exportModal');}
-  }catch(e){alert('导入失败');}};
+    if(confirm('\u5BFC\u5165\u6570\u636E\uFF1F')){db=imp;save();render();closeModal('exportModal');}
+  }catch(e){alert('\u5BFC\u5165\u5931\u8D25');}};
   reader.readAsText(input.files[0]);
 }
 
