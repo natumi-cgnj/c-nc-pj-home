@@ -14,6 +14,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .top-bar{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;padding-top:24px;border-bottom:1px solid #eee;background:#fff;position:sticky;top:0;z-index:50}
 .top-bar h1{font-size:15px;font-weight:600;letter-spacing:1px;color:#666}
 .top-bar .back{font-size:13px;color:#999;text-decoration:none}
+.top-bar .logout{width:36px;border:0;background:none;color:#bbb;font-size:12px;cursor:pointer;padding:0}
 .content{padding:20px;max-width:400px;margin:0 auto}
 .section{margin-bottom:24px}
 .section-title{font-size:12px;font-weight:500;color:#999;letter-spacing:0.5px;margin-bottom:10px;padding-left:2px}
@@ -46,7 +47,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 </style>
 </head>
 <body>
-<div class="top-bar"><a class="back" href="index.html">&larr; 主页</a><h1>数据备份</h1><span style="width:36px"></span></div>
+<div class="top-bar"><a class="back" href="index.html">&larr; 主页</a><h1>数据备份</h1><button class="logout" onclick="CloudSync.logout()">退出</button></div>
 <div class="content">
 <div id="lastBackup" class="last-backup" style="display:none"></div>
 <div class="section"><div class="section-title">系统数据概况</div><div class="card" id="systemList"></div></div>
@@ -61,7 +62,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <div class="confirm-title">确认恢复数据？</div><div class="confirm-msg" id="confirmMsg"></div>
 <div class="confirm-btns"><button class="cbtn-cancel" onclick="hideConfirm()">取消</button><button class="cbtn-danger" onclick="doImport()">覆盖恢复</button></div>
 </div></div>
+<script src="cloud-sync.js"></script>
 <script>
+if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 const SYS=[
 {key:'daily_db',name:'\u65E5\u5E38',color:'#E8B96A',desc:d=>{if(!d)return'-';const a=d.affinity||{};return'N\u2764'+(a.neal||0)+' J\u2764'+(a.jane||0);}},
 {key:'gacha_st',name:'\u62BD\u5361',color:'#B388FF',desc:d=>{if(!d)return'-';return'\u7FE0'+(d.emerald||0)+' \u84DD'+(d.sapphire||0)+' '+(d.owned||[]).length+'\u5361';}},
@@ -69,7 +72,8 @@ const SYS=[
 {key:'habit_db',name:'\u4E60\u60EF',color:'#5A7247',desc:d=>{if(!d)return'-';return(d.habits||[]).length+'\u4E2A';}},
 {key:'story_db',name:'\u5267\u60C5',color:'#9C6ADE',desc:d=>{if(!d)return'-';return(d.completedEps||[]).length+'\u6BB5';}},
 {key:'bjd_db3',name:'BJD',color:'#6B8AFF',desc:d=>{if(!d)return'-';return(d.entries||[]).length+'\u6761';}},
-{key:'techo_db2',name:'\u624B\u8D26',color:'#5BA66B',desc:d=>{if(!d)return'-';return(d.entries||[]).length+'\u6761';}}
+{key:'techo_db2',name:'\u624B\u8D26',color:'#5BA66B',desc:d=>{if(!d)return'-';return(d.entries||[]).length+'\u6761';}},
+{key:'shop_db',name:'\u5546\u57CE',color:'#D85A30',desc:d=>{if(!d)return'-';return(d.owned||[]).length+'\u4EF6';}}
 ];
 function gd(k){try{return JSON.parse(localStorage.getItem(k));}catch(e){return null;}}
 function gs(k){const v=localStorage.getItem(k);if(!v)return'-';const b=new Blob([v]).size;return b<1024?b+'B':(b/1024).toFixed(1)+'KB';}

@@ -483,9 +483,9 @@
     <div class="shortcut-icon">☀</div>
     <div class="shortcut-label">日常</div>
   </a>
-  <a class="shortcut" href="habit.html">
-    <div class="shortcut-icon">☘</div>
-    <div class="shortcut-label">习惯</div>
+  <a class="shortcut" href="shop.html">
+    <div class="shortcut-icon">🏪</div>
+    <div class="shortcut-label">商城</div>
   </a>
   <a class="shortcut" href="gacha.html">
     <div class="shortcut-icon">💎</div>
@@ -522,7 +522,9 @@
   <div class="date" id="date"></div>
 </div>
 
+<script src="cloud-sync.js"></script>
 <script>
+if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
   const URLS = {
     neal: "https://claude.ai/chat/ef1cd771-e051-4cc5-ad81-aaa64b22b10b",
     jane: "https://claude.ai/chat/216e0875-eb1a-4982-856b-24aa393037a7",

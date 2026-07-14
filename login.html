@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Liminal Space">
+<title>登录 · Liminal Space</title>
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="apple-touch-icon.png">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{min-height:100vh;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:24px;background:#f7f7f5;color:#222;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif}
+.card{width:min(380px,100%);background:#fff;border:1px solid #ececea;border-radius:18px;padding:30px 26px;box-shadow:0 16px 50px rgba(0,0,0,.06)}
+.mark{display:flex;justify-content:center;gap:7px;margin-bottom:18px}.dot{width:11px;height:11px;border-radius:50%}.b{background:#6B8AFF}.g{background:#5BA66B}.y{background:#E8B96A}
+h1{text-align:center;font-size:22px;letter-spacing:.5px;margin-bottom:4px}.sub{text-align:center;font-size:11px;color:#aaa;letter-spacing:1.5px;margin-bottom:28px}
+label{display:block;font-size:11px;color:#888;margin:13px 0 5px}input{width:100%;border:1px solid #e1e1df;border-radius:10px;padding:12px 13px;font-size:14px;outline:none;background:#fff}input:focus{border-color:#aaa}
+button{width:100%;margin-top:20px;border:0;border-radius:10px;padding:13px;background:#1a1a1a;color:#fff;font-size:14px;font-weight:600;cursor:pointer}button:disabled{opacity:.55;cursor:default}
+.msg{min-height:20px;margin-top:13px;text-align:center;font-size:11px;color:#b15b43;line-height:1.5}.hint{text-align:center;margin-top:18px;font-size:10px;color:#bbb;line-height:1.6}
+</style>
+</head>
+<body>
+<main class="card">
+  <div class="mark"><span class="dot b"></span><span class="dot g"></span><span class="dot y"></span></div>
+  <h1>Liminal Space</h1>
+  <div class="sub">夹缝空间 · 云端登录</div>
+  <form id="loginForm">
+    <label for="email">邮箱</label>
+    <input id="email" name="email" type="email" autocomplete="username" required>
+    <label for="password">密码</label>
+    <input id="password" name="password" type="password" autocomplete="current-password" required>
+    <button id="loginBtn" type="submit">进入夹缝空间</button>
+  </form>
+  <div class="msg" id="message"></div>
+  <div class="hint">登录一次后会保持登录状态。<br>电脑与手机使用同一账号，即可读取同一份存档。</div>
+</main>
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+const PROJECT_URL='https://lbxjshaiffklmalcxiif.supabase.co';
+const PUBLISHABLE_KEY='sb_publishable_V-NlC2vXgKdl3TE6ig_v2g_4fwSFp-m';
+const supabase=createClient(PROJECT_URL,PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
+const form=document.getElementById('loginForm');
+const button=document.getElementById('loginBtn');
+const message=document.getElementById('message');
+
+function nextPage(){
+  const raw=new URLSearchParams(location.search).get('next')||'index.html';
+  return /^[a-zA-Z0-9_.?=&%#-]+$/.test(raw)&&!raw.includes('..')?raw:'index.html';
+}
+
+const {data:{session}}=await supabase.auth.getSession();
+if(session)location.replace(nextPage());
+
+form.addEventListener('submit',async event=>{
+  event.preventDefault();
+  button.disabled=true;button.textContent='正在登录…';message.textContent='';
+  const email=document.getElementById('email').value.trim();
+  const password=document.getElementById('password').value;
+  const {error}=await supabase.auth.signInWithPassword({email,password});
+  if(error){
+    message.textContent=error.message==='Invalid login credentials'?'邮箱或密码不正确':`登录失败：${error.message}`;
+    button.disabled=false;button.textContent='进入夹缝空间';
+    return;
+  }
+  button.textContent='已登录，正在进入…';
+  location.replace(nextPage());
+});
+</script>
+</body>
+</html>
