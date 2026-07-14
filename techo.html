@@ -53,6 +53,17 @@ body {
 .cell-sub { font-size:10px; color:#bbb; }
 .cell-count { position:absolute; top:8px; right:12px; font-size:10px; color:#ccc; }
 
+@media (min-width:700px) {
+  .home-grid {
+    max-width:760px;
+    margin:24px auto;
+    border:1px solid #eee;
+    border-radius:12px;
+    overflow:hidden;
+  }
+  .home-cell { padding:44px 20px; }
+}
+
 /* ── Detail page ── */
 .detail-page { display:none; }
 .detail-page.show { display:block; }

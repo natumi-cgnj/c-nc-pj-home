@@ -405,6 +405,56 @@
     box-shadow: 0 1px 4px rgba(0,0,0,0.1);
   }
 
+  /* ── Desktop layout ── */
+  @media (min-width: 700px) {
+    body {
+      justify-content: flex-start;
+      padding: 28px 32px 40px;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+
+    .header { margin-bottom: 20px; }
+
+    .apartment,
+    .drawer-wrap {
+      max-width: 500px;
+    }
+
+    .room-char { height: 136px; }
+
+    .shortcuts {
+      gap: 28px;
+      margin-top: 18px;
+    }
+
+    .shortcut-icon {
+      width: 46px;
+      height: 46px;
+      font-size: 18px;
+    }
+
+    .shortcut-label { font-size: 11px; }
+
+    .drawer-wrap { margin-top: 10px; }
+
+    .drawer-handle { display: none; }
+
+    .drawer-tray,
+    .drawer-tray.open {
+      max-height: 84px;
+      opacity: 1;
+      overflow: visible;
+    }
+
+    .drawer-items {
+      gap: 28px;
+      padding-top: 12px;
+    }
+
+    .footer { margin-top: 18px; }
+  }
+
   @media (max-width: 400px) {
     .apartment { max-width: 320px; }
     .room-char { height: 90px; }
