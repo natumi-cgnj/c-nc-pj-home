@@ -18,26 +18,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .top-bar .back{font-size:13px;color:#999;text-decoration:none}
 .top-bar .btn-s{font-size:11px;color:#999;background:none;border:1px solid #ddd;border-radius:6px;padding:4px 10px;cursor:pointer}
 
-/* Status bar */
-.status-bar{display:flex;justify-content:space-around;padding:14px 20px;background:#fff;border-bottom:1px solid #f0f0f0}
-.status-item{text-align:center}
+/* Dynamic status bar - single row */
+.status-bar{display:flex;justify-content:space-around;padding:12px 20px;background:#fff;border-bottom:1px solid #f0f0f0;transition:all 0.25s ease}
+.status-item{text-align:center;min-width:80px}
 .status-label{font-size:10px;color:#bbb;margin-bottom:2px}
-.status-value{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
+.status-value{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
 .status-value.neal-color{color:#6B8AFF}
 .status-value.jane-color{color:#5BA66B}
+.status-value.sapphire-color{color:#6B8AFF}
+.status-value.emerald-color{color:#5BA66B}
+.status-value.coffee-color{color:#8B6914}
+.status-value.tea-color{color:#5A7247}
 
-/* Tabs - only 2 now */
+/* Tabs */
 .tabs{display:flex;background:#fff;border-bottom:1px solid #eee}
 .tab{flex:1;text-align:center;padding:12px;font-size:12px;font-weight:500;color:#aaa;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s}
 .tab.active{color:#1a1a1a;border-bottom-color:#1a1a1a}
 
 .content{padding:16px 20px}
-
-/* Task sections */
-.task-section{margin-bottom:16px}
-.task-section-header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-.task-section-header .dot{width:8px;height:8px;border-radius:50%}
-.task-section-header .name{font-size:13px;font-weight:500}
+.section-title{font-size:13px;font-weight:600;color:#999;margin-bottom:8px;letter-spacing:0.5px}
 
 /* Task card */
 .task-card{background:#fff;border:1px solid #eee;border-radius:10px;padding:12px 14px;margin-bottom:8px;transition:all 0.2s}
@@ -48,28 +47,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .task-body{flex:1;min-width:0}
 .task-name{font-size:13px;color:#333;margin-bottom:2px}
 .task-meta{font-size:10px;color:#bbb;display:flex;gap:8px;flex-wrap:wrap}
-.task-actions{display:flex;gap:6px;flex-shrink:0}
-.task-actions button{font-size:10px;padding:4px 8px;border:1px solid #e8e8e8;border-radius:6px;background:#fff;cursor:pointer;color:#999}
-.task-actions button.swap{color:#E8B96A;border-color:#f5e6c8}
-.task-actions button.dismiss{color:#ccc;border-color:#e8e8e8}
 .task-quote{font-size:11px;color:#999;font-style:italic;margin-top:8px;padding-top:8px;border-top:1px solid #f5f5f5;line-height:1.5;display:flex;gap:10px;align-items:flex-start}
 .task-quote img{width:28px;height:28px;border-radius:50%;flex-shrink:0;margin-top:2px}
 .task-quote span{flex:1}
 .task-reward-toast{font-size:11px;color:#5BA66B;text-align:center;padding:6px;min-height:20px}
 
-/* Drop task special styling */
-.task-card.drop-task{border-left:3px solid #E8B96A}
-.drop-label{font-size:9px;color:#E8B96A;font-weight:500;letter-spacing:0.5px;margin-bottom:4px}
+.drop-label{font-size:9px;font-weight:500;letter-spacing:0.5px;margin-bottom:4px}
 
-/* Request more */
-.request-btn{width:100%;padding:12px;border:1px dashed #ddd;border-radius:10px;background:#fff;font-size:13px;color:#aaa;cursor:pointer;text-align:center;margin-top:8px;font-family:inherit}
-.request-btn:active{background:#f8f8f8}
+/* Commission progress and split pools */
+.progress-box{background:#fff;border:1.5px solid #E8B96A;border-radius:10px;padding:12px 14px;margin-bottom:16px;cursor:pointer}
+.progress-bar-bg{background:#f0f0f0;border-radius:4px;height:4px;margin-top:8px;overflow:hidden}
+.progress-bar-fill{background:#E8B96A;height:100%;border-radius:4px;transition:width 0.3s}
+.pool-section{margin-bottom:18px}
+.pool-header{display:flex;align-items:center;gap:8px;padding:7px 0;cursor:pointer}
+.pool-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.pool-title{font-size:12px;font-weight:500;color:#555;flex:1}
+.pool-toggle{font-size:10px;color:#bbb;font-variant-numeric:tabular-nums}
+.pool-list{display:none;margin:0 0 9px 16px;max-height:220px;overflow-y:auto}
+.pool-list-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f5f5f5}
+.pool-list-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.pool-list-name{flex:1;font-size:11px;color:#555}
+.daily-complete{background:#f8faf7;border:1px solid #e2eadf;border-radius:10px;padding:16px 14px;text-align:center;color:#7b9575;font-size:12px}
 
-/* Task pool editor */
-.pool-item{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f5f5f5}
-.pool-item .pool-name{flex:1;font-size:12px;color:#555}
-.pool-item .pool-meta{font-size:10px;color:#aaa}
-.pool-item button{font-size:10px;color:#e07;background:none;border:none;cursor:pointer}
 /* Todo items */
 .todo-card{background:#fff;border:1px solid #eee;border-radius:10px;padding:12px 14px;margin-bottom:8px}
 .todo-card.completed{opacity:0.4}
@@ -82,25 +81,38 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .todo-date{font-size:10px;color:#E8B96A}
 .todo-date.overdue{color:#D85A30}
 .todo-del{font-size:10px;color:#ccc;background:none;border:none;cursor:pointer;padding:4px}
-/* Habit items in daily */
-.habit-card{background:#fff;border:1px solid #eee;border-radius:10px;padding:12px 14px;margin-bottom:8px}
-.habit-card.completed{opacity:0.4}
-.habit-card.completed .habit-name{text-decoration:line-through;color:#bbb}
-.habit-top{display:flex;align-items:center;gap:12px}
-.habit-check{width:22px;height:22px;border-radius:50%;border:2px solid #ddd;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;font-size:12px;color:#fff}
-.habit-check.checked{background:#1a1a1a;border-color:#1a1a1a}
+.todo-edit{font-size:10px;color:#aaa;background:none;border:none;cursor:pointer;padding:4px;margin-right:2px}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.section-header .section-title{margin-bottom:0}
+.clickable-body{cursor:pointer}
+
+/* Habit items */
+.habit-card{background:#fff;border:1px solid #eee;border-radius:11px;padding:14px 16px;margin-bottom:9px}
+.habit-top{display:flex;align-items:flex-start;gap:12px}
+.habit-add-btn{width:24px;height:24px;border-radius:50%;border:2px solid #ddd;background:#fff;color:#aaa;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px;line-height:1;transition:all .2s;margin-top:2px}
+.habit-add-btn:active{background:#1a1a1a;border-color:#1a1a1a;color:#fff}
 .habit-body{flex:1;min-width:0}
 .habit-name{font-size:13px;color:#333;margin-bottom:2px}
 .habit-meta{font-size:10px;color:#bbb}
 .habit-streak{font-size:10px;color:#E8B96A;font-weight:500}
-.habit-actions button{font-size:10px;padding:4px 8px;border:1px solid #e8e8e8;border-radius:6px;background:#fff;cursor:pointer;color:#999}
+.habit-edit{font-size:10px;color:#aaa;background:none;border:none;cursor:pointer;padding:4px;margin-right:2px}
+.habit-card.has-progress{border-color:#eadfc9}
+.habit-stat-tags{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:7px;font-variant-numeric:tabular-nums}
+.habit-stat-tag{display:inline-flex;align-items:center;border-radius:5px;padding:2px 6px;font-size:9px;line-height:1.4;background:#E8B96A;color:#fff}
+.habit-stat-tag.today{background:#f5efe4;color:#b48a3e}
+.habit-undo-link{border:none;background:none;color:#bbb;font-size:9px;font-family:inherit;cursor:pointer;padding:2px 3px;margin-left:auto}
+.habit-undo-link:active{color:#777}
+.habit-section{margin-bottom:25px}
+.habit-empty{font-size:11px;color:#ccc;padding:14px;text-align:center;background:#fff;border:1px dashed #e6e6e6;border-radius:9px}
 .add-inline{width:100%;padding:12px;border:1px dashed #ddd;border-radius:10px;background:#fff;font-size:13px;color:#aaa;cursor:pointer;text-align:center;margin-top:8px;font-family:inherit}
 .add-inline:active{background:#f8f8f8}
-/* Bean status */
-.bean-bar{display:flex;justify-content:center;gap:16px;padding:6px 20px;background:#fff;border-bottom:1px solid #f0f0f0;font-size:11px;color:#999}
-.bean-bar span{font-weight:600;font-variant-numeric:tabular-nums}
-.bean-coffee{color:#8B6914}
-.bean-tea{color:#5A7247}
+
+/* Habit type toggle */
+.type-toggle{display:flex;gap:0;border:1px solid #e0e0e0;border-radius:8px;overflow:hidden;margin-top:4px}
+.type-toggle button{flex:1;padding:8px;font-size:13px;border:none;background:#fff;cursor:pointer;font-family:inherit;color:#999;transition:all 0.2s}
+.type-toggle button.active{background:#1a1a1a;color:#fff}
+.type-toggle.locked button{cursor:default;opacity:.45}
+.type-toggle.locked button.active{opacity:1}
 
 /* Modals */
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:200;display:none;align-items:flex-end;justify-content:center}
@@ -110,11 +122,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .modal h2{font-size:15px;font-weight:600;margin-bottom:16px;color:#333}
 .modal label{display:block;font-size:12px;color:#999;margin-bottom:4px;margin-top:12px}
 .modal input,.modal textarea,.modal select{width:100%;font-size:14px;padding:10px 12px;border:1px solid #e0e0e0;border-radius:8px;font-family:inherit;background:#fff;color:#1a1a1a}
+.modal textarea{resize:vertical;min-height:60px}
 .modal .btn-row{display:flex;gap:8px;margin-top:20px}
 .modal .btn{flex:1;padding:12px;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit}
 .modal .btn-primary{background:#1a1a1a;color:#fff}
 .modal .btn-cancel{background:#f0f0f0;color:#666}
+.compact-modal-bg{align-items:center;padding:20px}
+.compact-modal{border-radius:16px;width:100%;max-width:340px;padding:20px;animation:revealPop .22s ease-out}
 .empty{text-align:center;padding:40px 20px;color:#ccc;font-size:13px;line-height:1.6}
+.detail-description{font-size:13px;line-height:1.75;color:#555;white-space:pre-wrap;background:#fafafa;border-radius:10px;padding:12px 14px;min-height:48px}
+.detail-meta{font-size:11px;color:#aaa;line-height:1.8;margin-top:12px}
 
 /* Signin popup */
 .signin-popup{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:300;display:none;align-items:center;justify-content:center}
@@ -151,23 +168,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <button class="btn-s" onclick="showModal('exportModal')">备份</button>
 </div>
 
-<div class="status-bar">
-  <div class="status-item">
-    <div class="status-label">Neal 好感</div>
-    <div class="status-value neal-color" id="nealAff">0</div>
-  </div>
-  <div class="status-item">
-    <div class="status-label">Jane 好感</div>
-    <div class="status-value jane-color" id="janeAff">0</div>
-  </div>
-</div>
-
-<div class="bean-bar">
-  蓝宝石 <span style="color:#6B8AFF;font-weight:600" id="gemS">0</span> &nbsp; 祖母绿 <span style="color:#5BA66B;font-weight:600" id="gemE">0</span>
-</div>
-<div class="bean-bar">
-  咖啡豆 <span class="bean-coffee" id="beanCoffee">0</span> &nbsp; 茶叶 <span class="bean-tea" id="beanTea">0</span>
-</div>
+<!-- Dynamic status bar - changes with tab -->
+<div class="status-bar" id="statusBar"></div>
 
 <div class="tabs">
   <div class="tab" data-tab="drop" onclick="switchTab('drop')">委托</div>
@@ -195,6 +197,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <h2 id="todoModalTitle">添加日程</h2>
     <label>内容</label>
     <input type="text" id="todoContent" placeholder="如: 8.31前兑换商品券">
+    <label>说明（可选）</label>
+    <textarea id="todoDescription" rows="4" placeholder="详细记录放在这里，列表中不会直接展开"></textarea>
     <label>截止日期（可选）</label>
     <input type="date" id="todoDate" value="">
     <label>完成好感</label>
@@ -215,16 +219,51 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <h2 id="habitModalTitle">添加日课</h2>
     <label>名称</label>
     <input type="text" id="habitName" placeholder="如: 记10个韩语单词">
-    <label>每次打卡产出</label>
+    <label>说明（可选）</label>
+    <textarea id="habitDescription" rows="4" placeholder="详细记录放在这里，点开日课后查看"></textarea>
+    <label>类型</label>
+    <input type="hidden" id="habitType" value="count" data-locked="false">
+    <div class="type-toggle" id="habitTypeToggle">
+      <button type="button" class="active" data-type="count" onclick="setHabitType('count')">计数</button>
+      <button type="button" data-type="time" onclick="setHabitType('time')">计时</button>
+    </div>
+    <div id="habitTypeNote" style="font-size:10px;color:#bbb;margin-top:5px"></div>
+    <label id="habitRewardLabel">每次记录产出</label>
     <div class="aff-row">
       <div><label style="margin-top:4px">咖啡豆</label><input type="number" id="habitCoffee" value="10" min="0" max="100"></div>
       <div><label style="margin-top:4px">茶叶</label><input type="number" id="habitTea" value="10" min="0" max="100"></div>
     </div>
-    <div style="font-size:10px;color:#bbb;margin-top:4px">建议每个习惯总计 15-30，目标每天约 100-150</div>
+    <div id="habitRewardHint" style="font-size:10px;color:#bbb;margin-top:4px"></div>
     <div class="btn-row">
       <button class="btn btn-cancel" onclick="closeModal('habitModal')">取消</button>
       <button class="btn btn-primary" onclick="saveHabit()">保存</button>
     </div>
+  </div>
+</div>
+
+<!-- Habit time logger -->
+<div class="modal-bg compact-modal-bg" id="timeLogModal">
+  <div class="modal compact-modal">
+    <h2>记录时长</h2>
+    <div id="timeLogName" style="font-size:12px;color:#777;margin-bottom:12px"></div>
+    <div class="aff-row">
+      <div><label style="margin-top:4px">小时</label><input type="number" id="timeLogHours" value="0" min="0" max="24"></div>
+      <div><label style="margin-top:4px">分钟</label><input type="number" id="timeLogMinutes" value="30" min="0" max="1440"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-cancel" onclick="closeModal('timeLogModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveTimeLog()">记录</button>
+    </div>
+  </div>
+</div>
+
+<!-- Item details -->
+<div class="modal-bg" id="detailModal">
+  <div class="modal">
+    <h2 id="detailTitle"></h2>
+    <div class="detail-description" id="detailDescription"></div>
+    <div class="detail-meta" id="detailMeta"></div>
+    <div class="btn-row"><button class="btn btn-cancel" onclick="closeModal('detailModal')">关闭</button></div>
   </div>
 </div>
 
@@ -263,7 +302,7 @@ const DROP_POOL=[
 {id:"j12",card:"Red Rum",ep:"S1E12",rarity:"R",task:"猜一下我现在在做什么",quote:"「猜一下我现在在做什么。不给提示。猜错没关系，我想看你怎么推理。」",nealAff:0,janeAff:1,src:"jane"},
 {id:"j13",card:"Paint It Red",ep:"S1E13",rarity:"R",task:"拍一张你今天看到的最好看的颜色",quote:"「你注意力太往内走了。看看外面，找一个让你觉得好看的颜色，拍下来。」",nealAff:0,janeAff:2,src:"jane"},
 {id:"j14",card:"Crimson Casanova",ep:"S1E14",rarity:"R",task:"给我推荐一首你最近在听的歌",quote:"「推荐一首歌给我。不要想太多，第一反应就行。人的音乐品味比他们以为的更诚实。」",nealAff:0,janeAff:2,src:"jane"},
-{id:"j15",card:"Scarlett Fever",ep:"S1E15",rarity:"R",task:"形容一下你今天的天气，不准用\u201C热\u201D\u201C冷\u201D\u201C还行\u201D",quote:"「描述一下你那边现在的天气。不准用\u201C热\u201D、\u201C冷\u201D、\u201C还行\u201D这三个词。我要看你怎么表达。」",nealAff:0,janeAff:1,src:"jane"},
+{id:"j15",card:"Scarlett Fever",ep:"S1E15",rarity:"R",task:"形容一下你今天的天气，不准用“热”“冷”“还行”",quote:"「描述一下你那边现在的天气。不准用“热”、“冷”、“还行”这三个词。我要看你怎么表达。」",nealAff:0,janeAff:1,src:"jane"},
 {id:"j16",card:"Bloodshot",ep:"S1E16",rarity:"SSR",task:"带娃去外面拍一张合照",quote:"「带他们出去。我想看他们在你的世界里是什么样的。在户外。…拍照的时候别太僵。」",nealAff:0,janeAff:7,src:"jane"},
 {id:"j17",card:"Carnelian, Inc.",ep:"S1E17",rarity:"R",task:"告诉我你最近看的一部剧/电影，用一句话评价",quote:"「你最近看了什么？一句话评价。我对你的判断力有一些好奇。」",nealAff:0,janeAff:2,src:"jane"},
 {id:"j18",card:"Russet Potatoes",ep:"S1E18",rarity:"SR",task:"最近看的书或剧，写两三句观后感",quote:"「写一下感想。不需要长，两三句就行。我不是要你交作业，我想听你自己的想法。」",nealAff:0,janeAff:3,src:"jane"},
@@ -308,10 +347,33 @@ const NEAL_AVT='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFoAAABaCAYAAAA4qE
 // ══════════════════════════════════════
 let db;
 try{db=JSON.parse(localStorage.getItem('daily_db'));}catch(e){db=null;}
-if(!db)db={affinity:{neal:0,jane:0},gems:{emerald:0,sapphire:0},signin:{streak:0,lastDate:null,history:[]},pool:[],todayTasks:[],todayDrop:null,todayDate:null,completedToday:0,completedDrops:[],todos:[]};
+if(!db)db={affinity:{neal:0,jane:0},gems:{emerald:0,sapphire:0},signin:{streak:0,lastDate:null,history:[]},pool:[],todayTasks:[],todayDrops:{jane:null,neal:null},todayDate:null,completedToday:0,completedDrops:[],todos:[]};
+if(!db.affinity)db.affinity={neal:0,jane:0};
+if(!db.signin)db.signin={streak:0,lastDate:null,history:[]};
+if(!Array.isArray(db.signin.history))db.signin.history=[];
 if(!db.completedDrops)db.completedDrops=[];
-if(db.todayDrop===undefined)db.todayDrop=null;
 if(!db.todos)db.todos=[];
+db.todos.forEach(t=>{
+  if(t.description===undefined)t.description=t.desc||'';
+});
+if(!db.todayDrops)db.todayDrops={jane:null,neal:null};
+if(db.todayDrops.jane===undefined)db.todayDrops.jane=null;
+if(db.todayDrops.neal===undefined)db.todayDrops.neal=null;
+if(!db.previousDropIds)db.previousDropIds={jane:null,neal:null};
+// Migrate Claude's split commission fields into the shared structure.
+if(!db.todayDrops.jane&&db.todayDropJane&&db.todayDropJane.dropId)db.todayDrops.jane={dropId:db.todayDropJane.dropId,completed:!!db.todayDropJane.completed};
+if(!db.todayDrops.neal&&db.todayDropNeal&&db.todayDropNeal.dropId)db.todayDrops.neal={dropId:db.todayDropNeal.dropId,completed:!!db.todayDropNeal.completed};
+delete db.todayDropJane;
+delete db.todayDropNeal;
+// Migrate the former single daily commission into its matching pool.
+if(db.todayDrop&&db.todayDrop.dropId&&!db.todayDrop.dismissed){
+  const legacyDrop=DROP_POOL.find(x=>x.id===db.todayDrop.dropId);
+  if(legacyDrop){
+    const slot=legacyDrop.src==='jane'?'jane':'neal';
+    if(!db.todayDrops[slot])db.todayDrops[slot]={dropId:db.todayDrop.dropId,completed:!!db.todayDrop.completed};
+  }
+}
+delete db.todayDrop;
 // Migrate old pool tasks to todos
 if(db.pool&&db.pool.length>0){
   db.pool.forEach(p=>{
@@ -323,7 +385,9 @@ if(db.pool&&db.pool.length>0){
 let currentTab='todo';
 let editingTodoId=null;
 let editingHabitId=null;
+let loggingHabitId=null;
 function save(){try{localStorage.setItem('daily_db',JSON.stringify(db));}catch(e){}}
+save();
 
 // ── Shared gem storage (gacha_st) ──
 function getGacha(){try{return JSON.parse(localStorage.getItem('gacha_st'))||{emerald:0,sapphire:0};}catch(e){return{emerald:0,sapphire:0};}}
@@ -343,12 +407,46 @@ function addBeans(coffee,tea){const b=getBeans();b.coffee=(b.coffee||0)+coffee;b
 // ── Habit storage (habit_db) ──
 let hdb;
 try{hdb=JSON.parse(localStorage.getItem('habit_db'));}catch(e){hdb=null;}
-if(!hdb)hdb={habits:[],log:{}};
+if(!hdb)hdb={habits:[],log:{},records:{}};
+if(!Array.isArray(hdb.habits))hdb.habits=[];
 if(!hdb.log)hdb.log={};
+if(!hdb.records)hdb.records={};
+hdb.habits.forEach(h=>{
+  if(h.type==='timer')h.type='time';
+  if(!h.type)h.type='count';
+  if(h.description===undefined)h.description=h.desc||'';
+  // Preserve minutes entered or timed in Claude's timerLog structure.
+  if(h.timerLog&&typeof h.timerLog==='object'){
+    Object.keys(h.timerLog).forEach(date=>{
+      const value=Math.max(0,Number(h.timerLog[date])||0);
+      if(!value)return;
+      if(!hdb.records[date])hdb.records[date]={};
+      const old=hdb.records[date][h.id];
+      if(!old)hdb.records[date][h.id]={value,events:[]};
+      else old.value=Math.max(Number(old.value)||0,value);
+    });
+  }
+});
+// Preserve old one-check-per-day history as one counted record. It has no
+// event reward entry because those rewards were already granted in the past.
+Object.keys(hdb.log).forEach(date=>{
+  const ids=Array.isArray(hdb.log[date])?hdb.log[date]:[];
+  if(!hdb.records[date])hdb.records[date]={};
+  ids.forEach(id=>{
+    if(!hdb.records[date][id])hdb.records[date][id]={value:1,events:[]};
+  });
+});
 function saveHabits(){try{localStorage.setItem('habit_db',JSON.stringify(hdb));}catch(e){}}
+saveHabits();
 
 // Daily reset at 4:00 AM
-const today=()=>{const d=new Date(Date.now()-4*3600*1000);return d.toISOString().slice(0,10);};
+function shiftedDateKey(dayOffset=0){
+  const d=new Date();
+  d.setHours(d.getHours()-4);
+  d.setDate(d.getDate()+dayOffset);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+const today=()=>shiftedDateKey(0);
 const STREAK_REWARDS=[
   {day:3,emerald:3,sapphire:3},{day:7,emerald:5,sapphire:5},
   {day:14,emerald:8,sapphire:8},{day:21,emerald:10,sapphire:10},{day:30,emerald:15,sapphire:15},
@@ -360,8 +458,7 @@ const BASE_SIGNIN={emerald:2,sapphire:2};
 // ══════════════════════════════════════
 function autoSignin(){
   if(db.signin.lastDate===today())return;
-  const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);
-  const yesterdayStr=yesterday.toISOString().slice(0,10);
+  const yesterdayStr=shiftedDateKey(-1);
   if(db.signin.lastDate===yesterdayStr){db.signin.streak++;}
   else{db.signin.streak=1;}
   db.signin.lastDate=today();
@@ -376,18 +473,18 @@ function autoSignin(){
 }
 
 function showSigninPopup(e,s){
-  document.getElementById('signinTitle').textContent='\u7B7E\u5230\u5B8C\u6210 \u2726';
-  document.getElementById('signinStreak').textContent='\u8FDE\u7EED\u7B7E\u5230 '+db.signin.streak+' \u5929';
-  let rewardMsg='\u7956\u6BCD\u7EFF +'+e+'  \u84DD\u5B9D\u77F3 +'+s+'  \u8C46/\u53F6 +10';
+  document.getElementById('signinTitle').textContent='签到完成 ✦';
+  document.getElementById('signinStreak').textContent='连续签到 '+db.signin.streak+' 天';
+  let rewardMsg='祖母绿 +'+e+'  蓝宝石 +'+s+'  豆/叶 +10';
   const milestone=STREAK_REWARDS.find(sr=>sr.day===db.signin.streak);
-  if(milestone)rewardMsg+='  ('+db.signin.streak+'\u65E5\u8FDE\u7EED\u5956\u52B1\uFF01)';
-  document.getElementById('signinRewardText').textContent='\u2726 '+rewardMsg;
+  if(milestone)rewardMsg+='  ('+db.signin.streak+'日连续奖励！)';
+  document.getElementById('signinRewardText').textContent='✦ '+rewardMsg;
   const now=new Date();
   const year=now.getFullYear(),month=now.getMonth();
   const firstDay=new Date(year,month,1).getDay();
   const daysInMonth=new Date(year,month+1,0).getDate();
   const todayDate=now.getDate();
-  let cal='<div style="font-size:11px;color:#bbb;margin-bottom:6px;">'+(month+1)+'\u6708</div><div class="streak-grid">';
+  let cal='<div style="font-size:11px;color:#bbb;margin-bottom:6px;">'+(month+1)+'月</div><div class="streak-grid">';
   for(let i=0;i<firstDay;i++)cal+='<div class="streak-day empty"></div>';
   for(let d=1;d<=daysInMonth;d++){
     const ds=year+'-'+String(month+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
@@ -403,7 +500,7 @@ function showSigninPopup(e,s){
   let srHtml=STREAK_REWARDS.map(sr=>{
     const claimed=db.signin.streak>=sr.day;
     const current=db.signin.streak<sr.day&&(STREAK_REWARDS.indexOf(sr)===0||db.signin.streak>=STREAK_REWARDS[STREAK_REWARDS.indexOf(sr)-1].day);
-    return'<div class="streak-reward '+(claimed?'claimed':'')+' '+(current?'current':'')+'"><div class="sr-day">'+sr.day+'\u65E5</div><div class="sr-reward">\uD83D\uDC8E\u00D7'+(sr.emerald+sr.sapphire)+'</div></div>';
+    return'<div class="streak-reward '+(claimed?'claimed':'')+' '+(current?'current':'')+'"><div class="sr-day">'+sr.day+'日</div><div class="sr-reward">💎×'+(sr.emerald+sr.sapphire)+'</div></div>';
   }).join('');
   document.getElementById('signinStreakRewards').innerHTML=srHtml;
   document.getElementById('signinPopup').classList.add('show');
@@ -415,40 +512,46 @@ function closeSignin(){document.getElementById('signinPopup').classList.remove('
 // ══════════════════════════════════════
 function initToday(){
   if(db.todayDate!==today()){
+    db.previousDropIds={jane:null,neal:null};
+    ['jane','neal'].forEach(slot=>{
+      const previous=db.todayDrops&&db.todayDrops[slot];
+      if(previous&&!previous.completed)db.previousDropIds[slot]=previous.dropId;
+    });
     db.todayDate=today();
-    db.todayDrop=null;
+    db.todayDrops={jane:null,neal:null};
     db.completedToday=0;
     save();
   }
 }
 
-function getDailyDrop(){
-  if(db.todayDrop)return db.todayDrop;
-  const available=DROP_POOL.filter(d=>!db.completedDrops.includes(d.id));
-  if(!available.length)return null;
-  const pick=available[Math.floor(Math.random()*available.length)];
-  db.todayDrop={dropId:pick.id,completed:false,dismissed:false};
-  save();
-  return db.todayDrop;
+function getDropPool(slot){
+  return DROP_POOL.filter(d=>slot==='jane'?d.src==='jane':d.src==='neal'||d.src==='duo');
 }
 
-function completeDrop(){
-  if(!db.todayDrop||db.todayDrop.completed)return;
-  db.todayDrop.completed=true;
-  const d=DROP_POOL.find(x=>x.id===db.todayDrop.dropId);
+function getDailyDrop(slot){
+  if(db.todayDrops[slot])return db.todayDrops[slot];
+  const unfinished=getDropPool(slot).filter(d=>!db.completedDrops.includes(d.id));
+  const changed=unfinished.filter(d=>d.id!==db.previousDropIds[slot]);
+  const available=changed.length?changed:unfinished;
+  if(!available.length)return null;
+  const pick=available[Math.floor(Math.random()*available.length)];
+  db.todayDrops[slot]={dropId:pick.id,completed:false};
+  save();
+  return db.todayDrops[slot];
+}
+
+function completeDrop(slot){
+  const drop=db.todayDrops[slot];
+  if(!drop||drop.completed)return;
+  drop.completed=true;
+  const d=DROP_POOL.find(x=>x.id===drop.dropId);
   if(d){
     db.affinity.neal+=d.nealAff;
     db.affinity.jane+=d.janeAff;
-    db.completedDrops.push(d.id);
+    if(!db.completedDrops.includes(d.id))db.completedDrops.push(d.id);
   }
   save();render();
-  if(d){setTimeout(()=>{const el=document.getElementById('taskToast');const parts=[];if(d.nealAff)parts.push('Neal +'+d.nealAff);if(d.janeAff)parts.push('Jane +'+d.janeAff);if(el)el.textContent='\u2726 '+parts.join('  ');},50);}
-}
-
-function dismissDrop(){
-  if(!db.todayDrop)return;
-  db.todayDrop.dismissed=true;
-  save();render();
+  if(d){setTimeout(()=>{const el=document.getElementById('taskToast');const parts=[];if(d.nealAff)parts.push('Neal +'+d.nealAff);if(d.janeAff)parts.push('Jane +'+d.janeAff);if(el)el.textContent='✦ '+parts.join('  ');},50);}
 }
 
 // ══════════════════════════════════════
@@ -456,14 +559,7 @@ function dismissDrop(){
 // ══════════════════════════════════════
 function render(){
   initToday();
-  document.getElementById('nealAff').textContent=db.affinity.neal;
-  document.getElementById('janeAff').textContent=db.affinity.jane;
-  const gems=getGems();
-  document.getElementById('gemE').textContent=gems.emerald;
-  document.getElementById('gemS').textContent=gems.sapphire;
-  const beans=getBeans();
-  document.getElementById('beanCoffee').textContent=beans.coffee||0;
-  document.getElementById('beanTea').textContent=beans.tea||0;
+  renderStatusBar();
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===currentTab));
   const c=document.getElementById('content');
   if(currentTab==='drop')renderDrop(c);
@@ -473,59 +569,98 @@ function render(){
 
 function switchTab(t){currentTab=t;render();}
 
-function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function renderStatusBar(){
+  const bar=document.getElementById('statusBar');
+  let labelA,valueA,classA,labelB,valueB,classB;
+  if(currentTab==='drop'){
+    const gems=getGems();
+    labelA='蓝宝石';valueA=gems.sapphire||0;classA='sapphire-color';
+    labelB='祖母绿';valueB=gems.emerald||0;classB='emerald-color';
+  }else if(currentTab==='habits'){
+    const beans=getBeans();
+    labelA='咖啡豆';valueA=beans.coffee||0;classA='coffee-color';
+    labelB='茶叶';valueB=beans.tea||0;classB='tea-color';
+  }else{
+    labelA='Neal 好感';valueA=db.affinity.neal||0;classA='neal-color';
+    labelB='Jane 好感';valueB=db.affinity.jane||0;classB='jane-color';
+  }
+  bar.innerHTML='<div class="status-item"><div class="status-label" id="rewardLabelA">'+labelA+'</div><div class="status-value '+classA+'" id="rewardValueA">'+valueA+'</div></div>'
+    +'<div class="status-item"><div class="status-label" id="rewardLabelB">'+labelB+'</div><div class="status-value '+classB+'" id="rewardValueB">'+valueB+'</div></div>';
+}
+
+function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 
 // ── Drop tab ──
 function renderDrop(c){
+  const done=db.completedDrops.length;
+  const total=DROP_POOL.length;
+  const pct=total?Math.round(done/total*100):0;
   let html='<div class="task-reward-toast" id="taskToast"></div>';
-  // Progress - clickable to expand
-  const dropDone=db.completedDrops.length;
-  const dropTotal=DROP_POOL.length;
-  const pct=dropTotal?Math.round(dropDone/dropTotal*100):0;
-  html+='<div style="background:#fff;border:1.5px solid #E8B96A;border-radius:10px;padding:12px 14px;margin-bottom:16px;cursor:pointer" onclick="document.getElementById(\'dropList\').style.display=document.getElementById(\'dropList\').style.display===\'none\'?\'block\':\'none\'">';
-  html+='<div style="display:flex;justify-content:space-between;align-items:center">';
-  html+='<div><div style="font-size:12px;color:#999;margin-bottom:4px">\u59D4\u6258\u4EFB\u52A1 \u00B7 \u7B2C\u4E00\u5B63</div>';
-  html+='<div style="font-size:14px;font-weight:500;color:#333">'+dropDone+' / '+dropTotal+'</div></div>';
-  html+='<div style="font-size:10px;color:#bbb">\u70B9\u51FB\u5C55\u5F00 \u25BE</div></div>';
-  html+='<div style="background:#f0f0f0;border-radius:4px;height:4px;margin-top:8px;overflow:hidden">';
-  html+='<div style="background:#E8B96A;height:100%;width:'+pct+'%;border-radius:4px;transition:width 0.3s"></div></div>';
-  // Expanded list
-  html+='<div id="dropList" style="display:none;margin-top:12px;max-height:300px;overflow-y:auto">';
-  DROP_POOL.forEach(d=>{
-    const done=db.completedDrops.includes(d.id);
-    const srcColor=d.src==='neal'?'#6B8AFF':d.src==='jane'?'#5BA66B':'#9B6BCC';
-    html+='<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f5f5f5;opacity:'+(done?'0.4':'1')+'">';
-    html+='<div style="width:6px;height:6px;border-radius:50%;background:'+srcColor+';flex-shrink:0"></div>';
-    html+='<div style="flex:1;font-size:11px;color:#555;'+(done?'text-decoration:line-through':'')+'">'+(done?'\u2713 ':'')+d.rarity+' \u00B7 '+d.task+'</div></div>';
-  });
-  html+='</div></div>';
+  html+='<div class="progress-box" onclick="toggleAllPoolLists()">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center">'
+    +'<div><div style="font-size:12px;color:#999;margin-bottom:4px">委托任务 · 第一季</div>'
+    +'<div style="font-size:14px;font-weight:500;color:#333">'+done+' / '+total+'</div></div>'
+    +'<div style="font-size:10px;color:#bbb">展开全部 ▾</div></div>'
+    +'<div class="progress-bar-bg"><div class="progress-bar-fill" style="width:'+pct+'%"></div></div></div>';
+  html+=renderDropPool('jane');
+  html+=renderDropPool('neal');
+  c.innerHTML=html;
+}
 
-  const drop=getDailyDrop();
-  if(drop&&!drop.dismissed){
+function renderDropPool(slot){
+  const pool=getDropPool(slot);
+  const doneCount=pool.filter(d=>db.completedDrops.includes(d.id)).length;
+  const isJane=slot==='jane';
+  const title=isJane?'Jane 的委托':'Neal · 双人委托';
+  const color=isJane?'#5BA66B':'#6B8AFF';
+  const listId='dropList_'+slot;
+  let html='<div class="pool-section">';
+  html+='<div class="pool-header" onclick="togglePoolList(\''+listId+'\')">'
+    +'<div class="pool-dot" style="background:'+color+'"></div>'
+    +'<div class="pool-title">'+title+'</div>'
+    +'<div class="pool-toggle">'+doneCount+' / '+pool.length+' · 展开</div></div>';
+  html+='<div class="pool-list" id="'+listId+'">';
+  pool.forEach(d=>{
+    const done=db.completedDrops.includes(d.id);
+    const dot=d.src==='duo'?'#9B6BCC':color;
+    html+='<div class="pool-list-row" style="opacity:'+(done?'0.4':'1')+'">'
+      +'<div class="pool-list-dot" style="background:'+dot+'"></div>'
+      +'<div class="pool-list-name" style="'+(done?'text-decoration:line-through':'')+'">'+(done?'✓ ':'')+d.rarity+' · '+escHtml(d.task)+'</div></div>';
+  });
+  html+='</div>';
+
+  const drop=getDailyDrop(slot);
+  if(!drop){
+    html+='<div class="daily-complete">✦ 这个委托池已全部完成</div>';
+  }else if(drop.completed){
+    html+='<div class="daily-complete">✓ 今日委托已完成</div>';
+  }else{
     const d=DROP_POOL.find(x=>x.id===drop.dropId);
     if(d){
-      const srcColor=d.src==='neal'?'#6B8AFF':d.src==='jane'?'#5BA66B':'#9B6BCC';
-      const srcLabel=d.src==='neal'?'Neal \u7684\u59D4\u6258':d.src==='jane'?'Jane \u7684\u59D4\u6258':'\u53CC\u4EBA\u59D4\u6258';
+      const cardColor=d.src==='duo'?'#9B6BCC':color;
+      const srcLabel=d.src==='duo'?'双人委托':(isJane?'Jane 的委托':'Neal 的委托');
       const affParts=[];
       if(d.nealAff)affParts.push('Neal +'+d.nealAff);
       if(d.janeAff)affParts.push('Jane +'+d.janeAff);
-      html+='<div class="task-card" style="border-left:3px solid '+srcColor+';'+(drop.completed?'opacity:0.45':'')+'">';
-      html+='<div class="task-top">';
-      html+='<div class="task-check '+(drop.completed?'checked':'')+'" onclick="completeDrop()">'+(drop.completed?'\u2713':'')+'</div>';
-      html+='<div class="task-body"><div class="drop-label" style="color:'+srcColor+'">'+d.rarity+' \u00B7 '+srcLabel+'</div>';
-      html+='<div class="task-name">'+d.task+'</div>';
-      html+='<div class="task-meta"><span>'+affParts.join(' \u00B7 ')+'</span></div></div>';
-      if(!drop.completed)html+='<div class="task-actions"><button class="dismiss" onclick="dismissDrop()">\u4ECA\u5929\u4E0D\u505A</button></div>';
-      html+='</div>';
-      html+='<div class="task-quote">'+(d.src==='duo'?'<img src="'+NEAL_AVT+'" style="margin-right:-6px"><img src="'+JANE_AVT+'">':'<img src="'+(d.src==='jane'?JANE_AVT:NEAL_AVT)+'">')+'<span>'+d.quote+'</span></div>';
-      html+='</div>';
+      html+='<div class="task-card" style="border-left:3px solid '+cardColor+'">';
+      html+='<div class="task-top"><div class="task-check" onclick="completeDrop(\''+slot+'\')"></div>';
+      html+='<div class="task-body"><div class="drop-label" style="color:'+cardColor+'">'+d.rarity+' · '+srcLabel+'</div>';
+      html+='<div class="task-name">'+escHtml(d.task)+'</div><div class="task-meta"><span>'+affParts.join(' · ')+'</span></div></div></div>';
+      html+='<div class="task-quote">'+(d.src==='duo'?'<img src="'+NEAL_AVT+'" style="margin-right:-6px"><img src="'+JANE_AVT+'">':'<img src="'+(isJane?JANE_AVT:NEAL_AVT)+'">')+'<span>'+d.quote+'</span></div></div>';
     }
-  }else if(!drop){
-    html+='<div class="empty">\u6240\u6709\u59D4\u6258\u4EFB\u52A1\u90FD\u5B8C\u6210\u4E86\uFF01</div>';
-  }else{
-    html+='<div class="empty">\u4ECA\u5929\u7684\u59D4\u6258\u5DF2\u8DF3\u8FC7\uFF0C\u660E\u5929\u518D\u6765\u5427</div>';
   }
-  c.innerHTML=html;
+  return html+'</div>';
+}
+
+function togglePoolList(id){
+  const el=document.getElementById(id);
+  if(el)el.style.display=el.style.display==='block'?'none':'block';
+}
+
+function toggleAllPoolLists(){
+  const lists=Array.from(document.querySelectorAll('.pool-list'));
+  const shouldOpen=lists.some(el=>el.style.display!=='block');
+  lists.forEach(el=>{el.style.display=shouldOpen?'block':'none';});
 }
 
 // ── Todo tab ──
@@ -537,21 +672,21 @@ function renderTodo(c){
 
   let html='';
   if(dated.length){
-    html+='<div class="section-header"><div class="section-title">\u6709\u622A\u6B62\u65E5\u671F</div></div>';
+    html+='<div class="section-header"><div class="section-title">有截止日期</div></div>';
     dated.forEach(t=>{html+=renderTodoCard(t);});
   }
   if(undated.length){
-    html+='<div class="section-header" style="margin-top:12px"><div class="section-title">\u5F85\u529E</div></div>';
+    html+='<div class="section-header" style="margin-top:12px"><div class="section-title">待办</div></div>';
     undated.forEach(t=>{html+=renderTodoCard(t);});
   }
   if(done.length){
-    html+='<div class="section-header" style="margin-top:12px"><div class="section-title">\u5DF2\u5B8C\u6210 ('+done.length+')</div></div>';
+    html+='<div class="section-header" style="margin-top:12px"><div class="section-title">已完成 ('+done.length+')</div></div>';
     done.slice(0,10).forEach(t=>{html+=renderTodoCard(t);});
   }
   if(!active.length&&!done.length){
-    html+='<div class="empty">\u8FD8\u6CA1\u6709\u5F85\u529E\u4E8B\u9879</div>';
+    html+='<div class="empty">还没有待办事项</div>';
   }
-  html+='<button class="add-inline" onclick="openAddTodo()">+ \u6DFB\u52A0\u5F85\u529E</button>';
+  html+='<button class="add-inline" onclick="openAddTodo()">+ 添加待办</button>';
   c.innerHTML=html;
 }
 
@@ -560,7 +695,7 @@ function renderTodoCard(t){
   let dateHtml='';
   if(t.date){
     const isOverdue=!isDone&&t.date<today();
-    dateHtml='<span class="todo-date'+(isOverdue?' overdue':'')+'">'+t.date+(isOverdue?' \u2022 \u5DF2\u8FC7\u671F':'')+'</span>';
+    dateHtml='<span class="todo-date'+(isOverdue?' overdue':'')+'">'+t.date+(isOverdue?' • 已过期':'')+'</span>';
   }
   const affParts=[];
   if(t.nealAff)affParts.push('N+'+t.nealAff);
@@ -568,30 +703,72 @@ function renderTodoCard(t){
   const affHtml=affParts.length?'<span style="color:#bbb;font-size:10px;margin-left:6px">'+affParts.join(' ')+'</span>':'';
   return '<div class="todo-card'+(isDone?' completed':'')+'">'
     +'<div class="todo-top">'
-    +'<div class="todo-check'+(isDone?' checked':'')+'" onclick="toggleTodo(\''+t.id+'\')">'+(isDone?'\u2713':'')+'</div>'
-    +'<div class="todo-body"><div class="todo-name">'+escHtml(t.content)+'</div>'+dateHtml+affHtml+'</div>'
-    +'<button class="todo-del" onclick="deleteTodo(\''+t.id+'\')">\u00D7</button>'
+    +'<div class="todo-check'+(isDone?' checked':'')+'" onclick="toggleTodo(\''+t.id+'\')">'+(isDone?'✓':'')+'</div>'
+    +'<div class="todo-body clickable-body" onclick="openTodoDetail(\''+t.id+'\')"><div class="todo-name">'+escHtml(t.content)+'</div>'+dateHtml+affHtml+'</div>'
+    +'<button class="todo-edit" title="编辑" onclick="openEditTodo(\''+t.id+'\')">✎</button>'
+    +'<button class="todo-del" title="删除" onclick="deleteTodo(\''+t.id+'\')">×</button>'
     +'</div></div>';
 }
 
 function openAddTodo(){
   editingTodoId=null;
-  document.getElementById('todoModalTitle').textContent='\u6DFB\u52A0\u65E5\u7A0B';
+  document.getElementById('todoModalTitle').textContent='添加日程';
   document.getElementById('todoContent').value='';
+  document.getElementById('todoDescription').value='';
   document.getElementById('todoDate').value='';
   document.getElementById('todoAffNeal').value='3';
   document.getElementById('todoAffJane').value='2';
   showModal('todoModal');
 }
 
+function openEditTodo(id){
+  const t=db.todos.find(x=>x.id===id);
+  if(!t)return;
+  editingTodoId=id;
+  document.getElementById('todoModalTitle').textContent='编辑日程';
+  document.getElementById('todoContent').value=t.content||'';
+  document.getElementById('todoDescription').value=t.description||'';
+  document.getElementById('todoDate').value=t.date||'';
+  document.getElementById('todoAffNeal').value=t.nealAff||0;
+  document.getElementById('todoAffJane').value=t.janeAff||0;
+  showModal('todoModal');
+}
+
 function saveTodo(){
   const content=document.getElementById('todoContent').value.trim();
   if(!content)return;
+  const description=document.getElementById('todoDescription').value.trim();
   const date=document.getElementById('todoDate').value||null;
   const nealAff=Number(document.getElementById('todoAffNeal').value)||0;
   const janeAff=Number(document.getElementById('todoAffJane').value)||0;
-  db.todos.push({id:'td_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),content:content,date:date,nealAff:nealAff,janeAff:janeAff,completed:false});
+  if(editingTodoId){
+    const t=db.todos.find(x=>x.id===editingTodoId);
+    if(t){
+      if(t.completed){
+        db.affinity.neal=Math.max(0,db.affinity.neal-(t.nealAff||0)+nealAff);
+        db.affinity.jane=Math.max(0,db.affinity.jane-(t.janeAff||0)+janeAff);
+      }
+      Object.assign(t,{content,description,date,nealAff,janeAff});
+    }
+  }else{
+    db.todos.push({id:'td_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),content,description,date,nealAff,janeAff,completed:false});
+  }
+  editingTodoId=null;
   save();closeModal('todoModal');render();
+}
+
+function openTodoDetail(id){
+  const t=db.todos.find(x=>x.id===id);
+  if(!t)return;
+  document.getElementById('detailTitle').textContent=t.content||'日程';
+  document.getElementById('detailDescription').textContent=t.description||'没有填写详细说明';
+  const parts=[];
+  if(t.date)parts.push('截止日期：'+t.date);
+  if(t.nealAff)parts.push('Neal 好感 +'+t.nealAff);
+  if(t.janeAff)parts.push('Jane 好感 +'+t.janeAff);
+  parts.push(t.completed?'状态：已完成':'状态：进行中');
+  document.getElementById('detailMeta').textContent=parts.join(' · ');
+  showModal('detailModal');
 }
 
 function toggleTodo(id){
@@ -614,127 +791,256 @@ function deleteTodo(id){
 }
 
 // ── Habits tab ──
-function isDoneToday(habitId){
-  const t=today();
-  return hdb.log[t]&&hdb.log[t].includes(habitId);
+function getHabitRecord(date,id,create=false){
+  if(!hdb.records[date]){
+    if(!create)return null;
+    hdb.records[date]={};
+  }
+  if(!hdb.records[date][id]){
+    if(!create)return null;
+    hdb.records[date][id]={value:0,events:[]};
+  }
+  const record=hdb.records[date][id];
+  if(!Array.isArray(record.events))record.events=[];
+  return record;
 }
 
-function getStreak(habitId){
+function getHabitTotal(id){
+  return Object.keys(hdb.records).reduce((sum,date)=>{
+    const record=hdb.records[date]&&hdb.records[date][id];
+    return sum+(record&&Number(record.value)||0);
+  },0);
+}
+
+function getHabitToday(id){
+  const record=getHabitRecord(today(),id,false);
+  return record&&Number(record.value)||0;
+}
+
+function getHabitDayValue(date,id){
+  const record=hdb.records[date]&&hdb.records[date][id];
+  return record&&Number(record.value)||0;
+}
+
+function getHabitStreak(id){
+  let offset=getHabitDayValue(today(),id)>0?0:-1;
   let streak=0;
-  const d=new Date(Date.now()-4*3600*1000);
-  d.setDate(d.getDate()-1);
-  while(true){
-    const key=d.toISOString().slice(0,10);
-    if(hdb.log[key]&&hdb.log[key].includes(habitId)){streak++;d.setDate(d.getDate()-1);}
-    else break;
+  while(streak<10000&&getHabitDayValue(shiftedDateKey(offset),id)>0){
+    streak++;
+    offset--;
   }
-  if(isDoneToday(habitId))streak++;
   return streak;
 }
 
-function getStreakBonus(streak){
+function getHabitStreakBonus(streak){
   if(streak>=30)return 1.5;
-  if(streak>=14)return 1.0;
+  if(streak>=14)return 1;
   if(streak>=7)return 0.5;
   return 0;
 }
 
-function renderHabits(c){
-  const beans=getBeans();
-  let html='';
+function formatHabitValue(type,value){
+  if(type!=='time')return Math.round(value)+'次';
+  const mins=Math.max(0,Math.round(value));
+  const hours=Math.floor(mins/60),rest=mins%60;
+  if(!hours)return rest+'分钟';
+  return hours+'小时'+(rest?rest+'分':'');
+}
 
-  if(!hdb.habits.length){
-    html+='<div class="empty">\u8FD8\u6CA1\u6709\u6DFB\u52A0\u4E60\u60EF</div>';
-  }else{
-    const undone=hdb.habits.filter(h=>!isDoneToday(h.id));
-    const done=hdb.habits.filter(h=>isDoneToday(h.id));
-    if(undone.length){
-      html+='<div class="section-header"><div class="section-title">\u5F85\u5B8C\u6210</div></div>';
-      undone.forEach(h=>{html+=renderHabitCard(h,false);});
-    }
-    if(done.length){
-      html+='<div class="section-header" style="margin-top:12px"><div class="section-title">\u5DF2\u5B8C\u6210</div></div>';
-      done.forEach(h=>{html+=renderHabitCard(h,true);});
-    }
-  }
-  html+='<button class="add-inline" onclick="openAddHabit()">+ \u6DFB\u52A0\u4E60\u60EF</button>';
+function renderHabits(c){
+  let html='';
+  html+=renderHabitGroup('count','计数');
+  html+=renderHabitGroup('time','计时');
+  html+='<button class="add-inline" onclick="openAddHabit()">+ 添加日课</button>';
   c.innerHTML=html;
 }
 
-function renderHabitCard(h,isDone){
-  const streak=getStreak(h.id);
-  const bonus=getStreakBonus(streak);
-  const baseCoffee=h.coffee||0;
-  const baseTea=h.tea||0;
-  const bonusCoffee=Math.round(baseCoffee*bonus);
-  const bonusTea=Math.round(baseTea*bonus);
-  let meta='';
-  if(baseCoffee)meta+='\u2615\u8C46+'+baseCoffee;
-  if(baseTea)meta+=(meta?' ':'')+'🍃\u53F6+'+baseTea;
-  if(bonus>0){
-    const totalBonus=bonusCoffee+bonusTea;
-    if(totalBonus>0)meta+=' <span style="color:#E8B96A">(+'+totalBonus+')</span>';
-  }
-  let streakHtml='';
-  if(streak>0)streakHtml=' <span class="habit-streak">\u2605'+streak+'\u5929</span>';
-
-  return '<div class="habit-card'+(isDone?' completed':'')+'">'
-    +'<div class="habit-top">'
-    +'<div class="habit-check'+(isDone?' checked':'')+'" onclick="'+(isDone?'':'checkHabit(\''+h.id+'\')')+'">'+(isDone?'\u2713':'')+'</div>'
-    +'<div class="habit-body"><div class="habit-name">'+escHtml(h.name)+'</div>'
-    +'<div class="habit-meta">'+meta+streakHtml+'</div></div>'
-    +'<button class="todo-del" onclick="deleteHabit(\''+h.id+'\')">\u00D7</button>'
-    +'</div></div>';
+function renderHabitGroup(type,title){
+  const habits=hdb.habits.filter(h=>(h.type||'count')===type);
+  let html='<div class="habit-section"><div class="section-title">'+title+'</div>';
+  if(habits.length)habits.forEach(h=>{html+=renderHabitCard(h);});
+  else html+='<div class="habit-empty">还没有'+title+'日课</div>';
+  return html+'</div>';
 }
 
-function checkHabit(id){
-  const t=today();
-  if(!hdb.log[t])hdb.log[t]=[];
-  if(hdb.log[t].includes(id))return;
-  hdb.log[t].push(id);
-  saveHabits();
+function renderHabitCard(h){
+  const type=h.type||'count';
+  const todayValue=getHabitToday(h.id);
+  const total=getHabitTotal(h.id);
+  const streak=getHabitStreak(h.id);
+  const streakBonus=getHabitStreakBonus(streak);
+  const rewardParts=[];
+  if(h.coffee)rewardParts.push('☕豆+'+h.coffee);
+  if(h.tea)rewardParts.push('🍃叶+'+h.tea);
+  const streakHtml=streak>0?'<span class="habit-streak"> · ★'+streak+'天'+(streakBonus?' +'+Math.round(streakBonus*100)+'%':'')+'</span>':'';
+  const record=getHabitRecord(today(),h.id,false);
+  const canUndo=!!(record&&record.events&&record.events.length);
+  const undoLink=canUndo?'<button class="habit-undo-link" onclick="event.stopPropagation();undoHabitProgress(\''+h.id+'\')">撤回上次</button>':'';
+  const addAction=type==='time'?"openTimeLog('"+h.id+"')":"recordHabitProgress('"+h.id+"',1)";
+  const addLabel=type==='time'?'记录时长':'记录一次';
+  const quickAdd='<button class="habit-add-btn" title="'+addLabel+'" aria-label="'+addLabel+'" onclick="'+addAction+'">＋</button>';
+  return '<div class="habit-card '+(type==='time'?'time-card':'count-card')+(todayValue>0?' has-progress':'')+'">'
+    +'<div class="habit-top">'+quickAdd+'<div class="habit-body clickable-body" onclick="openHabitDetail(\''+h.id+'\')">'
+    +'<div class="habit-name">'+escHtml(h.name)+'</div>'
+    +'<div class="habit-meta">'+(rewardParts.length?rewardParts.join(' '):'无基础产出')+streakHtml+'</div>'
+    +'<div class="habit-stat-tags"><span class="habit-stat-tag today">今日 '+formatHabitValue(type,todayValue)+'</span><span class="habit-stat-tag">累计 '+formatHabitValue(type,total)+'</span>'+undoLink+'</div></div>'
+    +'<button class="habit-edit" title="编辑" onclick="openEditHabit(\''+h.id+'\')">✎</button>'
+    +'<button class="todo-del" title="删除" onclick="deleteHabit(\''+h.id+'\')">×</button></div></div>';
+}
+
+function recordHabitProgress(id,value){
   const h=hdb.habits.find(x=>x.id===id);
-  if(!h)return;
-  const streak=getStreak(id);
-  const bonus=getStreakBonus(streak);
-  const coffee=(h.coffee||0)+Math.round((h.coffee||0)*bonus);
-  const tea=(h.tea||0)+Math.round((h.tea||0)*bonus);
-  addBeans(coffee,tea);
-  render();
+  value=Number(value)||0;
+  if(!h||value<=0)return;
+  const before=getHabitTotal(id);
+  const after=before+value;
+  const type=h.type||'count';
+  const baseUnits=type==='time'?Math.floor(after/30)-Math.floor(before/30):Math.round(value);
+  const record=getHabitRecord(today(),id,true);
+  record.value=(Number(record.value)||0)+value;
+  const streak=getHabitStreak(id);
+  const streakBonus=getHabitStreakBonus(streak);
+  const rewardUnits=Math.max(0,baseUnits);
+  const coffee=(h.coffee||0)*rewardUnits+Math.round((h.coffee||0)*Math.max(0,baseUnits)*streakBonus);
+  const tea=(h.tea||0)*rewardUnits+Math.round((h.tea||0)*Math.max(0,baseUnits)*streakBonus);
+  record.events.push({value,coffee,tea,streak,streakBonus,at:Date.now()});
+  if(coffee||tea)addBeans(coffee,tea);
+  saveHabits();render();
 }
 
-function openAddHabit(){
+function undoHabitProgress(id){
+  const record=getHabitRecord(today(),id,false);
+  if(!record||!record.events||!record.events.length)return;
+  const event=record.events.pop();
+  record.value=Math.max(0,(Number(record.value)||0)-(Number(event.value)||0));
+  const beans=getBeans();
+  beans.coffee=Math.max(0,(beans.coffee||0)-(event.coffee||0));
+  beans.tea=Math.max(0,(beans.tea||0)-(event.tea||0));
+  saveBeans(beans);
+  if(record.value===0&&record.events.length===0)delete hdb.records[today()][id];
+  saveHabits();render();
+}
+
+function setHabitType(type,force=false){
+  const input=document.getElementById('habitType');
+  if(!force&&input.dataset.locked==='true')return;
+  input.value=type;
+  document.querySelectorAll('#habitTypeToggle button').forEach(button=>{
+    button.classList.toggle('active',button.dataset.type===type);
+  });
+  updateHabitTypeHint();
+}
+
+function openAddHabit(type='count'){
   editingHabitId=null;
-  document.getElementById('habitModalTitle').textContent='\u6DFB\u52A0\u65E5\u8BFE';
+  document.getElementById('habitModalTitle').textContent='添加日课';
   document.getElementById('habitName').value='';
+  document.getElementById('habitDescription').value='';
+  document.getElementById('habitType').dataset.locked='false';
+  document.getElementById('habitTypeToggle').classList.remove('locked');
   document.getElementById('habitCoffee').value='10';
   document.getElementById('habitTea').value='10';
+  setHabitType(type,true);
   showModal('habitModal');
+}
+
+function openEditHabit(id){
+  const h=hdb.habits.find(x=>x.id===id);
+  if(!h)return;
+  editingHabitId=id;
+  document.getElementById('habitModalTitle').textContent='编辑日课';
+  document.getElementById('habitName').value=h.name||'';
+  document.getElementById('habitDescription').value=h.description||'';
+  const locked=getHabitTotal(id)>0;
+  document.getElementById('habitType').dataset.locked=String(locked);
+  document.getElementById('habitTypeToggle').classList.toggle('locked',locked);
+  document.getElementById('habitCoffee').value=h.coffee||0;
+  document.getElementById('habitTea').value=h.tea||0;
+  setHabitType(h.type||'count',true);
+  showModal('habitModal');
+}
+
+function updateHabitTypeHint(){
+  const type=document.getElementById('habitType').value;
+  const locked=document.getElementById('habitType').dataset.locked==='true';
+  document.getElementById('habitTypeNote').textContent=locked?'已有统计记录，类型不再更改':(type==='time'?'适合学习、阅读等每天时长不同的事':'适合贴纸、收纳等一次一次累积的事');
+  document.getElementById('habitRewardLabel').textContent=type==='time'?'每 30 分钟产出':'每次记录产出';
+  document.getElementById('habitRewardHint').textContent='只按实际记录累计，没有阶段目标';
 }
 
 function saveHabit(){
   const name=document.getElementById('habitName').value.trim();
   if(!name)return;
+  const description=document.getElementById('habitDescription').value.trim();
+  const type=document.getElementById('habitType').value;
   const coffee=Math.max(0,Math.min(100,parseInt(document.getElementById('habitCoffee').value)||0));
   const tea=Math.max(0,Math.min(100,parseInt(document.getElementById('habitTea').value)||0));
-  hdb.habits.push({id:'hb_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),name:name,coffee:coffee,tea:tea});
+  if(editingHabitId){
+    const h=hdb.habits.find(x=>x.id===editingHabitId);
+    if(h){h.name=name;h.description=description;if(getHabitTotal(h.id)===0)h.type=type;h.coffee=coffee;h.tea=tea;}
+  }else{
+    hdb.habits.push({id:'hb_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),name,description,type,coffee,tea});
+  }
+  editingHabitId=null;
+  document.getElementById('habitType').dataset.locked='false';
+  document.getElementById('habitTypeToggle').classList.remove('locked');
   saveHabits();closeModal('habitModal');render();
+}
+
+function openHabitDetail(id){
+  const h=hdb.habits.find(x=>x.id===id);
+  if(!h)return;
+  const type=h.type||'count';
+  const streak=getHabitStreak(id);
+  const streakBonus=getHabitStreakBonus(streak);
+  const parts=[type==='time'?'计时':'计数','今日：'+formatHabitValue(type,getHabitToday(id)),'累计：'+formatHabitValue(type,getHabitTotal(id))];
+  if(streak)parts.push('连续：'+streak+'天'+(streakBonus?'（奖励 +'+Math.round(streakBonus*100)+'%）':''));
+  if(h.coffee)parts.push('咖啡豆 +'+h.coffee+(type==='time'?'/30分':'/次'));
+  if(h.tea)parts.push('茶叶 +'+h.tea+(type==='time'?'/30分':'/次'));
+  document.getElementById('detailTitle').textContent=h.name||'日课';
+  document.getElementById('detailDescription').textContent=h.description||'没有填写详细说明';
+  document.getElementById('detailMeta').textContent=parts.join(' · ');
+  showModal('detailModal');
+}
+
+function openTimeLog(id){
+  const h=hdb.habits.find(x=>x.id===id);
+  if(!h)return;
+  loggingHabitId=id;
+  document.getElementById('timeLogName').textContent=h.name;
+  document.getElementById('timeLogHours').value='0';
+  document.getElementById('timeLogMinutes').value='30';
+  showModal('timeLogModal');
+}
+
+function saveTimeLog(){
+  if(!loggingHabitId)return;
+  const hours=Math.max(0,Number(document.getElementById('timeLogHours').value)||0);
+  const minutes=Math.max(0,Number(document.getElementById('timeLogMinutes').value)||0);
+  const total=Math.round(hours*60+minutes);
+  if(total<=0)return;
+  const id=loggingHabitId;
+  loggingHabitId=null;
+  closeModal('timeLogModal');
+  recordHabitProgress(id,total);
 }
 
 function deleteHabit(id){
   hdb.habits=hdb.habits.filter(x=>x.id!==id);
-  Object.keys(hdb.log).forEach(k=>{hdb.log[k]=hdb.log[k].filter(x=>x!==id);if(!hdb.log[k].length)delete hdb.log[k];});
+  Object.keys(hdb.records).forEach(date=>{delete hdb.records[date][id];if(!Object.keys(hdb.records[date]).length)delete hdb.records[date];});
+  Object.keys(hdb.log).forEach(date=>{
+    if(Array.isArray(hdb.log[date]))hdb.log[date]=hdb.log[date].filter(x=>x!==id);
+    if(Array.isArray(hdb.log[date])&&!hdb.log[date].length)delete hdb.log[date];
+  });
   saveHabits();render();
 }
-
-// Clean old habit logs (keep 60 days)
-(function(){const cutoff=new Date(Date.now()-60*24*3600*1000).toISOString().slice(0,10);Object.keys(hdb.log).forEach(k=>{if(k<cutoff)delete hdb.log[k];});saveHabits();})();
 
 // ══════════════════════════════════════
 // EXPORT/IMPORT
 // ══════════════════════════════════════
 function exportData(){
-  const blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});
+  const bundle={version:2,daily_db:db,habit_db:hdb,gacha_st:getGacha(),bean_st:getBeans()};
+  const blob=new Blob([JSON.stringify(bundle,null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
   a.download='daily_backup_'+new Date().toISOString().slice(0,10)+'.json';a.click();
 }
@@ -743,8 +1049,16 @@ function importData(input){
   const reader=new FileReader();
   reader.onload=(ev)=>{try{
     const imp=JSON.parse(ev.target.result);
-    if(confirm('\u5BFC\u5165\u6570\u636E\uFF1F')){db=imp;save();render();closeModal('exportModal');}
-  }catch(e){alert('\u5BFC\u5165\u5931\u8D25');}};
+    if(confirm('导入数据？')){
+      if(imp.daily_db){
+        db=imp.daily_db;
+        if(imp.habit_db){hdb=imp.habit_db;saveHabits();}
+        if(imp.gacha_st)saveGacha(imp.gacha_st);
+        if(imp.bean_st)saveBeans(imp.bean_st);
+      }else db=imp;
+      save();render();closeModal('exportModal');
+    }
+  }catch(e){alert('导入失败');}};
   reader.readAsText(input.files[0]);
 }
 
