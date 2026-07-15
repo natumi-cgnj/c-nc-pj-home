@@ -9,7 +9,7 @@
   const META_KEY = 'liminal_cloud_meta_v1';
   const STATE_KEYS = [
     'daily_db', 'gacha_st', 'bean_st', 'habit_db', 'story_db',
-    'bjd_db3', 'techo_db2', 'shop_db'
+    'bjd_db3', 'techo_db2', 'shop_db', 'event_db', 'dungeon_db'
   ];
   const PAGE_KEYS = {
     'index.html': STATE_KEYS,
@@ -20,6 +20,7 @@
     'story.html': ['story_db', 'gacha_st', 'daily_db'],
     'bjd.html': ['bjd_db3'],
     'techo.html': ['techo_db2'],
+    'event.html': ['event_db', 'dungeon_db'],
     'backup.html': STATE_KEYS
   };
   const SDK_URL = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
@@ -502,7 +503,8 @@
   function showConflictChoices(keys) {
     const labels = {
       daily_db: '日常', gacha_st: '抽卡', bean_st: '豆叶', habit_db: '习惯',
-      story_db: '剧情', bjd_db3: 'BJD', techo_db2: '手账', shop_db: '商城'
+      story_db: '剧情', bjd_db3: 'BJD', techo_db2: '手账', shop_db: '商城',
+      event_db: '活动', dungeon_db: '副本库存'
     };
     return new Promise(resolve => {
       const choices = Object.fromEntries(keys.map(key => [key, 'cloud']));
