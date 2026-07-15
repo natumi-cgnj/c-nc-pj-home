@@ -64,7 +64,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <div class="confirm-title">确认恢复数据？</div><div class="confirm-msg" id="confirmMsg"></div>
 <div class="confirm-btns"><button class="cbtn-cancel" onclick="hideConfirm()">取消</button><button class="cbtn-danger" onclick="doImport()">覆盖恢复</button></div>
 </div></div>
-<script src="cloud-sync.js?v=20260714-3"></script>
+<script src="cloud-sync.js?v=20260715-1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 const SYS=[
@@ -75,13 +75,15 @@ const SYS=[
 {key:'story_db',name:'\u5267\u60C5',color:'#9C6ADE',desc:d=>{if(!d)return'-';return(d.completedEps||[]).length+'\u6BB5';}},
 {key:'bjd_db3',name:'BJD',color:'#6B8AFF',desc:d=>{if(!d)return'-';return(d.entries||[]).length+'\u6761';}},
 {key:'techo_db2',name:'\u624B\u8D26',color:'#5BA66B',desc:d=>{if(!d)return'-';return(d.entries||[]).length+'\u6761';}},
-{key:'shop_db',name:'\u5546\u57CE',color:'#D85A30',desc:d=>{if(!d)return'-';return(d.owned||[]).length+'\u4EF6';}}
+{key:'shop_db',name:'\u5546\u57CE',color:'#D85A30',desc:d=>{if(!d)return'-';return(d.owned||[]).length+'\u4EF6';}},
+{key:'event_db',name:'\u6D3B\u52A8',color:'#E8B96A',desc:d=>{if(!d)return'-';const c=d.currency||{};return'\u5956\u52B1 '+(c.a||0)+' / '+(c.b||0)+' / '+(c.c||0);}},
+{key:'dungeon_db',name:'\u526F\u672C\u5E93\u5B58',color:'#7A8FB8',desc:d=>{if(!d)return'-';return(d.inventory||[]).length+'\u6761';}}
 ];
 function gd(k){try{return JSON.parse(localStorage.getItem(k));}catch(e){return null;}}
 function gs(k){const v=localStorage.getItem(k);if(!v)return'-';const b=new Blob([v]).size;return b<1024?b+'B':(b/1024).toFixed(1)+'KB';}
 function renderSys(){document.getElementById('systemList').innerHTML=SYS.map(s=>'<div class="system-row"><div class="system-info"><div class="system-dot" style="background:'+s.color+'"></div><div><div class="system-name">'+s.name+'</div><div class="system-status">'+s.desc(gd(s.key))+'</div></div></div><div class="system-size">'+gs(s.key)+'</div></div>').join('');}
 function showLast(){const el=document.getElementById('lastBackup'),t=localStorage.getItem('last_backup_time');if(t){const d=new Date(+t);el.textContent='\u4E0A\u6B21\u5907\u4EFD\uFF1A'+(d.getMonth()+1)+'/'+d.getDate()+' '+d.getHours()+':'+String(d.getMinutes()).padStart(2,'0');el.style.display='block';}}
-function exportAll(){const bk={_meta:{app:'Liminal Space',version:2,exportTime:new Date().toISOString(),keys:SYS.map(s=>s.key)}};SYS.forEach(s=>{const d=gd(s.key);if(d)bk[s.key]=d;});const bl=new Blob([JSON.stringify(bk,null,2)],{type:'application/json'}),u=URL.createObjectURL(bl),a=document.createElement('a'),n=new Date();a.href=u;a.download='liminal_'+n.getFullYear()+String(n.getMonth()+1).padStart(2,'0')+String(n.getDate()).padStart(2,'0')+'_'+String(n.getHours()).padStart(2,'0')+String(n.getMinutes()).padStart(2,'0')+'.json';a.click();URL.revokeObjectURL(u);localStorage.setItem('last_backup_time',''+Date.now());showLast();toast('\u2705 \u5DF2\u4FDD\u5B58');}
+function exportAll(){const bk={_meta:{app:'Liminal Space',version:3,exportTime:new Date().toISOString(),keys:SYS.map(s=>s.key)}};SYS.forEach(s=>{const d=gd(s.key);if(d)bk[s.key]=d;});const bl=new Blob([JSON.stringify(bk,null,2)],{type:'application/json'}),u=URL.createObjectURL(bl),a=document.createElement('a'),n=new Date();a.href=u;a.download='liminal_'+n.getFullYear()+String(n.getMonth()+1).padStart(2,'0')+String(n.getDate()).padStart(2,'0')+'_'+String(n.getHours()).padStart(2,'0')+String(n.getMinutes()).padStart(2,'0')+'.json';a.click();URL.revokeObjectURL(u);localStorage.setItem('last_backup_time',''+Date.now());showLast();toast('\u2705 \u5DF2\u4FDD\u5B58');}
 let pd=null;
 function handleImport(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{try{const d=JSON.parse(e.target.result);if(!d._meta||d._meta.app!=='Liminal Space'){toast('\u274C \u4E0D\u662F\u6709\u6548\u5907\u4EFD');inp.value='';return;}pd=d;const ks=SYS.filter(s=>d[s.key]).map(s=>s.name),tm=d._meta.exportTime?new Date(d._meta.exportTime).toLocaleString('zh-CN'):'?';document.getElementById('confirmMsg').innerHTML=tm+'<br>'+ks.join('\u3001')+'<br><br><strong>\u8986\u76D6\u5F53\u524D\u6570\u636E\uFF0C\u65E0\u6CD5\u64A4\u9500</strong>';document.getElementById('confirmOverlay').classList.add('show');}catch(x){toast('\u274C \u683C\u5F0F\u9519\u8BEF');}inp.value='';};r.readAsText(f);}
 function doImport(){if(!pd)return;SYS.forEach(s=>{if(pd[s.key])try{localStorage.setItem(s.key,JSON.stringify(pd[s.key]));}catch(e){}});pd=null;hideConfirm();renderSys();toast('\u2705 \u5DF2\u6062\u590D');}
