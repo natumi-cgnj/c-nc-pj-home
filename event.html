@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Event">
+<title>Event</title>
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="apple-touch-icon.png">
+<link rel="icon" href="favicon.ico">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;background:#FAFAFA;color:#1a1a1a;min-height:100vh;min-height:100dvh;padding-bottom:80px}
+
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;padding-top:24px;border-bottom:1px solid #eee;background:#fff;position:sticky;top:0;z-index:50}
+.top-bar h1{font-size:15px;font-weight:600;letter-spacing:1px;color:#666}
+.top-bar .back{font-size:13px;color:#999;text-decoration:none}
+.top-bar .btn-s{font-size:11px;color:#999;background:none;border:1px solid #ddd;border-radius:6px;padding:4px 10px;cursor:pointer}
+
+/* Event banner */
+.event-banner{background:linear-gradient(135deg,#FFF8E6 0%,#FFF0D0 100%);padding:20px;text-align:center;border-bottom:1px solid #f0e6cc}
+.event-title{font-size:18px;font-weight:700;color:#8B6914;letter-spacing:1px;margin-bottom:4px}
+.event-sub{font-size:11px;color:#b48a3e;margin-bottom:10px}
+.event-dates{font-size:10px;color:#999;margin-bottom:6px;cursor:pointer}
+.event-dates:active{color:#666}
+.event-countdown{font-size:12px;font-weight:600;color:#E8B96A;font-variant-numeric:tabular-nums}
+.event-countdown.ended{color:#ccc}
+
+/* Currency bar */
+.currency-bar{display:flex;justify-content:space-around;padding:10px 20px;background:#fff;border-bottom:1px solid #f0f0f0}
+.currency-item{text-align:center;min-width:70px}
+.currency-icon{font-size:14px;margin-bottom:1px}
+.currency-label{font-size:9px;color:#bbb;margin-bottom:1px}
+.currency-value{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;color:#8B6914}
+
+/* Main tabs */
+.tabs{display:flex;background:#fff;border-bottom:1px solid #eee}
+.tab{flex:1;text-align:center;padding:11px;font-size:11px;font-weight:500;color:#aaa;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s}
+.tab.active{color:#1a1a1a;border-bottom-color:#E8B96A}
+
+.content{padding:16px 20px}
+.section-title{font-size:13px;font-weight:600;color:#999;margin-bottom:8px;letter-spacing:0.5px}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.section-header .section-title{margin-bottom:0}
+
+/* Task cards (委托) */
+.task-card{background:#fff;border:1px solid #eee;border-radius:10px;padding:12px 14px;margin-bottom:8px}
+.task-card.completed{opacity:0.4}
+.task-top{display:flex;align-items:center;gap:12px}
+.task-check{width:22px;height:22px;border-radius:50%;border:2px solid #ddd;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;font-size:12px;color:#fff}
+.task-check.checked{background:#1a1a1a;border-color:#1a1a1a}
+.task-body{flex:1;min-width:0}
+.task-name{font-size:13px;color:#333;margin-bottom:2px}
+.task-meta{font-size:10px;color:#bbb}
+.drop-label{font-size:9px;font-weight:500;letter-spacing:0.5px;margin-bottom:4px}
+.task-quote{font-size:11px;color:#999;font-style:italic;margin-top:8px;padding-top:8px;border-top:1px solid #f5f5f5;line-height:1.5}
+
+/* Todo / Schedule */
+.todo-card{background:#fff;border:1px solid #eee;border-radius:10px;padding:12px 14px;margin-bottom:8px}
+.todo-card.completed{opacity:0.4}
+.todo-card.completed .todo-name{text-decoration:line-through;color:#bbb}
+.todo-top{display:flex;align-items:center;gap:12px}
+.todo-check{width:22px;height:22px;border-radius:50%;border:2px solid #ddd;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;font-size:12px;color:#fff}
+.todo-check.checked{background:#1a1a1a;border-color:#1a1a1a}
+.todo-body{flex:1;min-width:0}
+.todo-name{font-size:13px;color:#333;margin-bottom:2px}
+.todo-date{font-size:10px;color:#E8B96A}
+.todo-date.overdue{color:#D85A30}
+.clickable-body{cursor:pointer}
+
+/* Habit cards */
+.habit-card{background:#fff;border:1px solid #eee;border-radius:11px;padding:14px 16px;margin-bottom:9px}
+.habit-card.has-progress{border-color:#eadfc9}
+.habit-top{display:flex;align-items:flex-start;gap:12px}
+.habit-add-btn{width:24px;height:24px;border-radius:50%;border:2px solid #ddd;background:#fff;color:#aaa;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px;line-height:1;transition:all .2s;margin-top:2px}
+.habit-add-btn:active{background:#1a1a1a;border-color:#1a1a1a;color:#fff}
+.habit-body{flex:1;min-width:0}
+.habit-name{font-size:13px;color:#333;margin-bottom:2px}
+.habit-meta{font-size:10px;color:#bbb}
+.habit-stat-tags{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:7px;font-variant-numeric:tabular-nums}
+.habit-stat-tag{display:inline-flex;align-items:center;border-radius:5px;padding:2px 6px;font-size:9px;line-height:1.4;background:#E8B96A;color:#fff}
+.habit-stat-tag.today{background:#f5efe4;color:#b48a3e}
+.habit-undo-link{border:none;background:none;color:#bbb;font-size:9px;cursor:pointer;padding:2px 3px;margin-left:auto}
+.habit-section{margin-bottom:22px}
+.habit-empty{font-size:11px;color:#ccc;padding:14px;text-align:center;background:#fff;border:1px dashed #e6e6e6;border-radius:9px}
+.habit-edit{font-size:10px;color:#aaa;background:none;border:none;cursor:pointer;padding:4px;margin-right:2px}
+
+/* Type toggle */
+.type-toggle{display:flex;gap:0;border:1px solid #e0e0e0;border-radius:8px;overflow:hidden;margin-top:4px}
+.type-toggle button{flex:1;padding:8px;font-size:13px;border:none;background:#fff;cursor:pointer;font-family:inherit;color:#999;transition:all 0.2s}
+.type-toggle button.active{background:#1a1a1a;color:#fff}
+.type-toggle.locked button{cursor:default;opacity:.45}
+.type-toggle.locked button.active{opacity:1}
+
+/* Shop / Goods */
+.goods-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:16px}
+.goods-item{background:#fff;border:1px solid #eee;border-radius:8px;padding:8px 4px;text-align:center;cursor:pointer;transition:all 0.15s;position:relative;min-height:72px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.goods-item:active{transform:scale(0.97)}
+.goods-item.owned{border-color:#E8B96A;background:#FFFDF5}
+.goods-icon{width:32px;height:32px;border-radius:6px;background:#f5f5f5;margin-bottom:4px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#ddd}
+.goods-item.owned .goods-icon{background:#FFF8E6;color:#E8B96A}
+.goods-name{font-size:9px;color:#555;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;padding:0 2px}
+.goods-price{font-size:9px;color:#bbb;margin-top:2px}
+
+/* Gacha */
+.gacha-box{background:#fff;border:1px solid #eee;border-radius:10px;padding:16px;margin-bottom:12px;text-align:center}
+.gacha-title{font-size:13px;font-weight:600;color:#333;margin-bottom:8px}
+.gacha-info{font-size:10px;color:#aaa;margin-bottom:12px}
+.pull-btn{width:100%;padding:14px;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.2s;margin-bottom:6px;background:#E8B96A;color:#fff}
+.pull-btn:active{transform:scale(0.98)}
+.pull-btn.disabled{background:#e0e0e0;color:#aaa;cursor:default}
+.card-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.card-item{background:#fff;border:1px solid #eee;border-radius:8px;padding:10px 4px;text-align:center;min-height:64px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.card-item.owned{border-color:#E8B96A;background:#FFFDF5}
+.card-item.locked{opacity:0.35}
+.card-rarity{font-size:8px;color:#E8B96A;font-weight:600;margin-bottom:2px}
+.card-name{font-size:9px;color:#555}
+
+/* Dungeon draw */
+.draw-section{background:#fff;border:1px solid #eee;border-radius:10px;padding:16px;margin-bottom:12px}
+.draw-title{font-size:12px;font-weight:600;color:#333;margin-bottom:4px}
+.draw-desc{font-size:10px;color:#aaa;margin-bottom:12px}
+.draw-btn{padding:10px 20px;border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;background:#9B6BCC;color:#fff;transition:all 0.2s}
+.draw-btn:active{transform:scale(0.98)}
+.draw-btn.disabled{background:#e0e0e0;color:#aaa;cursor:default}
+.draw-result{margin-top:12px;padding:10px;background:#f8f5ff;border-radius:8px;text-align:center;font-size:12px;color:#7B5BA6}
+.inventory-list{margin-top:10px}
+.inv-item{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f5f5f5;font-size:11px;color:#555}
+.inv-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+
+/* Item actions */
+.item-actions{display:flex;gap:4px;flex-shrink:0}
+.item-actions button{font-size:10px;color:#999;background:#fff;border:1px solid #e8e8e8;border-radius:6px;cursor:pointer;padding:4px 7px}
+.item-actions button.danger{color:#ccc;border-color:transparent;background:transparent;font-size:13px}
+
+/* Buttons */
+.add-inline{width:100%;padding:12px;border:1px dashed #ddd;border-radius:10px;background:#fff;font-size:13px;color:#aaa;cursor:pointer;text-align:center;margin-top:8px;font-family:inherit}
+.add-inline:active{background:#f8f8f8}
+.empty{text-align:center;padding:40px 20px;color:#ccc;font-size:13px;line-height:1.6}
+
+/* Modals */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.modal-bg.show{display:flex}
+.modal{background:#fff;border-radius:16px 16px 0 0;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;padding:20px;animation:slideUp 0.25s ease-out}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal h2{font-size:15px;font-weight:600;margin-bottom:16px;color:#333}
+.modal label{display:block;font-size:12px;color:#999;margin-bottom:4px;margin-top:12px}
+.modal input,.modal textarea,.modal select{width:100%;font-size:14px;padding:10px 12px;border:1px solid #e0e0e0;border-radius:8px;font-family:inherit;background:#fff;color:#1a1a1a}
+.modal textarea{resize:vertical;min-height:60px}
+.modal .btn-row{display:flex;gap:8px;margin-top:20px}
+.modal .btn{flex:1;padding:12px;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit}
+.modal .btn-primary{background:#1a1a1a;color:#fff}
+.modal .btn-cancel{background:#f0f0f0;color:#666}
+.aff-row{display:flex;gap:8px}
+.aff-row>div{flex:1}
+.compact-modal-bg{align-items:center;padding:20px}
+.compact-modal{border-radius:16px;width:100%;max-width:340px;padding:20px;animation:revealPop .22s ease-out}
+@keyframes revealPop{from{transform:scale(0.6);opacity:0}to{transform:scale(1);opacity:1}}
+.detail-description{font-size:13px;line-height:1.75;color:#555;white-space:pre-wrap;background:#fafafa;border-radius:10px;padding:12px 14px;min-height:48px}
+.detail-meta{font-size:11px;color:#aaa;line-height:1.8;margin-top:12px}
+
+/* Reveal animation for gacha */
+.reveal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:300;display:flex;align-items:center;justify-content:center}
+.reveal-card{background:#fff;border-radius:16px;padding:32px 24px;text-align:center;animation:revealPop 0.4s cubic-bezier(0.34,1.56,0.64,1);min-width:240px}
+.reveal-rarity{font-size:14px;font-weight:700;color:#E8B96A;margin-bottom:8px;letter-spacing:2px}
+.reveal-name{font-size:16px;font-weight:600;color:#333;margin-bottom:16px}
+.reveal-close{padding:10px 32px;border:1px solid #e0e0e0;border-radius:10px;background:#fff;font-size:13px;cursor:pointer;font-family:inherit}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <a class="back" href="index.html">&larr; Home</a>
+  <h1>EVENT</h1>
+  <button class="btn-s" onclick="showModal('settingsModal')">设置</button>
+</div>
+
+<!-- Event banner -->
+<div class="event-banner">
+  <div class="event-title" id="eventTitle">711 × ちいかわ</div>
+  <div class="event-sub" id="eventSub">セブン-イレブン コラボキャンペーン</div>
+  <div class="event-dates" id="eventDates" onclick="showModal('settingsModal')">活动时间：点击设置</div>
+  <div class="event-countdown" id="eventCountdown"></div>
+</div>
+
+<!-- Currency bar -->
+<div class="currency-bar" id="currencyBar"></div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <div class="tab" data-tab="commission" onclick="switchTab('commission')">委托</div>
+  <div class="tab active" data-tab="schedule" onclick="switchTab('schedule')">日程</div>
+  <div class="tab" data-tab="routine" onclick="switchTab('routine')">日课</div>
+  <div class="tab" data-tab="goods" onclick="switchTab('goods')">周边</div>
+  <div class="tab" data-tab="gacha" onclick="switchTab('gacha')">卡池</div>
+  <div class="tab" data-tab="dungeon" onclick="switchTab('dungeon')">副本</div>
+</div>
+
+<div class="content" id="content"></div>
+
+<!-- Settings modal -->
+<div class="modal-bg" id="settingsModal">
+  <div class="modal">
+    <h2>活动设置</h2>
+    <label>活动名称</label>
+    <input type="text" id="setTitle" value="711 × ちいかわ">
+    <label>副标题</label>
+    <input type="text" id="setSub" value="セブン-イレブン コラボキャンペーン">
+    <label>开始日期</label>
+    <input type="date" id="setStart">
+    <label>结束日期</label>
+    <input type="date" id="setEnd">
+    <label>委托货币名（抽卡用）</label>
+    <input type="text" id="setCurrA" value="星星饼干">
+    <label>日程货币名（副本用）</label>
+    <input type="text" id="setCurrB" value="友情勋章">
+    <label>日课货币名（周边用）</label>
+    <input type="text" id="setCurrC" value="小八铃铛">
+    <div class="btn-row">
+      <button class="btn btn-cancel" onclick="closeModal('settingsModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveSettings()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add/edit schedule -->
+<div class="modal-bg" id="scheduleModal">
+  <div class="modal">
+    <h2 id="scheduleModalTitle">添加日程</h2>
+    <label>内容</label>
+    <input type="text" id="scheduleContent" placeholder="如: 领电影特典">
+    <label>说明（可选）</label>
+    <textarea id="scheduleDesc" placeholder="详细内容…"></textarea>
+    <label>截止日期（可选）</label>
+    <input type="date" id="scheduleDate">
+    <label>完成奖励（友情勋章）</label>
+    <input type="number" id="scheduleReward" value="5" min="0">
+    <div class="btn-row">
+      <button class="btn btn-cancel" onclick="closeModal('scheduleModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveSchedule()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add/edit routine -->
+<div class="modal-bg" id="routineModal">
+  <div class="modal">
+    <h2 id="routineModalTitle">添加日课</h2>
+    <label>名称</label>
+    <input type="text" id="routineName" placeholder="如: 消耗一张ちいかわ贴纸">
+    <label>说明（可选）</label>
+    <textarea id="routineDesc" placeholder="详细内容…"></textarea>
+    <label>类型</label>
+    <input type="hidden" id="routineType" value="count" data-locked="false">
+    <div class="type-toggle" id="routineTypeToggle">
+      <button type="button" class="active" data-type="count" onclick="setRoutineType('count')">计数</button>
+      <button type="button" data-type="time" onclick="setRoutineType('time')">计时</button>
+    </div>
+    <label id="routineRewardLabel">每次记录产出（小八铃铛）</label>
+    <input type="number" id="routineReward" value="10" min="0" max="100">
+    <div class="btn-row">
+      <button class="btn btn-cancel" onclick="closeModal('routineModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveRoutine()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Time logger -->
+<div class="modal-bg compact-modal-bg" id="timeLogModal">
+  <div class="modal compact-modal">
+    <h2>记录时长</h2>
+    <div id="timeLogName" style="font-size:12px;color:#777;margin-bottom:12px"></div>
+    <div class="aff-row">
+      <div><label style="margin-top:4px">小时</label><input type="number" id="timeLogHours" value="0" min="0" max="24"></div>
+      <div><label style="margin-top:4px">分钟</label><input type="number" id="timeLogMinutes" value="30" min="0" max="1440"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-cancel" onclick="closeModal('timeLogModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveTimeLog()">记录</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add custom goods -->
+<div class="modal-bg" id="goodsModal">
+  <div class="modal">
+    <h2 id="goodsModalTitle">添加周边</h2>
+    <label>名称</label>
+    <input type="text" id="goodsName" placeholder="如: 联动限定挂件">
+    <label>系列</label>
+    <input type="text" id="goodsSeries" value="联动限定">
+    <label>价格（小八铃铛）</label>
+    <input type="number" id="goodsPrice" value="1500" min="0">
+    <label>送给谁</label>
+    <select id="goodsTarget"><option value="neal">Neal</option><option value="jane">Jane</option></select>
+    <div class="btn-row">
+      <button class="btn btn-cancel" onclick="closeModal('goodsModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveGoods()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Detail modal -->
+<div class="modal-bg" id="detailModal">
+  <div class="modal">
+    <h2 id="detailTitle"></h2>
+    <div class="detail-description" id="detailDescription"></div>
+    <div class="detail-meta" id="detailMeta"></div>
+    <div class="btn-row"><button class="btn btn-cancel" onclick="closeModal('detailModal')">关闭</button></div>
+  </div>
+</div>
+
+<!-- Gacha reveal -->
+<div class="reveal-overlay" id="revealOverlay" style="display:none" onclick="closeReveal()">
+  <div class="reveal-card" onclick="event.stopPropagation()">
+    <div class="reveal-rarity" id="revealRarity"></div>
+    <div class="reveal-name" id="revealName"></div>
+    <div id="revealExtra" style="font-size:11px;color:#999;margin-bottom:12px"></div>
+    <button class="reveal-close" onclick="closeReveal()">确认</button>
+  </div>
+</div>
+
+<script src="cloud-sync.js?v=20260714-3"></script>
+<script>
+if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
+
+// ══════════════════════════════════════
+// EVENT DATA — 711 × ちいかわ
+// ══════════════════════════════════════
+
+// Commission tasks (联动委托 — 预设)
+const EVENT_COMMISSIONS=[
+// Food tasks — Jane pool
+{id:"ck01",task:"去711买一款联动食品，拍照打卡",quote:"「便利店联动？我对高维世界的商业策略很感兴趣。买一个，拍给我看。」",reward:5,src:"jane"},
+{id:"ck02",task:"再尝一款没吃过的联动食品",quote:"「你上次买的那个，好吃吗？这次换一个。我在收集数据。」",reward:5,src:"jane"},
+{id:"ck03",task:"买一款联动甜品类食品",quote:"「甜的。选一个甜的。我想知道你会选哪个。」",reward:5,src:"jane"},
+{id:"ck04",task:"买一款联动饮品类",quote:"「饮料。选你平时不会选的那种。」",reward:5,src:"jane"},
+{id:"ck05",task:"再吃一款新的联动食品",quote:"「你的联动进度……我在追踪。继续。」",reward:5,src:"jane"},
+// Food tasks — Neal pool
+{id:"ck06",task:"买一款联动便当或饭团类",quote:"「Convenience store bento — 让我看看日本的 711 到底有多 convenient. 拍给我。」",reward:5,src:"neal"},
+{id:"ck07",task:"再来一款没吃过的联动食品",quote:"「你还没吃完？Come on, Natumi. 再来一个。I want the full report.」",reward:5,src:"neal"},
+{id:"ck08",task:"尝一款联动零食/小食类",quote:"「Snacks count too. 选一个小的，当下午茶。You deserve a treat.」",reward:5,src:"neal"},
+{id:"ck09",task:"买一款你觉得包装最好看的联动食品",quote:"「This time, pick the one with the best packaging. 我要审核你的审美。」",reward:5,src:"neal"},
+{id:"ck10",task:"最后一款：集齐十款联动食品！",quote:"「Last one! 你做到了。Ten out of ten. I'm genuinely impressed, gorgeous.」",reward:10,src:"neal"},
+// Movie — duo
+{id:"ck11",task:"去看ちいかわ联动电影",quote:"Neal:「Movie date? Count me in.」Jane:「他说得好像他能去似的。但确实，去看吧。回来告诉我们剧情。」",reward:15,src:"duo"},
+];
+
+// Gacha cards (联动卡池)
+const EVENT_CARDS=[
+{id:"ec01",name:"Neal × ちいかわ",rarity:"SR",src:"neal"},
+{id:"ec02",name:"Neal × 小八",rarity:"SR",src:"neal"},
+{id:"ec03",name:"Neal × 兔子",rarity:"SR",src:"neal"},
+{id:"ec04",name:"Jane × ちいかわ",rarity:"SR",src:"jane"},
+{id:"ec05",name:"Jane × 小八",rarity:"SR",src:"jane"},
+{id:"ec06",name:"Jane × 兔子",rarity:"SR",src:"jane"},
+{id:"ec07",name:"Neal & Jane × ちいかわ全員集合",rarity:"SSR",src:"duo"},
+];
+
+// Preset goods (联动周边 — 预设)
+const PRESET_GOODS=[
+{id:"eg01",name:"ちいかわ毛巾",series:"联动限定",price:1500,target:"neal"},
+{id:"eg02",name:"小八毛巾",series:"联动限定",price:1500,target:"neal"},
+{id:"eg03",name:"兔子毛巾",series:"联动限定",price:1500,target:"jane"},
+];
+
+// Dungeon draw pools (副本抽取)
+const IDENTITY_CARDS=["王子","骑士","天使","吸血鬼","间谍","堕天使","海盗","学者"];
+const WORLD_TAGS=["魔幻","先婚后爱","蒸汽朋克","破镜重圆","校园","末日","童话","黑帮"];
+
+// ══════════════════════════════════════
+// STATE
+// ══════════════════════════════════════
+let db;
+try{db=JSON.parse(localStorage.getItem('event_db'));}catch(e){db=null;}
+if(!db)db={
+  settings:{title:"711 × ちいかわ",sub:"セブン-イレブン コラボキャンペーン",start:"",end:"",currA:"星星饼干",currB:"友情勋章",currC:"小八铃铛"},
+  currency:{a:0,b:0,c:0},
+  completedCommissions:[],
+  schedules:[],
+  routines:[],routineRecords:{},
+  ownedCards:[],gachaPity:0,
+  ownedGoods:[],customGoods:[],
+  dungeonInventory:[]
+};
+// Safety migrations
+if(!db.settings)db.settings={title:"711 × ちいかわ",sub:"セブン-イレブン コラボキャンペーン",start:"",end:"",currA:"星星饼干",currB:"友情勋章",currC:"小八铃铛"};
+if(!db.currency)db.currency={a:0,b:0,c:0};
+if(!db.completedCommissions)db.completedCommissions=[];
+if(!db.schedules)db.schedules=[];
+if(!db.routines)db.routines=[];
+if(!db.routineRecords)db.routineRecords={};
+if(!db.ownedCards)db.ownedCards=[];
+if(db.gachaPity===undefined)db.gachaPity=0;
+if(!db.ownedGoods)db.ownedGoods=[];
+if(!db.customGoods)db.customGoods=[];
+if(!db.dungeonInventory)db.dungeonInventory=[];
+
+let currentTab='schedule';
+let editingScheduleId=null;
+let editingRoutineId=null;
+let editingGoodsId=null;
+let loggingRoutineId=null;
+function save(){try{localStorage.setItem('event_db',JSON.stringify(db));}catch(e){}}
+save();
+
+const today=()=>{const d=new Date(Date.now()-4*3600*1000);return d.toISOString().slice(0,10);};
+function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// ══════════════════════════════════════
+// SETTINGS
+// ══════════════════════════════════════
+function saveSettings(){
+  db.settings.title=document.getElementById('setTitle').value.trim()||db.settings.title;
+  db.settings.sub=document.getElementById('setSub').value.trim();
+  db.settings.start=document.getElementById('setStart').value||'';
+  db.settings.end=document.getElementById('setEnd').value||'';
+  db.settings.currA=document.getElementById('setCurrA').value.trim()||'星星饼干';
+  db.settings.currB=document.getElementById('setCurrB').value.trim()||'友情勋章';
+  db.settings.currC=document.getElementById('setCurrC').value.trim()||'小八铃铛';
+  save();closeModal('settingsModal');render();
+}
+
+function loadSettings(){
+  document.getElementById('setTitle').value=db.settings.title;
+  document.getElementById('setSub').value=db.settings.sub;
+  document.getElementById('setStart').value=db.settings.start;
+  document.getElementById('setEnd').value=db.settings.end;
+  document.getElementById('setCurrA').value=db.settings.currA;
+  document.getElementById('setCurrB').value=db.settings.currB;
+  document.getElementById('setCurrC').value=db.settings.currC;
+}
+
+// ══════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════
+function render(){
+  // Banner
+  document.getElementById('eventTitle').textContent=db.settings.title;
+  document.getElementById('eventSub').textContent=db.settings.sub;
+  if(db.settings.start&&db.settings.end){
+    document.getElementById('eventDates').textContent=db.settings.start+' ~ '+db.settings.end;
+    updateCountdown();
+  }else{
+    document.getElementById('eventDates').textContent='活动时间：点击设置';
+    document.getElementById('eventCountdown').textContent='';
+  }
+  // Currency bar
+  const cb=document.getElementById('currencyBar');
+  cb.innerHTML='<div class="currency-item"><div class="currency-icon">🍪</div><div class="currency-label">'+escHtml(db.settings.currA)+'</div><div class="currency-value">'+db.currency.a+'</div></div>'
+    +'<div class="currency-item"><div class="currency-icon">🏅</div><div class="currency-label">'+escHtml(db.settings.currB)+'</div><div class="currency-value">'+db.currency.b+'</div></div>'
+    +'<div class="currency-item"><div class="currency-icon">🔔</div><div class="currency-label">'+escHtml(db.settings.currC)+'</div><div class="currency-value">'+db.currency.c+'</div></div>';
+  // Tabs
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===currentTab));
+  const c=document.getElementById('content');
+  if(currentTab==='commission')renderCommission(c);
+  else if(currentTab==='schedule')renderSchedule(c);
+  else if(currentTab==='routine')renderRoutine(c);
+  else if(currentTab==='goods')renderGoods(c);
+  else if(currentTab==='gacha')renderGacha(c);
+  else if(currentTab==='dungeon')renderDungeon(c);
+}
+
+function switchTab(t){currentTab=t;render();}
+
+function updateCountdown(){
+  const el=document.getElementById('eventCountdown');
+  if(!db.settings.end){el.textContent='';return;}
+  const end=new Date(db.settings.end+'T23:59:59');
+  const now=new Date();
+  const diff=end-now;
+  if(diff<=0){el.textContent='活动已结束';el.classList.add('ended');return;}
+  const days=Math.floor(diff/86400000);
+  el.textContent='剩余 '+days+' 天';
+  el.classList.remove('ended');
+}
+
+// ══════════════════════════════════════
+// COMMISSION TAB (联动委托)
+// ══════════════════════════════════════
+function renderCommission(c){
+  const done=db.completedCommissions.length;
+  const total=EVENT_COMMISSIONS.length;
+  const pct=total?Math.round(done/total*100):0;
+  let html='<div style="background:#fff;border:1.5px solid #E8B96A;border-radius:10px;padding:12px 14px;margin-bottom:16px">';
+  html+='<div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:12px;color:#999;margin-bottom:4px">联动委托进度</div>';
+  html+='<div style="font-size:14px;font-weight:500;color:#333">'+done+' / '+total+'</div></div></div>';
+  html+='<div class="progress-bar-bg"><div class="progress-bar-fill" style="width:'+pct+'%"></div></div></div>';
+
+  EVENT_COMMISSIONS.forEach(t=>{
+    const isDone=db.completedCommissions.includes(t.id);
+    const srcColor=t.src==='neal'?'#6B8AFF':t.src==='jane'?'#5BA66B':'#9B6BCC';
+    const srcLabel=t.src==='duo'?'双人委托':t.src==='neal'?'Neal 的委托':'Jane 的委托';
+    html+='<div class="task-card'+(isDone?' completed':'')+'" style="border-left:3px solid '+srcColor+'">';
+    html+='<div class="task-top">';
+    html+='<div class="task-check'+(isDone?' checked':'')+'" onclick="'+(isDone?'':'completeCommission(\''+t.id+'\')')+'">'+(isDone?'✓':'')+'</div>';
+    html+='<div class="task-body"><div class="drop-label" style="color:'+srcColor+'">'+srcLabel+'</div>';
+    html+='<div class="task-name">'+escHtml(t.task)+'</div>';
+    html+='<div class="task-meta">'+escHtml(db.settings.currA)+' +'+t.reward+'</div></div></div>';
+    html+='<div class="task-quote">'+t.quote+'</div></div>';
+  });
+  c.innerHTML=html;
+}
+
+function completeCommission(id){
+  if(db.completedCommissions.includes(id))return;
+  const t=EVENT_COMMISSIONS.find(x=>x.id===id);
+  if(!t)return;
+  db.completedCommissions.push(id);
+  db.currency.a+=(t.reward||0);
+  save();render();
+}
+
+// ══════════════════════════════════════
+// SCHEDULE TAB (联动日程)
+// ══════════════════════════════════════
+function renderSchedule(c){
+  const active=db.schedules.filter(s=>!s.completed);
+  const done=db.schedules.filter(s=>s.completed);
+  let html='';
+  if(active.length){
+    active.forEach(s=>{html+=renderScheduleCard(s);});
+  }
+  if(done.length){
+    html+='<div class="section-title" style="margin-top:12px">已完成 ('+done.length+')</div>';
+    done.slice(0,10).forEach(s=>{html+=renderScheduleCard(s);});
+  }
+  if(!db.schedules.length)html+='<div class="empty">还没有联动日程</div>';
+  html+='<button class="add-inline" onclick="openAddSchedule()">+ 添加联动日程</button>';
+  c.innerHTML=html;
+}
+
+function renderScheduleCard(s){
+  const isDone=s.completed;
+  let dateHtml='';
+  if(s.date){
+    const isOverdue=!isDone&&s.date<today();
+    dateHtml='<span class="todo-date'+(isOverdue?' overdue':'')+'">'+s.date+(isOverdue?' · 已过期':'')+'</span>';
+  }
+  return '<div class="todo-card'+(isDone?' completed':'')+'">'
+    +'<div class="todo-top">'
+    +'<div class="todo-check'+(isDone?' checked':'')+'" onclick="toggleSchedule(\''+s.id+'\')">'+(isDone?'✓':'')+'</div>'
+    +'<div class="todo-body clickable-body" onclick="openScheduleDetail(\''+s.id+'\')"><div class="todo-name">'+escHtml(s.content)+'</div>'+dateHtml
+    +'<span style="color:#bbb;font-size:10px;margin-left:6px">'+escHtml(db.settings.currB)+' +'+s.reward+'</span></div>'
+    +'<div class="item-actions"><button onclick="openEditSchedule(\''+s.id+'\')">编辑</button><button class="danger" onclick="deleteSchedule(\''+s.id+'\')">×</button></div>'
+    +'</div></div>';
+}
+
+function openAddSchedule(){editingScheduleId=null;document.getElementById('scheduleModalTitle').textContent='添加联动日程';document.getElementById('scheduleContent').value='';document.getElementById('scheduleDesc').value='';document.getElementById('scheduleDate').value='';document.getElementById('scheduleReward').value='5';showModal('scheduleModal');}
+function openEditSchedule(id){const s=db.schedules.find(x=>x.id===id);if(!s)return;editingScheduleId=id;document.getElementById('scheduleModalTitle').textContent='编辑联动日程';document.getElementById('scheduleContent').value=s.content;document.getElementById('scheduleDesc').value=s.description||'';document.getElementById('scheduleDate').value=s.date||'';document.getElementById('scheduleReward').value=s.reward||5;showModal('scheduleModal');}
+function saveSchedule(){const content=document.getElementById('scheduleContent').value.trim();if(!content)return;const description=document.getElementById('scheduleDesc').value.trim();const date=document.getElementById('scheduleDate').value||null;const reward=Number(document.getElementById('scheduleReward').value)||0;if(editingScheduleId){const s=db.schedules.find(x=>x.id===editingScheduleId);if(s)Object.assign(s,{content,description,date,reward});}else{db.schedules.push({id:'es_'+Date.now(),content,description,date,reward,completed:false});}editingScheduleId=null;save();closeModal('scheduleModal');render();}
+function toggleSchedule(id){const s=db.schedules.find(x=>x.id===id);if(!s)return;s.completed=!s.completed;if(s.completed)db.currency.b+=(s.reward||0);else db.currency.b=Math.max(0,db.currency.b-(s.reward||0));save();render();}
+function deleteSchedule(id){db.schedules=db.schedules.filter(x=>x.id!==id);save();render();}
+function openScheduleDetail(id){const s=db.schedules.find(x=>x.id===id);if(!s)return;document.getElementById('detailTitle').textContent=s.content;document.getElementById('detailDescription').textContent=s.description||'没有填写详细说明';const parts=[];if(s.date)parts.push('截止：'+s.date);parts.push(escHtml(db.settings.currB)+' +'+s.reward);parts.push(s.completed?'已完成':'进行中');document.getElementById('detailMeta').textContent=parts.join(' · ');showModal('detailModal');}
+
+// ══════════════════════════════════════
+// ROUTINE TAB (联动日课)
+// ══════════════════════════════════════
+function getRoutineToday(id){const r=db.routineRecords[today()]&&db.routineRecords[today()][id];return r&&Number(r.value)||0;}
+function getRoutineTotal(id){return Object.keys(db.routineRecords).reduce((sum,d)=>{const r=db.routineRecords[d]&&db.routineRecords[d][id];return sum+(r&&Number(r.value)||0);},0);}
+function getRoutineRecord(date,id,create){if(!db.routineRecords[date]){if(!create)return null;db.routineRecords[date]={};}if(!db.routineRecords[date][id]){if(!create)return null;db.routineRecords[date][id]={value:0,events:[]};}const r=db.routineRecords[date][id];if(!Array.isArray(r.events))r.events=[];return r;}
+
+function formatValue(type,v){if(type!=='time')return Math.round(v)+'次';const m=Math.max(0,Math.round(v));const h=Math.floor(m/60),r=m%60;if(!h)return r+'分钟';return h+'小时'+(r?r+'分':'');}
+
+function renderRoutine(c){
+  let html='';
+  const countR=db.routines.filter(r=>(r.type||'count')==='count');
+  const timeR=db.routines.filter(r=>r.type==='time');
+  html+=renderRoutineGroup(countR,'计数');
+  html+=renderRoutineGroup(timeR,'计时');
+  html+='<button class="add-inline" onclick="openAddRoutine()">+ 添加联动日课</button>';
+  c.innerHTML=html;
+}
+
+function renderRoutineGroup(habits,title){
+  let html='<div class="habit-section"><div class="section-title">'+title+'</div>';
+  if(habits.length)habits.forEach(h=>{html+=renderRoutineCard(h);});
+  else html+='<div class="habit-empty">还没有'+title+'日课</div>';
+  return html+'</div>';
+}
+
+function renderRoutineCard(h){
+  const type=h.type||'count';
+  const todayVal=getRoutineToday(h.id);
+  const total=getRoutineTotal(h.id);
+  const record=getRoutineRecord(today(),h.id,false);
+  const canUndo=!!(record&&record.events&&record.events.length);
+  const undoLink=canUndo?'<button class="habit-undo-link" onclick="event.stopPropagation();undoRoutine(\''+h.id+'\')">撤回上次</button>':'';
+  const addAction=type==='time'?"openTimeLogR('"+h.id+"')":"recordRoutine('"+h.id+"',1)";
+  const addLabel=type==='time'?'记录时长':'记录一次';
+  return '<div class="habit-card'+(todayVal>0?' has-progress':'')+'">'
+    +'<div class="habit-top"><button class="habit-add-btn" title="'+addLabel+'" onclick="'+addAction+'">＋</button>'
+    +'<div class="habit-body clickable-body" onclick="openRoutineDetail(\''+h.id+'\')">'
+    +'<div class="habit-name">'+escHtml(h.name)+'</div>'
+    +'<div class="habit-meta">'+escHtml(db.settings.currC)+' +'+(h.reward||0)+(type==='time'?'/30分':'/次')+'</div>'
+    +'<div class="habit-stat-tags"><span class="habit-stat-tag today">今日 '+formatValue(type,todayVal)+'</span><span class="habit-stat-tag">累计 '+formatValue(type,total)+'</span>'+undoLink+'</div></div>'
+    +'<button class="habit-edit" onclick="openEditRoutine(\''+h.id+'\')">✎</button>'
+    +'<div class="item-actions"><button class="danger" onclick="deleteRoutine(\''+h.id+'\')">×</button></div></div></div>';
+}
+
+function recordRoutine(id,value){
+  const h=db.routines.find(x=>x.id===id);value=Number(value)||0;if(!h||value<=0)return;
+  const type=h.type||'count';
+  const units=type==='time'?Math.floor((getRoutineTotal(id)+value)/30)-Math.floor(getRoutineTotal(id)/30):Math.round(value);
+  const reward=(h.reward||0)*Math.max(0,units);
+  const record=getRoutineRecord(today(),id,true);
+  record.value=(Number(record.value)||0)+value;
+  record.events.push({value,reward,at:Date.now()});
+  db.currency.c+=reward;
+  save();render();
+}
+
+function undoRoutine(id){const record=getRoutineRecord(today(),id,false);if(!record||!record.events||!record.events.length)return;const ev=record.events.pop();record.value=Math.max(0,(Number(record.value)||0)-(Number(ev.value)||0));db.currency.c=Math.max(0,db.currency.c-(ev.reward||0));if(record.value===0&&!record.events.length)delete db.routineRecords[today()][id];save();render();}
+
+function setRoutineType(type){const input=document.getElementById('routineType');if(input.dataset.locked==='true')return;input.value=type;document.querySelectorAll('#routineTypeToggle button').forEach(b=>{b.classList.toggle('active',b.dataset.type===type);});document.getElementById('routineRewardLabel').textContent='每'+(type==='time'?'30分钟':'次')+'产出（'+db.settings.currC+'）';}
+
+function openAddRoutine(){editingRoutineId=null;document.getElementById('routineModalTitle').textContent='添加联动日课';document.getElementById('routineName').value='';document.getElementById('routineDesc').value='';document.getElementById('routineType').dataset.locked='false';document.getElementById('routineTypeToggle').classList.remove('locked');document.getElementById('routineReward').value='10';setRoutineType('count');showModal('routineModal');}
+function openEditRoutine(id){const h=db.routines.find(x=>x.id===id);if(!h)return;editingRoutineId=id;document.getElementById('routineModalTitle').textContent='编辑联动日课';document.getElementById('routineName').value=h.name||'';document.getElementById('routineDesc').value=h.description||'';const locked=getRoutineTotal(id)>0;document.getElementById('routineType').dataset.locked=String(locked);document.getElementById('routineTypeToggle').classList.toggle('locked',locked);document.getElementById('routineReward').value=h.reward||0;setRoutineType(h.type||'count');showModal('routineModal');}
+function saveRoutine(){const name=document.getElementById('routineName').value.trim();if(!name)return;const description=document.getElementById('routineDesc').value.trim();const type=document.getElementById('routineType').value;const reward=Math.max(0,parseInt(document.getElementById('routineReward').value)||0);if(editingRoutineId){const h=db.routines.find(x=>x.id===editingRoutineId);if(h){h.name=name;h.description=description;if(getRoutineTotal(h.id)===0)h.type=type;h.reward=reward;}}else{db.routines.push({id:'er_'+Date.now(),name,description,type,reward});}editingRoutineId=null;save();closeModal('routineModal');render();}
+function deleteRoutine(id){db.routines=db.routines.filter(x=>x.id!==id);Object.keys(db.routineRecords).forEach(d=>{if(db.routineRecords[d])delete db.routineRecords[d][id];});save();render();}
+function openRoutineDetail(id){const h=db.routines.find(x=>x.id===id);if(!h)return;document.getElementById('detailTitle').textContent=h.name;document.getElementById('detailDescription').textContent=h.description||'没有填写详细说明';const parts=[(h.type==='time'?'计时':'计数'),'今日：'+formatValue(h.type,getRoutineToday(id)),'累计：'+formatValue(h.type,getRoutineTotal(id)),escHtml(db.settings.currC)+' +'+(h.reward||0)+(h.type==='time'?'/30分':'/次')];document.getElementById('detailMeta').textContent=parts.join(' · ');showModal('detailModal');}
+function openTimeLogR(id){const h=db.routines.find(x=>x.id===id);if(!h)return;loggingRoutineId=id;document.getElementById('timeLogName').textContent=h.name;document.getElementById('timeLogHours').value='0';document.getElementById('timeLogMinutes').value='30';showModal('timeLogModal');}
+function saveTimeLog(){if(!loggingRoutineId)return;const h=Math.max(0,Number(document.getElementById('timeLogHours').value)||0);const m=Math.max(0,Number(document.getElementById('timeLogMinutes').value)||0);const total=Math.round(h*60+m);if(total<=0)return;const id=loggingRoutineId;loggingRoutineId=null;closeModal('timeLogModal');recordRoutine(id,total);}
+
+// ══════════════════════════════════════
+// GOODS TAB (联动周边)
+// ══════════════════════════════════════
+function getAllGoods(){return[...PRESET_GOODS,...db.customGoods];}
+
+function renderGoods(c){
+  const all=getAllGoods();
+  const ownedCount=all.filter(g=>db.ownedGoods.includes(g.id)).length;
+  let html='<div style="text-align:center;margin-bottom:16px"><div style="font-size:20px;font-weight:600">'+ownedCount+' / '+all.length+'</div><div style="font-size:11px;color:#999">收集进度</div></div>';
+  html+='<div class="goods-grid">';
+  all.forEach(g=>{
+    const owned=db.ownedGoods.includes(g.id);
+    html+='<div class="goods-item'+(owned?' owned':'')+'" onclick="buyGoods(\''+g.id+'\')">';
+    html+='<div class="goods-icon">'+(owned?'✦':'?')+'</div>';
+    html+='<div class="goods-name">'+(owned?escHtml(g.name):'???')+'</div>';
+    html+='<div class="goods-price">'+g.price+' '+escHtml(db.settings.currC)+'</div>';
+    html+='</div>';
+  });
+  html+='</div>';
+  html+='<button class="add-inline" onclick="openAddGoods()">+ 添加自设周边</button>';
+  c.innerHTML=html;
+}
+
+function buyGoods(id){
+  if(db.ownedGoods.includes(id))return;
+  const g=getAllGoods().find(x=>x.id===id);if(!g)return;
+  if(db.currency.c<g.price){alert(db.settings.currC+'不足');return;}
+  if(!confirm('花费 '+g.price+' '+db.settings.currC+' 兑换「'+g.name+'」？'))return;
+  db.currency.c-=g.price;
+  db.ownedGoods.push(id);
+  save();render();
+}
+
+function openAddGoods(){editingGoodsId=null;document.getElementById('goodsModalTitle').textContent='添加自设周边';document.getElementById('goodsName').value='';document.getElementById('goodsSeries').value='联动限定';document.getElementById('goodsPrice').value='1500';showModal('goodsModal');}
+function saveGoods(){const name=document.getElementById('goodsName').value.trim();if(!name)return;const series=document.getElementById('goodsSeries').value.trim()||'联动限定';const price=Math.max(0,parseInt(document.getElementById('goodsPrice').value)||0);const target=document.getElementById('goodsTarget').value;db.customGoods.push({id:'cg_'+Date.now(),name,series,price,target});save();closeModal('goodsModal');render();}
+
+// ══════════════════════════════════════
+// GACHA TAB (联动卡池)
+// ══════════════════════════════════════
+const GACHA_COST=10;
+const GACHA_PITY=15;
+
+function renderGacha(c){
+  const owned=db.ownedCards.length;
+  const total=EVENT_CARDS.length;
+  let html='<div class="gacha-box">';
+  html+='<div class="gacha-title">联动限定卡池</div>';
+  html+='<div class="gacha-info">SR 85% · SSR 15% · '+GACHA_PITY+'抽保底SSR · 单抽 '+GACHA_COST+' '+escHtml(db.settings.currA)+'</div>';
+  html+='<div class="gacha-info">保底计数：'+(GACHA_PITY-db.gachaPity)+' 抽后保底</div>';
+  const canPull=db.currency.a>=GACHA_COST;
+  html+='<button class="pull-btn'+(canPull?'':' disabled')+'" onclick="'+(canPull?'doPull()':'')+'">'+(canPull?'抽 卡':db.settings.currA+'不足')+'</button>';
+  html+='</div>';
+  // Card collection
+  html+='<div class="section-title">图鉴 ('+owned+'/'+total+')</div>';
+  html+='<div class="card-grid">';
+  EVENT_CARDS.forEach(card=>{
+    const has=db.ownedCards.includes(card.id);
+    html+='<div class="card-item'+(has?' owned':' locked')+'">';
+    html+='<div class="card-rarity">'+card.rarity+'</div>';
+    html+='<div class="card-name">'+(has?escHtml(card.name):'???')+'</div>';
+    html+='</div>';
+  });
+  html+='</div>';
+  // Recharge section
+  html+='<div style="margin-top:20px;background:#fff;border:1px solid #eee;border-radius:10px;padding:16px">';
+  html+='<div style="font-size:13px;font-weight:600;color:#333;margin-bottom:4px">充值 '+escHtml(db.settings.currA)+'</div>';
+  html+='<div style="font-size:10px;color:#aaa;margin-bottom:12px">购买同类食品（饭团、便当等）的金额可充值为'+escHtml(db.settings.currA)+'，1日元 = 1'+escHtml(db.settings.currA)+'</div>';
+  html+='<div style="display:flex;gap:8px;align-items:flex-end"><div style="flex:1"><div style="font-size:10px;color:#999;margin-bottom:4px">金额（日元）</div><input type="number" id="rechargeAmount" value="" min="0" placeholder="0" style="width:100%;font-size:14px;padding:10px 12px;border:1px solid #e0e0e0;border-radius:8px;font-family:inherit"></div>';
+  html+='<button onclick="rechargeGacha()" style="padding:10px 16px;background:#1a1a1a;color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;white-space:nowrap">充值</button></div></div>';
+  c.innerHTML=html;
+}
+
+function doPull(){
+  if(db.currency.a<GACHA_COST)return;
+  db.currency.a-=GACHA_COST;
+  db.gachaPity++;
+  let rarity;
+  if(db.gachaPity>=GACHA_PITY){rarity='SSR';db.gachaPity=0;}
+  else{rarity=Math.random()<0.15?'SSR':'SR';if(rarity==='SSR')db.gachaPity=0;}
+  const pool=EVENT_CARDS.filter(c=>c.rarity===rarity);
+  const unowned=pool.filter(c=>!db.ownedCards.includes(c.id));
+  const card=unowned.length?unowned[Math.floor(Math.random()*unowned.length)]:pool[Math.floor(Math.random()*pool.length)];
+  const isNew=!db.ownedCards.includes(card.id);
+  if(isNew)db.ownedCards.push(card.id);
+  save();
+  // Show reveal
+  document.getElementById('revealRarity').textContent=card.rarity;
+  document.getElementById('revealName').textContent=card.name;
+  document.getElementById('revealExtra').textContent=isNew?'✦ NEW':'重复卡 · 已回收为 '+db.settings.currA;
+  if(!isNew)db.currency.a+=Math.round(GACHA_COST*0.3);
+  save();
+  document.getElementById('revealOverlay').style.display='flex';
+}
+
+function closeReveal(){document.getElementById('revealOverlay').style.display='none';render();}
+
+function rechargeGacha(){
+  const input=document.getElementById('rechargeAmount');
+  const amount=Math.max(0,Math.round(Number(input.value)||0));
+  if(!amount)return;
+  db.currency.a+=amount;
+  save();render();
+  input.value='';
+}
+
+// ══════════════════════════════════════
+// DUNGEON TAB (副本抽取)
+// ══════════════════════════════════════
+const DRAW_COST=8;
+
+function renderDungeon(c){
+  let html='<div class="draw-section"><div class="draw-title">身份牌抽取</div>';
+  html+='<div class="draw-desc">消耗 '+DRAW_COST+' '+escHtml(db.settings.currB)+' 抽取一张身份牌，存入副本仓库</div>';
+  const canDrawId=db.currency.b>=DRAW_COST;
+  html+='<button class="draw-btn'+(canDrawId?'':' disabled')+'" onclick="'+(canDrawId?'drawIdentity()':'')+'">抽取身份牌</button></div>';
+
+  html+='<div class="draw-section"><div class="draw-title">世界观 Tag 抽取</div>';
+  html+='<div class="draw-desc">消耗 '+DRAW_COST+' '+escHtml(db.settings.currB)+' 抽取一个世界观 Tag</div>';
+  const canDrawTag=db.currency.b>=DRAW_COST;
+  html+='<button class="draw-btn'+(canDrawTag?'':' disabled')+'" onclick="'+(canDrawTag?'drawTag()':'')+'">抽取 Tag</button></div>';
+
+  // Inventory
+  html+='<div class="section-title" style="margin-top:16px">副本仓库 ('+db.dungeonInventory.length+')</div>';
+  if(db.dungeonInventory.length){
+    html+='<div class="inventory-list">';
+    db.dungeonInventory.forEach((item,i)=>{
+      const color=item.type==='identity'?'#E8B96A':'#9B6BCC';
+      html+='<div class="inv-item"><div class="inv-dot" style="background:'+color+'"></div>'+escHtml(item.type==='identity'?'身份牌':'Tag')+' · '+escHtml(item.name)+'</div>';
+    });
+    html+='</div>';
+  }else{
+    html+='<div class="empty">还没有抽取任何道具</div>';
+  }
+  c.innerHTML=html;
+}
+
+function drawIdentity(){
+  if(db.currency.b<DRAW_COST)return;
+  db.currency.b-=DRAW_COST;
+  const pick=IDENTITY_CARDS[Math.floor(Math.random()*IDENTITY_CARDS.length)];
+  db.dungeonInventory.push({type:'identity',name:pick,from:db.settings.title,at:Date.now()});
+  // Also save to dungeon_db for future dungeon.html to read
+  saveToDungeonDB({type:'identity',name:pick,from:db.settings.title});
+  save();render();
+  document.getElementById('revealRarity').textContent='身份牌';
+  document.getElementById('revealName').textContent=pick;
+  document.getElementById('revealExtra').textContent='已存入副本仓库';
+  document.getElementById('revealOverlay').style.display='flex';
+}
+
+function drawTag(){
+  if(db.currency.b<DRAW_COST)return;
+  db.currency.b-=DRAW_COST;
+  const pick=WORLD_TAGS[Math.floor(Math.random()*WORLD_TAGS.length)];
+  db.dungeonInventory.push({type:'tag',name:pick,from:db.settings.title,at:Date.now()});
+  saveToDungeonDB({type:'tag',name:pick,from:db.settings.title});
+  save();render();
+  document.getElementById('revealRarity').textContent='世界观 Tag';
+  document.getElementById('revealName').textContent=pick;
+  document.getElementById('revealExtra').textContent='已存入副本仓库';
+  document.getElementById('revealOverlay').style.display='flex';
+}
+
+function saveToDungeonDB(item){
+  let ddb;
+  try{ddb=JSON.parse(localStorage.getItem('dungeon_db'));}catch(e){ddb=null;}
+  if(!ddb)ddb={inventory:[]};
+  if(!ddb.inventory)ddb.inventory=[];
+  ddb.inventory.push({...item,at:Date.now()});
+  try{localStorage.setItem('dungeon_db',JSON.stringify(ddb));}catch(e){}
+}
+
+// ══════════════════════════════════════
+// MODALS
+// ══════════════════════════════════════
+function showModal(id){if(id==='settingsModal')loadSettings();document.getElementById(id).classList.add('show');}
+function closeModal(id){document.getElementById(id).classList.remove('show');}
+document.querySelectorAll('.modal-bg').forEach(bg=>{bg.addEventListener('click',e=>{if(e.target===bg)bg.classList.remove('show');});});
+
+// ══════════════════════════════════════
+// INIT
+// ══════════════════════════════════════
+render();
+</script>
+</body>
+</html>
