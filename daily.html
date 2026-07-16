@@ -35,6 +35,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .tab{flex:1;text-align:center;padding:12px;font-size:12px;font-weight:500;color:#aaa;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s}
 .tab.active{color:#1a1a1a;border-bottom-color:#1a1a1a}
 
+/* Sub-tabs (within habits) */
+.sub-tabs{display:flex;gap:0;margin-bottom:12px;border:1px solid #e0e0e0;border-radius:8px;overflow:hidden}
+.sub-tab{flex:1;text-align:center;padding:8px;font-size:12px;font-weight:500;color:#999;cursor:pointer;background:#fff;border:none;font-family:inherit;transition:all 0.2s}
+.sub-tab.active{background:#1a1a1a;color:#fff}
+
 .content{padding:16px 20px}
 .section-title{font-size:13px;font-weight:600;color:#999;margin-bottom:8px;letter-spacing:0.5px}
 
@@ -100,8 +105,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .habit-stat-tags{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:7px;font-variant-numeric:tabular-nums}
 .habit-stat-tag{display:inline-flex;align-items:center;border-radius:5px;padding:2px 6px;font-size:9px;line-height:1.4;background:#E8B96A;color:#fff}
 .habit-stat-tag.today{background:#f5efe4;color:#b48a3e}
-.habit-undo-link{border:none;background:none;color:#bbb;font-size:9px;font-family:inherit;cursor:pointer;padding:2px 3px;margin-left:auto}
+.habit-undo-link{border:none;background:none;color:#bbb;font-size:9px;font-family:inherit;cursor:pointer;padding:2px 4px;white-space:nowrap}
 .habit-undo-link:active{color:#777}
+.habit-actions{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
 .habit-section{margin-bottom:25px}
 .habit-empty{font-size:11px;color:#ccc;padding:14px;text-align:center;background:#fff;border:1px dashed #e6e6e6;border-radius:9px}
 .add-inline{width:100%;padding:12px;border:1px dashed #ddd;border-radius:10px;background:#fff;font-size:13px;color:#aaa;cursor:pointer;text-align:center;margin-top:8px;font-family:inherit}
@@ -383,6 +389,7 @@ if(db.pool&&db.pool.length>0){
 }
 
 let currentTab='todo';
+let habitSubTab='count';
 let editingTodoId=null;
 let editingHabitId=null;
 let loggingHabitId=null;
@@ -848,12 +855,15 @@ function formatHabitValue(type,value){
 }
 
 function renderHabits(c){
-  let html='';
-  html+=renderHabitGroup('count','计数');
-  html+=renderHabitGroup('time','计时');
+  let html='<div class="sub-tabs">';
+  html+='<button class="sub-tab'+(habitSubTab==='count'?' active':'')+'" onclick="switchHabitSub(\'count\')">计数</button>';
+  html+='<button class="sub-tab'+(habitSubTab==='time'?' active':'')+'" onclick="switchHabitSub(\'time\')">计时</button>';
+  html+='</div>';
+  html+=renderHabitGroup(habitSubTab,habitSubTab==='count'?'计数':'计时');
   html+='<button class="add-inline" onclick="openAddHabit()">+ 添加日课</button>';
   c.innerHTML=html;
 }
+function switchHabitSub(t){habitSubTab=t;render();}
 
 function renderHabitGroup(type,title){
   const habits=hdb.habits.filter(h=>(h.type||'count')===type);
@@ -875,7 +885,7 @@ function renderHabitCard(h){
   const streakHtml=streak>0?'<span class="habit-streak"> · ★'+streak+'天'+(streakBonus?' +'+Math.round(streakBonus*100)+'%':'')+'</span>':'';
   const record=getHabitRecord(today(),h.id,false);
   const canUndo=!!(record&&record.events&&record.events.length);
-  const undoLink=canUndo?'<button class="habit-undo-link" onclick="event.stopPropagation();undoHabitProgress(\''+h.id+'\')">撤回上次</button>':'';
+  const undoLink=canUndo?'<button class="habit-undo-link" onclick="event.stopPropagation();undoHabitProgress(\''+h.id+'\')">撤回</button>':'';
   const addAction=type==='time'?"openTimeLog('"+h.id+"')":"recordHabitProgress('"+h.id+"',1)";
   const addLabel=type==='time'?'记录时长':'记录一次';
   const quickAdd='<button class="habit-add-btn" title="'+addLabel+'" aria-label="'+addLabel+'" onclick="'+addAction+'">＋</button>';
@@ -883,9 +893,9 @@ function renderHabitCard(h){
     +'<div class="habit-top">'+quickAdd+'<div class="habit-body clickable-body" onclick="openHabitDetail(\''+h.id+'\')">'
     +'<div class="habit-name">'+escHtml(h.name)+'</div>'
     +'<div class="habit-meta">'+(rewardParts.length?rewardParts.join(' '):'无基础产出')+streakHtml+'</div>'
-    +'<div class="habit-stat-tags"><span class="habit-stat-tag today">今日 '+formatHabitValue(type,todayValue)+'</span><span class="habit-stat-tag">累计 '+formatHabitValue(type,total)+'</span>'+undoLink+'</div></div>'
-    +'<button class="habit-edit" title="编辑" onclick="openEditHabit(\''+h.id+'\')">✎</button>'
-    +'<button class="todo-del" title="删除" onclick="deleteHabit(\''+h.id+'\')">×</button></div></div>';
+    +'<div class="habit-stat-tags"><span class="habit-stat-tag today">今日 '+formatHabitValue(type,todayValue)+'</span><span class="habit-stat-tag">累计 '+formatHabitValue(type,total)+'</span></div></div>'
+    +'<div class="habit-actions">'+undoLink+'<button class="habit-edit" title="编辑" onclick="openEditHabit(\''+h.id+'\')">✎</button>'
+    +'<button class="todo-del" title="删除" onclick="deleteHabit(\''+h.id+'\')">×</button></div></div></div>';
 }
 
 function recordHabitProgress(id,value){
