@@ -888,6 +888,13 @@ function doPull(){
   if(db.gachaPity>=GACHA_PITY){rarity='SSR';db.gachaPity=0;}
   else{rarity=Math.random()<0.15?'SSR':'SR';if(rarity==='SSR')db.gachaPity=0;}
   const pool=EVENT_CARDS.filter(c=>c.rarity===rarity);
+  if(!pool.length){
+    // Fallback to any card if the rarity doesn't exist
+    const fallback=EVENT_CARDS[Math.floor(Math.random()*EVENT_CARDS.length)];
+    if(!fallback){db.currency.a+=GACHA_COST;save();render();return;}
+    rarity=fallback.rarity;
+    pool.push(fallback);
+  }
   const unowned=pool.filter(c=>!db.ownedCards.includes(c.id));
   const card=unowned.length?unowned[Math.floor(Math.random()*unowned.length)]:pool[Math.floor(Math.random()*pool.length)];
   const isNew=!db.ownedCards.includes(card.id);
@@ -936,7 +943,7 @@ function renderDungeon(c){
     html+='<div class="inventory-list">';
     db.dungeonInventory.forEach((item,i)=>{
       const color=item.type==='identity'?'#E8B96A':'#9B6BCC';
-      html+='<div class="inv-item"><div class="inv-dot" style="background:'+color+'"></div>'+escHtml(item.type==='identity'?'身份牌':'Tag')+' · '+escHtml(item.name)+'</div>';
+      html+='<div class="inv-item"><div class="inv-dot" style="background:'+color+'"></div>'+escHtml(item.type==='identity_front'?'身份牌·正':item.type==='identity_back'?'身份牌·反':item.type==='identity'?'身份牌':'Tag')+' · '+escHtml(item.name)+'</div>';
     });
     html+='</div>';
   }else{
@@ -949,12 +956,13 @@ function drawIdentity(){
   if(db.currency.b<DRAW_COST)return;
   db.currency.b-=DRAW_COST;
   const pick=IDENTITY_CARDS[Math.floor(Math.random()*IDENTITY_CARDS.length)];
-  db.dungeonInventory.push({type:'identity',name:pick,from:db.settings.title,at:Date.now()});
-  // Also save to dungeon_db for future dungeon.html to read
-  saveToDungeonDB({type:'identity',name:pick,from:db.settings.title});
+  // Randomly assign front or back
+  const side=Math.random()<0.5?'identity_front':'identity_back';
+  db.dungeonInventory.push({type:side,name:pick,from:db.settings.title,at:Date.now()});
+  saveToDungeonDB({type:side,name:pick,from:db.settings.title});
   save();render();
   var eri=document.querySelector('.reveal-card .reveal-img');if(eri)eri.remove();
-  document.getElementById('revealRarity').textContent='身份牌';
+  document.getElementById('revealRarity').textContent=side==='identity_front'?'身份牌 · 正面':'身份牌 · 反面';
   document.getElementById('revealName').textContent=pick;
   document.getElementById('revealExtra').textContent='已存入副本仓库';
   document.getElementById('revealOverlay').style.display='flex';

@@ -167,6 +167,8 @@ let db;
 try{db=JSON.parse(localStorage.getItem('dungeon_db'));}catch(e){db=null;}
 if(!db)db={inventory:[],auCollection:[],scriptFragments:0};
 if(!db.inventory)db.inventory=[];
+// Migrate old 'identity' type to 'identity_front'
+db.inventory.forEach(item=>{if(item.type==='identity')item.type='identity_front';});
 if(!db.auCollection)db.auCollection=[];
 if(db.scriptFragments===undefined)db.scriptFragments=0;
 function save(){try{localStorage.setItem('dungeon_db',JSON.stringify(db));}catch(e){}}
@@ -436,10 +438,11 @@ function composeAU(){
     if(idx>=0)db.inventory.splice(idx,1);
   }
   db.auCollection.push({identities:identityNames,tag:selectedTag,at:Date.now()});
+  const revealTag=selectedTag;
   selectedIdentities=[];
   selectedTag=null;
   save();
-  showReveal('AU 副本开启','✦ '+identityNames.join(' × ')+(selectedTag?' · '+selectedTag:''),'已存入 AU 收藏');
+  showReveal('AU 副本开启','✦ '+identityNames.join(' × ')+(revealTag?' · '+revealTag:''),'已存入 AU 收藏');
 }
 
 // ── REVEAL ──
