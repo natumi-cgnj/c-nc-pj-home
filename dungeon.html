@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Dungeon">
+<title>Dungeon</title>
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="apple-touch-icon.png">
+<link rel="icon" href="favicon.ico">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;background:#0e0e12;color:#e0ddd5;min-height:100vh;min-height:100dvh;padding-bottom:80px}
+
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;padding-top:24px;border-bottom:1px solid #1e1e28;background:#13131a;position:sticky;top:0;z-index:50}
+.top-bar h1{font-size:15px;font-weight:600;letter-spacing:2px;color:#a09880}
+.top-bar .back{font-size:13px;color:#666;text-decoration:none}
+.top-bar .back:active{color:#a09880}
+
+/* Currency bar */
+.currency-bar{display:flex;justify-content:space-around;padding:12px 20px;background:#13131a;border-bottom:1px solid #1e1e28}
+.currency-item{text-align:center;min-width:70px}
+.currency-icon{font-size:14px;margin-bottom:1px}
+.currency-label{font-size:9px;color:#666;margin-bottom:1px}
+.currency-value{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
+.currency-value.neal-color{color:#6B8AFF}
+.currency-value.jane-color{color:#5BA66B}
+.currency-value.script-color{color:#E8B96A}
+
+/* Tabs */
+.tabs{display:flex;background:#13131a;border-bottom:1px solid #1e1e28}
+.tab{flex:1;text-align:center;padding:12px;font-size:12px;font-weight:500;color:#555;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s}
+.tab.active{color:#a09880;border-bottom-color:#a09880}
+
+.content{padding:16px 20px}
+.section-title{font-size:13px;font-weight:600;color:#666;margin-bottom:10px;letter-spacing:0.5px}
+
+/* Draw cards */
+.draw-section{background:#1a1a24;border:1px solid #2a2a36;border-radius:12px;padding:16px;margin-bottom:14px}
+.draw-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.draw-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.draw-icon.neal{background:#1a2040;color:#6B8AFF}
+.draw-icon.jane{background:#1a2e1f;color:#5BA66B}
+.draw-icon.script{background:#2a2010;color:#E8B96A}
+.draw-title{font-size:13px;font-weight:600;color:#c0baa8}
+.draw-sub{font-size:10px;color:#555}
+.draw-desc{font-size:10px;color:#555;margin-bottom:12px;line-height:1.5}
+.draw-btn{width:100%;padding:12px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.2s}
+.draw-btn:active{transform:scale(0.98)}
+.draw-btn.neal-btn{background:#6B8AFF;color:#fff}
+.draw-btn.jane-btn{background:#5BA66B;color:#fff}
+.draw-btn.script-btn{background:#E8B96A;color:#1a1a1a}
+.draw-btn.disabled{background:#2a2a36;color:#555;cursor:default}
+
+/* Inventory cards */
+.inv-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:16px}
+.inv-card{background:#1a1a24;border:1px solid #2a2a36;border-radius:8px;padding:10px 6px;text-align:center;min-height:72px;position:relative}
+.inv-card.identity{border-color:#3a3a50}
+.inv-card.tag{border-color:#3a3020}
+.inv-type{font-size:8px;color:#555;letter-spacing:0.5px;margin-bottom:4px}
+.inv-name{font-size:11px;color:#c0baa8;font-weight:500}
+.inv-count{font-size:9px;color:#555;margin-top:3px}
+.inv-from{font-size:8px;color:#444;margin-top:2px}
+.inv-empty{text-align:center;padding:30px 20px;color:#444;font-size:12px}
+
+/* AU collection */
+.au-card{background:#1a1a24;border:1px solid #2a2a36;border-radius:10px;padding:14px;margin-bottom:10px}
+.au-header{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.au-num{font-size:9px;color:#555;background:#222;border-radius:4px;padding:2px 6px}
+.au-combo{font-size:14px;font-weight:600;color:#c0baa8}
+.au-tag{display:inline-block;font-size:10px;color:#E8B96A;background:#2a2010;border-radius:4px;padding:2px 8px;margin-top:4px}
+.au-identity{display:inline-block;font-size:10px;color:#9B6BCC;background:#1a1530;border-radius:4px;padding:2px 8px;margin-top:4px;margin-right:4px}
+.au-date{font-size:9px;color:#444;margin-top:6px}
+.au-empty{text-align:center;padding:40px 20px;color:#444;font-size:12px;line-height:1.6}
+
+/* Compose modal */
+.compose-section{background:#1a1a24;border:1px solid #2a2a36;border-radius:12px;padding:16px;margin-bottom:14px}
+.compose-title{font-size:13px;font-weight:600;color:#c0baa8;margin-bottom:12px}
+.select-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:12px}
+.select-item{background:#222;border:1px solid #2a2a36;border-radius:6px;padding:6px 4px;text-align:center;cursor:pointer;font-size:10px;color:#888;transition:all 0.15s}
+.select-item:active{transform:scale(0.97)}
+.select-item.selected{border-color:#a09880;color:#c0baa8;background:#252520}
+.select-item.selected.identity-sel{border-color:#9B6BCC}
+.select-item.selected.tag-sel{border-color:#E8B96A}
+.select-hint{font-size:10px;color:#555;margin-bottom:8px}
+.compose-btn{width:100%;padding:12px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;background:#a09880;color:#0e0e12;transition:all 0.2s}
+.compose-btn:active{transform:scale(0.98)}
+.compose-btn.disabled{background:#2a2a36;color:#555;cursor:default}
+.script-cost{font-size:10px;color:#E8B96A;text-align:center;margin-bottom:8px}
+
+/* Reveal */
+.reveal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:300;display:flex;align-items:center;justify-content:center}
+.reveal-card{background:#1a1a24;border:1px solid #2a2a36;border-radius:16px;padding:32px 24px;text-align:center;animation:revealPop 0.4s cubic-bezier(0.34,1.56,0.64,1);min-width:240px}
+@keyframes revealPop{from{transform:scale(0.6);opacity:0}to{transform:scale(1);opacity:1}}
+.reveal-type{font-size:10px;color:#666;letter-spacing:1px;margin-bottom:6px}
+.reveal-name{font-size:18px;font-weight:600;color:#c0baa8;margin-bottom:6px}
+.reveal-extra{font-size:11px;color:#555;margin-bottom:16px}
+.reveal-close{padding:10px 32px;border:1px solid #333;border-radius:10px;background:transparent;font-size:13px;cursor:pointer;font-family:inherit;color:#888}
+.reveal-close:active{background:#222}
+
+/* Sub-tabs */
+.sub-tabs{display:flex;gap:0;margin-bottom:12px;border:1px solid #2a2a36;border-radius:8px;overflow:hidden}
+.sub-tab{flex:1;text-align:center;padding:8px;font-size:11px;font-weight:500;color:#555;cursor:pointer;background:#1a1a24;border:none;font-family:inherit;transition:all 0.2s}
+.sub-tab.active{background:#a09880;color:#0e0e12}
+
+/* Recharge */
+.recharge-box{background:#1a1a24;border:1px solid #2a2a36;border-radius:10px;padding:14px;margin-top:16px}
+.recharge-box label{font-size:10px;color:#666;margin-bottom:4px;display:block}
+.recharge-box input{width:100%;font-size:14px;padding:10px 12px;border:1px solid #2a2a36;border-radius:8px;font-family:inherit;background:#13131a;color:#c0baa8}
+.recharge-btn{margin-top:8px;padding:10px 16px;background:#a09880;color:#0e0e12;border:none;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <a class="back" href="index.html">&larr; Home</a>
+  <h1>AU DUNGEON</h1>
+</div>
+
+<div class="currency-bar" id="currencyBar"></div>
+
+<div class="tabs">
+  <div class="tab active" data-tab="draw" onclick="switchTab('draw')">抽取</div>
+  <div class="tab" data-tab="inventory" onclick="switchTab('inventory')">仓库</div>
+  <div class="tab" data-tab="au" onclick="switchTab('au')">AU 收藏</div>
+</div>
+
+<div class="content" id="content"></div>
+
+<!-- Reveal overlay -->
+<div class="reveal-overlay" id="revealOverlay" style="display:none" onclick="closeReveal()">
+  <div class="reveal-card" onclick="event.stopPropagation()">
+    <div class="reveal-type" id="revealType"></div>
+    <div class="reveal-name" id="revealName"></div>
+    <div class="reveal-extra" id="revealExtra"></div>
+    <button class="reveal-close" onclick="closeReveal()">确认</button>
+  </div>
+</div>
+
+<script src="cloud-sync.js?v=20260714-3"></script>
+<script>
+if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
+
+// ══════════════════════════════════════
+// POOLS
+// ══════════════════════════════════════
+const IDENTITY_FRONT=["王子","骑士","天使","魔法师","赏金猎人","贵族","船长","画家"];
+const IDENTITY_BACK=["吸血鬼","间谍","堕天使","死神","怪盗","暗杀者","人偶师","预言家"];
+const WORLD_TAGS=["魔幻","先婚后爱","蒸汽朋克","破镜重圆","校园","末日","童话","黑帮","星际","江湖","时间循环","密室逃脱"];
+
+const DRAW_COST_IDENTITY=30;
+const DRAW_COST_TAG_A=25;
+const DRAW_COST_TAG_B=25;
+const AU_BASE_COST=20; // script fragments per AU
+
+const MAX_IDENTITY=3;
+const MAX_TAG=1;
+
+// ══════════════════════════════════════
+// STATE
+// ══════════════════════════════════════
+function getDailyDB(){try{return JSON.parse(localStorage.getItem('daily_db'))||{affinity:{neal:0,jane:0}};}catch(e){return{affinity:{neal:0,jane:0}};}}
+function saveDailyDB(d){try{localStorage.setItem('daily_db',JSON.stringify(d));}catch(e){}}
+
+let db;
+try{db=JSON.parse(localStorage.getItem('dungeon_db'));}catch(e){db=null;}
+if(!db)db={inventory:[],auCollection:[],scriptFragments:0};
+if(!db.inventory)db.inventory=[];
+if(!db.auCollection)db.auCollection=[];
+if(db.scriptFragments===undefined)db.scriptFragments=0;
+function save(){try{localStorage.setItem('dungeon_db',JSON.stringify(db));}catch(e){}}
+
+let currentTab='draw';
+let selectedIdentities=[];
+let selectedTag=null;
+
+function getFragments(){
+  const d=getDailyDB();
+  return{painting:(d.affinity&&d.affinity.neal)||0,archive:(d.affinity&&d.affinity.jane)||0,script:db.scriptFragments||0};
+}
+function spendPainting(n){const d=getDailyDB();d.affinity.neal=Math.max(0,(d.affinity.neal||0)-n);saveDailyDB(d);}
+function spendArchive(n){const d=getDailyDB();d.affinity.jane=Math.max(0,(d.affinity.jane||0)-n);saveDailyDB(d);}
+function spendScript(n){db.scriptFragments=Math.max(0,(db.scriptFragments||0)-n);save();}
+
+function countInv(type,name){return db.inventory.filter(x=>x.type===type&&x.name===name).length;}
+
+// ══════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════
+function render(){
+  renderCurrency();
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===currentTab));
+  const c=document.getElementById('content');
+  if(currentTab==='draw')renderDraw(c);
+  else if(currentTab==='inventory')renderInventory(c);
+  else if(currentTab==='au')renderAU(c);
+}
+
+function switchTab(t){currentTab=t;render();}
+
+function renderCurrency(){
+  const f=getFragments();
+  document.getElementById('currencyBar').innerHTML=
+    '<div class="currency-item"><div class="currency-icon">🎨</div><div class="currency-label">画作碎片</div><div class="currency-value neal-color">'+f.painting+'</div></div>'
+    +'<div class="currency-item"><div class="currency-icon">📁</div><div class="currency-label">档案碎片</div><div class="currency-value jane-color">'+f.archive+'</div></div>'
+    +'<div class="currency-item"><div class="currency-icon">📜</div><div class="currency-label">剧本碎片</div><div class="currency-value script-color">'+f.script+'</div></div>';
+}
+
+// ── DRAW TAB ──
+function renderDraw(c){
+  const f=getFragments();
+  let html='';
+
+  // Identity Front (Neal / 画作碎片)
+  html+='<div class="draw-section"><div class="draw-header"><div class="draw-icon neal">🎨</div><div><div class="draw-title">身份牌 · 正面</div><div class="draw-sub">画作碎片 ×'+DRAW_COST_IDENTITY+'</div></div></div>';
+  html+='<div class="draw-desc">Neal 系身份牌。灵感来源：一幅画导致暴露。每种最多持有 '+MAX_IDENTITY+' 张。</div>';
+  const canFront=f.painting>=DRAW_COST_IDENTITY;
+  html+='<button class="draw-btn neal-btn'+(canFront?'':' disabled')+'" onclick="'+(canFront?'drawIdentity(\"front\")':'')+'">抽取正面身份牌</button></div>';
+
+  // Identity Back (Jane / 档案碎片)
+  html+='<div class="draw-section"><div class="draw-header"><div class="draw-icon jane">📁</div><div><div class="draw-title">身份牌 · 反面</div><div class="draw-sub">档案碎片 ×'+DRAW_COST_IDENTITY+'</div></div></div>';
+  html+='<div class="draw-desc">Jane 系身份牌。灵感来源：CBI 机密档案。每种最多持有 '+MAX_IDENTITY+' 张。</div>';
+  const canBack=f.archive>=DRAW_COST_IDENTITY;
+  html+='<button class="draw-btn jane-btn'+(canBack?'':' disabled')+'" onclick="'+(canBack?'drawIdentity(\"back\")':'')+'">抽取反面身份牌</button></div>';
+
+  // Tag (双方碎片)
+  html+='<div class="draw-section"><div class="draw-header"><div class="draw-icon script">📜</div><div><div class="draw-title">世界观 Tag</div><div class="draw-sub">画作 ×'+DRAW_COST_TAG_A+' + 档案 ×'+DRAW_COST_TAG_B+'</div></div></div>';
+  html+='<div class="draw-desc">Natumi 的剧本灵感。高维世界通过电视剧认识他们。每种最多 '+MAX_TAG+' 个。</div>';
+  const canTag=f.painting>=DRAW_COST_TAG_A&&f.archive>=DRAW_COST_TAG_B;
+  html+='<button class="draw-btn script-btn'+(canTag?'':' disabled')+'" onclick="'+(canTag?'drawTag()':'')+'">抽取 Tag</button></div>';
+
+  // Script fragment recharge (placeholder)
+  html+='<div class="recharge-box"><label>剧本碎片充值（获取方式待定）</label><input type="number" id="scriptRecharge" value="" min="0" placeholder="输入数量"><button class="recharge-btn" onclick="rechargeScript()">充值</button></div>';
+
+  c.innerHTML=html;
+}
+
+function drawIdentity(side){
+  const pool=side==='front'?IDENTITY_FRONT:IDENTITY_BACK;
+  if(side==='front'){
+    if(getFragments().painting<DRAW_COST_IDENTITY)return;
+    spendPainting(DRAW_COST_IDENTITY);
+  }else{
+    if(getFragments().archive<DRAW_COST_IDENTITY)return;
+    spendArchive(DRAW_COST_IDENTITY);
+  }
+  const pick=pool[Math.floor(Math.random()*pool.length)];
+  const type=side==='front'?'identity_front':'identity_back';
+  const count=countInv(type,pick);
+  if(count>=MAX_IDENTITY){
+    // Refund partial
+    const refund=Math.round(DRAW_COST_IDENTITY*0.5);
+    if(side==='front'){const d=getDailyDB();d.affinity.neal+=refund;saveDailyDB(d);}
+    else{const d=getDailyDB();d.affinity.jane+=refund;saveDailyDB(d);}
+    showReveal(side==='front'?'身份牌 · 正面':'身份牌 · 反面',pick,'已满 '+MAX_IDENTITY+' 张 · 回收返还 '+refund+' 碎片');
+  }else{
+    db.inventory.push({type:type,name:pick,at:Date.now()});
+    save();
+    showReveal(side==='front'?'身份牌 · 正面':'身份牌 · 反面',pick,'✦ NEW · 持有 '+(count+1)+'/'+MAX_IDENTITY);
+  }
+  render();
+}
+
+function drawTag(){
+  const f=getFragments();
+  if(f.painting<DRAW_COST_TAG_A||f.archive<DRAW_COST_TAG_B)return;
+  spendPainting(DRAW_COST_TAG_A);
+  spendArchive(DRAW_COST_TAG_B);
+  const pick=WORLD_TAGS[Math.floor(Math.random()*WORLD_TAGS.length)];
+  const count=countInv('tag',pick);
+  if(count>=MAX_TAG){
+    const refundA=Math.round(DRAW_COST_TAG_A*0.5);
+    const refundB=Math.round(DRAW_COST_TAG_B*0.5);
+    const d=getDailyDB();d.affinity.neal+=refundA;d.affinity.jane+=refundB;saveDailyDB(d);
+    showReveal('世界观 Tag',pick,'已满 · 回收返还 画作'+refundA+' 档案'+refundB);
+  }else{
+    db.inventory.push({type:'tag',name:pick,at:Date.now()});
+    save();
+    showReveal('世界观 Tag',pick,'✦ NEW');
+  }
+  render();
+}
+
+function rechargeScript(){
+  const input=document.getElementById('scriptRecharge');
+  const n=Math.max(0,Math.round(Number(input.value)||0));
+  if(!n)return;
+  db.scriptFragments=(db.scriptFragments||0)+n;
+  save();render();
+  input.value='';
+}
+
+// ── INVENTORY TAB ──
+function renderInventory(c){
+  let html='';
+  // Front identities
+  html+='<div class="section-title">身份牌 · 正面（Neal 系）</div>';
+  html+=renderInvGroup('identity_front',IDENTITY_FRONT);
+  // Back identities
+  html+='<div class="section-title" style="margin-top:16px">身份牌 · 反面（Jane 系）</div>';
+  html+=renderInvGroup('identity_back',IDENTITY_BACK);
+  // Tags
+  html+='<div class="section-title" style="margin-top:16px">世界观 Tag</div>';
+  html+=renderInvGroup('tag',WORLD_TAGS);
+  c.innerHTML=html;
+}
+
+function renderInvGroup(type,pool){
+  const maxCount=type==='tag'?MAX_TAG:MAX_IDENTITY;
+  let html='<div class="inv-grid">';
+  pool.forEach(name=>{
+    const count=countInv(type,name);
+    const owned=count>0;
+    html+='<div class="inv-card '+(type==='tag'?'tag':'identity')+'" style="opacity:'+(owned?'1':'0.3')+'">';
+    html+='<div class="inv-type">'+(type==='identity_front'?'正面':type==='identity_back'?'反面':'Tag')+'</div>';
+    html+='<div class="inv-name">'+(owned?name:'???')+'</div>';
+    if(owned)html+='<div class="inv-count">×'+count+' / '+maxCount+'</div>';
+    html+='</div>';
+  });
+  html+='</div>';
+  return html;
+}
+
+// ── AU COLLECTION TAB ──
+function renderAU(c){
+  let html='';
+
+  // Compose section
+  html+='<div class="compose-section"><div class="compose-title">开启 AU 副本</div>';
+  html+='<div class="select-hint">选择身份牌（至少 1 张）</div>';
+  const ownedIdentities=getOwnedIdentities();
+  if(ownedIdentities.length){
+    html+='<div class="select-grid">';
+    ownedIdentities.forEach(item=>{
+      const sel=selectedIdentities.includes(item.key);
+      const typeLabel=item.type==='identity_front'?'正':'反';
+      html+='<div class="select-item'+(sel?' selected identity-sel':'')+'" onclick="toggleIdentity(\''+item.key+'\')"><div style="font-size:8px;color:#666">'+typeLabel+'</div>'+item.name+'</div>';
+    });
+    html+='</div>';
+  }else{
+    html+='<div style="font-size:10px;color:#444;margin-bottom:10px">还没有身份牌</div>';
+  }
+
+  html+='<div class="select-hint" style="margin-top:8px">选择 Tag（可选）</div>';
+  const ownedTags=getOwnedTags();
+  if(ownedTags.length){
+    html+='<div class="select-grid">';
+    ownedTags.forEach(t=>{
+      const sel=selectedTag===t;
+      html+='<div class="select-item'+(sel?' selected tag-sel':'')+'" onclick="toggleTag(\''+t+'\')">'+t+'</div>';
+    });
+    html+='</div>';
+  }else{
+    html+='<div style="font-size:10px;color:#444;margin-bottom:10px">还没有 Tag</div>';
+  }
+
+  const cost=calcAUCost();
+  const f=getFragments();
+  const canCompose=selectedIdentities.length>0&&f.script>=cost;
+  html+='<div class="script-cost">消耗 '+cost+' 剧本碎片'+(f.script<cost?' (不足)':'')+'</div>';
+  html+='<button class="compose-btn'+(canCompose?'':' disabled')+'" onclick="'+(canCompose?'composeAU()':'')+'">开启副本</button>';
+  html+='</div>';
+
+  // Collection list
+  html+='<div class="section-title" style="margin-top:16px">已开启 AU ('+db.auCollection.length+')</div>';
+  if(db.auCollection.length){
+    db.auCollection.slice().reverse().forEach((au,i)=>{
+      html+='<div class="au-card"><div class="au-header"><span class="au-num">#'+(db.auCollection.length-i)+'</span></div>';
+      au.identities.forEach(id=>{
+        html+='<span class="au-identity">'+id+'</span>';
+      });
+      if(au.tag)html+='<span class="au-tag">'+au.tag+'</span>';
+      html+='<div class="au-date">'+new Date(au.at).toLocaleDateString()+'</div></div>';
+    });
+  }else{
+    html+='<div class="au-empty">还没有开启任何 AU 副本<br>收集身份牌和 Tag 后组合开启</div>';
+  }
+  c.innerHTML=html;
+}
+
+function getOwnedIdentities(){
+  const map={};
+  db.inventory.filter(x=>x.type==='identity_front'||x.type==='identity_back').forEach(x=>{
+    const key=x.type+'_'+x.name;
+    if(!map[key])map[key]={type:x.type,name:x.name,key:key,count:0};
+    map[key].count++;
+  });
+  return Object.values(map);
+}
+
+function getOwnedTags(){
+  const set=new Set();
+  db.inventory.filter(x=>x.type==='tag').forEach(x=>set.add(x.name));
+  return Array.from(set);
+}
+
+function toggleIdentity(key){
+  const idx=selectedIdentities.indexOf(key);
+  if(idx>=0)selectedIdentities.splice(idx,1);
+  else selectedIdentities.push(key);
+  render();
+}
+
+function toggleTag(name){
+  selectedTag=selectedTag===name?null:name;
+  render();
+}
+
+function calcAUCost(){
+  let cost=AU_BASE_COST;
+  cost+=selectedIdentities.length*10;
+  if(selectedTag)cost+=10;
+  return cost;
+}
+
+function composeAU(){
+  if(!selectedIdentities.length)return;
+  const cost=calcAUCost();
+  if(db.scriptFragments<cost)return;
+  db.scriptFragments-=cost;
+  const identityNames=selectedIdentities.map(k=>{
+    const parts=k.split('_');
+    return parts[parts.length-1];
+  });
+  // Remove used items from inventory (one each)
+  selectedIdentities.forEach(key=>{
+    const [_,type2,name]=key.match(/^(identity_front|identity_back)_(.+)$/)||[];
+    if(type2&&name){
+      const idx=db.inventory.findIndex(x=>x.type===type2&&x.name===name);
+      if(idx>=0)db.inventory.splice(idx,1);
+    }
+  });
+  if(selectedTag){
+    const idx=db.inventory.findIndex(x=>x.type==='tag'&&x.name===selectedTag);
+    if(idx>=0)db.inventory.splice(idx,1);
+  }
+  db.auCollection.push({identities:identityNames,tag:selectedTag,at:Date.now()});
+  selectedIdentities=[];
+  selectedTag=null;
+  save();
+  showReveal('AU 副本开启','✦ '+identityNames.join(' × ')+(selectedTag?' · '+selectedTag:''),'已存入 AU 收藏');
+}
+
+// ── REVEAL ──
+function showReveal(type,name,extra){
+  document.getElementById('revealType').textContent=type;
+  document.getElementById('revealName').textContent=name;
+  document.getElementById('revealExtra').textContent=extra||'';
+  document.getElementById('revealOverlay').style.display='flex';
+}
+function closeReveal(){document.getElementById('revealOverlay').style.display='none';render();}
+
+// ══════════════════════════════════════
+// INIT
+// ══════════════════════════════════════
+render();
+</script>
+</body>
+</html>

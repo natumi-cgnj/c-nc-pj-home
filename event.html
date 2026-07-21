@@ -222,6 +222,26 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
       <div id="bannerPreview" style="width:80px;height:45px;border-radius:6px;background:var(--banner-bg) center/cover no-repeat;border:1px solid #eee;flex-shrink:0"></div>
       <div style="flex:1"><input type="file" id="setBannerFile" accept="image/*" onchange="previewBanner(this)" style="font-size:12px;padding:6px"><div style="font-size:9px;color:#bbb;margin-top:2px">选择图片替换活动背景</div></div>
     </div>
+    <div style="border-top:1px solid #eee;margin-top:16px;padding-top:16px">
+      <label style="font-size:13px;font-weight:600;color:#333;margin-bottom:8px;margin-top:0">预设数据导入导出</label>
+      <div style="font-size:10px;color:#aaa;margin-bottom:10px;line-height:1.5">
+        用 Excel 编辑预设数据（委托、卡池、周边等），导出为 CSV 后在这里导入。<br>
+        点"导出模板"获取当前数据的 CSV 模板。
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">
+        <button class="btn btn-cancel" style="flex:none;font-size:11px;padding:6px 10px" onclick="exportCSV('commissions')">导出委托</button>
+        <button class="btn btn-cancel" style="flex:none;font-size:11px;padding:6px 10px" onclick="exportCSV('cards')">导出卡池</button>
+        <button class="btn btn-cancel" style="flex:none;font-size:11px;padding:6px 10px" onclick="exportCSV('goods')">导出周边</button>
+        <button class="btn btn-cancel" style="flex:none;font-size:11px;padding:6px 10px" onclick="exportCSV('pools')">导出副本池</button>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        <label class="btn btn-cancel" style="flex:none;font-size:11px;padding:6px 10px;cursor:pointer">导入委托 CSV<input type="file" accept=".csv" onchange="importCSV('commissions',this)" style="display:none"></label>
+        <label class="btn btn-cancel" style="flex:none;font-size:11px;padding:6px 10px;cursor:pointer">导入卡池 CSV<input type="file" accept=".csv" onchange="importCSV('cards',this)" style="display:none"></label>
+        <label class="btn btn-cancel" style="flex:none;font-size:11px;padding:6px 10px;cursor:pointer">导入周边 CSV<input type="file" accept=".csv" onchange="importCSV('goods',this)" style="display:none"></label>
+        <label class="btn btn-cancel" style="flex:none;font-size:11px;padding:6px 10px;cursor:pointer">导入副本池 CSV<input type="file" accept=".csv" onchange="importCSV('pools',this)" style="display:none"></label>
+      </div>
+      <div id="importStatus" style="font-size:10px;color:#5BA66B;margin-top:6px;min-height:16px"></div>
+    </div>
     <div class="btn-row">
       <button class="btn btn-cancel" onclick="closeModal('settingsModal')">取消</button>
       <button class="btn btn-primary" onclick="saveSettings()">保存</button>
@@ -353,7 +373,7 @@ const SRC_AVATARS={'neal':IMG_NEAL_CKW,'jane':IMG_JANE_CKW};
 // ══════════════════════════════════════
 
 // Commission tasks (联动委托 — 预设)
-const EVENT_COMMISSIONS=[
+let EVENT_COMMISSIONS=[
 // Food tasks — Jane pool
 {id:"ck01",task:"去711买一款联动食品，拍照打卡",quote:"「便利店联动？我对高维世界的商业策略很感兴趣。买一个，拍给我看。」",reward:5,src:"jane"},
 {id:"ck02",task:"再尝一款没吃过的联动食品",quote:"「你上次买的那个，好吃吗？这次换一个。我在收集数据。」",reward:5,src:"jane"},
@@ -371,7 +391,7 @@ const EVENT_COMMISSIONS=[
 ];
 
 // Gacha cards (联动卡池)
-const EVENT_CARDS=[
+let EVENT_CARDS=[
 {id:"ec01",name:"Neal × ちいかわ",rarity:"SR",src:"neal"},
 {id:"ec02",name:"Neal × 小八",rarity:"SR",src:"neal"},
 {id:"ec03",name:"Neal × 兔子",rarity:"SR",src:"neal"},
@@ -382,15 +402,29 @@ const EVENT_CARDS=[
 ];
 
 // Preset goods (联动周边 — 预设)
-const PRESET_GOODS=[
+let PRESET_GOODS=[
 {id:"eg01",name:"ちいかわ毛巾",series:"联动限定",price:1500,target:"neal"},
 {id:"eg02",name:"小八毛巾",series:"联动限定",price:1500,target:"neal"},
 {id:"eg03",name:"兔子毛巾",series:"联动限定",price:1500,target:"jane"},
 ];
 
 // Dungeon draw pools (副本抽取)
-const IDENTITY_CARDS=["王子","骑士","天使","吸血鬼","间谍","堕天使","海盗","学者"];
-const WORLD_TAGS=["魔幻","先婚后爱","蒸汽朋克","破镜重圆","校园","末日","童话","黑帮"];
+let IDENTITY_CARDS=["王子","骑士","天使","吸血鬼","间谍","堕天使","海盗","学者"];
+let WORLD_TAGS=["魔幻","先婚后爱","蒸汽朋克","破镜重圆","校园","末日","童话","黑帮"];
+
+// ── Load imported presets from localStorage if available ──
+(function loadPresets(){
+  try{
+    const p=JSON.parse(localStorage.getItem('event_presets'));
+    if(p){
+      if(p.commissions&&p.commissions.length)EVENT_COMMISSIONS=p.commissions;
+      if(p.cards&&p.cards.length)EVENT_CARDS=p.cards;
+      if(p.goods&&p.goods.length)PRESET_GOODS=p.goods;
+      if(p.identities&&p.identities.length)IDENTITY_CARDS=p.identities;
+      if(p.tags&&p.tags.length)WORLD_TAGS=p.tags;
+    }
+  }catch(e){}
+})();
 
 // ══════════════════════════════════════
 // STATE
@@ -430,6 +464,110 @@ save();
 
 const today=()=>{const d=new Date(Date.now()-4*3600*1000);return d.toISOString().slice(0,10);};
 function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// ══════════════════════════════════════
+// CSV IMPORT / EXPORT
+// ══════════════════════════════════════
+function parseCSV(text){
+  const lines=text.split('\n').map(l=>l.replace(/\r$/,''));
+  if(lines.length<2)return[];
+  // Handle quoted fields
+  function splitRow(line){
+    const fields=[];let current='';let inQuote=false;
+    for(let i=0;i<line.length;i++){
+      const ch=line[i];
+      if(ch==='"'){if(inQuote&&line[i+1]==='"'){current+='"';i++;}else inQuote=!inQuote;}
+      else if(ch===','&&!inQuote){fields.push(current);current='';}
+      else current+=ch;
+    }
+    fields.push(current);
+    return fields;
+  }
+  const headers=splitRow(lines[0]).map(h=>h.trim());
+  const rows=[];
+  for(let i=1;i<lines.length;i++){
+    if(!lines[i].trim())continue;
+    const vals=splitRow(lines[i]);
+    const obj={};
+    headers.forEach((h,j)=>{obj[h]=vals[j]!==undefined?vals[j].trim():'';});
+    rows.push(obj);
+  }
+  return rows;
+}
+
+function toCSV(headers,rows){
+  function esc(v){v=String(v||'');if(v.includes(',')||v.includes('"')||v.includes('\n'))return '"'+v.replace(/"/g,'""')+'"';return v;}
+  let csv=headers.join(',')+'\n';
+  rows.forEach(r=>{csv+=headers.map(h=>esc(r[h])).join(',')+'\n';});
+  return csv;
+}
+
+function downloadCSV(filename,csvText){
+  const bom='\uFEFF';
+  const blob=new Blob([bom+csvText],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;a.click();
+}
+
+function exportCSV(type){
+  if(type==='commissions'){
+    downloadCSV('event_commissions.csv',toCSV(['id','task','quote','reward','src'],EVENT_COMMISSIONS));
+  }else if(type==='cards'){
+    downloadCSV('event_cards.csv',toCSV(['id','name','rarity','src'],EVENT_CARDS));
+  }else if(type==='goods'){
+    downloadCSV('event_goods.csv',toCSV(['id','name','series','price','target'],PRESET_GOODS));
+  }else if(type==='pools'){
+    const rows=[];
+    IDENTITY_CARDS.forEach(n=>rows.push({type:'identity',name:n}));
+    WORLD_TAGS.forEach(n=>rows.push({type:'tag',name:n}));
+    downloadCSV('event_pools.csv',toCSV(['type','name'],rows));
+  }
+}
+
+function importCSV(type,input){
+  if(!input.files||!input.files[0])return;
+  const status=document.getElementById('importStatus');
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const rows=parseCSV(e.target.result);
+      if(!rows.length){status.textContent='文件为空';status.style.color='#D85A30';return;}
+      let presets;
+      try{presets=JSON.parse(localStorage.getItem('event_presets'))||{};}catch(ex){presets={};}
+
+      if(type==='commissions'){
+        const data=rows.map((r,i)=>({id:r.id||'ck_'+(i+1),task:r.task||'',quote:r.quote||'',reward:Number(r.reward)||5,src:r.src||'neal'})).filter(r=>r.task);
+        if(!data.length){status.textContent='没有有效委托数据';status.style.color='#D85A30';return;}
+        EVENT_COMMISSIONS=data;
+        presets.commissions=data;
+        status.textContent='导入 '+data.length+' 条委托';
+      }else if(type==='cards'){
+        const data=rows.map((r,i)=>({id:r.id||'ec_'+(i+1),name:r.name||'',rarity:r.rarity||'SR',src:r.src||'neal'})).filter(r=>r.name);
+        if(!data.length){status.textContent='没有有效卡池数据';status.style.color='#D85A30';return;}
+        EVENT_CARDS=data;
+        presets.cards=data;
+        status.textContent='导入 '+data.length+' 张卡';
+      }else if(type==='goods'){
+        const data=rows.map((r,i)=>({id:r.id||'eg_'+(i+1),name:r.name||'',series:r.series||'联动限定',price:Number(r.price)||1500,target:r.target||'neal'})).filter(r=>r.name);
+        if(!data.length){status.textContent='没有有效周边数据';status.style.color='#D85A30';return;}
+        PRESET_GOODS=data;
+        presets.goods=data;
+        status.textContent='导入 '+data.length+' 件周边';
+      }else if(type==='pools'){
+        const ids=rows.filter(r=>r.type==='identity').map(r=>r.name).filter(Boolean);
+        const tags=rows.filter(r=>r.type==='tag').map(r=>r.name).filter(Boolean);
+        if(!ids.length&&!tags.length){status.textContent='没有有效池数据';status.style.color='#D85A30';return;}
+        if(ids.length){IDENTITY_CARDS.length=0;ids.forEach(n=>IDENTITY_CARDS.push(n));presets.identities=ids;}
+        if(tags.length){WORLD_TAGS.length=0;tags.forEach(n=>WORLD_TAGS.push(n));presets.tags=tags;}
+        status.textContent='导入 '+ids.length+' 身份牌 + '+tags.length+' Tag';
+      }
+      status.style.color='#5BA66B';
+      localStorage.setItem('event_presets',JSON.stringify(presets));
+      render();
+    }catch(ex){status.textContent='导入失败：'+ex.message;status.style.color='#D85A30';}
+    input.value='';
+  };
+  reader.readAsText(input.files[0]);
+}
 
 // ══════════════════════════════════════
 // SETTINGS
