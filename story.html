@@ -134,7 +134,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   </div>
 </div>
 
-<script src="cloud-sync.js?v=20260714-3"></script>
+<script src="cloud-sync.js?v=20260721-1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 const EXPR={
@@ -350,7 +350,7 @@ function save(){try{localStorage.setItem('story_db',JSON.stringify(db));}catch(e
 function getGacha(){try{return JSON.parse(localStorage.getItem('gacha_st'))||{emerald:0,sapphire:0};}catch(e){return{emerald:0,sapphire:0};}}
 function saveGacha(g){try{localStorage.setItem('gacha_st',JSON.stringify(g));}catch(e){}}
 function addGems(e,s){const g=getGacha();g.emerald=(g.emerald||0)+e;g.sapphire=(g.sapphire||0)+s;saveGacha(g);}
-function getDaily(){try{return JSON.parse(localStorage.getItem('daily_db'))||{affinity:{neal:0,jane:0}};}catch(e){return{affinity:{neal:0,jane:0}};}}
+function getDaily(){let d;try{d=JSON.parse(localStorage.getItem('daily_db'));}catch(e){d=null;}if(!d||typeof d!=='object')d={};if(!d.affinity||typeof d.affinity!=='object')d.affinity={neal:0,jane:0};d.affinity.neal=Number(d.affinity.neal)||0;d.affinity.jane=Number(d.affinity.jane)||0;return d;}
 function saveDaily(d){try{localStorage.setItem('daily_db',JSON.stringify(d));}catch(e){}}
 function addAff(n,j){const d=getDaily();d.affinity.neal+=n;d.affinity.jane+=j;saveDaily(d);}
 
@@ -596,8 +596,8 @@ function renderQuests(c){
   ep.quests.forEach(q=>{
     const done=db.completedQuests.includes(q.id);
     const rewards=[];
-    if(q.nealAff)rewards.push('N+'+q.nealAff);
-    if(q.janeAff)rewards.push('J+'+q.janeAff);
+    if(q.nealAff)rewards.push('画+'+q.nealAff);
+    if(q.janeAff)rewards.push('档+'+q.janeAff);
     if(q.gemE)rewards.push('\ud83d\udc8eE+'+q.gemE);
     if(q.gemS)rewards.push('\ud83d\udc8eS+'+q.gemS);
     html+='<div class="quest-card '+(done?'done':'')+'">';
@@ -637,8 +637,8 @@ function claimReward(){
   if(r.nealAff||r.janeAff)addAff(r.nealAff||0,r.janeAff||0);
   save();
   const parts=[];
-  if(r.nealAff)parts.push('Neal 好感 +'+r.nealAff);
-  if(r.janeAff)parts.push('Jane 好感 +'+r.janeAff);
+  if(r.nealAff)parts.push('画作碎片 +'+r.nealAff);
+  if(r.janeAff)parts.push('档案碎片 +'+r.janeAff);
   if(r.gemE)parts.push('祖母绿 +'+r.gemE);
   if(r.gemS)parts.push('蓝宝石 +'+r.gemS);
   document.getElementById('rewardText').textContent='\u2726 '+parts.join('  ');

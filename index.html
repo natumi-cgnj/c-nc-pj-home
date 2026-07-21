@@ -455,8 +455,9 @@
     }
 
     .shortcuts {
-      gap: 7px;
+      gap: 10px 22px;
       margin-top: 0;
+      flex-wrap: wrap;
     }
 
     .shortcut-icon {
@@ -580,6 +581,10 @@
     <div class="shortcut-icon">📖</div>
     <div class="shortcut-label">剧情</div>
   </a>
+  <a class="shortcut" href="dungeon.html">
+    <div class="shortcut-icon">🗝</div>
+    <div class="shortcut-label">副本</div>
+  </a>
   <a class="shortcut" href="event.html">
     <div class="shortcut-icon">🎟</div>
     <div class="shortcut-label">活动</div>
@@ -612,7 +617,7 @@
 </div>
 </div>
 
-<script src="cloud-sync.js?v=20260715-1"></script>
+<script src="cloud-sync.js?v=20260721-1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
   const URLS = {

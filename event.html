@@ -346,7 +346,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   </div>
 </div>
 
-<script src="cloud-sync.js?v=20260714-3"></script>
+<script src="cloud-sync.js?v=20260721-1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 
@@ -942,7 +942,7 @@ function renderDungeon(c){
   if(db.dungeonInventory.length){
     html+='<div class="inventory-list">';
     db.dungeonInventory.forEach((item,i)=>{
-      const color=item.type==='identity'?'#E8B96A':'#9B6BCC';
+      const color=item.type==='identity_front'?'#6B8AFF':item.type==='identity_back'?'#5BA66B':item.type==='identity'?'#E8B96A':'#9B6BCC';
       html+='<div class="inv-item"><div class="inv-dot" style="background:'+color+'"></div>'+escHtml(item.type==='identity_front'?'身份牌·正':item.type==='identity_back'?'身份牌·反':item.type==='identity'?'身份牌':'Tag')+' · '+escHtml(item.name)+'</div>';
     });
     html+='</div>';

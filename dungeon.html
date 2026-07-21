@@ -138,7 +138,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   </div>
 </div>
 
-<script src="cloud-sync.js?v=20260714-3"></script>
+<script src="cloud-sync.js?v=20260721-1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 
@@ -160,18 +160,20 @@ const MAX_TAG=1;
 // ══════════════════════════════════════
 // STATE
 // ══════════════════════════════════════
-function getDailyDB(){try{return JSON.parse(localStorage.getItem('daily_db'))||{affinity:{neal:0,jane:0}};}catch(e){return{affinity:{neal:0,jane:0}};}}
+function getDailyDB(){let d;try{d=JSON.parse(localStorage.getItem('daily_db'));}catch(e){d=null;}if(!d||typeof d!=='object')d={};if(!d.affinity||typeof d.affinity!=='object')d.affinity={neal:0,jane:0};d.affinity.neal=Number(d.affinity.neal)||0;d.affinity.jane=Number(d.affinity.jane)||0;return d;}
 function saveDailyDB(d){try{localStorage.setItem('daily_db',JSON.stringify(d));}catch(e){}}
 
 let db;
 try{db=JSON.parse(localStorage.getItem('dungeon_db'));}catch(e){db=null;}
 if(!db)db={inventory:[],auCollection:[],scriptFragments:0};
 if(!db.inventory)db.inventory=[];
-// Migrate old 'identity' type to 'identity_front'
-db.inventory.forEach(item=>{if(item.type==='identity')item.type='identity_front';});
+// Migrate old event identity cards while preserving the existing inventory.
+let migratedLegacyIdentity=false;
+db.inventory.forEach(item=>{if(item.type==='identity'){item.type='identity_front';migratedLegacyIdentity=true;}});
 if(!db.auCollection)db.auCollection=[];
 if(db.scriptFragments===undefined)db.scriptFragments=0;
 function save(){try{localStorage.setItem('dungeon_db',JSON.stringify(db));}catch(e){}}
+if(migratedLegacyIdentity)save();
 
 let currentTab='draw';
 let selectedIdentities=[];

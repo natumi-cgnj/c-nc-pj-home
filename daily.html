@@ -302,7 +302,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   </div>
 </div>
 
-<script src="cloud-sync.js?v=20260714-3"></script>
+<script src="cloud-sync.js?v=20260721-1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 // ══════════════════════════════════════
@@ -433,8 +433,12 @@ function importDropPool(input){
 // ══════════════════════════════════════
 let db;
 try{db=JSON.parse(localStorage.getItem('daily_db'));}catch(e){db=null;}
+// `affinity` is the legacy storage field for painting/archive fragments.
+// Keep the field name so existing local and cloud saves remain compatible.
 if(!db)db={affinity:{neal:0,jane:0},gems:{emerald:0,sapphire:0},signin:{streak:0,lastDate:null,history:[]},pool:[],todayTasks:[],todayDrops:{jane:null,neal:null},todayDate:null,completedToday:0,completedDrops:[],todos:[]};
-if(!db.affinity)db.affinity={neal:0,jane:0};
+if(!db.affinity||typeof db.affinity!=='object')db.affinity={neal:0,jane:0};
+db.affinity.neal=Number(db.affinity.neal)||0;
+db.affinity.jane=Number(db.affinity.jane)||0;
 if(!db.signin)db.signin={streak:0,lastDate:null,history:[]};
 if(!Array.isArray(db.signin.history))db.signin.history=[];
 if(!db.completedDrops)db.completedDrops=[];
@@ -860,8 +864,8 @@ function openTodoDetail(id){
   document.getElementById('detailDescription').textContent=t.description||'没有填写详细说明';
   const parts=[];
   if(t.date)parts.push('截止日期：'+t.date);
-  if(t.nealAff)parts.push('Neal 好感 +'+t.nealAff);
-  if(t.janeAff)parts.push('Jane 好感 +'+t.janeAff);
+  if(t.nealAff)parts.push('画作碎片 +'+t.nealAff);
+  if(t.janeAff)parts.push('档案碎片 +'+t.janeAff);
   parts.push(t.completed?'状态：已完成':'状态：进行中');
   document.getElementById('detailMeta').textContent=parts.join(' · ');
   showModal('detailModal');
@@ -1204,8 +1208,7 @@ function initDragSort(containerId,dataType){
   const container=document.getElementById(containerId);
   if(!container)return;
   let dragEl=null;
-  let startY=0;
-  let clone=null;
+  const getCards=()=>Array.from(container.children).filter(card=>card.dataset.id);
 
   container.querySelectorAll('.drag-handle').forEach(handle=>{
     handle.addEventListener('touchstart',onStart,{passive:false});
@@ -1214,10 +1217,9 @@ function initDragSort(containerId,dataType){
 
   function onStart(e){
     e.preventDefault();
-    dragEl=e.target.closest('[data-id]');
+    dragEl=e.target.closest('.todo-card, .habit-card');
     if(!dragEl)return;
     dragEl.classList.add('dragging');
-    startY=e.touches?e.touches[0].clientY:e.clientY;
     document.addEventListener('touchmove',onMove,{passive:false});
     document.addEventListener('touchend',onEnd);
     document.addEventListener('mousemove',onMove);
@@ -1228,15 +1230,12 @@ function initDragSort(containerId,dataType){
     if(!dragEl)return;
     e.preventDefault();
     const y=e.touches?e.touches[0].clientY:e.clientY;
-    const cards=Array.from(container.querySelectorAll('[data-id]'));
+    const cards=getCards();
     cards.forEach(c=>c.classList.remove('drag-over'));
-    for(let i=0;i<cards.length;i++){
-      const rect=cards[i].getBoundingClientRect();
-      if(cards[i]!==dragEl&&y>rect.top&&y<rect.bottom){
-        if(y<rect.top+rect.height/2)cards[i].classList.add('drag-over');
-        else if(cards[i+1])cards[i+1].classList.add('drag-over');
-        break;
-      }
+    for(const card of cards){
+      if(card===dragEl)continue;
+      const rect=card.getBoundingClientRect();
+      if(y<rect.top+rect.height/2){card.classList.add('drag-over');break;}
     }
   }
 
@@ -1249,24 +1248,21 @@ function initDragSort(containerId,dataType){
     const y=e.changedTouches?e.changedTouches[0].clientY:e.clientY;
     const dragId=dragEl.dataset.id;
     dragEl.classList.remove('dragging');
-    const cards=Array.from(container.querySelectorAll('[data-id]'));
+    const cards=getCards();
     cards.forEach(c=>c.classList.remove('drag-over'));
-    // Find drop target
-    let targetIdx=-1;
-    for(let i=0;i<cards.length;i++){
-      if(cards[i]===dragEl)continue;
-      const rect=cards[i].getBoundingClientRect();
-      if(y<rect.top+rect.height/2){targetIdx=i;break;}
+    // Find the first non-dragged card whose midpoint is below the pointer.
+    let insertBefore=null;
+    for(const card of cards){
+      if(card===dragEl)continue;
+      const rect=card.getBoundingClientRect();
+      if(y<rect.top+rect.height/2){insertBefore=card.dataset.id;break;}
     }
-    if(targetIdx===-1)targetIdx=cards.length-1;
     // Reorder data
     if(dataType==='todo'){
       const undated=db.todos.filter(t=>!t.completed&&!t.date);
       const item=undated.find(t=>t.id===dragId);
       if(!item){dragEl=null;return;}
       const others=undated.filter(t=>t.id!==dragId);
-      const cardIds=cards.map(c=>c.dataset.id).filter(id=>id!==dragId);
-      const insertBefore=targetIdx<cardIds.length?cardIds[targetIdx]:null;
       const newOrder=[];
       if(!insertBefore){others.forEach(t=>newOrder.push(t));newOrder.push(item);}
       else{others.forEach(t=>{if(t.id===insertBefore)newOrder.push(item);newOrder.push(t);});}
@@ -1278,8 +1274,6 @@ function initDragSort(containerId,dataType){
       if(!item){dragEl=null;return;}
       const sameType=hdb.habits.filter(h=>(h.type||'count')===item.type);
       const others=sameType.filter(h=>h.id!==dragId);
-      const cardIds=cards.map(c=>c.dataset.id).filter(id=>id!==dragId);
-      const insertBefore=targetIdx<cardIds.length?cardIds[targetIdx]:null;
       const newOrder=[];
       if(!insertBefore){others.forEach(h=>newOrder.push(h));newOrder.push(item);}
       else{others.forEach(h=>{if(h.id===insertBefore)newOrder.push(item);newOrder.push(h);});}

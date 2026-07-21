@@ -8,19 +8,20 @@
   const DEVICE_READY_KEY = 'liminal_cloud_device_v1';
   const META_KEY = 'liminal_cloud_meta_v1';
   const STATE_KEYS = [
-    'daily_db', 'gacha_st', 'bean_st', 'habit_db', 'story_db',
-    'bjd_db3', 'techo_db2', 'shop_db', 'event_db', 'dungeon_db'
+    'daily_db', 'daily_presets', 'gacha_st', 'bean_st', 'habit_db', 'story_db',
+    'bjd_db3', 'techo_db2', 'shop_db', 'event_db', 'event_presets', 'dungeon_db'
   ];
   const PAGE_KEYS = {
     'index.html': STATE_KEYS,
-    'daily.html': ['daily_db', 'gacha_st', 'bean_st', 'habit_db'],
+    'daily.html': ['daily_db', 'daily_presets', 'gacha_st', 'bean_st', 'habit_db'],
     'gacha.html': ['gacha_st'],
     'habit.html': ['habit_db', 'bean_st'],
     'shop.html': ['shop_db', 'bean_st', 'daily_db'],
     'story.html': ['story_db', 'gacha_st', 'daily_db'],
     'bjd.html': ['bjd_db3'],
     'techo.html': ['techo_db2'],
-    'event.html': ['event_db', 'dungeon_db'],
+    'event.html': ['event_db', 'event_presets', 'dungeon_db'],
+    'dungeon.html': ['dungeon_db', 'daily_db'],
     'backup.html': STATE_KEYS
   };
   const SDK_URL = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
@@ -502,9 +503,9 @@
 
   function showConflictChoices(keys) {
     const labels = {
-      daily_db: '日常', gacha_st: '抽卡', bean_st: '豆叶', habit_db: '习惯',
+      daily_db: '日常', daily_presets: '日常委托模板', gacha_st: '抽卡', bean_st: '豆叶', habit_db: '习惯',
       story_db: '剧情', bjd_db3: 'BJD', techo_db2: '手账', shop_db: '商城',
-      event_db: '活动', dungeon_db: '副本库存'
+      event_db: '活动', event_presets: '活动导入模板', dungeon_db: '副本库存'
     };
     return new Promise(resolve => {
       const choices = Object.fromEntries(keys.map(key => [key, 'cloud']));

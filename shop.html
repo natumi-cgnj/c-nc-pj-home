@@ -113,7 +113,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <div><label style="margin-top:4px">数量</label><input type="number" id="aPrice" value="400" min="1"></div>
     <div><label style="margin-top:4px">货币</label><select id="aCurr"><option value="coffee">咖啡豆</option><option value="tea">茶叶</option><option value="both">通用</option></select></div>
   </div>
-  <label>好感范围</label>
+  <label>碎片范围</label>
   <div class="aff-row">
     <div><label style="margin-top:4px">最低</label><input type="number" id="aAffMin" value="8" min="1"></div>
     <div><label style="margin-top:4px">最高</label><input type="number" id="aAffMax" value="14" min="1"></div>
@@ -121,7 +121,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <div class="btn-row"><button class="btn btn-cancel" onclick="cm('addModal')">取消</button><button class="btn btn-primary" onclick="saveItem()">保存</button></div>
 </div></div>
 
+<script src="cloud-sync.js?v=20260721-1"></script>
 <script>
+if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 // ══════════════════════════════════════
 // PRESET ITEMS — S1 inspired
 // ══════════════════════════════════════
@@ -181,7 +183,7 @@ function ss(){try{localStorage.setItem('shop_db',JSON.stringify(shop));}catch(e)
 
 function gB(){try{return JSON.parse(localStorage.getItem('bean_st'))||{coffee:0,tea:0};}catch(e){return{coffee:0,tea:0};}}
 function sB(b){try{localStorage.setItem('bean_st',JSON.stringify(b));}catch(e){}}
-function gD(){try{return JSON.parse(localStorage.getItem('daily_db'))||{affinity:{neal:0,jane:0}};}catch(e){return{affinity:{neal:0,jane:0}};}}
+function gD(){let d;try{d=JSON.parse(localStorage.getItem('daily_db'));}catch(e){d=null;}if(!d||typeof d!=='object')d={};if(!d.affinity||typeof d.affinity!=='object')d.affinity={neal:0,jane:0};d.affinity.neal=Number(d.affinity.neal)||0;d.affinity.jane=Number(d.affinity.jane)||0;return d;}
 function sD(d){try{localStorage.setItem('daily_db',JSON.stringify(d));}catch(e){}}
 
 let tab='preset',buyItem=null;
@@ -286,7 +288,7 @@ function renderCatalog(c){
       h+='<div class="coll-card'+(o?' owned':' locked')+'">';
       h+='<div class="item-placeholder">'+(o?'\u2726':'?')+'</div>';
       h+='<div class="item-name">'+(o?esc(i.name):'???')+'</div>';
-      if(o&&log)h+='<div class="coll-aff">\u2764 '+(i.target==='neal'?'N':'J')+'+'+log.aff+'</div>';
+      if(o&&log)h+='<div class="coll-aff">'+(i.target==='neal'?'🎨 画作':'📁 档案')+' +'+log.aff+'</div>';
       h+='</div>';
     });
     h+='</div></div>';
@@ -329,7 +331,7 @@ function openBuy(id){
   h+='<div class="buy-name">'+esc(item.name)+'</div>';
   h+='<div class="buy-series">'+esc(item.series||'\u81EA\u9009')+'</div>';
   h+='<div class="buy-price">'+ci+' \u00D7'+item.price+'</div>';
-  h+='<div class="buy-aff">\u9001\u7ED9 '+tn+' \u00B7 \u597D\u611F +'+item.affMin+'~'+item.affMax+'</div>';
+  h+='<div class="buy-aff">\u9001\u7ED9 '+tn+' \u00B7 '+(item.target==='neal'?'\u753B\u4F5C\u788E\u7247':'\u6863\u6848\u788E\u7247')+' +'+item.affMin+'~'+item.affMax+'</div>';
   document.getElementById('buyDetail').innerHTML=h;
   sm('buyModal');
 }
@@ -361,7 +363,7 @@ function confirmBuy(){
   const tc=item.target==='neal'?'#6B8AFF':'#5BA66B';
   let h='<div class="gift-icon">\u2726</div>';
   h+='<div class="gift-msg">\u9001\u7ED9\u4E86 '+tn+'</div>';
-  h+='<div class="gift-aff" style="color:'+tc+'">\u2764 \u597D\u611F +'+aff+'</div>';
+  h+='<div class="gift-aff" style="color:'+tc+'">'+(item.target==='neal'?'🎨 \u753B\u4F5C\u788E\u7247':'📁 \u6863\u6848\u788E\u7247')+' +'+aff+'</div>';
   if(item.quote)h+='<div style="margin-top:14px;font-size:12px;color:#888;line-height:1.6;font-style:italic;padding:0 8px">'+esc(item.quote)+'</div>';
   document.getElementById('giftResult').innerHTML=h;
   sm('giftModal');render();
