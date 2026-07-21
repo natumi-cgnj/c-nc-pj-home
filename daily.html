@@ -35,6 +35,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .tab{flex:1;text-align:center;padding:12px;font-size:12px;font-weight:500;color:#aaa;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s}
 .tab.active{color:#1a1a1a;border-bottom-color:#1a1a1a}
 
+/* Drag sorting */
+.drag-handle{cursor:grab;color:#ccc;font-size:14px;padding:0 4px;user-select:none;touch-action:none;flex-shrink:0;display:flex;align-items:center}
+.drag-handle:active{cursor:grabbing;color:#999}
+.dragging{opacity:0.5;background:#f8f8f8}
+.drag-over{border-top:2px solid #E8B96A}
+.clear-done{font-size:10px;color:#bbb;background:none;border:1px solid #e0e0e0;border-radius:5px;padding:2px 8px;cursor:pointer;font-family:inherit;margin-left:auto}
+.clear-done:active{background:#f5f5f5;color:#999}
+
 /* Sub-tabs (within habits) */
 .sub-tabs{display:flex;gap:0;margin-bottom:12px;border:1px solid #e0e0e0;border-radius:8px;overflow:hidden}
 .sub-tab{flex:1;text-align:center;padding:8px;font-size:12px;font-weight:500;color:#999;cursor:pointer;background:#fff;border:none;font-family:inherit;transition:all 0.2s}
@@ -756,10 +764,12 @@ function renderTodo(c){
   }
   if(undated.length){
     html+='<div class="section-header" style="margin-top:12px"><div class="section-title">待办</div></div>';
-    undated.forEach(t=>{html+=renderTodoCard(t);});
+    html+='<div id="todoSortable">';
+    undated.forEach(t=>{html+=renderTodoCard(t,true);});
+    html+='</div>';
   }
   if(done.length){
-    html+='<div class="section-header" style="margin-top:12px"><div class="section-title">已完成 ('+done.length+')</div></div>';
+    html+='<div class="section-header" style="margin-top:12px"><div class="section-title">已完成 ('+done.length+')</div><button class="clear-done" onclick="clearDoneTodos()">清空</button></div>';
     done.slice(0,10).forEach(t=>{html+=renderTodoCard(t);});
   }
   if(!active.length&&!done.length){
@@ -767,9 +777,10 @@ function renderTodo(c){
   }
   html+='<button class="add-inline" onclick="openAddTodo()">+ 添加待办</button>';
   c.innerHTML=html;
+  initDragSort('todoSortable','todo');
 }
 
-function renderTodoCard(t){
+function renderTodoCard(t,draggable){
   const isDone=t.completed;
   let dateHtml='';
   if(t.date){
@@ -780,13 +791,19 @@ function renderTodoCard(t){
   if(t.nealAff)affParts.push('画+'+t.nealAff);
   if(t.janeAff)affParts.push('档+'+t.janeAff);
   const affHtml=affParts.length?'<span style="color:#bbb;font-size:10px;margin-left:6px">'+affParts.join(' ')+'</span>':'';
-  return '<div class="todo-card'+(isDone?' completed':'')+'">'
-    +'<div class="todo-top">'
+  const dragH=draggable?'<div class="drag-handle" data-id="'+t.id+'">⠿</div>':'';
+  return '<div class="todo-card'+(isDone?' completed':'')+'" data-id="'+t.id+'">'
+    +'<div class="todo-top">'+dragH
     +'<div class="todo-check'+(isDone?' checked':'')+'" onclick="toggleTodo(\''+t.id+'\')">'+(isDone?'✓':'')+'</div>'
     +'<div class="todo-body clickable-body" onclick="openTodoDetail(\''+t.id+'\')"><div class="todo-name">'+escHtml(t.content)+'</div>'+dateHtml+affHtml+'</div>'
     +'<button class="todo-edit" title="编辑" onclick="openEditTodo(\''+t.id+'\')">✎</button>'
     +'<button class="todo-del" title="删除" onclick="deleteTodo(\''+t.id+'\')">×</button>'
     +'</div></div>';
+}
+
+function clearDoneTodos(){
+  db.todos=db.todos.filter(t=>!t.completed);
+  save();render();
 }
 
 function openAddTodo(){
@@ -940,10 +957,13 @@ function switchHabitSub(t){habitSubTab=t;render();}
 
 function renderHabitGroup(type,title){
   const habits=hdb.habits.filter(h=>(h.type||'count')===type);
-  let html='<div class="habit-section"><div class="section-title">'+title+'</div>';
-  if(habits.length)habits.forEach(h=>{html+=renderHabitCard(h);});
-  else html+='<div class="habit-empty">还没有'+title+'日课</div>';
-  return html+'</div>';
+  const sortId='habitSort_'+type;
+  let html='<div class="habit-section">';
+  if(habits.length){html+='<div id="'+sortId+'">';habits.forEach(h=>{html+=renderHabitCard(h);});html+='</div>';}
+  else html+='<div class="habit-empty">还没有 '+title+' 日课</div>';
+  html+='</div>';
+  setTimeout(()=>initDragSort(sortId,'habit'),0);
+  return html;
 }
 
 function renderHabitCard(h){
@@ -963,8 +983,9 @@ function renderHabitCard(h){
     // Daily type: check button, one per day, streak focus
     const isDone=todayValue>0;
     const streakHtml=streak>0?' <span class="habit-streak">★'+streak+'天'+(streakBonus?' +'+Math.round(streakBonus*100)+'%':'')+'</span>':'';
-    return '<div class="habit-card'+(isDone?' has-progress':'')+'">'
+    return '<div class="habit-card'+(isDone?' has-progress':'')+'" data-id="'+h.id+'">'
       +'<div class="habit-top">'
+      +'<div class="drag-handle" data-id="'+h.id+'">⠿</div>'
       +'<div class="todo-check'+(isDone?' checked':'')+'" onclick="'+(isDone?'':'recordHabitProgress(\''+h.id+'\',1)')+'">'+(isDone?'✓':'')+'</div>'
       +'<div class="habit-body clickable-body" onclick="openHabitDetail(\''+h.id+'\')">'
       +'<div class="habit-name">'+escHtml(h.name)+'</div>'
@@ -979,8 +1000,8 @@ function renderHabitCard(h){
   const addAction=type==='time'?"openTimeLog('"+h.id+"')":"recordHabitProgress('"+h.id+"',1)";
   const addLabel=type==='time'?'记录时长':'记录一次';
   const quickAdd='<button class="habit-add-btn" title="'+addLabel+'" aria-label="'+addLabel+'" onclick="'+addAction+'">＋</button>';
-  return '<div class="habit-card '+(type==='time'?'time-card':'count-card')+(todayValue>0?' has-progress':'')+'">'
-    +'<div class="habit-top">'+quickAdd+'<div class="habit-body clickable-body" onclick="openHabitDetail(\''+h.id+'\')">'
+  return '<div class="habit-card '+(type==='time'?'time-card':'count-card')+(todayValue>0?' has-progress':'')+'" data-id="'+h.id+'">'
+    +'<div class="habit-top"><div class="drag-handle" data-id="'+h.id+'">⠿</div>'+quickAdd+'<div class="habit-body clickable-body" onclick="openHabitDetail(\''+h.id+'\')">'
     +'<div class="habit-name">'+escHtml(h.name)+'</div>'
     +'<div class="habit-meta">'+(rewardParts.length?rewardParts.join(' '):'无基础产出')+streakHtml+'</div>'
     +'<div class="habit-stat-tags"><span class="habit-stat-tag today">今日 '+formatHabitValue(type,todayValue)+'</span><span class="habit-stat-tag">累计 '+formatHabitValue(type,total)+'</span></div></div>'
@@ -1175,6 +1196,100 @@ function importData(input){
 function showModal(id){document.getElementById(id).classList.add('show');}
 function closeModal(id){document.getElementById(id).classList.remove('show');}
 document.querySelectorAll('.modal-bg').forEach(bg=>{bg.addEventListener('click',e=>{if(e.target===bg)bg.classList.remove('show');});});
+
+// ══════════════════════════════════════
+// DRAG SORT (touch + mouse)
+// ══════════════════════════════════════
+function initDragSort(containerId,dataType){
+  const container=document.getElementById(containerId);
+  if(!container)return;
+  let dragEl=null;
+  let startY=0;
+  let clone=null;
+
+  container.querySelectorAll('.drag-handle').forEach(handle=>{
+    handle.addEventListener('touchstart',onStart,{passive:false});
+    handle.addEventListener('mousedown',onStart);
+  });
+
+  function onStart(e){
+    e.preventDefault();
+    dragEl=e.target.closest('[data-id]');
+    if(!dragEl)return;
+    dragEl.classList.add('dragging');
+    startY=e.touches?e.touches[0].clientY:e.clientY;
+    document.addEventListener('touchmove',onMove,{passive:false});
+    document.addEventListener('touchend',onEnd);
+    document.addEventListener('mousemove',onMove);
+    document.addEventListener('mouseup',onEnd);
+  }
+
+  function onMove(e){
+    if(!dragEl)return;
+    e.preventDefault();
+    const y=e.touches?e.touches[0].clientY:e.clientY;
+    const cards=Array.from(container.querySelectorAll('[data-id]'));
+    cards.forEach(c=>c.classList.remove('drag-over'));
+    for(let i=0;i<cards.length;i++){
+      const rect=cards[i].getBoundingClientRect();
+      if(cards[i]!==dragEl&&y>rect.top&&y<rect.bottom){
+        if(y<rect.top+rect.height/2)cards[i].classList.add('drag-over');
+        else if(cards[i+1])cards[i+1].classList.add('drag-over');
+        break;
+      }
+    }
+  }
+
+  function onEnd(e){
+    if(!dragEl)return;
+    document.removeEventListener('touchmove',onMove);
+    document.removeEventListener('touchend',onEnd);
+    document.removeEventListener('mousemove',onMove);
+    document.removeEventListener('mouseup',onEnd);
+    const y=e.changedTouches?e.changedTouches[0].clientY:e.clientY;
+    const dragId=dragEl.dataset.id;
+    dragEl.classList.remove('dragging');
+    const cards=Array.from(container.querySelectorAll('[data-id]'));
+    cards.forEach(c=>c.classList.remove('drag-over'));
+    // Find drop target
+    let targetIdx=-1;
+    for(let i=0;i<cards.length;i++){
+      if(cards[i]===dragEl)continue;
+      const rect=cards[i].getBoundingClientRect();
+      if(y<rect.top+rect.height/2){targetIdx=i;break;}
+    }
+    if(targetIdx===-1)targetIdx=cards.length-1;
+    // Reorder data
+    if(dataType==='todo'){
+      const undated=db.todos.filter(t=>!t.completed&&!t.date);
+      const item=undated.find(t=>t.id===dragId);
+      if(!item){dragEl=null;return;}
+      const others=undated.filter(t=>t.id!==dragId);
+      const cardIds=cards.map(c=>c.dataset.id).filter(id=>id!==dragId);
+      const insertBefore=targetIdx<cardIds.length?cardIds[targetIdx]:null;
+      const newOrder=[];
+      if(!insertBefore){others.forEach(t=>newOrder.push(t));newOrder.push(item);}
+      else{others.forEach(t=>{if(t.id===insertBefore)newOrder.push(item);newOrder.push(t);});}
+      // Rebuild todos: keep dated+completed, replace undated with new order
+      db.todos=[...db.todos.filter(t=>t.completed||t.date),...newOrder];
+      save();render();
+    }else if(dataType==='habit'){
+      const item=hdb.habits.find(h=>h.id===dragId);
+      if(!item){dragEl=null;return;}
+      const sameType=hdb.habits.filter(h=>(h.type||'count')===item.type);
+      const others=sameType.filter(h=>h.id!==dragId);
+      const cardIds=cards.map(c=>c.dataset.id).filter(id=>id!==dragId);
+      const insertBefore=targetIdx<cardIds.length?cardIds[targetIdx]:null;
+      const newOrder=[];
+      if(!insertBefore){others.forEach(h=>newOrder.push(h));newOrder.push(item);}
+      else{others.forEach(h=>{if(h.id===insertBefore)newOrder.push(item);newOrder.push(h);});}
+      // Rebuild habits: keep other types, replace this type with new order
+      hdb.habits=[...hdb.habits.filter(h=>(h.type||'count')!==item.type),...newOrder];
+      saveHabits();render();
+    }
+    dragEl=null;
+  }
+}
 
 // ══════════════════════════════════════
 // INIT
