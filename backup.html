@@ -59,6 +59,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <input type="file" id="importFile" accept=".json" onchange="handleImport(this)" style="display:none">
 <p class="hint">导出的 JSON 文件包含所有系统数据。<br>换浏览器或清缓存前请务必备份。</p>
 </div></div>
+
+<div class="section"><div class="section-title">首页台词管理</div>
+<button class="action-btn btn-export" onclick="exportLines()">&#8681; 导出台词 CSV</button>
+<button class="action-btn btn-import" onclick="document.getElementById('linesFile').click()">&#8679; 导入台词 CSV</button>
+<button class="action-btn btn-import" onclick="resetLines()" style="color:#D85A30;border-color:#f0d0c0">&#8635; 恢复默认台词</button>
+<input type="file" id="linesFile" accept=".csv" onchange="handleLinesImport(this)" style="display:none">
+<p class="hint">CSV 格式：角色,房间,状态,台词<br>角色 = neal / jane，房间 = neal / jane / natumi<br>导出后可用 Excel 编辑，保存为 CSV 再导入。</p>
+</div>
 <div class="toast" id="toast"></div>
 <div class="overlay" id="confirmOverlay"><div class="confirm-box">
 <div class="confirm-title">确认恢复数据？</div><div class="confirm-msg" id="confirmMsg"></div>
@@ -79,6 +87,7 @@ const SYS=[
 {key:'shop_db',name:'\u5546\u57CE',color:'#D85A30',desc:d=>{if(!d)return'-';return(d.owned||[]).length+'\u4EF6';}},
 {key:'event_db',name:'\u6D3B\u52A8',color:'#E8B96A',desc:d=>{if(!d)return'-';const c=d.currency||{};return'\u5956\u52B1 '+(c.a||0)+' / '+(c.b||0)+' / '+(c.c||0);}},
 {key:'event_presets',name:'\u6D3B\u52A8\u5BFC\u5165\u6A21\u677F',color:'#C88B42',desc:d=>{if(!d)return'-';return'\u59D4'+(d.commissions||[]).length+' \u5361'+(d.cards||[]).length+' \u5468'+(d.goods||[]).length+' \u6C60'+((d.identities||[]).length+(d.tags||[]).length);}},
+{key:'home_lines',name:'\u9996\u9875\u53F0\u8BCD',color:'#888',desc:d=>{if(!d)return'\u9ED8\u8BA4';let n=0;['neal','jane','natumi'].forEach(z=>{n+=(d.neal&&d.neal[z]||[]).length+(d.jane&&d.jane[z]||[]).length;});return n+'\u6761';}},
 {key:'dungeon_db',name:'\u526F\u672C\u5E93\u5B58',color:'#7A8FB8',desc:d=>{if(!d)return'-';return(d.inventory||[]).length+'\u6761';}}
 ];
 function gd(k){try{return JSON.parse(localStorage.getItem(k));}catch(e){return null;}}
@@ -91,6 +100,78 @@ function handleImport(inp){const f=inp.files[0];if(!f)return;const r=new FileRea
 function doImport(){if(!pd)return;SYS.forEach(s=>{if(pd[s.key])try{localStorage.setItem(s.key,JSON.stringify(pd[s.key]));}catch(e){}});pd=null;hideConfirm();renderSys();toast('\u2705 \u5DF2\u6062\u590D');}
 function hideConfirm(){document.getElementById('confirmOverlay').classList.remove('show');pd=null;}
 let tt;function toast(m){const el=document.getElementById('toast');el.textContent=m;el.className='toast show';clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('show'),2500);}
+
+function exportLines(){
+  let saved;
+  try { saved = JSON.parse(localStorage.getItem('home_lines')); } catch(e){}
+  const neal = saved && saved.neal ? saved.neal : {
+    neal:[{s:"在画画",m:"光线刚好……别动，让我画完这笔。"},{s:"品红酒中",m:"这瓶是 2015 年的，你闻闻这个层次感。"},{s:"弹钢琴",m:"这段旋律让我想到了佛罗伦萨的某个下午。"},{s:"整理西装",m:"穿得好不是虚荣，是对世界的基本尊重。"},{s:"翻看帽子",m:"你觉得今天 fedora 还是 newsboy？"},{s:"看窗外",m:"纽约的天际线怎么看都不腻。"},{s:"煮咖啡",m:"给你也来一杯？手冲的。"},{s:"躺在沙发上",m:"难得的休息日，什么都不想做。"},{s:"翻阅画册",m:"Caravaggio 的光影……永远学不完。"},{s:"哼歌中",m:"♪ Fly me to the moon ♪ ……嗯？"}],
+    jane:[{s:"去找 Jane",m:"Jane 那边有没有茶？我去问一下。"},{s:"串门中",m:"阁楼的光线其实不错……虽然装修品味堪忧。"},{s:"放装饰品",m:"这个台灯放这里比较好。别谢我。"},{s:"在 Jane 沙发上",m:"他不在的时候这个沙发还挺舒服的。"},{s:"嫌弃中",m:"Jane，你的阁楼真的不需要一幅画吗？"}],
+    natumi:[{s:"站在门口",m:"我从 Natumi 门口退出来了……六步是极限。"},{s:"路过",m:"我只是路过！……好吧我拿了一本书。"},{s:"震惊",m:"这个快递是三个月前的……还没拆？"},{s:"后退中",m:"不是我嫌弃，但这个地板我踩不下去。"}]
+  };
+  const jane = saved && saved.jane ? saved.jane : {
+    jane:[{s:"喝茶",m:"…Earl Grey。别问我为什么，这不是可以解释的事。"},{s:"闭目养神",m:"不是在睡觉，在思考。"},{s:"看书",m:"人的微表情比语言诚实得多。"},{s:"做笔记",m:"记录观察结果而已，不要紧张。"},{s:"泡茶中",m:"要喝吗？——别加糖，加糖是对茶叶的侮辱。"},{s:"发呆",m:"…………有什么事吗？"},{s:"站在窗边",m:"萨克拉门托的阳光确实不一样。"},{s:"假装不在意",m:"Neal 放的那个蓝色抱枕……我没有特意留着。"},{s:"心情不错",m:"今天……还行。"},{s:"嘴角微扬",m:"你以为我在笑？那是光线的问题。"}],
+    neal:[{s:"在 Neal 那边",m:"我没有搬进 Neal 那边。阁楼在维护。"},{s:"去拿书",m:"去拿我落在那边的书。仅此而已。"},{s:"观察中",m:"Neal 的品味确实……不差。仅此而已。"},{s:"坐在吧台",m:"他的咖啡还行。仅此而已。"},{s:"假装路过",m:"我只是顺路经过，不要多想。"}],
+    natumi:[{s:"分析中",m:"根据 Natumi 房间的快递堆积模式……有趣。"},{s:"绊倒了",m:"……我被一个快递绊了一下。没事。"},{s:"观察中",m:"你刚才下意识摸了一下鼻子——在说谎？"},{s:"做记录",m:"这堆杂物的信息密度比犯罪现场还高。"}]
+  };
+  const rows = ['\uFEFF角色,房间,状态,台词'];
+  ['neal','jane','natumi'].forEach(z => {
+    (neal[z]||[]).forEach(l => rows.push('neal,'+z+',"'+l.s.replace(/"/g,'""')+'","'+l.m.replace(/"/g,'""')+'"'));
+  });
+  ['jane','neal','natumi'].forEach(z => {
+    (jane[z]||[]).forEach(l => rows.push('jane,'+z+',"'+l.s.replace(/"/g,'""')+'","'+l.m.replace(/"/g,'""')+'"'));
+  });
+  const bl=new Blob([rows.join('\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(bl);
+  a.download='liminal_lines_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
+  toast('✅ 台词已导出');
+}
+
+function handleLinesImport(inp){
+  const f=inp.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=e=>{
+    try{
+      const text=e.target.result.replace(/^\uFEFF/,'');
+      const rows=text.split('\n').map(r=>r.trim()).filter(r=>r);
+      const data={neal:{neal:[],jane:[],natumi:[]},jane:{neal:[],jane:[],natumi:[]}};
+      let count=0;
+      rows.forEach((row,i)=>{
+        if(i===0 && row.startsWith('角色'))return; // skip header
+        // Parse CSV with quoted fields
+        const parts=[];let cur='',inQ=false;
+        for(let c=0;c<row.length;c++){
+          const ch=row[c];
+          if(ch==='"'){if(inQ&&row[c+1]==='"'){cur+='"';c++;}else{inQ=!inQ;}}
+          else if(ch===','&&!inQ){parts.push(cur);cur='';}
+          else{cur+=ch;}
+        }
+        parts.push(cur);
+        if(parts.length>=4){
+          const who=parts[0].trim().toLowerCase();
+          const zone=parts[1].trim().toLowerCase();
+          const status=parts[2].trim();
+          const msg=parts[3].trim();
+          if(data[who]&&data[who][zone]!==undefined){
+            data[who][zone].push({s:status,m:msg});
+            count++;
+          }
+        }
+      });
+      if(count===0){toast('❌ 没有有效台词');inp.value='';return;}
+      localStorage.setItem('home_lines',JSON.stringify(data));
+      toast('✅ 已导入 '+count+' 条台词，刷新首页生效');
+    }catch(x){toast('❌ 格式错误');}
+    inp.value='';
+  };
+  r.readAsText(f);
+}
+
+function resetLines(){
+  localStorage.removeItem('home_lines');
+  toast('✅ 已恢复默认台词，刷新首页生效');
+}
+
 renderSys();showLast();
 </script>
 </body>
