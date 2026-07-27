@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- Kitchen build: 2026-07-27-name-clear-section-quick-edit -->
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
@@ -118,7 +119,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 /* ── Section dividers ── */
 .section-divider{display:flex;align-items:center;gap:10px;padding:10px 20px;background:#fafafa;border-bottom:1px solid #f0f0f0}
 .section-divider-line{flex:1;height:1px;background:#e0e0e0}
-.section-divider-label{font-size:11px;color:#999;font-weight:500;letter-spacing:0.3px}
+.section-divider-label{font-size:11px;color:#999;font-weight:500;letter-spacing:0.3px;cursor:text;border-bottom:1px dashed transparent;transition:color 0.15s,border-color 0.15s}
+.section-divider-label:hover{color:#8B6914;border-bottom-color:#D8C18B}
 .section-divider-cols{font-size:10px;color:#ccc}
 .section-grid{display:grid;gap:8px;padding:8px 20px 16px}
 .section-grid.flat-grid{padding-top:0}
@@ -255,6 +257,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   </div>
 </div>
 
+<!-- Quick section edit -->
+<div class="modal-bg" id="sectionQuickModal">
+  <div class="modal">
+    <h2>编辑分栏</h2>
+    <label>分栏名</label>
+    <input type="text" id="quickSectionName" maxlength="40" placeholder="分栏名称" onkeydown="if(event.key==='Enter')saveSectionQuickEdit()">
+    <label>排列方式</label>
+    <select id="quickSectionCols">
+      <option value="2">每行 2 列</option>
+      <option value="3">每行 3 列</option>
+      <option value="4">每行 4 列</option>
+    </select>
+    <div class="btn-row">
+      <button class="btn btn-cancel" onclick="closeModal('sectionQuickModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveSectionQuickEdit()">保存</button>
+    </div>
+  </div>
+</div>
+
 <!-- Checkin celebration -->
 <div class="checkin-popup" id="checkinPopup" onclick="closeCheckinPopup()">
   <div class="checkin-box" onclick="event.stopPropagation()">
@@ -341,7 +362,7 @@ if(projects.length&&projects[0]&&projects[0].series){
   if(migrated.length){projects=migrated;save();}
 }
 
-let curProjectId=null, curItemIdx=null, quickItemIdx=null;
+let curProjectId=null, curItemIdx=null, quickItemIdx=null, editSectionIdx=null;
 let editProjectId=null, editItemIdx=null;
 let projectTempIcon='';
 
@@ -651,7 +672,7 @@ function renderDetail(p){
     const cols=sec.cols||3;
     const secItems=p.items.slice(offset,offset+count);
     if(sec.name){
-      html+=`<div class="section-divider"><div class="section-divider-line"></div><span class="section-divider-label">${esc(sec.name)}</span><span class="section-divider-cols">${cols}列</span><div class="section-divider-line"></div></div>`;
+      html+=`<div class="section-divider"><div class="section-divider-line"></div><span class="section-divider-label" title="双击编辑分栏" ondblclick="event.stopPropagation();openSectionQuickEdit(${si})">${esc(sec.name)}</span><span class="section-divider-cols">${cols}列</span><div class="section-divider-line"></div></div>`;
     }else if(si>0){
       html+=`<div class="section-divider"><div class="section-divider-line"></div></div>`;
     }
@@ -668,6 +689,33 @@ function renderDetail(p){
     html+=`</div>`;
   }
   grid.innerHTML=html;
+}
+
+function openSectionQuickEdit(sectionIdx){
+  const p=getProject(curProjectId);
+  if(!p||!p.sections||!p.sections[sectionIdx])return;
+  const sec=p.sections[sectionIdx];
+  editSectionIdx=sectionIdx;
+  const nameInput=document.getElementById('quickSectionName');
+  nameInput.value=sec.name||'';
+  document.getElementById('quickSectionCols').value=String(sec.cols||3);
+  openModal('sectionQuickModal');
+  requestAnimationFrame(()=>{nameInput.focus();nameInput.select();});
+}
+function saveSectionQuickEdit(){
+  const p=getProject(curProjectId);
+  if(!p||editSectionIdx===null||!p.sections||!p.sections[editSectionIdx])return;
+  const nameInput=document.getElementById('quickSectionName');
+  const name=nameInput.value.trim();
+  if(!name){nameInput.focus();return;}
+  const cols=parseInt(document.getElementById('quickSectionCols').value);
+  const sec=p.sections[editSectionIdx];
+  sec.name=name;
+  sec.cols=[2,3,4].includes(cols)?cols:3;
+  save();
+  closeModal('sectionQuickModal');
+  editSectionIdx=null;
+  renderDetail(p);
 }
 
 function renderItemCells(items,globalOffset,cols){
@@ -871,7 +919,8 @@ async function saveItem(){
   const p=getProject(curProjectId);if(!p)return;
   const wasEditing=editItemIdx!==null;
   const selectedSection=getSelectedItemSection(p);
-  const name=document.getElementById('inputItemName').value.trim()||('品目'+(p.items.length+1));
+  const inputName=document.getElementById('inputItemName').value.trim();
+  const name=wasEditing?inputName:(inputName||('品目'+(p.items.length+1)));
   const note=document.getElementById('inputItemNote').value.trim();
   const preview=document.getElementById('itemImgPreview');
   let img=preview.style.display!=='none'?(preview.dataset.source||''):'';
