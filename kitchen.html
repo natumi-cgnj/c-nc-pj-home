@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Kitchen build: 2026-07-27-name-clear-section-quick-edit -->
+<!-- Kitchen build: 2026-07-27-section-delete-item-arrange -->
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
@@ -65,6 +65,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .item-cell.collected:not(.has-img){background:#FFFDF7;border-color:#E8B96A}
 .item-cell.collected:not(.has-img) .item-num{color:#E8B96A}
 .item-check{position:absolute;top:4px;right:4px;width:18px;height:18px;border-radius:50%;background:rgba(232,185,106,0.9);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;z-index:2}
+.item-delete-x{display:none;position:absolute;top:4px;right:4px;width:23px;height:23px;border:0;border-radius:50%;background:#D85A30;color:#fff;font-size:17px;line-height:21px;font-weight:400;z-index:6;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,0.18);font-family:inherit}
+#viewDetail.arrange-mode .item-cell{animation:itemWiggle 0.18s ease-in-out infinite alternate;cursor:grab;touch-action:none;-webkit-touch-callout:none;user-select:none}
+#viewDetail.arrange-mode .item-cell:nth-child(even){animation-direction:alternate-reverse}
+#viewDetail.arrange-mode .item-delete-x{display:block}
+#viewDetail.arrange-mode .item-check{display:none}
+#viewDetail.arrange-mode .section-divider-label{pointer-events:none}
+#viewDetail.arrange-mode .add-item-btn{pointer-events:none;opacity:0.45}
+.item-cell.drag-source{animation:none!important;opacity:0.28}
+.item-cell.drop-target{outline:3px solid rgba(232,185,106,0.9);outline-offset:2px}
+.item-drag-ghost{position:fixed!important;margin:0!important;z-index:500;pointer-events:none;opacity:0.92;animation:none!important;transform:scale(1.06) rotate(1deg);box-shadow:0 8px 24px rgba(0,0,0,0.22)}
+.item-drag-ghost .item-delete-x,.item-drag-ghost .item-check{display:none!important}
+@keyframes itemWiggle{from{transform:rotate(-0.7deg)}to{transform:rotate(0.7deg)}}
 .add-item-btn{margin:0 20px 16px;padding:10px;border:1.5px dashed #ddd;border-radius:10px;background:#fff;font-size:12px;color:#aaa;cursor:pointer;text-align:center;font-family:inherit;width:calc(100% - 40px)}
 
 /* ── Item detail card ── */
@@ -169,7 +181,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <div class="detail-header">
     <button class="back-btn" onclick="goHome()">← 返回</button>
     <h2 id="detailTitle"></h2>
-    <button class="btn-s" onclick="openProjectMenu()">⋯</button>
+    <button class="btn-s" id="projectHeaderBtn" onclick="handleProjectHeaderButton()">⋯</button>
   </div>
   <div class="detail-overall" id="detailOverall"></div>
   <div class="item-grid" id="itemGrid"></div>
@@ -270,6 +282,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
       <option value="4">每行 4 列</option>
     </select>
     <div class="btn-row">
+      <button class="btn btn-del" onclick="deleteSectionQuickEdit()">删除</button>
       <button class="btn btn-cancel" onclick="closeModal('sectionQuickModal')">取消</button>
       <button class="btn btn-primary" onclick="saveSectionQuickEdit()">保存</button>
     </div>
@@ -365,16 +378,39 @@ if(projects.length&&projects[0]&&projects[0].series){
 let curProjectId=null, curItemIdx=null, quickItemIdx=null, editSectionIdx=null;
 let editProjectId=null, editItemIdx=null;
 let projectTempIcon='';
+const detailScrollByProject={};
+let itemArrangeMode=false,itemPressState=null,itemDragState=null,itemClickSuppressedUntil=0;
 
 function save(){localStorage.setItem(SK,JSON.stringify(projects));}
 function gid(){return 'p_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function getProject(id){return projects.find(p=>p.id===id);}
 function projectStats(p){const total=Math.max(p.count||0,p.items.length);const collected=p.items.filter(i=>i.collected).length;return{total,collected};}
+function normalizeGenericItemNames(p){
+  if(!p||!Array.isArray(p.items))return;
+  p.items.forEach((item,i)=>{if(/^品目\d+$/.test(item.name||''))item.name='品目'+(i+1);});
+}
 
 /* ═══ VIEWS ═══ */
 function switchView(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(id).classList.add('active');}
-function goHome(){switchView('viewHome');renderProjects();}
+function goHome(){setItemArrangeMode(false);switchView('viewHome');renderProjects();}
+function currentScrollY(){return window.scrollY||document.documentElement.scrollTop||document.body.scrollTop||0;}
+function rememberDetailScroll(){
+  if(curProjectId)detailScrollByProject[curProjectId]=currentScrollY();
+}
+function restoreDetailScroll(y){
+  const target=Math.max(0,Number(y)||0);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>window.scrollTo(0,target)));
+}
+function returnToDetail(){
+  const p=getProject(curProjectId);if(!p)return;
+  const detailIsActive=document.getElementById('viewDetail').classList.contains('active');
+  const target=detailIsActive?currentScrollY():(detailScrollByProject[curProjectId]||0);
+  detailScrollByProject[curProjectId]=target;
+  renderDetail(p);
+  switchView('viewDetail');
+  restoreDetailScroll(target);
+}
 
 /* ═══ DUTY PRESETS ═══ */
 const DUTY_PRESETS=[
@@ -642,6 +678,7 @@ function deleteProject(){
 
 /* ═══ PROJECT DETAIL ═══ */
 function openProject(id){
+  setItemArrangeMode(false);
   curProjectId=id;
   const p=getProject(id);if(!p)return;
   document.getElementById('detailTitle').textContent=p.name;
@@ -717,22 +754,212 @@ function saveSectionQuickEdit(){
   editSectionIdx=null;
   renderDetail(p);
 }
+function deleteSectionQuickEdit(){
+  const p=getProject(curProjectId);
+  if(!p||editSectionIdx===null||!p.sections||!p.sections[editSectionIdx])return;
+  const sectionIdx=editSectionIdx;
+  const sec=p.sections[sectionIdx];
+  const count=Math.max(0,parseInt(sec.count)||0);
+  const sectionName=sec.name||('分栏 '+(sectionIdx+1));
+  const message=count>0
+    ?`删除分栏「${sectionName}」？其中 ${count} 个品目及打卡记录也会一起删除。`
+    :`删除空分栏「${sectionName}」？`;
+  if(!confirm(message))return;
+  let start=0;
+  for(let i=0;i<sectionIdx;i++)start+=Math.max(0,parseInt(p.sections[i].count)||0);
+  p.items.splice(start,Math.min(count,Math.max(0,p.items.length-start)));
+  p.sections.splice(sectionIdx,1);
+  p.count=p.items.length;
+  normalizeGenericItemNames(p);
+  curItemIdx=null;
+  editItemIdx=null;
+  editSectionIdx=null;
+  const scroll=currentScrollY();
+  save();
+  closeModal('sectionQuickModal');
+  renderDetail(p);
+  restoreDetailScroll(scroll);
+}
 
 function renderItemCells(items,globalOffset,cols){
   return items.map((item,i)=>{
     const idx=globalOffset+i;
     const hasImg=!!item.img;
-    return`<div class="item-cell ${item.collected?'collected':''} ${hasImg?'has-img':''}" onclick="handleItemClick(${idx})">
+    return`<div class="item-cell ${item.collected?'collected':''} ${hasImg?'has-img':''}" data-index="${idx}" onclick="handleItemClick(${idx})">
       ${hasImg?`<img class="item-img" src="${item.img}">`:''}
       <span class="item-num">${idx+1}</span>
       ${item.name&&item.name!=='品目'+(idx+1)?`<span class="item-label">${esc(item.name)}</span>`:''}
       ${item.collected?'<div class="item-check">✓</div>':''}
+      <button class="item-delete-x" aria-label="删除品目" onclick="event.stopPropagation();deleteGridItem(${idx})">×</button>
     </div>`;
   }).join('');
 }
 
+/* ═══ ITEM ARRANGE MODE ═══ */
+function handleProjectHeaderButton(){
+  if(itemArrangeMode){setItemArrangeMode(false);return;}
+  openProjectMenu();
+}
+function setItemArrangeMode(active){
+  itemArrangeMode=!!active;
+  const view=document.getElementById('viewDetail');
+  const btn=document.getElementById('projectHeaderBtn');
+  if(view)view.classList.toggle('arrange-mode',itemArrangeMode);
+  if(btn){
+    btn.textContent=itemArrangeMode?'完成':'⋯';
+    btn.setAttribute('aria-label',itemArrangeMode?'完成整理':'项目菜单');
+  }
+  if(!itemArrangeMode)cancelItemArrangeGesture();
+}
+function deleteGridItem(idx){
+  const p=getProject(curProjectId);if(!p||!p.items[idx])return;
+  const item=p.items[idx];
+  const generic=!item.name||/^品目\d+$/.test(item.name);
+  const label=generic?`第 ${idx+1} 格`:`「${item.name}」`;
+  if(!confirm(`删除${label}？图片、日期和感想也会一起删除。`))return;
+  const sectionIdx=getItemSectionIndex(p,idx);
+  if(sectionIdx>=0)p.sections[sectionIdx].count=Math.max(0,(parseInt(p.sections[sectionIdx].count)||0)-1);
+  const scroll=currentScrollY();
+  p.items.splice(idx,1);
+  p.count=p.items.length;
+  normalizeGenericItemNames(p);
+  curItemIdx=null;editItemIdx=null;quickItemIdx=null;
+  itemClickSuppressedUntil=Date.now()+400;
+  save();
+  renderDetail(p);
+  restoreDetailScroll(scroll);
+}
+function moveGridItem(fromIdx,toIdx){
+  const p=getProject(curProjectId);
+  if(!p||fromIdx===toIdx||fromIdx<0||toIdx<0||fromIdx>=p.items.length||toIdx>=p.items.length)return false;
+  const scroll=currentScrollY();
+  const moved=p.items.splice(fromIdx,1)[0];
+  p.items.splice(toIdx,0,moved);
+  normalizeGenericItemNames(p);
+  curItemIdx=null;editItemIdx=null;quickItemIdx=null;
+  save();
+  renderDetail(p);
+  restoreDetailScroll(scroll);
+  return true;
+}
+function releaseItemPointer(state){
+  if(!state||!state.cell||!state.cell.releasePointerCapture)return;
+  try{
+    if(!state.cell.hasPointerCapture||state.cell.hasPointerCapture(state.pointerId))state.cell.releasePointerCapture(state.pointerId);
+  }catch(e){}
+}
+function clearItemPressState(){
+  const state=itemPressState;
+  if(state&&state.timer)clearTimeout(state.timer);
+  releaseItemPointer(state);
+  itemPressState=null;
+}
+function beginItemDrag(state){
+  if(!state||itemDragState||!state.cell||!state.cell.isConnected)return;
+  if(state.timer){clearTimeout(state.timer);state.timer=null;}
+  const rect=state.cell.getBoundingClientRect();
+  const ghost=state.cell.cloneNode(true);
+  ghost.classList.remove('drag-source','drop-target');
+  ghost.classList.add('item-drag-ghost');
+  ghost.removeAttribute('onclick');
+  ghost.style.width=rect.width+'px';
+  ghost.style.height=rect.height+'px';
+  document.body.appendChild(ghost);
+  state.cell.classList.add('drag-source');
+  itemDragState={from:state.idx,target:state.idx,source:state.cell,ghost,width:rect.width,height:rect.height};
+  updateItemDrag(state.lastX,state.lastY);
+}
+function updateItemDrag(x,y){
+  const drag=itemDragState;if(!drag)return;
+  drag.ghost.style.left=(x-drag.width/2)+'px';
+  drag.ghost.style.top=(y-drag.height/2)+'px';
+  document.querySelectorAll('#itemGrid .item-cell.drop-target').forEach(cell=>cell.classList.remove('drop-target'));
+  const under=document.elementFromPoint(x,y);
+  const target=under&&under.closest?under.closest('#itemGrid .item-cell'):null;
+  if(target){
+    const idx=parseInt(target.dataset.index);
+    if(Number.isInteger(idx)){
+      drag.target=idx;
+      if(idx!==drag.from)target.classList.add('drop-target');
+    }
+  }
+  const edge=72;
+  if(y<edge&&window.scrollBy)window.scrollBy(0,-12);
+  else if(y>window.innerHeight-edge&&window.scrollBy)window.scrollBy(0,12);
+}
+function finishItemDrag(commit){
+  const drag=itemDragState;if(!drag)return;
+  drag.source&&drag.source.classList.remove('drag-source');
+  document.querySelectorAll('#itemGrid .item-cell.drop-target').forEach(cell=>cell.classList.remove('drop-target'));
+  drag.ghost&&drag.ghost.remove();
+  itemDragState=null;
+  itemClickSuppressedUntil=Date.now()+700;
+  if(commit&&drag.from!==drag.target)moveGridItem(drag.from,drag.target);
+}
+function cancelItemArrangeGesture(){
+  clearItemPressState();
+  finishItemDrag(false);
+}
+function onItemPointerDown(e){
+  if(e.button!==undefined&&e.button!==0)return;
+  if(e.target.closest('.item-delete-x'))return;
+  const cell=e.target.closest('#itemGrid .item-cell');if(!cell)return;
+  cancelItemArrangeGesture();
+  const idx=parseInt(cell.dataset.index);if(!Number.isInteger(idx))return;
+  const state={cell,idx,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,lastX:e.clientX,lastY:e.clientY,timer:null};
+  itemPressState=state;
+  if(cell.setPointerCapture){try{cell.setPointerCapture(e.pointerId);}catch(err){}}
+  state.timer=setTimeout(()=>{
+    if(itemPressState!==state)return;
+    itemClickSuppressedUntil=Date.now()+700;
+    setItemArrangeMode(true);
+    if(navigator.vibrate)navigator.vibrate(12);
+    beginItemDrag(state);
+  },itemArrangeMode?170:520);
+}
+function onItemPointerMove(e){
+  const state=itemPressState;if(!state||state.pointerId!==e.pointerId)return;
+  state.lastX=e.clientX;state.lastY=e.clientY;
+  const distance=Math.hypot(e.clientX-state.startX,e.clientY-state.startY);
+  if(itemDragState){
+    e.preventDefault();
+    updateItemDrag(e.clientX,e.clientY);
+    return;
+  }
+  if(itemArrangeMode&&distance>6){
+    itemClickSuppressedUntil=Date.now()+700;
+    beginItemDrag(state);
+    e.preventDefault();
+  }else if(!itemArrangeMode&&distance>10){
+    clearItemPressState();
+  }
+}
+function onItemPointerUp(e){
+  const state=itemPressState;if(!state||state.pointerId!==e.pointerId)return;
+  if(state.timer)clearTimeout(state.timer);
+  releaseItemPointer(state);
+  const shouldCommit=!!itemDragState;
+  itemPressState=null;
+  if(shouldCommit)finishItemDrag(true);
+}
+function onItemPointerCancel(e){
+  const state=itemPressState;if(!state||state.pointerId!==e.pointerId)return;
+  clearItemPressState();
+  finishItemDrag(false);
+}
+function setupItemArrangeGestures(){
+  const grid=document.getElementById('itemGrid');if(!grid)return;
+  grid.addEventListener('pointerdown',onItemPointerDown);
+  grid.addEventListener('pointermove',onItemPointerMove,{passive:false});
+  grid.addEventListener('pointerup',onItemPointerUp);
+  grid.addEventListener('pointercancel',onItemPointerCancel);
+  grid.addEventListener('contextmenu',e=>{if(e.target.closest('.item-cell'))e.preventDefault();});
+  grid.addEventListener('dragstart',e=>e.preventDefault());
+}
+
 /* ═══ ITEM DETAIL ═══ */
 function handleItemClick(idx){
+  if(itemArrangeMode||Date.now()<itemClickSuppressedUntil)return;
   const p=getProject(curProjectId);if(!p||!p.items[idx])return;
   const item=p.items[idx];
   curItemIdx=idx;
@@ -797,10 +1024,11 @@ async function quickItemImgSelected(input){
 }
 function openItem(idx){
   const p=getProject(curProjectId);if(!p||!p.items[idx])return;
+  if(document.getElementById('viewDetail').classList.contains('active'))rememberDetailScroll();
   curItemIdx=idx;
   const item=p.items[idx];
   document.getElementById('itemTitle').textContent=item.name||('品目'+(idx+1));
-  document.getElementById('itemBackBtn').onclick=()=>{switchView('viewDetail');renderDetail();};
+  document.getElementById('itemBackBtn').onclick=returnToDetail;
   let html='<div class="card-detail">';
   if(item.img)html+=`<div class="card-detail-media"><img class="card-detail-img" src="${item.img}"></div>`;
   html+='<div class="card-detail-body">';
@@ -827,7 +1055,7 @@ async function saveCheckin(){
   item.collected=true;
   item.collectedDate=document.getElementById('checkinDate').value||new Date().toISOString().slice(0,10);
   item.checkinNote=document.getElementById('checkinNote').value.trim();
-  save();closeModal('checkinModal');switchView('viewDetail');renderDetail(p);
+  save();closeModal('checkinModal');returnToDetail();
   // Show celebration
   const proj=getProject(curProjectId);
   if(proj)showCheckinCelebration(proj.duty);
@@ -969,9 +1197,10 @@ function deleteItem(){
   if(sectionIdx>=0)p.sections[sectionIdx].count=Math.max(0,(parseInt(p.sections[sectionIdx].count)||0)-1);
   p.items.splice(curItemIdx,1);
   p.count=p.items.length;
+  normalizeGenericItemNames(p);
   curItemIdx=null;editItemIdx=null;
   closeModal('itemModal');
-  save();switchView('viewDetail');renderDetail(p);
+  save();returnToDetail();
 }
 
 /* ═══ MENUS ═══ */
@@ -1014,6 +1243,7 @@ async function migrateLocalImages(){
 }
 
 /* ═══ INIT ═══ */
+setupItemArrangeGestures();
 renderProjects();
 migrateLocalImages();
 </script>
