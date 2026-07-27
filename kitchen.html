@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="御膳房">
+<title>御膳房</title>
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="apple-touch-icon.png">
+<link rel="icon" href="favicon.ico">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;
+  background:#FAFAFA;color:#1a1a1a;min-height:100vh;min-height:100dvh;
+  padding-bottom:100px;
+}
+.top-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 20px;padding-top:env(safe-area-inset-top,24px);
+  border-bottom:1px solid #eee;background:#fff;
+  position:sticky;top:0;z-index:50;
+}
+.top-bar h1{font-size:15px;font-weight:600;letter-spacing:2px;color:#8B6914}
+.btn-s{
+  font-size:11px;color:#999;background:none;border:1px solid #ddd;
+  border-radius:6px;padding:5px 10px;cursor:pointer;font-family:inherit;
+}
+.btn-s:active{background:#f5f5f5}
+.view{display:none}.view.active{display:block}
+
+/* ── Shop tiles ── */
+.shop-grid{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:10px;
+  padding:16px;
+}
+.shop-tile{
+  background:#fff;border:1px solid #eee;border-radius:14px;
+  cursor:pointer;transition:all 0.15s;position:relative;overflow:hidden;
+  aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:12px;
+}
+.shop-tile:active{transform:scale(0.97);background:#FFFDF7}
+.shop-icon-wrap{
+  width:56px;height:56px;border-radius:14px;overflow:hidden;
+  margin-bottom:8px;display:flex;align-items:center;justify-content:center;
+  background:#FFF8E6;flex-shrink:0;
+}
+.shop-icon-wrap img{width:100%;height:100%;object-fit:cover}
+.shop-icon-wrap .emoji-fallback{font-size:28px}
+.shop-tile-name{font-size:13px;font-weight:600;color:#333;margin-bottom:3px;line-height:1.3}
+.shop-tile-meta{font-size:10px;color:#bbb;margin-bottom:6px}
+.shop-tile-progress{width:80%;height:3px;background:#f0f0f0;border-radius:2px;overflow:hidden}
+.shop-tile-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,#E8B96A,#D4A24A);transition:width 0.3s}
+.shop-tile-pct{font-size:10px;color:#ccc;margin-top:3px;font-variant-numeric:tabular-nums}
+.shop-complete-dot{position:absolute;top:10px;right:10px;width:8px;height:8px;border-radius:50%;background:#5BA66B}
+.shop-tile-add{border:1.5px dashed #ddd;background:#fff;font-size:28px;color:#ddd}
+.shop-tile-add:active{background:#f8f8f8}
+
+/* ── Shop detail ── */
+.shop-header{
+  padding:16px 20px 8px;display:flex;align-items:center;justify-content:space-between;
+}
+.shop-header h2{font-size:15px;font-weight:600;color:#333;letter-spacing:1px}
+.back-btn{font-size:13px;color:#999;background:none;border:none;cursor:pointer;font-family:inherit;padding:4px}
+.back-btn:active{color:#666}
+.shop-overall{
+  padding:0 20px 12px;display:flex;align-items:center;gap:8px;font-size:11px;color:#bbb;
+}
+.shop-overall-bar{flex:1;height:3px;background:#f0f0f0;border-radius:2px;overflow:hidden}
+.shop-overall-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,#E8B96A,#D4A24A);transition:width 0.3s}
+
+/* ── Series ── */
+.series-section{margin-bottom:20px}
+.series-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px;margin-bottom:8px;
+}
+.series-title{font-size:12px;font-weight:600;color:#999;letter-spacing:0.5px;cursor:pointer}
+.series-count{font-size:10px;color:#ccc;font-variant-numeric:tabular-nums}
+.series-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 20px;
+}
+
+/* ── Dish cells ── */
+.dish-cell{
+  aspect-ratio:1;border-radius:10px;border:1.5px solid #e8e8e8;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  cursor:pointer;transition:all 0.15s;position:relative;overflow:hidden;
+  background:#f5f5f5;
+}
+.dish-cell:active{transform:scale(0.97)}
+.dish-cell .dish-img{
+  width:100%;height:100%;object-fit:cover;border-radius:9px;
+  position:absolute;top:0;left:0;
+  filter:grayscale(100%) brightness(0.85);
+  transition:filter 0.4s;
+}
+.dish-cell.collected{border-color:#E8B96A}
+.dish-cell.collected .dish-img{filter:none}
+.dish-cell .dish-num{
+  font-size:20px;font-weight:200;color:#ddd;font-variant-numeric:tabular-nums;
+  position:relative;z-index:1;
+}
+.dish-cell .dish-label{
+  position:absolute;bottom:0;left:0;right:0;
+  background:linear-gradient(transparent,rgba(0,0,0,0.5));
+  color:#fff;font-size:10px;font-weight:500;
+  padding:14px 5px 4px;border-radius:0 0 9px 9px;
+  text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  z-index:1;
+}
+.dish-cell:not(.has-img) .dish-label{
+  background:none;color:#ccc;position:static;
+  font-size:9px;padding:0 4px;margin-top:2px;
+}
+.dish-cell.collected:not(.has-img){background:#FFFDF7;border-color:#E8B96A}
+.dish-cell.collected:not(.has-img) .dish-num{color:#E8B96A}
+.dish-check{
+  position:absolute;top:4px;right:4px;width:18px;height:18px;
+  border-radius:50%;background:rgba(232,185,106,0.9);
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;color:#fff;z-index:2;
+}
+.add-series-btn{
+  margin:0 20px 16px;padding:10px;border:1.5px dashed #ddd;border-radius:10px;
+  background:#fff;font-size:12px;color:#aaa;cursor:pointer;
+  text-align:center;font-family:inherit;width:calc(100% - 40px);
+}
+.add-series-btn:active{background:#f8f8f8}
+
+/* ── Detail ── */
+.detail-card{margin:16px 20px;background:#fff;border:1px solid #eee;border-radius:12px;overflow:hidden}
+.detail-img{width:100%;aspect-ratio:4/3;object-fit:cover;background:#f5f5f5}
+.detail-body{padding:14px 16px}
+.detail-name{font-size:16px;font-weight:600;color:#333;margin-bottom:4px}
+.detail-date{font-size:11px;color:#bbb;margin-bottom:8px}
+.detail-note{font-size:13px;color:#666;line-height:1.6;white-space:pre-wrap}
+.detail-actions{display:flex;gap:8px;padding:0 20px;margin-top:8px}
+.detail-actions .btn{flex:1;padding:10px;border:none;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit}
+
+/* ── Modal ── */
+.modal-bg{
+  position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:200;
+  display:none;align-items:flex-end;justify-content:center;
+}
+.modal-bg.show{display:flex}
+.modal{
+  background:#fff;border-radius:16px 16px 0 0;width:100%;max-width:480px;
+  max-height:85vh;overflow-y:auto;padding:20px;
+  animation:slideUp 0.25s ease-out;
+}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal h2{font-size:15px;font-weight:600;margin-bottom:16px;color:#333}
+.modal label{display:block;font-size:12px;color:#999;margin-bottom:4px;margin-top:12px}
+.modal input,.modal textarea,.modal select{
+  width:100%;font-size:14px;padding:10px 12px;
+  border:1px solid #e0e0e0;border-radius:8px;font-family:inherit;background:#fff;color:#1a1a1a;
+}
+.modal textarea{resize:vertical;min-height:60px}
+.modal .btn-row{display:flex;gap:8px;margin-top:20px}
+.modal .btn{flex:1;padding:12px;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit}
+.modal .btn-primary{background:#1a1a1a;color:#fff}
+.modal .btn-primary:active{background:#333}
+.modal .btn-cancel{background:#f0f0f0;color:#666}
+.modal .btn-cancel:active{background:#e5e5e5}
+.modal .btn-danger{background:#fff;color:#D85A30;border:1px solid #f0d0c0}
+.modal .btn-danger:active{background:#FFF5F0}
+
+/* ── Image upload areas ── */
+.img-upload{
+  width:100%;aspect-ratio:4/3;border:1.5px dashed #ddd;border-radius:10px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  cursor:pointer;background:#fafafa;position:relative;overflow:hidden;margin-top:4px;
+}
+.img-upload:active{background:#f5f5f5}
+.img-upload .placeholder{text-align:center;color:#ccc;font-size:12px}
+.img-upload .placeholder em{font-size:24px;display:block;margin-bottom:4px;font-style:normal}
+.img-upload img{width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;border-radius:9px}
+.img-upload input[type="file"]{display:none}
+.img-upload-sq{width:80px;height:80px;aspect-ratio:1;border-radius:14px}
+
+/* ── Confirm ── */
+.confirm-bg{
+  position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:250;
+  display:none;align-items:center;justify-content:center;padding:20px;
+}
+.confirm-bg.show{display:flex}
+.confirm-box{background:#fff;border-radius:14px;padding:20px;width:100%;max-width:300px;text-align:center;animation:revealPop 0.2s ease-out}
+@keyframes revealPop{from{transform:scale(0.9);opacity:0}to{transform:scale(1);opacity:1}}
+.confirm-box p{font-size:14px;color:#333;margin-bottom:16px;line-height:1.5}
+.confirm-box .btn-row{display:flex;gap:8px}
+
+/* ── Action sheet ── */
+.action-sheet-bg{
+  position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:200;
+  display:none;align-items:flex-end;justify-content:center;
+}
+.action-sheet-bg.show{display:flex}
+.action-sheet{
+  background:#fff;border-radius:16px 16px 0 0;width:100%;max-width:480px;
+  padding:8px 0 env(safe-area-inset-bottom,12px);
+  animation:slideUp 0.2s ease-out;
+}
+.action-sheet .as-title{
+  font-size:14px;font-weight:600;color:#333;text-align:center;
+  padding:12px 20px 8px;border-bottom:1px solid #f0f0f0;
+}
+.action-sheet button{
+  display:block;width:100%;text-align:center;padding:14px 20px;
+  font-size:14px;color:#333;background:none;border:none;
+  border-bottom:1px solid #f5f5f5;cursor:pointer;font-family:inherit;
+}
+.action-sheet button:active{background:#f8f8f8}
+.action-sheet button.danger{color:#D85A30}
+.action-sheet button.cancel-as{color:#999;border-bottom:none}
+</style>
+</head>
+<body>
+
+<!-- ═══ SHOP LIST ═══ -->
+<div id="viewShops" class="view active">
+  <div class="top-bar"><h1>御膳房</h1></div>
+  <div class="shop-grid" id="shopGrid"></div>
+</div>
+
+<!-- ═══ SHOP DETAIL ═══ -->
+<div id="viewShop" class="view">
+  <div class="shop-header">
+    <button class="back-btn" onclick="showShops()">← 返回</button>
+    <h2 id="shopDetailName"></h2>
+    <button class="btn-s" onclick="openEditShop()" style="font-size:10px;padding:3px 8px">编辑</button>
+  </div>
+  <div class="shop-overall">
+    <div class="shop-overall-bar"><div class="shop-overall-fill" id="shopOverallFill"></div></div>
+    <span id="shopOverallText"></span>
+  </div>
+  <div id="seriesContainer"></div>
+  <button class="add-series-btn" onclick="openAddSeries()">+ 新系列</button>
+</div>
+
+<!-- ═══ DISH DETAIL ═══ -->
+<div id="viewDetail" class="view">
+  <div class="shop-header">
+    <button class="back-btn" onclick="backToShop()">← 返回</button>
+    <h2 id="detailSeriesName"></h2>
+    <div></div>
+  </div>
+  <div class="detail-card">
+    <img id="detailImg" class="detail-img" src="" alt="">
+    <div class="detail-body">
+      <div class="detail-name" id="detailDishName"></div>
+      <div class="detail-date" id="detailDate"></div>
+      <div class="detail-note" id="detailNote"></div>
+    </div>
+  </div>
+  <div class="detail-actions">
+    <button class="btn btn-cancel" onclick="openDishSetup()">编辑</button>
+  </div>
+</div>
+
+<!-- ═══ MODALS ═══ -->
+
+<!-- Shop -->
+<div class="modal-bg" id="modalShop">
+  <div class="modal">
+    <h2 id="modalShopTitle">添加店铺</h2>
+    <label>店铺图标</label>
+    <label class="img-upload img-upload-sq" id="shopIconUpload">
+      <div class="placeholder" id="shopIconPlaceholder"><em>🏪</em></div>
+      <img id="shopIconPreview" style="display:none" alt="">
+      <input type="file" id="shopIconInput" accept="image/*">
+    </label>
+    <label>店名</label>
+    <input id="inputShopName" placeholder="如：Subway">
+    <label>备注（选填）</label>
+    <textarea id="inputShopNote" placeholder="心斋桥店、只记常规款…"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-cancel" onclick="closeModal('modalShop')">取消</button>
+      <button class="btn btn-primary" onclick="saveShop()">保存</button>
+    </div>
+    <div class="btn-row" id="shopDeleteRow" style="display:none;margin-top:4px">
+      <button class="btn btn-danger" onclick="confirmDeleteShop()">删除店铺</button>
+    </div>
+  </div>
+</div>
+
+<!-- Series -->
+<div class="modal-bg" id="modalSeries">
+  <div class="modal">
+    <h2 id="modalSeriesTitle">添加系列</h2>
+    <label>系列名</label>
+    <input id="inputSeriesName" placeholder="如：常规款、夏日限定">
+    <label>菜品数量</label>
+    <input id="inputSeriesTotal" type="number" placeholder="12" min="1" max="99">
+    <div class="btn-row">
+      <button class="btn btn-cancel" onclick="closeModal('modalSeries')">取消</button>
+      <button class="btn btn-primary" onclick="saveSeries()">保存</button>
+    </div>
+    <div class="btn-row" id="seriesDeleteRow" style="display:none;margin-top:4px">
+      <button class="btn btn-danger" onclick="confirmDeleteSeries()">删除系列</button>
+    </div>
+  </div>
+</div>
+
+<!-- Dish setup -->
+<div class="modal-bg" id="modalDishSetup">
+  <div class="modal">
+    <h2 id="modalDishSetupTitle">设置菜品</h2>
+    <label>宣传图</label>
+    <label class="img-upload" id="dishImgUploadLabel">
+      <div class="placeholder" id="dishImgPlaceholder"><em>🖼</em>导入图片</div>
+      <img id="dishImgPreview" style="display:none" alt="">
+      <input type="file" id="dishImgInput" accept="image/*">
+    </label>
+    <label>菜品名</label>
+    <input id="inputDishSetupName" placeholder="如：照烧鸡三明治">
+    <div class="btn-row">
+      <button class="btn btn-cancel" onclick="closeModal('modalDishSetup')">取消</button>
+      <button class="btn btn-primary" onclick="saveDishSetup()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Dish checkin -->
+<div class="modal-bg" id="modalDishCheckin">
+  <div class="modal">
+    <h2>打卡</h2>
+    <div style="text-align:center;margin-bottom:12px">
+      <img id="checkinImg" style="width:120px;height:120px;object-fit:cover;border-radius:10px;border:2px solid #E8B96A" alt="">
+      <div id="checkinDishName" style="font-size:14px;font-weight:600;color:#333;margin-top:8px"></div>
+    </div>
+    <label>日期</label>
+    <input id="inputCheckinDate" type="date">
+    <label>想法（选填）</label>
+    <textarea id="inputCheckinNote" placeholder="一句话就够了"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-cancel" onclick="closeModal('modalDishCheckin')">取消</button>
+      <button class="btn btn-primary" onclick="saveDishCheckin()">收录 ✦</button>
+    </div>
+  </div>
+</div>
+
+<!-- Action sheet -->
+<div class="action-sheet-bg" id="dishActionSheet">
+  <div class="action-sheet">
+    <div class="as-title" id="asTitle"></div>
+    <button id="asCheckin" onclick="doCheckin()">打卡收录</button>
+    <button id="asUncollect" onclick="doUncollect()" style="display:none">取消打卡</button>
+    <button onclick="doEditDish()">编辑信息</button>
+    <button onclick="doViewDetail()" id="asViewDetail" style="display:none">查看详情</button>
+    <button class="danger" onclick="doDeleteDish()">删除</button>
+    <button class="cancel-as" onclick="closeActionSheet()">取消</button>
+  </div>
+</div>
+
+<!-- Confirm -->
+<div class="confirm-bg" id="confirmDialog">
+  <div class="confirm-box">
+    <p id="confirmText"></p>
+    <div class="btn-row">
+      <button class="btn btn-cancel" onclick="closeConfirm()">取消</button>
+      <button class="btn btn-primary" id="confirmOk">确定</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let shops=[];
+let curShopId=null,curSeriesId=null,curDishIdx=null;
+let editShopId=null,editSeriesId=null;
+
+const SK='goshanbou_v3';
+function load(){try{const r=localStorage.getItem(SK);if(r)shops=JSON.parse(r)}catch(e){}}
+function save(){try{localStorage.setItem(SK,JSON.stringify(shops))}catch(e){}}
+function gid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function getShop(id){return shops.find(s=>s.id===id)}
+function getSeries(shop,sid){return shop.series.find(s=>s.id===sid)}
+function shopStats(shop){
+  let c=0,t=0;
+  shop.series.forEach(s=>{t+=s.total;c+=s.dishes.filter(d=>d.collected).length});
+  return{collected:c,total:t};
+}
+
+// ── Compress image ──
+function compressImg(file,maxW,quality){
+  return new Promise(resolve=>{
+    const reader=new FileReader();
+    reader.onload=function(ev){
+      const img=new Image();
+      img.onload=function(){
+        const canvas=document.createElement('canvas');
+        let w=img.width,h=img.height;
+        if(w>maxW){h=h*maxW/w;w=maxW}
+        canvas.width=w;canvas.height=h;
+        canvas.getContext('2d').drawImage(img,0,0,w,h);
+        resolve(canvas.toDataURL('image/jpeg',quality));
+      };
+      img.src=ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// ── Wire up file inputs with change listeners ──
+function setupFileInput(inputId,previewId,placeholderId,maxW,quality,onDone){
+  const input=document.getElementById(inputId);
+  input.addEventListener('change',async function(){
+    const file=this.files[0];if(!file)return;
+    const data=await compressImg(file,maxW,quality);
+    const prev=document.getElementById(previewId);
+    prev.src=data;prev.style.display='block';
+    if(placeholderId)document.getElementById(placeholderId).style.display='none';
+    if(onDone)onDone(data);
+  });
+}
+
+let shopTempIcon=null;
+let dishTempImg=null;
+
+// ═══ RENDER SHOPS ═══
+function renderShops(){
+  const grid=document.getElementById('shopGrid');
+  let html=shops.map(s=>{
+    const st=shopStats(s);
+    const pct=st.total>0?Math.round(st.collected/st.total*100):0;
+    const done=st.collected>=st.total&&st.total>0;
+    const iconHtml=s.icon
+      ?`<img src="${s.icon}" alt="">`
+      :`<div class="emoji-fallback">🍽</div>`;
+    return`<div class="shop-tile" onclick="openShop('${s.id}')">
+      ${done?'<div class="shop-complete-dot"></div>':''}
+      <div class="shop-icon-wrap">${iconHtml}</div>
+      <div class="shop-tile-name">${esc(s.name)}</div>
+      <div class="shop-tile-meta">${st.collected} / ${st.total}</div>
+      <div class="shop-tile-progress"><div class="shop-tile-fill" style="width:${pct}%"></div></div>
+      <div class="shop-tile-pct">${pct}%</div>
+    </div>`;
+  }).join('');
+  html+=`<div class="shop-tile shop-tile-add" onclick="openAddShop()">+</div>`;
+  grid.innerHTML=html;
+}
+
+// ═══ SHOP DETAIL ═══
+function openShop(id){
+  curShopId=id;
+  const shop=getShop(id);if(!shop)return;
+  document.getElementById('shopDetailName').textContent=shop.name;
+  const st=shopStats(shop);
+  const pct=st.total>0?Math.round(st.collected/st.total*100):0;
+  document.getElementById('shopOverallFill').style.width=pct+'%';
+  document.getElementById('shopOverallText').textContent=`${st.collected} / ${st.total} 品  ${pct}%`;
+  renderSeries(shop);
+  switchView('viewShop');
+}
+
+function renderSeries(shop){
+  const ct=document.getElementById('seriesContainer');
+  if(!shop.series.length){
+    ct.innerHTML=`<div style="text-align:center;padding:40px 20px;color:#ccc;font-size:13px">还没有系列<br>添加一个开始收集</div>`;
+    return;
+  }
+  ct.innerHTML=shop.series.map(s=>{
+    const collected=s.dishes.filter(d=>d.collected).length;
+    let dh='';
+    for(let i=0;i<s.total;i++){
+      const d=s.dishes[i];
+      const hasImg=d&&d.img;
+      const isCollected=d&&d.collected;
+      const cls=['dish-cell'];
+      if(isCollected)cls.push('collected');
+      if(hasImg)cls.push('has-img');
+      let inner='';
+      if(hasImg){
+        inner+=`<img class="dish-img" src="${d.img}" alt="">`;
+        inner+=`<div class="dish-label">${esc(d.name||'')}</div>`;
+        if(isCollected)inner+=`<div class="dish-check">✓</div>`;
+      }else{
+        inner+=`<div class="dish-num">${i+1}</div>`;
+        if(d&&d.name)inner+=`<div class="dish-label">${esc(d.name)}</div>`;
+      }
+      dh+=`<div class="${cls.join(' ')}" onclick="tapDish('${s.id}',${i})">${inner}</div>`;
+    }
+    return`<div class="series-section">
+      <div class="series-header">
+        <span class="series-title" onclick="openEditSeries('${s.id}')">${esc(s.name)}</span>
+        <span class="series-count">${collected} / ${s.total}</span>
+      </div>
+      <div class="series-grid">${dh}</div>
+    </div>`;
+  }).join('');
+}
+
+// ═══ TAP DISH ═══
+function tapDish(seriesId,idx){
+  curSeriesId=seriesId;curDishIdx=idx;
+  const shop=getShop(curShopId);if(!shop)return;
+  const s=getSeries(shop,seriesId);if(!s)return;
+  const d=s.dishes[idx];
+  const name=d&&d.name?d.name:`第${idx+1}品`;
+  document.getElementById('asTitle').textContent=name;
+  const isCollected=d&&d.collected;
+  document.getElementById('asCheckin').style.display=isCollected?'none':'block';
+  document.getElementById('asUncollect').style.display=isCollected?'block':'none';
+  document.getElementById('asViewDetail').style.display=isCollected?'block':'none';
+  document.getElementById('dishActionSheet').classList.add('show');
+}
+function closeActionSheet(){document.getElementById('dishActionSheet').classList.remove('show')}
+
+function doCheckin(){
+  closeActionSheet();
+  const shop=getShop(curShopId);if(!shop)return;
+  const s=getSeries(shop,curSeriesId);if(!s)return;
+  const d=s.dishes[curDishIdx];
+  if(!d||(!d.img&&!d.name)){openDishSetup();return;}
+  const img=document.getElementById('checkinImg');
+  if(d.img){img.src=d.img;img.style.display='block'}else{img.style.display='none'}
+  document.getElementById('checkinDishName').textContent=d.name||`第${curDishIdx+1}品`;
+  document.getElementById('inputCheckinDate').value=new Date().toISOString().slice(0,10);
+  document.getElementById('inputCheckinNote').value='';
+  openModal('modalDishCheckin');
+}
+function saveDishCheckin(){
+  const shop=getShop(curShopId);if(!shop)return;
+  const s=getSeries(shop,curSeriesId);if(!s)return;
+  if(!s.dishes[curDishIdx])s.dishes[curDishIdx]={};
+  s.dishes[curDishIdx].collected=true;
+  s.dishes[curDishIdx].date=document.getElementById('inputCheckinDate').value;
+  s.dishes[curDishIdx].note=document.getElementById('inputCheckinNote').value.trim();
+  save();closeModal('modalDishCheckin');openShop(curShopId);
+}
+function doUncollect(){
+  closeActionSheet();
+  showConfirm('取消这道菜的打卡？',()=>{
+    const shop=getShop(curShopId);if(!shop)return;
+    const s=getSeries(shop,curSeriesId);if(!s)return;
+    s.dishes[curDishIdx].collected=false;
+    s.dishes[curDishIdx].date='';
+    s.dishes[curDishIdx].note='';
+    save();openShop(curShopId);
+  });
+}
+function doEditDish(){closeActionSheet();openDishSetup()}
+function doViewDetail(){
+  closeActionSheet();
+  const shop=getShop(curShopId);if(!shop)return;
+  const s=getSeries(shop,curSeriesId);if(!s)return;
+  const d=s.dishes[curDishIdx];if(!d)return;
+  document.getElementById('detailSeriesName').textContent=s.name;
+  document.getElementById('detailDishName').textContent=d.name||`第${curDishIdx+1}品`;
+  document.getElementById('detailDate').textContent=d.date||'';
+  document.getElementById('detailNote').textContent=d.note||'';
+  const img=document.getElementById('detailImg');
+  if(d.img){img.src=d.img;img.style.display='block'}else{img.style.display='none'}
+  switchView('viewDetail');
+}
+function doDeleteDish(){
+  closeActionSheet();
+  showConfirm('删除这道菜？',()=>{
+    const shop=getShop(curShopId);if(!shop)return;
+    const s=getSeries(shop,curSeriesId);if(!s)return;
+    s.dishes[curDishIdx]={collected:false};
+    save();openShop(curShopId);
+  });
+}
+
+// ═══ DISH SETUP ═══
+function openDishSetup(){
+  const shop=getShop(curShopId);if(!shop)return;
+  const s=getSeries(shop,curSeriesId);if(!s)return;
+  const d=s.dishes[curDishIdx]||{};
+  document.getElementById('modalDishSetupTitle').textContent=d.name?'编辑菜品':'设置菜品';
+  document.getElementById('inputDishSetupName').value=d.name||'';
+  if(d.img){
+    document.getElementById('dishImgPreview').src=d.img;
+    document.getElementById('dishImgPreview').style.display='block';
+    document.getElementById('dishImgPlaceholder').style.display='none';
+  }else{
+    document.getElementById('dishImgPreview').style.display='none';
+    document.getElementById('dishImgPlaceholder').style.display='block';
+  }
+  document.getElementById('dishImgInput').value='';
+  dishTempImg=null;
+  openModal('modalDishSetup');
+}
+function saveDishSetup(){
+  const name=document.getElementById('inputDishSetupName').value.trim();
+  const shop=getShop(curShopId);if(!shop)return;
+  const s=getSeries(shop,curSeriesId);if(!s)return;
+  if(!s.dishes[curDishIdx])s.dishes[curDishIdx]={collected:false};
+  if(name)s.dishes[curDishIdx].name=name;
+  if(dishTempImg){s.dishes[curDishIdx].img=dishTempImg;dishTempImg=null}
+  save();closeModal('modalDishSetup');openShop(curShopId);
+}
+
+// ═══ SHOP CRUD ═══
+function openAddShop(){
+  editShopId=null;shopTempIcon=null;
+  document.getElementById('modalShopTitle').textContent='添加店铺';
+  document.getElementById('inputShopName').value='';
+  document.getElementById('inputShopNote').value='';
+  document.getElementById('shopIconPreview').style.display='none';
+  document.getElementById('shopIconPlaceholder').style.display='block';
+  document.getElementById('shopIconInput').value='';
+  document.getElementById('shopDeleteRow').style.display='none';
+  openModal('modalShop');
+}
+function openEditShop(){
+  const shop=getShop(curShopId);if(!shop)return;
+  editShopId=shop.id;shopTempIcon=null;
+  document.getElementById('modalShopTitle').textContent='编辑店铺';
+  document.getElementById('inputShopName').value=shop.name;
+  document.getElementById('inputShopNote').value=shop.note||'';
+  if(shop.icon){
+    document.getElementById('shopIconPreview').src=shop.icon;
+    document.getElementById('shopIconPreview').style.display='block';
+    document.getElementById('shopIconPlaceholder').style.display='none';
+  }else{
+    document.getElementById('shopIconPreview').style.display='none';
+    document.getElementById('shopIconPlaceholder').style.display='block';
+  }
+  document.getElementById('shopIconInput').value='';
+  document.getElementById('shopDeleteRow').style.display='flex';
+  openModal('modalShop');
+}
+function saveShop(){
+  const name=document.getElementById('inputShopName').value.trim();
+  const note=document.getElementById('inputShopNote').value.trim();
+  if(!name)return;
+  if(editShopId){
+    const shop=getShop(editShopId);
+    if(shop){shop.name=name;shop.note=note;if(shopTempIcon)shop.icon=shopTempIcon}
+  }else{
+    shops.push({id:gid(),name,note,icon:shopTempIcon||'',created:new Date().toISOString().slice(0,10),series:[]});
+  }
+  shopTempIcon=null;save();renderShops();closeModal('modalShop');
+  if(editShopId&&curShopId===editShopId)openShop(editShopId);
+}
+function confirmDeleteShop(){
+  closeModal('modalShop');
+  showConfirm('确定删除这家店和所有记录？',()=>{
+    shops=shops.filter(s=>s.id!==editShopId);
+    save();renderShops();showShops();
+  });
+}
+
+// ═══ SERIES CRUD ═══
+function openAddSeries(){
+  editSeriesId=null;
+  document.getElementById('modalSeriesTitle').textContent='添加系列';
+  document.getElementById('inputSeriesName').value='';
+  document.getElementById('inputSeriesTotal').value='';
+  document.getElementById('seriesDeleteRow').style.display='none';
+  openModal('modalSeries');
+}
+function openEditSeries(sid){
+  const shop=getShop(curShopId);if(!shop)return;
+  const s=getSeries(shop,sid);if(!s)return;
+  editSeriesId=sid;
+  document.getElementById('modalSeriesTitle').textContent='编辑系列';
+  document.getElementById('inputSeriesName').value=s.name;
+  document.getElementById('inputSeriesTotal').value=s.total;
+  document.getElementById('seriesDeleteRow').style.display='flex';
+  openModal('modalSeries');
+}
+function saveSeries(){
+  const name=document.getElementById('inputSeriesName').value.trim();
+  const total=parseInt(document.getElementById('inputSeriesTotal').value)||0;
+  if(!name||total<1)return;
+  const shop=getShop(curShopId);if(!shop)return;
+  if(editSeriesId){
+    const s=getSeries(shop,editSeriesId);
+    if(s){
+      s.name=name;
+      if(total>s.total){for(let i=s.total;i<total;i++)if(!s.dishes[i])s.dishes[i]={collected:false}}
+      s.total=total;
+    }
+  }else{
+    shop.series.push({id:gid(),name,total,dishes:Array.from({length:total},()=>({collected:false}))});
+  }
+  save();closeModal('modalSeries');openShop(curShopId);
+}
+function confirmDeleteSeries(){
+  closeModal('modalSeries');
+  showConfirm('确定删除这个系列？',()=>{
+    const shop=getShop(curShopId);if(!shop)return;
+    shop.series=shop.series.filter(s=>s.id!==editSeriesId);
+    save();openShop(curShopId);
+  });
+}
+
+// ═══ NAV ═══
+function switchView(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function showShops(){renderShops();switchView('viewShops')}
+function backToShop(){openShop(curShopId)}
+
+// ═══ MODAL ═══
+function openModal(id){document.getElementById(id).classList.add('show')}
+function closeModal(id){document.getElementById(id).classList.remove('show')}
+function showConfirm(text,onOk){
+  document.getElementById('confirmText').textContent=text;
+  document.getElementById('confirmOk').onclick=()=>{closeConfirm();onOk()};
+  document.getElementById('confirmDialog').classList.add('show');
+}
+function closeConfirm(){document.getElementById('confirmDialog').classList.remove('show')}
+
+// ═══ INIT ═══
+load();renderShops();
+
+// Setup file input listeners
+setupFileInput('shopIconInput','shopIconPreview','shopIconPlaceholder',200,0.8,data=>{shopTempIcon=data});
+setupFileInput('dishImgInput','dishImgPreview','dishImgPlaceholder',600,0.7,data=>{dishTempImg=data});
+
+// Backdrop close
+document.querySelectorAll('.modal-bg').forEach(bg=>{bg.addEventListener('click',e=>{if(e.target===bg)bg.classList.remove('show')})});
+document.getElementById('confirmDialog').addEventListener('click',e=>{if(e.target.id==='confirmDialog')closeConfirm()});
+document.getElementById('dishActionSheet').addEventListener('click',e=>{if(e.target.id==='dishActionSheet')closeActionSheet()});
+</script>
+</body>
+</html>
