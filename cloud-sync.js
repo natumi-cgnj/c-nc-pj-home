@@ -9,7 +9,8 @@
   const META_KEY = 'liminal_cloud_meta_v1';
   const STATE_KEYS = [
     'daily_db', 'daily_presets', 'gacha_st', 'bean_st', 'habit_db', 'story_db',
-    'bjd_db3', 'techo_db2', 'shop_db', 'event_db', 'event_presets', 'dungeon_db'
+    'bjd_db3', 'techo_db2', 'shop_db', 'event_db', 'event_presets', 'dungeon_db',
+    'kitchen_db', 'home_modules', 'home_lines'
   ];
   const PAGE_KEYS = {
     'index.html': STATE_KEYS,
@@ -22,6 +23,7 @@
     'techo.html': ['techo_db2'],
     'event.html': ['event_db', 'event_presets', 'dungeon_db'],
     'dungeon.html': ['dungeon_db', 'daily_db'],
+    'kitchen.html': ['kitchen_db'],
     'backup.html': STATE_KEYS
   };
   const SDK_URL = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';

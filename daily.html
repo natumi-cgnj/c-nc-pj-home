@@ -12,14 +12,11 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;background:#FAFAFA;color:#1a1a1a;min-height:100vh;min-height:100dvh;padding-bottom:80px}
-
 .top-bar{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;padding-top:24px;border-bottom:1px solid #eee;background:#fff;position:sticky;top:0;z-index:50}
 .top-bar h1{font-size:15px;font-weight:600;letter-spacing:1px;color:#666}
 .top-bar .back{font-size:13px;color:#999;text-decoration:none}
 .top-bar .btn-s{font-size:11px;color:#999;background:none;border:1px solid #ddd;border-radius:6px;padding:4px 10px;cursor:pointer}
-
-/* Dynamic status bar - single row */
-.status-bar{display:flex;justify-content:space-around;padding:12px 20px;background:#fff;border-bottom:1px solid #f0f0f0;transition:all 0.25s ease}
+.status-bar{display:flex;justify-content:space-around;padding:12px 20px;background:#fff;border-bottom:1px solid #f0f0f0}
 .status-item{text-align:center;min-width:80px}
 .status-label{font-size:10px;color:#bbb;margin-bottom:2px}
 .status-value{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
@@ -29,29 +26,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .status-value.emerald-color{color:#5BA66B}
 .status-value.coffee-color{color:#8B6914}
 .status-value.tea-color{color:#5A7247}
-
-/* Tabs */
 .tabs{display:flex;background:#fff;border-bottom:1px solid #eee}
 .tab{flex:1;text-align:center;padding:12px;font-size:12px;font-weight:500;color:#aaa;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s}
 .tab.active{color:#1a1a1a;border-bottom-color:#1a1a1a}
-
-/* Drag sorting */
 .drag-handle{cursor:grab;color:#ccc;font-size:14px;padding:0 4px;user-select:none;touch-action:none;flex-shrink:0;display:flex;align-items:center}
 .drag-handle:active{cursor:grabbing;color:#999}
 .dragging{opacity:0.5;background:#f8f8f8}
 .drag-over{border-top:2px solid #E8B96A}
 .clear-done{font-size:10px;color:#bbb;background:none;border:1px solid #e0e0e0;border-radius:5px;padding:2px 8px;cursor:pointer;font-family:inherit;margin-left:auto}
 .clear-done:active{background:#f5f5f5;color:#999}
-
-/* Sub-tabs (within habits) */
 .sub-tabs{display:flex;gap:0;margin-bottom:12px;border:1px solid #e0e0e0;border-radius:8px;overflow:hidden}
 .sub-tab{flex:1;text-align:center;padding:8px;font-size:12px;font-weight:500;color:#999;cursor:pointer;background:#fff;border:none;font-family:inherit;transition:all 0.2s}
 .sub-tab.active{background:#1a1a1a;color:#fff}
-
 .content{padding:16px 20px}
 .section-title{font-size:13px;font-weight:600;color:#999;margin-bottom:8px;letter-spacing:0.5px}
-
-/* Task card */
 .task-card{background:#fff;border:1px solid #eee;border-radius:10px;padding:12px 14px;margin-bottom:8px;transition:all 0.2s}
 .task-card.completed{opacity:0.45}
 .task-top{display:flex;align-items:center;gap:12px}
@@ -64,11 +52,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .task-quote img{width:28px;height:28px;border-radius:50%;flex-shrink:0;margin-top:2px}
 .task-quote span{flex:1}
 .task-reward-toast{font-size:11px;color:#5BA66B;text-align:center;padding:6px;min-height:20px}
-
 .drop-label{font-size:9px;font-weight:500;letter-spacing:0.5px;margin-bottom:4px}
-
-/* Commission progress and split pools */
-.progress-box{background:#fff;border:1.5px solid #E8B96A;border-radius:10px;padding:12px 14px;margin-bottom:16px;cursor:pointer}
+/* Commission - 3 columns */
+.comm-columns{display:flex;flex-direction:column;gap:14px}
+.comm-col{border:1px solid #eee;border-radius:10px;overflow:hidden}
+.comm-col-header{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#fafafa;border-bottom:1px solid #f0f0f0}
+.comm-col-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.comm-col-title{font-size:12px;font-weight:500;color:#555;flex:1}
+.comm-col-status{font-size:10px;color:#bbb}
+.comm-col-body{padding:12px 14px}
+.comm-accept-btn{display:inline-block;font-size:11px;color:#E8B96A;border:1px solid #E8B96A;border-radius:6px;padding:4px 12px;background:#fff;cursor:pointer;font-family:inherit;margin-top:8px}
+.comm-accept-btn:active{background:#fdf6eb}
+.comm-accepted{font-size:10px;color:#5BA66B;margin-top:4px}
+.comm-tomorrow-tag{font-size:9px;color:#bbb;background:#f8f8f8;border-radius:4px;padding:2px 6px;display:inline-block;margin-bottom:6px}
+/* Progress section */
+.progress-box{background:#fff;border:1.5px solid #E8B96A;border-radius:10px;padding:12px 14px;margin-top:16px;cursor:pointer}
 .progress-bar-bg{background:#f0f0f0;border-radius:4px;height:4px;margin-top:8px;overflow:hidden}
 .progress-bar-fill{background:#E8B96A;height:100%;border-radius:4px;transition:width 0.3s}
 .pool-section{margin-bottom:18px}
@@ -81,8 +79,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .pool-list-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
 .pool-list-name{flex:1;font-size:11px;color:#555}
 .daily-complete{background:#f8faf7;border:1px solid #e2eadf;border-radius:10px;padding:16px 14px;text-align:center;color:#7b9575;font-size:12px}
-
-/* Todo items */
+/* Todo */
 .todo-card{background:#fff;border:1px solid #eee;border-radius:10px;padding:12px 14px;margin-bottom:8px}
 .todo-card.completed{opacity:0.4}
 .todo-card.completed .todo-name{text-decoration:line-through;color:#bbb}
@@ -98,8 +95,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
 .section-header .section-title{margin-bottom:0}
 .clickable-body{cursor:pointer}
-
-/* Habit items */
+/* Habits */
 .habit-card{background:#fff;border:1px solid #eee;border-radius:11px;padding:14px 16px;margin-bottom:9px}
 .habit-top{display:flex;align-items:flex-start;gap:12px}
 .habit-add-btn{width:24px;height:24px;border-radius:50%;border:2px solid #ddd;background:#fff;color:#aaa;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px;line-height:1;transition:all .2s;margin-top:2px}
@@ -119,14 +115,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .habit-empty{font-size:11px;color:#ccc;padding:14px;text-align:center;background:#fff;border:1px dashed #e6e6e6;border-radius:9px}
 .add-inline{width:100%;padding:12px;border:1px dashed #ddd;border-radius:10px;background:#fff;font-size:13px;color:#aaa;cursor:pointer;text-align:center;margin-top:8px;font-family:inherit}
 .add-inline:active{background:#f8f8f8}
-
-/* Habit type toggle */
+/* Interval indicator */
+.interval-info{font-size:10px;color:#bbb;margin-top:4px}
+.interval-info.ok{color:#5BA66B}
+/* Type toggle */
 .type-toggle{display:flex;gap:0;border:1px solid #e0e0e0;border-radius:8px;overflow:hidden;margin-top:4px}
 .type-toggle button{flex:1;padding:8px;font-size:13px;border:none;background:#fff;cursor:pointer;font-family:inherit;color:#999;transition:all 0.2s}
 .type-toggle button.active{background:#1a1a1a;color:#fff}
 .type-toggle.locked button{cursor:default;opacity:.45}
 .type-toggle.locked button.active{opacity:1}
-
 /* Modals */
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:200;display:none;align-items:flex-end;justify-content:center}
 .modal-bg.show{display:flex}
@@ -145,8 +142,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .empty{text-align:center;padding:40px 20px;color:#ccc;font-size:13px;line-height:1.6}
 .detail-description{font-size:13px;line-height:1.75;color:#555;white-space:pre-wrap;background:#fafafa;border-radius:10px;padding:12px 14px;min-height:48px}
 .detail-meta{font-size:11px;color:#aaa;line-height:1.8;margin-top:12px}
-
-/* Signin popup */
 .signin-popup{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:300;display:none;align-items:center;justify-content:center}
 .signin-popup.show{display:flex}
 .signin-box{background:#fff;border-radius:16px;padding:24px 20px;width:90%;max-width:340px;text-align:center;animation:revealPop 0.4s cubic-bezier(0.34,1.56,0.64,1)}
@@ -168,31 +163,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .streak-reward.current{border-color:#E8B96A}
 .streak-reward .sr-day{font-size:9px;color:#aaa}
 .streak-reward .sr-reward{font-size:10px;font-weight:500;color:#555}
-/* Aff row in modal */
 .aff-row{display:flex;gap:8px}
 .aff-row>div{flex:1}
 </style>
 </head>
 <body>
-
 <div class="top-bar">
   <a class="back" href="index.html">&larr; Home</a>
   <h1>DAILY</h1>
   <button class="btn-s" onclick="showModal('exportModal')">备份</button>
 </div>
-
-<!-- Dynamic status bar - changes with tab -->
 <div class="status-bar" id="statusBar"></div>
-
 <div class="tabs">
   <div class="tab" data-tab="drop" onclick="switchTab('drop')">委托</div>
   <div class="tab active" data-tab="todo" onclick="switchTab('todo')">日程</div>
   <div class="tab" data-tab="habits" onclick="switchTab('habits')">日课</div>
 </div>
-
 <div class="content" id="content"></div>
 
-<!-- Signin popup (auto) -->
 <div class="signin-popup" id="signinPopup">
   <div class="signin-box">
     <h2 id="signinTitle">签到完成 ✦</h2>
@@ -204,14 +192,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   </div>
 </div>
 
-<!-- Add/edit todo -->
 <div class="modal-bg" id="todoModal">
   <div class="modal">
     <h2 id="todoModalTitle">添加日程</h2>
     <label>内容</label>
     <input type="text" id="todoContent" placeholder="如: 8.31前兑换商品券">
     <label>说明（可选）</label>
-    <textarea id="todoDescription" rows="4" placeholder="详细记录放在这里，列表中不会直接展开"></textarea>
+    <textarea id="todoDescription" rows="4" placeholder="详细记录放在这里"></textarea>
     <label>截止日期（可选）</label>
     <input type="date" id="todoDate" value="">
     <label>完成碎片</label>
@@ -226,22 +213,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   </div>
 </div>
 
-<!-- Add/edit habit -->
 <div class="modal-bg" id="habitModal">
   <div class="modal">
     <h2 id="habitModalTitle">添加日课</h2>
     <label>名称</label>
-    <input type="text" id="habitName" placeholder="如: 记10个韩语单词">
+    <input type="text" id="habitName" placeholder="如: 洗澡">
     <label>说明（可选）</label>
-    <textarea id="habitDescription" rows="4" placeholder="详细记录放在这里，点开日课后查看"></textarea>
+    <textarea id="habitDescription" rows="4" placeholder="详细记录放在这里"></textarea>
     <label>类型</label>
     <input type="hidden" id="habitType" value="count" data-locked="false">
     <div class="type-toggle" id="habitTypeToggle">
-      <button type="button" class="active" data-type="daily" onclick="setHabitType('daily')">Days</button>
-      <button type="button" data-type="time" onclick="setHabitType('time')">Hours</button>
+      <button type="button" class="active" data-type="daily" onclick="setHabitType('daily')">间隔打卡</button>
       <button type="button" data-type="count" onclick="setHabitType('count')">Times</button>
     </div>
     <div id="habitTypeNote" style="font-size:10px;color:#bbb;margin-top:5px"></div>
+    <div id="intervalRow" style="display:none">
+      <label>间隔天数</label>
+      <input type="number" id="habitInterval" value="1" min="1" max="30" placeholder="每 X 天打卡一次">
+    </div>
     <label id="habitRewardLabel">每次记录产出</label>
     <div class="aff-row">
       <div><label style="margin-top:4px">咖啡豆</label><input type="number" id="habitCoffee" value="10" min="0" max="100"></div>
@@ -255,23 +244,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   </div>
 </div>
 
-<!-- Habit time logger -->
-<div class="modal-bg compact-modal-bg" id="timeLogModal">
-  <div class="modal compact-modal">
-    <h2>记录时长</h2>
-    <div id="timeLogName" style="font-size:12px;color:#777;margin-bottom:12px"></div>
-    <div class="aff-row">
-      <div><label style="margin-top:4px">小时</label><input type="number" id="timeLogHours" value="0" min="0" max="24"></div>
-      <div><label style="margin-top:4px">分钟</label><input type="number" id="timeLogMinutes" value="30" min="0" max="1440"></div>
-    </div>
-    <div class="btn-row">
-      <button class="btn btn-cancel" onclick="closeModal('timeLogModal')">取消</button>
-      <button class="btn btn-primary" onclick="saveTimeLog()">记录</button>
-    </div>
-  </div>
-</div>
-
-<!-- Item details -->
 <div class="modal-bg" id="detailModal">
   <div class="modal">
     <h2 id="detailTitle"></h2>
@@ -281,7 +253,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   </div>
 </div>
 
-<!-- Export/Import -->
 <div class="modal-bg" id="exportModal">
   <div class="modal">
     <h2>数据备份</h2>
@@ -306,7 +277,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 // ══════════════════════════════════════
-// DROP TASK POOL — Season 1 (46 tasks)
+// DROP TASK POOL
 // ══════════════════════════════════════
 let DROP_POOL=[
 // Jane pool (23)
@@ -360,82 +331,33 @@ let DROP_POOL=[
 {id:"d09",card:"Red Footsteps, Hard Sell",rarity:"SSR",task:"去尝一次日式烤肉或者一家你一直想去的餐厅",quote:"Neal:「You deserve a good meal, Natumi. 不是凑合的那种，是坐下来认真吃的那种。」Jane:「他难得没说废话。去吧。拍菜单给我看，我想知道你会点什么。」",nealAff:10,janeAff:5,src:"duo"},
 ];
 
-// Avatar images (base64)
 const JANE_AVT='data:image/png;base64,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';
 const NEAL_AVT='data:image/png;base64,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';
 
-// ── Load imported presets from localStorage if available ──
 (function loadPresets(){
-  try{
-    const p=JSON.parse(localStorage.getItem('daily_presets'));
-    if(p&&p.dropPool&&p.dropPool.length)DROP_POOL=p.dropPool;
-  }catch(e){}
+  try{const p=JSON.parse(localStorage.getItem('daily_presets'));if(p&&p.dropPool&&p.dropPool.length)DROP_POOL=p.dropPool;}catch(e){}
 })();
 
-// ── CSV import/export for DROP_POOL ──
+// CSV helpers
 function parseCSV(text){
-  const lines=text.split('\n').map(l=>l.replace(/\r$/,''));
-  if(lines.length<2)return[];
-  function splitRow(line){
-    const fields=[];let current='';let inQuote=false;
-    for(let i=0;i<line.length;i++){
-      const ch=line[i];
-      if(ch==='"'){if(inQuote&&line[i+1]==='"'){current+='"';i++;}else inQuote=!inQuote;}
-      else if(ch===','&&!inQuote){fields.push(current);current='';}
-      else current+=ch;
-    }
-    fields.push(current);
-    return fields;
-  }
-  const headers=splitRow(lines[0]).map(h=>h.trim());
-  const rows=[];
-  for(let i=1;i<lines.length;i++){
-    if(!lines[i].trim())continue;
-    const vals=splitRow(lines[i]);
-    const obj={};
-    headers.forEach((h,j)=>{obj[h]=vals[j]!==undefined?vals[j].trim():'';});
-    rows.push(obj);
-  }
-  return rows;
+  const lines=text.split('\n').map(l=>l.replace(/\r$/,''));if(lines.length<2)return[];
+  function splitRow(line){const f=[];let c='',inQ=false;for(let i=0;i<line.length;i++){const ch=line[i];if(ch==='"'){if(inQ&&line[i+1]==='"'){c+='"';i++;}else inQ=!inQ;}else if(ch===','&&!inQ){f.push(c);c='';}else c+=ch;}f.push(c);return f;}
+  const headers=splitRow(lines[0]).map(h=>h.trim());const rows=[];
+  for(let i=1;i<lines.length;i++){if(!lines[i].trim())continue;const vals=splitRow(lines[i]);const obj={};headers.forEach((h,j)=>{obj[h]=vals[j]!==undefined?vals[j].trim():'';});rows.push(obj);}return rows;
 }
-function toCSV(headers,rows){
-  function esc(v){v=String(v||'');if(v.includes(',')||v.includes('"')||v.includes('\n'))return '"'+v.replace(/"/g,'""')+'"';return v;}
-  let csv=headers.join(',')+'\n';
-  rows.forEach(r=>{csv+=headers.map(h=>esc(r[h])).join(',')+'\n';});
-  return csv;
-}
-function exportDropPool(){
-  const bom='\uFEFF';
-  const csv=toCSV(['id','card','ep','rarity','task','quote','nealAff','janeAff','src'],DROP_POOL);
-  const blob=new Blob([bom+csv],{type:'text/csv;charset=utf-8'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='daily_drop_pool.csv';a.click();
-}
-function importDropPool(input){
-  if(!input.files||!input.files[0])return;
-  const reader=new FileReader();
-  reader.onload=function(e){
-    try{
-      const rows=parseCSV(e.target.result);
-      const data=rows.map((r,i)=>({id:r.id||'d_'+(i+1),card:r.card||'',ep:r.ep||'',rarity:r.rarity||'R',task:r.task||'',quote:r.quote||'',nealAff:Number(r.nealAff)||0,janeAff:Number(r.janeAff)||0,src:r.src||'neal'})).filter(r=>r.task);
-      if(!data.length){alert('没有有效数据');return;}
-      DROP_POOL=data;
-      localStorage.setItem('daily_presets',JSON.stringify({dropPool:data}));
-      alert('导入 '+data.length+' 条委托任务');
-      render();
-    }catch(ex){alert('导入失败：'+ex.message);}
-    input.value='';
-  };
-  reader.readAsText(input.files[0]);
-}
+function toCSV(headers,rows){function esc(v){v=String(v||'');if(v.includes(',')||v.includes('"')||v.includes('\n'))return '"'+v.replace(/"/g,'""')+'"';return v;}let csv=headers.join(',')+'\n';rows.forEach(r=>{csv+=headers.map(h=>esc(r[h])).join(',')+'\n';});return csv;}
+function exportDropPool(){const bom='\uFEFF';const csv=toCSV(['id','card','ep','rarity','task','quote','nealAff','janeAff','src'],DROP_POOL);const blob=new Blob([bom+csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='daily_drop_pool.csv';a.click();}
+function importDropPool(input){if(!input.files||!input.files[0])return;const reader=new FileReader();reader.onload=function(e){try{const rows=parseCSV(e.target.result);const data=rows.map((r,i)=>({id:r.id||'d_'+(i+1),card:r.card||'',ep:r.ep||'',rarity:r.rarity||'R',task:r.task||'',quote:r.quote||'',nealAff:Number(r.nealAff)||0,janeAff:Number(r.janeAff)||0,src:r.src||'neal'})).filter(r=>r.task);if(!data.length){alert('没有有效数据');return;}DROP_POOL=data;localStorage.setItem('daily_presets',JSON.stringify({dropPool:data}));alert('导入 '+data.length+' 条委托任务');render();}catch(ex){alert('导入失败：'+ex.message);}input.value='';};reader.readAsText(input.files[0]);}
 
 // ══════════════════════════════════════
 // STATE
 // ══════════════════════════════════════
 let db;
 try{db=JSON.parse(localStorage.getItem('daily_db'));}catch(e){db=null;}
-// `affinity` is the legacy storage field for painting/archive fragments.
-// Keep the field name so existing local and cloud saves remain compatible.
-if(!db)db={affinity:{neal:0,jane:0},gems:{emerald:0,sapphire:0},signin:{streak:0,lastDate:null,history:[]},pool:[],todayTasks:[],todayDrops:{jane:null,neal:null},todayDate:null,completedToday:0,completedDrops:[],todos:[]};
+if(!db)db={affinity:{neal:0,jane:0},gems:{emerald:0,sapphire:0},signin:{streak:0,lastDate:null,history:[]},completedDrops:[],todos:[],
+  // New commission structure: preview → accept → active
+  commissions:{date:null,preview:{jane:null,neal:null,duo:null},accepted:{jane:null,neal:null,duo:null},active:{jane:null,neal:null,duo:null}}
+};
 if(!db.affinity||typeof db.affinity!=='object')db.affinity={neal:0,jane:0};
 db.affinity.neal=Number(db.affinity.neal)||0;
 db.affinity.jane=Number(db.affinity.jane)||0;
@@ -443,105 +365,90 @@ if(!db.signin)db.signin={streak:0,lastDate:null,history:[]};
 if(!Array.isArray(db.signin.history))db.signin.history=[];
 if(!db.completedDrops)db.completedDrops=[];
 if(!db.todos)db.todos=[];
-db.todos.forEach(t=>{
-  if(t.description===undefined)t.description=t.desc||'';
-});
-if(!db.todayDrops)db.todayDrops={jane:null,neal:null};
-if(db.todayDrops.jane===undefined)db.todayDrops.jane=null;
-if(db.todayDrops.neal===undefined)db.todayDrops.neal=null;
-if(!db.previousDropIds)db.previousDropIds={jane:null,neal:null};
-// Migrate Claude's split commission fields into the shared structure.
-if(!db.todayDrops.jane&&db.todayDropJane&&db.todayDropJane.dropId)db.todayDrops.jane={dropId:db.todayDropJane.dropId,completed:!!db.todayDropJane.completed};
-if(!db.todayDrops.neal&&db.todayDropNeal&&db.todayDropNeal.dropId)db.todayDrops.neal={dropId:db.todayDropNeal.dropId,completed:!!db.todayDropNeal.completed};
-delete db.todayDropJane;
-delete db.todayDropNeal;
-// Migrate the former single daily commission into its matching pool.
-if(db.todayDrop&&db.todayDrop.dropId&&!db.todayDrop.dismissed){
-  const legacyDrop=DROP_POOL.find(x=>x.id===db.todayDrop.dropId);
-  if(legacyDrop){
-    const slot=legacyDrop.src==='jane'?'jane':'neal';
-    if(!db.todayDrops[slot])db.todayDrops[slot]={dropId:db.todayDrop.dropId,completed:!!db.todayDrop.completed};
+db.todos.forEach(t=>{if(t.description===undefined)t.description=t.desc||'';});
+if(!db.commissions)db.commissions={date:null,preview:{jane:null,neal:null,duo:null},accepted:{jane:null,neal:null,duo:null},active:{jane:null,neal:null,duo:null}};
+
+// Migrate old commission fields into new structure
+if(db.todayDrops||db.todayDrop){
+  if(!db.commissions.date){
+    // Try to preserve old active drops
+    const oldDrops=db.todayDrops||{};
+    ['jane','neal'].forEach(slot=>{
+      const old=oldDrops[slot];
+      if(old&&old.dropId){
+        db.commissions.active[slot]={dropId:old.dropId,completed:!!old.completed};
+      }
+    });
+    // Handle single legacy drop
+    if(db.todayDrop&&db.todayDrop.dropId&&!db.todayDrop.dismissed){
+      const d=DROP_POOL.find(x=>x.id===db.todayDrop.dropId);
+      if(d){
+        const slot=d.src==='jane'?'jane':d.src==='duo'?'duo':'neal';
+        if(!db.commissions.active[slot])db.commissions.active[slot]={dropId:db.todayDrop.dropId,completed:!!db.todayDrop.completed};
+      }
+    }
+    db.commissions.date=db.todayDate||null;
   }
+  delete db.todayDrops;delete db.todayDrop;delete db.todayDate;delete db.previousDropIds;delete db.todayDropJane;delete db.todayDropNeal;delete db.completedToday;
 }
-delete db.todayDrop;
 // Migrate old pool tasks to todos
-if(db.pool&&db.pool.length>0){
-  db.pool.forEach(p=>{
-    db.todos.push({id:'td_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),content:p.content,date:null,completed:false});
-  });
-  db.pool=[];
-}
+if(db.pool&&db.pool.length>0){db.pool.forEach(p=>{db.todos.push({id:'td_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),content:p.content,date:null,completed:false});});db.pool=[];}
 
 let currentTab='todo';
 let habitSubTab='daily';
 let editingTodoId=null;
 let editingHabitId=null;
-let loggingHabitId=null;
 function save(){try{localStorage.setItem('daily_db',JSON.stringify(db));}catch(e){}}
 save();
 
-// ── Shared gem storage (gacha_st) ──
+// ── Shared gem storage ──
 function getGacha(){try{return JSON.parse(localStorage.getItem('gacha_st'))||{emerald:0,sapphire:0};}catch(e){return{emerald:0,sapphire:0};}}
 function saveGacha(g){try{localStorage.setItem('gacha_st',JSON.stringify(g));}catch(e){}}
 function getGems(){const g=getGacha();return{emerald:g.emerald||0,sapphire:g.sapphire||0};}
 function addGemsToGacha(e,s){const g=getGacha();g.emerald=(g.emerald||0)+e;g.sapphire=(g.sapphire||0)+s;saveGacha(g);}
-if(db.gems&&(db.gems.emerald>0||db.gems.sapphire>0)){
-  addGemsToGacha(db.gems.emerald,db.gems.sapphire);
-  db.gems={emerald:0,sapphire:0};save();
-}
+if(db.gems&&(db.gems.emerald>0||db.gems.sapphire>0)){addGemsToGacha(db.gems.emerald,db.gems.sapphire);db.gems={emerald:0,sapphire:0};save();}
 
-// ── Shared bean storage (bean_st) ──
+// ── Shared bean storage ──
 function getBeans(){try{return JSON.parse(localStorage.getItem('bean_st'))||{coffee:0,tea:0};}catch(e){return{coffee:0,tea:0};}}
 function saveBeans(b){try{localStorage.setItem('bean_st',JSON.stringify(b));}catch(e){}}
 function addBeans(coffee,tea){const b=getBeans();b.coffee=(b.coffee||0)+coffee;b.tea=(b.tea||0)+tea;saveBeans(b);}
 
-// ── Habit storage (habit_db) ──
+// ── Habit storage ──
 let hdb;
 try{hdb=JSON.parse(localStorage.getItem('habit_db'));}catch(e){hdb=null;}
 if(!hdb)hdb={habits:[],log:{},records:{}};
 if(!Array.isArray(hdb.habits))hdb.habits=[];
 if(!hdb.log)hdb.log={};
 if(!hdb.records)hdb.records={};
+// Migrate old types
 hdb.habits.forEach(h=>{
-  if(h.type==='timer')h.type='time';
+  if(h.type==='timer'||h.type==='time'){
+    // Hours→interval daily: clear old minute-based records to prevent "90 days" display
+    h.type='daily';
+    Object.keys(hdb.records).forEach(date=>{
+      if(hdb.records[date]&&hdb.records[date][h.id]){
+        const oldVal=Number(hdb.records[date][h.id].value)||0;
+        // Convert: if there was any activity that day, count as 1 day
+        hdb.records[date][h.id]={value:oldVal>0?1:0,events:[]};
+      }
+    });
+    // Delete timerLog so it doesn't restore minute values below
+    delete h.timerLog;
+  }
   if(!h.type)h.type='count';
   if(h.description===undefined)h.description=h.desc||'';
-  // Preserve minutes entered or timed in Claude's timerLog structure.
-  if(h.timerLog&&typeof h.timerLog==='object'){
-    Object.keys(h.timerLog).forEach(date=>{
-      const value=Math.max(0,Number(h.timerLog[date])||0);
-      if(!value)return;
-      if(!hdb.records[date])hdb.records[date]={};
-      const old=hdb.records[date][h.id];
-      if(!old)hdb.records[date][h.id]={value,events:[]};
-      else old.value=Math.max(Number(old.value)||0,value);
-    });
-  }
+  if(h.type==='daily'&&!h.interval)h.interval=1; // default: every day
+  if(h.timerLog&&typeof h.timerLog==='object'){Object.keys(h.timerLog).forEach(date=>{const value=Math.max(0,Number(h.timerLog[date])||0);if(!value)return;if(!hdb.records[date])hdb.records[date]={};const old=hdb.records[date][h.id];if(!old)hdb.records[date][h.id]={value,events:[]};else old.value=Math.max(Number(old.value)||0,value);});}
 });
-// Preserve old one-check-per-day history as one counted record. It has no
-// event reward entry because those rewards were already granted in the past.
-Object.keys(hdb.log).forEach(date=>{
-  const ids=Array.isArray(hdb.log[date])?hdb.log[date]:[];
-  if(!hdb.records[date])hdb.records[date]={};
-  ids.forEach(id=>{
-    if(!hdb.records[date][id])hdb.records[date][id]={value:1,events:[]};
-  });
-});
+Object.keys(hdb.log).forEach(date=>{const ids=Array.isArray(hdb.log[date])?hdb.log[date]:[];if(!hdb.records[date])hdb.records[date]={};ids.forEach(id=>{if(!hdb.records[date][id])hdb.records[date][id]={value:1,events:[]};});});
 function saveHabits(){try{localStorage.setItem('habit_db',JSON.stringify(hdb));}catch(e){}}
 saveHabits();
 
 // Daily reset at 4:00 AM
-function shiftedDateKey(dayOffset=0){
-  const d=new Date();
-  d.setHours(d.getHours()-4);
-  d.setDate(d.getDate()+dayOffset);
-  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-}
+function shiftedDateKey(dayOffset=0){const d=new Date();d.setHours(d.getHours()-4);d.setDate(d.getDate()+dayOffset);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 const today=()=>shiftedDateKey(0);
-const STREAK_REWARDS=[
-  {day:3,emerald:3,sapphire:3},{day:7,emerald:5,sapphire:5},
-  {day:14,emerald:8,sapphire:8},{day:21,emerald:10,sapphire:10},{day:30,emerald:15,sapphire:15},
-];
+const tomorrow=()=>shiftedDateKey(1);
+const STREAK_REWARDS=[{day:3,emerald:3,sapphire:3},{day:7,emerald:5,sapphire:5},{day:14,emerald:8,sapphire:8},{day:21,emerald:10,sapphire:10},{day:30,emerald:15,sapphire:15}];
 const BASE_SIGNIN={emerald:2,sapphire:2};
 
 // ══════════════════════════════════════
@@ -550,19 +457,14 @@ const BASE_SIGNIN={emerald:2,sapphire:2};
 function autoSignin(){
   if(db.signin.lastDate===today())return;
   const yesterdayStr=shiftedDateKey(-1);
-  if(db.signin.lastDate===yesterdayStr){db.signin.streak++;}
-  else{db.signin.streak=1;}
+  if(db.signin.lastDate===yesterdayStr){db.signin.streak++;}else{db.signin.streak=1;}
   db.signin.lastDate=today();
   if(!db.signin.history.includes(today()))db.signin.history.push(today());
   let totalE=BASE_SIGNIN.emerald,totalS=BASE_SIGNIN.sapphire;
   STREAK_REWARDS.forEach(sr=>{if(db.signin.streak===sr.day){totalE+=sr.emerald;totalS+=sr.sapphire;}});
-  addGemsToGacha(totalE,totalS);
-  // Signin also gives beans
-  addBeans(10,10);
-  save();
+  addGemsToGacha(totalE,totalS);addBeans(10,10);save();
   showSigninPopup(totalE,totalS);
 }
-
 function showSigninPopup(e,s){
   document.getElementById('signinTitle').textContent='签到完成 ✦';
   document.getElementById('signinStreak').textContent='连续签到 '+db.signin.streak+' 天';
@@ -570,75 +472,82 @@ function showSigninPopup(e,s){
   const milestone=STREAK_REWARDS.find(sr=>sr.day===db.signin.streak);
   if(milestone)rewardMsg+='  ('+db.signin.streak+'日连续奖励！)';
   document.getElementById('signinRewardText').textContent='✦ '+rewardMsg;
-  const now=new Date();
-  const year=now.getFullYear(),month=now.getMonth();
-  const firstDay=new Date(year,month,1).getDay();
-  const daysInMonth=new Date(year,month+1,0).getDate();
-  const todayDate=now.getDate();
+  const now=new Date();const year=now.getFullYear(),month=now.getMonth();
+  const firstDay=new Date(year,month,1).getDay();const daysInMonth=new Date(year,month+1,0).getDate();const todayDate=now.getDate();
   let cal='<div style="font-size:11px;color:#bbb;margin-bottom:6px;">'+(month+1)+'月</div><div class="streak-grid">';
   for(let i=0;i<firstDay;i++)cal+='<div class="streak-day empty"></div>';
-  for(let d=1;d<=daysInMonth;d++){
-    const ds=year+'-'+String(month+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
-    const signed=db.signin.history.includes(ds);
-    const isToday=d===todayDate;
-    let cls='streak-day';
-    if(signed)cls+=' signed';if(isToday)cls+=' today';
-    else if(d>todayDate)cls+=' future';else if(!signed)cls+=' past';
-    cal+='<div class="'+cls+'">'+d+'</div>';
-  }
-  cal+='</div>';
-  document.getElementById('signinCalendar').innerHTML=cal;
-  let srHtml=STREAK_REWARDS.map(sr=>{
-    const claimed=db.signin.streak>=sr.day;
-    const current=db.signin.streak<sr.day&&(STREAK_REWARDS.indexOf(sr)===0||db.signin.streak>=STREAK_REWARDS[STREAK_REWARDS.indexOf(sr)-1].day);
-    return'<div class="streak-reward '+(claimed?'claimed':'')+' '+(current?'current':'')+'"><div class="sr-day">'+sr.day+'日</div><div class="sr-reward">💎×'+(sr.emerald+sr.sapphire)+'</div></div>';
-  }).join('');
+  for(let d=1;d<=daysInMonth;d++){const ds=year+'-'+String(month+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');const signed=db.signin.history.includes(ds);const isToday=d===todayDate;let cls='streak-day';if(signed)cls+=' signed';if(isToday)cls+=' today';else if(d>todayDate)cls+=' future';else if(!signed)cls+=' past';cal+='<div class="'+cls+'">'+d+'</div>';}
+  cal+='</div>';document.getElementById('signinCalendar').innerHTML=cal;
+  let srHtml=STREAK_REWARDS.map(sr=>{const claimed=db.signin.streak>=sr.day;const current=db.signin.streak<sr.day&&(STREAK_REWARDS.indexOf(sr)===0||db.signin.streak>=STREAK_REWARDS[STREAK_REWARDS.indexOf(sr)-1].day);return'<div class="streak-reward '+(claimed?'claimed':'')+' '+(current?'current':'')+'"><div class="sr-day">'+sr.day+'日</div><div class="sr-reward">💎×'+(sr.emerald+sr.sapphire)+'</div></div>';}).join('');
   document.getElementById('signinStreakRewards').innerHTML=srHtml;
   document.getElementById('signinPopup').classList.add('show');
 }
 function closeSignin(){document.getElementById('signinPopup').classList.remove('show');}
 
 // ══════════════════════════════════════
-// DAILY DROP TASK
+// COMMISSION SYSTEM (Preview Tomorrow → Accept → Active Today)
 // ══════════════════════════════════════
-function initToday(){
-  if(db.todayDate!==today()){
-    db.previousDropIds={jane:null,neal:null};
-    ['jane','neal'].forEach(slot=>{
-      const previous=db.todayDrops&&db.todayDrops[slot];
-      if(previous&&!previous.completed)db.previousDropIds[slot]=previous.dropId;
-    });
-    db.todayDate=today();
-    db.todayDrops={jane:null,neal:null};
-    db.completedToday=0;
-    save();
-  }
+function getPoolForSlot(slot){
+  if(slot==='jane')return DROP_POOL.filter(d=>d.src==='jane');
+  if(slot==='neal')return DROP_POOL.filter(d=>d.src==='neal');
+  return DROP_POOL.filter(d=>d.src==='duo');
+}
+function pickRandomDrop(slot){
+  const pool=getPoolForSlot(slot);
+  const cm=db.commissions;
+  // Exclude completed + currently active + other slots' previews
+  const activeIds=['jane','neal','duo'].map(s=>cm.active[s]&&cm.active[s].dropId).filter(Boolean);
+  const previewIds=['jane','neal','duo'].map(s=>cm.preview[s]).filter(Boolean);
+  const excludeIds=[...db.completedDrops,...activeIds,...previewIds];
+  const unfinished=pool.filter(d=>!excludeIds.includes(d.id));
+  if(!unfinished.length)return null;
+  return unfinished[Math.floor(Math.random()*unfinished.length)].id;
 }
 
-function getDropPool(slot){
-  return DROP_POOL.filter(d=>slot==='jane'?d.src==='jane':d.src==='neal'||d.src==='duo');
-}
+function initCommissions(){
+  const cm=db.commissions;
+  if(cm.date===today())return; // already initialized today
 
-function getDailyDrop(slot){
-  if(db.todayDrops[slot])return db.todayDrops[slot];
-  const unfinished=getDropPool(slot).filter(d=>!db.completedDrops.includes(d.id));
-  const changed=unfinished.filter(d=>d.id!==db.previousDropIds[slot]);
-  const available=changed.length?changed:unfinished;
-  if(!available.length)return null;
-  const pick=available[Math.floor(Math.random()*available.length)];
-  db.todayDrops[slot]={dropId:pick.id,completed:false};
+  // Check if this is a multi-day gap (last visit was >1 day ago)
+  // In that case, accepted previews are stale - don't promote them
+  const lastDate=cm.date;
+  const yesterday=shiftedDateKey(-1);
+  const isNextDay=lastDate===yesterday;
+
+  // Day transition
+  ['jane','neal','duo'].forEach(slot=>{
+    // Return unfinished active tasks to pool (no penalty)
+    cm.active[slot]=null;
+
+    // Only promote accepted previews if this is the very next day
+    if(isNextDay&&cm.accepted[slot]){
+      cm.active[slot]={dropId:cm.accepted[slot],completed:false};
+    }
+    cm.accepted[slot]=null;
+
+    // Generate new preview for tomorrow
+    cm.preview[slot]=pickRandomDrop(slot);
+  });
+  cm.date=today();
   save();
-  return db.todayDrops[slot];
 }
 
-function completeDrop(slot){
-  const drop=db.todayDrops[slot];
-  if(!drop||drop.completed)return;
-  drop.completed=true;
-  const d=DROP_POOL.find(x=>x.id===drop.dropId);
+function acceptCommission(slot){
+  db.commissions.accepted[slot]=db.commissions.preview[slot];
+  save();render();
+}
+function unacceptCommission(slot){
+  db.commissions.accepted[slot]=null;
+  save();render();
+}
+
+function completeActive(slot){
+  const active=db.commissions.active[slot];
+  if(!active||active.completed)return;
+  active.completed=true;
+  const d=DROP_POOL.find(x=>x.id===active.dropId);
   if(d){
-    db.affinity.neal+=d.nealAff;
-    db.affinity.jane+=d.janeAff;
+    db.affinity.neal+=d.nealAff;db.affinity.jane+=d.janeAff;
     if(!db.completedDrops.includes(d.id))db.completedDrops.push(d.id);
   }
   save();render();
@@ -649,7 +558,7 @@ function completeDrop(slot){
 // RENDER
 // ══════════════════════════════════════
 function render(){
-  initToday();
+  initCommissions();
   renderStatusBar();
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===currentTab));
   const c=document.getElementById('content');
@@ -657,303 +566,149 @@ function render(){
   else if(currentTab==='todo')renderTodo(c);
   else if(currentTab==='habits')renderHabits(c);
 }
-
 function switchTab(t){currentTab=t;render();}
 
 function renderStatusBar(){
   const bar=document.getElementById('statusBar');
   let labelA,valueA,classA,labelB,valueB,classB;
-  if(currentTab==='drop'){
-    const gems=getGems();
-    labelA='蓝宝石';valueA=gems.sapphire||0;classA='sapphire-color';
-    labelB='祖母绿';valueB=gems.emerald||0;classB='emerald-color';
-  }else if(currentTab==='habits'){
-    const beans=getBeans();
-    labelA='咖啡豆';valueA=beans.coffee||0;classA='coffee-color';
-    labelB='茶叶';valueB=beans.tea||0;classB='tea-color';
-  }else{
-    labelA='画作碎片';valueA=db.affinity.neal||0;classA='neal-color';
-    labelB='档案碎片';valueB=db.affinity.jane||0;classB='jane-color';
-  }
-  bar.innerHTML='<div class="status-item"><div class="status-label" id="rewardLabelA">'+labelA+'</div><div class="status-value '+classA+'" id="rewardValueA">'+valueA+'</div></div>'
-    +'<div class="status-item"><div class="status-label" id="rewardLabelB">'+labelB+'</div><div class="status-value '+classB+'" id="rewardValueB">'+valueB+'</div></div>';
+  if(currentTab==='drop'){const gems=getGems();labelA='蓝宝石';valueA=gems.sapphire||0;classA='sapphire-color';labelB='祖母绿';valueB=gems.emerald||0;classB='emerald-color';}
+  else if(currentTab==='habits'){const beans=getBeans();labelA='咖啡豆';valueA=beans.coffee||0;classA='coffee-color';labelB='茶叶';valueB=beans.tea||0;classB='tea-color';}
+  else{labelA='画作碎片';valueA=db.affinity.neal||0;classA='neal-color';labelB='档案碎片';valueB=db.affinity.jane||0;classB='jane-color';}
+  bar.innerHTML='<div class="status-item"><div class="status-label">'+labelA+'</div><div class="status-value '+classA+'">'+valueA+'</div></div><div class="status-item"><div class="status-label">'+labelB+'</div><div class="status-value '+classB+'">'+valueB+'</div></div>';
 }
-
 function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 
 // ── Drop tab ──
 function renderDrop(c){
-  const done=db.completedDrops.length;
-  const total=DROP_POOL.length;
-  const pct=total?Math.round(done/total*100):0;
+  const cm=db.commissions;
   let html='<div class="task-reward-toast" id="taskToast"></div>';
-  html+='<div class="progress-box" onclick="toggleAllPoolLists()">'
-    +'<div style="display:flex;justify-content:space-between;align-items:center">'
-    +'<div><div style="font-size:12px;color:#999;margin-bottom:4px">委托任务 · 第一季</div>'
-    +'<div style="font-size:14px;font-weight:500;color:#333">'+done+' / '+total+'</div></div>'
-    +'<div style="font-size:10px;color:#bbb">展开全部 ▾</div></div>'
-    +'<div class="progress-bar-bg"><div class="progress-bar-fill" style="width:'+pct+'%"></div></div></div>';
-  html+=renderDropPool('jane');
-  html+=renderDropPool('neal');
-  c.innerHTML=html;
-}
 
-function renderDropPool(slot){
-  const pool=getDropPool(slot);
-  const doneCount=pool.filter(d=>db.completedDrops.includes(d.id)).length;
-  const isJane=slot==='jane';
-  const title=isJane?'Jane 的委托':'Neal · 双人委托';
-  const color=isJane?'#5BA66B':'#6B8AFF';
-  const listId='dropList_'+slot;
-  let html='<div class="pool-section">';
-  html+='<div class="pool-header" onclick="togglePoolList(\''+listId+'\')">'
-    +'<div class="pool-dot" style="background:'+color+'"></div>'
-    +'<div class="pool-title">'+title+'</div>'
-    +'<div class="pool-toggle">'+doneCount+' / '+pool.length+' · 展开</div></div>';
-  html+='<div class="pool-list" id="'+listId+'">';
-  pool.forEach(d=>{
-    const done=db.completedDrops.includes(d.id);
-    const dot=d.src==='duo'?'#9B6BCC':color;
-    html+='<div class="pool-list-row" style="opacity:'+(done?'0.4':'1')+'">'
-      +'<div class="pool-list-dot" style="background:'+dot+'"></div>'
-      +'<div class="pool-list-name" style="'+(done?'text-decoration:line-through':'')+'">'+(done?'✓ ':'')+d.rarity+' · '+escHtml(d.task)+'</div></div>';
+  // Active tasks for today (accepted yesterday)
+  const hasActive=['jane','neal','duo'].some(s=>cm.active[s]&&!cm.active[s].completed);
+  if(hasActive||['jane','neal','duo'].some(s=>cm.active[s]&&cm.active[s].completed)){
+    html+='<div class="section-title">今日委托</div>';
+    ['jane','neal','duo'].forEach(slot=>{
+      const a=cm.active[slot];if(!a)return;
+      const d=DROP_POOL.find(x=>x.id===a.dropId);if(!d)return;
+      const color=slot==='jane'?'#5BA66B':slot==='neal'?'#6B8AFF':'#9B6BCC';
+      const slotLabel=slot==='jane'?'Jane':slot==='neal'?'Neal':'双人';
+      if(a.completed){
+        html+='<div class="task-card completed" style="border-left:3px solid '+color+'"><div class="task-top"><div class="task-check checked">✓</div><div class="task-body"><div class="drop-label" style="color:'+color+'">'+slotLabel+' · '+d.rarity+'</div><div class="task-name" style="text-decoration:line-through">'+escHtml(d.task)+'</div></div></div></div>';
+      }else{
+        const affParts=[];if(d.nealAff)affParts.push('画作 +'+d.nealAff);if(d.janeAff)affParts.push('档案 +'+d.janeAff);
+        const avt=slot==='duo'?'<img src="'+NEAL_AVT+'" style="margin-right:-6px"><img src="'+JANE_AVT+'">':(slot==='jane'?'<img src="'+JANE_AVT+'">':'<img src="'+NEAL_AVT+'">');
+        html+='<div class="task-card" style="border-left:3px solid '+color+'"><div class="task-top"><div class="task-check" onclick="completeActive(\''+slot+'\')"></div><div class="task-body"><div class="drop-label" style="color:'+color+'">'+slotLabel+' · '+d.rarity+'</div><div class="task-name">'+escHtml(d.task)+'</div><div class="task-meta"><span>'+affParts.join(' · ')+'</span></div></div></div><div class="task-quote">'+avt+'<span>'+d.quote+'</span></div></div>';
+      }
+    });
+  }
+
+  // Preview for tomorrow
+  html+='<div class="section-title" style="margin-top:16px">明天的委托</div>';
+  html+='<div class="comm-columns">';
+  ['jane','neal','duo'].forEach(slot=>{
+    const color=slot==='jane'?'#5BA66B':slot==='neal'?'#6B8AFF':'#9B6BCC';
+    const slotLabel=slot==='jane'?'Jane 的委托':slot==='neal'?'Neal 的委托':'双人委托';
+    const previewId=cm.preview[slot];
+    const isAccepted=cm.accepted[slot]===previewId&&previewId;
+    html+='<div class="comm-col"><div class="comm-col-header"><div class="comm-col-dot" style="background:'+color+'"></div><div class="comm-col-title">'+slotLabel+'</div>';
+    if(isAccepted)html+='<div class="comm-col-status" style="color:#5BA66B">已接受</div>';
+    html+='</div><div class="comm-col-body">';
+    if(!previewId){
+      html+='<div style="font-size:11px;color:#ccc">✦ 该池已全部完成</div>';
+    }else{
+      const d=DROP_POOL.find(x=>x.id===previewId);
+      if(d){
+        const affParts=[];if(d.nealAff)affParts.push('画作 +'+d.nealAff);if(d.janeAff)affParts.push('档案 +'+d.janeAff);
+        html+='<div class="comm-tomorrow-tag">'+d.rarity+' · 明日生效</div>';
+        html+='<div class="task-name">'+escHtml(d.task)+'</div>';
+        html+='<div class="task-meta" style="margin-top:4px"><span>'+affParts.join(' · ')+'</span></div>';
+        if(isAccepted){
+          html+='<div class="comm-accepted">✓ 已接受 <button style="font-size:10px;color:#bbb;border:none;background:none;cursor:pointer;font-family:inherit" onclick="unacceptCommission(\''+slot+'\')">取消</button></div>';
+        }else{
+          html+='<button class="comm-accept-btn" onclick="acceptCommission(\''+slot+'\')">接受委托</button>';
+        }
+      }
+    }
+    html+='</div></div>';
   });
   html+='</div>';
 
-  const drop=getDailyDrop(slot);
-  if(!drop){
-    html+='<div class="daily-complete">✦ 这个委托池已全部完成</div>';
-  }else if(drop.completed){
-    html+='<div class="daily-complete">✓ 今日委托已完成</div>';
-  }else{
-    const d=DROP_POOL.find(x=>x.id===drop.dropId);
-    if(d){
-      const cardColor=d.src==='duo'?'#9B6BCC':color;
-      const srcLabel=d.src==='duo'?'双人委托':(isJane?'Jane 的委托':'Neal 的委托');
-      const affParts=[];
-      if(d.nealAff)affParts.push('画作 +'+d.nealAff);
-      if(d.janeAff)affParts.push('档案 +'+d.janeAff);
-      html+='<div class="task-card" style="border-left:3px solid '+cardColor+'">';
-      html+='<div class="task-top"><div class="task-check" onclick="completeDrop(\''+slot+'\')"></div>';
-      html+='<div class="task-body"><div class="drop-label" style="color:'+cardColor+'">'+d.rarity+' · '+srcLabel+'</div>';
-      html+='<div class="task-name">'+escHtml(d.task)+'</div><div class="task-meta"><span>'+affParts.join(' · ')+'</span></div></div></div>';
-      html+='<div class="task-quote">'+(d.src==='duo'?'<img src="'+NEAL_AVT+'" style="margin-right:-6px"><img src="'+JANE_AVT+'">':'<img src="'+(isJane?JANE_AVT:NEAL_AVT)+'">')+'<span>'+d.quote+'</span></div></div>';
-    }
-  }
-  return html+'</div>';
+  // Progress bar at bottom
+  const done=db.completedDrops.length;const total=DROP_POOL.length;const pct=total?Math.round(done/total*100):0;
+  html+='<div class="progress-box" onclick="toggleAllPoolLists()" style="margin-top:16px"><div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:12px;color:#999;margin-bottom:4px">委托进度 · 第一季</div><div style="font-size:14px;font-weight:500;color:#333">'+done+' / '+total+'</div></div><div style="font-size:10px;color:#bbb">展开全部 ▾</div></div><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:'+pct+'%"></div></div></div>';
+  ['jane','neal','duo'].forEach(slot=>{
+    const pool=getPoolForSlot(slot);const doneCount=pool.filter(d=>db.completedDrops.includes(d.id)).length;
+    const color=slot==='jane'?'#5BA66B':slot==='neal'?'#6B8AFF':'#9B6BCC';
+    const title=slot==='jane'?'Jane 的委托':slot==='neal'?'Neal 的委托':'双人委托';
+    const listId='dropList_'+slot;
+    html+='<div class="pool-section"><div class="pool-header" onclick="togglePoolList(\''+listId+'\')"><div class="pool-dot" style="background:'+color+'"></div><div class="pool-title">'+title+'</div><div class="pool-toggle">'+doneCount+'/'+pool.length+' · 展开</div></div><div class="pool-list" id="'+listId+'">';
+    pool.forEach(d=>{const dn=db.completedDrops.includes(d.id);html+='<div class="pool-list-row" style="opacity:'+(dn?'0.4':'1')+'"><div class="pool-list-dot" style="background:'+color+'"></div><div class="pool-list-name" style="'+(dn?'text-decoration:line-through':'')+'">'+(dn?'✓ ':'')+d.rarity+' · '+escHtml(d.task)+'</div></div>';});
+    html+='</div></div>';
+  });
+  c.innerHTML=html;
 }
-
-function togglePoolList(id){
-  const el=document.getElementById(id);
-  if(el)el.style.display=el.style.display==='block'?'none':'block';
-}
-
-function toggleAllPoolLists(){
-  const lists=Array.from(document.querySelectorAll('.pool-list'));
-  const shouldOpen=lists.some(el=>el.style.display!=='block');
-  lists.forEach(el=>{el.style.display=shouldOpen?'block':'none';});
-}
+function togglePoolList(id){const el=document.getElementById(id);if(el)el.style.display=el.style.display==='block'?'none':'block';}
+function toggleAllPoolLists(){const lists=Array.from(document.querySelectorAll('.pool-list'));const shouldOpen=lists.some(el=>el.style.display!=='block');lists.forEach(el=>{el.style.display=shouldOpen?'block':'none';});}
 
 // ── Todo tab ──
 function renderTodo(c){
-  const active=db.todos.filter(t=>!t.completed);
-  const done=db.todos.filter(t=>t.completed);
-  const dated=active.filter(t=>t.date).sort((a,b)=>a.date.localeCompare(b.date));
-  const undated=active.filter(t=>!t.date);
-
+  const active=db.todos.filter(t=>!t.completed);const done=db.todos.filter(t=>t.completed);
+  const dated=active.filter(t=>t.date).sort((a,b)=>a.date.localeCompare(b.date));const undated=active.filter(t=>!t.date);
   let html='';
-  if(dated.length){
-    html+='<div class="section-header"><div class="section-title">有截止日期</div></div>';
-    dated.forEach(t=>{html+=renderTodoCard(t);});
-  }
-  if(undated.length){
-    html+='<div class="section-header" style="margin-top:12px"><div class="section-title">待办</div></div>';
-    html+='<div id="todoSortable">';
-    undated.forEach(t=>{html+=renderTodoCard(t,true);});
-    html+='</div>';
-  }
-  if(done.length){
-    html+='<div class="section-header" style="margin-top:12px"><div class="section-title">已完成 ('+done.length+')</div><button class="clear-done" onclick="clearDoneTodos()">清空</button></div>';
-    done.slice(0,10).forEach(t=>{html+=renderTodoCard(t);});
-  }
-  if(!active.length&&!done.length){
-    html+='<div class="empty">还没有待办事项</div>';
-  }
+  if(dated.length){html+='<div class="section-header"><div class="section-title">有截止日期</div></div>';dated.forEach(t=>{html+=renderTodoCard(t);});}
+  if(undated.length){html+='<div class="section-header" style="margin-top:12px"><div class="section-title">待办</div></div><div id="todoSortable">';undated.forEach(t=>{html+=renderTodoCard(t,true);});html+='</div>';}
+  if(done.length){html+='<div class="section-header" style="margin-top:12px"><div class="section-title">已完成 ('+done.length+')</div><button class="clear-done" onclick="clearDoneTodos()">清空</button></div>';done.slice(0,10).forEach(t=>{html+=renderTodoCard(t);});}
+  if(!active.length&&!done.length)html+='<div class="empty">还没有待办事项</div>';
   html+='<button class="add-inline" onclick="openAddTodo()">+ 添加待办</button>';
-  c.innerHTML=html;
-  initDragSort('todoSortable','todo');
+  c.innerHTML=html;initDragSort('todoSortable','todo');
 }
-
 function renderTodoCard(t,draggable){
-  const isDone=t.completed;
-  let dateHtml='';
-  if(t.date){
-    const isOverdue=!isDone&&t.date<today();
-    dateHtml='<span class="todo-date'+(isOverdue?' overdue':'')+'">'+t.date+(isOverdue?' • 已过期':'')+'</span>';
-  }
-  const affParts=[];
-  if(t.nealAff)affParts.push('画+'+t.nealAff);
-  if(t.janeAff)affParts.push('档+'+t.janeAff);
+  const isDone=t.completed;let dateHtml='';
+  if(t.date){const isOverdue=!isDone&&t.date<today();dateHtml='<span class="todo-date'+(isOverdue?' overdue':'')+'">'+t.date+(isOverdue?' • 已过期':'')+'</span>';}
+  const affParts=[];if(t.nealAff)affParts.push('画+'+t.nealAff);if(t.janeAff)affParts.push('档+'+t.janeAff);
   const affHtml=affParts.length?'<span style="color:#bbb;font-size:10px;margin-left:6px">'+affParts.join(' ')+'</span>':'';
   const dragH=draggable?'<div class="drag-handle" data-id="'+t.id+'">⠿</div>':'';
-  return '<div class="todo-card'+(isDone?' completed':'')+'" data-id="'+t.id+'">'
-    +'<div class="todo-top">'+dragH
-    +'<div class="todo-check'+(isDone?' checked':'')+'" onclick="toggleTodo(\''+t.id+'\')">'+(isDone?'✓':'')+'</div>'
-    +'<div class="todo-body clickable-body" onclick="openTodoDetail(\''+t.id+'\')"><div class="todo-name">'+escHtml(t.content)+'</div>'+dateHtml+affHtml+'</div>'
-    +'<button class="todo-edit" title="编辑" onclick="openEditTodo(\''+t.id+'\')">✎</button>'
-    +'<button class="todo-del" title="删除" onclick="deleteTodo(\''+t.id+'\')">×</button>'
-    +'</div></div>';
+  return '<div class="todo-card'+(isDone?' completed':'')+'" data-id="'+t.id+'"><div class="todo-top">'+dragH+'<div class="todo-check'+(isDone?' checked':'')+'" onclick="toggleTodo(\''+t.id+'\')">'+(isDone?'✓':'')+'</div><div class="todo-body clickable-body" onclick="openTodoDetail(\''+t.id+'\')"><div class="todo-name">'+escHtml(t.content)+'</div>'+dateHtml+affHtml+'</div><button class="todo-edit" onclick="openEditTodo(\''+t.id+'\')">✎</button><button class="todo-del" onclick="deleteTodo(\''+t.id+'\')">×</button></div></div>';
 }
+function clearDoneTodos(){db.todos=db.todos.filter(t=>!t.completed);save();render();}
+function openAddTodo(){editingTodoId=null;document.getElementById('todoModalTitle').textContent='添加日程';document.getElementById('todoContent').value='';document.getElementById('todoDescription').value='';document.getElementById('todoDate').value='';document.getElementById('todoAffNeal').value='3';document.getElementById('todoAffJane').value='2';showModal('todoModal');}
+function openEditTodo(id){const t=db.todos.find(x=>x.id===id);if(!t)return;editingTodoId=id;document.getElementById('todoModalTitle').textContent='编辑日程';document.getElementById('todoContent').value=t.content||'';document.getElementById('todoDescription').value=t.description||'';document.getElementById('todoDate').value=t.date||'';document.getElementById('todoAffNeal').value=t.nealAff||0;document.getElementById('todoAffJane').value=t.janeAff||0;showModal('todoModal');}
+function saveTodo(){const content=document.getElementById('todoContent').value.trim();if(!content)return;const description=document.getElementById('todoDescription').value.trim();const date=document.getElementById('todoDate').value||null;const nealAff=Number(document.getElementById('todoAffNeal').value)||0;const janeAff=Number(document.getElementById('todoAffJane').value)||0;if(editingTodoId){const t=db.todos.find(x=>x.id===editingTodoId);if(t){if(t.completed){db.affinity.neal=Math.max(0,db.affinity.neal-(t.nealAff||0)+nealAff);db.affinity.jane=Math.max(0,db.affinity.jane-(t.janeAff||0)+janeAff);}Object.assign(t,{content,description,date,nealAff,janeAff});}}else{db.todos.push({id:'td_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),content,description,date,nealAff,janeAff,completed:false});}editingTodoId=null;save();closeModal('todoModal');render();}
+function openTodoDetail(id){const t=db.todos.find(x=>x.id===id);if(!t)return;document.getElementById('detailTitle').textContent=t.content||'日程';document.getElementById('detailDescription').textContent=t.description||'没有填写详细说明';const parts=[];if(t.date)parts.push('截止日期：'+t.date);if(t.nealAff)parts.push('画作碎片 +'+t.nealAff);if(t.janeAff)parts.push('档案碎片 +'+t.janeAff);parts.push(t.completed?'状态：已完成':'状态：进行中');document.getElementById('detailMeta').textContent=parts.join(' · ');showModal('detailModal');}
+function toggleTodo(id){const t=db.todos.find(x=>x.id===id);if(!t)return;t.completed=!t.completed;if(t.completed){db.affinity.neal+=(t.nealAff||0);db.affinity.jane+=(t.janeAff||0);}else{db.affinity.neal=Math.max(0,db.affinity.neal-(t.nealAff||0));db.affinity.jane=Math.max(0,db.affinity.jane-(t.janeAff||0));}save();render();}
+function deleteTodo(id){db.todos=db.todos.filter(x=>x.id!==id);save();render();}
 
-function clearDoneTodos(){
-  db.todos=db.todos.filter(t=>!t.completed);
-  save();render();
-}
+// ── Habits tab (Days = interval, Times = count, NO Hours) ──
+function getHabitRecord(date,id,create=false){if(!hdb.records[date]){if(!create)return null;hdb.records[date]={};}if(!hdb.records[date][id]){if(!create)return null;hdb.records[date][id]={value:0,events:[]};}const record=hdb.records[date][id];if(!Array.isArray(record.events))record.events=[];return record;}
+function getHabitTotal(id){return Object.keys(hdb.records).reduce((sum,date)=>{const record=hdb.records[date]&&hdb.records[date][id];return sum+(record&&Number(record.value)||0);},0);}
+function getHabitToday(id){const record=getHabitRecord(today(),id,false);return record&&Number(record.value)||0;}
+function getHabitDayValue(date,id){const record=hdb.records[date]&&hdb.records[date][id];return record&&Number(record.value)||0;}
+function getHabitStreak(id){let offset=getHabitDayValue(today(),id)>0?0:-1;let streak=0;while(streak<10000&&getHabitDayValue(shiftedDateKey(offset),id)>0){streak++;offset--;}return streak;}
+function getHabitStreakBonus(streak){if(streak>=30)return 1.5;if(streak>=14)return 1;if(streak>=7)return 0.5;return 0;}
 
-function openAddTodo(){
-  editingTodoId=null;
-  document.getElementById('todoModalTitle').textContent='添加日程';
-  document.getElementById('todoContent').value='';
-  document.getElementById('todoDescription').value='';
-  document.getElementById('todoDate').value='';
-  document.getElementById('todoAffNeal').value='3';
-  document.getElementById('todoAffJane').value='2';
-  showModal('todoModal');
-}
-
-function openEditTodo(id){
-  const t=db.todos.find(x=>x.id===id);
-  if(!t)return;
-  editingTodoId=id;
-  document.getElementById('todoModalTitle').textContent='编辑日程';
-  document.getElementById('todoContent').value=t.content||'';
-  document.getElementById('todoDescription').value=t.description||'';
-  document.getElementById('todoDate').value=t.date||'';
-  document.getElementById('todoAffNeal').value=t.nealAff||0;
-  document.getElementById('todoAffJane').value=t.janeAff||0;
-  showModal('todoModal');
-}
-
-function saveTodo(){
-  const content=document.getElementById('todoContent').value.trim();
-  if(!content)return;
-  const description=document.getElementById('todoDescription').value.trim();
-  const date=document.getElementById('todoDate').value||null;
-  const nealAff=Number(document.getElementById('todoAffNeal').value)||0;
-  const janeAff=Number(document.getElementById('todoAffJane').value)||0;
-  if(editingTodoId){
-    const t=db.todos.find(x=>x.id===editingTodoId);
-    if(t){
-      if(t.completed){
-        db.affinity.neal=Math.max(0,db.affinity.neal-(t.nealAff||0)+nealAff);
-        db.affinity.jane=Math.max(0,db.affinity.jane-(t.janeAff||0)+janeAff);
-      }
-      Object.assign(t,{content,description,date,nealAff,janeAff});
-    }
-  }else{
-    db.todos.push({id:'td_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),content,description,date,nealAff,janeAff,completed:false});
+// Get days since last check for interval habits
+function getDaysSinceLastCheck(id){
+  for(let i=0;i<365;i++){
+    const d=shiftedDateKey(-i);
+    if(getHabitDayValue(d,id)>0)return i;
   }
-  editingTodoId=null;
-  save();closeModal('todoModal');render();
+  return 999;
 }
-
-function openTodoDetail(id){
-  const t=db.todos.find(x=>x.id===id);
-  if(!t)return;
-  document.getElementById('detailTitle').textContent=t.content||'日程';
-  document.getElementById('detailDescription').textContent=t.description||'没有填写详细说明';
-  const parts=[];
-  if(t.date)parts.push('截止日期：'+t.date);
-  if(t.nealAff)parts.push('画作碎片 +'+t.nealAff);
-  if(t.janeAff)parts.push('档案碎片 +'+t.janeAff);
-  parts.push(t.completed?'状态：已完成':'状态：进行中');
-  document.getElementById('detailMeta').textContent=parts.join(' · ');
-  showModal('detailModal');
-}
-
-function toggleTodo(id){
-  const t=db.todos.find(x=>x.id===id);
-  if(!t)return;
-  t.completed=!t.completed;
-  if(t.completed){
-    db.affinity.neal+=(t.nealAff||0);
-    db.affinity.jane+=(t.janeAff||0);
-  }else{
-    db.affinity.neal=Math.max(0,db.affinity.neal-(t.nealAff||0));
-    db.affinity.jane=Math.max(0,db.affinity.jane-(t.janeAff||0));
-  }
-  save();render();
-}
-
-function deleteTodo(id){
-  db.todos=db.todos.filter(x=>x.id!==id);
-  save();render();
-}
-
-// ── Habits tab ──
-function getHabitRecord(date,id,create=false){
-  if(!hdb.records[date]){
-    if(!create)return null;
-    hdb.records[date]={};
-  }
-  if(!hdb.records[date][id]){
-    if(!create)return null;
-    hdb.records[date][id]={value:0,events:[]};
-  }
-  const record=hdb.records[date][id];
-  if(!Array.isArray(record.events))record.events=[];
-  return record;
-}
-
-function getHabitTotal(id){
-  return Object.keys(hdb.records).reduce((sum,date)=>{
-    const record=hdb.records[date]&&hdb.records[date][id];
-    return sum+(record&&Number(record.value)||0);
-  },0);
-}
-
-function getHabitToday(id){
-  const record=getHabitRecord(today(),id,false);
-  return record&&Number(record.value)||0;
-}
-
-function getHabitDayValue(date,id){
-  const record=hdb.records[date]&&hdb.records[date][id];
-  return record&&Number(record.value)||0;
-}
-
-function getHabitStreak(id){
-  let offset=getHabitDayValue(today(),id)>0?0:-1;
-  let streak=0;
-  while(streak<10000&&getHabitDayValue(shiftedDateKey(offset),id)>0){
-    streak++;
-    offset--;
-  }
-  return streak;
-}
-
-function getHabitStreakBonus(streak){
-  if(streak>=30)return 1.5;
-  if(streak>=14)return 1;
-  if(streak>=7)return 0.5;
-  return 0;
-}
-
-function formatHabitValue(type,value){
-  if(type!=='time')return Math.round(value)+'次';
-  const mins=Math.max(0,Math.round(value));
-  const hours=Math.floor(mins/60),rest=mins%60;
-  if(!hours)return rest+'分钟';
-  return hours+'小时'+(rest?rest+'分':'');
+function getIntervalStatus(h){
+  const interval=h.interval||1;
+  const daysSince=getDaysSinceLastCheck(h.id);
+  const daysUntil=interval-daysSince;
+  if(daysSince===0)return{text:'今天已打卡 ✓',cls:'ok',due:false};
+  if(daysUntil<=0)return{text:'该打卡了',cls:'due',due:true};
+  return{text:'距下次打卡还有 '+daysUntil+' 天',cls:'',due:false};
 }
 
 function renderHabits(c){
   let html='<div class="sub-tabs">';
-  html+='<button class="sub-tab'+(habitSubTab==='daily'?' active':'')+'" onclick="switchHabitSub(\'daily\')">Days</button>';
-  html+='<button class="sub-tab'+(habitSubTab==='time'?' active':'')+'" onclick="switchHabitSub(\'time\')">Hours</button>';
+  html+='<button class="sub-tab'+(habitSubTab==='daily'?' active':'')+'" onclick="switchHabitSub(\'daily\')">间隔打卡</button>';
   html+='<button class="sub-tab'+(habitSubTab==='count'?' active':'')+'" onclick="switchHabitSub(\'count\')">Times</button>';
   html+='</div>';
-  html+=renderHabitGroup(habitSubTab,habitSubTab==='daily'?'Days':habitSubTab==='time'?'Hours':'Times');
+  html+=renderHabitGroup(habitSubTab,habitSubTab==='daily'?'间隔打卡':'Times');
   html+='<button class="add-inline" onclick="openAddHabit(\''+habitSubTab+'\')">+ 添加日课</button>';
   c.innerHTML=html;
 }
@@ -964,7 +719,7 @@ function renderHabitGroup(type,title){
   const sortId='habitSort_'+type;
   let html='<div class="habit-section">';
   if(habits.length){html+='<div id="'+sortId+'">';habits.forEach(h=>{html+=renderHabitCard(h);});html+='</div>';}
-  else html+='<div class="habit-empty">还没有 '+title+' 日课</div>';
+  else html+='<div class="habit-empty">还没有'+title+'日课</div>';
   html+='</div>';
   setTimeout(()=>initDragSort(sortId,'habit'),0);
   return html;
@@ -976,57 +731,30 @@ function renderHabitCard(h){
   const total=getHabitTotal(h.id);
   const streak=getHabitStreak(h.id);
   const streakBonus=getHabitStreakBonus(streak);
-  const rewardParts=[];
-  if(h.coffee)rewardParts.push('☕豆+'+h.coffee);
-  if(h.tea)rewardParts.push('🍃叶+'+h.tea);
+  const rewardParts=[];if(h.coffee)rewardParts.push('☕豆+'+h.coffee);if(h.tea)rewardParts.push('🍃叶+'+h.tea);
   const record=getHabitRecord(today(),h.id,false);
   const canUndo=!!(record&&record.events&&record.events.length);
   const undoLink=canUndo?'<button class="habit-undo-link" onclick="event.stopPropagation();undoHabitProgress(\''+h.id+'\')">撤回</button>':'';
 
   if(type==='daily'){
-    // Daily type: check button, one per day, streak focus
     const isDone=todayValue>0;
+    const intervalStatus=getIntervalStatus(h);
     const streakHtml=streak>0?' <span class="habit-streak">★'+streak+'天'+(streakBonus?' +'+Math.round(streakBonus*100)+'%':'')+'</span>':'';
-    return '<div class="habit-card'+(isDone?' has-progress':'')+'" data-id="'+h.id+'">'
-      +'<div class="habit-top">'
-      +'<div class="drag-handle" data-id="'+h.id+'">⠿</div>'
-      +'<div class="todo-check'+(isDone?' checked':'')+'" onclick="'+(isDone?'':'recordHabitProgress(\''+h.id+'\',1)')+'">'+(isDone?'✓':'')+'</div>'
-      +'<div class="habit-body clickable-body" onclick="openHabitDetail(\''+h.id+'\')">'
-      +'<div class="habit-name">'+escHtml(h.name)+'</div>'
-      +'<div class="habit-meta">'+(rewardParts.length?rewardParts.join(' '):'无基础产出')+streakHtml+'</div>'
-      +'<div class="habit-stat-tags"><span class="habit-stat-tag">累计 '+total+' 日</span></div></div>'
-      +'<div class="habit-actions">'+undoLink+'<button class="habit-edit" title="编辑" onclick="openEditHabit(\''+h.id+'\')">✎</button>'
-      +'<button class="todo-del" title="删除" onclick="deleteHabit(\''+h.id+'\')">×</button></div></div></div>';
+    const intervalLabel=h.interval>1?'每'+h.interval+'天':'每天';
+    return '<div class="habit-card'+(isDone?' has-progress':'')+'" data-id="'+h.id+'"><div class="habit-top"><div class="drag-handle" data-id="'+h.id+'">⠿</div><div class="todo-check'+(isDone?' checked':'')+'" onclick="'+(isDone?'':'recordHabitProgress(\''+h.id+'\',1)')+'">'+(isDone?'✓':'')+'</div><div class="habit-body clickable-body" onclick="openHabitDetail(\''+h.id+'\')"><div class="habit-name">'+escHtml(h.name)+' <span style="font-size:10px;color:#bbb">'+intervalLabel+'</span></div><div class="habit-meta">'+(rewardParts.length?rewardParts.join(' '):'无基础产出')+streakHtml+'</div><div class="interval-info '+intervalStatus.cls+'">'+intervalStatus.text+'</div><div class="habit-stat-tags"><span class="habit-stat-tag">累计 '+total+' 日</span></div></div><div class="habit-actions">'+undoLink+'<button class="habit-edit" onclick="openEditHabit(\''+h.id+'\')">✎</button><button class="todo-del" onclick="deleteHabit(\''+h.id+'\')">×</button></div></div></div>';
   }
 
-  // count / time types
-  const streakHtml=type==='count'?'':streak>0?' <span class="habit-streak">★'+streak+'天'+(streakBonus?' +'+Math.round(streakBonus*100)+'%':'')+'</span>':'';
-  const addAction=type==='time'?"openTimeLog('"+h.id+"')":"recordHabitProgress('"+h.id+"',1)";
-  const addLabel=type==='time'?'记录时长':'记录一次';
-  const quickAdd='<button class="habit-add-btn" title="'+addLabel+'" aria-label="'+addLabel+'" onclick="'+addAction+'">＋</button>';
-  return '<div class="habit-card '+(type==='time'?'time-card':'count-card')+(todayValue>0?' has-progress':'')+'" data-id="'+h.id+'">'
-    +'<div class="habit-top"><div class="drag-handle" data-id="'+h.id+'">⠿</div>'+quickAdd+'<div class="habit-body clickable-body" onclick="openHabitDetail(\''+h.id+'\')">'
-    +'<div class="habit-name">'+escHtml(h.name)+'</div>'
-    +'<div class="habit-meta">'+(rewardParts.length?rewardParts.join(' '):'无基础产出')+streakHtml+'</div>'
-    +'<div class="habit-stat-tags"><span class="habit-stat-tag today">今日 '+formatHabitValue(type,todayValue)+'</span><span class="habit-stat-tag">累计 '+formatHabitValue(type,total)+'</span></div></div>'
-    +'<div class="habit-actions">'+undoLink+'<button class="habit-edit" title="编辑" onclick="openEditHabit(\''+h.id+'\')">✎</button>'
-    +'<button class="todo-del" title="删除" onclick="deleteHabit(\''+h.id+'\')">×</button></div></div></div>';
+  // count type
+  const addAction="recordHabitProgress('"+h.id+"',1)";
+  return '<div class="habit-card count-card'+(todayValue>0?' has-progress':'')+'" data-id="'+h.id+'"><div class="habit-top"><div class="drag-handle" data-id="'+h.id+'">⠿</div><button class="habit-add-btn" onclick="'+addAction+'">＋</button><div class="habit-body clickable-body" onclick="openHabitDetail(\''+h.id+'\')"><div class="habit-name">'+escHtml(h.name)+'</div><div class="habit-meta">'+(rewardParts.length?rewardParts.join(' '):'无基础产出')+'</div><div class="habit-stat-tags"><span class="habit-stat-tag today">今日 '+Math.round(todayValue)+'次</span><span class="habit-stat-tag">累计 '+Math.round(total)+'次</span></div></div><div class="habit-actions">'+undoLink+'<button class="habit-edit" onclick="openEditHabit(\''+h.id+'\')">✎</button><button class="todo-del" onclick="deleteHabit(\''+h.id+'\')">×</button></div></div></div>';
 }
 
 function recordHabitProgress(id,value){
-  const h=hdb.habits.find(x=>x.id===id);
-  value=Number(value)||0;
-  if(!h||value<=0)return;
+  const h=hdb.habits.find(x=>x.id===id);value=Number(value)||0;if(!h||value<=0)return;
   const type=h.type||'count';
-  // Daily type: only one check per day
-  if(type==='daily'){
-    const existing=getHabitToday(id);
-    if(existing>0)return;
-    value=1;
-  }
-  const before=getHabitTotal(id);
-  const after=before+value;
-  const baseUnits=type==='time'?Math.floor(after/30)-Math.floor(before/30):Math.round(value);
+  if(type==='daily'){const existing=getHabitToday(id);if(existing>0)return;value=1;}
+  const before=getHabitTotal(id);const after=before+value;
+  const baseUnits=Math.round(value);
   const record=getHabitRecord(today(),id,true);
   record.value=(Number(record.value)||0)+value;
   const streak=getHabitStreak(id);
@@ -1037,162 +765,45 @@ function recordHabitProgress(id,value){
   record.events.push({value,coffee,tea,streak,streakBonus,at:Date.now()});
   if(coffee||tea)addBeans(coffee,tea);
   saveHabits();render();
+  // Store interval reminder data for index.html
+  updateIntervalReminders();
 }
 
 function undoHabitProgress(id){
-  const record=getHabitRecord(today(),id,false);
-  if(!record||!record.events||!record.events.length)return;
-  const event=record.events.pop();
-  record.value=Math.max(0,(Number(record.value)||0)-(Number(event.value)||0));
-  const beans=getBeans();
-  beans.coffee=Math.max(0,(beans.coffee||0)-(event.coffee||0));
-  beans.tea=Math.max(0,(beans.tea||0)-(event.tea||0));
-  saveBeans(beans);
+  const record=getHabitRecord(today(),id,false);if(!record||!record.events||!record.events.length)return;
+  const event=record.events.pop();record.value=Math.max(0,(Number(record.value)||0)-(Number(event.value)||0));
+  const beans=getBeans();beans.coffee=Math.max(0,(beans.coffee||0)-(event.coffee||0));beans.tea=Math.max(0,(beans.tea||0)-(event.tea||0));saveBeans(beans);
   if(record.value===0&&record.events.length===0)delete hdb.records[today()][id];
-  saveHabits();render();
+  saveHabits();render();updateIntervalReminders();
+}
+
+// Store due habits for index.html character line reminders
+function updateIntervalReminders(){
+  const dueHabits=hdb.habits.filter(h=>h.type==='daily').map(h=>{
+    const status=getIntervalStatus(h);return status.due?h.name:null;
+  }).filter(Boolean);
+  try{localStorage.setItem('habit_due_reminders',JSON.stringify(dueHabits));}catch(e){}
 }
 
 function setHabitType(type,force=false){
-  const input=document.getElementById('habitType');
-  if(!force&&input.dataset.locked==='true')return;
+  const input=document.getElementById('habitType');if(!force&&input.dataset.locked==='true')return;
   input.value=type;
-  document.querySelectorAll('#habitTypeToggle button').forEach(button=>{
-    button.classList.toggle('active',button.dataset.type===type);
-  });
+  document.querySelectorAll('#habitTypeToggle button').forEach(b=>{b.classList.toggle('active',b.dataset.type===type);});
+  document.getElementById('intervalRow').style.display=type==='daily'?'block':'none';
   updateHabitTypeHint();
 }
-
-function openAddHabit(type='count'){
-  editingHabitId=null;
-  document.getElementById('habitModalTitle').textContent='添加日课';
-  document.getElementById('habitName').value='';
-  document.getElementById('habitDescription').value='';
-  document.getElementById('habitType').dataset.locked='false';
-  document.getElementById('habitTypeToggle').classList.remove('locked');
-  document.getElementById('habitCoffee').value='10';
-  document.getElementById('habitTea').value='10';
-  setHabitType(type,true);
-  showModal('habitModal');
-}
-
-function openEditHabit(id){
-  const h=hdb.habits.find(x=>x.id===id);
-  if(!h)return;
-  editingHabitId=id;
-  document.getElementById('habitModalTitle').textContent='编辑日课';
-  document.getElementById('habitName').value=h.name||'';
-  document.getElementById('habitDescription').value=h.description||'';
-  const locked=getHabitTotal(id)>0;
-  document.getElementById('habitType').dataset.locked=String(locked);
-  document.getElementById('habitTypeToggle').classList.toggle('locked',locked);
-  document.getElementById('habitCoffee').value=h.coffee||0;
-  document.getElementById('habitTea').value=h.tea||0;
-  setHabitType(h.type||'count',true);
-  showModal('habitModal');
-}
-
-function updateHabitTypeHint(){
-  const type=document.getElementById('habitType').value;
-  const locked=document.getElementById('habitType').dataset.locked==='true';
-  const hints={daily:'每日打卡一次，统计连续天数',time:'适合学习、阅读等每天时长不同的事',count:'适合贴纸、收纳等一次一次累积的事'};
-  document.getElementById('habitTypeNote').textContent=locked?'已有统计记录，类型不再更改':(hints[type]||'');
-  document.getElementById('habitRewardLabel').textContent=type==='time'?'每 30 分钟产出':'每次记录产出';
-  document.getElementById('habitRewardHint').textContent='只按实际记录累计，没有阶段目标';
-}
-
-function saveHabit(){
-  const name=document.getElementById('habitName').value.trim();
-  if(!name)return;
-  const description=document.getElementById('habitDescription').value.trim();
-  const type=document.getElementById('habitType').value;
-  const coffee=Math.max(0,Math.min(100,parseInt(document.getElementById('habitCoffee').value)||0));
-  const tea=Math.max(0,Math.min(100,parseInt(document.getElementById('habitTea').value)||0));
-  if(editingHabitId){
-    const h=hdb.habits.find(x=>x.id===editingHabitId);
-    if(h){h.name=name;h.description=description;if(getHabitTotal(h.id)===0)h.type=type;h.coffee=coffee;h.tea=tea;}
-  }else{
-    hdb.habits.push({id:'hb_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),name,description,type,coffee,tea});
-  }
-  editingHabitId=null;
-  document.getElementById('habitType').dataset.locked='false';
-  document.getElementById('habitTypeToggle').classList.remove('locked');
-  saveHabits();closeModal('habitModal');render();
-}
-
-function openHabitDetail(id){
-  const h=hdb.habits.find(x=>x.id===id);
-  if(!h)return;
-  const type=h.type||'count';
-  const streak=getHabitStreak(id);
-  const streakBonus=getHabitStreakBonus(streak);
-  const parts=[type==='time'?'Hours':type==='daily'?'Days':'Times','今日：'+formatHabitValue(type,getHabitToday(id)),'累计：'+formatHabitValue(type,getHabitTotal(id))];
-  if(streak)parts.push('连续：'+streak+'天'+(streakBonus?'（奖励 +'+Math.round(streakBonus*100)+'%）':''));
-  if(h.coffee)parts.push('咖啡豆 +'+h.coffee+(type==='time'?'/30分':'/次'));
-  if(h.tea)parts.push('茶叶 +'+h.tea+(type==='time'?'/30分':'/次'));
-  document.getElementById('detailTitle').textContent=h.name||'日课';
-  document.getElementById('detailDescription').textContent=h.description||'没有填写详细说明';
-  document.getElementById('detailMeta').textContent=parts.join(' · ');
-  showModal('detailModal');
-}
-
-function openTimeLog(id){
-  const h=hdb.habits.find(x=>x.id===id);
-  if(!h)return;
-  loggingHabitId=id;
-  document.getElementById('timeLogName').textContent=h.name;
-  document.getElementById('timeLogHours').value='0';
-  document.getElementById('timeLogMinutes').value='30';
-  showModal('timeLogModal');
-}
-
-function saveTimeLog(){
-  if(!loggingHabitId)return;
-  const hours=Math.max(0,Number(document.getElementById('timeLogHours').value)||0);
-  const minutes=Math.max(0,Number(document.getElementById('timeLogMinutes').value)||0);
-  const total=Math.round(hours*60+minutes);
-  if(total<=0)return;
-  const id=loggingHabitId;
-  loggingHabitId=null;
-  closeModal('timeLogModal');
-  recordHabitProgress(id,total);
-}
-
-function deleteHabit(id){
-  hdb.habits=hdb.habits.filter(x=>x.id!==id);
-  Object.keys(hdb.records).forEach(date=>{delete hdb.records[date][id];if(!Object.keys(hdb.records[date]).length)delete hdb.records[date];});
-  Object.keys(hdb.log).forEach(date=>{
-    if(Array.isArray(hdb.log[date]))hdb.log[date]=hdb.log[date].filter(x=>x!==id);
-    if(Array.isArray(hdb.log[date])&&!hdb.log[date].length)delete hdb.log[date];
-  });
-  saveHabits();render();
-}
+function openAddHabit(type='count'){editingHabitId=null;document.getElementById('habitModalTitle').textContent='添加日课';document.getElementById('habitName').value='';document.getElementById('habitDescription').value='';document.getElementById('habitType').dataset.locked='false';document.getElementById('habitTypeToggle').classList.remove('locked');document.getElementById('habitCoffee').value='10';document.getElementById('habitTea').value='10';document.getElementById('habitInterval').value='1';setHabitType(type,true);showModal('habitModal');}
+function openEditHabit(id){const h=hdb.habits.find(x=>x.id===id);if(!h)return;editingHabitId=id;document.getElementById('habitModalTitle').textContent='编辑日课';document.getElementById('habitName').value=h.name||'';document.getElementById('habitDescription').value=h.description||'';const locked=getHabitTotal(id)>0;document.getElementById('habitType').dataset.locked=String(locked);document.getElementById('habitTypeToggle').classList.toggle('locked',locked);document.getElementById('habitCoffee').value=h.coffee||0;document.getElementById('habitTea').value=h.tea||0;document.getElementById('habitInterval').value=h.interval||1;setHabitType(h.type||'count',true);showModal('habitModal');}
+function updateHabitTypeHint(){const type=document.getElementById('habitType').value;const locked=document.getElementById('habitType').dataset.locked==='true';const hints={daily:'设置间隔天数，到期提醒打卡',count:'适合贴纸、收纳等一次一次累积的事'};document.getElementById('habitTypeNote').textContent=locked?'已有统计记录，类型不再更改':(hints[type]||'');document.getElementById('habitRewardLabel').textContent='每次记录产出';document.getElementById('habitRewardHint').textContent='只按实际记录累计';}
+function saveHabit(){const name=document.getElementById('habitName').value.trim();if(!name)return;const description=document.getElementById('habitDescription').value.trim();const type=document.getElementById('habitType').value;const coffee=Math.max(0,Math.min(100,parseInt(document.getElementById('habitCoffee').value)||0));const tea=Math.max(0,Math.min(100,parseInt(document.getElementById('habitTea').value)||0));const interval=Math.max(1,Math.min(30,parseInt(document.getElementById('habitInterval').value)||1));if(editingHabitId){const h=hdb.habits.find(x=>x.id===editingHabitId);if(h){h.name=name;h.description=description;if(getHabitTotal(h.id)===0)h.type=type;h.coffee=coffee;h.tea=tea;h.interval=interval;}}else{hdb.habits.push({id:'hb_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),name,description,type,coffee,tea,interval});}editingHabitId=null;document.getElementById('habitType').dataset.locked='false';document.getElementById('habitTypeToggle').classList.remove('locked');saveHabits();closeModal('habitModal');render();updateIntervalReminders();}
+function openHabitDetail(id){const h=hdb.habits.find(x=>x.id===id);if(!h)return;const type=h.type||'count';const streak=getHabitStreak(id);const streakBonus=getHabitStreakBonus(streak);const parts=[type==='daily'?'间隔打卡 (每'+(h.interval||1)+'天)':'Times','今日：'+(getHabitToday(id)>0?'已完成':'未完成'),'累计：'+getHabitTotal(id)+(type==='daily'?'日':'次')];if(streak)parts.push('连续：'+streak+'天'+(streakBonus?'（奖励 +'+Math.round(streakBonus*100)+'%）':''));if(h.coffee)parts.push('咖啡豆 +'+h.coffee+'/次');if(h.tea)parts.push('茶叶 +'+h.tea+'/次');document.getElementById('detailTitle').textContent=h.name||'日课';document.getElementById('detailDescription').textContent=h.description||'没有填写详细说明';document.getElementById('detailMeta').textContent=parts.join(' · ');showModal('detailModal');}
+function deleteHabit(id){hdb.habits=hdb.habits.filter(x=>x.id!==id);Object.keys(hdb.records).forEach(date=>{delete hdb.records[date][id];if(!Object.keys(hdb.records[date]).length)delete hdb.records[date];});Object.keys(hdb.log).forEach(date=>{if(Array.isArray(hdb.log[date]))hdb.log[date]=hdb.log[date].filter(x=>x!==id);if(Array.isArray(hdb.log[date])&&!hdb.log[date].length)delete hdb.log[date];});saveHabits();render();}
 
 // ══════════════════════════════════════
 // EXPORT/IMPORT
 // ══════════════════════════════════════
-function exportData(){
-  const bundle={version:2,daily_db:db,habit_db:hdb,gacha_st:getGacha(),bean_st:getBeans()};
-  const blob=new Blob([JSON.stringify(bundle,null,2)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download='daily_backup_'+new Date().toISOString().slice(0,10)+'.json';a.click();
-}
-function importData(input){
-  if(!input.files||!input.files[0])return;
-  const reader=new FileReader();
-  reader.onload=(ev)=>{try{
-    const imp=JSON.parse(ev.target.result);
-    if(confirm('导入数据？')){
-      if(imp.daily_db){
-        db=imp.daily_db;
-        if(imp.habit_db){hdb=imp.habit_db;saveHabits();}
-        if(imp.gacha_st)saveGacha(imp.gacha_st);
-        if(imp.bean_st)saveBeans(imp.bean_st);
-      }else db=imp;
-      save();render();closeModal('exportModal');
-    }
-  }catch(e){alert('导入失败');}};
-  reader.readAsText(input.files[0]);
-}
+function exportData(){const bundle={version:4,daily_db:db,habit_db:hdb,gacha_st:getGacha(),bean_st:getBeans()};const blob=new Blob([JSON.stringify(bundle,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='daily_backup_'+new Date().toISOString().slice(0,10)+'.json';a.click();}
+function importData(input){if(!input.files||!input.files[0])return;const reader=new FileReader();reader.onload=(ev)=>{try{const imp=JSON.parse(ev.target.result);if(!confirm('导入数据？将覆盖当前数据'))return;if(imp.daily_db){db=imp.daily_db;if(!db.commissions)db.commissions={date:null,preview:{jane:null,neal:null,duo:null},accepted:{jane:null,neal:null,duo:null},active:{jane:null,neal:null,duo:null}};if(imp.habit_db){hdb=imp.habit_db;if(!hdb.records)hdb.records={};saveHabits();}if(imp.gacha_st)saveGacha(imp.gacha_st);if(imp.bean_st)saveBeans(imp.bean_st);}else{db=imp;if(!db.commissions)db.commissions={date:null,preview:{jane:null,neal:null,duo:null},accepted:{jane:null,neal:null,duo:null},active:{jane:null,neal:null,duo:null}};}save();render();closeModal('exportModal');}catch(e){alert('导入失败：文件格式不正确');}};reader.readAsText(input.files[0]);}
 
 // ══════════════════════════════════════
 // MODALS
@@ -1202,93 +813,25 @@ function closeModal(id){document.getElementById(id).classList.remove('show');}
 document.querySelectorAll('.modal-bg').forEach(bg=>{bg.addEventListener('click',e=>{if(e.target===bg)bg.classList.remove('show');});});
 
 // ══════════════════════════════════════
-// DRAG SORT (touch + mouse)
+// DRAG SORT
 // ══════════════════════════════════════
 function initDragSort(containerId,dataType){
-  const container=document.getElementById(containerId);
-  if(!container)return;
-  let dragEl=null;
+  const container=document.getElementById(containerId);if(!container)return;let dragEl=null;
   const getCards=()=>Array.from(container.children).filter(card=>card.dataset.id);
-
-  container.querySelectorAll('.drag-handle').forEach(handle=>{
-    handle.addEventListener('touchstart',onStart,{passive:false});
-    handle.addEventListener('mousedown',onStart);
-  });
-
-  function onStart(e){
-    e.preventDefault();
-    dragEl=e.target.closest('.todo-card, .habit-card');
-    if(!dragEl)return;
-    dragEl.classList.add('dragging');
-    document.addEventListener('touchmove',onMove,{passive:false});
-    document.addEventListener('touchend',onEnd);
-    document.addEventListener('mousemove',onMove);
-    document.addEventListener('mouseup',onEnd);
-  }
-
-  function onMove(e){
-    if(!dragEl)return;
-    e.preventDefault();
-    const y=e.touches?e.touches[0].clientY:e.clientY;
-    const cards=getCards();
-    cards.forEach(c=>c.classList.remove('drag-over'));
-    for(const card of cards){
-      if(card===dragEl)continue;
-      const rect=card.getBoundingClientRect();
-      if(y<rect.top+rect.height/2){card.classList.add('drag-over');break;}
-    }
-  }
-
-  function onEnd(e){
-    if(!dragEl)return;
-    document.removeEventListener('touchmove',onMove);
-    document.removeEventListener('touchend',onEnd);
-    document.removeEventListener('mousemove',onMove);
-    document.removeEventListener('mouseup',onEnd);
-    const y=e.changedTouches?e.changedTouches[0].clientY:e.clientY;
-    const dragId=dragEl.dataset.id;
-    dragEl.classList.remove('dragging');
-    const cards=getCards();
-    cards.forEach(c=>c.classList.remove('drag-over'));
-    // Find the first non-dragged card whose midpoint is below the pointer.
-    let insertBefore=null;
-    for(const card of cards){
-      if(card===dragEl)continue;
-      const rect=card.getBoundingClientRect();
-      if(y<rect.top+rect.height/2){insertBefore=card.dataset.id;break;}
-    }
-    // Reorder data
-    if(dataType==='todo'){
-      const undated=db.todos.filter(t=>!t.completed&&!t.date);
-      const item=undated.find(t=>t.id===dragId);
-      if(!item){dragEl=null;return;}
-      const others=undated.filter(t=>t.id!==dragId);
-      const newOrder=[];
-      if(!insertBefore){others.forEach(t=>newOrder.push(t));newOrder.push(item);}
-      else{others.forEach(t=>{if(t.id===insertBefore)newOrder.push(item);newOrder.push(t);});}
-      // Rebuild todos: keep dated+completed, replace undated with new order
-      db.todos=[...db.todos.filter(t=>t.completed||t.date),...newOrder];
-      save();render();
-    }else if(dataType==='habit'){
-      const item=hdb.habits.find(h=>h.id===dragId);
-      if(!item){dragEl=null;return;}
-      const sameType=hdb.habits.filter(h=>(h.type||'count')===item.type);
-      const others=sameType.filter(h=>h.id!==dragId);
-      const newOrder=[];
-      if(!insertBefore){others.forEach(h=>newOrder.push(h));newOrder.push(item);}
-      else{others.forEach(h=>{if(h.id===insertBefore)newOrder.push(item);newOrder.push(h);});}
-      // Rebuild habits: keep other types, replace this type with new order
-      hdb.habits=[...hdb.habits.filter(h=>(h.type||'count')!==item.type),...newOrder];
-      saveHabits();render();
-    }
-    dragEl=null;
-  }
+  container.querySelectorAll('.drag-handle').forEach(handle=>{handle.addEventListener('touchstart',onStart,{passive:false});handle.addEventListener('mousedown',onStart);});
+  function onStart(e){e.preventDefault();dragEl=e.target.closest('.todo-card, .habit-card');if(!dragEl)return;dragEl.classList.add('dragging');document.addEventListener('touchmove',onMove,{passive:false});document.addEventListener('touchend',onEnd);document.addEventListener('mousemove',onMove);document.addEventListener('mouseup',onEnd);}
+  function onMove(e){if(!dragEl)return;e.preventDefault();const y=e.touches?e.touches[0].clientY:e.clientY;const cards=getCards();cards.forEach(c=>c.classList.remove('drag-over'));for(const card of cards){if(card===dragEl)continue;const rect=card.getBoundingClientRect();if(y<rect.top+rect.height/2){card.classList.add('drag-over');break;}}}
+  function onEnd(e){if(!dragEl)return;document.removeEventListener('touchmove',onMove);document.removeEventListener('touchend',onEnd);document.removeEventListener('mousemove',onMove);document.removeEventListener('mouseup',onEnd);const y=e.changedTouches?e.changedTouches[0].clientY:e.clientY;const dragId=dragEl.dataset.id;dragEl.classList.remove('dragging');const cards=getCards();cards.forEach(c=>c.classList.remove('drag-over'));let insertBefore=null;for(const card of cards){if(card===dragEl)continue;const rect=card.getBoundingClientRect();if(y<rect.top+rect.height/2){insertBefore=card.dataset.id;break;}}
+    if(dataType==='todo'){const undated=db.todos.filter(t=>!t.completed&&!t.date);const item=undated.find(t=>t.id===dragId);if(!item){dragEl=null;return;}const others=undated.filter(t=>t.id!==dragId);const newOrder=[];if(!insertBefore){others.forEach(t=>newOrder.push(t));newOrder.push(item);}else{others.forEach(t=>{if(t.id===insertBefore)newOrder.push(item);newOrder.push(t);});}db.todos=[...db.todos.filter(t=>t.completed||t.date),...newOrder];save();render();}
+    else if(dataType==='habit'){const item=hdb.habits.find(h=>h.id===dragId);if(!item){dragEl=null;return;}const sameType=hdb.habits.filter(h=>(h.type||'count')===item.type);const others=sameType.filter(h=>h.id!==dragId);const newOrder=[];if(!insertBefore){others.forEach(h=>newOrder.push(h));newOrder.push(item);}else{others.forEach(h=>{if(h.id===insertBefore)newOrder.push(item);newOrder.push(h);});}hdb.habits=[...hdb.habits.filter(h=>(h.type||'count')!==item.type),...newOrder];saveHabits();render();}
+    dragEl=null;}
 }
 
 // ══════════════════════════════════════
 // INIT
 // ══════════════════════════════════════
 autoSignin();
+updateIntervalReminders();
 render();
 </script>
 </body>

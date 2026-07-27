@@ -88,7 +88,9 @@ const SYS=[
 {key:'event_db',name:'\u6D3B\u52A8',color:'#E8B96A',desc:d=>{if(!d)return'-';const c=d.currency||{};return'\u5956\u52B1 '+(c.a||0)+' / '+(c.b||0)+' / '+(c.c||0);}},
 {key:'event_presets',name:'\u6D3B\u52A8\u5BFC\u5165\u6A21\u677F',color:'#C88B42',desc:d=>{if(!d)return'-';return'\u59D4'+(d.commissions||[]).length+' \u5361'+(d.cards||[]).length+' \u5468'+(d.goods||[]).length+' \u6C60'+((d.identities||[]).length+(d.tags||[]).length);}},
 {key:'home_lines',name:'\u9996\u9875\u53F0\u8BCD',color:'#888',desc:d=>{if(!d)return'\u9ED8\u8BA4';let n=0;['neal','jane','natumi'].forEach(z=>{n+=(d.neal&&d.neal[z]||[]).length+(d.jane&&d.jane[z]||[]).length;});return n+'\u6761';}},
-{key:'dungeon_db',name:'\u526F\u672C\u5E93\u5B58',color:'#7A8FB8',desc:d=>{if(!d)return'-';return(d.inventory||[]).length+'\u6761';}}
+{key:'dungeon_db',name:'\u526F\u672C\u5E93\u5B58',color:'#7A8FB8',desc:d=>{if(!d)return'-';return(d.inventory||[]).length+'\u6761';}},
+{key:'kitchen_db',name:'\u996E\u98DF',color:'#8B6914',desc:d=>{if(!d||!Array.isArray(d))return'-';const total=d.reduce((s,p)=>(p.items||[]).filter(i=>i.collected).length+s,0);return d.length+'\u9879\u76EE '+total+'\u5DF2\u6253\u5361';}},
+{key:'home_modules',name:'\u623F\u95F4\u8FDE\u63A5',color:'#D85A30',desc:d=>{if(!d)return'\u9ED8\u8BA4';const n=Object.values(d).filter(Boolean).length;return n+'\u4E2A\u5DF2\u8FDE\u63A5';}}
 ];
 function gd(k){try{return JSON.parse(localStorage.getItem(k));}catch(e){return null;}}
 function gs(k){const v=localStorage.getItem(k);if(!v)return'-';const b=new Blob([v]).size;return b<1024?b+'B':(b/1024).toFixed(1)+'KB';}
