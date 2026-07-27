@@ -55,7 +55,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .item-grid{padding:16px 0}
 .item-cell{aspect-ratio:1;border-radius:10px;border:1.5px solid #e8e8e8;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all 0.15s;position:relative;overflow:hidden;background:#f5f5f5}
 .item-cell:active{transform:scale(0.97)}
-.item-cell .item-img{width:100%;height:100%;object-fit:cover;border-radius:9px;position:absolute;top:0;left:0;filter:grayscale(100%) brightness(0.85);transition:filter 0.4s}
+.item-cell .item-img{width:100%;height:100%;object-fit:contain;padding:5px;border-radius:9px;position:absolute;top:0;left:0;background:#fff;filter:grayscale(100%) brightness(0.85);transition:filter 0.4s}
 .item-cell.collected{border-color:#E8B96A}
 .item-cell.collected .item-img{filter:none}
 .item-cell .item-num{font-size:20px;font-weight:200;color:#ddd;font-variant-numeric:tabular-nums;position:relative;z-index:1}
@@ -67,13 +67,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .add-item-btn{margin:0 20px 16px;padding:10px;border:1.5px dashed #ddd;border-radius:10px;background:#fff;font-size:12px;color:#aaa;cursor:pointer;text-align:center;font-family:inherit;width:calc(100% - 40px)}
 
 /* ── Item detail card ── */
-.card-detail{margin:16px 20px;background:#fff;border:1px solid #eee;border-radius:12px;overflow:hidden}
-.card-detail-img{width:100%;aspect-ratio:4/3;object-fit:cover;background:#f5f5f5}
+.card-detail{width:calc(100% - 40px);max-width:520px;margin:20px auto;background:#fff;border:1px solid #eee;border-radius:12px;overflow:hidden}
+.card-detail-media{min-height:180px;max-height:420px;padding:16px;background:#f7f7f7;display:flex;align-items:center;justify-content:center}
+.card-detail-img{display:block;width:auto;max-width:100%;height:auto;max-height:388px;object-fit:contain}
 .card-detail-body{padding:14px 16px}
 .card-detail-name{font-size:16px;font-weight:600;color:#333;margin-bottom:4px}
 .card-detail-date{font-size:11px;color:#bbb;margin-bottom:8px}
 .card-detail-note{font-size:13px;color:#666;line-height:1.6;white-space:pre-wrap}
-.card-actions{display:flex;gap:8px;padding:0 20px;margin-top:8px}
+.card-actions{width:calc(100% - 40px);max-width:520px;display:flex;gap:8px;padding:0;margin:8px auto 0}
 .card-actions .btn{flex:1;padding:10px;border:none;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit}
 
 /* ── Modals ── */
@@ -91,7 +92,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .btn-cancel{background:#f0f0f0;color:#666}
 .btn-del{background:#fff;color:#D85A30;border:1px solid #f0d0c0}
 .file-label{display:block;padding:10px 12px;border:1px dashed #ddd;border-radius:8px;text-align:center;color:#aaa;font-size:12px;cursor:pointer;margin-top:4px}
-.img-preview{width:100%;border-radius:8px;margin-top:8px;max-height:200px;object-fit:cover}
+.img-preview{width:100%;border-radius:8px;margin-top:8px;max-height:240px;object-fit:contain;background:#f7f7f7}
 /* Duty color selector */
 .duty-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
 .duty-opt{padding:4px 10px;border-radius:6px;border:1.5px solid #e0e0e0;font-size:12px;cursor:pointer;font-family:inherit;background:#fff;transition:all 0.15s}
@@ -173,6 +174,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <button class="add-item-btn" onclick="openAddItem()">+ 添加品目</button>
   <button class="add-item-btn" style="border-color:#E8B96A;color:#E8B96A" onclick="openAddSection()">+ 追加新一弹</button>
 </div>
+<input type="file" accept="image/*" id="quickItemImgInput" onchange="quickItemImgSelected(this)" style="display:none">
 
 <!-- ═══ ITEM VIEW ═══ -->
 <div id="viewItem" class="view">
@@ -244,12 +246,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <h2>打卡记录</h2>
     <label>日期</label>
     <input type="date" id="checkinDate">
-    <label>感想（选填）</label>
-    <textarea id="checkinNote" placeholder="味道怎么样、有什么想记的…"></textarea>
-    <label>照片（选填）</label>
-    <label class="file-label" id="checkinFileLabel">点击选择图片</label>
-    <input type="file" accept="image/*" id="checkinImgInput" onchange="previewCheckinImg(this)" style="display:none">
-    <img id="checkinImgPreview" class="img-preview" style="display:none">
+    <label>一句话感想（选填）</label>
+    <input type="text" id="checkinNote" maxlength="120" placeholder="味道怎么样、有什么想记的…">
     <div class="btn-row">
       <button class="btn btn-cancel" onclick="closeModal('checkinModal')">取消</button>
       <button class="btn btn-primary" onclick="saveCheckin()">打卡</button>
@@ -343,7 +341,7 @@ if(projects.length&&projects[0]&&projects[0].series){
   if(migrated.length){projects=migrated;save();}
 }
 
-let curProjectId=null, curItemIdx=null;
+let curProjectId=null, curItemIdx=null, quickItemIdx=null;
 let editProjectId=null, editItemIdx=null;
 let projectTempIcon='';
 
@@ -676,7 +674,7 @@ function renderItemCells(items,globalOffset,cols){
   return items.map((item,i)=>{
     const idx=globalOffset+i;
     const hasImg=!!item.img;
-    return`<div class="item-cell ${item.collected?'collected':''} ${hasImg?'has-img':''}" onclick="openItem(${idx})">
+    return`<div class="item-cell ${item.collected?'collected':''} ${hasImg?'has-img':''}" onclick="handleItemClick(${idx})">
       ${hasImg?`<img class="item-img" src="${item.img}">`:''}
       <span class="item-num">${idx+1}</span>
       ${item.name&&item.name!=='品目'+(idx+1)?`<span class="item-label">${esc(item.name)}</span>`:''}
@@ -686,6 +684,69 @@ function renderItemCells(items,globalOffset,cols){
 }
 
 /* ═══ ITEM DETAIL ═══ */
+function handleItemClick(idx){
+  const p=getProject(curProjectId);if(!p||!p.items[idx])return;
+  const item=p.items[idx];
+  curItemIdx=idx;
+  if(item.collected){openItem(idx);return;}
+  if(item.img){openCheckin();return;}
+  openQuickItemImage(idx);
+}
+function openQuickItemImage(idx){
+  const p=getProject(curProjectId);if(!p||!p.items[idx])return;
+  curItemIdx=idx;quickItemIdx=idx;
+  const input=document.getElementById('quickItemImgInput');
+  input.value='';
+  input.click();
+}
+function optimizedImageDataUrl(file,maxSize){
+  return new Promise((resolve,reject)=>{
+    if(!file){reject(new Error('没有选择图片'));return;}
+    const reader=new FileReader();
+    reader.onerror=()=>reject(reader.error||new Error('读取图片失败'));
+    reader.onload=ev=>{
+      const img=new Image();
+      img.onerror=()=>reject(new Error('图片格式无法读取'));
+      img.onload=()=>{
+        const c=document.createElement('canvas');
+        const M=maxSize||1000;
+        let w=img.width,h=img.height;
+        if(w>M||h>M){if(w>h){h=Math.round(h*M/w);w=M;}else{w=Math.round(w*M/h);h=M;}}
+        c.width=w;c.height=h;
+        c.getContext('2d').drawImage(img,0,0,w,h);
+        const keepAlpha=file.type==='image/png';
+        resolve(c.toDataURL(keepAlpha?'image/png':'image/jpeg',keepAlpha?undefined:0.82));
+      };
+      img.src=ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+function imagePathExt(dataUrl){
+  if(String(dataUrl).startsWith('data:image/png'))return'png';
+  if(String(dataUrl).startsWith('data:image/webp'))return'webp';
+  return'jpg';
+}
+async function quickItemImgSelected(input){
+  const idx=quickItemIdx;
+  const p=getProject(curProjectId);
+  const item=p&&idx!==null?p.items[idx]:null;
+  if(!item||!input.files||!input.files[0]){quickItemIdx=null;input.value='';return;}
+  try{
+    let img=await optimizedImageDataUrl(input.files[0],1000);
+    if(img.startsWith('data:')&&window.CloudSync){
+      const ext=imagePathExt(img);
+      img=await CloudSync.uploadDataUrl(img,`kitchen/${curProjectId}_${item.id}.${ext}`);
+    }
+    item.img=img;
+    save();renderDetail(p);
+  }catch(e){
+    console.error(e);
+    alert('图片保存失败，请再试一次');
+  }finally{
+    quickItemIdx=null;input.value='';
+  }
+}
 function openItem(idx){
   const p=getProject(curProjectId);if(!p||!p.items[idx])return;
   curItemIdx=idx;
@@ -693,12 +754,11 @@ function openItem(idx){
   document.getElementById('itemTitle').textContent=item.name||('品目'+(idx+1));
   document.getElementById('itemBackBtn').onclick=()=>{switchView('viewDetail');renderDetail();};
   let html='<div class="card-detail">';
-  if(item.img)html+=`<img class="card-detail-img" src="${item.img}">`;
-  html+=`<div class="card-detail-body"><div class="card-detail-name">${esc(item.name)}</div>`;
+  if(item.img)html+=`<div class="card-detail-media"><img class="card-detail-img" src="${item.img}"></div>`;
+  html+='<div class="card-detail-body">';
   if(item.collected&&item.collectedDate)html+=`<div class="card-detail-date">打卡于 ${item.collectedDate}</div>`;
-  if(item.note)html+=`<div class="card-detail-note">${esc(item.note)}</div>`;
-  if(item.collected&&item.checkinNote)html+=`<div class="card-detail-note" style="margin-top:8px;padding-top:8px;border-top:1px solid #f0f0f0">${esc(item.checkinNote)}</div>`;
-  if(item.checkinImg)html+=`<img class="card-detail-img" src="${item.checkinImg}" style="margin-top:8px;border-radius:8px">`;
+  if(item.collected&&item.checkinNote)html+=`<div class="card-detail-note">${esc(item.checkinNote)}</div>`;
+  if(item.checkinImg)html+=`<div class="card-detail-media" style="margin-top:12px;border-radius:8px"><img class="card-detail-img" src="${item.checkinImg}"></div>`;
   html+='</div></div>';
   if(item.collected){
     html+=`<div class="card-actions"><button class="btn btn-cancel" onclick="uncollect()">取消打卡</button><button class="btn btn-primary" onclick="openEditItem()">编辑</button></div>`;
@@ -711,15 +771,7 @@ function openItem(idx){
 function openCheckin(){
   document.getElementById('checkinDate').value=new Date().toISOString().slice(0,10);
   document.getElementById('checkinNote').value='';
-  document.getElementById('checkinImgPreview').style.display='none';
-  delete document.getElementById('checkinImgPreview').dataset.source;
   openModal('checkinModal');
-}
-function previewCheckinImg(input){
-  if(!input.files||!input.files[0])return;
-  const reader=new FileReader();
-  reader.onload=ev=>{const img=new Image();img.onload=()=>{const c=document.createElement('canvas');const M=800;let w=img.width,h=img.height;if(w>M||h>M){if(w>h){h=h*M/w;w=M;}else{w=w*M/h;h=M;}}c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);const d=c.toDataURL('image/jpeg',0.7);const p=document.getElementById('checkinImgPreview');p.dataset.source=d;p.src=d;p.style.display='block';};img.src=ev.target.result;};
-  reader.readAsDataURL(input.files[0]);
 }
 async function saveCheckin(){
   const p=getProject(curProjectId);if(!p||curItemIdx===null)return;
@@ -727,14 +779,7 @@ async function saveCheckin(){
   item.collected=true;
   item.collectedDate=document.getElementById('checkinDate').value||new Date().toISOString().slice(0,10);
   item.checkinNote=document.getElementById('checkinNote').value.trim();
-  // Check-in photo: use as item img if item has no img yet, otherwise store separately
-  const preview=document.getElementById('checkinImgPreview');
-  let checkinImg=preview.style.display!=='none'?(preview.dataset.source||''):'';
-  if(checkinImg&&checkinImg.startsWith('data:')&&window.CloudSync){
-    try{checkinImg=await CloudSync.uploadDataUrl(checkinImg,`kitchen/${curProjectId}_${item.id}_checkin.jpg`);}catch(e){}
-  }
-  if(checkinImg)item.checkinImg=checkinImg;
-  save();closeModal('checkinModal');openItem(curItemIdx);
+  save();closeModal('checkinModal');switchView('viewDetail');renderDetail(p);
   // Show celebration
   const proj=getProject(curProjectId);
   if(proj)showCheckinCelebration(proj.duty);
@@ -818,9 +863,9 @@ function openEditItem(){
 }
 function previewItemImg(input){
   if(!input.files||!input.files[0])return;
-  const reader=new FileReader();
-  reader.onload=ev=>{const img=new Image();img.onload=()=>{const c=document.createElement('canvas');const M=800;let w=img.width,h=img.height;if(w>M||h>M){if(w>h){h=h*M/w;w=M;}else{w=w*M/h;h=M;}}c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);const d=c.toDataURL('image/jpeg',0.7);const p=document.getElementById('itemImgPreview');p.dataset.source=d;p.src=d;p.style.display='block';};img.src=ev.target.result;};
-  reader.readAsDataURL(input.files[0]);
+  optimizedImageDataUrl(input.files[0],1000).then(d=>{
+    const p=document.getElementById('itemImgPreview');p.dataset.source=d;p.src=d;p.style.display='block';
+  }).catch(e=>{console.error(e);alert('图片读取失败');});
 }
 async function saveItem(){
   const p=getProject(curProjectId);if(!p)return;
@@ -830,7 +875,7 @@ async function saveItem(){
   const note=document.getElementById('inputItemNote').value.trim();
   const preview=document.getElementById('itemImgPreview');
   let img=preview.style.display!=='none'?(preview.dataset.source||''):'';
-  if(img&&img.startsWith('data:')&&window.CloudSync){try{img=await CloudSync.uploadDataUrl(img,`kitchen/${curProjectId}_${editItemIdx!==null?editItemIdx:p.items.length}.jpg`);}catch(e){}}
+  if(img&&img.startsWith('data:')&&window.CloudSync){try{img=await CloudSync.uploadDataUrl(img,`kitchen/${curProjectId}_${editItemIdx!==null?editItemIdx:p.items.length}.${imagePathExt(img)}`);}catch(e){}}
   let savedItemIdx=editItemIdx;
   if(wasEditing){
     const oldItemIdx=editItemIdx;
@@ -904,7 +949,6 @@ function closeModal(id){document.getElementById(id).classList.remove('show');}
 document.querySelectorAll('.modal-bg,.action-sheet-bg').forEach(bg=>{bg.addEventListener('click',e=>{if(e.target===bg)bg.classList.remove('show');});});
 document.getElementById('projectIconLabel').addEventListener('click',()=>document.getElementById('projectIconInput').click());
 document.getElementById('itemFileLabel').addEventListener('click',()=>document.getElementById('itemImgInput').click());
-document.getElementById('checkinFileLabel').addEventListener('click',()=>document.getElementById('checkinImgInput').click());
 
 /* ═══ CLOUD MIGRATE ═══ */
 async function migrateLocalImages(){
