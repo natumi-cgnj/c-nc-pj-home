@@ -52,7 +52,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .detail-overall-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,#E8B96A,#D4A24A);transition:width 0.3s}
 
 /* ── Item grid (thumbnails) ── */
-.item-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:16px 20px}
+.item-grid{padding:16px 0}
 .item-cell{aspect-ratio:1;border-radius:10px;border:1.5px solid #e8e8e8;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all 0.15s;position:relative;overflow:hidden;background:#f5f5f5}
 .item-cell:active{transform:scale(0.97)}
 .item-cell .item-img{width:100%;height:100%;object-fit:cover;border-radius:9px;position:absolute;top:0;left:0;filter:grayscale(100%) brightness(0.85);transition:filter 0.4s}
@@ -120,6 +120,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .section-divider-label{font-size:11px;color:#999;font-weight:500;letter-spacing:0.3px}
 .section-divider-cols{font-size:10px;color:#ccc}
 .section-grid{display:grid;gap:8px;padding:8px 20px 16px}
+.section-grid.flat-grid{padding-top:0}
+@media (min-width:700px){
+  .item-grid{max-width:640px;margin:0 auto}
+  #viewDetail>.add-item-btn{display:block;max-width:600px;margin-left:auto;margin-right:auto}
+}
 /* Section editor in modal */
 .section-list{margin-top:8px}
 .section-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f5f5f5}
@@ -213,6 +218,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <div class="modal-bg" id="itemModal">
   <div class="modal">
     <h2 id="itemModalTitle">添加品目</h2>
+    <div id="itemSectionField" style="display:none">
+      <label>所属分类</label>
+      <select id="inputItemSection"></select>
+    </div>
     <label>名称</label>
     <input type="text" id="inputItemName" placeholder="品目名称">
     <label>备注（选填）</label>
@@ -223,6 +232,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <img id="itemImgPreview" class="img-preview" style="display:none">
     <div class="btn-row">
       <button class="btn btn-cancel" onclick="closeModal('itemModal')">取消</button>
+      <button class="btn btn-del" id="itemDeleteBtn" style="display:none" onclick="deleteEditingItem()">删除</button>
       <button class="btn btn-primary" onclick="saveItem()">保存</button>
     </div>
   </div>
@@ -631,7 +641,7 @@ function renderDetail(p){
 
   if(!sections){
     // No sections: flat grid
-    grid.innerHTML=renderItemCells(p.items,0,3);
+    grid.innerHTML=`<div class="section-grid flat-grid" style="grid-template-columns:repeat(3,1fr)">${renderItemCells(p.items,0,3)}</div>`;
     return;
   }
 
@@ -746,13 +756,51 @@ function toggleCollected(){
 }
 
 /* ═══ ITEM MODAL ═══ */
+function getItemSectionIndex(p,itemIdx){
+  if(!p.sections||!p.sections.length||itemIdx===null||itemIdx<0)return -1;
+  let offset=0;
+  for(let i=0;i<p.sections.length;i++){
+    const count=Math.max(0,parseInt(p.sections[i].count)||0);
+    if(itemIdx>=offset&&itemIdx<offset+count)return i;
+    offset+=count;
+  }
+  return -1;
+}
+function getSectionEndIndex(p,sectionIdx){
+  let end=0;
+  for(let i=0;i<=sectionIdx&&i<p.sections.length;i++){
+    end+=Math.max(0,parseInt(p.sections[i].count)||0);
+  }
+  return Math.min(end,p.items.length);
+}
+function renderItemSectionSelect(p,selectedIdx){
+  const field=document.getElementById('itemSectionField');
+  const select=document.getElementById('inputItemSection');
+  if(!p.sections||!p.sections.length){
+    field.style.display='none';
+    select.innerHTML='';
+    return;
+  }
+  const fallback=selectedIdx>=0&&selectedIdx<p.sections.length?selectedIdx:0;
+  select.innerHTML=p.sections.map((sec,i)=>`<option value="${i}">${esc(sec.name||('分类 '+(i+1)))}</option>`).join('');
+  select.value=String(fallback);
+  field.style.display='block';
+}
+function getSelectedItemSection(p){
+  if(!p.sections||!p.sections.length)return -1;
+  const idx=parseInt(document.getElementById('inputItemSection').value);
+  return Number.isInteger(idx)&&idx>=0&&idx<p.sections.length?idx:0;
+}
 function openAddItem(){
+  const p=getProject(curProjectId);if(!p)return;
   editItemIdx=null;
   document.getElementById('itemModalTitle').textContent='添加品目';
   document.getElementById('inputItemName').value='';
   document.getElementById('inputItemNote').value='';
   document.getElementById('itemImgPreview').style.display='none';
   delete document.getElementById('itemImgPreview').dataset.source;
+  document.getElementById('itemDeleteBtn').style.display='none';
+  renderItemSectionSelect(p,0);
   openModal('itemModal');
 }
 function openEditItem(){
@@ -763,7 +811,9 @@ function openEditItem(){
   document.getElementById('inputItemName').value=item.name||'';
   document.getElementById('inputItemNote').value=item.note||'';
   if(item.img){const pr=document.getElementById('itemImgPreview');pr.src=item.img;pr.dataset.source=item.img;pr.style.display='block';}
-  else{document.getElementById('itemImgPreview').style.display='none';}
+  else{document.getElementById('itemImgPreview').style.display='none';delete document.getElementById('itemImgPreview').dataset.source;}
+  document.getElementById('itemDeleteBtn').style.display='';
+  renderItemSectionSelect(p,getItemSectionIndex(p,curItemIdx));
   openModal('itemModal');
 }
 function previewItemImg(input){
@@ -774,36 +824,59 @@ function previewItemImg(input){
 }
 async function saveItem(){
   const p=getProject(curProjectId);if(!p)return;
+  const wasEditing=editItemIdx!==null;
+  const selectedSection=getSelectedItemSection(p);
   const name=document.getElementById('inputItemName').value.trim()||('品目'+(p.items.length+1));
   const note=document.getElementById('inputItemNote').value.trim();
   const preview=document.getElementById('itemImgPreview');
   let img=preview.style.display!=='none'?(preview.dataset.source||''):'';
   if(img&&img.startsWith('data:')&&window.CloudSync){try{img=await CloudSync.uploadDataUrl(img,`kitchen/${curProjectId}_${editItemIdx!==null?editItemIdx:p.items.length}.jpg`);}catch(e){}}
-  if(editItemIdx!==null){
-    const item=p.items[editItemIdx];if(item){item.name=name;item.note=note;if(img)item.img=img;}
+  let savedItemIdx=editItemIdx;
+  if(wasEditing){
+    const oldItemIdx=editItemIdx;
+    const item=p.items[oldItemIdx];
+    if(item){
+      item.name=name;item.note=note;if(img)item.img=img;
+      const oldSection=getItemSectionIndex(p,oldItemIdx);
+      if(selectedSection>=0&&selectedSection!==oldSection){
+        p.items.splice(oldItemIdx,1);
+        if(oldSection>=0)p.sections[oldSection].count=Math.max(0,(parseInt(p.sections[oldSection].count)||0)-1);
+        const insertAt=getSectionEndIndex(p,selectedSection);
+        p.items.splice(insertAt,0,item);
+        p.sections[selectedSection].count=(parseInt(p.sections[selectedSection].count)||0)+1;
+        savedItemIdx=insertAt;
+      }
+    }
   }else{
-    p.items.push({id:gid(),name,note,img,collected:false,collectedDate:null});
-    if(p.items.length>p.count)p.count=p.items.length;
+    const item={id:gid(),name,note,img,collected:false,collectedDate:null,checkinNote:'',checkinImg:''};
+    if(selectedSection>=0){
+      const insertAt=getSectionEndIndex(p,selectedSection);
+      p.items.splice(insertAt,0,item);
+      p.sections[selectedSection].count=(parseInt(p.sections[selectedSection].count)||0)+1;
+      savedItemIdx=insertAt;
+    }else{
+      p.items.push(item);
+      savedItemIdx=p.items.length-1;
+    }
   }
+  p.count=p.items.length;
   save();closeModal('itemModal');
-  if(editItemIdx!==null){openItem(editItemIdx);}else{renderDetail(p);}
+  if(wasEditing){curItemIdx=savedItemIdx;editItemIdx=savedItemIdx;openItem(savedItemIdx);}else{renderDetail(p);}
+}
+function deleteEditingItem(){
+  if(editItemIdx===null)return;
+  curItemIdx=editItemIdx;
+  deleteItem();
 }
 function deleteItem(){
   const p=getProject(curProjectId);if(!p||curItemIdx===null)return;
   if(!confirm('删除这个品目？'))return;
-  // Find which section this item belongs to and decrement its count
-  if(p.sections&&p.sections.length){
-    let offset=0;
-    for(const sec of p.sections){
-      if(curItemIdx>=offset&&curItemIdx<offset+(sec.count||0)){
-        sec.count=Math.max(0,(sec.count||0)-1);
-        break;
-      }
-      offset+=(sec.count||0);
-    }
-  }
+  const sectionIdx=getItemSectionIndex(p,curItemIdx);
+  if(sectionIdx>=0)p.sections[sectionIdx].count=Math.max(0,(parseInt(p.sections[sectionIdx].count)||0)-1);
   p.items.splice(curItemIdx,1);
-  p.count=Math.max(0,(p.count||1)-1);
+  p.count=p.items.length;
+  curItemIdx=null;editItemIdx=null;
+  closeModal('itemModal');
   save();switchView('viewDetail');renderDetail(p);
 }
 
