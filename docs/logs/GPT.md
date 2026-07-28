@@ -57,3 +57,15 @@
   - 新旧品目图片路径与项目删除导航通过。
 - 遗留：修正版目前是用户共享文件，尚未替换 GitHub `main` 中的 `kitchen.html`。
 - 请勿误改：`item.note` 与 `checkinNote` 是两种不同备注。
+
+## 2026-07-28｜Kitchen 修正版同步完成
+
+- 执行者：GPT
+- 分支：`main`、`homepage-rebuild`
+- 提交：`main dbde830c6d54f2ac55410255fe6ca9fbd835a4ad`；`homepage-rebuild d4803b8adb9d71dba85010555f2c486b8e2193ce`
+- 涉及文件：`kitchen.html`
+- 用户目标：保留 Claude Cowork 已完成的 Kitchen 主体改造，并将 GPT 三项收尾修复同步到正式页与主页施工分支。
+- 实际改动：两个分支写入同一份最终文件；Claude 的项目／品目拖拽、空格隐藏数字、减弱抖动、追加分栏 modal、分栏排序、自定义确认框、行内编辑和打卡照片均保留；叠加普通品目备注显示、删除当前项目后的导航清理和稳定图片 ID。
+- 验证：两个分支的 `kitchen.html` blob SHA 均为 `0f0b5f1146646dc2dee53315c37255199b79e949`，与本地已测试成品一致。
+- 遗留：无。
+- 请勿误改：不要用压缩上下文后生成的 `kitchen(5).html` 覆盖此版本；`item.note` 与 `checkinNote` 仍是两种不同备注。
