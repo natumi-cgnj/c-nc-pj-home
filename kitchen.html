@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Kitchen build: 2026-07-28-section-project-gesture-fixes -->
+<!-- Kitchen build: 2026-07-28-section-project-gesture-tap-fix -->
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
@@ -682,7 +682,8 @@ function initProjectDrag(){
     if(!state||state.pointerId!==e.pointerId)return;
     if(state.timer){clearTimeout(state.timer);state.timer=null;}
     releaseProjectPointer(state);
-    projectClickSuppressed=Date.now()+700;
+    // A normal tap must be allowed to produce the row's click event.
+    if(state.activated||state.moved)projectClickSuppressed=Date.now()+700;
     if(state.activated&&state.moved){
       commitProjectDrag(state,state.lastY);
     }
