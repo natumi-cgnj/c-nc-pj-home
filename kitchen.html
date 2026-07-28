@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Kitchen build: 2026-07-27-section-delete-item-arrange -->
+<!-- Kitchen build: 2026-07-28-polish-fixes -->
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
@@ -39,11 +39,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .project-row-add:active{background:#f8f8f8}
 /* Duty accent: left border color via inline style */
 .duty-badge{font-size:9px;font-weight:500;letter-spacing:0.5px;display:inline-block;padding:1px 6px;border-radius:4px}
-/* Drag */
-.drag-handle{cursor:grab;color:#ccc;font-size:14px;padding:0 2px;user-select:none;touch-action:none;flex-shrink:0}
-.drag-handle:active{cursor:grabbing;color:#999}
-.dragging{opacity:0.5;background:#f8f8f8}
-.drag-over{border-top:2px solid #E8B96A}
+/* Project list arrange mode */
+.project-row{touch-action:pan-y;position:relative}
+.project-delete-x{display:none;position:absolute;top:50%;right:14px;transform:translateY(-50%) scale(0.3);width:20px;height:20px;border:1.5px solid rgba(255,255,255,0.9);border-radius:50%;background:rgba(120,110,100,0.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);color:#fff;font-size:10px;line-height:17px;text-align:center;z-index:6;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,0.08);font-family:inherit;opacity:0;transition:opacity 0.2s,transform 0.2s cubic-bezier(0.34,1.3,0.64,1)}
+#viewHome.project-arrange-mode .project-delete-x{display:block;opacity:1;transform:translateY(-50%) scale(1)}
+#viewHome.project-arrange-mode .project-row{cursor:grab;touch-action:none;-webkit-touch-callout:none;user-select:none}
+#viewHome.project-arrange-mode .project-row-add{pointer-events:none;opacity:0.35}
+.dragging{opacity:0.45;transform:scale(0.97);background:#FFFDF7;transition:opacity 0.2s,transform 0.2s}
+.drag-over{box-shadow:0 -2px 0 0 #E8B96A}
 
 /* ── Item detail view ── */
 .detail-header{padding:12px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #eee;background:#fff;position:sticky;top:0;z-index:50}
@@ -65,18 +68,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .item-cell.collected:not(.has-img){background:#FFFDF7;border-color:#E8B96A}
 .item-cell.collected:not(.has-img) .item-num{color:#E8B96A}
 .item-check{position:absolute;top:4px;right:4px;width:18px;height:18px;border-radius:50%;background:rgba(232,185,106,0.9);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;z-index:2}
-.item-delete-x{display:none;position:absolute;top:4px;right:4px;width:23px;height:23px;border:0;border-radius:50%;background:#D85A30;color:#fff;font-size:17px;line-height:21px;font-weight:400;z-index:6;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,0.18);font-family:inherit}
-#viewDetail.arrange-mode .item-cell{animation:itemWiggle 0.18s ease-in-out infinite alternate;cursor:grab;touch-action:none;-webkit-touch-callout:none;user-select:none}
-#viewDetail.arrange-mode .item-cell:nth-child(even){animation-direction:alternate-reverse}
-#viewDetail.arrange-mode .item-delete-x{display:block}
+.item-delete-x{display:none;position:absolute;top:3px;right:3px;width:16px;height:16px;border:1.5px solid rgba(255,255,255,0.9);border-radius:50%;background:rgba(120,110,100,0.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);color:#fff;font-size:9px;line-height:13px;font-weight:600;text-align:center;z-index:6;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,0.08);font-family:inherit;opacity:0;transform:scale(0.3);transition:opacity 0.2s,transform 0.2s cubic-bezier(0.34,1.3,0.64,1)}
+#viewDetail.arrange-mode .item-cell{cursor:grab;touch-action:none;-webkit-touch-callout:none;user-select:none}
+#viewDetail.arrange-mode .item-delete-x{display:block;opacity:1;transform:scale(1)}
 #viewDetail.arrange-mode .item-check{display:none}
 #viewDetail.arrange-mode .section-divider-label{pointer-events:none}
-#viewDetail.arrange-mode .add-item-btn{pointer-events:none;opacity:0.45}
-.item-cell.drag-source{animation:none!important;opacity:0.28}
-.item-cell.drop-target{outline:3px solid rgba(232,185,106,0.9);outline-offset:2px}
-.item-drag-ghost{position:fixed!important;margin:0!important;z-index:500;pointer-events:none;opacity:0.92;animation:none!important;transform:scale(1.06) rotate(1deg);box-shadow:0 8px 24px rgba(0,0,0,0.22)}
+#viewDetail.arrange-mode .add-item-btn{pointer-events:none;opacity:0.35;transition:opacity 0.25s}
+.item-cell.drag-source{opacity:0.2;transition:opacity 0.15s}
+.item-cell.drop-target{box-shadow:0 0 0 2px rgba(232,185,106,0.7);border-color:rgba(232,185,106,0.6);transition:box-shadow 0.15s,border-color 0.15s}
+.item-drag-ghost{position:fixed!important;margin:0!important;z-index:500;pointer-events:none;opacity:0.88;transform:scale(1.04) rotate(0.8deg);box-shadow:0 10px 32px rgba(0,0,0,0.18);border-radius:10px}
 .item-drag-ghost .item-delete-x,.item-drag-ghost .item-check{display:none!important}
-@keyframes itemWiggle{from{transform:rotate(-0.7deg)}to{transform:rotate(0.7deg)}}
 .add-item-btn{margin:0 20px 16px;padding:10px;border:1.5px dashed #ddd;border-radius:10px;background:#fff;font-size:12px;color:#aaa;cursor:pointer;text-align:center;font-family:inherit;width:calc(100% - 40px)}
 
 /* ── Item detail card ── */
@@ -84,8 +85,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .card-detail-media{min-height:180px;max-height:420px;padding:16px;background:#f7f7f7;display:flex;align-items:center;justify-content:center}
 .card-detail-img{display:block;width:auto;max-width:100%;height:auto;max-height:388px;object-fit:contain}
 .card-detail-body{padding:14px 16px}
-.card-detail-name{font-size:16px;font-weight:600;color:#333;margin-bottom:4px}
+.card-detail-name{font-size:16px;font-weight:600;color:#333;margin-bottom:4px;cursor:default;border-bottom:1px dashed transparent;transition:border-color 0.15s}
+.card-detail-name:hover{border-bottom-color:#D8C18B}
+.card-detail-name[contenteditable]{outline:none;border-bottom:1px solid #E8B96A;cursor:text}
+.card-detail-note[contenteditable]{outline:none;border-bottom:1px solid #E8B96A;cursor:text}
 .card-detail-date{font-size:11px;color:#bbb;margin-bottom:8px}
+.card-detail-item-note{margin-top:8px;padding:8px 10px;border-radius:8px;background:#faf8f4;font-size:12px;color:#777;line-height:1.6;white-space:pre-wrap}
+.card-detail-item-note-label{display:block;margin-bottom:2px;font-size:9px;color:#bbb;letter-spacing:0.8px}
 .card-detail-note{font-size:13px;color:#666;line-height:1.6;white-space:pre-wrap}
 .card-actions{width:calc(100% - 40px);max-width:520px;display:flex;gap:8px;padding:0;margin:8px auto 0}
 .card-actions .btn{flex:1;padding:10px;border:none;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit}
@@ -146,6 +152,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .section-row input{flex:1;font-size:13px;padding:6px 8px;border:1px solid #e0e0e0;border-radius:6px;font-family:inherit}
 .section-row select{width:60px;font-size:12px;padding:4px;border:1px solid #e0e0e0;border-radius:6px;font-family:inherit}
 .section-row .del-sec{font-size:12px;color:#ccc;background:none;border:none;cursor:pointer;padding:4px}
+.section-row.sec-dragging{opacity:0.4;background:#f8f8f8}
+.section-row.sec-drag-over{box-shadow:0 -2px 0 0 #E8B96A}
 .add-section-btn{font-size:12px;color:#aaa;background:none;border:1px dashed #ddd;border-radius:6px;padding:6px 12px;cursor:pointer;margin-top:6px;font-family:inherit;width:100%}
 
 /* ── Action sheet ── */
@@ -162,6 +170,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .confirm-bg.show{display:flex}
 .confirm-box{background:#fff;border-radius:16px;width:85%;max-width:320px;padding:24px 20px;text-align:center}
 .confirm-box p{font-size:14px;color:#333;margin-bottom:16px;line-height:1.5}
+.confirm-box .btn-row{display:flex;gap:8px;justify-content:center}
+.confirm-box .btn{min-width:80px;flex:none;padding:10px 16px;font-size:13px}
+
+/* ── Toast ── */
+.toast{position:fixed;top:env(safe-area-inset-top,20px);left:50%;transform:translateX(-50%) translateY(-120%);background:rgba(30,30,30,0.88);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:#fff;font-size:13px;padding:10px 20px;border-radius:10px;z-index:400;pointer-events:none;transition:transform 0.3s cubic-bezier(0.34,1.3,0.64,1),opacity 0.3s;opacity:0}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 </style>
 </head>
 <body>
@@ -258,10 +272,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <div class="modal-bg" id="checkinModal">
   <div class="modal">
     <h2>打卡记录</h2>
+    <label>品名</label>
+    <input type="text" id="checkinItemName" placeholder="品目名称">
     <label>日期</label>
     <input type="date" id="checkinDate">
     <label>一句话感想（选填）</label>
     <input type="text" id="checkinNote" maxlength="120" placeholder="味道怎么样、有什么想记的…">
+    <label>打卡照片（选填）</label>
+    <label class="file-label" id="checkinImgLabel">点击选择图片</label>
+    <input type="file" accept="image/*" id="checkinImgInput" onchange="previewCheckinImg(this)" style="display:none">
+    <img id="checkinImgPreview" class="img-preview" style="display:none">
     <div class="btn-row">
       <button class="btn btn-cancel" onclick="closeModal('checkinModal')">取消</button>
       <button class="btn btn-primary" onclick="saveCheckin()">打卡</button>
@@ -289,6 +309,30 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   </div>
 </div>
 
+<!-- Add Section modal -->
+<div class="modal-bg" id="addSectionModal">
+  <div class="modal">
+    <h2>追加新一弹</h2>
+    <label>名称</label>
+    <input type="text" id="inputSectionName" placeholder="如: 第二弹、季节限定" maxlength="40">
+    <label>品目数量</label>
+    <input type="number" id="inputSectionCount" placeholder="数量" min="1" max="99" value="">
+    <label>列数</label>
+    <select id="inputSectionCols">
+      <option value="2">每行 2 列</option>
+      <option value="3" selected>每行 3 列</option>
+      <option value="4">每行 4 列</option>
+    </select>
+    <div class="btn-row">
+      <button class="btn btn-cancel" onclick="closeModal('addSectionModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveAddSection()">添加</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
 <!-- Checkin celebration -->
 <div class="checkin-popup" id="checkinPopup" onclick="closeCheckinPopup()">
   <div class="checkin-box" onclick="event.stopPropagation()">
@@ -312,6 +356,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   </div>
 </div>
 
+<!-- Confirm dialog -->
+<div class="confirm-bg" id="confirmBg">
+  <div class="confirm-box"></div>
+</div>
+
 <!-- Action sheets -->
 <div class="action-sheet-bg" id="projectMenuSheet">
   <div class="action-sheet">
@@ -322,7 +371,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 </div>
 <div class="action-sheet-bg" id="itemMenuSheet">
   <div class="action-sheet">
-    <button onclick="closeSheet('itemMenuSheet');openEditItem()">编辑品目</button>
     <button onclick="closeSheet('itemMenuSheet');if(getProject(curProjectId).items[curItemIdx].collected){uncollect();}else{openCheckin();}">打卡 / 取消打卡</button>
     <button class="del-as" onclick="closeSheet('itemMenuSheet');deleteItem()">删除品目</button>
     <button class="cancel-as" onclick="closeSheet('itemMenuSheet')">取消</button>
@@ -384,6 +432,27 @@ let itemArrangeMode=false,itemPressState=null,itemDragState=null,itemClickSuppre
 function save(){localStorage.setItem(SK,JSON.stringify(projects));}
 function gid(){return 'p_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+/* ═══ CUSTOM DIALOGS (replace confirm/alert/prompt) ═══ */
+function customConfirm(msg,onYes,opts){
+  const bg=document.getElementById('confirmBg');
+  const box=bg.querySelector('.confirm-box');
+  const yesLabel=(opts&&opts.yes)||'确定';
+  const noLabel=(opts&&opts.no)||'取消';
+  const isDanger=opts&&opts.danger;
+  box.innerHTML=`<p>${msg}</p><div class="btn-row"><button class="btn btn-cancel" id="confirmNo">${esc(noLabel)}</button><button class="btn ${isDanger?'btn-del':'btn-primary'}" id="confirmYes">${esc(yesLabel)}</button></div>`;
+  bg.classList.add('show');
+  box.querySelector('#confirmYes').onclick=()=>{bg.classList.remove('show');onYes();};
+  box.querySelector('#confirmNo').onclick=()=>{bg.classList.remove('show');};
+  bg.onclick=e=>{if(e.target===bg)bg.classList.remove('show');};
+}
+let _toastTimer=null;
+function showToast(msg,ms){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer=setTimeout(()=>el.classList.remove('show'),ms||2200);
+}
 function getProject(id){return projects.find(p=>p.id===id);}
 function projectStats(p){const total=Math.max(p.count||0,p.items.length);const collected=p.items.filter(i=>i.collected).length;return{total,collected};}
 function normalizeGenericItemNames(p){
@@ -487,8 +556,7 @@ function renderProjects(){
     const dutyBadge=dutyName?`<span class="duty-badge" style="background:${dutyColor}15;color:${dutyColor}">${esc(dutyName)}</span>`:'';
     const borderStyle=dutyName?`border-left:3px solid ${dutyColor}`:'';
     const fillStyle=dutyName?`background:linear-gradient(90deg,${dutyColor},${dutyColor}cc)`:'';
-    return`<div class="project-row" style="${borderStyle}" data-id="${p.id}" onclick="openProject('${p.id}')">
-      <div class="drag-handle" data-id="${p.id}">⠿</div>
+    return`<div class="project-row" style="${borderStyle}" data-id="${p.id}" onclick="handleProjectRowClick('${p.id}')">
       <div class="project-icon-wrap">${iconHtml}</div>
       <div class="project-row-body">
         <div class="project-row-top">
@@ -502,6 +570,7 @@ function renderProjects(){
           <span class="project-row-pct">${pct}%</span>
         </div>
       </div>
+      <button class="project-delete-x" aria-label="删除项目" onclick="event.stopPropagation();deleteProjectById('${p.id}')">×</button>
     </div>`;
   }).join('');
   html+=`<div class="project-row-add" onclick="openAddProject()">+ 添加项目</div>`;
@@ -509,16 +578,80 @@ function renderProjects(){
   initProjectDrag();
 }
 
+let projectArrangeMode=false,projectClickSuppressed=0;
+function setProjectArrangeMode(active){
+  projectArrangeMode=!!active;
+  document.getElementById('viewHome').classList.toggle('project-arrange-mode',projectArrangeMode);
+  if(!projectArrangeMode)projectClickSuppressed=Date.now()+400;
+}
+function handleProjectRowClick(id){
+  if(projectArrangeMode||Date.now()<projectClickSuppressed)return;
+  openProject(id);
+}
+function deleteProjectById(id){
+  const p=projects.find(pr=>pr.id===id);
+  const name=p?p.name:'项目';
+  customConfirm(`删除「${esc(name)}」？所有品目和打卡记录都会消失。`,()=>{
+    const deletingCurrent=curProjectId===id;
+    projects=projects.filter(pr=>pr.id!==id);
+    if(deletingCurrent){
+      curProjectId=null;curItemIdx=null;quickItemIdx=null;
+      editProjectId=null;editItemIdx=null;editSectionIdx=null;
+      setItemArrangeMode(false);
+      switchView('viewHome');
+    }
+    save();renderProjects();
+    if(!projects.length)setProjectArrangeMode(false);
+  },{yes:'删除',danger:true});
+}
 function initProjectDrag(){
   const list=document.getElementById('projectList');
-  let dragEl=null;
-  list.querySelectorAll('.drag-handle').forEach(h=>{
-    h.addEventListener('touchstart',onStart,{passive:false});
-    h.addEventListener('mousedown',onStart);
+  let dragEl=null,pressTimer=null,startY=0,pointerId=-1,activated=false;
+  list.addEventListener('pointerdown',onDown);
+  list.addEventListener('pointermove',onMove,{passive:false});
+  list.addEventListener('pointerup',onUp);
+  list.addEventListener('pointercancel',onUp);
+  function onDown(e){
+    if(e.target.closest('.project-delete-x'))return;
+    const row=e.target.closest('.project-row');if(!row||e.button)return;
+    startY=e.clientY;activated=false;pointerId=e.pointerId;
+    pressTimer=setTimeout(()=>{
+      activated=true;dragEl=row;dragEl.classList.add('dragging');
+      if(!projectArrangeMode)setProjectArrangeMode(true);
+      if(navigator.vibrate)navigator.vibrate(12);
+      try{row.setPointerCapture(e.pointerId);}catch(err){}
+    },projectArrangeMode?170:450);
+  }
+  function onMove(e){
+    if(pressTimer&&!activated&&Math.abs(e.clientY-startY)>8){clearTimeout(pressTimer);pressTimer=null;return;}
+    if(!dragEl||!activated)return;e.preventDefault();
+    const y=e.clientY;
+    list.querySelectorAll('.project-row').forEach(c=>c.classList.remove('drag-over'));
+    for(const card of list.querySelectorAll('.project-row')){if(card===dragEl)continue;const r=card.getBoundingClientRect();if(y<r.top+r.height/2){card.classList.add('drag-over');break;}}
+  }
+  function onUp(e){
+    if(pressTimer){clearTimeout(pressTimer);pressTimer=null;}
+    if(!dragEl){activated=false;return;}
+    const y=e.clientY;const dragId=dragEl.dataset.id;
+    dragEl.classList.remove('dragging');
+    list.querySelectorAll('.project-row').forEach(c=>c.classList.remove('drag-over'));
+    let insertBefore=null;
+    for(const card of list.querySelectorAll('.project-row')){if(card===dragEl||!card.dataset.id)continue;const r=card.getBoundingClientRect();if(y<r.top+r.height/2){insertBefore=card.dataset.id;break;}}
+    const item=projects.find(p=>p.id===dragId);
+    if(item){
+      const others=projects.filter(p=>p.id!==dragId);const newOrder=[];
+      if(!insertBefore){others.forEach(p=>newOrder.push(p));newOrder.push(item);}
+      else{others.forEach(p=>{if(p.id===insertBefore)newOrder.push(item);newOrder.push(p);});}
+      newOrder.forEach((p,i)=>p.order=i);projects=newOrder;save();renderProjects();
+    }
+    dragEl=null;activated=false;
+  }
+  // Tap empty to exit
+  document.getElementById('viewHome').addEventListener('click',e=>{
+    if(!projectArrangeMode)return;
+    if(e.target.closest('.project-row')||e.target.closest('.btn-s')||e.target.closest('.back-btn'))return;
+    setProjectArrangeMode(false);
   });
-  function onStart(e){e.preventDefault();e.stopPropagation();dragEl=e.target.closest('.project-row');if(!dragEl)return;dragEl.classList.add('dragging');document.addEventListener('touchmove',onMove,{passive:false});document.addEventListener('touchend',onEnd);document.addEventListener('mousemove',onMove);document.addEventListener('mouseup',onEnd);}
-  function onMove(e){if(!dragEl)return;e.preventDefault();const y=e.touches?e.touches[0].clientY:e.clientY;list.querySelectorAll('.project-row').forEach(c=>c.classList.remove('drag-over'));for(const card of list.querySelectorAll('.project-row')){if(card===dragEl)continue;const r=card.getBoundingClientRect();if(y<r.top+r.height/2){card.classList.add('drag-over');break;}}}
-  function onEnd(e){if(!dragEl)return;document.removeEventListener('touchmove',onMove);document.removeEventListener('touchend',onEnd);document.removeEventListener('mousemove',onMove);document.removeEventListener('mouseup',onEnd);const y=e.changedTouches?e.changedTouches[0].clientY:e.clientY;const dragId=dragEl.dataset.id;dragEl.classList.remove('dragging');list.querySelectorAll('.project-row').forEach(c=>c.classList.remove('drag-over'));let insertBefore=null;for(const card of list.querySelectorAll('.project-row')){if(card===dragEl||!card.dataset.id)continue;const r=card.getBoundingClientRect();if(y<r.top+r.height/2){insertBefore=card.dataset.id;break;}}const item=projects.find(p=>p.id===dragId);if(!item){dragEl=null;return;}const others=projects.filter(p=>p.id!==dragId);const newOrder=[];if(!insertBefore){others.forEach(p=>newOrder.push(p));newOrder.push(item);}else{others.forEach(p=>{if(p.id===insertBefore)newOrder.push(item);newOrder.push(p);});}newOrder.forEach((p,i)=>p.order=i);projects=newOrder;save();renderProjects();dragEl=null;}
 }
 
 /* ═══ PROJECT MODAL ═══ */
@@ -554,7 +687,7 @@ let _sections=[];
 function renderSectionList(){
   const list=document.getElementById('sectionList');
   if(!_sections.length){list.innerHTML='<div style="font-size:11px;color:#ccc;padding:8px 0">点下方"添加分栏"设置细分类别</div>';return;}
-  list.innerHTML=_sections.map((s,i)=>`<div class="section-row">
+  list.innerHTML=_sections.map((s,i)=>`<div class="section-row" data-sec-idx="${i}">
     <input type="text" value="${esc(s.name)}" placeholder="分栏名称" onchange="_sections[${i}].name=this.value">
     <input type="number" value="${s.count||0}" min="0" max="99" style="width:50px" placeholder="数量" onchange="_sections[${i}].count=parseInt(this.value)||0">
     <select onchange="_sections[${i}].cols=parseInt(this.value)">
@@ -564,6 +697,51 @@ function renderSectionList(){
     </select>
     <button class="del-sec" onclick="_sections.splice(${i},1);renderSectionList()">×</button>
   </div>`).join('');
+  initSectionDrag();
+}
+function initSectionDrag(){
+  const list=document.getElementById('sectionList');
+  let dragIdx=-1,pressTimer=null,startY=0,activated=false;
+  list.addEventListener('pointerdown',e=>{
+    if(e.target.closest('input')||e.target.closest('select')||e.target.closest('button'))return;
+    const row=e.target.closest('.section-row');if(!row||e.button)return;
+    dragIdx=parseInt(row.dataset.secIdx);startY=e.clientY;activated=false;
+    pressTimer=setTimeout(()=>{
+      activated=true;row.classList.add('sec-dragging');
+      if(navigator.vibrate)navigator.vibrate(12);
+      try{row.setPointerCapture(e.pointerId);}catch(err){}
+    },350);
+  });
+  list.addEventListener('pointermove',e=>{
+    if(pressTimer&&!activated&&Math.abs(e.clientY-startY)>8){clearTimeout(pressTimer);pressTimer=null;return;}
+    if(!activated||dragIdx<0)return;e.preventDefault();
+    list.querySelectorAll('.section-row').forEach(r=>r.classList.remove('sec-drag-over'));
+    const y=e.clientY;
+    for(const row of list.querySelectorAll('.section-row')){
+      const idx=parseInt(row.dataset.secIdx);if(idx===dragIdx)continue;
+      const r=row.getBoundingClientRect();
+      if(y<r.top+r.height/2){row.classList.add('sec-drag-over');break;}
+    }
+  },{passive:false});
+  function finish(e){
+    if(pressTimer){clearTimeout(pressTimer);pressTimer=null;}
+    if(!activated||dragIdx<0){activated=false;dragIdx=-1;return;}
+    const y=e.clientY;let toIdx=_sections.length;
+    for(const row of list.querySelectorAll('.section-row')){
+      const idx=parseInt(row.dataset.secIdx);if(idx===dragIdx)continue;
+      const r=row.getBoundingClientRect();
+      if(y<r.top+r.height/2){toIdx=idx;break;}
+    }
+    if(toIdx!==dragIdx){
+      const moved=_sections.splice(dragIdx,1)[0];
+      const insertAt=toIdx>dragIdx?toIdx-1:toIdx;
+      _sections.splice(insertAt,0,moved);
+    }
+    dragIdx=-1;activated=false;
+    renderSectionList();
+  }
+  list.addEventListener('pointerup',finish);
+  list.addEventListener('pointercancel',finish);
 }
 function addSectionRow(){
   _sections.push({name:'',count:0,cols:3});
@@ -651,16 +829,22 @@ async function saveProject(){
 /* ── Add new section from detail view ── */
 function openAddSection(){
   const p=getProject(curProjectId);if(!p)return;
-  const secName=prompt('新一弹名称（如: 第二弹、周边）');
-  if(secName===null)return;
-  const countStr=prompt('品目数量');
-  const count=parseInt(countStr)||0;
-  if(count<=0)return;
+  document.getElementById('inputSectionName').value='';
+  document.getElementById('inputSectionCount').value='';
+  openModal('addSectionModal');
+  requestAnimationFrame(()=>document.getElementById('inputSectionName').focus());
+}
+function saveAddSection(){
+  const p=getProject(curProjectId);if(!p)return;
+  const secName=document.getElementById('inputSectionName').value.trim();
+  const count=parseInt(document.getElementById('inputSectionCount').value)||0;
+  const cols=parseInt(document.getElementById('inputSectionCols').value)||3;
+  if(count<=0){showToast('请输入品目数量');return;}
   if(!p.sections)p.sections=[];
-  p.sections.push({name:secName,count,cols:3});
+  p.sections.push({name:secName,count,cols});
   for(let i=0;i<count;i++)p.items.push({id:gid(),name:'品目'+(p.items.length+1),note:'',img:'',collected:false,collectedDate:null,checkinNote:'',checkinImg:''});
   p.count=(p.count||0)+count;
-  save();renderDetail(p);
+  save();closeModal('addSectionModal');renderDetail(p);
 }
 
 function previewProjectIcon(input){
@@ -671,9 +855,7 @@ function previewProjectIcon(input){
 }
 
 function deleteProject(){
-  if(!confirm('删除整个项目？'))return;
-  projects=projects.filter(p=>p.id!==curProjectId);
-  save();goHome();
+  deleteProjectById(curProjectId);
 }
 
 /* ═══ PROJECT DETAIL ═══ */
@@ -762,23 +944,20 @@ function deleteSectionQuickEdit(){
   const count=Math.max(0,parseInt(sec.count)||0);
   const sectionName=sec.name||('分栏 '+(sectionIdx+1));
   const message=count>0
-    ?`删除分栏「${sectionName}」？其中 ${count} 个品目及打卡记录也会一起删除。`
-    :`删除空分栏「${sectionName}」？`;
-  if(!confirm(message))return;
-  let start=0;
-  for(let i=0;i<sectionIdx;i++)start+=Math.max(0,parseInt(p.sections[i].count)||0);
-  p.items.splice(start,Math.min(count,Math.max(0,p.items.length-start)));
-  p.sections.splice(sectionIdx,1);
-  p.count=p.items.length;
-  normalizeGenericItemNames(p);
-  curItemIdx=null;
-  editItemIdx=null;
-  editSectionIdx=null;
-  const scroll=currentScrollY();
-  save();
-  closeModal('sectionQuickModal');
-  renderDetail(p);
-  restoreDetailScroll(scroll);
+    ?`删除分栏「${esc(sectionName)}」？其中 ${count} 个品目及打卡记录也会一起删除。`
+    :`删除空分栏「${esc(sectionName)}」？`;
+  customConfirm(message,()=>{
+    let start=0;
+    for(let i=0;i<sectionIdx;i++)start+=Math.max(0,parseInt(p.sections[i].count)||0);
+    p.items.splice(start,Math.min(count,Math.max(0,p.items.length-start)));
+    p.sections.splice(sectionIdx,1);
+    p.count=p.items.length;
+    normalizeGenericItemNames(p);
+    curItemIdx=null;editItemIdx=null;editSectionIdx=null;
+    const scroll=currentScrollY();
+    save();closeModal('sectionQuickModal');
+    renderDetail(p);restoreDetailScroll(scroll);
+  },{yes:'删除',danger:true});
 }
 
 function renderItemCells(items,globalOffset,cols){
@@ -787,7 +966,6 @@ function renderItemCells(items,globalOffset,cols){
     const hasImg=!!item.img;
     return`<div class="item-cell ${item.collected?'collected':''} ${hasImg?'has-img':''}" data-index="${idx}" onclick="handleItemClick(${idx})">
       ${hasImg?`<img class="item-img" src="${item.img}">`:''}
-      <span class="item-num">${idx+1}</span>
       ${item.name&&item.name!=='品目'+(idx+1)?`<span class="item-label">${esc(item.name)}</span>`:''}
       ${item.collected?'<div class="item-check">✓</div>':''}
       <button class="item-delete-x" aria-label="删除品目" onclick="event.stopPropagation();deleteGridItem(${idx})">×</button>
@@ -815,23 +993,41 @@ function deleteGridItem(idx){
   const p=getProject(curProjectId);if(!p||!p.items[idx])return;
   const item=p.items[idx];
   const generic=!item.name||/^品目\d+$/.test(item.name);
-  const label=generic?`第 ${idx+1} 格`:`「${item.name}」`;
-  if(!confirm(`删除${label}？图片、日期和感想也会一起删除。`))return;
-  const sectionIdx=getItemSectionIndex(p,idx);
-  if(sectionIdx>=0)p.sections[sectionIdx].count=Math.max(0,(parseInt(p.sections[sectionIdx].count)||0)-1);
-  const scroll=currentScrollY();
-  p.items.splice(idx,1);
-  p.count=p.items.length;
-  normalizeGenericItemNames(p);
-  curItemIdx=null;editItemIdx=null;quickItemIdx=null;
-  itemClickSuppressedUntil=Date.now()+400;
-  save();
-  renderDetail(p);
-  restoreDetailScroll(scroll);
+  const label=generic?`第 ${idx+1} 格`:`「${esc(item.name)}」`;
+  customConfirm(`删除${label}？图片、日期和感想也会一起删除。`,()=>{
+    const sectionIdx=getItemSectionIndex(p,idx);
+    if(sectionIdx>=0)p.sections[sectionIdx].count=Math.max(0,(parseInt(p.sections[sectionIdx].count)||0)-1);
+    const scroll=currentScrollY();
+    p.items.splice(idx,1);
+    p.count=p.items.length;
+    normalizeGenericItemNames(p);
+    curItemIdx=null;editItemIdx=null;quickItemIdx=null;
+    itemClickSuppressedUntil=Date.now()+400;
+    save();renderDetail(p);restoreDetailScroll(scroll);
+  },{yes:'删除',danger:true});
 }
 function moveGridItem(fromIdx,toIdx){
   const p=getProject(curProjectId);
   if(!p||fromIdx===toIdx||fromIdx<0||toIdx<0||fromIdx>=p.items.length||toIdx>=p.items.length)return false;
+  // Fix section counts when crossing sections
+  if(p.sections&&p.sections.length){
+    const fromSec=getItemSectionIndex(p,fromIdx);
+    // After splice, toIdx shifts if fromIdx < toIdx
+    const adjustedTo=fromIdx<toIdx?toIdx-1:toIdx;
+    const tempItems=[...p.items];tempItems.splice(fromIdx,1);
+    // Determine target section in the post-splice array
+    let toSec=-1,off=0;
+    for(let i=0;i<p.sections.length;i++){
+      const c=Math.max(0,parseInt(p.sections[i].count)||0)-(i===fromSec?1:0);
+      if(adjustedTo<off+c){toSec=i;break;}
+      off+=c;
+    }
+    if(toSec<0)toSec=p.sections.length-1;
+    if(fromSec>=0&&toSec>=0&&fromSec!==toSec){
+      p.sections[fromSec].count=Math.max(0,(parseInt(p.sections[fromSec].count)||0)-1);
+      p.sections[toSec].count=(parseInt(p.sections[toSec].count)||0)+1;
+    }
+  }
   const scroll=currentScrollY();
   const moved=p.items.splice(fromIdx,1)[0];
   p.items.splice(toIdx,0,moved);
@@ -955,6 +1151,12 @@ function setupItemArrangeGestures(){
   grid.addEventListener('pointercancel',onItemPointerCancel);
   grid.addEventListener('contextmenu',e=>{if(e.target.closest('.item-cell'))e.preventDefault();});
   grid.addEventListener('dragstart',e=>e.preventDefault());
+  // Tap empty area to exit arrange mode
+  document.getElementById('viewDetail').addEventListener('click',e=>{
+    if(!itemArrangeMode)return;
+    if(e.target.closest('.item-cell')||e.target.closest('.btn-s')||e.target.closest('.back-btn')||e.target.closest('.add-item-btn')||e.target.closest('.section-divider'))return;
+    setItemArrangeMode(false);
+  });
 }
 
 /* ═══ ITEM DETAIL ═══ */
@@ -1017,7 +1219,7 @@ async function quickItemImgSelected(input){
     save();renderDetail(p);
   }catch(e){
     console.error(e);
-    alert('图片保存失败，请再试一次');
+    showToast('图片保存失败，请再试一次');
   }finally{
     quickItemIdx=null;input.value='';
   }
@@ -1027,36 +1229,95 @@ function openItem(idx){
   if(document.getElementById('viewDetail').classList.contains('active'))rememberDetailScroll();
   curItemIdx=idx;
   const item=p.items[idx];
-  document.getElementById('itemTitle').textContent=item.name||('品目'+(idx+1));
+  const displayName=item.name||('品目'+(idx+1));
+  document.getElementById('itemTitle').textContent=displayName;
   document.getElementById('itemBackBtn').onclick=returnToDetail;
   let html='<div class="card-detail">';
   if(item.img)html+=`<div class="card-detail-media"><img class="card-detail-img" src="${item.img}"></div>`;
   html+='<div class="card-detail-body">';
+  html+=`<div class="card-detail-name" id="inlineName" title="双击编辑名称">${esc(displayName)}</div>`;
+  if(item.note)html+=`<div class="card-detail-item-note"><span class="card-detail-item-note-label">品目备注</span>${esc(item.note)}</div>`;
   if(item.collected&&item.collectedDate)html+=`<div class="card-detail-date">打卡于 ${item.collectedDate}</div>`;
-  if(item.collected&&item.checkinNote)html+=`<div class="card-detail-note">${esc(item.checkinNote)}</div>`;
+  if(item.collected){
+    const noteText=item.checkinNote||'';
+    html+=`<div class="card-detail-note" id="inlineNote" title="双击编辑感想" style="${noteText?'':'color:#ccc;font-style:italic'}">${noteText?esc(noteText):'双击添加感想…'}</div>`;
+  }
   if(item.checkinImg)html+=`<div class="card-detail-media" style="margin-top:12px;border-radius:8px"><img class="card-detail-img" src="${item.checkinImg}"></div>`;
   html+='</div></div>';
   if(item.collected){
-    html+=`<div class="card-actions"><button class="btn btn-cancel" onclick="uncollect()">取消打卡</button><button class="btn btn-primary" onclick="openEditItem()">编辑</button></div>`;
+    html+=`<div class="card-actions"><button class="btn btn-cancel" onclick="uncollect()">取消打卡</button></div>`;
   }else{
-    html+=`<div class="card-actions"><button class="btn btn-primary" onclick="openCheckin()">打卡</button><button class="btn btn-cancel" onclick="openEditItem()">编辑</button></div>`;
+    html+=`<div class="card-actions"><button class="btn btn-primary" onclick="openCheckin()">打卡</button></div>`;
   }
   document.getElementById('itemContent').innerHTML=html;
+  // Wire up double-click editing
+  const nameEl=document.getElementById('inlineName');
+  if(nameEl)nameEl.addEventListener('dblclick',()=>startInlineEdit('inlineName','name'));
+  const noteEl=document.getElementById('inlineNote');
+  if(noteEl)noteEl.addEventListener('dblclick',()=>startInlineEdit('inlineNote','checkinNote'));
   switchView('viewItem');
 }
+function startInlineEdit(elId,field){
+  const el=document.getElementById(elId);if(!el)return;
+  const p=getProject(curProjectId);if(!p||curItemIdx===null)return;
+  const item=p.items[curItemIdx];
+  el.contentEditable='true';
+  el.style.color='';el.style.fontStyle='';
+  if(field==='checkinNote'&&!item.checkinNote)el.textContent='';
+  el.focus();
+  // Select all text
+  const range=document.createRange();range.selectNodeContents(el);
+  const sel=window.getSelection();sel.removeAllRanges();sel.addRange(range);
+  function commit(){
+    el.contentEditable='false';
+    const val=el.textContent.trim();
+    item[field]=val;
+    if(field==='name'){
+      document.getElementById('itemTitle').textContent=val||('品目'+(curItemIdx+1));
+      if(!val)el.textContent='品目'+(curItemIdx+1);
+    }
+    if(field==='checkinNote'&&!val){el.textContent='双击添加感想…';el.style.color='#ccc';el.style.fontStyle='italic';}
+    save();
+    el.removeEventListener('blur',commit);
+    el.removeEventListener('keydown',onKey);
+  }
+  function onKey(e){if(e.key==='Enter'){e.preventDefault();el.blur();}}
+  el.addEventListener('blur',commit);
+  el.addEventListener('keydown',onKey);
+}
 function openCheckin(){
+  const p=getProject(curProjectId);
+  const item=p&&curItemIdx!==null?p.items[curItemIdx]:null;
+  const nameInput=document.getElementById('checkinItemName');
+  nameInput.value=item?(item.name&&!/^品目\d+$/.test(item.name)?item.name:''):'';
   document.getElementById('checkinDate').value=new Date().toISOString().slice(0,10);
   document.getElementById('checkinNote').value='';
+  document.getElementById('checkinImgPreview').style.display='none';
+  delete document.getElementById('checkinImgPreview').dataset.source;
+  document.getElementById('checkinImgInput').value='';
   openModal('checkinModal');
+}
+function previewCheckinImg(input){
+  if(!input.files||!input.files[0])return;
+  optimizedImageDataUrl(input.files[0],1000).then(d=>{
+    const p=document.getElementById('checkinImgPreview');p.dataset.source=d;p.src=d;p.style.display='block';
+  }).catch(e=>{console.error(e);showToast('图片读取失败');});
 }
 async function saveCheckin(){
   const p=getProject(curProjectId);if(!p||curItemIdx===null)return;
   const item=p.items[curItemIdx];
+  const checkinName=document.getElementById('checkinItemName').value.trim();
+  if(checkinName)item.name=checkinName;
   item.collected=true;
   item.collectedDate=document.getElementById('checkinDate').value||new Date().toISOString().slice(0,10);
   item.checkinNote=document.getElementById('checkinNote').value.trim();
+  const preview=document.getElementById('checkinImgPreview');
+  let cImg=preview.style.display!=='none'?(preview.dataset.source||''):'';
+  if(cImg&&cImg.startsWith('data:')&&window.CloudSync){
+    try{cImg=await CloudSync.uploadDataUrl(cImg,`kitchen/${curProjectId}_${item.id}_checkin.${imagePathExt(cImg)}`);}catch(e){}
+  }
+  if(cImg)item.checkinImg=cImg;
   save();closeModal('checkinModal');returnToDetail();
-  // Show celebration
   const proj=getProject(curProjectId);
   if(proj)showCheckinCelebration(proj.duty);
 }
@@ -1141,18 +1402,21 @@ function previewItemImg(input){
   if(!input.files||!input.files[0])return;
   optimizedImageDataUrl(input.files[0],1000).then(d=>{
     const p=document.getElementById('itemImgPreview');p.dataset.source=d;p.src=d;p.style.display='block';
-  }).catch(e=>{console.error(e);alert('图片读取失败');});
+  }).catch(e=>{console.error(e);showToast('图片读取失败');});
 }
 async function saveItem(){
   const p=getProject(curProjectId);if(!p)return;
   const wasEditing=editItemIdx!==null;
+  const existingItem=wasEditing?p.items[editItemIdx]:null;
+  const stableItemId=existingItem&&existingItem.id?existingItem.id:gid();
+  if(existingItem&&!existingItem.id)existingItem.id=stableItemId;
   const selectedSection=getSelectedItemSection(p);
   const inputName=document.getElementById('inputItemName').value.trim();
   const name=wasEditing?inputName:(inputName||('品目'+(p.items.length+1)));
   const note=document.getElementById('inputItemNote').value.trim();
   const preview=document.getElementById('itemImgPreview');
   let img=preview.style.display!=='none'?(preview.dataset.source||''):'';
-  if(img&&img.startsWith('data:')&&window.CloudSync){try{img=await CloudSync.uploadDataUrl(img,`kitchen/${curProjectId}_${editItemIdx!==null?editItemIdx:p.items.length}.${imagePathExt(img)}`);}catch(e){}}
+  if(img&&img.startsWith('data:')&&window.CloudSync){try{img=await CloudSync.uploadDataUrl(img,`kitchen/${curProjectId}_${stableItemId}.${imagePathExt(img)}`);}catch(e){}}
   let savedItemIdx=editItemIdx;
   if(wasEditing){
     const oldItemIdx=editItemIdx;
@@ -1170,7 +1434,7 @@ async function saveItem(){
       }
     }
   }else{
-    const item={id:gid(),name,note,img,collected:false,collectedDate:null,checkinNote:'',checkinImg:''};
+    const item={id:stableItemId,name,note,img,collected:false,collectedDate:null,checkinNote:'',checkinImg:''};
     if(selectedSection>=0){
       const insertAt=getSectionEndIndex(p,selectedSection);
       p.items.splice(insertAt,0,item);
@@ -1192,15 +1456,16 @@ function deleteEditingItem(){
 }
 function deleteItem(){
   const p=getProject(curProjectId);if(!p||curItemIdx===null)return;
-  if(!confirm('删除这个品目？'))return;
-  const sectionIdx=getItemSectionIndex(p,curItemIdx);
-  if(sectionIdx>=0)p.sections[sectionIdx].count=Math.max(0,(parseInt(p.sections[sectionIdx].count)||0)-1);
-  p.items.splice(curItemIdx,1);
-  p.count=p.items.length;
-  normalizeGenericItemNames(p);
-  curItemIdx=null;editItemIdx=null;
-  closeModal('itemModal');
-  save();returnToDetail();
+  customConfirm('删除这个品目？图片和打卡记录也会一起删除。',()=>{
+    const sectionIdx=getItemSectionIndex(p,curItemIdx);
+    if(sectionIdx>=0)p.sections[sectionIdx].count=Math.max(0,(parseInt(p.sections[sectionIdx].count)||0)-1);
+    p.items.splice(curItemIdx,1);
+    p.count=p.items.length;
+    normalizeGenericItemNames(p);
+    curItemIdx=null;editItemIdx=null;
+    closeModal('itemModal');
+    save();returnToDetail();
+  },{yes:'删除',danger:true});
 }
 
 /* ═══ MENUS ═══ */
@@ -1217,7 +1482,16 @@ function exportKitchen(){
 function importKitchen(input){
   if(!input.files||!input.files[0])return;
   const reader=new FileReader();
-  reader.onload=ev=>{try{const data=JSON.parse(ev.target.result);if(!Array.isArray(data)){alert('格式不正确');return;}if(!confirm('导入数据？将覆盖当前记录'))return;projects=data;save();renderProjects();closeModal('backupModal');}catch(e){alert('导入失败');}input.value='';};
+  reader.onload=ev=>{
+    try{
+      const data=JSON.parse(ev.target.result);
+      if(!Array.isArray(data)){showToast('格式不正确');input.value='';return;}
+      customConfirm('导入数据？将覆盖当前记录。',()=>{
+        projects=data;save();renderProjects();closeModal('backupModal');
+      });
+    }catch(e){showToast('导入失败');}
+    input.value='';
+  };
   reader.readAsText(input.files[0]);
 }
 
@@ -1227,6 +1501,7 @@ function closeModal(id){document.getElementById(id).classList.remove('show');}
 document.querySelectorAll('.modal-bg,.action-sheet-bg').forEach(bg=>{bg.addEventListener('click',e=>{if(e.target===bg)bg.classList.remove('show');});});
 document.getElementById('projectIconLabel').addEventListener('click',()=>document.getElementById('projectIconInput').click());
 document.getElementById('itemFileLabel').addEventListener('click',()=>document.getElementById('itemImgInput').click());
+document.getElementById('checkinImgLabel').addEventListener('click',()=>document.getElementById('checkinImgInput').click());
 
 /* ═══ CLOUD MIGRATE ═══ */
 async function migrateLocalImages(){
