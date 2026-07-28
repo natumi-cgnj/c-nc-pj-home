@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Kitchen build: 2026-07-28-polish-fixes -->
+<!-- Kitchen build: 2026-07-28-section-project-gesture-fixes -->
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
@@ -19,6 +19,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .back-btn{font-size:13px;color:#999;text-decoration:none;cursor:pointer;background:none;border:none;font-family:inherit;padding:4px}
 .btn-s{font-size:11px;color:#999;background:none;border:1px solid #ddd;border-radius:6px;padding:5px 10px;cursor:pointer;font-family:inherit}
 .view{display:none}.view.active{display:block}
+#viewHome.active{min-height:100vh;min-height:100dvh}
 
 /* ── Project list (horizontal rows) ── */
 .project-list{padding:8px 0}
@@ -570,7 +571,7 @@ function renderProjects(){
           <span class="project-row-pct">${pct}%</span>
         </div>
       </div>
-      <button class="project-delete-x" aria-label="删除项目" onclick="event.stopPropagation();deleteProjectById('${p.id}')">×</button>
+      <button class="project-delete-x" aria-label="删除项目" onclick="handleProjectDeleteClick(event,'${p.id}')">×</button>
     </div>`;
   }).join('');
   html+=`<div class="project-row-add" onclick="openAddProject()">+ 添加项目</div>`;
@@ -578,15 +579,30 @@ function renderProjects(){
   initProjectDrag();
 }
 
-let projectArrangeMode=false,projectClickSuppressed=0;
+let projectArrangeMode=false,projectClickSuppressed=0,projectDeleteArmedAt=0;
+let projectGestureBound=false,projectPressState=null;
 function setProjectArrangeMode(active){
   projectArrangeMode=!!active;
   document.getElementById('viewHome').classList.toggle('project-arrange-mode',projectArrangeMode);
-  if(!projectArrangeMode)projectClickSuppressed=Date.now()+400;
+  if(projectArrangeMode){
+    projectDeleteArmedAt=Date.now()+500;
+    projectClickSuppressed=Date.now()+700;
+  }else{
+    projectDeleteArmedAt=0;
+    projectClickSuppressed=Date.now()+400;
+    clearProjectPress(false);
+  }
 }
 function handleProjectRowClick(id){
   if(projectArrangeMode||Date.now()<projectClickSuppressed)return;
   openProject(id);
+}
+function handleProjectDeleteClick(event,id){
+  event.preventDefault();
+  event.stopPropagation();
+  // Prevent the synthetic click emitted when the long-press itself ends.
+  if(!projectArrangeMode||Date.now()<projectDeleteArmedAt)return;
+  deleteProjectById(id);
 }
 function deleteProjectById(id){
   const p=projects.find(pr=>pr.id===id);
@@ -605,53 +621,128 @@ function deleteProjectById(id){
   },{yes:'删除',danger:true});
 }
 function initProjectDrag(){
+  if(projectGestureBound)return;
+  projectGestureBound=true;
   const list=document.getElementById('projectList');
-  let dragEl=null,pressTimer=null,startY=0,pointerId=-1,activated=false;
   list.addEventListener('pointerdown',onDown);
   list.addEventListener('pointermove',onMove,{passive:false});
   list.addEventListener('pointerup',onUp);
-  list.addEventListener('pointercancel',onUp);
+  list.addEventListener('pointercancel',onCancel);
+  list.addEventListener('contextmenu',e=>{if(e.target.closest('.project-row'))e.preventDefault();});
+  list.addEventListener('dragstart',e=>e.preventDefault());
   function onDown(e){
     if(e.target.closest('.project-delete-x'))return;
-    const row=e.target.closest('.project-row');if(!row||e.button)return;
-    startY=e.clientY;activated=false;pointerId=e.pointerId;
-    pressTimer=setTimeout(()=>{
-      activated=true;dragEl=row;dragEl.classList.add('dragging');
+    const row=e.target.closest('.project-row');
+    if(!row||(e.button!==undefined&&e.button!==0))return;
+    clearProjectPress(false);
+    const state={
+      row,
+      pointerId:e.pointerId,
+      startX:e.clientX,
+      startY:e.clientY,
+      lastX:e.clientX,
+      lastY:e.clientY,
+      activated:false,
+      moved:false,
+      timer:null
+    };
+    projectPressState=state;
+    if(row.setPointerCapture){try{row.setPointerCapture(e.pointerId);}catch(err){}}
+    state.timer=setTimeout(()=>{
+      if(projectPressState!==state)return;
+      state.timer=null;
+      state.activated=true;
       if(!projectArrangeMode)setProjectArrangeMode(true);
+      projectClickSuppressed=Date.now()+700;
       if(navigator.vibrate)navigator.vibrate(12);
-      try{row.setPointerCapture(e.pointerId);}catch(err){}
     },projectArrangeMode?170:450);
   }
   function onMove(e){
-    if(pressTimer&&!activated&&Math.abs(e.clientY-startY)>8){clearTimeout(pressTimer);pressTimer=null;return;}
-    if(!dragEl||!activated)return;e.preventDefault();
-    const y=e.clientY;
+    const state=projectPressState;
+    if(!state||state.pointerId!==e.pointerId)return;
+    state.lastX=e.clientX;state.lastY=e.clientY;
+    const distance=Math.hypot(e.clientX-state.startX,e.clientY-state.startY);
+    if(!state.activated){
+      if(distance>10)clearProjectPress(false);
+      return;
+    }
+    if(distance<=6)return;
+    state.moved=true;
+    state.row.classList.add('dragging');
+    e.preventDefault();
     list.querySelectorAll('.project-row').forEach(c=>c.classList.remove('drag-over'));
-    for(const card of list.querySelectorAll('.project-row')){if(card===dragEl)continue;const r=card.getBoundingClientRect();if(y<r.top+r.height/2){card.classList.add('drag-over');break;}}
+    for(const card of list.querySelectorAll('.project-row')){
+      if(card===state.row)continue;
+      const r=card.getBoundingClientRect();
+      if(e.clientY<r.top+r.height/2){card.classList.add('drag-over');break;}
+    }
   }
   function onUp(e){
-    if(pressTimer){clearTimeout(pressTimer);pressTimer=null;}
-    if(!dragEl){activated=false;return;}
-    const y=e.clientY;const dragId=dragEl.dataset.id;
-    dragEl.classList.remove('dragging');
-    list.querySelectorAll('.project-row').forEach(c=>c.classList.remove('drag-over'));
-    let insertBefore=null;
-    for(const card of list.querySelectorAll('.project-row')){if(card===dragEl||!card.dataset.id)continue;const r=card.getBoundingClientRect();if(y<r.top+r.height/2){insertBefore=card.dataset.id;break;}}
-    const item=projects.find(p=>p.id===dragId);
-    if(item){
-      const others=projects.filter(p=>p.id!==dragId);const newOrder=[];
-      if(!insertBefore){others.forEach(p=>newOrder.push(p));newOrder.push(item);}
-      else{others.forEach(p=>{if(p.id===insertBefore)newOrder.push(item);newOrder.push(p);});}
-      newOrder.forEach((p,i)=>p.order=i);projects=newOrder;save();renderProjects();
+    const state=projectPressState;
+    if(!state||state.pointerId!==e.pointerId)return;
+    if(state.timer){clearTimeout(state.timer);state.timer=null;}
+    releaseProjectPointer(state);
+    projectClickSuppressed=Date.now()+700;
+    if(state.activated&&state.moved){
+      commitProjectDrag(state,state.lastY);
     }
-    dragEl=null;activated=false;
+    clearProjectPress(false);
   }
-  // Tap empty to exit
-  document.getElementById('viewHome').addEventListener('click',e=>{
+  function onCancel(e){
+    const state=projectPressState;
+    if(!state||state.pointerId!==e.pointerId)return;
+    projectClickSuppressed=Date.now()+700;
+    // pointercancel is a browser interruption, never a reorder confirmation.
+    clearProjectPress(false);
+  }
+  // The blank area can be outside #viewHome's content height, so listen on document.
+  document.addEventListener('click',e=>{
     if(!projectArrangeMode)return;
+    if(!document.getElementById('viewHome').classList.contains('active'))return;
+    if(document.querySelector('.modal-bg.show,.action-sheet-bg.show,.confirm-bg.show'))return;
     if(e.target.closest('.project-row')||e.target.closest('.btn-s')||e.target.closest('.back-btn'))return;
     setProjectArrangeMode(false);
   });
+}
+function releaseProjectPointer(state){
+  if(!state||!state.row||!state.row.releasePointerCapture)return;
+  try{
+    if(!state.row.hasPointerCapture||state.row.hasPointerCapture(state.pointerId)){
+      state.row.releasePointerCapture(state.pointerId);
+    }
+  }catch(e){}
+}
+function clearProjectPress(release=true){
+  const state=projectPressState;
+  if(!state)return;
+  if(state.timer)clearTimeout(state.timer);
+  if(release)releaseProjectPointer(state);
+  state.row&&state.row.classList.remove('dragging');
+  document.querySelectorAll('#projectList .project-row.drag-over').forEach(row=>row.classList.remove('drag-over'));
+  projectPressState=null;
+}
+function commitProjectDrag(state,y){
+  if(!state||!state.row)return;
+  const dragId=state.row.dataset.id;
+  let insertBefore=null;
+  for(const card of document.querySelectorAll('#projectList .project-row')){
+    if(card===state.row||!card.dataset.id)continue;
+    const r=card.getBoundingClientRect();
+    if(y<r.top+r.height/2){insertBefore=card.dataset.id;break;}
+  }
+  const item=projects.find(p=>p.id===dragId);
+  if(!item)return;
+  const others=projects.filter(p=>p.id!==dragId);
+  const newOrder=[];
+  if(!insertBefore){
+    newOrder.push(...others,item);
+  }else{
+    others.forEach(p=>{if(p.id===insertBefore)newOrder.push(item);newOrder.push(p);});
+  }
+  newOrder.forEach((p,i)=>p.order=i);
+  projects=newOrder;
+  save();
+  renderProjects();
 }
 
 /* ═══ PROJECT MODAL ═══ */
@@ -683,68 +774,172 @@ function selectDuty(type){
 function pickColor(c){_dutyState.color=c;renderColorPicker(c);}
 
 /* ── Section rows in modal ── */
-let _sections=[];
+let _sections=[],sectionDragBound=false,sectionPressState=null;
+function makeEmptyItem(number){
+  return{id:gid(),name:'品目'+number,note:'',img:'',collected:false,collectedDate:null,checkinNote:'',checkinImg:''};
+}
+function itemHasSavedContent(item){
+  if(!item)return false;
+  return !!(item.collected||item.img||item.note||item.checkinNote||item.checkinImg||
+    (item.name&&!/^品目\d+$/.test(item.name)));
+}
+function buildSectionDrafts(p){
+  const source=p.sections&&p.sections.length
+    ?p.sections
+    :[{name:'',count:p.items.length,cols:3}];
+  let offset=0;
+  const drafts=source.map(sec=>{
+    const count=Math.max(0,parseInt(sec.count)||0);
+    const draft={name:sec.name||'',count,cols:sec.cols||3,_items:p.items.slice(offset,offset+count)};
+    offset+=count;
+    return draft;
+  });
+  // Repair old count drift without changing the order the user currently sees:
+  // uncovered items stay with the last visible section.
+  if(offset<p.items.length){
+    if(!drafts.length)drafts.push({name:'',count:0,cols:3,_items:[]});
+    const last=drafts[drafts.length-1];
+    last._items.push(...p.items.slice(offset));
+    last.count=last._items.length;
+  }
+  return drafts;
+}
+function updateSectionDraftCount(index,value){
+  if(!_sections[index])return;
+  _sections[index].count=Math.max(0,parseInt(value)||0);
+}
+function removeSectionRow(index){
+  if(index<0||index>=_sections.length)return;
+  _sections.splice(index,1);
+  renderSectionList();
+}
+function finalizeSectionDrafts(){
+  const sections=[];
+  const items=[];
+  let preserved=0;
+  _sections.filter(sec=>sec.name||sec.count>0||(sec._items&&sec._items.length)).forEach(sec=>{
+    const requested=Math.max(0,parseInt(sec.count)||0);
+    const bucket=Array.isArray(sec._items)?sec._items.slice():[];
+    const group=bucket.slice(0,requested);
+    // Reducing a count may remove empty placeholders, but never silently move or
+    // discard a recorded item into another section.
+    for(let i=requested;i<bucket.length;i++){
+      if(itemHasSavedContent(bucket[i])){group.push(bucket[i]);preserved++;}
+    }
+    while(group.length<requested)group.push(makeEmptyItem(items.length+group.length+1));
+    sections.push({name:sec.name||'',count:group.length,cols:sec.cols||3});
+    items.push(...group);
+  });
+  normalizeGenericItemNames({items});
+  return{sections,items,preserved};
+}
 function renderSectionList(){
   const list=document.getElementById('sectionList');
   if(!_sections.length){list.innerHTML='<div style="font-size:11px;color:#ccc;padding:8px 0">点下方"添加分栏"设置细分类别</div>';return;}
   list.innerHTML=_sections.map((s,i)=>`<div class="section-row" data-sec-idx="${i}">
     <input type="text" value="${esc(s.name)}" placeholder="分栏名称" onchange="_sections[${i}].name=this.value">
-    <input type="number" value="${s.count||0}" min="0" max="99" style="width:50px" placeholder="数量" onchange="_sections[${i}].count=parseInt(this.value)||0">
+    <input type="number" value="${s.count||0}" min="0" max="99" style="width:50px" placeholder="数量" onchange="updateSectionDraftCount(${i},this.value)">
     <select onchange="_sections[${i}].cols=parseInt(this.value)">
       <option value="2"${s.cols===2?' selected':''}>2列</option>
       <option value="3"${s.cols===3?' selected':''}>3列</option>
       <option value="4"${s.cols===4?' selected':''}>4列</option>
     </select>
-    <button class="del-sec" onclick="_sections.splice(${i},1);renderSectionList()">×</button>
+    <button class="del-sec" onclick="removeSectionRow(${i})">×</button>
   </div>`).join('');
   initSectionDrag();
 }
 function initSectionDrag(){
+  if(sectionDragBound)return;
+  sectionDragBound=true;
   const list=document.getElementById('sectionList');
-  let dragIdx=-1,pressTimer=null,startY=0,activated=false;
   list.addEventListener('pointerdown',e=>{
     if(e.target.closest('input')||e.target.closest('select')||e.target.closest('button'))return;
-    const row=e.target.closest('.section-row');if(!row||e.button)return;
-    dragIdx=parseInt(row.dataset.secIdx);startY=e.clientY;activated=false;
-    pressTimer=setTimeout(()=>{
-      activated=true;row.classList.add('sec-dragging');
+    const row=e.target.closest('.section-row');
+    if(!row||(e.button!==undefined&&e.button!==0))return;
+    clearSectionPress();
+    const state={
+      row,
+      index:parseInt(row.dataset.secIdx),
+      pointerId:e.pointerId,
+      startY:e.clientY,
+      lastY:e.clientY,
+      activated:false,
+      moved:false,
+      timer:null
+    };
+    sectionPressState=state;
+    if(row.setPointerCapture){try{row.setPointerCapture(e.pointerId);}catch(err){}}
+    state.timer=setTimeout(()=>{
+      if(sectionPressState!==state)return;
+      state.timer=null;
+      state.activated=true;
       if(navigator.vibrate)navigator.vibrate(12);
-      try{row.setPointerCapture(e.pointerId);}catch(err){}
     },350);
   });
   list.addEventListener('pointermove',e=>{
-    if(pressTimer&&!activated&&Math.abs(e.clientY-startY)>8){clearTimeout(pressTimer);pressTimer=null;return;}
-    if(!activated||dragIdx<0)return;e.preventDefault();
+    const state=sectionPressState;
+    if(!state||state.pointerId!==e.pointerId)return;
+    state.lastY=e.clientY;
+    const distance=Math.abs(e.clientY-state.startY);
+    if(!state.activated){
+      if(distance>10)clearSectionPress();
+      return;
+    }
+    if(distance<=6)return;
+    state.moved=true;
+    state.row.classList.add('sec-dragging');
+    e.preventDefault();
     list.querySelectorAll('.section-row').forEach(r=>r.classList.remove('sec-drag-over'));
-    const y=e.clientY;
     for(const row of list.querySelectorAll('.section-row')){
-      const idx=parseInt(row.dataset.secIdx);if(idx===dragIdx)continue;
+      const idx=parseInt(row.dataset.secIdx);if(idx===state.index)continue;
       const r=row.getBoundingClientRect();
-      if(y<r.top+r.height/2){row.classList.add('sec-drag-over');break;}
+      if(e.clientY<r.top+r.height/2){row.classList.add('sec-drag-over');break;}
     }
   },{passive:false});
-  function finish(e){
-    if(pressTimer){clearTimeout(pressTimer);pressTimer=null;}
-    if(!activated||dragIdx<0){activated=false;dragIdx=-1;return;}
-    const y=e.clientY;let toIdx=_sections.length;
+  list.addEventListener('pointerup',e=>{
+    const state=sectionPressState;
+    if(!state||state.pointerId!==e.pointerId)return;
+    if(state.timer){clearTimeout(state.timer);state.timer=null;}
+    if(state.activated&&state.moved)commitSectionDrag(state);
+    clearSectionPress();
+  });
+  list.addEventListener('pointercancel',e=>{
+    const state=sectionPressState;
+    if(!state||state.pointerId!==e.pointerId)return;
+    // A browser interruption must not reorder the section draft.
+    clearSectionPress();
+  });
+  function commitSectionDrag(state){
+    let toIdx=_sections.length;
     for(const row of list.querySelectorAll('.section-row')){
-      const idx=parseInt(row.dataset.secIdx);if(idx===dragIdx)continue;
+      const idx=parseInt(row.dataset.secIdx);if(idx===state.index)continue;
       const r=row.getBoundingClientRect();
-      if(y<r.top+r.height/2){toIdx=idx;break;}
+      if(state.lastY<r.top+r.height/2){toIdx=idx;break;}
     }
-    if(toIdx!==dragIdx){
-      const moved=_sections.splice(dragIdx,1)[0];
-      const insertAt=toIdx>dragIdx?toIdx-1:toIdx;
+    if(toIdx!==state.index){
+      const moved=_sections.splice(state.index,1)[0];
+      const insertAt=toIdx>state.index?toIdx-1:toIdx;
       _sections.splice(insertAt,0,moved);
     }
-    dragIdx=-1;activated=false;
     renderSectionList();
   }
-  list.addEventListener('pointerup',finish);
-  list.addEventListener('pointercancel',finish);
+}
+function clearSectionPress(){
+  const state=sectionPressState;
+  if(!state)return;
+  if(state.timer)clearTimeout(state.timer);
+  try{
+    if(state.row&&state.row.releasePointerCapture&&
+      (!state.row.hasPointerCapture||state.row.hasPointerCapture(state.pointerId))){
+      state.row.releasePointerCapture(state.pointerId);
+    }
+  }catch(e){}
+  state.row&&state.row.classList.remove('sec-dragging');
+  document.querySelectorAll('#sectionList .section-row.sec-drag-over').forEach(row=>row.classList.remove('sec-drag-over'));
+  sectionPressState=null;
 }
 function addSectionRow(){
-  _sections.push({name:'',count:0,cols:3});
+  _sections.push({name:'',count:0,cols:3,_items:[]});
   renderSectionList();
 }
 
@@ -754,7 +949,7 @@ function openAddProject(){
   document.getElementById('inputProjectName').value='';
   document.getElementById('inputProjectNote').value='';
   document.getElementById('projectIconPreview').style.display='none';
-  _sections=[{name:'',count:0,cols:3}];
+  _sections=[{name:'',count:0,cols:3,_items:[]}];
   _dutyState={type:'',color:'#E8B96A',name:''};
   renderSectionList();renderDutyRow(_dutyState);
   openModal('projectModal');
@@ -767,12 +962,8 @@ function openEditProject(){
   document.getElementById('inputProjectNote').value=p.note||'';
   if(p.icon){document.getElementById('projectIconPreview').src=p.icon;document.getElementById('projectIconPreview').style.display='block';}
   else{document.getElementById('projectIconPreview').style.display='none';}
-  // Reconstruct sections from project data
-  _sections=(p.sections||[]).map(s=>({...s}));
-  if(!_sections.length){
-    // Legacy: single section from flat items
-    _sections=[{name:'',count:p.count||p.items.length,cols:3}];
-  }
+  // Keep each section and its own item group together in the edit draft.
+  _sections=buildSectionDrafts(p);
   _dutyState=p.duty?{...p.duty}:{type:'',color:'#E8B96A',name:''};
   renderSectionList();renderDutyRow(_dutyState);
   openModal('projectModal');
@@ -786,42 +977,25 @@ async function saveProject(){
   let icon=projectTempIcon;
   if(icon&&icon.startsWith('data:')&&window.CloudSync){try{icon=await CloudSync.uploadDataUrl(icon,`kitchen/${editProjectId||gid()}_icon.jpg`);}catch(e){}}
 
-  // Build sections data
-  const sections=_sections.filter(s=>s.count>0||s.name).map(s=>({name:s.name||'',count:Math.max(0,s.count||0),cols:s.cols||3}));
-  const totalCount=sections.reduce((sum,s)=>sum+s.count,0);
+  // Finalize section metadata and its matching item groups together.
+  const finalized=finalizeSectionDrafts();
+  const sections=finalized.sections;
+  const items=finalized.items;
+  const totalCount=items.length;
 
   if(editProjectId){
     const p=getProject(editProjectId);
     if(p){
       p.name=name;p.note=note;p.duty=duty;if(icon)p.icon=icon;
       p.sections=sections;
-      // Grow: add empty slots at end
-      while(p.items.length<totalCount)p.items.push({id:gid(),name:'品目'+(p.items.length+1),note:'',img:'',collected:false,collectedDate:null,checkinNote:'',checkinImg:''});
-      // Shrink: scan from end, remove ALL empty items (skip over content items)
-      if(p.items.length>totalCount){
-        const keep=[];
-        for(let i=0;i<p.items.length;i++){
-          const it=p.items[i];
-          if(i<totalCount||it.collected||it.img||it.note||it.checkinNote||it.checkinImg){
-            keep.push(it);
-          }
-        }
-        p.items=keep;
-      }
-      // Reconcile: ensure p.count === p.items.length === sum of section.count
-      const actualLen=p.items.length;
-      if(actualLen!==totalCount){
-        // Distribute overflow into last section
-        const diff=actualLen-totalCount;
-        if(p.sections.length)p.sections[p.sections.length-1].count+=diff;
-      }
-      p.count=p.items.length;
+      p.items=items;
+      p.count=totalCount;
     }
   }else{
-    const items=[];for(let i=0;i<totalCount;i++)items.push({id:gid(),name:'品目'+(i+1),note:'',img:'',collected:false,collectedDate:null,checkinNote:'',checkinImg:''});
     projects.push({id:gid(),name,note,icon:icon||'',count:totalCount,duty,items,sections,order:projects.length});
   }
   save();closeModal('projectModal');
+  if(finalized.preserved)showToast(`已保留 ${finalized.preserved} 个有记录的品目`);
   if(editProjectId){renderDetail();}
   renderProjects();
 }
@@ -951,7 +1125,7 @@ function deleteSectionQuickEdit(){
     for(let i=0;i<sectionIdx;i++)start+=Math.max(0,parseInt(p.sections[i].count)||0);
     p.items.splice(start,Math.min(count,Math.max(0,p.items.length-start)));
     p.sections.splice(sectionIdx,1);
-    p.count=p.items.length;
+    reconcileSectionCounts(p);
     normalizeGenericItemNames(p);
     curItemIdx=null;editItemIdx=null;editSectionIdx=null;
     const scroll=currentScrollY();
@@ -1354,6 +1528,18 @@ function getSectionEndIndex(p,sectionIdx){
     end+=Math.max(0,parseInt(p.sections[i].count)||0);
   }
   return Math.min(end,p.items.length);
+}
+function reconcileSectionCounts(p){
+  if(!p)return;
+  p.count=p.items.length;
+  if(!p.sections||!p.sections.length)return;
+  let remaining=p.items.length;
+  p.sections.forEach((sec,i)=>{
+    const declared=Math.max(0,parseInt(sec.count)||0);
+    const count=i===p.sections.length-1?remaining:Math.min(declared,remaining);
+    sec.count=count;
+    remaining-=count;
+  });
 }
 function renderItemSectionSelect(p,selectedIdx){
   const field=document.getElementById('itemSectionField');
