@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Kitchen build: 2026-07-28-section-project-gesture-tap-fix -->
+<!-- Kitchen build: 2026-07-28-collab-records-safe-merge -->
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
@@ -149,8 +149,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 }
 /* Section editor in modal */
 .section-list{margin-top:8px}
-.section-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f5f5f5}
-.section-row input{flex:1;font-size:13px;padding:6px 8px;border:1px solid #e0e0e0;border-radius:6px;font-family:inherit}
+.section-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f5f5f5;flex-wrap:wrap}
+.section-row input{font-size:13px;padding:6px 8px;border:1px solid #e0e0e0;border-radius:6px;font-family:inherit}
+.section-row input[type="text"]{flex:1 1 90px;min-width:70px}
+.section-row input[type="number"]{flex:0 0 50px;min-width:0}
 .section-row select{width:60px;font-size:12px;padding:4px;border:1px solid #e0e0e0;border-radius:6px;font-family:inherit}
 .section-row .del-sec{font-size:12px;color:#ccc;background:none;border:none;cursor:pointer;padding:4px}
 .section-row.sec-dragging{opacity:0.4;background:#f8f8f8}
@@ -177,6 +179,26 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 /* ── Toast ── */
 .toast{position:fixed;top:env(safe-area-inset-top,20px);left:50%;transform:translateX(-50%) translateY(-120%);background:rgba(30,30,30,0.88);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:#fff;font-size:13px;padding:10px 20px;border-radius:10px;z-index:400;pointer-events:none;transition:transform 0.3s cubic-bezier(0.34,1.3,0.64,1),opacity 0.3s;opacity:0}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+/* ── Collaboration records ── */
+.item-count-badge{position:absolute;top:4px;left:4px;min-width:18px;height:18px;border-radius:9px;background:rgba(232,185,106,0.9);color:#fff;font-size:9px;font-weight:600;text-align:center;line-height:18px;padding:0 4px;z-index:2;font-variant-numeric:tabular-nums}
+.item-status-dot{position:absolute;bottom:4px;right:4px;width:8px;height:8px;border-radius:50%;z-index:2;border:1px solid rgba(255,255,255,0.8)}
+.item-status-dot.keeping{background:#5BA66B}
+.item-status-dot.sold{background:#ccc}
+.item-status-dot.mixed{background:linear-gradient(135deg,#5BA66B 50%,#ccc 50%)}
+.section-type-badge{font-size:9px;padding:1px 6px;border-radius:4px;margin-left:4px}
+.section-type-badge.collab-food{background:#E8B96A20;color:#B9872F}
+.section-type-badge.merch{background:#9B6BCC20;color:#9B6BCC}
+.history-list{width:calc(100% - 40px);max-width:520px;margin:8px auto 0}
+.history-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#fff;border:1px solid #eee;border-radius:8px;margin-bottom:6px;font-size:13px}
+.history-date{color:#999;font-size:12px;min-width:80px;flex-shrink:0}
+.history-note{color:#555;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.history-thumb{width:34px;height:34px;border-radius:6px;object-fit:cover;flex-shrink:0}
+.history-status{font-size:10px;padding:3px 8px;border-radius:4px;cursor:pointer;border:none;font-family:inherit;flex-shrink:0}
+.history-status.keeping{background:#5BA66B20;color:#5BA66B}
+.history-status.sold{background:#ccc3;color:#999}
+.history-delete{font-size:14px;color:#ccc;background:none;border:none;cursor:pointer;padding:2px;flex-shrink:0}
+.history-add-btn{width:calc(100% - 40px);max-width:520px;margin:6px auto 12px;display:block;padding:8px;border:1.5px dashed #ddd;border-radius:8px;background:#fff;font-size:12px;color:#aaa;cursor:pointer;text-align:center;font-family:inherit}
 </style>
 </head>
 <body>
@@ -225,6 +247,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <label class="file-label" id="projectIconLabel">点击选择图片</label>
     <input type="file" accept="image/*" id="projectIconInput" onchange="previewProjectIcon(this)" style="display:none">
     <img id="projectIconPreview" class="img-preview" style="display:none">
+    <label>项目类型</label>
+    <select id="inputProjectType" onchange="onProjectTypeChange()">
+      <option value="menu">菜单收集</option>
+      <option value="collab">联动项目</option>
+    </select>
     <label>项目名</label>
     <input type="text" id="inputProjectName" placeholder="如: Subway 三明治收集">
     <label>项目细分</label>
@@ -272,7 +299,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- Check-in modal -->
 <div class="modal-bg" id="checkinModal">
   <div class="modal">
-    <h2>打卡记录</h2>
+    <h2 id="checkinModalTitle">打卡记录</h2>
     <label>品名</label>
     <input type="text" id="checkinItemName" placeholder="品目名称">
     <label>日期</label>
@@ -285,7 +312,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <img id="checkinImgPreview" class="img-preview" style="display:none">
     <div class="btn-row">
       <button class="btn btn-cancel" onclick="closeModal('checkinModal')">取消</button>
-      <button class="btn btn-primary" onclick="saveCheckin()">打卡</button>
+      <button class="btn btn-primary" id="checkinSubmitBtn" onclick="saveCheckin()">打卡</button>
     </div>
   </div>
 </div>
@@ -296,6 +323,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <h2>编辑分栏</h2>
     <label>分栏名</label>
     <input type="text" id="quickSectionName" maxlength="40" placeholder="分栏名称" onkeydown="if(event.key==='Enter')saveSectionQuickEdit()">
+    <div id="quickSectionTypeWrap" style="display:none">
+      <label>分栏类型</label>
+      <select id="quickSectionType">
+        <option value="normal">普通</option>
+        <option value="collab_food">联动餐品</option>
+        <option value="merch">周边</option>
+      </select>
+    </div>
     <label>排列方式</label>
     <select id="quickSectionCols">
       <option value="2">每行 2 列</option>
@@ -318,6 +353,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <input type="text" id="inputSectionName" placeholder="如: 第二弹、季节限定" maxlength="40">
     <label>品目数量</label>
     <input type="number" id="inputSectionCount" placeholder="数量" min="1" max="99" value="">
+    <div id="addSectionTypeWrap" style="display:none">
+      <label>分栏类型</label>
+      <select id="addSectionType">
+        <option value="normal">普通</option>
+        <option value="collab_food">联动餐品</option>
+        <option value="merch">周边</option>
+      </select>
+    </div>
     <label>列数</label>
     <select id="inputSectionCols">
       <option value="2">每行 2 列</option>
@@ -455,7 +498,19 @@ function showToast(msg,ms){
   _toastTimer=setTimeout(()=>el.classList.remove('show'),ms||2200);
 }
 function getProject(id){return projects.find(p=>p.id===id);}
-function projectStats(p){const total=Math.max(p.count||0,p.items.length);const collected=p.items.filter(i=>i.collected).length;return{total,collected};}
+function projectStats(p){
+  let total=0,collected=0,merchTotal=0,merchRecorded=0;
+  (p.items||[]).forEach((item,index)=>{
+    if(getItemSectionType(p,index)==='merch'){
+      merchTotal++;
+      if(item.records&&item.records.length)merchRecorded++;
+      return;
+    }
+    total++;
+    if(item.collected)collected++;
+  });
+  return{total,collected,merchTotal,merchRecorded};
+}
 function normalizeGenericItemNames(p){
   if(!p||!Array.isArray(p.items))return;
   p.items.forEach((item,i)=>{if(/^品目\d+$/.test(item.name||''))item.name='品目'+(i+1);});
@@ -782,23 +837,25 @@ function makeEmptyItem(number){
 function itemHasSavedContent(item){
   if(!item)return false;
   return !!(item.collected||item.img||item.note||item.checkinNote||item.checkinImg||
+    (item.checkinHistory&&item.checkinHistory.length)||
+    (item.records&&item.records.length)||
     (item.name&&!/^品目\d+$/.test(item.name)));
 }
 function buildSectionDrafts(p){
   const source=p.sections&&p.sections.length
     ?p.sections
-    :[{name:'',count:p.items.length,cols:3}];
+    :[{name:'',count:p.items.length,cols:3,sectionType:'normal'}];
   let offset=0;
   const drafts=source.map(sec=>{
     const count=Math.max(0,parseInt(sec.count)||0);
-    const draft={name:sec.name||'',count,cols:sec.cols||3,_items:p.items.slice(offset,offset+count)};
+    const draft={name:sec.name||'',count,cols:sec.cols||3,sectionType:sec.sectionType||'normal',_items:p.items.slice(offset,offset+count)};
     offset+=count;
     return draft;
   });
   // Repair old count drift without changing the order the user currently sees:
   // uncovered items stay with the last visible section.
   if(offset<p.items.length){
-    if(!drafts.length)drafts.push({name:'',count:0,cols:3,_items:[]});
+    if(!drafts.length)drafts.push({name:'',count:0,cols:3,sectionType:'normal',_items:[]});
     const last=drafts[drafts.length-1];
     last._items.push(...p.items.slice(offset));
     last.count=last._items.length;
@@ -828,7 +885,7 @@ function finalizeSectionDrafts(){
       if(itemHasSavedContent(bucket[i])){group.push(bucket[i]);preserved++;}
     }
     while(group.length<requested)group.push(makeEmptyItem(items.length+group.length+1));
-    sections.push({name:sec.name||'',count:group.length,cols:sec.cols||3});
+    sections.push({name:sec.name||'',count:group.length,cols:sec.cols||3,sectionType:sec.sectionType||'normal'});
     items.push(...group);
   });
   normalizeGenericItemNames({items});
@@ -836,19 +893,29 @@ function finalizeSectionDrafts(){
 }
 function renderSectionList(){
   const list=document.getElementById('sectionList');
+  const isCollab=document.getElementById('inputProjectType').value==='collab';
   if(!_sections.length){list.innerHTML='<div style="font-size:11px;color:#ccc;padding:8px 0">点下方"添加分栏"设置细分类别</div>';return;}
-  list.innerHTML=_sections.map((s,i)=>`<div class="section-row" data-sec-idx="${i}">
+  list.innerHTML=_sections.map((s,i)=>{
+    const typeSelect=isCollab?`<select style="width:76px;font-size:11px" aria-label="分栏类型" onchange="_sections[${i}].sectionType=this.value">
+      <option value="normal"${(s.sectionType||'normal')==='normal'?' selected':''}>普通</option>
+      <option value="collab_food"${s.sectionType==='collab_food'?' selected':''}>联动餐品</option>
+      <option value="merch"${s.sectionType==='merch'?' selected':''}>周边</option>
+    </select>`:'';
+    return`<div class="section-row" data-sec-idx="${i}">
     <input type="text" value="${esc(s.name)}" placeholder="分栏名称" onchange="_sections[${i}].name=this.value">
     <input type="number" value="${s.count||0}" min="0" max="99" style="width:50px" placeholder="数量" onchange="updateSectionDraftCount(${i},this.value)">
+    ${typeSelect}
     <select onchange="_sections[${i}].cols=parseInt(this.value)">
       <option value="2"${s.cols===2?' selected':''}>2列</option>
       <option value="3"${s.cols===3?' selected':''}>3列</option>
       <option value="4"${s.cols===4?' selected':''}>4列</option>
     </select>
     <button class="del-sec" onclick="removeSectionRow(${i})">×</button>
-  </div>`).join('');
+  </div>`;
+  }).join('');
   initSectionDrag();
 }
+function onProjectTypeChange(){renderSectionList();}
 function initSectionDrag(){
   if(sectionDragBound)return;
   sectionDragBound=true;
@@ -940,17 +1007,18 @@ function clearSectionPress(){
   sectionPressState=null;
 }
 function addSectionRow(){
-  _sections.push({name:'',count:0,cols:3,_items:[]});
+  _sections.push({name:'',count:0,cols:3,sectionType:'normal',_items:[]});
   renderSectionList();
 }
 
 function openAddProject(){
   editProjectId=null;projectTempIcon='';
   document.getElementById('projectModalTitle').textContent='添加项目';
+  document.getElementById('inputProjectType').value='menu';
   document.getElementById('inputProjectName').value='';
   document.getElementById('inputProjectNote').value='';
   document.getElementById('projectIconPreview').style.display='none';
-  _sections=[{name:'',count:0,cols:3,_items:[]}];
+  _sections=[{name:'',count:0,cols:3,sectionType:'normal',_items:[]}];
   _dutyState={type:'',color:'#E8B96A',name:''};
   renderSectionList();renderDutyRow(_dutyState);
   openModal('projectModal');
@@ -959,6 +1027,7 @@ function openEditProject(){
   const p=getProject(curProjectId);if(!p)return;
   editProjectId=p.id;projectTempIcon=p.icon||'';
   document.getElementById('projectModalTitle').textContent='编辑项目';
+  document.getElementById('inputProjectType').value=p.projectType||'menu';
   document.getElementById('inputProjectName').value=p.name;
   document.getElementById('inputProjectNote').value=p.note||'';
   if(p.icon){document.getElementById('projectIconPreview').src=p.icon;document.getElementById('projectIconPreview').style.display='block';}
@@ -987,13 +1056,13 @@ async function saveProject(){
   if(editProjectId){
     const p=getProject(editProjectId);
     if(p){
-      p.name=name;p.note=note;p.duty=duty;if(icon)p.icon=icon;
+      p.name=name;p.note=note;p.duty=duty;p.projectType=document.getElementById('inputProjectType').value;if(icon)p.icon=icon;
       p.sections=sections;
       p.items=items;
       p.count=totalCount;
     }
   }else{
-    projects.push({id:gid(),name,note,icon:icon||'',count:totalCount,duty,items,sections,order:projects.length});
+    projects.push({id:gid(),name,note,icon:icon||'',count:totalCount,duty,projectType:document.getElementById('inputProjectType').value,items,sections,order:projects.length});
   }
   save();closeModal('projectModal');
   if(finalized.preserved)showToast(`已保留 ${finalized.preserved} 个有记录的品目`);
@@ -1006,6 +1075,9 @@ function openAddSection(){
   const p=getProject(curProjectId);if(!p)return;
   document.getElementById('inputSectionName').value='';
   document.getElementById('inputSectionCount').value='';
+  const isCollab=p.projectType==='collab';
+  document.getElementById('addSectionTypeWrap').style.display=isCollab?'':'none';
+  document.getElementById('addSectionType').value='normal';
   openModal('addSectionModal');
   requestAnimationFrame(()=>document.getElementById('inputSectionName').focus());
 }
@@ -1016,7 +1088,8 @@ function saveAddSection(){
   const cols=parseInt(document.getElementById('inputSectionCols').value)||3;
   if(count<=0){showToast('请输入品目数量');return;}
   if(!p.sections)p.sections=[];
-  p.sections.push({name:secName,count,cols});
+  const sectionType=p.projectType==='collab'?document.getElementById('addSectionType').value:'normal';
+  p.sections.push({name:secName,count,cols,sectionType});
   for(let i=0;i<count;i++)p.items.push({id:gid(),name:'品目'+(p.items.length+1),note:'',img:'',collected:false,collectedDate:null,checkinNote:'',checkinImg:''});
   p.count=(p.count||0)+count;
   save();closeModal('addSectionModal');renderDetail(p);
@@ -1066,7 +1139,12 @@ function renderDetail(p){
     const cols=sec.cols||3;
     const secItems=p.items.slice(offset,offset+count);
     if(sec.name){
-      html+=`<div class="section-divider"><div class="section-divider-line"></div><span class="section-divider-label" title="双击编辑分栏" ondblclick="event.stopPropagation();openSectionQuickEdit(${si})">${esc(sec.name)}</span><span class="section-divider-cols">${cols}列</span><div class="section-divider-line"></div></div>`;
+      const typeBadge=p.projectType==='collab'&&sec.sectionType==='collab_food'
+        ?'<span class="section-type-badge collab-food">联动餐品</span>'
+        :p.projectType==='collab'&&sec.sectionType==='merch'
+          ?'<span class="section-type-badge merch">周边</span>'
+          :'';
+      html+=`<div class="section-divider"><div class="section-divider-line"></div><span class="section-divider-label" title="双击编辑分栏" ondblclick="event.stopPropagation();openSectionQuickEdit(${si})">${esc(sec.name)}${typeBadge}</span><span class="section-divider-cols">${cols}列</span><div class="section-divider-line"></div></div>`;
     }else if(si>0){
       html+=`<div class="section-divider"><div class="section-divider-line"></div></div>`;
     }
@@ -1093,6 +1171,9 @@ function openSectionQuickEdit(sectionIdx){
   const nameInput=document.getElementById('quickSectionName');
   nameInput.value=sec.name||'';
   document.getElementById('quickSectionCols').value=String(sec.cols||3);
+  const isCollab=p.projectType==='collab';
+  document.getElementById('quickSectionTypeWrap').style.display=isCollab?'':'none';
+  document.getElementById('quickSectionType').value=sec.sectionType||'normal';
   openModal('sectionQuickModal');
   requestAnimationFrame(()=>{nameInput.focus();nameInput.select();});
 }
@@ -1106,6 +1187,7 @@ function saveSectionQuickEdit(){
   const sec=p.sections[editSectionIdx];
   sec.name=name;
   sec.cols=[2,3,4].includes(cols)?cols:3;
+  if(p.projectType==='collab')sec.sectionType=document.getElementById('quickSectionType').value;
   save();
   closeModal('sectionQuickModal');
   editSectionIdx=null;
@@ -1136,13 +1218,26 @@ function deleteSectionQuickEdit(){
 }
 
 function renderItemCells(items,globalOffset,cols){
+  const p=getProject(curProjectId);
   return items.map((item,i)=>{
     const idx=globalOffset+i;
     const hasImg=!!item.img;
+    const sectionType=p?getItemSectionType(p,idx):'normal';
+    let recordBadge='';
+    if(sectionType==='collab_food'){
+      const history=getCheckinHistory(item);
+      if(history.length>1)recordBadge+=`<span class="item-count-badge">×${history.length}</span>`;
+    }else if(sectionType==='merch'&&item.records&&item.records.length){
+      if(item.records.length>1)recordBadge+=`<span class="item-count-badge">×${item.records.length}</span>`;
+      const hasKeeping=item.records.some(record=>record.status!=='sold');
+      const hasSold=item.records.some(record=>record.status==='sold');
+      recordBadge+=`<span class="item-status-dot ${hasKeeping&&hasSold?'mixed':hasSold?'sold':'keeping'}"></span>`;
+    }
     return`<div class="item-cell ${item.collected?'collected':''} ${hasImg?'has-img':''}" data-index="${idx}" onclick="handleItemClick(${idx})">
       ${hasImg?`<img class="item-img" src="${item.img}">`:''}
       ${item.name&&item.name!=='品目'+(idx+1)?`<span class="item-label">${esc(item.name)}</span>`:''}
       ${item.collected?'<div class="item-check">✓</div>':''}
+      ${recordBadge}
       <button class="item-delete-x" aria-label="删除品目" onclick="event.stopPropagation();deleteGridItem(${idx})">×</button>
     </div>`;
   }).join('');
@@ -1404,6 +1499,8 @@ function openItem(idx){
   if(document.getElementById('viewDetail').classList.contains('active'))rememberDetailScroll();
   curItemIdx=idx;
   const item=p.items[idx];
+  const sectionType=getItemSectionType(p,idx);
+  ensureItemRecordData(p,item,idx);
   const displayName=item.name||('品目'+(idx+1));
   document.getElementById('itemTitle').textContent=displayName;
   document.getElementById('itemBackBtn').onclick=returnToDetail;
@@ -1412,17 +1509,41 @@ function openItem(idx){
   html+='<div class="card-detail-body">';
   html+=`<div class="card-detail-name" id="inlineName" title="双击编辑名称">${esc(displayName)}</div>`;
   if(item.note)html+=`<div class="card-detail-item-note"><span class="card-detail-item-note-label">品目备注</span>${esc(item.note)}</div>`;
-  if(item.collected&&item.collectedDate)html+=`<div class="card-detail-date">打卡于 ${item.collectedDate}</div>`;
-  if(item.collected){
-    const noteText=item.checkinNote||'';
-    html+=`<div class="card-detail-note" id="inlineNote" title="双击编辑感想" style="${noteText?'':'color:#ccc;font-style:italic'}">${noteText?esc(noteText):'双击添加感想…'}</div>`;
-  }
-  if(item.checkinImg)html+=`<div class="card-detail-media" style="margin-top:12px;border-radius:8px"><img class="card-detail-img" src="${item.checkinImg}"></div>`;
-  html+='</div></div>';
-  if(item.collected){
-    html+=`<div class="card-actions"><button class="btn btn-cancel" onclick="uncollect()">取消打卡</button></div>`;
+
+  if(sectionType==='collab_food'){
+    html+='</div></div>';
+    const history=getCheckinHistory(item);
+    if(history.length){
+      html+=`<div class="history-list"><div style="font-size:11px;color:#bbb;padding:4px 14px">打卡记录（${history.length} 次）</div>`;
+      history.forEach(record=>{
+        html+=`<div class="history-item">${record.img?`<img class="history-thumb" src="${record.img}">`:''}<span class="history-date">${esc(record.date||'')}</span><span class="history-note">${record.note?esc(record.note):'—'}</span></div>`;
+      });
+      html+='</div>';
+    }
+    html+=`<div class="card-actions"><button class="btn btn-primary" onclick="${history.length?'addCollabFoodCheckin()':'openCheckin()'}">${history.length?'再来一次':'打卡'}</button>${history.length?'<button class="btn btn-cancel" onclick="uncollect()">清空记录</button>':''}</div>`;
+  }else if(sectionType==='merch'){
+    html+='</div></div>';
+    const records=item.records||[];
+    if(records.length){
+      html+=`<div class="history-list"><div style="font-size:11px;color:#bbb;padding:4px 14px">收藏记录（${records.length} 个）</div>`;
+      records.forEach((record,recordIdx)=>{
+        const sold=record.status==='sold';
+        html+=`<div class="history-item">${record.img?`<img class="history-thumb" src="${record.img}">`:''}<span class="history-date">${esc(record.date||'')}</span><span class="history-note">${record.note?esc(record.note):'—'}</span><button class="history-status ${sold?'sold':'keeping'}" onclick="toggleMerchStatus(${recordIdx})">${sold?'已出':'自留'}</button><button class="history-delete" aria-label="删除这条记录" onclick="deleteMerchRecord(${recordIdx})">×</button></div>`;
+      });
+      html+='</div>';
+    }
+    html+=`<button class="history-add-btn" onclick="addMerchRecord()">+ ${records.length?'再记录一个':'记录入手'}</button>`;
   }else{
-    html+=`<div class="card-actions"><button class="btn btn-primary" onclick="openCheckin()">打卡</button></div>`;
+    if(item.collected&&item.collectedDate)html+=`<div class="card-detail-date">打卡于 ${esc(item.collectedDate)}</div>`;
+    if(item.collected){
+      const noteText=item.checkinNote||'';
+      html+=`<div class="card-detail-note" id="inlineNote" title="双击编辑感想" style="${noteText?'':'color:#ccc;font-style:italic'}">${noteText?esc(noteText):'双击添加感想…'}</div>`;
+    }
+    if(item.checkinImg)html+=`<div class="card-detail-media" style="margin-top:12px;border-radius:8px"><img class="card-detail-img" src="${item.checkinImg}"></div>`;
+    html+='</div></div>';
+    html+=item.collected
+      ?'<div class="card-actions"><button class="btn btn-cancel" onclick="uncollect()">取消打卡</button></div>'
+      :'<div class="card-actions"><button class="btn btn-primary" onclick="openCheckin()">打卡</button></div>';
   }
   document.getElementById('itemContent').innerHTML=html;
   // Wire up double-click editing
@@ -1463,13 +1584,27 @@ function startInlineEdit(elId,field){
 function openCheckin(){
   const p=getProject(curProjectId);
   const item=p&&curItemIdx!==null?p.items[curItemIdx]:null;
+  if(!p||!item)return;
+  const sectionType=getItemSectionType(p,curItemIdx);
+  prepareCheckinModal(sectionType==='merch'?'merch_add':'initial');
+}
+function prepareCheckinModal(mode){
+  const p=getProject(curProjectId);
+  const item=p&&curItemIdx!==null?p.items[curItemIdx]:null;
+  if(!item)return;
+  const modal=document.getElementById('checkinModal');
+  modal.dataset.mode=mode||'initial';
   const nameInput=document.getElementById('checkinItemName');
-  nameInput.value=item?(item.name&&!/^品目\d+$/.test(item.name)?item.name:''):'';
+  nameInput.value=item.name&&!/^品目\d+$/.test(item.name)?item.name:'';
   document.getElementById('checkinDate').value=new Date().toISOString().slice(0,10);
   document.getElementById('checkinNote').value='';
   document.getElementById('checkinImgPreview').style.display='none';
   delete document.getElementById('checkinImgPreview').dataset.source;
   document.getElementById('checkinImgInput').value='';
+  const isRepeat=mode==='collab_repeat';
+  const isMerch=mode==='merch_add';
+  document.getElementById('checkinModalTitle').textContent=isRepeat?'追加打卡':isMerch?'记录周边':'打卡记录';
+  document.getElementById('checkinSubmitBtn').textContent=isRepeat?'保存记录':isMerch?'记录':'打卡';
   openModal('checkinModal');
 }
 function previewCheckinImg(input){
@@ -1481,30 +1616,68 @@ function previewCheckinImg(input){
 async function saveCheckin(){
   const p=getProject(curProjectId);if(!p||curItemIdx===null)return;
   const item=p.items[curItemIdx];
+  const modal=document.getElementById('checkinModal');
+  const mode=modal.dataset.mode||'initial';
   const checkinName=document.getElementById('checkinItemName').value.trim();
   if(checkinName)item.name=checkinName;
-  item.collected=true;
-  item.collectedDate=document.getElementById('checkinDate').value||new Date().toISOString().slice(0,10);
-  item.checkinNote=document.getElementById('checkinNote').value.trim();
+  const dateVal=document.getElementById('checkinDate').value||new Date().toISOString().slice(0,10);
+  const noteVal=document.getElementById('checkinNote').value.trim();
   const preview=document.getElementById('checkinImgPreview');
   let cImg=preview.style.display!=='none'?(preview.dataset.source||''):'';
+  const recordId=gid();
   if(cImg&&cImg.startsWith('data:')&&window.CloudSync){
-    try{cImg=await CloudSync.uploadDataUrl(cImg,`kitchen/${curProjectId}_${item.id}_checkin.${imagePathExt(cImg)}`);}catch(e){}
+    try{cImg=await CloudSync.uploadDataUrl(cImg,`kitchen/${curProjectId}_${item.id}_checkin_${recordId}.${imagePathExt(cImg)}`);}catch(e){}
   }
-  if(cImg)item.checkinImg=cImg;
-  save();closeModal('checkinModal');returnToDetail();
+  const sectionType=getItemSectionType(p,curItemIdx);
+  if(mode==='collab_repeat'){
+    ensureItemRecordData(p,item,curItemIdx);
+    item.checkinHistory.push({id:recordId,date:dateVal,note:noteVal,img:cImg||''});
+    item.collected=true;
+    item.collectedDate=dateVal;
+    item.checkinNote=noteVal;
+    if(cImg)item.checkinImg=cImg;
+  }else if(mode==='merch_add'||sectionType==='merch'){
+    ensureItemRecordData(p,item,curItemIdx);
+    if(!Array.isArray(item.records))item.records=[];
+    item.records.push({id:recordId,date:dateVal,note:noteVal,img:cImg||'',status:'keeping'});
+    item.collected=true;
+    item.collectedDate=dateVal;
+    item.checkinNote=noteVal;
+    if(cImg)item.checkinImg=cImg;
+  }else{
+    item.collected=true;
+    item.collectedDate=dateVal;
+    item.checkinNote=noteVal;
+    if(cImg)item.checkinImg=cImg;
+    if(sectionType==='collab_food'){
+      item.checkinHistory=[{id:recordId,date:dateVal,note:noteVal,img:cImg||''}];
+    }
+  }
+  save();closeModal('checkinModal');
+  if(sectionType==='normal')returnToDetail();else openItem(curItemIdx);
   const proj=getProject(curProjectId);
   if(proj)showCheckinCelebration(proj.duty);
 }
 function uncollect(){
   const p=getProject(curProjectId);if(!p||curItemIdx===null||curItemIdx===undefined)return;
   const item=p.items[curItemIdx];if(!item)return;
-  item.collected=false;
-  item.collectedDate=null;
-  item.checkinNote='';
-  item.checkinImg='';
-  save();
-  openItem(curItemIdx);
+  const sectionType=getItemSectionType(p,curItemIdx);
+  const clear=()=>{
+    item.collected=false;
+    item.collectedDate=null;
+    item.checkinNote='';
+    item.checkinImg='';
+    if(sectionType==='collab_food')item.checkinHistory=[];
+    if(sectionType==='merch')item.records=[];
+    save();openItem(curItemIdx);
+  };
+  if(sectionType==='collab_food'){
+    customConfirm('清空这个餐品的全部打卡记录？',clear,{yes:'清空',danger:true});
+  }else if(sectionType==='merch'){
+    customConfirm('清空这个品目的全部周边记录？',clear,{yes:'清空',danger:true});
+  }else{
+    clear();
+  }
 }
 function toggleCollected(){
   const p=getProject(curProjectId);if(!p||curItemIdx===null)return;
@@ -1513,6 +1686,28 @@ function toggleCollected(){
 }
 
 /* ═══ ITEM MODAL ═══ */
+function getItemSectionType(p,itemIdx){
+  if(!p||p.projectType!=='collab'||!p.sections||!p.sections.length)return'normal';
+  const sectionIdx=getItemSectionIndex(p,itemIdx);
+  return sectionIdx>=0?(p.sections[sectionIdx].sectionType||'normal'):'normal';
+}
+function getCheckinHistory(item){
+  return item&&Array.isArray(item.checkinHistory)?item.checkinHistory:[];
+}
+function ensureItemRecordData(p,item,itemIdx){
+  if(!p||!item)return;
+  const sectionType=getItemSectionType(p,itemIdx);
+  let changed=false;
+  if(sectionType==='collab_food'&&item.collected&&(!Array.isArray(item.checkinHistory)||!item.checkinHistory.length)){
+    item.checkinHistory=[{id:gid(),date:item.collectedDate||'',note:item.checkinNote||'',img:item.checkinImg||''}];
+    changed=true;
+  }
+  if(sectionType==='merch'&&item.collected&&(!Array.isArray(item.records)||!item.records.length)){
+    item.records=[{id:gid(),date:item.collectedDate||'',note:item.checkinNote||'',img:item.checkinImg||'',status:'keeping'}];
+    changed=true;
+  }
+  if(changed)save();
+}
 function getItemSectionIndex(p,itemIdx){
   if(!p.sections||!p.sections.length||itemIdx===null||itemIdx<0)return -1;
   let offset=0;
@@ -1684,8 +1879,17 @@ function importKitchen(input){
 
 /* ═══ MODALS ═══ */
 function openModal(id){document.getElementById(id).classList.add('show');}
-function closeModal(id){document.getElementById(id).classList.remove('show');}
-document.querySelectorAll('.modal-bg,.action-sheet-bg').forEach(bg=>{bg.addEventListener('click',e=>{if(e.target===bg)bg.classList.remove('show');});});
+function closeModal(id){
+  const modal=document.getElementById(id);
+  if(!modal)return;
+  modal.classList.remove('show');
+  if(id==='checkinModal'){
+    modal.dataset.mode='';
+    document.getElementById('checkinModalTitle').textContent='打卡记录';
+    document.getElementById('checkinSubmitBtn').textContent='打卡';
+  }
+}
+document.querySelectorAll('.modal-bg,.action-sheet-bg').forEach(bg=>{bg.addEventListener('click',e=>{if(e.target===bg)closeModal(bg.id);});});
 document.getElementById('projectIconLabel').addEventListener('click',()=>document.getElementById('projectIconInput').click());
 document.getElementById('itemFileLabel').addEventListener('click',()=>document.getElementById('itemImgInput').click());
 document.getElementById('checkinImgLabel').addEventListener('click',()=>document.getElementById('checkinImgInput').click());
@@ -1699,9 +1903,50 @@ async function migrateLocalImages(){
     for(const item of p.items){
       if(item.img&&item.img.startsWith('data:')){item.img=await CloudSync.uploadDataUrl(item.img,`kitchen/${p.id}_${item.id}.jpg`);changed=true;}
       if(item.checkinImg&&item.checkinImg.startsWith('data:')){item.checkinImg=await CloudSync.uploadDataUrl(item.checkinImg,`kitchen/${p.id}_${item.id}_checkin.jpg`);changed=true;}
+      for(const record of item.checkinHistory||[]){
+        if(record.img&&record.img.startsWith('data:')){record.img=await CloudSync.uploadDataUrl(record.img,`kitchen/${p.id}_${item.id}_history_${record.id||gid()}.jpg`);changed=true;}
+      }
+      for(const record of item.records||[]){
+        if(record.img&&record.img.startsWith('data:')){record.img=await CloudSync.uploadDataUrl(record.img,`kitchen/${p.id}_${item.id}_merch_${record.id||gid()}.jpg`);changed=true;}
+      }
     }
   }
   if(changed){save();renderProjects();}}catch(e){console.warn('Kitchen image migration pending:',e);}
+}
+
+/* ═══ COLLABORATION RECORDS ═══ */
+function addCollabFoodCheckin(){
+  const p=getProject(curProjectId);if(!p||curItemIdx===null)return;
+  prepareCheckinModal('collab_repeat');
+}
+function addMerchRecord(){
+  const p=getProject(curProjectId);if(!p||curItemIdx===null)return;
+  prepareCheckinModal('merch_add');
+}
+function toggleMerchStatus(recordIdx){
+  const p=getProject(curProjectId);if(!p||curItemIdx===null)return;
+  const item=p.items[curItemIdx];
+  if(!item||!item.records||!item.records[recordIdx])return;
+  item.records[recordIdx].status=item.records[recordIdx].status==='sold'?'keeping':'sold';
+  save();openItem(curItemIdx);
+}
+function deleteMerchRecord(recordIdx){
+  const p=getProject(curProjectId);if(!p||curItemIdx===null)return;
+  const item=p.items[curItemIdx];
+  if(!item||!item.records||!item.records[recordIdx])return;
+  customConfirm('删除这条周边记录？',()=>{
+    item.records.splice(recordIdx,1);
+    item.collected=item.records.length>0;
+    if(item.records.length){
+      const latest=item.records[item.records.length-1];
+      item.collectedDate=latest.date||null;
+      item.checkinNote=latest.note||'';
+      item.checkinImg=latest.img||'';
+    }else{
+      item.collectedDate=null;item.checkinNote='';item.checkinImg='';
+    }
+    save();openItem(curItemIdx);
+  },{yes:'删除',danger:true});
 }
 
 /* ═══ INIT ═══ */
