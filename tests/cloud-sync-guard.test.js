@@ -50,6 +50,9 @@ class FakeElement {
   append(...children) {
     children.forEach(child => this.appendChild(child));
   }
+  setAttribute(name, value) {
+    this[name] = String(value);
+  }
   remove() {
     this.removed = true;
   }

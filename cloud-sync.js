@@ -836,6 +836,8 @@
     style.textContent = `
       #liminalCloudBadgeHost{margin-bottom:18px}
       #liminalCloudBadge{width:100%;padding:11px 14px;border-radius:10px;background:#fff;border:1px solid #e7e7e7;text-align:center;font:11px/1.2 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;color:#777;cursor:default;transition:.2s}
+      #liminalCloudBadgeHost.liminal-cloud-floating-host{position:fixed;left:12px;bottom:12px;z-index:9000;margin:0;max-width:calc(100vw - 24px)}
+      #liminalCloudBadgeHost.liminal-cloud-floating-host #liminalCloudBadge{width:auto;padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.92);box-shadow:0 2px 12px rgba(0,0,0,.08);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
       #liminalCloudBadge.working{color:#8a6b21;border-color:#ead9ad}#liminalCloudBadge.ok{color:#4c7857;border-color:#cfe4d4}#liminalCloudBadge.error{color:#b15b43;border-color:#efd1c8;cursor:pointer}#liminalCloudBadge.update{color:#66529c;border-color:#dcd4ee;cursor:pointer}
       .liminal-cloud-overlay{position:fixed;inset:0;z-index:10000;background:rgba(20,20,20,.48);display:flex;align-items:center;justify-content:center;padding:20px;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif}
       .liminal-cloud-dialog{width:min(360px,100%);background:#fff;border-radius:16px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.22);color:#222}.liminal-cloud-dialog h2{font-size:17px;margin:0 0 10px}.liminal-cloud-dialog p{font-size:12px;line-height:1.7;color:#777;margin:0 0 18px}.liminal-cloud-actions{display:grid;gap:8px}.liminal-cloud-actions button{border:0;border-radius:10px;padding:12px;font-size:13px;cursor:pointer}.liminal-cloud-primary{background:#1a1a1a;color:#fff}.liminal-cloud-secondary{background:#f3f3f3;color:#555}
@@ -845,8 +847,14 @@
   }
 
   function setBadge(text, kind, handler) {
-    const host = document.getElementById('liminalCloudBadgeHost');
-    if (!host) return;
+    let host = document.getElementById('liminalCloudBadgeHost');
+    if (!host) {
+      host = document.createElement('div');
+      host.id = 'liminalCloudBadgeHost';
+      host.className = 'liminal-cloud-floating-host';
+      host.setAttribute('aria-live', 'polite');
+      (document.body || document.documentElement).appendChild(host);
+    }
     let badge = document.getElementById('liminalCloudBadge');
     if (!badge) {
       badge = document.createElement('div');
