@@ -44,6 +44,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .room-box.off{max-height:0;opacity:0;border-color:transparent;overflow:hidden;pointer-events:none}
 .room-box.off *{visibility:hidden}
 
+/* Portrait/mobile: Will shares one border with the row above, without adding a route. */
+@media(max-width:899px),(orientation:portrait){
+  .apt-wrap.has-will-room>.mid-row>.branch-left .room-jane,
+  .apt-wrap.has-will-room>.mid-row>.room-natumi{border-bottom-left-radius:0;border-bottom-right-radius:0}
+  .apt-wrap.has-will-room>.branch-adaptive>.room-will{border-top:0;border-top-left-radius:0;border-top-right-radius:0}
+}
+
 /* ── Connectors: absolutely positioned on room edges ── */
 /* Neal↔Jane: top center of Jane's room */
 .conn-on-jane-top{position:absolute;top:0;left:50%;transform:translate(-50%,-50%);z-index:6}
@@ -292,6 +299,7 @@ function applyMod(){
   // rooms
   document.getElementById('roomNeal').classList.toggle('off',!modules.neal);
   document.getElementById('roomJane').classList.toggle('off',!modules.jane);
+  document.getElementById('aptWrap').classList.toggle('has-will-room',!!modules.will);
   const rW=document.getElementById('roomWill');
   rW.classList.toggle('off',!modules.will);
   rW.classList.toggle('will-off',!modules.will);
@@ -336,10 +344,39 @@ function applyMod(){
   },200);
 }
 
-function rand(a,b){return a+Math.random()*(b-a);}
-
 /* ═══ CHARACTER PLACEMENT ═══ */
 const charZone={}; // tracks which room each char is currently in
+const CHAR_PLACEMENT_KEY='home_character_placement';
+let charPlacementState={periodKey:'',placements:{}};
+
+function getCharacterPlacementState(){
+  const periodKey=getCGPeriodKey(new Date());
+  if(charPlacementState.periodKey===periodKey)return charPlacementState;
+
+  try{
+    const saved=JSON.parse(localStorage.getItem(CHAR_PLACEMENT_KEY)||'null');
+    if(saved&&saved.periodKey===periodKey&&saved.placements&&typeof saved.placements==='object'){
+      charPlacementState=saved;
+      return charPlacementState;
+    }
+  }catch(e){}
+
+  charPlacementState={periodKey,placements:{}};
+  return charPlacementState;
+}
+
+function saveCharacterPlacementState(){
+  try{localStorage.setItem(CHAR_PLACEMENT_KEY,JSON.stringify(charPlacementState));}catch(e){}
+}
+
+function validCharacterPlacement(placement,availableRooms){
+  return !!placement
+    && availableRooms.includes(placement.zone)
+    && Number.isFinite(placement.x)
+    && Number.isFinite(placement.y)
+    && placement.x>=0&&placement.x<=1
+    && placement.y>=0&&placement.y<=1;
+}
 
 function getAvailableRooms(charId){
   const rooms=[charId]; // always own room
@@ -356,7 +393,18 @@ const roomIdMap={neal:'roomNeal',jane:'roomJane',natumi:'roomNatumi',will:'roomW
 
 function placeChar(id){
   const avail=getAvailableRooms(id);
-  const zone=avail[Math.floor(Math.random()*avail.length)];
+  const state=getCharacterPlacementState();
+  let placement=state.placements[id];
+  if(!validCharacterPlacement(placement,avail)){
+    placement={
+      zone:avail[Math.floor(Math.random()*avail.length)],
+      x:Math.random(),
+      y:Math.random()
+    };
+    state.placements[id]=placement;
+    saveCharacterPlacementState();
+  }
+  const zone=placement.zone;
   charZone[id]=zone;
   const room=document.getElementById(roomIdMap[zone]);
   const el=document.getElementById('char-'+id);
@@ -369,8 +417,10 @@ function placeChar(id){
   const isPh=!!el.querySelector('.placeholder-circle');
   const sH=isPh?40:(el.querySelector('img').offsetHeight||90);
   const sW=isPh?40:sH*0.55;
-  el.style.left=Math.round(rand(w*0.08,Math.max(w*0.08+sW,w*0.85-sW)))+'px';
-  el.style.top=Math.round(rand(h*0.08,Math.max(h*0.08,h*0.85-sH)))+'px';
+  const minX=w*0.08,maxX=Math.max(minX+sW,w*0.85-sW);
+  const minY=h*0.08,maxY=Math.max(minY,h*0.85-sH);
+  el.style.left=Math.round(minX+(maxX-minX)*placement.x)+'px';
+  el.style.top=Math.round(minY+(maxY-minY)*placement.y)+'px';
 }
 
 let bubbleTimers={};
