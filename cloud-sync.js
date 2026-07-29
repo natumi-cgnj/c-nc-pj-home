@@ -10,7 +10,8 @@
   const STATE_KEYS = [
     'daily_db', 'daily_presets', 'gacha_st', 'bean_st', 'habit_db', 'story_db',
     'bjd_db3', 'techo_db2', 'shop_db', 'event_db', 'event_presets', 'dungeon_db',
-    'kitchen_db', 'home_modules', 'home_lines'
+    'kitchen_db', 'home_modules', 'home_lines',
+    'home_skins', 'home_skin_custom', 'home_skin_daily'
   ];
   const PAGE_KEYS = {
     'index.html': STATE_KEYS,
@@ -507,7 +508,8 @@
     const labels = {
       daily_db: '日常', daily_presets: '日常委托模板', gacha_st: '抽卡', bean_st: '豆叶', habit_db: '习惯',
       story_db: '剧情', bjd_db3: 'BJD', techo_db2: '手账', shop_db: '商城',
-      event_db: '活动', event_presets: '活动导入模板', dungeon_db: '副本库存'
+      event_db: '活动', event_presets: '活动导入模板', dungeon_db: '副本库存',
+      home_skins: '衣柜候选', home_skin_custom: '衣柜衣装', home_skin_daily: '今日衣装'
     };
     return new Promise(resolve => {
       const choices = Object.fromEntries(keys.map(key => [key, 'cloud']));
