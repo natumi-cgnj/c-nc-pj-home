@@ -154,7 +154,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   .drawer-wrap{max-width:260px;margin-top:0}
   .drawer-handle{display:none}
   .drawer-tray,.drawer-tray.open{max-height:84px;opacity:1;overflow:visible}
-  .drawer-items{gap:16px;padding-top:18px}
+  .drawer-items{gap:8px;padding-top:18px}
+  .drawer-items .shortcut-icon{width:42px;height:42px}
   .footer{margin-top:28px}
 }
 @media(min-width:900px) and (orientation:landscape){
@@ -393,12 +394,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <a class="shortcut" href="kitchen.html"><div class="shortcut-icon">🍽</div><div class="shortcut-label">饮食</div></a>
   <a class="shortcut" href="bjd.html"><div class="shortcut-icon">✦</div><div class="shortcut-label">BJD</div></a>
   <a class="shortcut" href="techo.html"><div class="shortcut-icon">✎</div><div class="shortcut-label">手账</div></a>
+  <a class="shortcut" href="wallet.html"><div class="shortcut-icon">¥</div><div class="shortcut-label">记账</div></a>
   <a class="shortcut" href="backup.html"><div class="shortcut-icon">☁</div><div class="shortcut-label">备份</div></a>
 </div></div></div>
 <div class="footer"><div class="time" id="clock"></div><div class="date" id="date"></div></div>
 </div>
 
-<script src="cloud-sync.js?v=20260729-1"></script>
+<script src="cloud-sync.js?v=20260729-2"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 

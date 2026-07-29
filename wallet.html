@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Wallet">
+<title>Wallet</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;background:#FAFAFA;color:#1a1a1a;min-height:100vh;min-height:100dvh;padding-bottom:72px}
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;padding-top:env(safe-area-inset-top,24px);border-bottom:1px solid #eee;background:#fff;position:sticky;top:0;z-index:50}
+.top-bar h1{font-size:15px;font-weight:600;letter-spacing:2px;color:#D85A30}
+.back-btn{font-size:13px;color:#999;text-decoration:none;cursor:pointer;background:none;border:none;font-family:inherit;padding:4px}
+.btn-s{font-size:11px;color:#999;background:none;border:1px solid #ddd;border-radius:6px;padding:5px 10px;cursor:pointer;font-family:inherit}
+
+/* Tab bar */
+.tab-bar{position:fixed;bottom:0;left:0;right:0;display:flex;background:#fff;border-top:1px solid #eee;z-index:50;padding-bottom:env(safe-area-inset-bottom,0)}
+.tab-bar button{flex:1;padding:8px 0 6px;background:none;border:none;font-family:inherit;font-size:10px;color:#999;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
+.tab-bar button.active{color:#D85A30}
+.tab-bar button .tab-icon{font-size:18px}
+.view{display:none}.view.active{display:block}
+
+/* Ledger */
+.category-list{padding:12px 20px}
+.category-card{background:#fff;border:1px solid #eee;border-radius:12px;padding:14px 16px;margin-bottom:8px}
+.cat-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.cat-name{font-size:14px;font-weight:500;color:#333}
+.cat-budget{font-size:11px;color:#bbb}
+.cat-bar{height:4px;background:#f0f0f0;border-radius:2px;overflow:hidden;margin-bottom:4px}
+.cat-bar-fill{height:100%;border-radius:2px;transition:width 0.3s}
+.cat-stats{display:flex;justify-content:space-between;font-size:11px;color:#999}
+.cat-stats .positive{color:#5BA66B}
+.cat-stats .negative{color:#D85A30}
+.daily-total{background:#fff;border:1px solid #eee;border-radius:12px;padding:14px 16px;margin:8px 20px}
+.daily-total-label{font-size:11px;color:#bbb;margin-bottom:4px}
+.daily-total-amount{font-size:24px;font-weight:300;color:#333}
+.daily-total-surplus{font-size:12px;margin-top:2px}
+.record-btn{display:block;margin:12px 20px;padding:12px;background:#1a1a1a;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;text-align:center;width:calc(100% - 40px)}
+.history-section{padding:12px 20px}
+.history-section-title{font-size:11px;color:#bbb;margin-bottom:8px}
+.hist-row{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#fff;border:1px solid #eee;border-radius:8px;margin-bottom:6px;font-size:13px}
+.hist-cat{font-size:10px;padding:2px 8px;border-radius:4px;flex-shrink:0}
+.hist-amount{font-weight:500;flex-shrink:0;min-width:60px;text-align:right}
+.hist-amount.expense{color:#D85A30}
+.hist-amount.income{color:#5BA66B}
+.hist-note{color:#555;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hist-del{font-size:14px;color:#ccc;background:none;border:none;cursor:pointer;padding:2px}
+
+/* Treasury */
+.treasury-card{background:#fff;border:1px solid #eee;border-radius:16px;margin:16px 20px;padding:20px;text-align:center}
+.treasury-label{font-size:11px;color:#bbb;margin-bottom:4px}
+.treasury-amount{font-size:32px;font-weight:300;margin-bottom:12px}
+.treasury-amount.positive{color:#5BA66B}
+.treasury-amount.negative{color:#D85A30}
+.char-funds{display:flex;gap:8px;padding:0 20px;margin-bottom:12px}
+.char-fund-card{flex:1;background:#fff;border:1px solid #eee;border-radius:12px;padding:12px 8px;text-align:center}
+.char-fund-name{font-size:12px;font-weight:500;margin-bottom:4px}
+.char-fund-amount{font-size:16px;font-weight:300}
+.transfer-btn{display:block;margin:8px 20px;padding:10px;border:1.5px dashed #ddd;border-radius:10px;background:#fff;font-size:12px;color:#aaa;cursor:pointer;text-align:center;font-family:inherit;width:calc(100% - 40px)}
+
+/* Outings */
+.period-banner{margin:12px 20px;padding:14px 16px;background:#fff;border:1px solid #eee;border-radius:12px;text-align:center}
+.period-name{font-size:14px;font-weight:500;margin-bottom:2px}
+.period-time{font-size:11px;color:#bbb}
+.outing-card{margin:8px 20px;padding:14px 16px;background:#fff;border:1px solid #eee;border-radius:12px;position:relative;overflow:hidden}
+.outing-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
+.outing-char{font-size:13px;font-weight:500;margin-bottom:4px}
+.outing-activity{font-size:12px;color:#555;margin-bottom:4px}
+.outing-dialogue{font-size:13px;color:#666;font-style:italic;line-height:1.5;padding:8px 12px;background:#faf8f4;border-radius:8px;margin-top:6px}
+.outing-cost{font-size:11px;color:#999;margin-top:4px}
+.outing-empty{text-align:center;padding:40px 20px;color:#ccc;font-size:13px}
+.process-btn{display:block;margin:12px 20px;padding:12px;background:#D85A30;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;text-align:center;width:calc(100% - 40px)}
+
+/* Collection */
+.set-card{margin:8px 20px;padding:14px 16px;background:#fff;border:1px solid #eee;border-radius:12px}
+.set-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.set-name{font-size:14px;font-weight:500}
+.set-progress{font-size:11px;color:#bbb}
+.set-bar{height:4px;background:#f0f0f0;border-radius:2px;overflow:hidden;margin-bottom:8px}
+.set-bar-fill{height:100%;border-radius:2px;transition:width 0.3s}
+.set-items{display:flex;flex-wrap:wrap;gap:4px}
+.set-item{font-size:11px;padding:3px 8px;border-radius:4px;background:#f0f0f0;color:#ccc}
+.set-item.collected{background:#F3EDFF;color:#9B6BCC}
+.set-item.secret{font-style:italic}
+.set-reward{font-size:11px;color:#E8B96A;margin-top:8px}
+
+/* Modals */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.modal-bg.show{display:flex}
+.modal{background:#fff;border-radius:16px 16px 0 0;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;padding:20px;animation:slideUp 0.25s ease-out}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal h2{font-size:15px;font-weight:600;margin-bottom:16px;color:#333}
+.modal label{display:block;font-size:12px;color:#999;margin-bottom:4px;margin-top:12px}
+.modal input,.modal textarea,.modal select{width:100%;font-size:14px;padding:10px 12px;border:1px solid #e0e0e0;border-radius:8px;font-family:inherit;background:#fff;color:#1a1a1a}
+.btn-row{display:flex;gap:8px;margin-top:20px}
+.btn{flex:1;padding:12px;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit}
+.btn-primary{background:#1a1a1a;color:#fff}
+.btn-cancel{background:#f0f0f0;color:#666}
+.btn-del{background:#fff;color:#D85A30;border:1px solid #f0d0c0}
+.toast{position:fixed;top:env(safe-area-inset-top,20px);left:50%;transform:translateX(-50%) translateY(-120%);background:rgba(30,30,30,0.88);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:#fff;font-size:13px;padding:10px 20px;border-radius:10px;z-index:400;pointer-events:none;transition:transform 0.3s cubic-bezier(0.34,1.3,0.64,1),opacity 0.3s;opacity:0}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.confirm-bg{position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:300;display:none;align-items:center;justify-content:center}
+.confirm-bg.show{display:flex}
+.confirm-box{background:#fff;border-radius:16px;width:85%;max-width:320px;padding:24px 20px;text-align:center}
+.confirm-box p{font-size:14px;color:#333;margin-bottom:16px;line-height:1.5}
+.confirm-box .btn-row{display:flex;gap:8px;justify-content:center}
+.confirm-box .btn{min-width:80px;flex:none;padding:10px 16px;font-size:13px}
+.cat-setting-row{display:flex;align-items:center;gap:6px;padding:10px 0;border-bottom:1px solid #f0f0f0}
+.cat-setting-row:last-child{border-bottom:none}
+.modal .cat-setting-row input.cat-setting-color{width:28px;height:28px;border:none;border-radius:6px;cursor:pointer;padding:0;flex-shrink:0}
+.modal .cat-setting-row input.cat-setting-name{flex:1;width:auto;font-size:13px;padding:6px 8px;border:1px solid #e0e0e0;border-radius:6px;min-width:0;font-family:inherit}
+.modal .cat-setting-row input.cat-setting-budget{width:70px;font-size:13px;padding:6px 8px;border:1px solid #e0e0e0;border-radius:6px;text-align:right;font-family:inherit}
+.cat-setting-del{width:28px;height:28px;border:none;background:none;color:#ccc;font-size:16px;cursor:pointer;flex-shrink:0;border-radius:6px}
+.cat-setting-del:hover{background:#fee;color:#D85A30}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <a class="back-btn" href="index.html">← Home</a>
+  <h1>WALLET</h1>
+  <button class="btn-s" onclick="openModal('settingsModal')">设置</button>
+</div>
+
+<!-- LEDGER TAB -->
+<div id="viewLedger" class="view active">
+  <div class="category-list" id="categoryList"></div>
+  <div class="daily-total" id="dailyTotal"></div>
+  <button class="record-btn" onclick="openRecordModal()">+ 记一笔</button>
+  <div class="history-section" id="todayHistory"></div>
+</div>
+
+<!-- TREASURY TAB -->
+<div id="viewTreasury" class="view">
+  <div class="treasury-card" id="treasuryCard"></div>
+  <div class="char-funds" id="charFunds"></div>
+  <button class="transfer-btn" onclick="openTransferModal()">划拨零花钱</button>
+  <div class="history-section" id="treasuryLog"></div>
+</div>
+
+<!-- OUTINGS TAB -->
+<div id="viewOutings" class="view">
+  <div class="period-banner" id="periodBanner"></div>
+  <div id="outingCards"></div>
+</div>
+
+<!-- COLLECTION TAB -->
+<div id="viewCollection" class="view">
+  <div id="collectionSets"></div>
+</div>
+
+<!-- MODALS -->
+
+<!-- Record expense/income -->
+<div class="modal-bg" id="recordModal">
+  <div class="modal">
+    <h2>记一笔</h2>
+    <label>类型</label>
+    <select id="recordType">
+      <option value="expense">支出</option>
+      <option value="income">收入（卖出二手等）</option>
+    </select>
+    <label>分类</label>
+    <select id="recordCategory"></select>
+    <label>金额（日元）</label>
+    <input type="number" id="recordAmount" placeholder="金额" min="0" step="1">
+    <label>备注（选填）</label>
+    <input type="text" id="recordNote" placeholder="买了什么">
+    <div class="btn-row">
+      <button class="btn btn-cancel" onclick="closeModal('recordModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveRecord()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Transfer -->
+<div class="modal-bg" id="transferModal">
+  <div class="modal">
+    <h2>划拨零花钱</h2>
+    <label>划给谁</label>
+    <select id="transferTo">
+      <option value="neal">Neal</option>
+      <option value="jane">Jane</option>
+      <option value="will">Will</option>
+    </select>
+    <label>金额（日元）</label>
+    <input type="number" id="transferAmount" placeholder="金额" min="0" step="1">
+    <p style="font-size:11px;color:#bbb;margin-top:8px">从共享金库划入角色专属零花钱，总额不变</p>
+    <div class="btn-row">
+      <button class="btn btn-cancel" onclick="closeModal('transferModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveTransfer()">划拨</button>
+    </div>
+  </div>
+</div>
+
+<!-- Settings -->
+<div class="modal-bg" id="settingsModal">
+  <div class="modal">
+    <h2>支出分类管理</h2>
+    <div id="budgetSettings"></div>
+    <button class="btn btn-cancel" style="width:100%;margin-top:8px;border-style:dashed" onclick="addCategory()">+ 新增分类</button>
+    <div class="btn-row" style="margin-top:12px">
+      <button class="btn btn-cancel" onclick="closeModal('settingsModal')">关闭</button>
+      <button class="btn btn-primary" onclick="saveBudgetSettings()">保存</button>
+    </div>
+    <hr style="margin:16px 0;border:none;border-top:1px solid #eee">
+    <h2>数据管理</h2>
+    <button class="btn btn-cancel" style="margin-bottom:8px;width:100%" onclick="exportWallet()">导出数据</button>
+    <button class="btn btn-cancel" style="width:100%" onclick="document.getElementById('importWalletFile').click()">导入数据</button>
+    <input type="file" id="importWalletFile" accept=".json" onchange="importWallet(this)" style="display:none">
+  </div>
+</div>
+
+<!-- Tab bar -->
+<div class="tab-bar">
+  <button class="active" onclick="switchTab('viewLedger',this)"><span class="tab-icon">📝</span>记账</button>
+  <button onclick="switchTab('viewTreasury',this)"><span class="tab-icon">💰</span>金库</button>
+  <button onclick="switchTab('viewOutings',this)"><span class="tab-icon">🚶</span>外出</button>
+  <button onclick="switchTab('viewCollection',this)"><span class="tab-icon">📦</span>收集</button>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="confirm-bg" id="confirmBg"><div class="confirm-box"></div></div>
+
+<script src="cloud-sync.js?v=20260729-2"></script>
+<script>
+if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
+var SK='wallet_db';
+var db,walletRaw=localStorage.getItem(SK)||'';
+try{db=walletRaw?JSON.parse(walletRaw):null;}catch(e){db=null;}
+
+function createDefaultDB(){
+  return{
+    categories:[
+      {id:'stationery',name:'文具',dailyBudget:300,color:'#4AADE8'},
+      {id:'goods',name:'谷子',dailyBudget:500,color:'#9B6BCC'},
+      {id:'dolls',name:'娃物',dailyBudget:300,color:'#E84A7A'},
+      {id:'daily',name:'生活用品',dailyBudget:200,color:'#5BA66B'},
+      {id:'food',name:'吃饭',dailyBudget:1500,color:'#E8B96A'}
+    ],
+    records:[],
+    charFunds:{neal:0,jane:0,will:0},
+    outings:[],
+    lastProcessed:null,
+    processedPeriods:{},
+    activitySets:[
+      {id:'neal_city',char:'neal',name:'都会散歩',reward:'Neal的素描本',activities:[
+        {id:'n1',name:'逛古董店',cost:2500,dialogue:'Look at this patina…… 19世纪末的银烛台。这种做工现在已经看不到了。',collected:false},
+        {id:'n2',name:'意式前菜',cost:1500,dialogue:'Antipasto is an art form, not just a starter. ……这家还算合格。',collected:false},
+        {id:'n3',name:'买领带',cost:3500,dialogue:'这条暗纹……日光下看是丝绒灰，灯光下泛紫。I’ll take it.',collected:false},
+        {id:'n4',name:'手冲咖啡',cost:650,dialogue:'Single origin from Ethiopia. 花香调的，you’d like it too.',collected:false},
+        {id:'n5',name:'逛画廊',cost:1200,dialogue:'这幅构图有意思……不过光影处理太保守了。',collected:false},
+        {id:'n6',name:'买花',cost:450,dialogue:'百合。白色的。不需要理由。',collected:false},
+        {id:'n7',name:'Tiramisu',cost:550,dialogue:'Tiramisu 的 mascarpone 必须当天打发，这家做到了。',collected:false},
+        {id:'n8',name:'买画材',cost:1500,dialogue:'Windsor & Newton的钴蓝用完了。顺便补了管群青。',collected:false}
+      ]},
+      {id:'jane_daily',char:'jane',name:'日常观察',reward:'Jane的观察笔记',activities:[
+        {id:'j1',name:'买茶叶',cost:2000,dialogue:'大吉岭春摘，今年的flavor profile不太一样。……买了三种比较一下，仅此而已。',collected:false},
+        {id:'j2',name:'逛书店',cost:800,dialogue:'在犯罪心理学区站了四十分钟。买了两本。……不用问具体书名。',collected:false},
+        {id:'j3',name:'看话剧',cost:2800,dialogue:'演员在第二幕第三场换了一个微表情。大多数人不会注意到。',collected:false},
+        {id:'j4',name:'买手帐周边',cost:500,dialogue:'这个便签纸的纸质不错。适合写推理笔记。',collected:false},
+        {id:'j5',name:'咖啡店观察',cost:500,dialogue:'坐在角落里观察。9号桌的人在说谎，11号桌的那对刚吵过架。',collected:false},
+        {id:'j6',name:'买茶具',cost:1400,dialogue:'茶杯的rim厚度影响入口温度。这个0.8mm，标准。',collected:false},
+        {id:'j7',name:'逛文具店',cost:350,dialogue:'中性笔，0.38。黑色两支，蓝色一支。就这些。',collected:false},
+        {id:'j8',name:'去植物园',cost:400,dialogue:'茶花开了。取了样回来研究一下品种。',collected:false}
+      ]},
+      {id:'will_food',char:'will',name:'美食探险',reward:'Will的美食地图',activities:[
+        {id:'w1',name:'吃拉面！！',cost:1000,dialogue:'这家的叉烧好嫩！！汤底浓浓的！！我还想加一碗面！！',collected:false},
+        {id:'w2',name:'零食大采购',cost:1000,dialogue:'买了好多好多零食嘿嘿……薯片、小熊饼干、巧克力棒……你也要吃吗？',collected:false},
+        {id:'w3',name:'甜品探店',cost:600,dialogue:'这个草莓蛋糕好可爱！！我要拍照！！……拍完了可以吃了吗？',collected:false},
+        {id:'w4',name:'买冰淇淋',cost:300,dialogue:'抹茶味和巧克力味……选不了！！那两个都要！！',collected:false},
+        {id:'w5',name:'逛超市',cost:1200,dialogue:'我只是进去买个牛奶的……结果出来手里多了三大袋东西（小声）',collected:false},
+        {id:'w6',name:'奶茶店',cost:450,dialogue:'珍珠奶茶加芋圆加布丁！！大杯！！全糖！！',collected:false},
+        {id:'w7',name:'便利店扫货',cost:450,dialogue:'便利店出了新口味的饭团！！还有限定款杯面！！必须买！！',collected:false},
+        {id:'w8',name:'吃回转寿司',cost:1500,dialogue:'我已经吃了十二盘了……但是三文鱼腹还没吃到……再等一下下！',collected:false}
+      ]}
+    ],
+    freePool:{
+      neal:[
+        {id:'nf1',dialogue:'只是出来走走。You know, fresh air does wonders.'},
+        {id:'nf2',dialogue:'在橱窗外面看了一条领带。……下次吧。'},
+        {id:'nf3',dialogue:'找了家有好view的bench，坐了一会儿。'},
+        {id:'nf4',dialogue:'路过画廊，透过玻璃看了看新展。'}
+      ],
+      jane:[
+        {id:'jf1',dialogue:'出门转了一圈。没什么特别的。'},
+        {id:'jf2',dialogue:'在公园长椅上坐着观察路人。……这算娱乐活动。'},
+        {id:'jf3',dialogue:'散步的时候看到一只猫。它很有警惕心。'},
+        {id:'jf4',dialogue:'站在窗前看了看天气。嗯，就这样。'}
+      ],
+      will:[
+        {id:'wf1',dialogue:'闻到隔壁的拉面味道了……好饿……'},
+        {id:'wf2',dialogue:'在公园里溜达！捡到一个好看的石头！'},
+        {id:'wf3',dialogue:'趴在桌子上发呆……想吃东西……'},
+        {id:'wf4',dialogue:'出门散步啦！虽然什么都没买但心情很好！'}
+      ]
+    },
+    outingConfig:{
+      neal:{probs:{morning:0.3,day:0.6,evening:0.4,night:0.3},maxPerDay:2,color:'#6B8AFF',name:'Neal'},
+      jane:{probs:{morning:0.1,day:0.15,evening:0.1,night:0.05},maxPerDay:1,color:'#5BA66B',name:'Jane'},
+      will:{probs:{morning:0.2,day:0.4,evening:0.3,night:0.15},maxPerDay:2,color:'#D85A30',name:'Will'}
+    }
+  };
+}
+
+function mergeActivitySets(saved,defaults){
+  if(!Array.isArray(saved))return defaults;
+  var merged=defaults.map(function(baseSet){
+    var old=saved.find(function(set){return set&&set.id===baseSet.id;});
+    if(!old)return baseSet;
+    var activities=baseSet.activities.map(function(baseActivity){
+      var oldActivity=(old.activities||[]).find(function(activity){return activity&&activity.id===baseActivity.id;});
+      return oldActivity?Object.assign({},baseActivity,oldActivity):baseActivity;
+    });
+    (old.activities||[]).forEach(function(activity){
+      if(activity&&!activities.some(function(existing){return existing.id===activity.id;}))activities.push(activity);
+    });
+    return Object.assign({},baseSet,old,{activities:activities});
+  });
+  saved.forEach(function(set){
+    if(set&&!merged.some(function(existing){return existing.id===set.id;}))merged.push(set);
+  });
+  return merged;
+}
+function normalizeWalletDB(value){
+  var defaults=createDefaultDB();
+  if(!value||typeof value!=='object')return defaults;
+  var result=Object.assign({},defaults,value);
+  result.categories=Array.isArray(value.categories)&&value.categories.length?value.categories:defaults.categories;
+  result.records=Array.isArray(value.records)?value.records:[];
+  result.charFunds=Object.assign({},defaults.charFunds,value.charFunds||{});
+  result.outings=Array.isArray(value.outings)?value.outings:[];
+  result.processedPeriods=value.processedPeriods&&typeof value.processedPeriods==='object'?value.processedPeriods:{};
+  result.freePool=Object.assign({},defaults.freePool,value.freePool||{});
+  result.outingConfig=Object.assign({},defaults.outingConfig,value.outingConfig||{});
+  Object.keys(defaults.outingConfig).forEach(function(id){
+    result.outingConfig[id]=Object.assign({},defaults.outingConfig[id],result.outingConfig[id]||{});
+    result.outingConfig[id].probs=Object.assign({},defaults.outingConfig[id].probs,(result.outingConfig[id]||{}).probs||{});
+  });
+  result.activitySets=mergeActivitySets(value.activitySets,defaults.activitySets);
+  result.schemaVersion=1;
+  return result;
+}
+db=normalizeWalletDB(db);
+if(JSON.stringify(db)!==walletRaw){
+  try{localStorage.setItem(SK,JSON.stringify(db));}catch(e){}
+}
+
+function save(){
+  try{localStorage.setItem(SK,JSON.stringify(db));}
+  catch(e){showToast('保存失败，浏览器空间不足');}
+}
+function gid(){return 'w_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+/* Dialogs */
+function customConfirm(msg,onYes,opts){
+  var bg=document.getElementById('confirmBg');var box=bg.querySelector('.confirm-box');
+  box.innerHTML='<p>'+msg+'</p><div class="btn-row"><button class="btn btn-cancel" id="confirmNo">'+(opts&&opts.no||'取消')+'</button><button class="btn '+(opts&&opts.danger?'btn-del':'btn-primary')+'" id="confirmYes">'+(opts&&opts.yes||'确定')+'</button></div>';
+  bg.classList.add('show');
+  box.querySelector('#confirmYes').onclick=function(){bg.classList.remove('show');onYes();};
+  box.querySelector('#confirmNo').onclick=function(){bg.classList.remove('show');};
+  bg.onclick=function(e){if(e.target===bg)bg.classList.remove('show');};
+}
+var _toastTimer=null;
+function showToast(msg){var el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(_toastTimer);_toastTimer=setTimeout(function(){el.classList.remove('show');},2200);}
+function openModal(id){document.getElementById(id).classList.add('show');}
+function closeModal(id){document.getElementById(id).classList.remove('show');}
+document.querySelectorAll('.modal-bg').forEach(function(bg){bg.addEventListener('click',function(e){if(e.target===bg)closeModal(bg.id);});});
+
+/* Tabs */
+function switchTab(viewId,btn){
+  document.querySelectorAll('.view').forEach(function(v){v.classList.remove('active');});
+  document.getElementById(viewId).classList.add('active');
+  document.querySelectorAll('.tab-bar button').forEach(function(b){b.classList.remove('active');});
+  if(btn)btn.classList.add('active');
+  renderCurrentTab(viewId);
+}
+function renderCurrentTab(viewId){
+  if(viewId==='viewLedger')renderLedger();
+  else if(viewId==='viewTreasury')renderTreasury();
+  else if(viewId==='viewOutings')renderOutings();
+  else if(viewId==='viewCollection')renderCollection();
+}
+
+/* ═══ DATE / PERIOD HELPERS ═══ */
+function todayStr(value){
+  var d=value?new Date(value):new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function getCurrentPeriod(){
+  var h=new Date().getHours();
+  if(h>=6&&h<11)return'morning';
+  if(h>=11&&h<17)return'day';
+  if(h>=17&&h<22)return'evening';
+  return'night';
+}
+function periodLabel(p){return{morning:'清晨 06:00–10:59',day:'白天 11:00–16:59',evening:'傍晚 17:00–21:59',night:'夜晚 22:00–次日 05:59'}[p]||p;}
+function periodName(p){return{morning:'清晨',day:'白天',evening:'傍晚',night:'夜晚'}[p]||p;}
+
+/* ═══ BUDGET CALCULATION ═══ */
+function getTodayRecords(){return db.records.filter(function(r){return r.date===todayStr();});}
+function getCategoryToday(catId){
+  var today=todayStr();
+  var spent=0,earned=0;
+  db.records.forEach(function(r){
+    if(r.date===today&&r.category===catId){
+      if(r.type==='expense')spent+=r.amount;
+      else earned+=r.amount;
+    }
+  });
+  return{spent:spent,earned:earned,net:spent-earned};
+}
+function getTotalSurplus(){
+  var total=0;
+  var byDate={};
+  db.records.forEach(function(r){
+    if(!byDate[r.date])byDate[r.date]={};
+    if(!byDate[r.date][r.category])byDate[r.date][r.category]={spent:0,earned:0};
+    if(r.type==='expense')byDate[r.date][r.category].spent+=r.amount;
+    else byDate[r.date][r.category].earned+=r.amount;
+  });
+  var dates=Object.keys(byDate).sort();
+  dates.forEach(function(date){
+    db.categories.forEach(function(cat){
+      var rec=byDate[date]&&byDate[date][cat.id];
+      var spent=rec?rec.spent:0;
+      var earned=rec?rec.earned:0;
+      total+=(cat.dailyBudget-spent+earned);
+    });
+  });
+  // If no records for today, don't count today's budget yet
+  return total;
+}
+function getSharedFund(){
+  var total=getTotalSurplus();
+  var charTotal=(db.charFunds.neal||0)+(db.charFunds.jane||0)+(db.charFunds.will||0);
+  // Subtract character outing costs
+  var outingCosts=0;
+  db.outings.forEach(function(o){outingCosts+=o.cost||0;});
+  return total-charTotal-outingCosts;
+}
+
+/* ═══ LEDGER ═══ */
+function renderLedger(){
+  var list=document.getElementById('categoryList');
+  var today=todayStr();
+  list.innerHTML=db.categories.map(function(cat){
+    var ct=getCategoryToday(cat.id);
+    var pct=cat.dailyBudget>0?Math.min(100,Math.round(ct.net/cat.dailyBudget*100)):0;
+    var surplus=cat.dailyBudget-ct.net;
+    return '<div class="category-card"><div class="cat-header"><span class="cat-name" style="color:'+cat.color+'">'+esc(cat.name)+'</span><span class="cat-budget">日额 ¥'+cat.dailyBudget+'</span></div><div class="cat-bar"><div class="cat-bar-fill" style="width:'+Math.max(0,pct)+'%;background:'+cat.color+'"></div></div><div class="cat-stats"><span>今日支出 ¥'+ct.spent+(ct.earned?' / 收入 ¥'+ct.earned:'')+'</span><span class="'+(surplus>=0?'positive':'negative')+'">'+(surplus>=0?'+':'')+'¥'+surplus+'</span></div></div>';
+  }).join('');
+
+  var todayRecords=getTodayRecords();
+  var todayTotal=0;
+  todayRecords.forEach(function(r){todayTotal+=(r.type==='expense'?r.amount:-r.amount);});
+  var totalBudget=0;
+  db.categories.forEach(function(c){totalBudget+=c.dailyBudget;});
+  var daySurplus=totalBudget-todayTotal;
+  document.getElementById('dailyTotal').innerHTML='<div class="daily-total-label">今日总支出</div><div class="daily-total-amount">¥'+todayTotal+'</div><div class="daily-total-surplus" style="color:'+(daySurplus>=0?'#5BA66B':'#D85A30')+'">今日差额 '+(daySurplus>=0?'+':'')+'¥'+daySurplus+'</div>';
+
+  var histHtml='<div class="history-section-title">今日记录</div>';
+  if(!todayRecords.length)histHtml+='<div style="text-align:center;color:#ccc;font-size:12px;padding:20px">还没有记录</div>';
+  todayRecords.slice().reverse().forEach(function(r,i){
+    var cat=db.categories.find(function(c){return c.id===r.category;});
+    var catColor=cat?cat.color:'#999';
+    var catName=cat?cat.name:r.category;
+    histHtml+='<div class="hist-row"><span class="hist-cat" style="background:'+catColor+'20;color:'+catColor+'">'+esc(catName)+'</span><span class="hist-note">'+esc(r.note||'—')+'</span><span class="hist-amount '+(r.type==='expense'?'expense':'income')+'">'+(r.type==='expense'?'-':'+')+'¥'+r.amount+'</span><button class="hist-del" onclick="deleteRecord(\''+r.id+'\')">×</button></div>';
+  });
+  document.getElementById('todayHistory').innerHTML=histHtml;
+}
+function openRecordModal(){
+  document.getElementById('recordType').value='expense';
+  var select=document.getElementById('recordCategory');
+  select.innerHTML=db.categories.map(function(c){return '<option value="'+c.id+'">'+esc(c.name)+'</option>';}).join('');
+  document.getElementById('recordAmount').value='';
+  document.getElementById('recordNote').value='';
+  openModal('recordModal');
+}
+function saveRecord(){
+  var amount=parseInt(document.getElementById('recordAmount').value)||0;
+  if(amount<=0){showToast('请输入金额');return;}
+  db.records.push({
+    id:gid(),
+    date:todayStr(),
+    type:document.getElementById('recordType').value,
+    category:document.getElementById('recordCategory').value,
+    amount:amount,
+    note:document.getElementById('recordNote').value.trim()
+  });
+  save();closeModal('recordModal');renderLedger();
+}
+function deleteRecord(id){
+  customConfirm('删除这条记录？',function(){
+    db.records=db.records.filter(function(r){return r.id!==id;});
+    save();renderLedger();
+  },{yes:'删除',danger:true});
+}
+
+/* ═══ TREASURY ═══ */
+function renderTreasury(){
+  var shared=getSharedFund();
+  document.getElementById('treasuryCard').innerHTML='<div class="treasury-label">共享小金库</div><div class="treasury-amount '+(shared>=0?'positive':'negative')+'">¥'+shared+'</div>';
+
+  var chars=['neal','jane','will'];
+  var colors={neal:'#6B8AFF',jane:'#5BA66B',will:'#D85A30'};
+  var names={neal:'Neal',jane:'Jane',will:'Will'};
+  document.getElementById('charFunds').innerHTML=chars.map(function(c){
+    var amt=db.charFunds[c]||0;
+    return '<div class="char-fund-card" style="border-color:'+colors[c]+'30"><div class="char-fund-name" style="color:'+colors[c]+'">'+names[c]+'</div><div class="char-fund-amount" style="color:'+(amt>0?colors[c]:'#ccc')+'">¥'+amt+'</div></div>';
+  }).join('');
+
+  // Recent outing costs
+  var recent=db.outings.slice(-5).reverse();
+  var logHtml='<div class="history-section-title">近期外出花费</div>';
+  if(!recent.length)logHtml+='<div style="text-align:center;color:#ccc;font-size:12px;padding:20px">还没有外出记录</div>';
+  recent.forEach(function(o){
+    var cfg=db.outingConfig[o.char];
+    logHtml+='<div class="hist-row"><span class="hist-cat" style="background:'+(cfg?cfg.color:'#999')+'20;color:'+(cfg?cfg.color:'#999')+'">'+(cfg?cfg.name:o.char)+'</span><span class="hist-note">'+esc(o.activity||'散步')+'</span><span class="hist-amount expense">-¥'+(o.cost||0)+'</span></div>';
+  });
+  document.getElementById('treasuryLog').innerHTML=logHtml;
+}
+function openTransferModal(){openModal('transferModal');document.getElementById('transferAmount').value='';}
+function saveTransfer(){
+  var to=document.getElementById('transferTo').value;
+  var amount=parseInt(document.getElementById('transferAmount').value)||0;
+  if(amount<=0){showToast('请输入金额');return;}
+  var shared=getSharedFund();
+  if(amount>shared){showToast('共享金库余额不足');return;}
+  db.charFunds[to]=(db.charFunds[to]||0)+amount;
+  save();closeModal('transferModal');renderTreasury();showToast('已划拨 ¥'+amount+' 给 '+db.outingConfig[to].name);
+}
+
+/* ═══ OUTINGS ═══ */
+function renderOutings(){
+  var period=getCurrentPeriod();
+  document.getElementById('periodBanner').innerHTML='<div class="period-name">'+periodName(period)+'</div><div class="period-time">'+periodLabel(period)+'</div>';
+
+  var today=todayStr();
+  var todayOutings=db.outings.filter(function(o){return o.date===today;});
+  var cards=document.getElementById('outingCards');
+
+  if(!todayOutings.length){
+    cards.innerHTML='<div class="outing-empty">今天还没有人出门</div><button class="process-btn" onclick="processCurrentPeriod()">刷新当前时段</button>';
+    return;
+  }
+
+  var html='';
+  todayOutings.forEach(function(o){
+    var cfg=db.outingConfig[o.char]||{color:'#999',name:o.char};
+    html+='<div class="outing-card" style="border-left:3px solid '+cfg.color+'"><div class="outing-char" style="color:'+cfg.color+'">'+esc(cfg.name)+' · '+periodName(o.period)+'</div><div class="outing-activity">'+esc(o.activity||'散步')+'</div>'+(o.dialogue?'<div class="outing-dialogue">「'+esc(o.dialogue)+'」</div>':'')+(o.cost?'<div class="outing-cost">-¥'+o.cost+'</div>':'')+'</div>';
+  });
+
+  // Check if current period processed
+  var periodKey=today+'_'+period;
+  if(!db.processedPeriods[periodKey]){
+    html+='<button class="process-btn" onclick="processCurrentPeriod()">刷新当前时段</button>';
+  }
+  cards.innerHTML=html;
+}
+function processCurrentPeriod(){
+  var today=todayStr();
+  var period=getCurrentPeriod();
+  var periodKey=today+'_'+period;
+  if(db.processedPeriods[periodKey]){showToast('当前时段已刷新');return;}
+
+  var chars=['neal','jane','will'];
+  var remainingShared=getSharedFund();
+  var newOutings=[];
+
+  chars.forEach(function(charId){
+    var cfg=db.outingConfig[charId];
+    if(!cfg)return;
+    // Check daily limit
+    var todayCount=db.outings.filter(function(o){return o.date===today&&o.char===charId;}).length;
+    if(todayCount>=cfg.maxPerDay)return;
+    // Roll probability
+    var prob=cfg.probs[period]||0;
+    if(Math.random()>prob)return;
+
+    // Character goes out!
+    var charFund=db.charFunds[charId]||0;
+    var availableFund=remainingShared+charFund;
+
+    if(availableFund<=0){
+      // Free outing
+      var pool=db.freePool[charId]||[];
+      if(!pool.length)return;
+      var pick=pool[Math.floor(Math.random()*pool.length)];
+      newOutings.push({id:gid(),date:today,period:period,char:charId,activity:'散步',dialogue:pick.dialogue,cost:0,activityId:null});
+    }else{
+      // Pick a paid activity within budget
+      var sets=db.activitySets.filter(function(s){return s.char===charId;});
+      var available=[];
+      sets.forEach(function(set){
+        set.activities.forEach(function(act){
+          if(!act.collected&&act.cost<=availableFund)available.push({set:set,act:act});
+        });
+      });
+      if(!available.length){
+        // All collected or too expensive, free outing
+        var pool=db.freePool[charId]||[];
+        if(!pool.length)return;
+        var pick=pool[Math.floor(Math.random()*pool.length)];
+        newOutings.push({id:gid(),date:today,period:period,char:charId,activity:'散步',dialogue:pick.dialogue,cost:0,activityId:null});
+      }else{
+        var chosen=available[Math.floor(Math.random()*available.length)];
+        chosen.act.collected=true;
+        chosen.act.collectedDate=today;
+        // Deduct from personal fund first, then shared
+        var cost=chosen.act.cost;
+        if(charFund>=cost){
+          db.charFunds[charId]-=cost;
+        }else{
+          remainingShared-=Math.max(0,cost-charFund);
+          db.charFunds[charId]=0;
+          // Remaining comes from shared (tracked via outing cost)
+        }
+        newOutings.push({id:gid(),date:today,period:period,char:charId,activity:chosen.act.name,dialogue:chosen.act.dialogue,cost:cost,activityId:chosen.act.id,setId:chosen.set.id});
+      }
+    }
+  });
+
+  db.outings=db.outings.concat(newOutings);
+  db.processedPeriods[periodKey]=true;
+  db.lastProcessed=today;
+  save();
+  renderOutings();
+
+  if(newOutings.length){
+    showToast(newOutings.map(function(o){return db.outingConfig[o.char].name;}).join('、')+' 出门了！');
+  }else{
+    showToast('这个时段没人出门');
+  }
+}
+
+/* ═══ COLLECTION ═══ */
+function renderCollection(){
+  var html='';
+  var charNames={neal:'Neal',jane:'Jane',will:'Will'};
+  var charColors={neal:'#6B8AFF',jane:'#5BA66B',will:'#D85A30'};
+
+  db.activitySets.forEach(function(set){
+    var collected=set.activities.filter(function(a){return a.collected;}).length;
+    var total=set.activities.length;
+    var pct=total>0?Math.round(collected/total*100):0;
+    var allDone=collected>=total&&total>0;
+
+    html+='<div class="set-card"><div class="set-header"><span class="set-name" style="color:'+(charColors[set.char]||'#333')+'">'+esc(set.name)+' <span style="font-size:11px;font-weight:400;color:#bbb">'+esc(charNames[set.char]||set.char)+'</span></span><span class="set-progress">'+collected+'/'+total+'</span></div><div class="set-bar"><div class="set-bar-fill" style="width:'+pct+'%;background:'+(charColors[set.char]||'#ccc')+'"></div></div><div class="set-items">';
+
+    set.activities.forEach(function(act){
+      if(act.collected){
+        html+='<span class="set-item collected">'+esc(act.name)+'</span>';
+      }else{
+        html+='<span class="set-item secret">???</span>';
+      }
+    });
+
+    html+='</div>';
+    if(allDone)html+='<div class="set-reward">★ 解锁奖励：'+esc(set.reward)+'</div>';
+    html+='</div>';
+  });
+
+  if(!html)html='<div style="text-align:center;color:#ccc;padding:40px;font-size:13px">还没有活动池</div>';
+  document.getElementById('collectionSets').innerHTML=html;
+}
+
+/* ═══ SETTINGS ═══ */
+var _settingsCache=[];
+function renderBudgetSettings(){
+  _settingsCache=db.categories.map(function(c){return{id:c.id,name:c.name,dailyBudget:c.dailyBudget,color:c.color};});
+  renderSettingsRows();
+}
+function renderSettingsRows(){
+  document.getElementById('budgetSettings').innerHTML=_settingsCache.map(function(cat,i){
+    return '<div class="cat-setting-row"><input type="color" class="cat-setting-color" data-i="'+i+'" value="'+cat.color+'" title="颜色"><input type="text" class="cat-setting-name" data-i="'+i+'" value="'+esc(cat.name)+'" placeholder="分类名"><input type="number" class="cat-setting-budget" data-i="'+i+'" value="'+cat.dailyBudget+'" min="0" step="50" placeholder="日额"><button class="cat-setting-del" data-i="'+i+'" onclick="removeSettingsRow('+i+')" title="删除">×</button></div>';
+  }).join('');
+}
+function removeSettingsRow(i){
+  if(_settingsCache.length<=1){showToast('至少保留一个分类');return;}
+  _settingsCache.splice(i,1);
+  renderSettingsRows();
+}
+function addCategory(){
+  var colors=['#4AADE8','#9B6BCC','#E84A7A','#5BA66B','#E8B96A','#D85A30','#6B8AFF','#888'];
+  var c=colors[_settingsCache.length%colors.length];
+  _settingsCache.push({id:'cat_'+gid(),name:'',dailyBudget:300,color:c});
+  renderSettingsRows();
+  var rows=document.querySelectorAll('.cat-setting-name');
+  if(rows.length)rows[rows.length-1].focus();
+}
+function saveBudgetSettings(){
+  // Read current values from inputs
+  var rows=document.querySelectorAll('.cat-setting-row');
+  var newCats=[];
+  rows.forEach(function(row,i){
+    var name=row.querySelector('.cat-setting-name').value.trim();
+    if(!name)return;
+    var color=row.querySelector('.cat-setting-color').value;
+    var budget=parseInt(row.querySelector('.cat-setting-budget').value)||0;
+    var existing=_settingsCache[i];
+    newCats.push({id:existing?existing.id:('cat_'+gid()),name:name,dailyBudget:budget,color:color});
+  });
+  if(!newCats.length){showToast('至少保留一个分类');return;}
+  db.categories=newCats;
+  save();closeModal('settingsModal');renderLedger();showToast('分类已更新');
+}
+document.getElementById('settingsModal').addEventListener('transitionend',function(){});
+var settingsObserver=new MutationObserver(function(mutations){
+  mutations.forEach(function(m){
+    if(m.target.classList.contains('show'))renderBudgetSettings();
+  });
+});
+settingsObserver.observe(document.getElementById('settingsModal'),{attributes:true,attributeFilter:['class']});
+
+/* ═══ BACKUP ═══ */
+function exportWallet(){
+  var blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='wallet_backup_'+todayStr()+'.json';a.click();
+}
+function importWallet(input){
+  if(!input.files||!input.files[0])return;
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    try{var data=JSON.parse(ev.target.result);
+    if(!data||!data.categories){showToast('格式不正确');input.value='';return;}
+    customConfirm('导入数据？将覆盖当前记录。',function(){db=normalizeWalletDB(data);save();renderLedger();closeModal('settingsModal');});
+    }catch(e){showToast('导入失败');}
+    input.value='';
+  };
+  reader.readAsText(input.files[0]);
+}
+
+/* ═══ INIT ═══ */
+renderLedger();
+</script>
+</body>
+</html>
