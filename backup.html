@@ -72,7 +72,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <div class="confirm-title">确认恢复数据？</div><div class="confirm-msg" id="confirmMsg"></div>
 <div class="confirm-btns"><button class="cbtn-cancel" onclick="hideConfirm()">取消</button><button class="cbtn-danger" onclick="doImport()">覆盖恢复</button></div>
 </div></div>
-<script src="cloud-sync.js?v=20260721-1"></script>
+<script src="cloud-sync.js?v=20260729-1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 const SYS=[
@@ -90,7 +90,10 @@ const SYS=[
 {key:'home_lines',name:'\u9996\u9875\u53F0\u8BCD',color:'#888',desc:d=>{if(!d)return'\u9ED8\u8BA4';let n=0;['neal','jane','natumi'].forEach(z=>{n+=(d.neal&&d.neal[z]||[]).length+(d.jane&&d.jane[z]||[]).length;});return n+'\u6761';}},
 {key:'dungeon_db',name:'\u526F\u672C\u5E93\u5B58',color:'#7A8FB8',desc:d=>{if(!d)return'-';return(d.inventory||[]).length+'\u6761';}},
 {key:'kitchen_db',name:'\u996E\u98DF',color:'#8B6914',desc:d=>{if(!d||!Array.isArray(d))return'-';const total=d.reduce((s,p)=>(p.items||[]).filter(i=>i.collected).length+s,0);return d.length+'\u9879\u76EE '+total+'\u5DF2\u6253\u5361';}},
-{key:'home_modules',name:'\u623F\u95F4\u8FDE\u63A5',color:'#D85A30',desc:d=>{if(!d)return'\u9ED8\u8BA4';const n=Object.values(d).filter(Boolean).length;return n+'\u4E2A\u5DF2\u8FDE\u63A5';}}
+{key:'home_modules',name:'\u623F\u95F4\u8FDE\u63A5',color:'#D85A30',desc:d=>{if(!d)return'\u9ED8\u8BA4';const n=Object.values(d).filter(Boolean).length;return n+'\u4E2A\u5DF2\u8FDE\u63A5';}},
+{key:'home_skins',name:'\u8863\u67DC\u5019\u9009',color:'#B58A6A',desc:d=>{if(!d)return'\u9ED8\u8BA4';return Object.values(d).reduce((n,c)=>n+((c&&c.selected)||[]).length,0)+'\u5957\u5019\u9009';}},
+{key:'home_skin_custom',name:'\u8863\u67DC\u8863\u88C5',color:'#C69A7A',desc:d=>{if(!d)return'\u9ED8\u8BA4';return Object.values(d).reduce((n,list)=>n+(Array.isArray(list)?list.length:0),0)+'\u6761\u8BB0\u5F55';}},
+{key:'home_skin_daily',name:'\u4ECA\u65E5\u8863\u88C5',color:'#D4B08C',desc:d=>{if(!d||!d.active)return'-';return Object.keys(d.active).length+'\u4EBA\u5DF2\u62BD\u53D6';}}
 ];
 function gd(k){try{return JSON.parse(localStorage.getItem(k));}catch(e){return null;}}
 function gs(k){const v=localStorage.getItem(k);if(!v)return'-';const b=new Blob([v]).size;return b<1024?b+'B':(b/1024).toFixed(1)+'KB';}
