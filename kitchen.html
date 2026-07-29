@@ -515,6 +515,16 @@ function normalizeGenericItemNames(p){
   if(!p||!Array.isArray(p.items))return;
   p.items.forEach((item,i)=>{if(/^品目\d+$/.test(item.name||''))item.name='品目'+(i+1);});
 }
+function isGenericItemName(name){
+  return !String(name||'').trim()||/^品目\d+$/.test(String(name).trim());
+}
+function getItemDisplayName(p,item,itemIdx){
+  const name=String(item&&item.name||'').trim();
+  if(!isGenericItemName(name))return name;
+  const sectionIdx=getItemSectionIndex(p,itemIdx);
+  const section=sectionIdx>=0&&p&&Array.isArray(p.sections)?p.sections[sectionIdx]:null;
+  return section?String(section.name||'').trim():'';
+}
 
 /* ═══ VIEWS ═══ */
 function switchView(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(id).classList.add('active');}
@@ -1235,7 +1245,7 @@ function renderItemCells(items,globalOffset,cols){
     }
     return`<div class="item-cell ${item.collected?'collected':''} ${hasImg?'has-img':''}" data-index="${idx}" onclick="handleItemClick(${idx})">
       ${hasImg?`<img class="item-img" src="${item.img}">`:''}
-      ${item.name&&item.name!=='品目'+(idx+1)?`<span class="item-label">${esc(item.name)}</span>`:''}
+      ${!isGenericItemName(item.name)?`<span class="item-label">${esc(item.name)}</span>`:''}
       ${item.collected?'<div class="item-check">✓</div>':''}
       ${recordBadge}
       <button class="item-delete-x" aria-label="删除品目" onclick="event.stopPropagation();deleteGridItem(${idx})">×</button>
@@ -1262,7 +1272,7 @@ function setItemArrangeMode(active){
 function deleteGridItem(idx){
   const p=getProject(curProjectId);if(!p||!p.items[idx])return;
   const item=p.items[idx];
-  const generic=!item.name||/^品目\d+$/.test(item.name);
+  const generic=isGenericItemName(item.name);
   const label=generic?`第 ${idx+1} 格`:`「${esc(item.name)}」`;
   customConfirm(`删除${label}？图片、日期和感想也会一起删除。`,()=>{
     const sectionIdx=getItemSectionIndex(p,idx);
@@ -1501,13 +1511,18 @@ function openItem(idx){
   const item=p.items[idx];
   const sectionType=getItemSectionType(p,idx);
   ensureItemRecordData(p,item,idx);
-  const displayName=item.name||('品目'+(idx+1));
+  const hasCustomName=!isGenericItemName(item.name);
+  const displayName=getItemDisplayName(p,item,idx);
   document.getElementById('itemTitle').textContent=displayName;
   document.getElementById('itemBackBtn').onclick=returnToDetail;
   let html='<div class="card-detail">';
   if(item.img)html+=`<div class="card-detail-media"><img class="card-detail-img" src="${item.img}"></div>`;
   html+='<div class="card-detail-body">';
-  html+=`<div class="card-detail-name" id="inlineName" title="双击编辑名称">${esc(displayName)}</div>`;
+  if(displayName){
+    html+=hasCustomName
+      ?`<div class="card-detail-name" id="inlineName" title="双击编辑名称">${esc(displayName)}</div>`
+      :`<div class="card-detail-name">${esc(displayName)}</div>`;
+  }
   if(item.note)html+=`<div class="card-detail-item-note"><span class="card-detail-item-note-label">品目备注</span>${esc(item.note)}</div>`;
 
   if(sectionType==='collab_food'){
@@ -1569,8 +1584,9 @@ function startInlineEdit(elId,field){
     const val=el.textContent.trim();
     item[field]=val;
     if(field==='name'){
-      document.getElementById('itemTitle').textContent=val||('品目'+(curItemIdx+1));
-      if(!val)el.textContent='品目'+(curItemIdx+1);
+      const displayName=getItemDisplayName(p,item,curItemIdx);
+      document.getElementById('itemTitle').textContent=displayName;
+      if(!val)el.textContent=displayName;
     }
     if(field==='checkinNote'&&!val){el.textContent='双击添加感想…';el.style.color='#ccc';el.style.fontStyle='italic';}
     save();
@@ -1595,7 +1611,7 @@ function prepareCheckinModal(mode){
   const modal=document.getElementById('checkinModal');
   modal.dataset.mode=mode||'initial';
   const nameInput=document.getElementById('checkinItemName');
-  nameInput.value=item.name&&!/^品目\d+$/.test(item.name)?item.name:'';
+  nameInput.value=!isGenericItemName(item.name)?item.name:'';
   document.getElementById('checkinDate').value=new Date().toISOString().slice(0,10);
   document.getElementById('checkinNote').value='';
   document.getElementById('checkinImgPreview').style.display='none';
@@ -1616,10 +1632,11 @@ function previewCheckinImg(input){
 async function saveCheckin(){
   const p=getProject(curProjectId);if(!p||curItemIdx===null)return;
   const item=p.items[curItemIdx];
+  const openedFromItemDetail=document.getElementById('viewItem').classList.contains('active');
   const modal=document.getElementById('checkinModal');
   const mode=modal.dataset.mode||'initial';
   const checkinName=document.getElementById('checkinItemName').value.trim();
-  if(checkinName)item.name=checkinName;
+  item.name=checkinName;
   const dateVal=document.getElementById('checkinDate').value||new Date().toISOString().slice(0,10);
   const noteVal=document.getElementById('checkinNote').value.trim();
   const preview=document.getElementById('checkinImgPreview');
@@ -1654,7 +1671,7 @@ async function saveCheckin(){
     }
   }
   save();closeModal('checkinModal');
-  if(sectionType==='normal')returnToDetail();else openItem(curItemIdx);
+  if(openedFromItemDetail)openItem(curItemIdx);else returnToDetail();
   const proj=getProject(curProjectId);
   if(proj)showCheckinCelebration(proj.duty);
 }
