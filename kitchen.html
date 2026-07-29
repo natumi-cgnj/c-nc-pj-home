@@ -62,7 +62,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .item-cell:active{transform:scale(0.97)}
 .item-cell .item-img{width:100%;height:100%;object-fit:contain;padding:5px;border-radius:9px;position:absolute;top:0;left:0;background:#fff;filter:grayscale(100%) brightness(0.85);transition:filter 0.4s}
 .item-cell.collected{border-color:#E8B96A}
-.item-cell.collected .item-img{filter:none}
+.item-cell.recorded .item-img,.item-cell.collected .item-img{filter:none}
 .item-cell .item-num{font-size:20px;font-weight:200;color:#ddd;font-variant-numeric:tabular-nums;position:relative;z-index:1}
 .item-cell .item-label{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,0.5));color:#fff;font-size:10px;font-weight:500;padding:14px 5px 4px;border-radius:0 0 9px 9px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;z-index:1}
 .item-cell:not(.has-img) .item-label{background:none;color:#ccc;position:static;font-size:9px;padding:0 4px;margin-top:2px}
@@ -199,6 +199,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .history-status{font-size:10px;padding:3px 8px;border-radius:4px;cursor:pointer;border:none;font-family:inherit;flex-shrink:0}
 .history-status.keeping{background:#5BA66B20;color:#5BA66B}
 .history-status.sold{background:#ccc3;color:#999}
+.history-status.gifted{background:#9B6BCC20;color:#9B6BCC}
+.history-process{font-size:10px;padding:3px 8px;border-radius:4px;cursor:pointer;border:none;font-family:inherit;flex-shrink:0}
+.history-process.pending{background:#E8B96A20;color:#E8B96A}
+.history-process.processed{background:#5BA66B20;color:#5BA66B}
 .history-delete{font-size:14px;color:#ccc;background:none;border:none;cursor:pointer;padding:2px;flex-shrink:0}
 .history-add-btn{width:calc(100% - 40px);max-width:520px;margin:6px auto 12px;display:block;padding:8px;border:1.5px dashed #ddd;border-radius:8px;background:#fff;font-size:12px;color:#aaa;cursor:pointer;text-align:center;font-family:inherit}
 </style>
@@ -249,11 +253,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <label class="file-label" id="projectIconLabel">点击选择图片</label>
     <input type="file" accept="image/*" id="projectIconInput" onchange="previewProjectIcon(this)" style="display:none">
     <img id="projectIconPreview" class="img-preview" style="display:none">
-    <label>项目类型</label>
-    <select id="inputProjectType" onchange="onProjectTypeChange()">
-      <option value="menu">菜单收集</option>
-      <option value="collab">联动项目</option>
-    </select>
     <label>项目名</label>
     <input type="text" id="inputProjectName" placeholder="如: Subway 三明治收集">
     <label>项目细分</label>
@@ -325,11 +324,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <h2>编辑分栏</h2>
     <label>分栏名</label>
     <input type="text" id="quickSectionName" maxlength="40" placeholder="分栏名称" onkeydown="if(event.key==='Enter')saveSectionQuickEdit()">
-    <div id="quickSectionTypeWrap" style="display:none">
+    <div id="quickSectionTypeWrap">
       <label>分栏类型</label>
       <select id="quickSectionType">
         <option value="normal">普通</option>
-        <option value="collab_food">联动餐品</option>
+        <option value="collab_food">联动</option>
         <option value="merch">周边</option>
       </select>
     </div>
@@ -355,11 +354,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <input type="text" id="inputSectionName" placeholder="如: 第二弹、季节限定" maxlength="40">
     <label>品目数量</label>
     <input type="number" id="inputSectionCount" placeholder="数量" min="1" max="99" value="">
-    <div id="addSectionTypeWrap" style="display:none">
+    <div id="addSectionTypeWrap">
       <label>分栏类型</label>
       <select id="addSectionType">
         <option value="normal">普通</option>
-        <option value="collab_food">联动餐品</option>
+        <option value="collab_food">联动</option>
         <option value="merch">周边</option>
       </select>
     </div>
@@ -423,7 +422,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   </div>
 </div>
 
-<script src="cloud-sync.js?v=20260721-1"></script>
+<script src="cloud-sync.js?v=20260729-1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 
@@ -500,18 +499,23 @@ function showToast(msg,ms){
   _toastTimer=setTimeout(()=>el.classList.remove('show'),ms||2200);
 }
 function getProject(id){return projects.find(p=>p.id===id);}
+function isItemCompleted(p,item,index){
+  if(getItemSectionType(p,index)==='merch'){
+    return !!(item.records&&item.records.length&&item.records.every(r=>r.processStatus==='processed'));
+  }
+  return !!item.collected;
+}
+function isItemRecorded(p,item,index){
+  if(getItemSectionType(p,index)==='merch')return !!(item.records&&item.records.length);
+  return !!item.collected;
+}
 function projectStats(p){
-  let total=0,collected=0,merchTotal=0,merchRecorded=0;
+  let total=0,collected=0;
   (p.items||[]).forEach((item,index)=>{
-    if(getItemSectionType(p,index)==='merch'){
-      merchTotal++;
-      if(item.records&&item.records.length)merchRecorded++;
-      return;
-    }
     total++;
-    if(item.collected)collected++;
+    if(isItemCompleted(p,item,index))collected++;
   });
-  return{total,collected,merchTotal,merchRecorded};
+  return{total,collected};
 }
 function normalizeGenericItemNames(p){
   if(!p||!Array.isArray(p.items))return;
@@ -905,14 +909,13 @@ function finalizeSectionDrafts(){
 }
 function renderSectionList(){
   const list=document.getElementById('sectionList');
-  const isCollab=document.getElementById('inputProjectType').value==='collab';
   if(!_sections.length){list.innerHTML='<div style="font-size:11px;color:#ccc;padding:8px 0">点下方"添加分栏"设置细分类别</div>';return;}
   list.innerHTML=_sections.map((s,i)=>{
-    const typeSelect=isCollab?`<select style="width:76px;font-size:11px" aria-label="分栏类型" onchange="_sections[${i}].sectionType=this.value">
+    const typeSelect=`<select style="width:76px;font-size:11px" aria-label="分栏类型" onchange="_sections[${i}].sectionType=this.value">
       <option value="normal"${(s.sectionType||'normal')==='normal'?' selected':''}>普通</option>
-      <option value="collab_food"${s.sectionType==='collab_food'?' selected':''}>联动餐品</option>
+      <option value="collab_food"${s.sectionType==='collab_food'?' selected':''}>联动</option>
       <option value="merch"${s.sectionType==='merch'?' selected':''}>周边</option>
-    </select>`:'';
+    </select>`;
     return`<div class="section-row" data-sec-idx="${i}">
     <input type="text" value="${esc(s.name)}" placeholder="分栏名称" onchange="_sections[${i}].name=this.value">
     <input type="number" value="${s.count||0}" min="0" max="99" style="width:50px" placeholder="数量" onchange="updateSectionDraftCount(${i},this.value)">
@@ -927,7 +930,6 @@ function renderSectionList(){
   }).join('');
   initSectionDrag();
 }
-function onProjectTypeChange(){renderSectionList();}
 function initSectionDrag(){
   if(sectionDragBound)return;
   sectionDragBound=true;
@@ -1026,7 +1028,6 @@ function addSectionRow(){
 function openAddProject(){
   editProjectId=null;projectTempIcon='';
   document.getElementById('projectModalTitle').textContent='添加项目';
-  document.getElementById('inputProjectType').value='menu';
   document.getElementById('inputProjectName').value='';
   document.getElementById('inputProjectNote').value='';
   document.getElementById('projectIconPreview').style.display='none';
@@ -1039,7 +1040,6 @@ function openEditProject(){
   const p=getProject(curProjectId);if(!p)return;
   editProjectId=p.id;projectTempIcon=p.icon||'';
   document.getElementById('projectModalTitle').textContent='编辑项目';
-  document.getElementById('inputProjectType').value=p.projectType||'menu';
   document.getElementById('inputProjectName').value=p.name;
   document.getElementById('inputProjectNote').value=p.note||'';
   if(p.icon){document.getElementById('projectIconPreview').src=p.icon;document.getElementById('projectIconPreview').style.display='block';}
@@ -1068,13 +1068,13 @@ async function saveProject(){
   if(editProjectId){
     const p=getProject(editProjectId);
     if(p){
-      p.name=name;p.note=note;p.duty=duty;p.projectType=document.getElementById('inputProjectType').value;if(icon)p.icon=icon;
+      p.name=name;p.note=note;p.duty=duty;if(icon)p.icon=icon;
       p.sections=sections;
       p.items=items;
       p.count=totalCount;
     }
   }else{
-    projects.push({id:gid(),name,note,icon:icon||'',count:totalCount,duty,projectType:document.getElementById('inputProjectType').value,items,sections,order:projects.length});
+    projects.push({id:gid(),name,note,icon:icon||'',count:totalCount,duty,items,sections,order:projects.length});
   }
   save();closeModal('projectModal');
   if(finalized.preserved)showToast(`已保留 ${finalized.preserved} 个有记录的品目`);
@@ -1087,8 +1087,6 @@ function openAddSection(){
   const p=getProject(curProjectId);if(!p)return;
   document.getElementById('inputSectionName').value='';
   document.getElementById('inputSectionCount').value='';
-  const isCollab=p.projectType==='collab';
-  document.getElementById('addSectionTypeWrap').style.display=isCollab?'':'none';
   document.getElementById('addSectionType').value='normal';
   openModal('addSectionModal');
   requestAnimationFrame(()=>document.getElementById('inputSectionName').focus());
@@ -1100,7 +1098,7 @@ function saveAddSection(){
   const cols=parseInt(document.getElementById('inputSectionCols').value)||3;
   if(count<=0){showToast('请输入品目数量');return;}
   if(!p.sections)p.sections=[];
-  const sectionType=p.projectType==='collab'?document.getElementById('addSectionType').value:'normal';
+  const sectionType=document.getElementById('addSectionType').value;
   p.sections.push({name:secName,count,cols,sectionType});
   for(let i=0;i<count;i++)p.items.push({id:gid(),name:'品目'+(p.items.length+1),note:'',img:'',collected:false,collectedDate:null,checkinNote:'',checkinImg:''});
   p.count=(p.count||0)+count;
@@ -1151,9 +1149,9 @@ function renderDetail(p){
     const cols=sec.cols||3;
     const secItems=p.items.slice(offset,offset+count);
     if(sec.name){
-      const typeBadge=p.projectType==='collab'&&sec.sectionType==='collab_food'
-        ?'<span class="section-type-badge collab-food">联动餐品</span>'
-        :p.projectType==='collab'&&sec.sectionType==='merch'
+      const typeBadge=sec.sectionType==='collab_food'
+        ?'<span class="section-type-badge collab-food">联动</span>'
+        :sec.sectionType==='merch'
           ?'<span class="section-type-badge merch">周边</span>'
           :'';
       html+=`<div class="section-divider"><div class="section-divider-line"></div><span class="section-divider-label" title="双击编辑分栏" ondblclick="event.stopPropagation();openSectionQuickEdit(${si})">${esc(sec.name)}${typeBadge}</span><span class="section-divider-cols">${cols}列</span><div class="section-divider-line"></div></div>`;
@@ -1183,8 +1181,6 @@ function openSectionQuickEdit(sectionIdx){
   const nameInput=document.getElementById('quickSectionName');
   nameInput.value=sec.name||'';
   document.getElementById('quickSectionCols').value=String(sec.cols||3);
-  const isCollab=p.projectType==='collab';
-  document.getElementById('quickSectionTypeWrap').style.display=isCollab?'':'none';
   document.getElementById('quickSectionType').value=sec.sectionType||'normal';
   openModal('sectionQuickModal');
   requestAnimationFrame(()=>{nameInput.focus();nameInput.select();});
@@ -1199,7 +1195,7 @@ function saveSectionQuickEdit(){
   const sec=p.sections[editSectionIdx];
   sec.name=name;
   sec.cols=[2,3,4].includes(cols)?cols:3;
-  if(p.projectType==='collab')sec.sectionType=document.getElementById('quickSectionType').value;
+  sec.sectionType=document.getElementById('quickSectionType').value;
   save();
   closeModal('sectionQuickModal');
   editSectionIdx=null;
@@ -1235,20 +1231,22 @@ function renderItemCells(items,globalOffset,cols){
     const idx=globalOffset+i;
     const hasImg=!!item.img;
     const sectionType=p?getItemSectionType(p,idx):'normal';
+    const completed=p?isItemCompleted(p,item,idx):!!item.collected;
+    const recorded=p?isItemRecorded(p,item,idx):!!item.collected;
     let recordBadge='';
     if(sectionType==='collab_food'){
       const history=getCheckinHistory(item);
       if(history.length>1)recordBadge+=`<span class="item-count-badge">×${history.length}</span>`;
     }else if(sectionType==='merch'&&item.records&&item.records.length){
       if(item.records.length>1)recordBadge+=`<span class="item-count-badge">×${item.records.length}</span>`;
-      const hasKeeping=item.records.some(record=>record.status!=='sold');
-      const hasSold=item.records.some(record=>record.status==='sold');
-      recordBadge+=`<span class="item-status-dot ${hasKeeping&&hasSold?'mixed':hasSold?'sold':'keeping'}"></span>`;
+      const hasKeeping=item.records.some(record=>!record.status||record.status==='keeping');
+      const hasGone=item.records.some(record=>record.status==='sold'||record.status==='gifted');
+      recordBadge+=`<span class="item-status-dot ${hasKeeping&&hasGone?'mixed':hasGone?'sold':'keeping'}"></span>`;
     }
-    return`<div class="item-cell ${item.collected?'collected':''} ${hasImg?'has-img':''}" data-index="${idx}" onclick="handleItemClick(${idx})">
+    return`<div class="item-cell ${recorded?'recorded':''} ${completed?'collected':''} ${hasImg?'has-img':''}" data-index="${idx}" onclick="handleItemClick(${idx})">
       ${hasImg?`<img class="item-img" src="${item.img}">`:''}
       ${!isGenericItemName(item.name)?`<span class="item-label">${esc(item.name)}</span>`:''}
-      ${item.collected?'<div class="item-check">✓</div>':''}
+      ${completed?'<div class="item-check">✓</div>':''}
       ${recordBadge}
       <button class="item-delete-x" aria-label="删除品目" onclick="event.stopPropagation();deleteGridItem(${idx})">×</button>
     </div>`;
@@ -1544,8 +1542,11 @@ function openItem(idx){
     if(records.length){
       html+=`<div class="history-list"><div style="font-size:11px;color:#bbb;padding:4px 14px">收藏记录（${records.length} 个）</div>`;
       records.forEach((record,recordIdx)=>{
-        const sold=record.status==='sold';
-        html+=`<div class="history-item">${record.img?`<img class="history-thumb" src="${record.img}">`:''}<span class="history-date">${esc(record.date||'')}</span><span class="history-note ${record.note?'':'is-empty'}" title="双击编辑感想" ondblclick="startHistoryNoteEdit(this,'merch',${recordIdx})">${record.note?esc(record.note):'—'}</span><button class="history-status ${sold?'sold':'keeping'}" onclick="toggleMerchStatus(${recordIdx})">${sold?'已出':'自留'}</button><button class="history-delete" aria-label="删除这条记录" onclick="deleteMerchRecord(${recordIdx})">×</button></div>`;
+        const statusClass=record.status==='sold'?'sold':record.status==='gifted'?'gifted':'keeping';
+        const statusLabel=record.status==='sold'?'已出':record.status==='gifted'?'送掉':'自留';
+        const processClass=(record.processStatus||'pending')==='processed'?'processed':'pending';
+        const processLabel=(record.processStatus||'pending')==='processed'?'已处理':'待处理';
+        html+=`<div class="history-item">${record.img?`<img class="history-thumb" src="${record.img}">`:''}<span class="history-date">${esc(record.date||'')}</span><span class="history-note ${record.note?'':'is-empty'}" title="双击编辑感想" ondblclick="startHistoryNoteEdit(this,'merch',${recordIdx})">${record.note?esc(record.note):'—'}</span><button class="history-process ${processClass}" onclick="toggleMerchProcessStatus(${recordIdx})">${processLabel}</button><button class="history-status ${statusClass}" onclick="toggleMerchStatus(${recordIdx})">${statusLabel}</button><button class="history-delete" aria-label="删除这条记录" onclick="deleteMerchRecord(${recordIdx})">×</button></div>`;
       });
       html+='</div>';
     }
@@ -1689,7 +1690,7 @@ async function saveCheckin(){
   }else if(mode==='merch_add'||sectionType==='merch'){
     ensureItemRecordData(p,item,curItemIdx);
     if(!Array.isArray(item.records))item.records=[];
-    item.records.push({id:recordId,date:dateVal,note:noteVal,img:cImg||'',status:'keeping'});
+    item.records.push({id:recordId,date:dateVal,note:noteVal,img:cImg||'',status:'keeping',processStatus:'pending'});
     item.collected=true;
     item.collectedDate=dateVal;
     item.checkinNote=noteVal;
@@ -1737,7 +1738,7 @@ function toggleCollected(){
 
 /* ═══ ITEM MODAL ═══ */
 function getItemSectionType(p,itemIdx){
-  if(!p||p.projectType!=='collab'||!p.sections||!p.sections.length)return'normal';
+  if(!p||!p.sections||!p.sections.length)return'normal';
   const sectionIdx=getItemSectionIndex(p,itemIdx);
   return sectionIdx>=0?(p.sections[sectionIdx].sectionType||'normal'):'normal';
 }
@@ -1753,7 +1754,7 @@ function ensureItemRecordData(p,item,itemIdx){
     changed=true;
   }
   if(sectionType==='merch'&&item.collected&&(!Array.isArray(item.records)||!item.records.length)){
-    item.records=[{id:gid(),date:item.collectedDate||'',note:item.checkinNote||'',img:item.checkinImg||'',status:'keeping'}];
+    item.records=[{id:gid(),date:item.collectedDate||'',note:item.checkinNote||'',img:item.checkinImg||'',status:'keeping',processStatus:'pending'}];
     changed=true;
   }
   if(changed)save();
@@ -1977,7 +1978,15 @@ function toggleMerchStatus(recordIdx){
   const p=getProject(curProjectId);if(!p||curItemIdx===null)return;
   const item=p.items[curItemIdx];
   if(!item||!item.records||!item.records[recordIdx])return;
-  item.records[recordIdx].status=item.records[recordIdx].status==='sold'?'keeping':'sold';
+  const cur=item.records[recordIdx].status||'keeping';
+  item.records[recordIdx].status=cur==='keeping'?'sold':cur==='sold'?'gifted':'keeping';
+  save();openItem(curItemIdx);
+}
+function toggleMerchProcessStatus(recordIdx){
+  const p=getProject(curProjectId);if(!p||curItemIdx===null)return;
+  const item=p.items[curItemIdx];
+  if(!item||!item.records||!item.records[recordIdx])return;
+  item.records[recordIdx].processStatus=(item.records[recordIdx].processStatus||'pending')==='processed'?'pending':'processed';
   save();openItem(curItemIdx);
 }
 function deleteMerchRecord(recordIdx){
