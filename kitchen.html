@@ -193,6 +193,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .history-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#fff;border:1px solid #eee;border-radius:8px;margin-bottom:6px;font-size:13px}
 .history-date{color:#999;font-size:12px;min-width:80px;flex-shrink:0}
 .history-note{color:#555;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.history-note.is-empty{color:#ccc;font-style:italic}
+.history-note[contenteditable]{outline:none;border-bottom:1px solid #E8B96A;overflow:visible;text-overflow:clip;cursor:text}
 .history-thumb{width:34px;height:34px;border-radius:6px;object-fit:cover;flex-shrink:0}
 .history-status{font-size:10px;padding:3px 8px;border-radius:4px;cursor:pointer;border:none;font-family:inherit;flex-shrink:0}
 .history-status.keeping{background:#5BA66B20;color:#5BA66B}
@@ -1530,8 +1532,8 @@ function openItem(idx){
     const history=getCheckinHistory(item);
     if(history.length){
       html+=`<div class="history-list"><div style="font-size:11px;color:#bbb;padding:4px 14px">打卡记录（${history.length} 次）</div>`;
-      history.forEach(record=>{
-        html+=`<div class="history-item">${record.img?`<img class="history-thumb" src="${record.img}">`:''}<span class="history-date">${esc(record.date||'')}</span><span class="history-note">${record.note?esc(record.note):'—'}</span></div>`;
+      history.forEach((record,recordIdx)=>{
+        html+=`<div class="history-item">${record.img?`<img class="history-thumb" src="${record.img}">`:''}<span class="history-date">${esc(record.date||'')}</span><span class="history-note ${record.note?'':'is-empty'}" title="双击编辑感想" ondblclick="startHistoryNoteEdit(this,'collab_food',${recordIdx})">${record.note?esc(record.note):'—'}</span></div>`;
       });
       html+='</div>';
     }
@@ -1543,7 +1545,7 @@ function openItem(idx){
       html+=`<div class="history-list"><div style="font-size:11px;color:#bbb;padding:4px 14px">收藏记录（${records.length} 个）</div>`;
       records.forEach((record,recordIdx)=>{
         const sold=record.status==='sold';
-        html+=`<div class="history-item">${record.img?`<img class="history-thumb" src="${record.img}">`:''}<span class="history-date">${esc(record.date||'')}</span><span class="history-note">${record.note?esc(record.note):'—'}</span><button class="history-status ${sold?'sold':'keeping'}" onclick="toggleMerchStatus(${recordIdx})">${sold?'已出':'自留'}</button><button class="history-delete" aria-label="删除这条记录" onclick="deleteMerchRecord(${recordIdx})">×</button></div>`;
+        html+=`<div class="history-item">${record.img?`<img class="history-thumb" src="${record.img}">`:''}<span class="history-date">${esc(record.date||'')}</span><span class="history-note ${record.note?'':'is-empty'}" title="双击编辑感想" ondblclick="startHistoryNoteEdit(this,'merch',${recordIdx})">${record.note?esc(record.note):'—'}</span><button class="history-status ${sold?'sold':'keeping'}" onclick="toggleMerchStatus(${recordIdx})">${sold?'已出':'自留'}</button><button class="history-delete" aria-label="删除这条记录" onclick="deleteMerchRecord(${recordIdx})">×</button></div>`;
       });
       html+='</div>';
     }
@@ -1589,6 +1591,37 @@ function startInlineEdit(elId,field){
       if(!val)el.textContent=displayName;
     }
     if(field==='checkinNote'&&!val){el.textContent='双击添加感想…';el.style.color='#ccc';el.style.fontStyle='italic';}
+    save();
+    el.removeEventListener('blur',commit);
+    el.removeEventListener('keydown',onKey);
+  }
+  function onKey(e){if(e.key==='Enter'){e.preventDefault();el.blur();}}
+  el.addEventListener('blur',commit);
+  el.addEventListener('keydown',onKey);
+}
+function startHistoryNoteEdit(el,sectionType,recordIdx){
+  if(!el||el.isContentEditable)return;
+  const p=getProject(curProjectId);if(!p||curItemIdx===null)return;
+  const item=p.items[curItemIdx];if(!item)return;
+  const records=sectionType==='collab_food'
+    ?getCheckinHistory(item)
+    :(Array.isArray(item.records)?item.records:[]);
+  const record=records[recordIdx];if(!record)return;
+
+  el.contentEditable='true';
+  el.classList.remove('is-empty');
+  if(!record.note)el.textContent='';
+  el.focus();
+  const range=document.createRange();range.selectNodeContents(el);
+  const sel=window.getSelection();sel.removeAllRanges();sel.addRange(range);
+
+  function commit(){
+    el.contentEditable='false';
+    const val=el.textContent.trim();
+    record.note=val;
+    if(recordIdx===records.length-1)item.checkinNote=val;
+    el.textContent=val||'—';
+    el.classList.toggle('is-empty',!val);
     save();
     el.removeEventListener('blur',commit);
     el.removeEventListener('keydown',onKey);
