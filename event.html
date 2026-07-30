@@ -65,8 +65,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .section-divider-line{flex:1;height:1px;background:#e0e0e0}
 .section-divider-label{font-size:11px;color:#999;font-weight:500;letter-spacing:0.3px}
 .section-type-badge{font-size:9px;padding:1px 6px;border-radius:4px;margin-left:4px}
-.section-type-badge.food{background:#E8B96A20;color:#B9872F}
+.section-type-badge.collab-food{background:#E8B96A20;color:#B9872F}
 .section-type-badge.merch{background:#9B6BCC20;color:#9B6BCC}
+.section-type-badge.movie{background:#4AADE820;color:#4AADE8}
+.section-type-badge.restaurant{background:#D8854020;color:#D88540}
+.section-type-badge.mall{background:#E84A7A20;color:#E84A7A}
 .section-grid{display:grid;gap:8px;padding:8px 20px 16px}
 .item-cell{aspect-ratio:1;border-radius:10px;border:1.5px solid #e8e8e8;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all 0.15s;position:relative;overflow:hidden;background:#f5f5f5}
 .item-cell:active{transform:scale(0.97)}
@@ -258,8 +261,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <input type="number" id="inputNewSectionCount" placeholder="数量" min="1" max="99">
     <label>分栏类型</label>
     <select id="inputNewSectionType">
-      <option value="food">餐品/打卡</option>
+      <option value="normal">普通</option>
+      <option value="collab_food">联动</option>
       <option value="merch">周边</option>
+      <option value="movie">电影</option>
+      <option value="restaurant">餐厅</option>
+      <option value="mall">商场</option>
     </select>
     <label>列数</label>
     <select id="inputNewSectionCols">
@@ -425,7 +432,7 @@ function normalizeEventData(){
         if(!section.id){section.id=gid();changed=true;}
         section.count=Math.max(0,parseInt(section.count)||0);
         section.cols=[2,3,4].includes(parseInt(section.cols))?parseInt(section.cols):3;
-        section.sectionType=section.sectionType==='merch'?'merch':'food';
+        if(section.sectionType==='food')section.sectionType='normal';var vst=['normal','collab_food','merch','movie','restaurant','mall'];section.sectionType=vst.indexOf(section.sectionType)>=0?section.sectionType:'normal';
         total+=section.count;
       });
       if(sub.sections.length&&total<sub.items.length){
@@ -510,14 +517,14 @@ function getSub(eventId,subId){var ev=getEvent(eventId);if(!ev)return null;retur
 /* Helpers */
 function isGenericName(name){return !String(name||'').trim()||/^品目\d+$/.test(String(name).trim());}
 function getItemSectionType(sub,itemIdx){
-  if(!sub||!sub.sections||!sub.sections.length)return'food';
+  if(!sub||!sub.sections||!sub.sections.length)return'normal';
   var offset=0;
   for(var i=0;i<sub.sections.length;i++){
     var count=Math.max(0,parseInt(sub.sections[i].count)||0);
-    if(itemIdx>=offset&&itemIdx<offset+count)return sub.sections[i].sectionType||'food';
+    if(itemIdx>=offset&&itemIdx<offset+count)return sub.sections[i].sectionType||'normal';
     offset+=count;
   }
-  return'food';
+  return'normal';
 }
 function getItemSectionIndex(sub,itemIdx){
   if(!sub||!sub.sections||!sub.sections.length||itemIdx===null||itemIdx<0)return -1;
@@ -614,7 +621,7 @@ function openAddSub(){
   document.getElementById('inputSubName').value='';
   document.getElementById('inputSubType').value='collab';
   document.getElementById('inputSubNote').value='';
-  _subSections=[{id:gid(),name:'',count:0,cols:3,sectionType:'food'}];
+  _subSections=[{id:gid(),name:'',count:0,cols:3,sectionType:'normal'}];
   renderSubSectionList();
   openModal('subModal');
 }
@@ -625,8 +632,8 @@ function editSub(){
   document.getElementById('inputSubName').value=sub.name;
   document.getElementById('inputSubType').value=sub.activityType||'checkin';
   document.getElementById('inputSubNote').value=sub.note||'';
-  _subSections=(sub.sections||[]).map(function(s){return{id:s.id||gid(),name:s.name||'',count:s.count||0,cols:s.cols||3,sectionType:s.sectionType||'food'};});
-  if(!_subSections.length)_subSections=[{id:gid(),name:'',count:0,cols:3,sectionType:'food'}];
+  _subSections=(sub.sections||[]).map(function(s){return{id:s.id||gid(),name:s.name||'',count:s.count||0,cols:s.cols||3,sectionType:s.sectionType||'normal'};});
+  if(!_subSections.length)_subSections=[{id:gid(),name:'',count:0,cols:3,sectionType:'normal'}];
   renderSubSectionList();
   openModal('subModal');
 }
@@ -641,13 +648,13 @@ function renderSubSectionList(){
     }
   }
   var html=_subSections.map(function(s,i){
-    return '<div class="section-row"><input type="text" value="'+esc(s.name)+'" placeholder="分栏名称" onchange="_subSections['+i+'].name=this.value"><input type="number" value="'+(s.count||0)+'" min="0" max="99" placeholder="数量" onchange="_subSections['+i+'].count=parseInt(this.value)||0"><select onchange="_subSections['+i+'].sectionType=this.value"><option value="food"'+(s.sectionType==='food'?' selected':'')+'>餐品</option><option value="merch"'+(s.sectionType==='merch'?' selected':'')+'>周边</option></select><select onchange="_subSections['+i+'].cols=parseInt(this.value)"><option value="2"'+(s.cols===2?' selected':'')+'>2列</option><option value="3"'+(s.cols===3?' selected':'')+'>3列</option><option value="4"'+(s.cols===4?' selected':'')+'>4列</option></select><button class="del-sec" onclick="_subSections.splice('+i+',1);renderSubSectionList()">×</button></div>';
+    return '<div class="section-row"><input type="text" value="'+esc(s.name)+'" placeholder="分栏名称" onchange="_subSections['+i+'].name=this.value"><input type="number" value="'+(s.count||0)+'" min="0" max="99" placeholder="数量" onchange="_subSections['+i+'].count=parseInt(this.value)||0"><select onchange="_subSections['+i+'].sectionType=this.value"><option value="normal"'+((!s.sectionType||s.sectionType==='normal')?' selected':'')+'>普通</option><option value="collab_food"'+(s.sectionType==='collab_food'?' selected':'')+'>联动</option><option value="merch"'+(s.sectionType==='merch'?' selected':'')+'>周边</option><option value="movie"'+(s.sectionType==='movie'?' selected':'')+'>电影</option><option value="restaurant"'+(s.sectionType==='restaurant'?' selected':'')+'>餐厅</option><option value="mall"'+(s.sectionType==='mall'?' selected':'')+'>商场</option></select><select onchange="_subSections['+i+'].cols=parseInt(this.value)"><option value="2"'+(s.cols===2?' selected':'')+'>2列</option><option value="3"'+(s.cols===3?' selected':'')+'>3列</option><option value="4"'+(s.cols===4?' selected':'')+'>4列</option></select><button class="del-sec" onclick="_subSections.splice('+i+',1);renderSubSectionList()">×</button></div>';
   }).join('');
   if(type!=='visit'||_subSections.length>0)list.innerHTML=html||'<div style="font-size:11px;color:#ccc;padding:8px 0">点下方"添加分栏"设置细分</div>';
 }
 function addSubSectionRow(){
   var type=document.getElementById('inputSubType').value;
-  _subSections.push({id:gid(),name:'',count:0,cols:3,sectionType:type==='visit'?'merch':'food'});
+  _subSections.push({id:gid(),name:'',count:0,cols:3,sectionType:type==='visit'?'merch':'normal'});
   renderSubSectionList();
 }
 function saveSub(){
@@ -656,7 +663,7 @@ function saveSub(){
   var note=document.getElementById('inputSubNote').value.trim();
   var ev=getEvent(curEventId);if(!ev)return;
   if(!ev.subs)ev.subs=[];
-  var sections=_subSections.filter(function(s){return s.name||s.count>0;}).map(function(s){return{id:s.id||gid(),name:s.name,count:Math.max(0,parseInt(s.count)||0),cols:s.cols||3,sectionType:s.sectionType||'food'};});
+  var sections=_subSections.filter(function(s){return s.name||s.count>0;}).map(function(s){return{id:s.id||gid(),name:s.name,count:Math.max(0,parseInt(s.count)||0),cols:s.cols||3,sectionType:s.sectionType||'normal'};});
   if(editSubId){
     var sub=getSub(curEventId,editSubId);
     if(sub){
@@ -742,7 +749,7 @@ function renderSubDetail(sub){
     sections.forEach(function(sec,si){
       var count=sec.count||0;var cols=sec.cols||3;
       if(sec.name){
-        var badge=sec.sectionType==='merch'?'<span class="section-type-badge merch">周边</span>':'<span class="section-type-badge food">餐品</span>';
+        var badge='';if(sec.sectionType==='collab_food')badge='<span class="section-type-badge collab-food">联动</span>';else if(sec.sectionType==='merch')badge='<span class="section-type-badge merch">周边</span>';else if(sec.sectionType==='movie')badge='<span class="section-type-badge movie">电影</span>';else if(sec.sectionType==='restaurant')badge='<span class="section-type-badge restaurant">餐厅</span>';else if(sec.sectionType==='mall')badge='<span class="section-type-badge mall">商场</span>';
         html+='<div class="section-divider"><div class="section-divider-line"></div><span class="section-divider-label">'+esc(sec.name)+badge+'</span><div class="section-divider-line"></div></div>';
       }
       html+='<div class="section-grid" style="grid-template-columns:repeat('+cols+',1fr)">';
@@ -1044,7 +1051,7 @@ async function saveItem(){
 function openAddSection(){
   document.getElementById('inputNewSectionName').value='';
   document.getElementById('inputNewSectionCount').value='';
-  document.getElementById('inputNewSectionType').value='food';
+  document.getElementById('inputNewSectionType').value='normal';
   document.getElementById('inputNewSectionCols').value='3';
   openModal('addSectionModal');
 }
