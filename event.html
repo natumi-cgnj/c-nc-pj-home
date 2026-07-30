@@ -338,12 +338,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
         <option value="mall">商场</option>
       </select>
     </div>
-    <label>排列方式</label>
-    <select id="quickSectionCols">
-      <option value="2">每行 2 列</option>
-      <option value="3">每行 3 列</option>
-      <option value="4">每行 4 列</option>
-    </select>
+    <label>列数</label>
+    <input type="number" id="quickSectionCols" min="2" max="5" value="3">
     <div class="btn-row">
       <button class="btn btn-del" onclick="deleteSectionQuickEdit()">删除</button>
       <button class="btn btn-cancel" onclick="closeModal('sectionQuickModal')">取消</button>
@@ -372,11 +368,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
       </select>
     </div>
     <label>列数</label>
-    <select id="inputSectionCols">
-      <option value="2">每行 2 列</option>
-      <option value="3" selected>每行 3 列</option>
-      <option value="4">每行 4 列</option>
-    </select>
+    <input type="number" id="inputSectionCols" min="2" max="5" value="3">
     <div class="btn-row">
       <button class="btn btn-cancel" onclick="closeModal('addSectionModal')">取消</button>
       <button class="btn btn-primary" onclick="saveAddSection()">添加</button>
@@ -439,6 +431,7 @@ if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 const SK='activity_db';
 let projects=[];
 try{projects=JSON.parse(localStorage.getItem(SK))||[];}catch(e){projects=[];}
+
 
 let curProjectId=null, curItemIdx=null, quickItemIdx=null, editSectionIdx=null;
 let editProjectId=null, editItemIdx=null;
@@ -643,6 +636,7 @@ function handleProjectRowClick(id){
 function handleProjectDeleteClick(event,id){
   event.preventDefault();
   event.stopPropagation();
+  // Prevent the synthetic click emitted when the long-press itself ends.
   if(!projectArrangeMode||Date.now()<projectDeleteArmedAt)return;
   deleteProjectById(id);
 }
@@ -724,6 +718,7 @@ function initProjectDrag(){
     if(!state||state.pointerId!==e.pointerId)return;
     if(state.timer){clearTimeout(state.timer);state.timer=null;}
     releaseProjectPointer(state);
+    // A normal tap must be allowed to produce the row's click event.
     if(state.activated||state.moved)projectClickSuppressed=Date.now()+700;
     if(state.activated&&state.moved){
       commitProjectDrag(state,state.lastY);
@@ -734,8 +729,10 @@ function initProjectDrag(){
     const state=projectPressState;
     if(!state||state.pointerId!==e.pointerId)return;
     projectClickSuppressed=Date.now()+700;
+    // pointercancel is a browser interruption, never a reorder confirmation.
     clearProjectPress(false);
   }
+  // The blank area can be outside #viewHome's content height, so listen on document.
   document.addEventListener('click',e=>{
     if(!projectArrangeMode)return;
     if(!document.getElementById('viewHome').classList.contains('active'))return;
@@ -836,6 +833,8 @@ function buildSectionDrafts(p){
     offset+=count;
     return draft;
   });
+  // Repair old count drift without changing the order the user currently sees:
+  // uncovered items stay with the last visible section.
   if(offset<p.items.length){
     if(!drafts.length)drafts.push({name:'',count:0,cols:3,sectionType:'normal',_items:[]});
     const last=drafts[drafts.length-1];
@@ -861,6 +860,8 @@ function finalizeSectionDrafts(){
     const requested=Math.max(0,parseInt(sec.count)||0);
     const bucket=Array.isArray(sec._items)?sec._items.slice():[];
     const group=bucket.slice(0,requested);
+    // Reducing a count may remove empty placeholders, but never silently move or
+    // discard a recorded item into another section.
     for(let i=requested;i<bucket.length;i++){
       if(itemHasSavedContent(bucket[i])){group.push(bucket[i]);preserved++;}
     }
@@ -887,11 +888,7 @@ function renderSectionList(){
     <input type="text" value="${esc(s.name)}" placeholder="分栏名称" onchange="_sections[${i}].name=this.value">
     <input type="number" value="${s.count||0}" min="0" max="99" style="width:50px" placeholder="数量" onchange="updateSectionDraftCount(${i},this.value)">
     ${typeSelect}
-    <select onchange="_sections[${i}].cols=parseInt(this.value)">
-      <option value="2"${s.cols===2?' selected':''}>2列</option>
-      <option value="3"${s.cols===3?' selected':''}>3列</option>
-      <option value="4"${s.cols===4?' selected':''}>4列</option>
-    </select>
+    <input type="number" value="${s.cols||3}" min="2" max="5" style="width:50px" onchange="_sections[${i}].cols=Math.max(2,Math.min(5,parseInt(this.value)||3))">
     <button class="del-sec" onclick="removeSectionRow(${i})">×</button>
   </div>`;
   }).join('');
@@ -955,6 +952,7 @@ function initSectionDrag(){
   list.addEventListener('pointercancel',e=>{
     const state=sectionPressState;
     if(!state||state.pointerId!==e.pointerId)return;
+    // A browser interruption must not reorder the section draft.
     clearSectionPress();
   });
   function commitSectionDrag(state){
@@ -1010,6 +1008,7 @@ function openEditProject(){
   document.getElementById('inputProjectNote').value=p.note||'';
   if(p.icon){document.getElementById('projectIconPreview').src=p.icon;document.getElementById('projectIconPreview').style.display='block';}
   else{document.getElementById('projectIconPreview').style.display='none';}
+  // Keep each section and its own item group together in the edit draft.
   _sections=buildSectionDrafts(p);
   _dutyState=p.duty?{...p.duty}:{type:'',color:'#E8B96A',name:''};
   renderSectionList();renderDutyRow(_dutyState);
@@ -1024,6 +1023,7 @@ async function saveProject(){
   let icon=projectTempIcon;
   if(icon&&icon.startsWith('data:')&&window.CloudSync){try{icon=await CloudSync.uploadDataUrl(icon,`activity/${editProjectId||gid()}_icon.jpg`);}catch(e){}}
 
+  // Finalize section metadata and its matching item groups together.
   const finalized=finalizeSectionDrafts();
   const sections=finalized.sections;
   const items=finalized.items;
@@ -1100,10 +1100,12 @@ function renderDetail(p){
   const sections=p.sections&&p.sections.length?p.sections:null;
 
   if(!sections){
+    // No sections: flat grid
     grid.innerHTML=`<div class="section-grid flat-grid" style="grid-template-columns:repeat(3,1fr)">${renderItemCells(p.items,0,3)}</div>`;
     return;
   }
 
+  // With sections: render each section with divider
   let html='';
   let offset=0;
   sections.forEach((sec,si)=>{
@@ -1131,6 +1133,7 @@ function renderDetail(p){
     html+=`</div>`;
     offset+=count;
   });
+  // Any remaining items beyond sections
   if(offset<p.items.length){
     const remaining=p.items.slice(offset);
     html+=`<div class="section-grid" style="grid-template-columns:repeat(3,1fr)">`;
@@ -1161,7 +1164,7 @@ function saveSectionQuickEdit(){
   const cols=parseInt(document.getElementById('quickSectionCols').value);
   const sec=p.sections[editSectionIdx];
   sec.name=name;
-  sec.cols=[2,3,4].includes(cols)?cols:3;
+  sec.cols=cols>=2&&cols<=5?cols:3;
   sec.sectionType=document.getElementById('quickSectionType').value;
   save();
   closeModal('sectionQuickModal');
@@ -1256,10 +1259,13 @@ function deleteGridItem(idx){
 function moveGridItem(fromIdx,toIdx){
   const p=getProject(curProjectId);
   if(!p||fromIdx===toIdx||fromIdx<0||toIdx<0||fromIdx>=p.items.length||toIdx>=p.items.length)return false;
+  // Fix section counts when crossing sections
   if(p.sections&&p.sections.length){
     const fromSec=getItemSectionIndex(p,fromIdx);
+    // After splice, toIdx shifts if fromIdx < toIdx
     const adjustedTo=fromIdx<toIdx?toIdx-1:toIdx;
     const tempItems=[...p.items];tempItems.splice(fromIdx,1);
+    // Determine target section in the post-splice array
     let toSec=-1,off=0;
     for(let i=0;i<p.sections.length;i++){
       const c=Math.max(0,parseInt(p.sections[i].count)||0)-(i===fromSec?1:0);
@@ -1395,6 +1401,7 @@ function setupItemArrangeGestures(){
   grid.addEventListener('pointercancel',onItemPointerCancel);
   grid.addEventListener('contextmenu',e=>{if(e.target.closest('.item-cell'))e.preventDefault();});
   grid.addEventListener('dragstart',e=>e.preventDefault());
+  // Tap empty area to exit arrange mode
   document.getElementById('viewDetail').addEventListener('click',e=>{
     if(!itemArrangeMode)return;
     if(e.target.closest('.item-cell')||e.target.closest('.btn-s')||e.target.closest('.back-btn')||e.target.closest('.add-item-btn')||e.target.closest('.section-divider'))return;
@@ -1527,6 +1534,7 @@ function openItem(idx){
       :'<div class="card-actions"><button class="btn btn-primary" onclick="openCheckin()">打卡</button></div>';
   }
   document.getElementById('itemContent').innerHTML=html;
+  // Wire up double-click editing
   const nameEl=document.getElementById('inlineName');
   if(nameEl)nameEl.addEventListener('dblclick',()=>startInlineEdit('inlineName','name'));
   const noteEl=document.getElementById('inlineNote');
@@ -1541,6 +1549,7 @@ function startInlineEdit(elId,field){
   el.style.color='';el.style.fontStyle='';
   if(field==='checkinNote'&&!item.checkinNote)el.textContent='';
   el.focus();
+  // Select all text
   const range=document.createRange();range.selectNodeContents(el);
   const sel=window.getSelection();sel.removeAllRanges();sel.addRange(range);
   function commit(){
