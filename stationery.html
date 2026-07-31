@@ -806,13 +806,15 @@ function renderDetail(p){
 function handleItemClick(idx){
   if(itemArrangeMode||Date.now()<itemClickSuppressedUntil)return;const p=getProject(curProjectId);if(!p||!p.items[idx])return;
   curItemIdx=idx;const item=p.items[idx];const sec=getItemSection(p,idx);const stype=sec?sec.type||'collection':'collection';
+  const hasInfo=item.img||!isGenericItemName(item.name)||item.note||item.mainBody||item.accessory1||item.accessory2||item.content;
   if(stype==='collection'){
     if(item.records&&item.records.length){openItem(idx);return;}
-    openCollectionCheckin();
+    if(hasInfo){openCollectionCheckin();return;}
+    openEditItem();
   }else{
     if(item.collected){openItem(idx);return;}
-    if(item.img||item.mainBody){openInuseCheckin();return;}
-    openAddItemQuick(idx);
+    if(hasInfo){openInuseCheckin();return;}
+    openEditItem();
   }
 }
 function openAddItemQuick(idx){curItemIdx=idx;openInuseCheckin();}
@@ -1043,7 +1045,7 @@ async function saveItem(){
     if(selectedSection>=0){const at=getSectionEndIndex(p,selectedSection);p.items.splice(at,0,item);p.sections[selectedSection].count=(parseInt(p.sections[selectedSection].count)||0)+1;}else p.items.push(item);
   }
   p.count=p.items.length;save();closeModal('itemModal');
-  if(wasEditing){openItem(curItemIdx);}else renderDetail(p);
+  if(wasEditing){if(document.getElementById('viewItem').classList.contains('active'))openItem(curItemIdx);else renderDetail(p);}else renderDetail(p);
 }
 function deleteEditingItem(){if(editItemIdx===null)return;curItemIdx=editItemIdx;deleteItem();}
 function deleteItem(){

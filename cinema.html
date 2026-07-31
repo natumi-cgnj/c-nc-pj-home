@@ -677,8 +677,8 @@ function handleItemClick(idx){
   if(itemArrangeMode||Date.now()<itemClickSuppressedUntil)return;const p=getProject(curProjectId);if(!p||!p.items[idx])return;
   curItemIdx=idx;const item=p.items[idx];
   if(item.collected){openItem(idx);return;}
-  if(item.img){openCheckin();return;}
-  openAddItemQuick(idx);
+  if(item.img||!isGenericItemName(item.name)||item.note||item.releaseDate||item.studio||item.duration){openCheckin();return;}
+  openEditItem();
 }
 function openAddItemQuick(idx){curItemIdx=idx;openCheckin();}
 
@@ -819,7 +819,7 @@ async function saveItem(){
     if(selectedSection>=0){const at=getSectionEndIndex(p,selectedSection);p.items.splice(at,0,item);p.sections[selectedSection].count=(parseInt(p.sections[selectedSection].count)||0)+1;}else p.items.push(item);
   }
   p.count=p.items.length;save();closeModal('itemModal');
-  if(wasEditing){openItem(curItemIdx);}else renderDetail(p);
+  if(wasEditing){if(document.getElementById('viewItem').classList.contains('active'))openItem(curItemIdx);else renderDetail(p);}else renderDetail(p);
 }
 function deleteEditingItem(){if(editItemIdx===null)return;curItemIdx=editItemIdx;deleteItem();}
 function deleteItem(){
