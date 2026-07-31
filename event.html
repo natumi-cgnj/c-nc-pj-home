@@ -141,6 +141,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .section-divider-label{font-size:11px;color:#999;font-weight:500;letter-spacing:0.3px;cursor:text;border-bottom:1px dashed transparent;transition:color 0.15s,border-color 0.15s}
 .section-divider-label:hover{color:#8B6914;border-bottom-color:#D8C18B}
 .section-divider-cols{font-size:10px;color:#ccc}
+.section-progress{font-size:10px;color:#bbb;margin-left:4px;font-variant-numeric:tabular-nums}
+.subcount-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px}
+.subcount-row label{margin:0;font-size:12px;color:#999}
+.subcount-row input[type="number"]{width:60px;font-size:13px;padding:6px 8px}
+.cost-tag{font-size:10px;padding:2px 6px;border-radius:4px;background:#E8B96A15;color:#B9872F;margin-left:4px}
+.cost-summary{font-size:11px;color:#999;padding:6px 14px;text-align:right}
 .section-grid{display:grid;gap:8px;padding:8px 20px 16px}
 .section-grid.flat-grid{padding-top:0}
 @media (min-width:700px){
@@ -187,8 +193,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .item-status-dot.sold{background:#ccc}
 .item-status-dot.mixed{background:linear-gradient(135deg,#5BA66B 50%,#ccc 50%)}
 .section-type-badge{font-size:9px;padding:1px 6px;border-radius:4px;margin-left:4px}
-.section-type-badge.collab-food{background:#E8B96A20;color:#B9872F}
-.section-type-badge.merch{background:#9B6BCC20;color:#9B6BCC}
+.section-type-badge.normal-type{background:#88888815;color:#999}
+.section-type-badge.collab{background:#E8B96A20;color:#B9872F}
+.section-type-badge.activity{background:#C06B9A20;color:#C06B9A}
 .section-type-badge.restaurant{background:#E8694A20;color:#D85A30}
 .section-type-badge.movie{background:#4AADE820;color:#2B8BCC}
 .section-type-badge.mall{background:#5BA66B20;color:#3D8B4F}
@@ -202,7 +209,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .history-status{font-size:10px;padding:3px 8px;border-radius:4px;cursor:pointer;border:none;font-family:inherit;flex-shrink:0}
 .history-status.keeping{background:#5BA66B20;color:#5BA66B}
 .history-status.sold{background:#ccc3;color:#999}
-.history-status.gifted{background:#9B6BCC20;color:#9B6BCC}
+.history-status.gifted{background:#D85A3020;color:#D85A30}
 .history-process{font-size:10px;padding:3px 8px;border-radius:4px;cursor:pointer;border:none;font-family:inherit;flex-shrink:0}
 .history-process.pending{background:#E8B96A20;color:#E8B96A}
 .history-process.processed{background:#5BA66B20;color:#5BA66B}
@@ -231,8 +238,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   </div>
   <div class="detail-overall" id="detailOverall"></div>
   <div class="item-grid" id="itemGrid"></div>
+  <button class="add-item-btn" style="border-color:#E8B96A;color:#E8B96A" onclick="openAddSection()">+ 添加系列</button>
   <button class="add-item-btn" onclick="openAddItem()">+ 添加品目</button>
-  <button class="add-item-btn" style="border-color:#E8B96A;color:#E8B96A" onclick="openAddSection()">+ 追加新一弹</button>
 </div>
 <input type="file" accept="image/*" id="quickItemImgInput" onchange="quickItemImgSelected(this)" style="display:none">
 
@@ -308,8 +315,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <input type="text" id="checkinItemName" placeholder="品目名称">
     <label>日期</label>
     <input type="date" id="checkinDate">
-    <label>一句话感想（选填）</label>
+    <label>感想（选填）</label>
     <input type="text" id="checkinNote" maxlength="120" placeholder="味道怎么样、有什么想记的…">
+    <div id="checkinCostWrap" style="display:none">
+      <label>花费金额</label>
+      <input type="number" id="checkinCost" placeholder="0" min="0" step="1">
+    </div>
+    <div id="checkinContentWrap" style="display:none">
+      <label>内容</label>
+      <textarea id="checkinContent" rows="4" placeholder="记录内容…" style="min-height:80px"></textarea>
+    </div>
     <label>打卡照片（选填）</label>
     <label class="file-label" id="checkinImgLabel">点击选择图片</label>
     <input type="file" accept="image/*" id="checkinImgInput" onchange="previewCheckinImg(this)" style="display:none">
@@ -329,10 +344,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <input type="text" id="quickSectionName" maxlength="40" placeholder="分栏名称" onkeydown="if(event.key==='Enter')saveSectionQuickEdit()">
     <div id="quickSectionTypeWrap">
       <label>分栏类型</label>
-      <select id="quickSectionType">
-        <option value="normal">普通</option>
-        <option value="collab_food">联动</option>
-        <option value="merch">周边</option>
+      <select id="quickSectionType" onchange="onQuickSectionTypeChange()">
+        <option value="normal">通常</option>
+        <option value="collab">联名</option>
+        <option value="activity">活动</option>
         <option value="restaurant">餐厅</option>
         <option value="movie">电影</option>
         <option value="mall">商场</option>
@@ -351,24 +366,32 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- Add Section modal -->
 <div class="modal-bg" id="addSectionModal">
   <div class="modal">
-    <h2>追加新一弹</h2>
+    <h2>添加系列</h2>
     <label>名称</label>
     <input type="text" id="inputSectionName" placeholder="如: 第二弹、季节限定" maxlength="40">
-    <label>品目数量</label>
-    <input type="number" id="inputSectionCount" placeholder="数量" min="1" max="99" value="">
+    <div id="addSectionSingleCount">
+      <label>品目数量</label>
+      <input type="number" id="inputSectionCount" placeholder="数量" min="1" max="99" value="">
+    </div>
+    <div id="addSectionSubCounts" style="display:none">
+      <label>品目数量</label>
+      <div class="subcount-row" id="subcountInputs"></div>
+    </div>
     <div id="addSectionTypeWrap">
       <label>分栏类型</label>
-      <select id="addSectionType">
-        <option value="normal">普通</option>
-        <option value="collab_food">联动</option>
-        <option value="merch">周边</option>
+      <select id="addSectionType" onchange="onAddSectionTypeChange()">
+        <option value="normal">通常</option>
+        <option value="collab">联名</option>
+        <option value="activity">活动</option>
         <option value="restaurant">餐厅</option>
         <option value="movie">电影</option>
         <option value="mall">商场</option>
       </select>
     </div>
-    <label>列数</label>
-    <input type="number" id="inputSectionCols" min="2" max="5" value="3">
+    <div id="addSectionColsWrap">
+      <label>列数</label>
+      <input type="number" id="inputSectionCols" min="2" max="5" value="3">
+    </div>
     <div class="btn-row">
       <button class="btn btn-cancel" onclick="closeModal('addSectionModal')">取消</button>
       <button class="btn btn-primary" onclick="saveAddSection()">添加</button>
@@ -433,6 +456,35 @@ let projects=[];
 try{projects=JSON.parse(localStorage.getItem(SK))||[];}catch(e){projects=[];}
 
 
+// Migrate old section types (collab_food/merch → collab with itemType)
+(function(){
+  let changed=false;
+  projects.forEach(p=>{
+    if(!p.sections)return;
+    let offset=0;
+    p.sections.forEach(sec=>{
+      const count=Math.max(0,parseInt(sec.count)||0);
+      if(sec.sectionType==='collab_food'){
+        sec.sectionType='collab';
+        if(!sec.subcounts)sec.subcounts={food:count,merch:0};
+        for(let i=offset;i<offset+count&&i<(p.items||[]).length;i++){
+          if(!p.items[i].itemType)p.items[i].itemType='food';
+        }
+        changed=true;
+      }else if(sec.sectionType==='merch'){
+        sec.sectionType='collab';
+        if(!sec.subcounts)sec.subcounts={food:0,merch:count};
+        for(let i=offset;i<offset+count&&i<(p.items||[]).length;i++){
+          if(!p.items[i].itemType)p.items[i].itemType='merch';
+        }
+        changed=true;
+      }
+      offset+=count;
+    });
+  });
+  if(changed){localStorage.setItem(SK,JSON.stringify(projects));}
+})();
+
 let curProjectId=null, curItemIdx=null, quickItemIdx=null, editSectionIdx=null;
 let editProjectId=null, editItemIdx=null;
 let projectTempIcon='';
@@ -465,13 +517,15 @@ function showToast(msg,ms){
 }
 function getProject(id){return projects.find(p=>p.id===id);}
 function isItemCompleted(p,item,index){
-  if(getItemSectionType(p,index)==='merch'){
+  const bt=getItemBehaviorType(p,item,index);
+  if(bt==='merch'||bt==='shopping'){
     return !!(item.records&&item.records.length&&item.records.every(r=>r.processStatus==='processed'));
   }
   return !!item.collected;
 }
 function isItemRecorded(p,item,index){
-  if(getItemSectionType(p,index)==='merch')return !!(item.records&&item.records.length);
+  const bt=getItemBehaviorType(p,item,index);
+  if(bt==='merch'||bt==='shopping')return !!(item.records&&item.records.length);
   return !!item.collected;
 }
 function projectStats(p){
@@ -481,6 +535,27 @@ function projectStats(p){
     if(isItemCompleted(p,item,index))collected++;
   });
   return{total,collected};
+}
+function sectionStats(p,sectionIdx){
+  if(!p||!p.sections||!p.sections[sectionIdx])return{total:0,collected:0};
+  let offset=0;
+  for(let i=0;i<sectionIdx;i++)offset+=Math.max(0,parseInt(p.sections[i].count)||0);
+  const count=Math.max(0,parseInt(p.sections[sectionIdx].count)||0);
+  let total=0,collected=0;
+  for(let i=offset;i<offset+count&&i<p.items.length;i++){
+    total++;
+    if(isItemCompleted(p,p.items[i],i))collected++;
+  }
+  return{total,collected};
+}
+function getSubcountConfig(sectionType){
+  const configs={
+    collab:[{key:'food',label:'餐品'},{key:'merch',label:'赠品'}],
+    restaurant:[{key:'food',label:'餐品'},{key:'merch',label:'赠品'},{key:'shopping',label:'购物'}],
+    mall:[{key:'content',label:'内容'},{key:'merch',label:'赠品'}],
+    movie:[{key:'food',label:'餐品'},{key:'merch',label:'赠品'},{key:'shopping',label:'购物'}]
+  };
+  return configs[sectionType]||null;
 }
 function normalizeGenericItemNames(p){
   if(!p||!Array.isArray(p.items))return;
@@ -830,6 +905,8 @@ function buildSectionDrafts(p){
   const drafts=source.map(sec=>{
     const count=Math.max(0,parseInt(sec.count)||0);
     const draft={name:sec.name||'',count,cols:sec.cols||3,sectionType:sec.sectionType||'normal',_items:p.items.slice(offset,offset+count)};
+    if(sec.subcounts)draft.subcounts={...sec.subcounts};
+    if(sec.subCols)draft.subCols={...sec.subCols};
     offset+=count;
     return draft;
   });
@@ -847,6 +924,18 @@ function updateSectionDraftCount(index,value){
   if(!_sections[index])return;
   _sections[index].count=Math.max(0,parseInt(value)||0);
 }
+function updateSectionSubcount(index,key,value){
+  if(!_sections[index])return;
+  if(!_sections[index].subcounts)_sections[index].subcounts={};
+  _sections[index].subcounts[key]=Math.max(0,parseInt(value)||0);
+  const cfg=getSubcountConfig(_sections[index].sectionType);
+  if(cfg)_sections[index].count=cfg.reduce((s,c)=>s+(_sections[index].subcounts[c.key]||0),0);
+}
+function updateSectionSubcols(index,key,value){
+  if(!_sections[index])return;
+  if(!_sections[index].subCols)_sections[index].subCols={};
+  _sections[index].subCols[key]=Math.max(2,Math.min(5,parseInt(value)||3));
+}
 function removeSectionRow(index){
   if(index<0||index>=_sections.length)return;
   _sections.splice(index,1);
@@ -857,16 +946,26 @@ function finalizeSectionDrafts(){
   const items=[];
   let preserved=0;
   _sections.filter(sec=>sec.name||sec.count>0||(sec._items&&sec._items.length)).forEach(sec=>{
+    const cfg=getSubcountConfig(sec.sectionType);
     const requested=Math.max(0,parseInt(sec.count)||0);
     const bucket=Array.isArray(sec._items)?sec._items.slice():[];
     const group=bucket.slice(0,requested);
-    // Reducing a count may remove empty placeholders, but never silently move or
-    // discard a recorded item into another section.
     for(let i=requested;i<bucket.length;i++){
       if(itemHasSavedContent(bucket[i])){group.push(bucket[i]);preserved++;}
     }
-    while(group.length<requested)group.push(makeEmptyItem(items.length+group.length+1));
-    sections.push({name:sec.name||'',count:group.length,cols:sec.cols||3,sectionType:sec.sectionType||'normal'});
+    if(cfg&&sec.subcounts){
+      while(group.length<requested){
+        let run=0,itemType='normal';
+        for(const c of cfg){run+=(sec.subcounts[c.key]||0);if(group.length<run){itemType=c.key;break;}}
+        const it=makeEmptyItem(items.length+group.length+1);it.itemType=itemType;group.push(it);
+      }
+      const sd={name:sec.name||'',count:group.length,cols:sec.cols||3,sectionType:sec.sectionType||'normal',subcounts:{...sec.subcounts}};
+      if(sec.subCols)sd.subCols={...sec.subCols};
+      sections.push(sd);
+    }else{
+      while(group.length<requested)group.push(makeEmptyItem(items.length+group.length+1));
+      sections.push({name:sec.name||'',count:group.length,cols:sec.cols||3,sectionType:sec.sectionType||'normal'});
+    }
     items.push(...group);
   });
   normalizeGenericItemNames({items});
@@ -876,21 +975,33 @@ function renderSectionList(){
   const list=document.getElementById('sectionList');
   if(!_sections.length){list.innerHTML='<div style="font-size:11px;color:#ccc;padding:8px 0">点下方"添加分栏"设置细分类别</div>';return;}
   list.innerHTML=_sections.map((s,i)=>{
-    const typeSelect=`<select style="width:76px;font-size:11px" aria-label="分栏类型" onchange="_sections[${i}].sectionType=this.value">
-      <option value="normal"${(s.sectionType||'normal')==='normal'?' selected':''}>普通</option>
-      <option value="collab_food"${s.sectionType==='collab_food'?' selected':''}>联动</option>
-      <option value="merch"${s.sectionType==='merch'?' selected':''}>周边</option>
+    const typeSelect=`<select style="width:76px;font-size:11px" aria-label="分栏类型" onchange="_sections[${i}].sectionType=this.value;_sections[${i}].subcounts=null;_sections[${i}].subCols=null;renderSectionList()">
+      <option value="normal"${(s.sectionType||'normal')==='normal'?' selected':''}>通常</option>
+      <option value="collab"${s.sectionType==='collab'?' selected':''}>联名</option>
+      <option value="activity"${s.sectionType==='activity'?' selected':''}>活动</option>
       <option value="restaurant"${s.sectionType==='restaurant'?' selected':''}>餐厅</option>
       <option value="movie"${s.sectionType==='movie'?' selected':''}>电影</option>
       <option value="mall"${s.sectionType==='mall'?' selected':''}>商场</option>
     </select>`;
-    return`<div class="section-row" data-sec-idx="${i}">
+    const cfg=getSubcountConfig(s.sectionType);
+    if(cfg){
+      if(!s.subcounts)s.subcounts={};
+      if(!s.subCols)s.subCols={};
+      const subArea=cfg.map(c=>`<div style="display:inline-flex;align-items:center;gap:2px"><span style="font-size:10px;color:#999">${c.label}</span><input type="number" value="${s.subcounts[c.key]||0}" min="0" max="99" style="width:38px;font-size:11px" onchange="updateSectionSubcount(${i},'${c.key}',this.value)"><input type="number" value="${s.subCols[c.key]||3}" min="2" max="5" style="width:32px;font-size:10px" title="${c.label}列数" onchange="updateSectionSubcols(${i},'${c.key}',this.value)"><span style="font-size:9px;color:#ccc">列</span></div>`).join(' ');
+      return`<div class="section-row" data-sec-idx="${i}">
     <input type="text" value="${esc(s.name)}" placeholder="分栏名称" onchange="_sections[${i}].name=this.value">
-    <input type="number" value="${s.count||0}" min="0" max="99" style="width:50px" placeholder="数量" onchange="updateSectionDraftCount(${i},this.value)">
     ${typeSelect}
-    <input type="number" value="${s.cols||3}" min="2" max="5" style="width:50px" onchange="_sections[${i}].cols=Math.max(2,Math.min(5,parseInt(this.value)||3))">
     <button class="del-sec" onclick="removeSectionRow(${i})">×</button>
+    <div style="width:100%;display:flex;gap:8px;flex-wrap:wrap">${subArea}</div>
   </div>`;
+    }else{
+      return`<div class="section-row" data-sec-idx="${i}">
+    <input type="text" value="${esc(s.name)}" placeholder="分栏名称" onchange="_sections[${i}].name=this.value">
+    ${typeSelect}
+    <button class="del-sec" onclick="removeSectionRow(${i})">×</button>
+    <div style="width:100%;display:flex;gap:8px;flex-wrap:wrap"><div style="display:inline-flex;align-items:center;gap:2px"><span style="font-size:10px;color:#999">数量</span><input type="number" value="${s.count||0}" min="0" max="99" style="width:38px;font-size:11px" onchange="updateSectionDraftCount(${i},this.value)"><input type="number" value="${s.cols||3}" min="2" max="5" style="width:32px;font-size:10px" title="列数" onchange="_sections[${i}].cols=Math.max(2,Math.min(5,parseInt(this.value)||3))"><span style="font-size:9px;color:#ccc">列</span></div></div>
+  </div>`;
+    }
   }).join('');
   initSectionDrag();
 }
@@ -1052,20 +1163,50 @@ function openAddSection(){
   document.getElementById('inputSectionName').value='';
   document.getElementById('inputSectionCount').value='';
   document.getElementById('addSectionType').value='normal';
+  document.getElementById('addSectionSingleCount').style.display='';
+  document.getElementById('addSectionSubCounts').style.display='none';
+  const cw=document.getElementById('addSectionColsWrap');if(cw)cw.style.display='';
   openModal('addSectionModal');
   requestAnimationFrame(()=>document.getElementById('inputSectionName').focus());
 }
 function saveAddSection(){
   const p=getProject(curProjectId);if(!p)return;
   const secName=document.getElementById('inputSectionName').value.trim();
-  const count=parseInt(document.getElementById('inputSectionCount').value)||0;
-  const cols=parseInt(document.getElementById('inputSectionCols').value)||3;
-  if(count<=0){showToast('请输入品目数量');return;}
-  if(!p.sections)p.sections=[];
   const sectionType=document.getElementById('addSectionType').value;
-  p.sections.push({name:secName,count,cols,sectionType});
-  for(let i=0;i<count;i++)p.items.push({id:gid(),name:'品目'+(p.items.length+1),note:'',img:'',collected:false,collectedDate:null,checkinNote:'',checkinImg:''});
-  p.count=(p.count||0)+count;
+  const cols=parseInt(document.getElementById('inputSectionCols').value)||3;
+  const cfg=getSubcountConfig(sectionType);
+  let totalCount=0;let subcounts=null;let subCols=null;
+  if(cfg){
+    subcounts={};subCols={};
+    document.querySelectorAll('#subcountInputs .subcount-input').forEach(inp=>{
+      subcounts[inp.dataset.key]=parseInt(inp.value)||0;
+      totalCount+=parseInt(inp.value)||0;
+    });
+    document.querySelectorAll('#subcountInputs .subcols-input').forEach(inp=>{
+      subCols[inp.dataset.key]=Math.max(2,Math.min(5,parseInt(inp.value)||3));
+    });
+  }else{
+    totalCount=parseInt(document.getElementById('inputSectionCount').value)||0;
+  }
+  if(totalCount<=0){showToast('请输入品目数量');return;}
+  if(!p.sections)p.sections=[];
+  const sec={name:secName,count:totalCount,cols,sectionType};
+  if(subcounts)sec.subcounts=subcounts;
+  if(subCols)sec.subCols=subCols;
+  p.sections.push(sec);
+  if(cfg&&subcounts){
+    cfg.forEach(s=>{
+      for(let i=0;i<(subcounts[s.key]||0);i++)
+        p.items.push({id:gid(),name:'品目'+(p.items.length+1),note:'',img:'',collected:false,collectedDate:null,checkinNote:'',checkinImg:'',itemType:s.key});
+    });
+  }else if(sectionType==='activity'){
+    for(let i=0;i<totalCount;i++)
+      p.items.push({id:gid(),name:'品目'+(p.items.length+1),note:'',img:'',collected:false,collectedDate:null,checkinNote:'',checkinImg:'',itemType:'merch'});
+  }else{
+    for(let i=0;i<totalCount;i++)
+      p.items.push({id:gid(),name:'品目'+(p.items.length+1),note:'',img:'',collected:false,collectedDate:null,checkinNote:'',checkinImg:''});
+  }
+  p.count=(p.count||0)+totalCount;
   save();closeModal('addSectionModal');renderDetail(p);
 }
 
@@ -1113,24 +1254,44 @@ function renderDetail(p){
     const cols=sec.cols||3;
     const secItems=p.items.slice(offset,offset+count);
     if(sec.name){
-      const typeBadge=sec.sectionType==='collab_food'
-        ?'<span class="section-type-badge collab-food">联动</span>'
-        :sec.sectionType==='merch'
-          ?'<span class="section-type-badge merch">周边</span>'
-          :sec.sectionType==='restaurant'
-            ?'<span class="section-type-badge restaurant">餐厅</span>'
-            :sec.sectionType==='movie'
-              ?'<span class="section-type-badge movie">电影</span>'
-              :sec.sectionType==='mall'
-                ?'<span class="section-type-badge mall">商场</span>'
-                :'';
-      html+=`<div class="section-divider"><div class="section-divider-line"></div><span class="section-divider-label" title="双击编辑分栏" ondblclick="event.stopPropagation();openSectionQuickEdit(${si})">${esc(sec.name)}${typeBadge}</span><span class="section-divider-cols">${cols}列</span><div class="section-divider-line"></div></div>`;
+      const typeBadgeMap={'normal':'<span class="section-type-badge normal-type">通常</span>',
+        'collab':'<span class="section-type-badge collab">联名</span>',
+        'activity':'<span class="section-type-badge activity">活动</span>',
+        'restaurant':'<span class="section-type-badge restaurant">餐厅</span>',
+        'movie':'<span class="section-type-badge movie">电影</span>',
+        'mall':'<span class="section-type-badge mall">商场</span>'};
+      const typeBadge=typeBadgeMap[sec.sectionType||'normal']||'';
+      const secSt=sectionStats(p,si);
+      const secPct=secSt.total>0?Math.round(secSt.collected/secSt.total*100):0;
+      const progressHtml=`<span class="section-progress">${secSt.collected}/${secSt.total} ${secPct}%</span>`;
+      html+=`<div class="section-divider"><div class="section-divider-line"></div><span class="section-divider-label" title="双击编辑分栏" ondblclick="event.stopPropagation();openSectionQuickEdit(${si})">${esc(sec.name)}${typeBadge}</span>${progressHtml}<span class="section-divider-cols">${cols}列</span><div class="section-divider-line"></div></div>`;
     }else if(si>0){
       html+=`<div class="section-divider"><div class="section-divider-line"></div></div>`;
     }
-    html+=`<div class="section-grid" style="grid-template-columns:repeat(${cols},1fr)">`;
-    html+=renderItemCells(secItems,offset,cols);
-    html+=`</div>`;
+    const cfg=getSubcountConfig(sec.sectionType);
+    if(cfg&&sec.subcounts){
+      let subOff=0;
+      cfg.forEach(c=>{
+        const sc=sec.subcounts[c.key]||0;
+        const subC=(sec.subCols&&sec.subCols[c.key])||cols;
+        if(sc>0){
+          html+=`<div style="font-size:10px;color:#bbb;padding:3px 14px;margin-top:2px">${c.label}</div>`;
+          html+=`<div class="section-grid" style="grid-template-columns:repeat(${subC},1fr)">`;
+          html+=renderItemCells(secItems.slice(subOff,subOff+sc),offset+subOff,subC);
+          html+=`</div>`;
+        }
+        subOff+=sc;
+      });
+      if(subOff<secItems.length){
+        html+=`<div class="section-grid" style="grid-template-columns:repeat(${cols},1fr)">`;
+        html+=renderItemCells(secItems.slice(subOff),offset+subOff,cols);
+        html+=`</div>`;
+      }
+    }else{
+      html+=`<div class="section-grid" style="grid-template-columns:repeat(${cols},1fr)">`;
+      html+=renderItemCells(secItems,offset,cols);
+      html+=`</div>`;
+    }
     offset+=count;
   });
   // Any remaining items beyond sections
@@ -1200,14 +1361,14 @@ function renderItemCells(items,globalOffset,cols){
   return items.map((item,i)=>{
     const idx=globalOffset+i;
     const hasImg=!!item.img;
-    const sectionType=p?getItemSectionType(p,idx):'normal';
+    const bt=p?getItemBehaviorType(p,item,idx):'normal';
     const completed=p?isItemCompleted(p,item,idx):!!item.collected;
     const recorded=p?isItemRecorded(p,item,idx):!!item.collected;
     let recordBadge='';
-    if(sectionType==='collab_food'){
+    if(bt==='food'||bt==='content'){
       const history=getCheckinHistory(item);
       if(history.length>1)recordBadge+=`<span class="item-count-badge">×${history.length}</span>`;
-    }else if(sectionType==='merch'&&item.records&&item.records.length){
+    }else if((bt==='merch'||bt==='shopping')&&item.records&&item.records.length){
       if(item.records.length>1)recordBadge+=`<span class="item-count-badge">×${item.records.length}</span>`;
       const hasKeeping=item.records.some(record=>!record.status||record.status==='keeping');
       const hasGone=item.records.some(record=>record.status==='sold'||record.status==='gifted');
@@ -1480,6 +1641,7 @@ function openItem(idx){
   curItemIdx=idx;
   const item=p.items[idx];
   const sectionType=getItemSectionType(p,idx);
+  const bt=getItemBehaviorType(p,item,idx);
   ensureItemRecordData(p,item,idx);
   const hasCustomName=!isGenericItemName(item.name);
   const displayName=getItemDisplayName(p,item,idx);
@@ -1495,7 +1657,7 @@ function openItem(idx){
   }
   if(item.note)html+=`<div class="card-detail-item-note"><span class="card-detail-item-note-label">品目备注</span>${esc(item.note)}</div>`;
 
-  if(sectionType==='collab_food'){
+  if(bt==='food'||bt==='content'){
     html+='</div></div>';
     const history=getCheckinHistory(item);
     if(history.length){
@@ -1506,19 +1668,23 @@ function openItem(idx){
       html+='</div>';
     }
     html+=`<div class="card-actions"><button class="btn btn-primary" onclick="${history.length?'addCollabFoodCheckin()':'openCheckin()'}">${history.length?'再来一次':'打卡'}</button>${history.length?'<button class="btn btn-cancel" onclick="uncollect()">清空记录</button>':''}</div>`;
-  }else if(sectionType==='merch'){
+  }else if(bt==='merch'||bt==='shopping'){
     html+='</div></div>';
     const records=item.records||[];
     if(records.length){
       html+=`<div class="history-list"><div style="font-size:11px;color:#bbb;padding:4px 14px">收藏记录（${records.length} 个）</div>`;
       records.forEach((record,recordIdx)=>{
         const statusClass=record.status==='sold'?'sold':record.status==='gifted'?'gifted':'keeping';
-        const statusLabel=record.status==='sold'?'已出':record.status==='gifted'?'送掉':'自留';
+        const statusLabel=record.status==='sold'?'已出':record.status==='gifted'?'赠送':'自留';
         const processClass=(record.processStatus||'pending')==='processed'?'processed':'pending';
         const processLabel=(record.processStatus||'pending')==='processed'?'已处理':'待处理';
-        html+=`<div class="history-item">${record.img?`<img class="history-thumb" src="${record.img}">`:''}<span class="history-date">${esc(record.date||'')}</span><span class="history-note ${record.note?'':'is-empty'}" title="双击编辑感想" ondblclick="startHistoryNoteEdit(this,'merch',${recordIdx})">${record.note?esc(record.note):'—'}</span><button class="history-process ${processClass}" onclick="toggleMerchProcessStatus(${recordIdx})">${processLabel}</button><button class="history-status ${statusClass}" onclick="toggleMerchStatus(${recordIdx})">${statusLabel}</button><button class="history-delete" aria-label="删除这条记录" onclick="deleteMerchRecord(${recordIdx})">×</button></div>`;
+        html+=`<div class="history-item">${record.img?`<img class="history-thumb" src="${record.img}">`:''}<span class="history-date">${esc(record.date||'')}</span><span class="history-note ${record.note?'':'is-empty'}" title="双击编辑感想" ondblclick="startHistoryNoteEdit(this,'merch',${recordIdx})">${record.note?esc(record.note):'—'}</span><button class="history-process ${processClass}" onclick="toggleMerchProcessStatus(${recordIdx})">${processLabel}</button>${(record.processStatus||'pending')==='processed'?`<button class="history-status ${statusClass}" onclick="toggleMerchStatus(${recordIdx})">${statusLabel}</button>`:''}${bt==='shopping'&&record.cost?`<span class="cost-tag">¥${record.cost}</span>`:''}<button class="history-delete" aria-label="删除这条记录" onclick="deleteMerchRecord(${recordIdx})">×</button></div>`;
       });
       html+='</div>';
+      if(bt==='shopping'){
+        const totalCost=records.reduce((s,r)=>s+(parseFloat(r.cost)||0),0);
+        if(totalCost>0)html+=`<div class="cost-summary">合计花费：¥${totalCost}</div>`;
+      }
     }
     html+=`<button class="history-add-btn" onclick="addMerchRecord()">+ ${records.length?'再记录一个':'记录入手'}</button>`;
   }else{
@@ -1574,7 +1740,7 @@ function startHistoryNoteEdit(el,sectionType,recordIdx){
   if(!el||el.isContentEditable)return;
   const p=getProject(curProjectId);if(!p||curItemIdx===null)return;
   const item=p.items[curItemIdx];if(!item)return;
-  const records=sectionType==='collab_food'
+  const records=sectionType==='collab_food'||sectionType==='food'||sectionType==='content'
     ?getCheckinHistory(item)
     :(Array.isArray(item.records)?item.records:[]);
   const record=records[recordIdx];if(!record)return;
@@ -1605,8 +1771,8 @@ function openCheckin(){
   const p=getProject(curProjectId);
   const item=p&&curItemIdx!==null?p.items[curItemIdx]:null;
   if(!p||!item)return;
-  const sectionType=getItemSectionType(p,curItemIdx);
-  prepareCheckinModal(sectionType==='merch'?'merch_add':'initial');
+  const bt=getItemBehaviorType(p,item,curItemIdx);
+  prepareCheckinModal((bt==='merch'||bt==='shopping')?'merch_add':'initial');
 }
 function prepareCheckinModal(mode){
   const p=getProject(curProjectId);
@@ -1623,8 +1789,24 @@ function prepareCheckinModal(mode){
   document.getElementById('checkinImgInput').value='';
   const isRepeat=mode==='collab_repeat';
   const isMerch=mode==='merch_add';
-  document.getElementById('checkinModalTitle').textContent=isRepeat?'追加打卡':isMerch?'记录周边':'打卡记录';
+  document.getElementById('checkinModalTitle').textContent=isRepeat?'追加打卡':isMerch?'记录入手':'打卡记录';
   document.getElementById('checkinSubmitBtn').textContent=isRepeat?'保存记录':isMerch?'记录':'打卡';
+  const itemBt=getItemBehaviorType(getProject(curProjectId),item,curItemIdx);
+  document.getElementById('checkinCostWrap').style.display=itemBt==='shopping'?'':'none';
+  if(document.getElementById('checkinCost'))document.getElementById('checkinCost').value='';
+  const contentWrap=document.getElementById('checkinContentWrap');
+  const noteInput=document.getElementById('checkinNote');
+  if(itemBt==='content'){
+    contentWrap.style.display='';
+    noteInput.parentElement.querySelector('label[for],label').style.display='none';
+    noteInput.style.display='none';
+    document.getElementById('checkinContent').value='';
+  }else{
+    contentWrap.style.display='none';
+    noteInput.style.display='';
+    const noteLabel=noteInput.previousElementSibling;
+    if(noteLabel&&noteLabel.tagName==='LABEL')noteLabel.style.display='';
+  }
   openModal('checkinModal');
 }
 function previewCheckinImg(input){
@@ -1650,17 +1832,23 @@ async function saveCheckin(){
     try{cImg=await CloudSync.uploadDataUrl(cImg,`activity/${curProjectId}_${item.id}_checkin_${recordId}.${imagePathExt(cImg)}`);}catch(e){}
   }
   const sectionType=getItemSectionType(p,curItemIdx);
+  const bt2=getItemBehaviorType(p,item,curItemIdx);
+  const costVal=bt2==='shopping'?parseFloat(document.getElementById('checkinCost').value)||0:0;
+  const contentVal=bt2==='content'?document.getElementById('checkinContent').value.trim():'';
+  const finalNote=bt2==='content'&&contentVal?contentVal:noteVal;
   if(mode==='collab_repeat'){
     ensureItemRecordData(p,item,curItemIdx);
-    item.checkinHistory.push({id:recordId,date:dateVal,note:noteVal,img:cImg||''});
+    item.checkinHistory.push({id:recordId,date:dateVal,note:finalNote,img:cImg||''});
     item.collected=true;
     item.collectedDate=dateVal;
     item.checkinNote=noteVal;
     if(cImg)item.checkinImg=cImg;
-  }else if(mode==='merch_add'||sectionType==='merch'){
+  }else if(mode==='merch_add'||bt2==='merch'||bt2==='shopping'){
     ensureItemRecordData(p,item,curItemIdx);
     if(!Array.isArray(item.records))item.records=[];
-    item.records.push({id:recordId,date:dateVal,note:noteVal,img:cImg||'',status:'keeping',processStatus:'pending'});
+    const rec={id:recordId,date:dateVal,note:finalNote,img:cImg||'',status:'keeping',processStatus:'pending'};
+    if(costVal)rec.cost=costVal;
+    item.records.push(rec);
     item.collected=true;
     item.collectedDate=dateVal;
     item.checkinNote=noteVal;
@@ -1670,8 +1858,8 @@ async function saveCheckin(){
     item.collectedDate=dateVal;
     item.checkinNote=noteVal;
     if(cImg)item.checkinImg=cImg;
-    if(sectionType==='collab_food'){
-      item.checkinHistory=[{id:recordId,date:dateVal,note:noteVal,img:cImg||''}];
+    if(bt2==='food'||bt2==='content'){
+      item.checkinHistory=[{id:recordId,date:dateVal,note:finalNote,img:cImg||''}];
     }
   }
   save();closeModal('checkinModal');
@@ -1682,20 +1870,20 @@ async function saveCheckin(){
 function uncollect(){
   const p=getProject(curProjectId);if(!p||curItemIdx===null||curItemIdx===undefined)return;
   const item=p.items[curItemIdx];if(!item)return;
-  const sectionType=getItemSectionType(p,curItemIdx);
+  const bt=getItemBehaviorType(p,item,curItemIdx);
   const clear=()=>{
     item.collected=false;
     item.collectedDate=null;
     item.checkinNote='';
     item.checkinImg='';
-    if(sectionType==='collab_food')item.checkinHistory=[];
-    if(sectionType==='merch')item.records=[];
+    if(bt==='food'||bt==='content')item.checkinHistory=[];
+    if(bt==='merch'||bt==='shopping')item.records=[];
     save();openItem(curItemIdx);
   };
-  if(sectionType==='collab_food'){
-    customConfirm('清空这个餐品的全部打卡记录？',clear,{yes:'清空',danger:true});
-  }else if(sectionType==='merch'){
-    customConfirm('清空这个品目的全部周边记录？',clear,{yes:'清空',danger:true});
+  if(bt==='food'||bt==='content'){
+    customConfirm('清空全部打卡记录？',clear,{yes:'清空',danger:true});
+  }else if(bt==='merch'||bt==='shopping'){
+    customConfirm('清空全部记录？',clear,{yes:'清空',danger:true});
   }else{
     clear();
   }
@@ -1712,18 +1900,27 @@ function getItemSectionType(p,itemIdx){
   const sectionIdx=getItemSectionIndex(p,itemIdx);
   return sectionIdx>=0?(p.sections[sectionIdx].sectionType||'normal'):'normal';
 }
+function getItemBehaviorType(p,item,itemIdx){
+  if(item&&item.itemType)return item.itemType;
+  const st=getItemSectionType(p,itemIdx);
+  if(st==='collab_food')return'food';
+  if(st==='merch')return'merch';
+  if(st==='collab')return'food';
+  if(st==='activity')return'merch';
+  return'normal';
+}
 function getCheckinHistory(item){
   return item&&Array.isArray(item.checkinHistory)?item.checkinHistory:[];
 }
 function ensureItemRecordData(p,item,itemIdx){
   if(!p||!item)return;
-  const sectionType=getItemSectionType(p,itemIdx);
+  const bt=getItemBehaviorType(p,item,itemIdx);
   let changed=false;
-  if(sectionType==='collab_food'&&item.collected&&(!Array.isArray(item.checkinHistory)||!item.checkinHistory.length)){
+  if((bt==='food'||bt==='content')&&item.collected&&(!Array.isArray(item.checkinHistory)||!item.checkinHistory.length)){
     item.checkinHistory=[{id:gid(),date:item.collectedDate||'',note:item.checkinNote||'',img:item.checkinImg||''}];
     changed=true;
   }
-  if(sectionType==='merch'&&item.collected&&(!Array.isArray(item.records)||!item.records.length)){
+  if((bt==='merch'||bt==='shopping')&&item.collected&&(!Array.isArray(item.records)||!item.records.length)){
     item.records=[{id:gid(),date:item.collectedDate||'',note:item.checkinNote||'',img:item.checkinImg||'',status:'keeping',processStatus:'pending'}];
     changed=true;
   }
@@ -1978,6 +2175,28 @@ function deleteMerchRecord(recordIdx){
   },{yes:'删除',danger:true});
 }
 
+
+/* ═══ SECTION TYPE UI ═══ */
+function onAddSectionTypeChange(){
+  const type=document.getElementById('addSectionType').value;
+  const cfg=getSubcountConfig(type);
+  const single=document.getElementById('addSectionSingleCount');
+  const multi=document.getElementById('addSectionSubCounts');
+  const colsWrap=document.getElementById('addSectionColsWrap');
+  if(cfg){
+    single.style.display='none';
+    multi.style.display='';
+    if(colsWrap)colsWrap.style.display='none';
+    document.getElementById('subcountInputs').innerHTML=cfg.map(s=>
+      '<label>'+s.label+'</label><input type="number" class="subcount-input" data-key="'+s.key+'" placeholder="0" min="0" max="99" value=""> <input type="number" class="subcols-input" data-key="'+s.key+'" min="2" max="5" value="3" style="width:42px;font-size:11px" title="列数"><span style="font-size:10px;color:#ccc">列</span>'
+    ).join('');
+  }else{
+    single.style.display='';
+    multi.style.display='none';
+    if(colsWrap)colsWrap.style.display='';
+  }
+}
+function onQuickSectionTypeChange(){}
 /* ═══ INIT ═══ */
 setupItemArrangeGestures();
 renderProjects();
