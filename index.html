@@ -802,9 +802,16 @@ updateClock(); setInterval(updateClock, 10000);
     grid.classList.remove('reordering');
     if(dragClone){ dragClone.remove(); dragClone = null; }
     dragging = null;
-    /* suppress the tap/click that would navigate */
+    /* suppress the click that fires after mouseup/touchend */
     e.preventDefault();
+    suppressClick = true;
+    setTimeout(()=>{ suppressClick = false; }, 0);
   }
+
+  let suppressClick = false;
+  grid.addEventListener('click', function(e){
+    if(suppressClick){ e.preventDefault(); e.stopImmediatePropagation(); }
+  }, true);
 
   /* touch */
   grid.addEventListener('touchstart', onStart, {passive:false});
