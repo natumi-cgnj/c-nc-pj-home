@@ -120,17 +120,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .tooltip.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
 /* ── Shortcuts ── */
-.shortcuts{display:flex;gap:16px;justify-content:center;margin-top:20px;flex-wrap:wrap}
-.shortcut{display:flex;flex-direction:column;align-items:center;gap:4px;text-decoration:none;cursor:pointer;transition:opacity 0.2s}
-.shortcut:active{opacity:0.6}
+.shortcuts{display:grid;grid-template-columns:repeat(4,1fr);gap:14px 10px;justify-items:center;margin-top:20px;width:100%;max-width:360px;position:relative}
+.shortcut{display:flex;flex-direction:column;align-items:center;gap:4px;text-decoration:none;cursor:pointer;transition:opacity 0.2s,transform 0.2s;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+.shortcut:active:not(.dragging){opacity:0.6}
 .shortcut-icon{width:40px;height:40px;border-radius:10px;border:1px solid #E8E8E8;background:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;color:#999}
 .shortcut-label{font-size:10px;color:#bbb;letter-spacing:0.3px}
 .action-panel{width:100%;display:flex;flex-direction:column;align-items:center}
-.drawer-wrap{width:100%;max-width:360px;margin-top:8px;display:flex;flex-direction:column;align-items:center}
-.drawer-handle{width:32px;height:4px;border-radius:2px;background:#ddd;cursor:pointer}
-.drawer-tray{max-height:0;overflow:hidden;transition:max-height 0.3s,opacity 0.3s;opacity:0;width:100%}
-.drawer-tray.open{max-height:80px;opacity:1}
-.drawer-items{display:flex;gap:20px;justify-content:center;padding:10px 0 2px}
+/* drag-reorder states */
+.shortcut.dragging{opacity:0.85;transform:scale(1.12);z-index:100;pointer-events:none;position:fixed}
+.shortcut.drag-over .shortcut-icon{border-color:#aaa;box-shadow:0 0 0 2px rgba(0,0,0,0.06)}
+.shortcuts.reordering .shortcut{transition:transform 0.18s}
 .footer{margin-top:24px;text-align:center}
 .footer .time{font-size:28px;font-weight:200;color:#ccc;letter-spacing:2px;font-variant-numeric:tabular-nums}
 .footer .date{font-size:11px;color:#ddd;margin-top:2px;letter-spacing:0.5px}
@@ -148,14 +147,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   .apt-wrap{grid-area:apartment;width:min(460px,calc((100dvh - 103px)*.6),calc(100vw - 390px));max-width:none;align-self:start;overflow:visible;max-height:none}
   .char-sprite img,.char-placeholder .character-skin-img{height:clamp(68px,13dvh,100px)}
   .action-panel{grid-area:actions;width:260px;align-self:center}
-  .shortcuts{gap:16px;margin-top:0}
+  .shortcuts{grid-template-columns:repeat(3,1fr);gap:16px 12px;margin-top:0;max-width:260px}
   .shortcut-icon{width:46px;height:46px;font-size:18px}
   .shortcut-label{font-size:11px}
-  .drawer-wrap{max-width:260px;margin-top:0}
-  .drawer-handle{display:none}
-  .drawer-tray,.drawer-tray.open{max-height:84px;opacity:1;overflow:visible}
-  .drawer-items{gap:8px;padding-top:18px}
-  .drawer-items .shortcut-icon{width:42px;height:42px}
   .footer{margin-top:28px}
 }
 @media(min-width:900px) and (orientation:landscape){
@@ -382,22 +376,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 <div class="tooltip" id="tooltip"></div>
 <div class="action-panel">
-<div class="shortcuts">
-  <a class="shortcut" href="daily.html"><div class="shortcut-icon">☀</div><div class="shortcut-label">日常</div></a>
-  <a class="shortcut" href="shop.html"><div class="shortcut-icon">🏪</div><div class="shortcut-label">商城</div></a>
-  <a class="shortcut" href="gacha.html?v=20260714-4"><div class="shortcut-icon">💎</div><div class="shortcut-label">抽卡</div></a>
-  <a class="shortcut" href="story.html"><div class="shortcut-icon">📖</div><div class="shortcut-label">剧情</div></a>
-  <a class="shortcut" href="dungeon.html"><div class="shortcut-icon">🗝</div><div class="shortcut-label">副本</div></a>
-  <a class="shortcut" href="event.html"><div class="shortcut-icon">🎟</div><div class="shortcut-label">活动</div></a>
+<div class="shortcuts" id="shortcutsGrid">
+  <a class="shortcut" data-key="daily" href="daily.html"><div class="shortcut-icon">☀</div><div class="shortcut-label">日常</div></a>
+  <a class="shortcut" data-key="shop" href="shop.html"><div class="shortcut-icon">🏪</div><div class="shortcut-label">商城</div></a>
+  <a class="shortcut" data-key="gacha" href="gacha.html?v=20260714-4"><div class="shortcut-icon">💎</div><div class="shortcut-label">抽卡</div></a>
+  <a class="shortcut" data-key="story" href="story.html"><div class="shortcut-icon">📖</div><div class="shortcut-label">剧情</div></a>
+  <a class="shortcut" data-key="dungeon" href="dungeon.html"><div class="shortcut-icon">🗝</div><div class="shortcut-label">副本</div></a>
+  <a class="shortcut" data-key="event" href="event.html"><div class="shortcut-icon">🎟</div><div class="shortcut-label">活动</div></a>
+  <a class="shortcut" data-key="kitchen" href="kitchen.html"><div class="shortcut-icon">🍽</div><div class="shortcut-label">饮食</div></a>
+  <a class="shortcut" data-key="cinema" href="cinema.html"><div class="shortcut-icon">🎬</div><div class="shortcut-label">影视</div></a>
+  <a class="shortcut" data-key="bjd" href="bjd.html"><div class="shortcut-icon">✦</div><div class="shortcut-label">BJD</div></a>
+  <a class="shortcut" data-key="techo" href="techo.html"><div class="shortcut-icon">✎</div><div class="shortcut-label">手账</div></a>
+  <a class="shortcut" data-key="wallet" href="wallet.html"><div class="shortcut-icon">¥</div><div class="shortcut-label">记账</div></a>
+  <a class="shortcut" data-key="backup" href="backup.html"><div class="shortcut-icon">☁</div><div class="shortcut-label">备份</div></a>
 </div>
-<div class="drawer-wrap"><div class="drawer-handle" id="drawerHandle"></div><div class="drawer-tray" id="drawerTray"><div class="drawer-items">
-  <a class="shortcut" href="kitchen.html"><div class="shortcut-icon">🍽</div><div class="shortcut-label">饮食</div></a>
-  <a class="shortcut" href="cinema.html"><div class="shortcut-icon">🎬</div><div class="shortcut-label">影视</div></a>
-  <a class="shortcut" href="bjd.html"><div class="shortcut-icon">✦</div><div class="shortcut-label">BJD</div></a>
-  <a class="shortcut" href="techo.html"><div class="shortcut-icon">✎</div><div class="shortcut-label">手账</div></a>
-  <a class="shortcut" href="wallet.html"><div class="shortcut-icon">¥</div><div class="shortcut-label">记账</div></a>
-  <a class="shortcut" href="backup.html"><div class="shortcut-icon">☁</div><div class="shortcut-label">备份</div></a>
-</div></div></div>
 <div class="footer"><div class="time" id="clock"></div><div class="date" id="date"></div></div>
 </div>
 
@@ -702,7 +694,128 @@ function updateClock() {
   document.getElementById('date').textContent = (now.getMonth()+1)+'月'+now.getDate()+'日 '+days[now.getDay()]+'曜日';
 }
 updateClock(); setInterval(updateClock, 10000);
-document.getElementById('drawerHandle').addEventListener('click', () => document.getElementById('drawerTray').classList.toggle('open'));
+/* ═══ SHORTCUT DRAG-REORDER ═══ */
+(function(){
+  const grid = document.getElementById('shortcutsGrid');
+  if(!grid) return;
+  const LS_KEY = 'shortcut-order';
+  const LONG_PRESS_MS = 400;
+
+  /* ── restore saved order ── */
+  function applyOrder(){
+    const saved = localStorage.getItem(LS_KEY);
+    if(!saved) return;
+    try{
+      const order = JSON.parse(saved);
+      const items = [...grid.children];
+      const map = {};
+      items.forEach(el => { map[el.dataset.key] = el; });
+      order.forEach(key => { if(map[key]){ grid.appendChild(map[key]); delete map[key]; } });
+      Object.values(map).forEach(el => grid.appendChild(el));
+    }catch(e){}
+  }
+  applyOrder();
+
+  function saveOrder(){
+    const keys = [...grid.children].map(el => el.dataset.key);
+    localStorage.setItem(LS_KEY, JSON.stringify(keys));
+  }
+
+  /* ── long-press + drag ── */
+  let pressTimer = null;
+  let dragging = null;    /* the element being dragged */
+  let dragClone = null;   /* visual clone that follows finger */
+  let startX, startY;
+  let moved = false;
+
+  function getItemAt(x, y){
+    const els = grid.querySelectorAll('.shortcut:not(.dragging)');
+    for(const el of els){
+      const r = el.getBoundingClientRect();
+      if(x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return el;
+    }
+    return null;
+  }
+
+  function onStart(e){
+    const item = e.target.closest('.shortcut');
+    if(!item || !grid.contains(item)) return;
+    const touch = e.touches ? e.touches[0] : e;
+    startX = touch.clientX; startY = touch.clientY;
+    moved = false;
+
+    pressTimer = setTimeout(()=>{
+      e.preventDefault();
+      dragging = item;
+      /* create floating clone */
+      dragClone = item.cloneNode(true);
+      dragClone.classList.add('dragging');
+      const rect = item.getBoundingClientRect();
+      dragClone.style.left = rect.left + 'px';
+      dragClone.style.top = rect.top + 'px';
+      dragClone.style.width = rect.width + 'px';
+      document.body.appendChild(dragClone);
+      item.style.opacity = '0.25';
+      grid.classList.add('reordering');
+      /* haptic if available */
+      if(navigator.vibrate) navigator.vibrate(30);
+    }, LONG_PRESS_MS);
+  }
+
+  function onMove(e){
+    const touch = e.touches ? e.touches[0] : e;
+    /* cancel long-press if finger moved too much before activation */
+    if(!dragging && pressTimer){
+      if(Math.abs(touch.clientX - startX) > 8 || Math.abs(touch.clientY - startY) > 8){
+        clearTimeout(pressTimer); pressTimer = null;
+      }
+      return;
+    }
+    if(!dragging) return;
+    e.preventDefault();
+    /* move clone */
+    const cx = touch.clientX, cy = touch.clientY;
+    dragClone.style.left = (cx - dragClone.offsetWidth/2) + 'px';
+    dragClone.style.top  = (cy - dragClone.offsetHeight/2) + 'px';
+    /* highlight target */
+    grid.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+    const target = getItemAt(cx, cy);
+    if(target && target !== dragging) target.classList.add('drag-over');
+  }
+
+  function onEnd(e){
+    clearTimeout(pressTimer); pressTimer = null;
+    if(!dragging) return;
+    const touch = e.changedTouches ? e.changedTouches[0] : e;
+    const target = getItemAt(touch.clientX, touch.clientY);
+    if(target && target !== dragging){
+      /* swap positions */
+      const items = [...grid.children];
+      const iA = items.indexOf(dragging), iB = items.indexOf(target);
+      if(iA < iB){ grid.insertBefore(dragging, target.nextSibling); }
+      else { grid.insertBefore(dragging, target); }
+      saveOrder();
+    }
+    /* cleanup */
+    dragging.style.opacity = '';
+    grid.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+    grid.classList.remove('reordering');
+    if(dragClone){ dragClone.remove(); dragClone = null; }
+    dragging = null;
+    /* suppress the tap/click that would navigate */
+    e.preventDefault();
+  }
+
+  /* touch */
+  grid.addEventListener('touchstart', onStart, {passive:false});
+  grid.addEventListener('touchmove', onMove, {passive:false});
+  grid.addEventListener('touchend', onEnd);
+  grid.addEventListener('touchcancel', onEnd);
+  /* mouse (desktop) */
+  grid.addEventListener('mousedown', onStart);
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onEnd);
+})();
 
 /* ═══ WARDROBE / DAILY OUTFITS ═══ */
 const SKIN_DB={
