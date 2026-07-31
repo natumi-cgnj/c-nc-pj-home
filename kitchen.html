@@ -286,6 +286,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
       <label>所属分类</label>
       <select id="inputItemSection"></select>
     </div>
+    <div id="itemSubtypeField" style="display:none">
+      <label>品目类型</label>
+      <select id="inputItemSubtype"></select>
+    </div>
     <label>名称</label>
     <input type="text" id="inputItemName" placeholder="品目名称">
     <label>备注（选填）</label>
@@ -310,7 +314,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <input type="text" id="checkinItemName" placeholder="品目名称">
     <label>日期</label>
     <input type="date" id="checkinDate">
-    <label>感想（选填）</label>
+    <label id="checkinNoteLabel">感想（选填）</label>
     <input type="text" id="checkinNote" maxlength="120" placeholder="味道怎么样、有什么想记的…">
     <div id="checkinCostWrap" style="display:none">
       <label>花费金额</label>
@@ -377,11 +381,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     </div>
     <div id="addSectionColsWrap">
       <label>列数</label>
-      <select id="inputSectionCols">
-        <option value="2">每行 2 列</option>
-        <option value="3" selected>每行 3 列</option>
-        <option value="4">每行 4 列</option>
-      </select>
+      <input type="number" id="inputSectionCols" min="2" max="5" value="3">
     </div>
     <div class="btn-row">
       <button class="btn btn-cancel" onclick="closeModal('addSectionModal')">取消</button>
@@ -437,7 +437,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   </div>
 </div>
 
-<script src="cloud-sync.js?v=20260730-guard2"></script>
+<script src="cloud-sync.js?v=20260731-collections1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 
@@ -512,6 +512,14 @@ if(projects.length&&projects[0]&&projects[0].series){
   if(changed){localStorage.setItem(SK,JSON.stringify(projects));}
 })();
 
+// Keep section counts, subtype counts and item behavior aligned. This only
+// repairs metadata around the existing item order; it never removes records.
+(function(){
+  let changed=false;
+  projects.forEach(p=>{if(normalizeProjectSubtypes(p))changed=true;});
+  if(changed)localStorage.setItem(SK,JSON.stringify(projects));
+})();
+
 let curProjectId=null, curItemIdx=null, quickItemIdx=null, editSectionIdx=null;
 let editProjectId=null, editItemIdx=null;
 let projectTempIcon='';
@@ -575,15 +583,94 @@ function sectionStats(p,sectionIdx){
   }
   return{total,collected};
 }
-function getSubcountConfig(sectionType){
-  const configs={
-    normal:[{key:'food',label:'餐品'},{key:'merch',label:'赠品'}],
-    collab:[{key:'food',label:'餐品'},{key:'merch',label:'赠品'}],
-    restaurant:[{key:'food',label:'餐品'},{key:'merch',label:'赠品'},{key:'shopping',label:'购物'}],
-    mall:[{key:'content',label:'内容'},{key:'merch',label:'赠品'}],
-    movie:[{key:'food',label:'餐品'},{key:'merch',label:'赠品'},{key:'shopping',label:'购物'}]
-  };
-  return configs[sectionType]||configs['normal'];
+function getSubcountConfig(){
+  return[{key:'food',label:'餐品'},{key:'merch',label:'赠品'}];
+}
+function getSectionStartIndex(p,sectionIdx){
+  let start=0;
+  for(let i=0;i<sectionIdx&&p&&Array.isArray(p.sections);i++)start+=Math.max(0,parseInt(p.sections[i].count)||0);
+  return start;
+}
+function getSubtypeForLocalPosition(section,localIdx){
+  const cfg=getSubcountConfig(section&&section.sectionType);
+  let run=0;
+  for(const entry of cfg){
+    run+=Math.max(0,parseInt(section&&section.subcounts&&section.subcounts[entry.key])||0);
+    if(localIdx<run)return entry.key;
+  }
+  return cfg[0].key;
+}
+function getItemSubtype(p,itemIdx){
+  const sectionIdx=getItemSectionIndex(p,itemIdx);
+  if(sectionIdx<0)return'';
+  const section=p.sections[sectionIdx];
+  const cfg=getSubcountConfig(section.sectionType);
+  const allowed=new Set(cfg.map(entry=>entry.key));
+  const item=p.items&&p.items[itemIdx];
+  if(item&&allowed.has(item.itemType))return item.itemType;
+  return getSubtypeForLocalPosition(section,itemIdx-getSectionStartIndex(p,sectionIdx));
+}
+function normalizeProjectSubtypes(p){
+  if(!p)return false;
+  let changed=false;
+  if(!Array.isArray(p.items)){p.items=[];changed=true;}
+  if(!Array.isArray(p.sections)||!p.sections.length){
+    if(p.count!==p.items.length){p.count=p.items.length;changed=true;}
+    return changed;
+  }
+  let remaining=p.items.length;
+  let offset=0;
+  p.sections.forEach((section,sectionIdx)=>{
+    const declared=Math.max(0,parseInt(section.count)||0);
+    const count=sectionIdx===p.sections.length-1?remaining:Math.min(declared,remaining);
+    if(section.count!==count){section.count=count;changed=true;}
+    remaining-=count;
+    const cfg=getSubcountConfig(section.sectionType);
+    const nextCounts={};
+    cfg.forEach(entry=>{nextCounts[entry.key]=Math.max(0,parseInt(section.subcounts&&section.subcounts[entry.key])||0);});
+    const hasDeclared=!!(section.subcounts&&cfg.some(entry=>Object.prototype.hasOwnProperty.call(section.subcounts,entry.key)));
+    if(!hasDeclared){
+      cfg.forEach(entry=>{nextCounts[entry.key]=0;});
+      for(let localIdx=0;localIdx<count&&offset+localIdx<p.items.length;localIdx++){
+        const current=p.items[offset+localIdx]&&p.items[offset+localIdx].itemType;
+        nextCounts[cfg.some(entry=>entry.key===current)?current:cfg[0].key]++;
+      }
+    }
+    let total=cfg.reduce((sum,entry)=>sum+nextCounts[entry.key],0);
+    if(total<count){nextCounts[cfg[0].key]+=count-total;total=count;}
+    if(total>count){
+      let excess=total-count;
+      for(let i=cfg.length-1;i>=0&&excess>0;i--){
+        const key=cfg[i].key;
+        const take=Math.min(nextCounts[key],excess);
+        nextCounts[key]-=take;excess-=take;
+      }
+    }
+    if(JSON.stringify(section.subcounts||{})!==JSON.stringify(nextCounts)){section.subcounts=nextCounts;changed=true;}
+    for(let localIdx=0;localIdx<count&&offset+localIdx<p.items.length;localIdx++){
+      const type=getSubtypeForLocalPosition(section,localIdx);
+      if(p.items[offset+localIdx].itemType!==type){p.items[offset+localIdx].itemType=type;changed=true;}
+    }
+    offset+=count;
+  });
+  if(p.count!==p.items.length){p.count=p.items.length;changed=true;}
+  return changed;
+}
+function adjustSectionSubtype(section,key,delta){
+  if(!section)return;
+  if(!section.subcounts)section.subcounts={};
+  section.subcounts[key]=Math.max(0,(parseInt(section.subcounts[key])||0)+delta);
+}
+function getSubtypeInsertIndex(p,sectionIdx,key){
+  const section=p&&p.sections&&p.sections[sectionIdx];
+  if(!section)return p&&p.items?p.items.length:0;
+  const cfg=getSubcountConfig(section.sectionType);
+  let index=getSectionStartIndex(p,sectionIdx);
+  for(const entry of cfg){
+    index+=Math.max(0,parseInt(section.subcounts&&section.subcounts[entry.key])||0);
+    if(entry.key===key)return Math.min(index,p.items.length);
+  }
+  return Math.min(getSectionStartIndex(p,sectionIdx)+Math.max(0,parseInt(section.count)||0),p.items.length);
 }
 function normalizeGenericItemNames(p){
   if(!p||!Array.isArray(p.items))return;
@@ -982,19 +1069,23 @@ function finalizeSectionDrafts(){
     for(let i=requested;i<bucket.length;i++){
       if(itemHasSavedContent(bucket[i])){group.push(bucket[i]);preserved++;}
     }
-    if(cfg&&sec.subcounts){
-      while(group.length<requested){
-        let run=0,itemType='normal';
-        for(const c of cfg){run+=(sec.subcounts[c.key]||0);if(group.length<run){itemType=c.key;break;}}
-        const it=makeEmptyItem(items.length+group.length+1);it.itemType=itemType;group.push(it);
+    while(group.length<requested)group.push(makeEmptyItem(items.length+group.length+1));
+    const requestedCounts={};
+    cfg.forEach(c=>{requestedCounts[c.key]=Math.max(0,parseInt(sec.subcounts&&sec.subcounts[c.key])||0);});
+    const actualCounts={};cfg.forEach(c=>{actualCounts[c.key]=0;});
+    const allowed=new Set(cfg.map(c=>c.key));
+    group.forEach((item,localIdx)=>{
+      let type='';
+      if(localIdx<requested){
+        let run=0;
+        for(const c of cfg){run+=requestedCounts[c.key];if(localIdx<run){type=c.key;break;}}
       }
-      const sd={name:sec.name||'',count:group.length,cols:sec.cols||3,sectionType:sec.sectionType||'normal',subcounts:{...sec.subcounts},subLabels:sec.subLabels?{...sec.subLabels}:{}};
-      if(sec.subCols)sd.subCols={...sec.subCols};
-      sections.push(sd);
-    }else{
-      while(group.length<requested)group.push(makeEmptyItem(items.length+group.length+1));
-      sections.push({name:sec.name||'',count:group.length,cols:sec.cols||3,sectionType:sec.sectionType||'normal'});
-    }
+      if(!type)type=allowed.has(item.itemType)?item.itemType:cfg[0].key;
+      item.itemType=type;actualCounts[type]++;
+    });
+    const sd={name:sec.name||'',count:group.length,cols:sec.cols||3,sectionType:sec.sectionType||'normal',subcounts:actualCounts,subLabels:sec.subLabels?{...sec.subLabels}:{}};
+    if(sec.subCols)sd.subCols={...sec.subCols};
+    sections.push(sd);
     items.push(...group);
   });
   normalizeGenericItemNames({items});
@@ -1004,7 +1095,7 @@ function renderSectionList(){
   const list=document.getElementById('sectionList');
   if(!_sections.length){list.innerHTML='<div style="font-size:11px;color:#ccc;padding:8px 0">点下方"添加分栏"设置细分类别</div>';return;}
   list.innerHTML=_sections.map((s,i)=>{
-    const typeSelect=`<select style="width:76px;font-size:11px" aria-label="分栏类型" onchange="_sections[${i}].sectionType=this.value;_sections[${i}].subcounts=null;_sections[${i}].subCols=null;renderSectionList()">
+    const typeSelect=`<select style="width:76px;font-size:11px" aria-label="分栏类型" onchange="_sections[${i}].sectionType=this.value;renderSectionList()">
       <option value="normal"${(s.sectionType||'normal')==='normal'?' selected':''}>通常</option>
       <option value="collab"${s.sectionType==='collab'?' selected':''}>联名</option>
     </select>`;
@@ -1188,10 +1279,9 @@ function openAddSection(){
   const p=getProject(curProjectId);if(!p)return;
   document.getElementById('inputSectionName').value='';
   document.getElementById('inputSectionCount').value='';
+  document.getElementById('inputSectionCols').value='3';
   document.getElementById('addSectionType').value='normal';
-  document.getElementById('addSectionSingleCount').style.display='';
-  document.getElementById('addSectionSubCounts').style.display='none';
-  const cw=document.getElementById('addSectionColsWrap');if(cw)cw.style.display='';
+  onAddSectionTypeChange();
   openModal('addSectionModal');
   requestAnimationFrame(()=>document.getElementById('inputSectionName').focus());
 }
@@ -1434,7 +1524,11 @@ function deleteGridItem(idx){
   const label=generic?`第 ${idx+1} 格`:`「${esc(item.name)}」`;
   customConfirm(`删除${label}？图片、日期和感想也会一起删除。`,()=>{
     const sectionIdx=getItemSectionIndex(p,idx);
-    if(sectionIdx>=0)p.sections[sectionIdx].count=Math.max(0,(parseInt(p.sections[sectionIdx].count)||0)-1);
+    const subtype=getItemSubtype(p,idx);
+    if(sectionIdx>=0){
+      p.sections[sectionIdx].count=Math.max(0,(parseInt(p.sections[sectionIdx].count)||0)-1);
+      adjustSectionSubtype(p.sections[sectionIdx],subtype,-1);
+    }
     const scroll=currentScrollY();
     p.items.splice(idx,1);
     p.count=p.items.length;
@@ -1447,28 +1541,19 @@ function deleteGridItem(idx){
 function moveGridItem(fromIdx,toIdx){
   const p=getProject(curProjectId);
   if(!p||fromIdx===toIdx||fromIdx<0||toIdx<0||fromIdx>=p.items.length||toIdx>=p.items.length)return false;
-  // Fix section counts when crossing sections
-  if(p.sections&&p.sections.length){
-    const fromSec=getItemSectionIndex(p,fromIdx);
-    // After splice, toIdx shifts if fromIdx < toIdx
-    const adjustedTo=fromIdx<toIdx?toIdx-1:toIdx;
-    const tempItems=[...p.items];tempItems.splice(fromIdx,1);
-    // Determine target section in the post-splice array
-    let toSec=-1,off=0;
-    for(let i=0;i<p.sections.length;i++){
-      const c=Math.max(0,parseInt(p.sections[i].count)||0)-(i===fromSec?1:0);
-      if(adjustedTo<off+c){toSec=i;break;}
-      off+=c;
-    }
-    if(toSec<0)toSec=p.sections.length-1;
-    if(fromSec>=0&&toSec>=0&&fromSec!==toSec){
-      p.sections[fromSec].count=Math.max(0,(parseInt(p.sections[fromSec].count)||0)-1);
-      p.sections[toSec].count=(parseInt(p.sections[toSec].count)||0)+1;
-    }
+  const fromSec=getItemSectionIndex(p,fromIdx),toSec=getItemSectionIndex(p,toIdx);
+  const fromType=getItemSubtype(p,fromIdx),toType=getItemSubtype(p,toIdx);
+  if(fromSec>=0&&toSec>=0&&(fromSec!==toSec||fromType!==toType)){
+    p.sections[fromSec].count=Math.max(0,(parseInt(p.sections[fromSec].count)||0)-1);
+    adjustSectionSubtype(p.sections[fromSec],fromType,-1);
+    p.sections[toSec].count=(parseInt(p.sections[toSec].count)||0)+1;
+    adjustSectionSubtype(p.sections[toSec],toType,1);
   }
   const scroll=currentScrollY();
   const moved=p.items.splice(fromIdx,1)[0];
+  if(toType)moved.itemType=toType;
   p.items.splice(toIdx,0,moved);
+  normalizeProjectSubtypes(p);
   normalizeGenericItemNames(p);
   curItemIdx=null;editItemIdx=null;quickItemIdx=null;
   save();
@@ -1825,14 +1910,13 @@ function prepareCheckinModal(mode){
   const noteInput=document.getElementById('checkinNote');
   if(itemBt==='content'){
     contentWrap.style.display='';
-    noteInput.parentElement.querySelector('label[for],label').style.display='none';
+    document.getElementById('checkinNoteLabel').style.display='none';
     noteInput.style.display='none';
     document.getElementById('checkinContent').value='';
   }else{
     contentWrap.style.display='none';
     noteInput.style.display='';
-    const noteLabel=noteInput.previousElementSibling;
-    if(noteLabel&&noteLabel.tagName==='LABEL')noteLabel.style.display='';
+    document.getElementById('checkinNoteLabel').style.display='';
   }
   openModal('checkinModal');
 }
@@ -1971,29 +2055,40 @@ function getSectionEndIndex(p,sectionIdx){
   return Math.min(end,p.items.length);
 }
 function reconcileSectionCounts(p){
-  if(!p)return;
-  p.count=p.items.length;
-  if(!p.sections||!p.sections.length)return;
-  let remaining=p.items.length;
-  p.sections.forEach((sec,i)=>{
-    const declared=Math.max(0,parseInt(sec.count)||0);
-    const count=i===p.sections.length-1?remaining:Math.min(declared,remaining);
-    sec.count=count;
-    remaining-=count;
-  });
+  normalizeProjectSubtypes(p);
 }
-function renderItemSectionSelect(p,selectedIdx){
+function renderItemSubtypeSelect(p,sectionIdx,selectedType){
+  const field=document.getElementById('itemSubtypeField');
+  const select=document.getElementById('inputItemSubtype');
+  if(!p.sections||!p.sections[sectionIdx]){field.style.display='none';select.innerHTML='';return;}
+  const section=p.sections[sectionIdx];
+  const cfg=getSubcountConfig(section.sectionType);
+  const allowed=cfg.map(entry=>entry.key);
+  const fallback=allowed.includes(selectedType)?selectedType:allowed[0];
+  select.innerHTML=cfg.map(entry=>`<option value="${entry.key}">${esc(section.subLabels&&section.subLabels[entry.key]||entry.label)}</option>`).join('');
+  select.value=fallback;field.style.display='block';
+}
+function renderItemSectionSelect(p,selectedIdx,selectedSubtype){
   const field=document.getElementById('itemSectionField');
   const select=document.getElementById('inputItemSection');
   if(!p.sections||!p.sections.length){
     field.style.display='none';
     select.innerHTML='';
+    document.getElementById('itemSubtypeField').style.display='none';
     return;
   }
   const fallback=selectedIdx>=0&&selectedIdx<p.sections.length?selectedIdx:0;
   select.innerHTML=p.sections.map((sec,i)=>`<option value="${i}">${esc(sec.name||('分类 '+(i+1)))}</option>`).join('');
   select.value=String(fallback);
+  select.onchange=()=>renderItemSubtypeSelect(p,parseInt(select.value),null);
   field.style.display='block';
+  renderItemSubtypeSelect(p,fallback,selectedSubtype);
+}
+function getSelectedItemSubtype(p,sectionIdx){
+  if(sectionIdx<0||!p.sections||!p.sections[sectionIdx])return'';
+  const cfg=getSubcountConfig(p.sections[sectionIdx].sectionType);
+  const value=document.getElementById('inputItemSubtype').value;
+  return cfg.some(entry=>entry.key===value)?value:cfg[0].key;
 }
 function getSelectedItemSection(p){
   if(!p.sections||!p.sections.length)return -1;
@@ -2009,7 +2104,7 @@ function openAddItem(){
   document.getElementById('itemImgPreview').style.display='none';
   delete document.getElementById('itemImgPreview').dataset.source;
   document.getElementById('itemDeleteBtn').style.display='none';
-  renderItemSectionSelect(p,0);
+  renderItemSectionSelect(p,0,null);
   openModal('itemModal');
 }
 function openEditItem(){
@@ -2022,7 +2117,7 @@ function openEditItem(){
   if(item.img){const pr=document.getElementById('itemImgPreview');pr.src=item.img;pr.dataset.source=item.img;pr.style.display='block';}
   else{document.getElementById('itemImgPreview').style.display='none';delete document.getElementById('itemImgPreview').dataset.source;}
   document.getElementById('itemDeleteBtn').style.display='';
-  renderItemSectionSelect(p,getItemSectionIndex(p,curItemIdx));
+  renderItemSectionSelect(p,getItemSectionIndex(p,curItemIdx),getItemSubtype(p,curItemIdx));
   openModal('itemModal');
 }
 function previewItemImg(input){
@@ -2038,6 +2133,7 @@ async function saveItem(){
   const stableItemId=existingItem&&existingItem.id?existingItem.id:gid();
   if(existingItem&&!existingItem.id)existingItem.id=stableItemId;
   const selectedSection=getSelectedItemSection(p);
+  const selectedSubtype=getSelectedItemSubtype(p,selectedSection);
   const inputName=document.getElementById('inputItemName').value.trim();
   const name=wasEditing?inputName:(inputName||('品目'+(p.items.length+1)));
   const note=document.getElementById('inputItemNote').value.trim();
@@ -2051,28 +2147,33 @@ async function saveItem(){
     if(item){
       item.name=name;item.note=note;if(img)item.img=img;
       const oldSection=getItemSectionIndex(p,oldItemIdx);
-      if(selectedSection>=0&&selectedSection!==oldSection){
+      const oldSubtype=getItemSubtype(p,oldItemIdx);
+      if(selectedSection>=0&&(selectedSection!==oldSection||selectedSubtype!==oldSubtype)){
         p.items.splice(oldItemIdx,1);
-        if(oldSection>=0)p.sections[oldSection].count=Math.max(0,(parseInt(p.sections[oldSection].count)||0)-1);
-        const insertAt=getSectionEndIndex(p,selectedSection);
+        if(oldSection>=0){p.sections[oldSection].count=Math.max(0,(parseInt(p.sections[oldSection].count)||0)-1);adjustSectionSubtype(p.sections[oldSection],oldSubtype,-1);}
+        const insertAt=getSubtypeInsertIndex(p,selectedSection,selectedSubtype);
+        item.itemType=selectedSubtype;
         p.items.splice(insertAt,0,item);
         p.sections[selectedSection].count=(parseInt(p.sections[selectedSection].count)||0)+1;
+        adjustSectionSubtype(p.sections[selectedSection],selectedSubtype,1);
         savedItemIdx=insertAt;
-      }
+      }else if(selectedSection>=0)item.itemType=selectedSubtype;
     }
   }else{
     const item={id:stableItemId,name,note,img,collected:false,collectedDate:null,checkinNote:'',checkinImg:''};
     if(selectedSection>=0){
-      const insertAt=getSectionEndIndex(p,selectedSection);
+      item.itemType=selectedSubtype;
+      const insertAt=getSubtypeInsertIndex(p,selectedSection,selectedSubtype);
       p.items.splice(insertAt,0,item);
       p.sections[selectedSection].count=(parseInt(p.sections[selectedSection].count)||0)+1;
+      adjustSectionSubtype(p.sections[selectedSection],selectedSubtype,1);
       savedItemIdx=insertAt;
     }else{
       p.items.push(item);
       savedItemIdx=p.items.length-1;
     }
   }
-  p.count=p.items.length;
+  normalizeProjectSubtypes(p);
   save();closeModal('itemModal');
   if(wasEditing){curItemIdx=savedItemIdx;editItemIdx=savedItemIdx;openItem(savedItemIdx);}else{renderDetail(p);}
 }
@@ -2085,7 +2186,8 @@ function deleteItem(){
   const p=getProject(curProjectId);if(!p||curItemIdx===null)return;
   customConfirm('删除这个品目？图片和打卡记录也会一起删除。',()=>{
     const sectionIdx=getItemSectionIndex(p,curItemIdx);
-    if(sectionIdx>=0)p.sections[sectionIdx].count=Math.max(0,(parseInt(p.sections[sectionIdx].count)||0)-1);
+    const subtype=getItemSubtype(p,curItemIdx);
+    if(sectionIdx>=0){p.sections[sectionIdx].count=Math.max(0,(parseInt(p.sections[sectionIdx].count)||0)-1);adjustSectionSubtype(p.sections[sectionIdx],subtype,-1);}
     p.items.splice(curItemIdx,1);
     p.count=p.items.length;
     normalizeGenericItemNames(p);

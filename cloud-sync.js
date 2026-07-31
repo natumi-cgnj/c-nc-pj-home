@@ -15,11 +15,12 @@
   const STATE_KEYS = [
     'daily_db', 'daily_presets', 'gacha_st', 'bean_st', 'habit_db', 'story_db',
     'bjd_db3', 'techo_db2', 'shop_db', 'event_db', 'event_presets', 'dungeon_db',
-    'kitchen_db', 'activity_db', 'wallet_db', 'home_modules', 'home_lines',
-    'home_skins', 'home_skin_custom', 'home_skin_daily'
+    'kitchen_db', 'activity_db', 'cinema_db', 'stationery_db', 'wallet_db',
+    'home_modules', 'home_lines', 'home_skins', 'home_skin_custom',
+    'home_skin_daily', 'shortcut-order'
   ];
   const PAGE_KEYS = {
-    'index.html': ['habit_db', 'home_modules', 'home_lines', 'home_skins', 'home_skin_custom', 'home_skin_daily'],
+    'index.html': ['habit_db', 'home_modules', 'home_lines', 'home_skins', 'home_skin_custom', 'home_skin_daily', 'shortcut-order'],
     'daily.html': ['daily_db', 'daily_presets', 'gacha_st', 'bean_st', 'habit_db'],
     'gacha.html': ['gacha_st'],
     'habit.html': ['habit_db', 'bean_st'],
@@ -28,6 +29,8 @@
     'bjd.html': ['bjd_db3'],
     'techo.html': ['techo_db2'],
     'event.html': ['activity_db'],
+    'cinema.html': ['cinema_db'],
+    'stationery.html': ['stationery_db'],
     'wallet.html': ['wallet_db'],
     'dungeon.html': ['dungeon_db', 'daily_db'],
     'kitchen.html': ['kitchen_db'],
@@ -431,6 +434,7 @@
       habit_db: '间隔打卡', story_db: '剧情', bjd_db3: 'BJD', techo_db2: '手账',
       shop_db: '商城', event_db: '旧活动存档', event_presets: '旧活动模板',
       dungeon_db: '副本库存', kitchen_db: '饮食', activity_db: '活动收集',
+      cinema_db: '影视', stationery_db: '文具', 'shortcut-order': '首页快捷入口排序',
       wallet_db: '记账', home_modules: '房间连接', home_lines: '首页台词',
       home_skins: '衣柜候选', home_skin_custom: '衣柜衣装', home_skin_daily: '今日衣装'
     };

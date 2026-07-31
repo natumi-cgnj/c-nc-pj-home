@@ -77,9 +77,33 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <div class="confirm-title">确认恢复数据？</div><div class="confirm-msg" id="confirmMsg"></div>
 <div class="confirm-btns"><button class="cbtn-cancel" onclick="hideConfirm()">取消</button><button class="cbtn-danger" onclick="runConfirmedRestore()">覆盖恢复</button></div>
 </div></div>
-<script src="cloud-sync.js?v=20260730-guard2"></script>
+<script src="cloud-sync.js?v=20260731-collections1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
+function collectionItemType(owner,item,index){
+  if(item.itemType)return item.itemType;let offset=0;
+  for(const sec of owner.sections||[]){
+    const count=Math.max(0,parseInt(sec.count)||0);
+    if(index>=offset&&index<offset+count){
+      if(sec.subcounts){let run=offset;for(const key of ['food','merch','shopping','content']){run+=Math.max(0,parseInt(sec.subcounts[key])||0);if(index<run)return key;}}
+      if(sec.sectionType==='merch'||sec.sectionType==='activity')return'merch';
+      return'food';
+    }
+    offset+=count;
+  }
+  return'food';
+}
+function collectionDesc(d){
+  if(!Array.isArray(d))return'-';let total=0,done=0;
+  const visit=owner=>(owner.items||[]).forEach((item,index)=>{total++;const type=collectionItemType(owner,item,index);if(type==='merch'||type==='shopping'){if(item.records&&item.records.length&&item.records.every(r=>r.processStatus==='processed'))done++;}else if(item.collected)done++;});
+  d.forEach(project=>{if(Array.isArray(project.subs))project.subs.forEach(visit);else visit(project);});
+  return d.length+'个项目 '+done+'/'+total;
+}
+function stationeryDesc(d){
+  if(!Array.isArray(d))return'-';let total=0,done=0;
+  d.forEach(p=>{let offset=0;const sections=p.sections&&p.sections.length?p.sections:[{count:(p.items||[]).length,type:'collection'}];sections.forEach(sec=>{const count=Math.max(0,parseInt(sec.count)||0);for(let i=offset;i<offset+count&&i<(p.items||[]).length;i++){const item=p.items[i];total++;if(sec.type==='collection'){if(item.records&&item.records.length&&item.records.every(r=>r.processStatus==='processed'))done++;}else if(item.collected)done++;}offset+=count;});});
+  return d.length+'个项目 '+done+'/'+total;
+}
 const SYS=[
 {key:'daily_db',name:'\u65E5\u5E38',color:'#E8B96A',desc:d=>{if(!d)return'-';const a=d.affinity||{};return'\u753B\u4F5C\u788E\u7247 '+(a.neal||0)+'  \u6863\u6848\u788E\u7247 '+(a.jane||0);}},
 {key:'daily_presets',name:'\u65E5\u5E38\u59D4\u6258\u6A21\u677F',color:'#D9A44E',desc:d=>{if(!d)return'-';return(d.dropPool||[]).length+'\u6761\u59D4\u6258';}},
@@ -90,13 +114,16 @@ const SYS=[
 {key:'bjd_db3',name:'BJD',color:'#6B8AFF',desc:d=>{if(!d)return'-';return(d.entries||[]).length+'\u6761';}},
 {key:'techo_db2',name:'\u624B\u8D26',color:'#5BA66B',desc:d=>{if(!d)return'-';return(d.entries||[]).length+'\u6761';}},
 {key:'shop_db',name:'\u5546\u57CE',color:'#D85A30',desc:d=>{if(!d)return'-';return(d.owned||[]).length+'\u4EF6';}},
-{key:'activity_db',name:'\u6D3B\u52A8\u6536\u96C6',color:'#9B6BCC',desc:d=>{if(!Array.isArray(d))return'-';let total=0,done=0;d.forEach(e=>(e.subs||[]).forEach(s=>(s.items||[]).forEach((i,x)=>{total++;const sec=(s.sections||[]).find((z,n)=>x>=(s.sections||[]).slice(0,n).reduce((a,b)=>a+(b.count||0),0)&&x<(s.sections||[]).slice(0,n+1).reduce((a,b)=>a+(b.count||0),0));if(sec&&sec.sectionType==='merch'){if(i.records&&i.records.length&&i.records.every(r=>r.processStatus==='processed'))done++;}else if(i.collected)done++;})));return d.length+'\u4E2A\u4E3B\u9898 '+done+'/'+total;}},
+{key:'activity_db',name:'\u6D3B\u52A8\u6536\u96C6',color:'#9B6BCC',desc:collectionDesc},
+{key:'cinema_db',name:'\u5F71\u89C6',color:'#8F78C6',desc:d=>{if(!Array.isArray(d))return'-';const total=d.reduce((n,p)=>n+(p.items||[]).length,0),done=d.reduce((n,p)=>n+(p.items||[]).filter(i=>i.collected).length,0);return d.length+'\u4E2A\u9879\u76EE '+done+'/'+total;}},
+{key:'stationery_db',name:'\u6587\u5177',color:'#D4A030',desc:stationeryDesc},
+{key:'shortcut-order',name:'\u9996\u9875\u5FEB\u6377\u5165\u53E3\u6392\u5E8F',color:'#8396A8',desc:d=>Array.isArray(d)?d.length+'\u4E2A\u5165\u53E3':'\u9ED8\u8BA4'},
 {key:'wallet_db',name:'\u8BB0\u8D26',color:'#D85A30',desc:d=>{if(!d)return'-';return(d.records||[]).length+'\u7B14\u8BB0\u5F55 '+(d.outings||[]).length+'\u6B21\u5916\u51FA';}},
 {key:'event_db',name:'\u65E7\u6D3B\u52A8\u5B58\u6863\uFF08\u4FDD\u7559\uFF09',color:'#D6C09A',desc:d=>{if(!d)return'-';const c=d.currency||{};return'\u5956\u52B1 '+(c.a||0)+' / '+(c.b||0)+' / '+(c.c||0);}},
 {key:'event_presets',name:'\u65E7\u6D3B\u52A8\u6A21\u677F\uFF08\u4FDD\u7559\uFF09',color:'#D8C8AC',desc:d=>{if(!d)return'-';return'\u59D4'+(d.commissions||[]).length+' \u5361'+(d.cards||[]).length+' \u5468'+(d.goods||[]).length+' \u6C60'+((d.identities||[]).length+(d.tags||[]).length);}},
 {key:'home_lines',name:'\u9996\u9875\u53F0\u8BCD',color:'#888',desc:d=>{if(!d)return'\u9ED8\u8BA4';let n=0;['neal','jane','natumi'].forEach(z=>{n+=(d.neal&&d.neal[z]||[]).length+(d.jane&&d.jane[z]||[]).length;});return n+'\u6761';}},
 {key:'dungeon_db',name:'\u526F\u672C\u5E93\u5B58',color:'#7A8FB8',desc:d=>{if(!d)return'-';return(d.inventory||[]).length+'\u6761';}},
-{key:'kitchen_db',name:'\u996E\u98DF',color:'#8B6914',desc:d=>{if(!d||!Array.isArray(d))return'-';const total=d.reduce((s,p)=>(p.items||[]).filter(i=>i.collected).length+s,0);return d.length+'\u9879\u76EE '+total+'\u5DF2\u6253\u5361';}},
+{key:'kitchen_db',name:'\u996E\u98DF',color:'#8B6914',desc:collectionDesc},
 {key:'home_modules',name:'\u623F\u95F4\u8FDE\u63A5',color:'#D85A30',desc:d=>{if(!d)return'\u9ED8\u8BA4';const n=Object.values(d).filter(Boolean).length;return n+'\u4E2A\u5DF2\u8FDE\u63A5';}},
 {key:'home_skins',name:'\u8863\u67DC\u5019\u9009',color:'#B58A6A',desc:d=>{if(!d)return'\u9ED8\u8BA4';return Object.values(d).reduce((n,c)=>n+((c&&c.selected)||[]).length,0)+'\u5957\u5019\u9009';}},
 {key:'home_skin_custom',name:'\u8863\u67DC\u8863\u88C5',color:'#C69A7A',desc:d=>{if(!d)return'\u9ED8\u8BA4';return Object.values(d).reduce((n,list)=>n+(Array.isArray(list)?list.length:0),0)+'\u6761\u8BB0\u5F55';}},
@@ -106,7 +133,7 @@ function gd(k){try{return JSON.parse(localStorage.getItem(k));}catch(e){return n
 function gs(k){const v=localStorage.getItem(k);if(!v)return'-';const b=new Blob([v]).size;return b<1024?b+'B':(b/1024).toFixed(1)+'KB';}
 function renderSys(){document.getElementById('systemList').innerHTML=SYS.map(s=>'<div class="system-row"><div class="system-info"><div class="system-dot" style="background:'+s.color+'"></div><div><div class="system-name">'+s.name+'</div><div class="system-status">'+s.desc(gd(s.key))+'</div></div></div><div class="system-size">'+gs(s.key)+'</div></div>').join('');}
 function showLast(){const el=document.getElementById('lastBackup'),t=localStorage.getItem('last_backup_time');if(t){const d=new Date(+t);el.textContent='\u4E0A\u6B21\u5907\u4EFD\uFF1A'+(d.getMonth()+1)+'/'+d.getDate()+' '+d.getHours()+':'+String(d.getMinutes()).padStart(2,'0');el.style.display='block';}}
-async function exportAll(){try{await CloudSync.createSnapshot('manual-export');}catch(e){console.warn('Cloud snapshot failed before export:',e);}const bk={_meta:{app:'Liminal Space',version:6,exportTime:new Date().toISOString(),keys:SYS.map(s=>s.key),protection:'history-v2'}};SYS.forEach(s=>{const raw=localStorage.getItem(s.key);if(raw!==null)try{bk[s.key]=JSON.parse(raw);}catch(e){}});const bl=new Blob([JSON.stringify(bk,null,2)],{type:'application/json'}),u=URL.createObjectURL(bl),a=document.createElement('a'),n=new Date();a.href=u;a.download='liminal_'+n.getFullYear()+String(n.getMonth()+1).padStart(2,'0')+String(n.getDate()).padStart(2,'0')+'_'+String(n.getHours()).padStart(2,'0')+String(n.getMinutes()).padStart(2,'0')+'.json';a.click();URL.revokeObjectURL(u);localStorage.setItem('last_backup_time',''+Date.now());showLast();toast('\u2705 \u5DF2\u4FDD\u5B58');}
+async function exportAll(){try{await CloudSync.createSnapshot('manual-export');}catch(e){console.warn('Cloud snapshot failed before export:',e);}const bk={_meta:{app:'Liminal Space',version:7,exportTime:new Date().toISOString(),keys:SYS.map(s=>s.key),protection:'history-v2'}};SYS.forEach(s=>{const raw=localStorage.getItem(s.key);if(raw!==null)try{bk[s.key]=JSON.parse(raw);}catch(e){}});const bl=new Blob([JSON.stringify(bk,null,2)],{type:'application/json'}),u=URL.createObjectURL(bl),a=document.createElement('a'),n=new Date();a.href=u;a.download='liminal_'+n.getFullYear()+String(n.getMonth()+1).padStart(2,'0')+String(n.getDate()).padStart(2,'0')+'_'+String(n.getHours()).padStart(2,'0')+String(n.getMinutes()).padStart(2,'0')+'.json';a.click();URL.revokeObjectURL(u);localStorage.setItem('last_backup_time',''+Date.now());showLast();toast('\u2705 \u5DF2\u4FDD\u5B58');}
 async function createCloudSnapshot(){try{toast('正在创建安全快照…');await CloudSync.createSnapshot('manual');await loadSnapshots();toast('✅ 云端安全快照已创建');}catch(e){console.error(e);toast('❌ 快照创建失败，未改动数据');}}
 let pd=null;
 let restoreSnapshotKey=null;

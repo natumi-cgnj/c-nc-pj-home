@@ -374,10 +374,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <input type="number" id="inputSectionCount" placeholder="数量" min="1" max="99" value="">
     <div id="addSectionColsWrap">
       <label>列数（收集模式）</label>
-      <select id="inputSectionCols">
-        <option value="3" selected>每行 3 列</option>
-        <option value="4">每行 4 列</option>
-      </select>
+      <input type="number" id="inputSectionCols" min="2" max="5" value="3">
     </div>
     <div class="btn-row">
       <button class="btn btn-cancel" onclick="closeModal('addSectionModal')">取消</button>
@@ -394,6 +391,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <input type="text" id="quickSectionName" maxlength="40" placeholder="分栏名称" onkeydown="if(event.key==='Enter')saveSectionQuickEdit()">
     <label>类型</label>
     <select id="quickSectionType"><option value="collection">收集</option><option value="inuse">使用中</option></select>
+    <label>列数（收集模式）</label>
+    <input type="number" id="quickSectionCols" min="2" max="5" value="3">
     <div class="btn-row">
       <button class="btn btn-del" onclick="deleteSectionQuickEdit()">删除</button>
       <button class="btn btn-cancel" onclick="closeModal('sectionQuickModal')">取消</button>
@@ -434,7 +433,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <div class="action-sheet" id="itemMenuSheetInner"></div>
 </div>
 
-<script src="cloud-sync.js?v=20260730-guard2"></script>
+<script src="cloud-sync.js?v=20260731-collections1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 
@@ -444,7 +443,7 @@ let projects=[];
 try{projects=JSON.parse(localStorage.getItem(SK))||[];}catch(e){projects=[];}
 
 let curProjectId=null,curItemIdx=null,editProjectId=null,editItemIdx=null,editSectionIdx=null;
-let projectTempIcon='',itemArrangeMode=false;
+let projectTempIcon='',itemArrangeMode=false,itemPressState=null,itemClickSuppressedUntil=0;
 const detailScrollByProject={};
 
 function save(){localStorage.setItem(SK,JSON.stringify(projects));}
@@ -640,7 +639,7 @@ function finalizeSectionDrafts(){
     const req=Math.max(0,parseInt(sec.count)||0);const bucket=Array.isArray(sec._items)?sec._items.slice():[];const group=bucket.slice(0,req);
     for(let i=req;i<bucket.length;i++)if(itemHasSavedContent(bucket[i])){group.push(bucket[i]);preserved++;}
     while(group.length<req)group.push(makeEmptyItem(items.length+group.length+1));
-    sections.push({name:sec.name||'',count:group.length,type:sec.type||'collection',cols:parseInt(sec.cols)||3});items.push(...group);
+    sections.push({name:sec.name||'',count:group.length,type:sec.type||'collection',cols:Math.max(2,Math.min(5,parseInt(sec.cols)||3))});items.push(...group);
   });
   items.forEach((item,i)=>{if(/^条目\d+$/.test(item.name||''))item.name='条目'+(i+1);});
   return{sections,items,preserved};
@@ -652,6 +651,7 @@ function renderSectionList(){
     <input type="text" value="${esc(s.name)}" placeholder="分栏名称" onchange="_sections[${i}].name=this.value">
     <input type="number" value="${s.count||0}" min="0" max="99" style="width:50px" placeholder="数量" onchange="_sections[${i}].count=Math.max(0,parseInt(this.value)||0)">
     <select style="width:60px" onchange="_sections[${i}].type=this.value"><option value="collection" ${(s.type||'collection')==='collection'?'selected':''}>收集</option><option value="inuse" ${s.type==='inuse'?'selected':''}>使用中</option></select>
+    <input type="number" value="${Math.max(2,Math.min(5,parseInt(s.cols)||3))}" min="2" max="5" style="width:42px" title="列数" onchange="_sections[${i}].cols=Math.max(2,Math.min(5,parseInt(this.value)||3))">
     <button class="del-sec" onclick="_sections.splice(${i},1);renderSectionList()">×</button>
   </div>`).join('');
 }
@@ -694,7 +694,41 @@ function deleteProject(){deleteProjectById(curProjectId);}
 function openProject(id){setItemArrangeMode(false);curProjectId=id;const p=getProject(id);if(!p)return;renderDetail(p);switchView('viewDetail');}
 function handleProjectHeaderButton(){if(itemArrangeMode){setItemArrangeMode(false);return;}openProjectMenu();}
 function openProjectMenu(){openSheet('projectMenuSheet');}
-function setItemArrangeMode(a){itemArrangeMode=!!a;const v=document.getElementById('viewDetail'),b=document.getElementById('projectHeaderBtn');if(v)v.classList.toggle('arrange-mode',a);if(b){b.textContent=a?'完成':'⋯';}}
+function setItemArrangeMode(a){itemArrangeMode=!!a;const v=document.getElementById('viewDetail'),b=document.getElementById('projectHeaderBtn');if(v)v.classList.toggle('arrange-mode',a);if(b){b.textContent=a?'完成':'⋯';}if(!a)clearItemArrangeGesture();}
+
+function moveGridItem(fromIdx,toIdx){
+  const p=getProject(curProjectId);if(!p||fromIdx===toIdx||!p.items[fromIdx]||!p.items[toIdx])return false;
+  const fromSec=getItemSectionIndex(p,fromIdx),toSec=getItemSectionIndex(p,toIdx);
+  if(fromSec>=0&&toSec>=0&&fromSec!==toSec){p.sections[fromSec].count=Math.max(0,(parseInt(p.sections[fromSec].count)||0)-1);p.sections[toSec].count=(parseInt(p.sections[toSec].count)||0)+1;}
+  const scroll=currentScrollY(),item=p.items.splice(fromIdx,1)[0];p.items.splice(toIdx,0,item);
+  p.items.forEach((it,i)=>{if(/^条目\d+$/.test(it.name||''))it.name='条目'+(i+1);});
+  save();renderDetail(p);restoreDetailScroll(scroll);return true;
+}
+function clearItemArrangeGesture(){
+  const s=itemPressState;if(s&&s.timer)clearTimeout(s.timer);
+  if(s&&s.el&&s.el.releasePointerCapture)try{s.el.releasePointerCapture(s.pointerId);}catch(e){}
+  document.querySelectorAll('#detailContent .drag-source,#detailContent .drag-over,#detailContent .drop-target').forEach(el=>el.classList.remove('drag-source','drag-over','drop-target'));
+  itemPressState=null;
+}
+function setupItemArrangeGestures(){
+  const list=document.getElementById('detailContent');if(!list)return;
+  list.addEventListener('pointerdown',e=>{
+    if(e.target.closest('button'))return;const el=e.target.closest('.item-cell,.item-row');if(!el||(e.button!==undefined&&e.button!==0))return;
+    clearItemArrangeGesture();const state={el,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,targetIdx:parseInt(el.dataset.index),activated:false,timer:null};itemPressState=state;
+    if(el.setPointerCapture)try{el.setPointerCapture(e.pointerId);}catch(err){}
+    state.timer=setTimeout(()=>{if(itemPressState!==state)return;state.activated=true;setItemArrangeMode(true);el.classList.add('drag-source');if(navigator.vibrate)navigator.vibrate(12);},420);
+  });
+  list.addEventListener('pointermove',e=>{
+    const s=itemPressState;if(!s||s.pointerId!==e.pointerId)return;const distance=Math.hypot(e.clientX-s.startX,e.clientY-s.startY);
+    if(!s.activated){if(distance>10)clearItemArrangeGesture();return;}e.preventDefault();
+    document.querySelectorAll('#detailContent .drag-over,#detailContent .drop-target').forEach(el=>el.classList.remove('drag-over','drop-target'));
+    const target=document.elementFromPoint(e.clientX,e.clientY)?.closest('.item-cell,.item-row');if(target&&target!==s.el&&list.contains(target)){target.classList.add(target.classList.contains('item-cell')?'drop-target':'drag-over');s.targetIdx=parseInt(target.dataset.index);}
+  },{passive:false});
+  const finish=e=>{const s=itemPressState;if(!s||s.pointerId!==e.pointerId)return;if(s.activated){itemClickSuppressedUntil=Date.now()+700;if(s.targetIdx!==parseInt(s.el.dataset.index))moveGridItem(parseInt(s.el.dataset.index),s.targetIdx);}clearItemArrangeGesture();};
+  list.addEventListener('pointerup',finish);list.addEventListener('pointercancel',finish);
+  list.addEventListener('contextmenu',e=>{if(e.target.closest('.item-cell,.item-row'))e.preventDefault();});
+  list.addEventListener('dragstart',e=>e.preventDefault());
+}
 
 function renderDetail(p){
   if(!p)p=getProject(curProjectId);if(!p)return;
@@ -702,8 +736,9 @@ function renderDetail(p){
   document.getElementById('detailTitle').textContent=p.name;
   document.getElementById('detailOverall').innerHTML=`<span>${st.collected} / ${st.total}</span><div class="detail-overall-bar"><div class="detail-overall-fill" style="width:${pct}%"></div></div><span>${pct}%</span>`;
   const container=document.getElementById('detailContent');
-  const sections=p.sections&&p.sections.length?p.sections:null;
-  if(!sections){container.innerHTML='';return;}
+  const sections=p.sections&&p.sections.length?p.sections.map(sec=>({...sec})):[{name:'',count:(p.items||[]).length,type:'collection',cols:3}];
+  const declared=sections.reduce((sum,sec)=>sum+Math.max(0,parseInt(sec.count)||0),0);
+  if(declared<(p.items||[]).length)sections[sections.length-1].count=Math.max(0,parseInt(sections[sections.length-1].count)||0)+p.items.length-declared;
   let html='',offset=0;
   sections.forEach((sec,si)=>{
     const count=sec.count||0;
@@ -769,7 +804,7 @@ function renderDetail(p){
 
 /* ═══ ITEM CLICK ═══ */
 function handleItemClick(idx){
-  if(itemArrangeMode)return;const p=getProject(curProjectId);if(!p||!p.items[idx])return;
+  if(itemArrangeMode||Date.now()<itemClickSuppressedUntil)return;const p=getProject(curProjectId);if(!p||!p.items[idx])return;
   curItemIdx=idx;const item=p.items[idx];const sec=getItemSection(p,idx);const stype=sec?sec.type||'collection':'collection';
   if(stype==='collection'){
     if(item.records&&item.records.length){openItem(idx);return;}
@@ -829,8 +864,8 @@ function openItem(idx){
           ${record.cost?`<span class="history-cost">¥${record.cost}</span>`:''}
           ${record.source?`<span class="history-source">${esc(record.source)}</span>`:''}
           <span class="history-note ${record.note?'':'is-empty'}" title="双击编辑" ondblclick="startHistoryNoteEdit(this,${ri})">${record.note?esc(record.note):'—'}</span>
-          <button class="history-status ${statusClass}" onclick="toggleRecordStatus(${ri})">${statusLabel}</button>
           <button class="history-process ${processClass}" onclick="toggleRecordProcess(${ri})">${processLabel}</button>
+          ${processClass==='processed'?`<button class="history-status ${statusClass}" onclick="toggleRecordStatus(${ri})">${statusLabel}</button>`:''}
           <button class="history-delete" onclick="deleteRecord(${ri})">×</button>
         </div>`;
       });
@@ -1047,8 +1082,8 @@ function openItemMenu(){
 }
 
 /* ═══ SECTION MODALS ═══ */
-function openSectionQuickEdit(si){const p=getProject(curProjectId);if(!p||!p.sections||!p.sections[si])return;editSectionIdx=si;document.getElementById('quickSectionName').value=p.sections[si].name||'';document.getElementById('quickSectionType').value=p.sections[si].type||'collection';openModal('sectionQuickModal');requestAnimationFrame(()=>{const el=document.getElementById('quickSectionName');el.focus();el.select();});}
-function saveSectionQuickEdit(){const p=getProject(curProjectId);if(!p||editSectionIdx===null||!p.sections[editSectionIdx])return;const name=document.getElementById('quickSectionName').value.trim();if(!name)return;p.sections[editSectionIdx].name=name;p.sections[editSectionIdx].type=document.getElementById('quickSectionType').value;save();closeModal('sectionQuickModal');editSectionIdx=null;renderDetail(p);}
+function openSectionQuickEdit(si){const p=getProject(curProjectId);if(!p||!p.sections||!p.sections[si])return;editSectionIdx=si;document.getElementById('quickSectionName').value=p.sections[si].name||'';document.getElementById('quickSectionType').value=p.sections[si].type||'collection';document.getElementById('quickSectionCols').value=Math.max(2,Math.min(5,parseInt(p.sections[si].cols)||3));openModal('sectionQuickModal');requestAnimationFrame(()=>{const el=document.getElementById('quickSectionName');el.focus();el.select();});}
+function saveSectionQuickEdit(){const p=getProject(curProjectId);if(!p||editSectionIdx===null||!p.sections[editSectionIdx])return;const name=document.getElementById('quickSectionName').value.trim();if(!name)return;p.sections[editSectionIdx].name=name;p.sections[editSectionIdx].type=document.getElementById('quickSectionType').value;p.sections[editSectionIdx].cols=Math.max(2,Math.min(5,parseInt(document.getElementById('quickSectionCols').value)||3));save();closeModal('sectionQuickModal');editSectionIdx=null;renderDetail(p);}
 function deleteSectionQuickEdit(){
   const p=getProject(curProjectId);if(!p||editSectionIdx===null)return;const si=editSectionIdx;const sec=p.sections[si];const count=Math.max(0,parseInt(sec.count)||0);
   customConfirm(`删除分栏「${esc(sec.name||'分栏')}」？其中 ${count} 个条目也会一起删除。`,()=>{
@@ -1061,7 +1096,7 @@ function deleteSectionQuickEdit(){
 function openAddSection(){const p=getProject(curProjectId);if(!p)return;document.getElementById('inputSectionName').value='';document.getElementById('inputSectionCount').value='';document.getElementById('inputSectionType').value='collection';document.getElementById('inputSectionCols').value='3';openModal('addSectionModal');requestAnimationFrame(()=>document.getElementById('inputSectionName').focus());}
 function saveAddSection(){
   const p=getProject(curProjectId);if(!p)return;const name=document.getElementById('inputSectionName').value.trim();const count=parseInt(document.getElementById('inputSectionCount').value)||0;
-  const stype=document.getElementById('inputSectionType').value;const cols=parseInt(document.getElementById('inputSectionCols').value)||3;
+  const stype=document.getElementById('inputSectionType').value;const cols=Math.max(2,Math.min(5,parseInt(document.getElementById('inputSectionCols').value)||3));
   if(count<=0){showToast('请输入条目数量');return;}if(!p.sections)p.sections=[];
   p.sections.push({name,count,type:stype,cols});for(let i=0;i<count;i++)p.items.push(makeEmptyItem(p.items.length+1));
   p.count=(p.count||0)+count;save();closeModal('addSectionModal');renderDetail(p);
@@ -1077,8 +1112,29 @@ function importData(input){
   };reader.readAsText(input.files[0]);
 }
 
+/* ═══ CLOUD MIGRATE ═══ */
+async function migrateLocalImages(){
+  if(!window.CloudSync)return;
+  try{
+    await CloudSync.whenReady();let changed=false;
+    for(const p of projects){
+      if(p.icon&&p.icon.startsWith('data:')){p.icon=await CloudSync.uploadDataUrl(p.icon,`stationery/${p.id}_icon.${imagePathExt(p.icon)}`);changed=true;}
+      for(const item of p.items||[]){
+        if(item.img&&item.img.startsWith('data:')){item.img=await CloudSync.uploadDataUrl(item.img,`stationery/${p.id}_${item.id}.${imagePathExt(item.img)}`);changed=true;}
+        if(item.checkinImg&&item.checkinImg.startsWith('data:')){item.checkinImg=await CloudSync.uploadDataUrl(item.checkinImg,`stationery/${p.id}_${item.id}_checkin.${imagePathExt(item.checkinImg)}`);changed=true;}
+        for(const record of item.records||[]){
+          if(record.img&&record.img.startsWith('data:')){record.img=await CloudSync.uploadDataUrl(record.img,`stationery/${p.id}_${item.id}_record_${record.id||gid()}.${imagePathExt(record.img)}`);changed=true;}
+        }
+      }
+    }
+    if(changed){save();renderProjects();}
+  }catch(e){console.warn('Stationery image migration pending:',e);}
+}
+
 /* ═══ INIT ═══ */
 renderProjects();
+setupItemArrangeGestures();
+migrateLocalImages();
 document.querySelectorAll('.file-label').forEach(label=>{
   const input=label.nextElementSibling;if(input&&input.type==='file')label.addEventListener('click',()=>input.click());
 });

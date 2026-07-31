@@ -347,7 +347,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   </div>
 </div>
 
-<script src="cloud-sync.js?v=20260730-guard2"></script>
+<script src="cloud-sync.js?v=20260731-collections1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 
@@ -357,7 +357,7 @@ let projects=[];
 try{projects=JSON.parse(localStorage.getItem(SK))||[];}catch(e){projects=[];}
 
 let curProjectId=null,curItemIdx=null,editProjectId=null,editItemIdx=null,editSectionIdx=null;
-let projectTempIcon='',itemArrangeMode=false;
+let projectTempIcon='',itemArrangeMode=false,itemPressState=null,itemClickSuppressedUntil=0;
 const detailScrollByProject={};
 
 function save(){localStorage.setItem(SK,JSON.stringify(projects));}
@@ -605,7 +605,40 @@ function renderItemRows(items,globalOffset){
 
 /* ── Item arrange mode ── */
 function handleProjectHeaderButton(){if(itemArrangeMode){setItemArrangeMode(false);return;}openProjectMenu();}
-function setItemArrangeMode(a){itemArrangeMode=!!a;const v=document.getElementById('viewDetail'),b=document.getElementById('projectHeaderBtn');if(v)v.classList.toggle('arrange-mode',a);if(b){b.textContent=a?'完成':'⋯';}}
+function setItemArrangeMode(a){itemArrangeMode=!!a;const v=document.getElementById('viewDetail'),b=document.getElementById('projectHeaderBtn');if(v)v.classList.toggle('arrange-mode',a);if(b){b.textContent=a?'完成':'⋯';}if(!a)clearItemArrangeGesture();}
+function moveGridItem(fromIdx,toIdx){
+  const p=getProject(curProjectId);if(!p||fromIdx===toIdx||!p.items[fromIdx]||!p.items[toIdx])return false;
+  const fromSec=getItemSectionIndex(p,fromIdx),toSec=getItemSectionIndex(p,toIdx);
+  if(fromSec>=0&&toSec>=0&&fromSec!==toSec){p.sections[fromSec].count=Math.max(0,(parseInt(p.sections[fromSec].count)||0)-1);p.sections[toSec].count=(parseInt(p.sections[toSec].count)||0)+1;}
+  const scroll=currentScrollY(),item=p.items.splice(fromIdx,1)[0];p.items.splice(toIdx,0,item);
+  p.items.forEach((it,i)=>{if(/^影片\d+$/.test(it.name||''))it.name='影片'+(i+1);});
+  save();renderDetail(p);restoreDetailScroll(scroll);return true;
+}
+function clearItemArrangeGesture(){
+  const s=itemPressState;if(s&&s.timer)clearTimeout(s.timer);
+  if(s&&s.row&&s.row.releasePointerCapture)try{s.row.releasePointerCapture(s.pointerId);}catch(e){}
+  document.querySelectorAll('#itemList .drag-source,#itemList .drag-over').forEach(el=>el.classList.remove('drag-source','drag-over'));
+  itemPressState=null;
+}
+function setupItemArrangeGestures(){
+  const list=document.getElementById('itemList');if(!list)return;
+  list.addEventListener('pointerdown',e=>{
+    if(e.target.closest('button'))return;const row=e.target.closest('.item-row');if(!row||(e.button!==undefined&&e.button!==0))return;
+    clearItemArrangeGesture();const state={row,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,targetIdx:parseInt(row.dataset.index),activated:false,timer:null};itemPressState=state;
+    if(row.setPointerCapture)try{row.setPointerCapture(e.pointerId);}catch(err){}
+    state.timer=setTimeout(()=>{if(itemPressState!==state)return;state.activated=true;setItemArrangeMode(true);row.classList.add('drag-source');if(navigator.vibrate)navigator.vibrate(12);},420);
+  });
+  list.addEventListener('pointermove',e=>{
+    const s=itemPressState;if(!s||s.pointerId!==e.pointerId)return;const distance=Math.hypot(e.clientX-s.startX,e.clientY-s.startY);
+    if(!s.activated){if(distance>10)clearItemArrangeGesture();return;}e.preventDefault();
+    document.querySelectorAll('#itemList .item-row.drag-over').forEach(el=>el.classList.remove('drag-over'));
+    const target=document.elementFromPoint(e.clientX,e.clientY)?.closest('.item-row');if(target&&target!==s.row&&list.contains(target)){target.classList.add('drag-over');s.targetIdx=parseInt(target.dataset.index);}
+  },{passive:false});
+  const finish=e=>{const s=itemPressState;if(!s||s.pointerId!==e.pointerId)return;if(s.activated){itemClickSuppressedUntil=Date.now()+700;if(s.targetIdx!==parseInt(s.row.dataset.index))moveGridItem(parseInt(s.row.dataset.index),s.targetIdx);}clearItemArrangeGesture();};
+  list.addEventListener('pointerup',finish);list.addEventListener('pointercancel',finish);
+  list.addEventListener('contextmenu',e=>{if(e.target.closest('.item-row'))e.preventDefault();});
+  list.addEventListener('dragstart',e=>e.preventDefault());
+}
 function deleteGridItem(idx){
   const p=getProject(curProjectId);if(!p||!p.items[idx])return;
   const item=p.items[idx];const label=isGenericItemName(item.name)?`第 ${idx+1} 部`:`「${esc(item.name)}」`;
@@ -641,7 +674,7 @@ function saveAddSection(){
 
 /* ═══ ITEM CLICK ═══ */
 function handleItemClick(idx){
-  if(itemArrangeMode)return;const p=getProject(curProjectId);if(!p||!p.items[idx])return;
+  if(itemArrangeMode||Date.now()<itemClickSuppressedUntil)return;const p=getProject(curProjectId);if(!p||!p.items[idx])return;
   curItemIdx=idx;const item=p.items[idx];
   if(item.collected){openItem(idx);return;}
   if(item.img){openCheckin();return;}
@@ -837,6 +870,7 @@ async function migrateLocalImages(){
 
 /* ═══ INIT ═══ */
 renderProjects();
+setupItemArrangeGestures();
 migrateLocalImages();
 </script>
 </body>
