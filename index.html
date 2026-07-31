@@ -147,7 +147,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   .apt-wrap{grid-area:apartment;width:min(460px,calc((100dvh - 103px)*.6),calc(100vw - 390px));max-width:none;align-self:start;overflow:visible;max-height:none}
   .char-sprite img,.char-placeholder .character-skin-img{height:clamp(68px,13dvh,100px)}
   .action-panel{grid-area:actions;width:260px;align-self:center}
-  .shortcuts{grid-template-columns:repeat(3,1fr);gap:16px 12px;margin-top:0;max-width:260px}
+  .shortcuts{grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(4,auto);grid-auto-flow:column;direction:rtl;gap:16px 12px;margin-top:0;max-width:260px}
+  .shortcuts>.shortcut{direction:ltr}
   .shortcut-icon{width:46px;height:46px;font-size:18px}
   .shortcut-label{font-size:11px}
   .footer{margin-top:28px}

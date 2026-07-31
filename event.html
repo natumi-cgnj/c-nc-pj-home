@@ -140,8 +140,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .section-divider-line{flex:1;height:1px;background:#e0e0e0}
 .section-divider-label{font-size:11px;color:#999;font-weight:500;letter-spacing:0.3px;cursor:text;border-bottom:1px dashed transparent;transition:color 0.15s,border-color 0.15s}
 .section-divider-label:hover{color:#8B6914;border-bottom-color:#D8C18B}
-.section-divider-cols{font-size:10px;color:#ccc}
-.section-progress{font-size:10px;color:#bbb;margin-left:4px;font-variant-numeric:tabular-nums}
+.section-progress{font-size:10px;color:#bbb;white-space:nowrap;font-variant-numeric:tabular-nums;flex-shrink:0}
 .subcount-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px}
 .subcount-row label{margin:0;font-size:12px;color:#999}
 .subcount-row input[type="number"]{width:60px;font-size:13px;padding:6px 8px}
@@ -549,13 +548,8 @@ function sectionStats(p,sectionIdx){
   return{total,collected};
 }
 function getSubcountConfig(sectionType){
-  const configs={
-    collab:[{key:'food',label:'餐品'},{key:'merch',label:'赠品'}],
-    restaurant:[{key:'food',label:'餐品'},{key:'merch',label:'赠品'},{key:'shopping',label:'购物'}],
-    mall:[{key:'content',label:'内容'},{key:'merch',label:'赠品'}],
-    movie:[{key:'food',label:'餐品'},{key:'merch',label:'赠品'},{key:'shopping',label:'购物'}]
-  };
-  return configs[sectionType]||null;
+  const all=[{key:'food',label:'餐品'},{key:'merch',label:'赠品'},{key:'shopping',label:'购物'},{key:'content',label:'内容'}];
+  return all;
 }
 function normalizeGenericItemNames(p){
   if(!p||!Array.isArray(p.items))return;
@@ -907,6 +901,7 @@ function buildSectionDrafts(p){
     const draft={name:sec.name||'',count,cols:sec.cols||3,sectionType:sec.sectionType||'normal',_items:p.items.slice(offset,offset+count)};
     if(sec.subcounts)draft.subcounts={...sec.subcounts};
     if(sec.subCols)draft.subCols={...sec.subCols};
+    if(sec.subLabels)draft.subLabels={...sec.subLabels};
     offset+=count;
     return draft;
   });
@@ -929,7 +924,7 @@ function updateSectionSubcount(index,key,value){
   if(!_sections[index].subcounts)_sections[index].subcounts={};
   _sections[index].subcounts[key]=Math.max(0,parseInt(value)||0);
   const cfg=getSubcountConfig(_sections[index].sectionType);
-  if(cfg)_sections[index].count=cfg.reduce((s,c)=>s+(_sections[index].subcounts[c.key]||0),0);
+  _sections[index].count=cfg.reduce((s,c)=>s+(_sections[index].subcounts[c.key]||0),0);
 }
 function updateSectionSubcols(index,key,value){
   if(!_sections[index])return;
@@ -959,7 +954,7 @@ function finalizeSectionDrafts(){
         for(const c of cfg){run+=(sec.subcounts[c.key]||0);if(group.length<run){itemType=c.key;break;}}
         const it=makeEmptyItem(items.length+group.length+1);it.itemType=itemType;group.push(it);
       }
-      const sd={name:sec.name||'',count:group.length,cols:sec.cols||3,sectionType:sec.sectionType||'normal',subcounts:{...sec.subcounts}};
+      const sd={name:sec.name||'',count:group.length,cols:sec.cols||3,sectionType:sec.sectionType||'normal',subcounts:{...sec.subcounts},subLabels:sec.subLabels?{...sec.subLabels}:{}};
       if(sec.subCols)sd.subCols={...sec.subCols};
       sections.push(sd);
     }else{
@@ -985,9 +980,10 @@ function renderSectionList(){
     </select>`;
     const cfg=getSubcountConfig(s.sectionType);
     if(cfg){
-      if(!s.subcounts)s.subcounts={};
+      if(!s.subcounts){s.subcounts={};if(s.count>0)s.subcounts[cfg[0].key]=s.count;}
       if(!s.subCols)s.subCols={};
-      const subArea=cfg.map(c=>`<div style="display:inline-flex;align-items:center;gap:2px"><span style="font-size:10px;color:#999">${c.label}</span><input type="number" value="${s.subcounts[c.key]||0}" min="0" max="99" style="width:38px;font-size:11px" onchange="updateSectionSubcount(${i},'${c.key}',this.value)"><input type="number" value="${s.subCols[c.key]||3}" min="2" max="5" style="width:32px;font-size:10px" title="${c.label}列数" onchange="updateSectionSubcols(${i},'${c.key}',this.value)"><span style="font-size:9px;color:#ccc">列</span></div>`).join(' ');
+      if(!s.subLabels)s.subLabels={};
+      const subArea=cfg.map(c=>`<div style="display:inline-flex;align-items:center;gap:2px"><input type="text" value="${esc(s.subLabels[c.key]||'')}" placeholder="${c.label}" style="width:64px;font-size:11px;padding:4px 6px" onchange="_sections[${i}].subLabels['${c.key}']=this.value"><input type="number" value="${s.subcounts[c.key]||0}" min="0" max="99" style="width:38px;font-size:11px" onchange="updateSectionSubcount(${i},'${c.key}',this.value)"><input type="number" value="${s.subCols[c.key]||3}" min="2" max="5" style="width:32px;font-size:10px" title="${c.label}列数" onchange="updateSectionSubcols(${i},'${c.key}',this.value)"><span style="font-size:9px;color:#ccc">列</span></div>`).join(' ');
       return`<div class="section-row" data-sec-idx="${i}">
     <input type="text" value="${esc(s.name)}" placeholder="分栏名称" onchange="_sections[${i}].name=this.value">
     ${typeSelect}
@@ -1175,7 +1171,7 @@ function saveAddSection(){
   const sectionType=document.getElementById('addSectionType').value;
   const cols=parseInt(document.getElementById('inputSectionCols').value)||3;
   const cfg=getSubcountConfig(sectionType);
-  let totalCount=0;let subcounts=null;let subCols=null;
+  let totalCount=0;let subcounts=null;let subCols=null;var subLabels={};
   if(cfg){
     subcounts={};subCols={};
     document.querySelectorAll('#subcountInputs .subcount-input').forEach(inp=>{
@@ -1185,6 +1181,9 @@ function saveAddSection(){
     document.querySelectorAll('#subcountInputs .subcols-input').forEach(inp=>{
       subCols[inp.dataset.key]=Math.max(2,Math.min(5,parseInt(inp.value)||3));
     });
+    document.querySelectorAll('#subcountInputs .sublabel-input').forEach(inp=>{
+      if(inp.value.trim())subLabels[inp.dataset.key]=inp.value.trim();
+    });
   }else{
     totalCount=parseInt(document.getElementById('inputSectionCount').value)||0;
   }
@@ -1193,6 +1192,7 @@ function saveAddSection(){
   const sec={name:secName,count:totalCount,cols,sectionType};
   if(subcounts)sec.subcounts=subcounts;
   if(subCols)sec.subCols=subCols;
+  if(subLabels&&Object.keys(subLabels).length)sec.subLabels=subLabels;
   p.sections.push(sec);
   if(cfg&&subcounts){
     cfg.forEach(s=>{
@@ -1264,7 +1264,7 @@ function renderDetail(p){
       const secSt=sectionStats(p,si);
       const secPct=secSt.total>0?Math.round(secSt.collected/secSt.total*100):0;
       const progressHtml=`<span class="section-progress">${secSt.collected}/${secSt.total} ${secPct}%</span>`;
-      html+=`<div class="section-divider"><div class="section-divider-line"></div><span class="section-divider-label" title="双击编辑分栏" ondblclick="event.stopPropagation();openSectionQuickEdit(${si})">${esc(sec.name)}${typeBadge}</span>${progressHtml}<span class="section-divider-cols">${cols}列</span><div class="section-divider-line"></div></div>`;
+      html+=`<div class="section-divider"><div class="section-divider-line"></div><span class="section-divider-label" title="双击编辑分栏" ondblclick="event.stopPropagation();openSectionQuickEdit(${si})">${esc(sec.name)}${typeBadge}</span><div class="section-divider-line"></div>${progressHtml}</div>`;
     }else if(si>0){
       html+=`<div class="section-divider"><div class="section-divider-line"></div></div>`;
     }
@@ -1275,7 +1275,8 @@ function renderDetail(p){
         const sc=sec.subcounts[c.key]||0;
         const subC=(sec.subCols&&sec.subCols[c.key])||cols;
         if(sc>0){
-          html+=`<div style="font-size:10px;color:#bbb;padding:3px 14px;margin-top:2px">${c.label}</div>`;
+          const subLabel=(sec.subLabels&&sec.subLabels[c.key])||c.label;
+          html+=`<div style="font-size:10px;color:#bbb;padding:3px 14px;margin-top:2px">${subLabel}</div>`;
           html+=`<div class="section-grid" style="grid-template-columns:repeat(${subC},1fr)">`;
           html+=renderItemCells(secItems.slice(subOff,subOff+sc),offset+subOff,subC);
           html+=`</div>`;
@@ -2188,7 +2189,7 @@ function onAddSectionTypeChange(){
     multi.style.display='';
     if(colsWrap)colsWrap.style.display='none';
     document.getElementById('subcountInputs').innerHTML=cfg.map(s=>
-      '<label>'+s.label+'</label><input type="number" class="subcount-input" data-key="'+s.key+'" placeholder="0" min="0" max="99" value=""> <input type="number" class="subcols-input" data-key="'+s.key+'" min="2" max="5" value="3" style="width:42px;font-size:11px" title="列数"><span style="font-size:10px;color:#ccc">列</span>'
+      '<label>'+s.label+'</label><input type="text" class="sublabel-input" data-key="'+s.key+'" placeholder="'+s.label+'" style="width:80px;font-size:12px"> <input type="number" class="subcount-input" data-key="'+s.key+'" placeholder="0" min="0" max="99" value=""> <input type="number" class="subcols-input" data-key="'+s.key+'" min="2" max="5" value="3" style="width:42px;font-size:11px" title="列数"><span style="font-size:10px;color:#ccc">列</span>'
     ).join('');
   }else{
     single.style.display='';
