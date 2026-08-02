@@ -324,8 +324,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <h2>影视记录备份</h2>
     <div style="padding:8px 0">
       <button class="btn btn-cancel" style="margin-bottom:8px;width:100%" onclick="exportData()">导出数据</button>
-      <button class="btn btn-cancel" style="width:100%" onclick="document.getElementById('importFile').click()">导入数据</button>
+      <button class="btn btn-cancel" style="width:100%;margin-bottom:8px" onclick="document.getElementById('importFile').click()">导入数据</button>
       <input type="file" id="importFile" accept=".json" onchange="importData(this)" style="display:none">
+      <button class="btn btn-cancel" style="width:100%" onclick="checkOrphanedCinemaAssets()">检查无引用图片</button>
     </div>
     <div class="btn-row"><button class="btn btn-cancel" onclick="closeModal('backupModal')">关闭</button></div>
   </div>
@@ -550,11 +551,12 @@ async function saveProject(){
   const name=document.getElementById('inputProjectName').value.trim();if(!name)return;
   const note=document.getElementById('inputProjectNote').value.trim();
   let duty={..._dutyState};if(duty.type==='custom')duty.name=document.getElementById('dutyCustomName').value.trim();
+  const stableProjectId=editProjectId||gid();
   let icon=projectTempIcon;
-  if(icon&&icon.startsWith('data:')&&window.CloudSync)try{icon=await CloudSync.uploadDataUrl(icon,`cinema/${editProjectId||gid()}_icon.jpg`);}catch(e){}
+  if(icon&&icon.startsWith('data:')&&window.CloudSync)try{icon=await CloudSync.uploadDataUrl(icon,`cinema/${stableProjectId}_icon.jpg`);}catch(e){}
   const fin=finalizeSectionDrafts();
   if(editProjectId){const p=getProject(editProjectId);if(p){p.name=name;p.note=note;p.duty=duty;if(icon)p.icon=icon;p.sections=fin.sections;p.items=fin.items;p.count=fin.items.length;}}
-  else projects.push({id:gid(),name,note,icon:icon||'',count:fin.items.length,duty,items:fin.items,sections:fin.sections,order:projects.length});
+  else projects.push({id:stableProjectId,name,note,icon:icon||'',count:fin.items.length,duty,items:fin.items,sections:fin.sections,order:projects.length});
   save();closeModal('projectModal');if(fin.preserved)showToast(`已保留 ${fin.preserved} 个有记录的影片`);if(editProjectId)renderDetail();renderProjects();
 }
 function deleteProject(){deleteProjectById(curProjectId);}
@@ -753,7 +755,7 @@ async function saveCheckin(){
   const noteVal=document.getElementById('checkinNote').value.trim();
   const preview=document.getElementById('checkinImgPreview');
   let cImg=preview.style.display!=='none'?(preview.dataset.source||''):'';
-  if(cImg&&cImg.startsWith('data:')&&window.CloudSync)try{cImg=await CloudSync.uploadDataUrl(cImg,`cinema/${curProjectId}_${item.id}_checkin_${gid()}.${imagePathExt(cImg)}`);}catch(e){}
+  if(cImg&&cImg.startsWith('data:')&&window.CloudSync)try{cImg=await CloudSync.uploadDataUrl(cImg,`cinema/${curProjectId}_${item.id}_checkin.${imagePathExt(cImg)}`);}catch(e){}
   item.collected=true;item.collectedDate=dateVal;item.checkinNote=noteVal;
   if(cImg)item.checkinImg=cImg;
   save();closeModal('checkinModal');
@@ -840,6 +842,58 @@ function optimizedImageDataUrl(file,maxSize){
 }
 function imagePathExt(d){if(String(d).startsWith('data:image/png'))return'png';if(String(d).startsWith('data:image/webp'))return'webp';return'jpg';}
 
+async function uploadInlineCinemaImages(targetProjects){
+  if(!window.CloudSync)return false;
+  await CloudSync.whenReady();
+  let changed=false;
+  for(const p of targetProjects){
+    if(!p.id){p.id=gid();changed=true;}
+    if(p.icon&&p.icon.startsWith('data:')){p.icon=await CloudSync.uploadDataUrl(p.icon,`cinema/${p.id}_icon.${imagePathExt(p.icon)}`);changed=true;}
+    if(!Array.isArray(p.items))p.items=[];
+    for(const item of p.items){
+      if(!item.id){item.id=gid();changed=true;}
+      if(item.img&&item.img.startsWith('data:')){item.img=await CloudSync.uploadDataUrl(item.img,`cinema/${p.id}_${item.id}.${imagePathExt(item.img)}`);changed=true;}
+      if(item.checkinImg&&item.checkinImg.startsWith('data:')){item.checkinImg=await CloudSync.uploadDataUrl(item.checkinImg,`cinema/${p.id}_${item.id}_checkin.${imagePathExt(item.checkinImg)}`);changed=true;}
+    }
+  }
+  return changed;
+}
+
+function collectCinemaAssetRefs(sourceProjects){
+  const refs=new Set();
+  for(const p of sourceProjects||[]){
+    if(p.icon&&String(p.icon).startsWith('cloud://'))refs.add(String(p.icon));
+    for(const item of Array.isArray(p.items)?p.items:[]){
+      if(item.img&&String(item.img).startsWith('cloud://'))refs.add(String(item.img));
+      if(item.checkinImg&&String(item.checkinImg).startsWith('cloud://'))refs.add(String(item.checkinImg));
+    }
+  }
+  return refs;
+}
+
+async function checkOrphanedCinemaAssets(){
+  if(!window.CloudSync||typeof CloudSync.listAssets!=='function'||typeof CloudSync.deleteAssets!=='function'){
+    showToast('请刷新页面后再检查');return;
+  }
+  try{
+    showToast('正在检查影视图片…');
+    const stored=await CloudSync.listAssets('cinema');
+    const refs=collectCinemaAssetRefs(projects);
+    const orphaned=stored.filter(value=>!refs.has(value));
+    if(!orphaned.length){showToast('没有发现无引用图片');return;}
+    customConfirm(
+      `找到 ${orphaned.length} 张当前片单未引用的图片。清理后，旧快照中若仍有已删影片，其图片将无法恢复。确认清理？`,
+      async()=>{
+        try{
+          const removed=await CloudSync.deleteAssets(orphaned);
+          showToast(`已清理 ${removed} 张无引用图片`);
+        }catch(e){console.warn('Cinema orphan cleanup failed:',e);showToast('清理失败，请稍后重试');}
+      },
+      {yes:'清理',danger:true}
+    );
+  }catch(e){console.warn('Cinema orphan scan failed:',e);showToast('检查失败，请稍后重试');}
+}
+
 /* ═══ MENUS / MODALS / BACKUP ═══ */
 function openProjectMenu(){document.getElementById('projectMenuSheet').classList.add('show');}
 function openItemMenu(){document.getElementById('itemMenuSheet').classList.add('show');}
@@ -852,20 +906,35 @@ document.getElementById('itemFileLabel').addEventListener('click',()=>document.g
 document.getElementById('checkinImgLabel').addEventListener('click',()=>document.getElementById('checkinImgInput').click());
 
 function exportData(){const blob=new Blob([JSON.stringify(projects,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='cinema_backup_'+new Date().toISOString().slice(0,10)+'.json';a.click();}
-function importData(input){if(!input.files||!input.files[0])return;const reader=new FileReader();reader.onload=ev=>{try{const data=JSON.parse(ev.target.result);if(!Array.isArray(data)){showToast('格式不正确');input.value='';return;}customConfirm('导入数据？将覆盖当前记录。',()=>{projects=data;save();renderProjects();closeModal('backupModal');});}catch(e){showToast('导入失败');}input.value='';};reader.readAsText(input.files[0]);}
+function importData(input){
+  if(!input.files||!input.files[0])return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const data=JSON.parse(ev.target.result);
+      if(!Array.isArray(data)){showToast('格式不正确');input.value='';return;}
+      customConfirm('导入数据？将覆盖当前记录。',async()=>{
+        try{
+          if(window.CloudSync){
+            showToast('正在上传导入图片…');
+            await uploadInlineCinemaImages(data);
+          }
+          projects=data;save();renderProjects();closeModal('backupModal');showToast('导入完成');
+        }catch(e){console.warn('Cinema import failed:',e);showToast('图片上传失败，原记录未覆盖');}
+      });
+    }catch(e){showToast('导入失败');}
+    input.value='';
+  };
+  reader.readAsText(input.files[0]);
+}
 
 /* ═══ CLOUD MIGRATE ═══ */
 async function migrateLocalImages(){
   if(!window.CloudSync)return;
-  try{await CloudSync.whenReady();let changed=false;
-  for(const p of projects){
-    if(p.icon&&p.icon.startsWith('data:')){p.icon=await CloudSync.uploadDataUrl(p.icon,`cinema/${p.id}_icon.jpg`);changed=true;}
-    for(const item of p.items){
-      if(item.img&&item.img.startsWith('data:')){item.img=await CloudSync.uploadDataUrl(item.img,`cinema/${p.id}_${item.id}.jpg`);changed=true;}
-      if(item.checkinImg&&item.checkinImg.startsWith('data:')){item.checkinImg=await CloudSync.uploadDataUrl(item.checkinImg,`cinema/${p.id}_${item.id}_checkin.jpg`);changed=true;}
-    }
-  }
-  if(changed){save();renderProjects();}}catch(e){console.warn('Cinema image migration pending:',e);}
+  try{
+    const changed=await uploadInlineCinemaImages(projects);
+    if(changed){save();renderProjects();}
+  }catch(e){console.warn('Cinema image migration pending:',e);}
 }
 
 /* ═══ INIT ═══ */
