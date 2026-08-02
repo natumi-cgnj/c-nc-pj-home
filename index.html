@@ -529,21 +529,22 @@ function applyMod(){
 /* ═══ CHARACTER PLACEMENT ═══ */
 const charZone={}; // tracks which room each char is currently in
 const CHAR_PLACEMENT_KEY='home_character_placement';
-let charPlacementState={periodKey:'',placements:{}};
+const CHAR_PLACEMENT_VERSION=2;
+let charPlacementState={version:CHAR_PLACEMENT_VERSION,periodKey:'',placements:{}};
 
 function getCharacterPlacementState(){
   const periodKey=getCGPeriodKey(new Date());
-  if(charPlacementState.periodKey===periodKey)return charPlacementState;
+  if(charPlacementState.version===CHAR_PLACEMENT_VERSION&&charPlacementState.periodKey===periodKey)return charPlacementState;
 
   try{
     const saved=JSON.parse(localStorage.getItem(CHAR_PLACEMENT_KEY)||'null');
-    if(saved&&saved.periodKey===periodKey&&saved.placements&&typeof saved.placements==='object'){
+    if(saved&&saved.version===CHAR_PLACEMENT_VERSION&&saved.periodKey===periodKey&&saved.placements&&typeof saved.placements==='object'){
       charPlacementState=saved;
       return charPlacementState;
     }
   }catch(e){}
 
-  charPlacementState={periodKey,placements:{}};
+  charPlacementState={version:CHAR_PLACEMENT_VERSION,periodKey,placements:{}};
   return charPlacementState;
 }
 
@@ -551,13 +552,57 @@ function saveCharacterPlacementState(){
   try{localStorage.setItem(CHAR_PLACEMENT_KEY,JSON.stringify(charPlacementState));}catch(e){}
 }
 
-function validCharacterPlacement(placement,availableRooms){
+function validCharacterPlacement(placement,availableRooms,contextKey,requiredZone){
   return !!placement
     && availableRooms.includes(placement.zone)
+    && (!requiredZone||placement.zone===requiredZone)
+    && placement.contextKey===contextKey
     && Number.isFinite(placement.x)
     && Number.isFinite(placement.y)
     && placement.x>=0&&placement.x<=1
     && placement.y>=0&&placement.y<=1;
+}
+
+function stablePlacementUnit(seed){
+  let hash=2166136261;
+  const text=String(seed||'');
+  for(let i=0;i<text.length;i++){
+    hash^=text.charCodeAt(i);
+    hash=Math.imul(hash,16777619);
+  }
+  return (hash>>>0)/4294967296;
+}
+
+function getRuntimePlacementContext(charId,availableRooms){
+  if(!window.CharacterRuntime)return null;
+  const status=CharacterRuntime.getCharacterStatus(charId);
+  const activity=status&&status.worldActivity;
+
+  if(activity&&activity.activityMode==='in_room'){
+    const requested=activity.roomTarget||activity.liminalRoom||charId;
+    const zone=availableRooms.includes(requested)?requested:charId;
+    return {zone,contextKey:'activity:'+(activity.eventId||activity.actionId||'in-room')+':'+zone};
+  }
+  if(status&&status.returnState){
+    return {zone:charId,contextKey:'return:'+(status.returnState.eventId||'home')};
+  }
+  if(status&&status.isOnBreak&&activity){
+    return {zone:charId,contextKey:'break:'+(activity.eventId||activity.actionId||'home')};
+  }
+  return null;
+}
+
+function createStablePlacement(charId,availableRooms,contextKey,requiredZone){
+  const zone=requiredZone||availableRooms[Math.min(
+    availableRooms.length-1,
+    Math.floor(stablePlacementUnit(contextKey+'|'+charId+'|zone')*availableRooms.length)
+  )];
+  return {
+    zone,
+    x:stablePlacementUnit(contextKey+'|'+charId+'|x'),
+    y:stablePlacementUnit(contextKey+'|'+charId+'|y'),
+    contextKey
+  };
 }
 
 function getAvailableRooms(charId){
@@ -576,13 +621,14 @@ const roomIdMap={neal:'roomNeal',jane:'roomJane',natumi:'roomNatumi',will:'roomW
 function placeChar(id){
   const avail=getAvailableRooms(id);
   const state=getCharacterPlacementState();
+  const runtimeContext=getRuntimePlacementContext(id,avail);
+  const requiredZone=runtimeContext&&runtimeContext.zone;
+  const contextKey=runtimeContext
+    ?runtimeContext.contextKey
+    :'period:'+state.periodKey+':'+avail.join(',');
   let placement=state.placements[id];
-  if(!validCharacterPlacement(placement,avail)){
-    placement={
-      zone:avail[Math.floor(Math.random()*avail.length)],
-      x:Math.random(),
-      y:Math.random()
-    };
+  if(!validCharacterPlacement(placement,avail,contextKey,requiredZone)){
+    placement=createStablePlacement(id,avail,contextKey,requiredZone);
     state.placements[id]=placement;
     saveCharacterPlacementState();
   }
