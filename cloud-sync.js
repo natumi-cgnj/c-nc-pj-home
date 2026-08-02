@@ -22,10 +22,10 @@
     'bjd_db3', 'techo_db2', 'shop_db', 'event_db', 'event_presets', 'dungeon_db',
     'kitchen_db', 'activity_db', 'cinema_db', 'stationery_db', 'wallet_db',
     'home_modules', 'home_lines', 'home_skins', 'home_skin_custom',
-    'home_skin_daily', 'shortcut-order'
+    'home_skin_daily', 'home_cg_library', 'home_cg_period', 'shortcut-order'
   ];
   const PAGE_KEYS = {
-    'index.html': ['habit_db', 'home_modules', 'home_lines', 'home_skins', 'home_skin_custom', 'home_skin_daily', 'shortcut-order'],
+    'index.html': ['habit_db', 'home_modules', 'home_lines', 'home_skins', 'home_skin_custom', 'home_skin_daily', 'home_cg_library', 'home_cg_period', 'shortcut-order'],
     'daily.html': ['daily_db', 'daily_presets', 'gacha_st', 'bean_st', 'habit_db'],
     'gacha.html': ['gacha_st'],
     'habit.html': ['habit_db', 'bean_st'],
@@ -309,6 +309,7 @@
 
   function localDayKey() {
     const now = new Date();
+    now.setHours(now.getHours() - 4);
     return now.getFullYear() + '-' +
       String(now.getMonth() + 1).padStart(2, '0') + '-' +
       String(now.getDate()).padStart(2, '0');
@@ -525,7 +526,8 @@
       dungeon_db: '副本库存', kitchen_db: '饮食', activity_db: '活动收集',
       cinema_db: '影视', stationery_db: '文具', 'shortcut-order': '首页快捷入口排序',
       wallet_db: '记账', home_modules: '房间连接', home_lines: '首页台词',
-      home_skins: '衣柜候选', home_skin_custom: '衣柜衣装', home_skin_daily: '今日衣装'
+      home_skins: '衣柜候选', home_skin_custom: '衣柜衣装', home_skin_daily: '今日衣装',
+      home_cg_library: '首页 CG 库', home_cg_period: '当前时段 CG'
     };
     return labels[key] || key;
   }

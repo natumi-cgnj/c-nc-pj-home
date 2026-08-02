@@ -224,7 +224,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <div class="toast" id="toast"></div>
 <div class="confirm-bg" id="confirmBg"><div class="confirm-box"></div></div>
 
-<script src="cloud-sync.js?v=20260730-guard2"></script>
+<script src="cloud-sync.js?v=20260802-cg1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 var SK='wallet_db';
@@ -388,6 +388,7 @@ function renderCurrentTab(viewId){
 /* ═══ DATE / PERIOD HELPERS ═══ */
 function todayStr(value){
   var d=value?new Date(value):new Date();
+  d.setHours(d.getHours()-4);
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 }
 function getCurrentPeriod(){

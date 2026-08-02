@@ -77,7 +77,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <div class="confirm-title">确认恢复数据？</div><div class="confirm-msg" id="confirmMsg"></div>
 <div class="confirm-btns"><button class="cbtn-cancel" onclick="hideConfirm()">取消</button><button class="cbtn-danger" onclick="runConfirmedRestore()">覆盖恢复</button></div>
 </div></div>
-<script src="cloud-sync.js?v=20260731-collections1"></script>
+<script src="cloud-sync.js?v=20260802-cg1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 function collectionItemType(owner,item,index){
@@ -127,13 +127,15 @@ const SYS=[
 {key:'home_modules',name:'\u623F\u95F4\u8FDE\u63A5',color:'#D85A30',desc:d=>{if(!d)return'\u9ED8\u8BA4';const n=Object.values(d).filter(Boolean).length;return n+'\u4E2A\u5DF2\u8FDE\u63A5';}},
 {key:'home_skins',name:'\u8863\u67DC\u5019\u9009',color:'#B58A6A',desc:d=>{if(!d)return'\u9ED8\u8BA4';return Object.values(d).reduce((n,c)=>n+((c&&c.selected)||[]).length,0)+'\u5957\u5019\u9009';}},
 {key:'home_skin_custom',name:'\u8863\u67DC\u8863\u88C5',color:'#C69A7A',desc:d=>{if(!d)return'\u9ED8\u8BA4';return Object.values(d).reduce((n,list)=>n+(Array.isArray(list)?list.length:0),0)+'\u6761\u8BB0\u5F55';}},
-{key:'home_skin_daily',name:'\u4ECA\u65E5\u8863\u88C5',color:'#D4B08C',desc:d=>{if(!d||!d.active)return'-';return Object.keys(d.active).length+'\u4EBA\u5DF2\u62BD\u53D6';}}
+{key:'home_skin_daily',name:'\u4ECA\u65E5\u8863\u88C5',color:'#D4B08C',desc:d=>{if(!d||!d.active)return'-';return Object.keys(d.active).length+'\u4EBA\u5DF2\u62BD\u53D6';}},
+{key:'home_cg_library',name:'\u9996\u9875 CG \u5E93',color:'#7C8798',desc:d=>{if(!d||!d.slots)return'\u9ED8\u8BA4';return Object.values(d.slots).reduce((n,s)=>n+((s&&s.custom)||[]).length,0)+'\u5F20\u81EA\u5B9A\u4E49';}},
+{key:'home_cg_period',name:'\u5F53\u524D\u65F6\u6BB5 CG',color:'#98A2B1',desc:d=>d&&d.periodKey?d.periodKey:'-'}
 ];
 function gd(k){try{return JSON.parse(localStorage.getItem(k));}catch(e){return null;}}
 function gs(k){const v=localStorage.getItem(k);if(!v)return'-';const b=new Blob([v]).size;return b<1024?b+'B':(b/1024).toFixed(1)+'KB';}
 function renderSys(){document.getElementById('systemList').innerHTML=SYS.map(s=>'<div class="system-row"><div class="system-info"><div class="system-dot" style="background:'+s.color+'"></div><div><div class="system-name">'+s.name+'</div><div class="system-status">'+s.desc(gd(s.key))+'</div></div></div><div class="system-size">'+gs(s.key)+'</div></div>').join('');}
 function showLast(){const el=document.getElementById('lastBackup'),t=localStorage.getItem('last_backup_time');if(t){const d=new Date(+t);el.textContent='\u4E0A\u6B21\u5907\u4EFD\uFF1A'+(d.getMonth()+1)+'/'+d.getDate()+' '+d.getHours()+':'+String(d.getMinutes()).padStart(2,'0');el.style.display='block';}}
-async function exportAll(){try{await CloudSync.createSnapshot('manual-export');}catch(e){console.warn('Cloud snapshot failed before export:',e);}const bk={_meta:{app:'Liminal Space',version:7,exportTime:new Date().toISOString(),keys:SYS.map(s=>s.key),protection:'history-v2'}};SYS.forEach(s=>{const raw=localStorage.getItem(s.key);if(raw!==null)try{bk[s.key]=JSON.parse(raw);}catch(e){}});const bl=new Blob([JSON.stringify(bk,null,2)],{type:'application/json'}),u=URL.createObjectURL(bl),a=document.createElement('a'),n=new Date();a.href=u;a.download='liminal_'+n.getFullYear()+String(n.getMonth()+1).padStart(2,'0')+String(n.getDate()).padStart(2,'0')+'_'+String(n.getHours()).padStart(2,'0')+String(n.getMinutes()).padStart(2,'0')+'.json';a.click();URL.revokeObjectURL(u);localStorage.setItem('last_backup_time',''+Date.now());showLast();toast('\u2705 \u5DF2\u4FDD\u5B58');}
+async function exportAll(){try{await CloudSync.createSnapshot('manual-export');}catch(e){console.warn('Cloud snapshot failed before export:',e);}const bk={_meta:{app:'Liminal Space',version:8,exportTime:new Date().toISOString(),keys:SYS.map(s=>s.key),protection:'history-v2'}};SYS.forEach(s=>{const raw=localStorage.getItem(s.key);if(raw!==null)try{bk[s.key]=JSON.parse(raw);}catch(e){}});const bl=new Blob([JSON.stringify(bk,null,2)],{type:'application/json'}),u=URL.createObjectURL(bl),a=document.createElement('a'),n=new Date();a.href=u;a.download='liminal_'+n.getFullYear()+String(n.getMonth()+1).padStart(2,'0')+String(n.getDate()).padStart(2,'0')+'_'+String(n.getHours()).padStart(2,'0')+String(n.getMinutes()).padStart(2,'0')+'.json';a.click();URL.revokeObjectURL(u);localStorage.setItem('last_backup_time',''+Date.now());showLast();toast('\u2705 \u5DF2\u4FDD\u5B58');}
 async function createCloudSnapshot(){try{toast('正在创建安全快照…');await CloudSync.createSnapshot('manual');await loadSnapshots();toast('✅ 云端安全快照已创建');}catch(e){console.error(e);toast('❌ 快照创建失败，未改动数据');}}
 let pd=null;
 let restoreSnapshotKey=null;
