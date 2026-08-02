@@ -77,7 +77,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <div class="confirm-title">确认恢复数据？</div><div class="confirm-msg" id="confirmMsg"></div>
 <div class="confirm-btns"><button class="cbtn-cancel" onclick="hideConfirm()">取消</button><button class="cbtn-danger" onclick="runConfirmedRestore()">覆盖恢复</button></div>
 </div></div>
-<script src="cloud-sync.js?v=20260802-cg1"></script>
+<script src="cloud-sync.js?v=20260802-outing1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 function collectionItemType(owner,item,index){
@@ -129,7 +129,10 @@ const SYS=[
 {key:'home_skin_custom',name:'\u8863\u67DC\u8863\u88C5',color:'#C69A7A',desc:d=>{if(!d)return'\u9ED8\u8BA4';return Object.values(d).reduce((n,list)=>n+(Array.isArray(list)?list.length:0),0)+'\u6761\u8BB0\u5F55';}},
 {key:'home_skin_daily',name:'\u4ECA\u65E5\u8863\u88C5',color:'#D4B08C',desc:d=>{if(!d||!d.active)return'-';return Object.keys(d.active).length+'\u4EBA\u5DF2\u62BD\u53D6';}},
 {key:'home_cg_library',name:'\u9996\u9875 CG \u5E93',color:'#7C8798',desc:d=>{if(!d||!d.slots)return'\u9ED8\u8BA4';return Object.values(d.slots).reduce((n,s)=>n+((s&&s.custom)||[]).length,0)+'\u5F20\u81EA\u5B9A\u4E49';}},
-{key:'home_cg_period',name:'\u5F53\u524D\u65F6\u6BB5 CG',color:'#98A2B1',desc:d=>d&&d.periodKey?d.periodKey:'-'}
+{key:'home_cg_period',name:'\u5F53\u524D\u65F6\u6BB5 CG',color:'#98A2B1',desc:d=>d&&d.periodKey?d.periodKey:'-'},
+{key:'home_character_runtime',name:'\u4EBA\u7269\u72B6\u6001\u5F15\u64CE',color:'#7A6FB8',desc:d=>{if(!d||!d.characters)return'\u521D\u59CB\u5316';const active=Object.values(d.characters).filter(c=>c.worldActivity).length;return active+'\u4EBA\u6D3B\u52A8\u4E2D';}},
+{key:'home_character_action_packs',name:'\u884C\u52A8\u5305\u914D\u7F6E',color:'#6B7AA8',desc:d=>{if(!d||!d.merged)return'\u672A\u52A0\u8F7D';return(d.merged||[]).length+'\u4E2A\u884C\u52A8';}},
+{key:'shared_diary_db',name:'\u5171\u4EAB\u65E5\u8BB0',color:'#A87B6B',desc:d=>{if(!d||!d.entries)return'-';return(d.entries||[]).length+'\u6761\u8BB0\u5F55';}}
 ];
 function gd(k){try{return JSON.parse(localStorage.getItem(k));}catch(e){return null;}}
 function gs(k){const v=localStorage.getItem(k);if(!v)return'-';const b=new Blob([v]).size;return b<1024?b+'B':(b/1024).toFixed(1)+'KB';}

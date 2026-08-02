@@ -22,10 +22,11 @@
     'bjd_db3', 'techo_db2', 'shop_db', 'event_db', 'event_presets', 'dungeon_db',
     'kitchen_db', 'activity_db', 'cinema_db', 'stationery_db', 'wallet_db',
     'home_modules', 'home_lines', 'home_skins', 'home_skin_custom',
-    'home_skin_daily', 'home_cg_library', 'home_cg_period', 'shortcut-order'
+    'home_skin_daily', 'home_cg_library', 'home_cg_period', 'shortcut-order',
+    'home_character_runtime', 'home_character_action_packs', 'shared_diary_db'
   ];
   const PAGE_KEYS = {
-    'index.html': ['habit_db', 'home_modules', 'home_lines', 'home_skins', 'home_skin_custom', 'home_skin_daily', 'home_cg_library', 'home_cg_period', 'shortcut-order'],
+    'index.html': ['habit_db', 'wallet_db', 'home_modules', 'home_lines', 'home_skins', 'home_skin_custom', 'home_skin_daily', 'home_cg_library', 'home_cg_period', 'shortcut-order', 'home_character_runtime', 'home_character_action_packs', 'shared_diary_db'],
     'daily.html': ['daily_db', 'daily_presets', 'gacha_st', 'bean_st', 'habit_db'],
     'gacha.html': ['gacha_st'],
     'habit.html': ['habit_db', 'bean_st'],
@@ -36,7 +37,7 @@
     'event.html': ['activity_db'],
     'cinema.html': ['cinema_db'],
     'stationery.html': ['stationery_db'],
-    'wallet.html': ['wallet_db'],
+    'wallet.html': ['wallet_db', 'home_character_runtime', 'home_character_action_packs', 'shared_diary_db'],
     'dungeon.html': ['dungeon_db', 'daily_db'],
     'kitchen.html': ['kitchen_db'],
     'backup.html': STATE_KEYS

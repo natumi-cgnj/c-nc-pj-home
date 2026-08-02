@@ -86,6 +86,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .set-item.secret{font-style:italic}
 .set-reward{font-size:11px;color:#E8B96A;margin-top:8px}
 
+/* Diary & Action Pack */
+.diary-entry{margin:8px 20px;padding:14px 16px;background:#fff;border:1px solid #eee;border-radius:12px}
+.diary-meta{font-size:10px;color:#bbb;margin-bottom:4px;display:flex;gap:8px;align-items:center}
+.diary-meta .diary-type{font-size:8px;padding:1px 6px;border-radius:4px;background:#f0f0f0;color:#999}
+.diary-meta .diary-type.auto{background:#E8F4EB;color:#5BA66B}
+.diary-content{font-size:13px;color:#555;line-height:1.6}
+.diary-participants{font-size:11px;color:#777;font-weight:500;margin-bottom:2px}
+.pack-info{margin:8px 20px;padding:14px 16px;background:#fff;border:1px solid #eee;border-radius:12px;font-size:12px;color:#666;line-height:1.6}
+.pack-stat{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f5f5f5}
+.pack-stat:last-child{border-bottom:none}
+.pack-stat-label{color:#999}
+.pack-stat-value{font-weight:500}
+
 /* Modals */
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:200;display:none;align-items:flex-end;justify-content:center}
 .modal-bg.show{display:flex}
@@ -149,6 +162,52 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- COLLECTION TAB -->
 <div id="viewCollection" class="view">
   <div id="collectionSets"></div>
+</div>
+
+<!-- DIARY TAB -->
+<div id="viewDiary" class="view">
+  <button class="record-btn" onclick="openDiaryModal()">+ 写今天的日记</button>
+  <div id="diaryEntries"></div>
+  <div style="padding:12px 20px">
+    <button class="btn-s" style="width:100%;padding:10px;margin-bottom:6px" onclick="exportDiary()">导出日记</button>
+    <button class="btn-s" style="width:100%;padding:10px;margin-bottom:6px" onclick="document.getElementById('importDiaryFile').click()">导入日记</button>
+    <input type="file" id="importDiaryFile" accept=".json" onchange="handleDiaryImport(this)" style="display:none">
+    <button class="btn-s" style="width:100%;padding:10px;margin-bottom:6px" onclick="document.getElementById('importPackFile').click()">导入行动包</button>
+    <input type="file" id="importPackFile" accept=".json" onchange="handlePackImport(this)" style="display:none">
+    <button class="btn-s" style="width:100%;padding:10px" onclick="exportPacks()">导出行动包配置</button>
+  </div>
+  <div id="packInfo"></div>
+</div>
+
+<!-- Diary write modal -->
+<div class="modal-bg" id="diaryModal">
+  <div class="modal">
+    <h2>写日记</h2>
+    <label>内容</label>
+    <textarea id="diaryContent" rows="4" placeholder="今天发生了什么…" style="resize:vertical"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-cancel" onclick="closeModal('diaryModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveDiaryEntry()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Pack import confirm -->
+<div class="modal-bg" id="packConfirmModal">
+  <div class="modal">
+    <h2 id="packConfirmTitle">导入行动包</h2>
+    <div id="packPreview" class="pack-info"></div>
+    <label>导入方式</label>
+    <select id="packImportMode">
+      <option value="merge">合并（保留现有，更新重复）</option>
+      <option value="replace">替换（清除旧配置）</option>
+    </select>
+    <p style="font-size:10px;color:#bbb;margin-top:6px">替换不会删除已有运行记录和日记</p>
+    <div class="btn-row">
+      <button class="btn btn-cancel" onclick="closeModal('packConfirmModal')">取消</button>
+      <button class="btn btn-primary" onclick="confirmPackImport()">导入</button>
+    </div>
+  </div>
 </div>
 
 <!-- MODALS -->
@@ -219,12 +278,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <button onclick="switchTab('viewTreasury',this)"><span class="tab-icon">💰</span>金库</button>
   <button onclick="switchTab('viewOutings',this)"><span class="tab-icon">🚶</span>外出</button>
   <button onclick="switchTab('viewCollection',this)"><span class="tab-icon">📦</span>收集</button>
+  <button onclick="switchTab('viewDiary',this)"><span class="tab-icon">📔</span>日记</button>
 </div>
 
 <div class="toast" id="toast"></div>
 <div class="confirm-bg" id="confirmBg"><div class="confirm-box"></div></div>
 
-<script src="cloud-sync.js?v=20260802-cg1"></script>
+<script src="cloud-sync.js?v=20260802-outing1"></script>
+<script src="character-runtime.js?v=20260802-outing1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 var SK='wallet_db';
@@ -383,6 +444,7 @@ function renderCurrentTab(viewId){
   else if(viewId==='viewTreasury')renderTreasury();
   else if(viewId==='viewOutings')renderOutings();
   else if(viewId==='viewCollection')renderCollection();
+  else if(viewId==='viewDiary')renderDiary();
 }
 
 /* ═══ DATE / PERIOD HELPERS ═══ */
@@ -545,7 +607,7 @@ function renderOutings(){
   var cards=document.getElementById('outingCards');
 
   if(!todayOutings.length){
-    cards.innerHTML='<div class="outing-empty">今天还没有人出门</div><button class="process-btn" onclick="processCurrentPeriod()">刷新当前时段</button>';
+    cards.innerHTML='<div class="outing-empty">今天还没有人到这边外出<br><span style="font-size:10px;color:#ddd">人物状态会自动记录来到用户世界的行动</span></div>';
     return;
   }
 
@@ -555,14 +617,10 @@ function renderOutings(){
     html+='<div class="outing-card" style="border-left:3px solid '+cfg.color+'"><div class="outing-char" style="color:'+cfg.color+'">'+esc(cfg.name)+' · '+periodName(o.period)+'</div><div class="outing-activity">'+esc(o.activity||'散步')+'</div>'+(o.dialogue?'<div class="outing-dialogue">「'+esc(o.dialogue)+'」</div>':'')+(o.cost?'<div class="outing-cost">-¥'+o.cost+'</div>':'')+'</div>';
   });
 
-  // Check if current period processed
-  var periodKey=today+'_'+period;
-  if(!db.processedPeriods[periodKey]){
-    html+='<button class="process-btn" onclick="processCurrentPeriod()">刷新当前时段</button>';
-  }
   cards.innerHTML=html;
 }
 function processCurrentPeriod(){
+  if(window.CharacterRuntime){showToast('外出现在由人物状态自动决定');return;}
   var today=todayStr();
   var period=getCurrentPeriod();
   var periodKey=today+'_'+period;
@@ -736,8 +794,128 @@ function importWallet(input){
   reader.readAsText(input.files[0]);
 }
 
+/* ═══ DIARY ═══ */
+var charNames={neal:'Neal',jane:'Jane',will:'Will'};
+function renderDiary(){
+  if(!window.CharacterRuntime){document.getElementById('diaryEntries').innerHTML='<div class="outing-empty">状态引擎未加载</div>';return;}
+  var diary=CharacterRuntime.loadDiary();
+  var entries=(diary.entries||[]).slice().reverse();
+  var el=document.getElementById('diaryEntries');
+  if(!entries.length){el.innerHTML='<div class="outing-empty">还没有日记</div>';}
+  else{
+    el.innerHTML=entries.slice(0,50).map(function(e){
+      var type=e.type==='manual'?'manual':'auto';
+      var participants=Array.isArray(e.participants)?e.participants:[];
+      var pNames=participants.map(function(p){return charNames[p]||p;}).join('、');
+      return '<div class="diary-entry">'
+        +'<div class="diary-meta"><span class="diary-type '+type+'">'+(type==='manual'?'手写':'自动')+'</span>'
+        +'<span>'+esc(e.date||'')+' '+esc(e.time||'')+'</span></div>'
+        +(pNames?'<div class="diary-participants">'+esc(pNames)+(e.title?' · '+esc(e.title):'')+'</div>':'')
+        +'<div class="diary-content">'+esc(e.content||'')+'</div></div>';
+    }).join('');
+  }
+  // Pack info
+  var packs=CharacterRuntime.loadPacks();
+  var merged=packs.merged||[];
+  var pi=document.getElementById('packInfo');
+  if(!merged.length){pi.innerHTML='<div class="pack-info" style="margin:8px 20px">未加载行动包</div>';}
+  else{
+    var counts={};merged.forEach(function(a){a.participants.forEach(function(p){counts[p]=(counts[p]||0)+1;});});
+    var joint=merged.filter(function(a){return a.participants.length>1;}).length;
+    pi.innerHTML='<div class="pack-info" style="margin:8px 20px"><div class="pack-stat"><span class="pack-stat-label">行动总数</span><span class="pack-stat-value">'+merged.length+'</span></div>'
+      +Object.keys(counts).map(function(k){return '<div class="pack-stat"><span class="pack-stat-label">'+esc(charNames[k]||k)+'</span><span class="pack-stat-value">'+counts[k]+'</span></div>';}).join('')
+      +'<div class="pack-stat"><span class="pack-stat-label">联合事件</span><span class="pack-stat-value">'+joint+'</span></div></div>';
+  }
+}
+function openDiaryModal(){document.getElementById('diaryContent').value='';openModal('diaryModal');}
+function saveDiaryEntry(){
+  var content=document.getElementById('diaryContent').value.trim();
+  if(!content){showToast('请输入内容');return;}
+  if(!window.CharacterRuntime){showToast('状态引擎未加载');return;}
+  CharacterRuntime.addManualDiaryEntry(content);
+  closeModal('diaryModal');renderDiary();showToast('日记已保存');
+}
+function exportDiary(){
+  if(!window.CharacterRuntime)return;
+  var payload=CharacterRuntime.exportDiary();
+  var blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='liminal_diary_'+todayStr()+'.json';a.click();URL.revokeObjectURL(a.href);showToast('日记已导出');
+}
+function handleDiaryImport(input){
+  var f=input.files&&input.files[0];if(!f)return;
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    try{
+      var payload=JSON.parse(ev.target.result);
+      if(!payload||payload.format!=='liminal-diary'||payload.version!==1||!payload.diary||!Array.isArray(payload.diary.entries)){
+        showToast('格式不正确：需要 liminal-diary v1');input.value='';return;
+      }
+      var count=payload.diary.entries.length;
+      customConfirm('合并导入 '+count+' 条日记？已有记录不会被覆盖。',function(){
+        var result=CharacterRuntime.importDiary(payload,'merge');
+        if(result.ok){renderDiary();showToast('已导入 '+result.imported+' 条新记录');}
+        else showToast('日记导入失败');
+      });
+    }catch(error){showToast('日记 JSON 解析失败');}
+    input.value='';
+  };
+  reader.readAsText(f);
+}
+function exportPacks(){
+  if(!window.CharacterRuntime)return;
+  var pack=CharacterRuntime.exportPacks();
+  if(!pack){showToast('没有行动包可导出');return;}
+  var blob=new Blob([JSON.stringify(pack,null,2)],{type:'application/json'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='liminal_action_pack_'+todayStr()+'.json';a.click();showToast('行动包已导出');
+}
+var _pendingPack=null;
+function handlePackImport(input){
+  var f=input.files&&input.files[0];if(!f)return;
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    try{
+      var data=JSON.parse(ev.target.result);
+      if(!data||data.format!=='liminal-action-pack'||data.version!==1){showToast('格式不正确：需要 liminal-action-pack v1');input.value='';return;}
+      if(!window.CharacterRuntime){showToast('状态引擎未加载');input.value='';return;}
+      var validation=CharacterRuntime.validateActionPack(data);
+      if(!validation.ok){showToast('行动包校验失败: '+validation.error+(validation.detail?' ('+validation.detail+')':''));input.value='';return;}
+      var preview=CharacterRuntime.summarizePack(data);
+      _pendingPack=data;
+      document.getElementById('packConfirmTitle').textContent='导入: '+esc(data.name||'行动包');
+      var counts=preview.characters||{};
+      document.getElementById('packPreview').innerHTML='<div class="pack-stat"><span class="pack-stat-label">行动总数</span><span class="pack-stat-value">'+preview.total+'</span></div>'
+        +Object.keys(counts).map(function(k){return '<div class="pack-stat"><span class="pack-stat-label">'+esc(charNames[k]||k)+'</span><span class="pack-stat-value">'+counts[k]+'</span></div>';}).join('')
+        +'<div class="pack-stat"><span class="pack-stat-label">联合事件</span><span class="pack-stat-value">'+preview.jointEvents+'</span></div>';
+      openModal('packConfirmModal');
+    }catch(e){showToast('JSON 解析失败');}
+    input.value='';
+  };
+  reader.readAsText(f);
+}
+function confirmPackImport(){
+  if(!_pendingPack||!window.CharacterRuntime){closeModal('packConfirmModal');return;}
+  var mode=document.getElementById('packImportMode').value;
+  var result=CharacterRuntime.importActionPack(_pendingPack,mode);
+  _pendingPack=null;
+  closeModal('packConfirmModal');
+  if(result.ok){showToast('行动包已导入');renderDiary();}
+  else{showToast('导入失败: '+result.error+(result.detail?' ('+result.detail+')':''));}
+}
+
 /* ═══ INIT ═══ */
 renderLedger();
+if(window.CharacterRuntime){
+  CharacterRuntime.init({onTick:function(){
+    try{
+      var latest=JSON.parse(localStorage.getItem(SK)||'null');
+      if(latest)db=normalizeWalletDB(latest);
+    }catch(error){}
+    var active=document.querySelector('.view.active');
+    if(active)renderCurrentTab(active.id);
+  }});
+}
 </script>
 </body>
 </html>

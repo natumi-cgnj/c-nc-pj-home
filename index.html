@@ -256,7 +256,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .editor-save:active{opacity:0.7}
 .editor-save:disabled{opacity:0.45;cursor:wait}
 
-@media(max-width:400px){.apt-wrap{max-width:320px}.char-sprite img,.char-placeholder .character-skin-img{height:74px}.speech-bubble{max-width:148px;font-size:10px}.wardrobe-overlay{padding:10px}.skin-grid{gap:9px;padding:13px}}
+/* ── Room away status ── */
+.room-away-status{position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:1100;pointer-events:none}
+.room-away-status.show{display:flex}
+.room-away-status.break-presence{align-items:flex-start;justify-content:flex-end;padding:24px 8px 0}
+.room-away-status.break-presence .room-away-label{padding:4px 7px;max-width:72%;background:rgba(255,255,255,0.78);box-shadow:none}
+.room-away-label{background:rgba(255,255,255,0.88);padding:6px 12px;border-radius:8px;font-size:10px;color:#999;letter-spacing:0.3px;line-height:1.5;text-align:center;max-width:80%;pointer-events:auto;cursor:pointer;box-shadow:0 1px 6px rgba(0,0,0,0.06)}
+.room-away-label .away-title{font-weight:600;color:#777}
+.room-away-label .away-eta{font-size:9px;color:#bbb;display:block;margin-top:2px}
+@media(max-width:400px){.apt-wrap{max-width:320px}.char-sprite img,.char-placeholder .character-skin-img{height:74px}.speech-bubble{max-width:148px;font-size:10px}.wardrobe-overlay{padding:10px}.skin-grid{gap:9px;padding:13px}.room-away-label{font-size:9px;padding:4px 8px}}
 </style>
 </head>
 <body>
@@ -295,6 +303,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
       <div class="furniture neal-wine"></div>
       <button class="wardrobe-btn" type="button" onclick="openWardrobe('neal',event)" aria-label="打开 Neal 的衣柜" title="衣柜"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a2 2 0 0 0-2 2c0 .74.4 1.39 1 1.73V8l-7 6h16l-7-6V6.73A2 2 0 0 0 12 3z"/><path d="M4 14v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg></button>
     </div>
+    <div class="room-away-status" id="away-neal" onclick="onAwayTap('neal',event)"><div class="room-away-label"><span class="away-title" id="away-title-neal"></span><span class="away-eta" id="away-eta-neal"></span></div></div>
     <div class="char-sprite" id="char-neal" onclick="onCharTap('neal',event)">
       <img src="assets/characters/neal/neal-default.png" alt="Neal">
     </div>
@@ -314,6 +323,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
         <div class="furniture jane-blanket"></div>
         <button class="wardrobe-btn" type="button" onclick="openWardrobe('jane',event)" aria-label="打开 Jane 的衣柜" title="衣柜"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a2 2 0 0 0-2 2c0 .74.4 1.39 1 1.73V8l-7 6h16l-7-6V6.73A2 2 0 0 0 12 3z"/><path d="M4 14v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg></button>
       </div>
+      <div class="room-away-status" id="away-jane" onclick="onAwayTap('jane',event)"><div class="room-away-label"><span class="away-title" id="away-title-jane"></span><span class="away-eta" id="away-eta-jane"></span></div></div>
       <div class="char-sprite" id="char-jane" onclick="onCharTap('jane',event)">
         <img src="assets/characters/jane/jane-default.png?v=20260802-clean1" alt="Jane">
       </div>
@@ -347,6 +357,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
       <div class="furniture will-cup"></div>
       <button class="wardrobe-btn" type="button" onclick="openWardrobe('will',event)" aria-label="打开 Will 的衣柜" title="衣柜"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a2 2 0 0 0-2 2c0 .74.4 1.39 1 1.73V8l-7 6h16l-7-6V6.73A2 2 0 0 0 12 3z"/><path d="M4 14v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg></button>
     </div>
+    <div class="room-away-status" id="away-will" onclick="onAwayTap('will',event)"><div class="room-away-label"><span class="away-title" id="away-title-will"></span><span class="away-eta" id="away-eta-will"></span></div></div>
     <div class="char-placeholder" id="char-will" onclick="onCharTap('will',event)">
       <div class="placeholder-circle">W</div>
     </div>
@@ -431,7 +442,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <div class="footer"><div class="time" id="clock"></div><div class="date" id="date"></div></div>
 </div>
 
-<script src="cloud-sync.js?v=20260802-cg1"></script>
+<script src="cloud-sync.js?v=20260802-outing1"></script>
+<script src="character-runtime.js?v=20260802-outing1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 
@@ -509,6 +521,8 @@ function applyMod(){
       applySkin(id);
       placeChar(id);
     });
+    // applyMod 会恢复立绘显示；紧接着重新套用外出状态，避免外出人物短暂闪回。
+    if(window.CharacterRuntime)renderCharacterRuntime();
   },200);
 }
 
@@ -634,8 +648,47 @@ function showBubble(id){
   bubble.classList.add('show');
   bubbleTimers[id]=setTimeout(()=>bubble.classList.remove('show'),4500);
 }
-function onCharTap(id,e){e.stopPropagation();showBubble(id);}
-function onRoomTap(e){if(!e.target.closest('.char-sprite')&&!e.target.closest('.char-placeholder'))showTip('布置功能开发中…');}
+function onCharTap(id,e){
+  e.stopPropagation();
+  // If runtime has a status line for this character, use it
+  if(window.CharacterRuntime){
+    var line=CharacterRuntime.getAppropriateLine(id);
+    if(line){
+      var bubble=document.getElementById('bubble-'+id);
+      var wrap=document.getElementById('aptWrap');
+      if(bubble.parentElement!==wrap)wrap.appendChild(bubble);
+      document.getElementById('status-'+id).textContent=line.s||'';
+      document.getElementById('msg-'+id).textContent=line.m||'';
+      var charEl=document.getElementById('char-'+id);
+      var wrapRect=wrap.getBoundingClientRect();
+      var charRect=charEl.getBoundingClientRect();
+      var charCX=charRect.left+charRect.width/2-wrapRect.left;
+      var charTopInWrap=charRect.top-wrapRect.top;
+      var charBotInWrap=charRect.bottom-wrapRect.top;
+      var below=charTopInWrap<50;
+      var bL=Math.round(charCX-90),bT=below?Math.round(charBotInWrap+10):Math.round(charTopInWrap-78);
+      var cW=wrap.offsetWidth||360;
+      if(bL<4)bL=4;if(bL+180>cW)bL=cW-184;
+      bubble.style.left=bL+'px';bubble.style.top=bT+'px';
+      bubble.classList.toggle('bubble-below',below);
+      var al=Math.round(charCX-bL-5);al=Math.max(10,Math.min(al,160));
+      bubble.style.setProperty('--arrow-left',al+'px');
+      if(bubbleTimers[id])clearTimeout(bubbleTimers[id]);
+      bubble.style.zIndex=++bubbleZCounter;
+      bubble.classList.add('show');
+      bubbleTimers[id]=setTimeout(function(){bubble.classList.remove('show');},4500);
+      return;
+    }
+  }
+  showBubble(id);
+}
+function onAwayTap(id,e){
+  e.stopPropagation();
+  if(!window.CharacterRuntime)return;
+  var line=CharacterRuntime.getAppropriateLine(id);
+  if(line)showTip(line.s+' · '+line.m);
+}
+function onRoomTap(e){if(!e.target.closest('.char-sprite')&&!e.target.closest('.char-placeholder')&&!e.target.closest('.room-away-status'))showTip('布置功能开发中…');}
 
 /* ═══ LINES ═══ */
 const DEFAULT_NEAL = {
@@ -1261,10 +1314,17 @@ function renderCharacterArt(charId,src){
 function applySkin(charId){
   const skinId=resolveActiveSkin(charId);
   const skin=getMergedSkins(charId).find(item=>item.id===skinId)||null;
-  const art=(skin&&skin.src)||BASE_CHARACTER_ART[charId]||'';
+  let runtimeOverride='';
+  if(window.CharacterRuntime){
+    const runtimeStatus=CharacterRuntime.getCharacterStatus(charId);
+    runtimeOverride=runtimeStatus.worldActivity&&runtimeStatus.worldActivity.artOverride||'';
+  }
+  const art=runtimeOverride||(skin&&skin.src)||BASE_CHARACTER_ART[charId]||'';
   renderCharacterArt(charId,art);
   const element=document.getElementById('char-'+charId);
   if(element){
+    if(runtimeOverride)element.dataset.runtimeArtOverride=runtimeOverride;
+    else delete element.dataset.runtimeArtOverride;
     if(skinId)element.dataset.activeSkin=skinId;
     else delete element.dataset.activeSkin;
   }
@@ -1629,10 +1689,87 @@ async function deleteSkinEditor(){
   closeEditor();
 }
 
+/* ═══ CHARACTER RUNTIME INTEGRATION ═══ */
+function estimateEta(endAt){
+  if(!endAt)return'';
+  var now=Date.now(),diff=endAt-now;
+  if(diff<=0)return'快回来了';
+  var h=Math.floor(diff/3600000),m=Math.floor((diff%3600000)/60000);
+  if(h>=6)return'可能会很晚';
+  if(h>=3)return'还要好一阵';
+  if(h>=1)return'大约'+h+'小时后';
+  if(m>=30)return'大约半小时后';
+  return'快回来了';
+}
+
+function applyRuntimeCharacterArt(id,status){
+  var charEl=document.getElementById('char-'+id);
+  if(!charEl)return;
+  var override=status.worldActivity&&status.worldActivity.artOverride;
+  if(override){
+    if(charEl.dataset.runtimeArtOverride!==override){
+      renderCharacterArt(id,override);
+      charEl.dataset.runtimeArtOverride=override;
+    }
+  }else if(charEl.dataset.runtimeArtOverride){
+    delete charEl.dataset.runtimeArtOverride;
+    applySkin(id);
+  }
+}
+
+function renderCharacterRuntime(){
+  if(!window.CharacterRuntime)return;
+  ['neal','jane','will'].forEach(function(id){
+    if(!modules[id])return; // module disabled — don't touch
+    var status=CharacterRuntime.getCharacterStatus(id);
+    var charEl=document.getElementById('char-'+id);
+    var awayEl=document.getElementById('away-'+id);
+    if(!charEl||!awayEl)return;
+
+    if(status.isAway){
+      // Hide character sprite, show away status
+      charEl.style.display='none';
+      awayEl.classList.add('show');
+      awayEl.classList.remove('break-presence');
+      var titleEl=document.getElementById('away-title-'+id);
+      var etaEl=document.getElementById('away-eta-'+id);
+      if(titleEl)titleEl.textContent=status.roomStatus||'外出中';
+      if(etaEl)etaEl.textContent=estimateEta(status.worldActivity?status.worldActivity.endAt:0);
+    }else if(status.isOnBreak){
+      // Reality activity continues, but the character is briefly back in liminal space.
+      charEl.style.display='';
+      awayEl.classList.add('show','break-presence');
+      var breakTitle=document.getElementById('away-title-'+id);
+      var breakEta=document.getElementById('away-eta-'+id);
+      if(breakTitle)breakTitle.textContent='现实中 · '+(status.worldActivity?status.worldActivity.title:'活动中')+'（暂时回来）';
+      if(breakEta)breakEta.textContent=estimateEta(status.worldActivity?status.worldActivity.endAt:0);
+      applyRuntimeCharacterArt(id,status);
+      placeChar(id);
+    }else{
+      // Character is present (normal, break, or in_room activity)
+      charEl.style.display='';
+      awayEl.classList.remove('show');
+      awayEl.classList.remove('break-presence');
+      applyRuntimeCharacterArt(id,status);
+      // Ensure placement is correct
+      placeChar(id);
+    }
+  });
+}
+
 /* ═══ INIT ═══ */
 window.__wardrobeReady=true;
 window.__wardrobeDayKey=getWardrobeDayKey();
-window.addEventListener('load',()=>setTimeout(()=>applyMod(),150));
+window.addEventListener('load',function(){
+  setTimeout(function(){
+    applyMod();
+    // Initialize character runtime after modules are applied
+    if(window.CharacterRuntime){
+      CharacterRuntime.init({onTick:renderCharacterRuntime});
+      renderCharacterRuntime();
+    }
+  },150);
+});
 
 let tipTimer;
 function showTip(t){const el=document.getElementById('tooltip');el.textContent=t;el.classList.add('show');clearTimeout(tipTimer);tipTimer=setTimeout(()=>el.classList.remove('show'),2000);}
