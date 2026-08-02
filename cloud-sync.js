@@ -11,6 +11,10 @@
   const SNAPSHOT_DAY_KEY = 'liminal_cloud_snapshot_day_v2';
   const HISTORY_PREFIX = '__history__:';
   const SNAPSHOT_PREFIX = '__snapshot__:';
+  const GENERAL_SNAPSHOT_KEEP = 7;
+  const IMPORT_SNAPSHOT_KEEP = 3;
+  const STATE_HISTORY_KEEP = 10;
+  const ARCHIVE_PRUNE_PAGE = 500;
   const SYNC_GUARD_VERSION = 2;
   const STATE_KEYS = [
     'daily_db', 'daily_presets', 'gacha_st', 'bean_st', 'habit_db', 'story_db',
@@ -66,7 +70,9 @@
     restoreSnapshot: stateKey => readyPromise.then(() => restoreFullSnapshot(stateKey)),
     restoreStates: states => readyPromise.then(() => restoreStatesSafely(states)),
     uploadDataUrl: (dataUrl, relativePath) => readyPromise.then(() => uploadDataUrl(dataUrl, relativePath)),
-    deleteAsset: (value) => readyPromise.then(() => deleteAsset(value)),
+    listAssets: relativePrefix => readyPromise.then(() => listAssets(relativePrefix)),
+    deleteAsset: value => readyPromise.then(() => deleteAsset(value)),
+    deleteAssets: values => readyPromise.then(() => deleteAssets(values)),
     logout: () => readyPromise.then(() => logout()),
     get user() { return currentUser; }
   };
@@ -320,6 +326,70 @@
     return data;
   }
 
+
+  async function deleteArchiveRows(stateKeys) {
+    if (!stateKeys || !stateKeys.length) return 0;
+    const { error } = await supabase
+      .from('user_state')
+      .delete()
+      .eq('user_id', currentUser.id)
+      .in('state_key', stateKeys);
+    if (error) throw error;
+    return stateKeys.length;
+  }
+
+  async function pruneFullSnapshots() {
+    while (true) {
+      const { data, error } = await supabase
+        .from('user_state')
+        .select('state_key,state_data,updated_at')
+        .eq('user_id', currentUser.id)
+        .like('state_key', SNAPSHOT_PREFIX + '%')
+        .order('updated_at', { ascending: false })
+        .range(0, ARCHIVE_PRUNE_PAGE - 1);
+      if (error) throw error;
+
+      const rows = data || [];
+      const importRows = [];
+      const generalRows = [];
+      for (const row of rows) {
+        if (row.state_data && row.state_data.reason === 'before-import') importRows.push(row);
+        else generalRows.push(row);
+      }
+      const stale = importRows.slice(IMPORT_SNAPSHOT_KEEP)
+        .concat(generalRows.slice(GENERAL_SNAPSHOT_KEEP));
+      if (!stale.length) return;
+      await deleteArchiveRows(stale.map(row => row.state_key));
+      if (rows.length < ARCHIVE_PRUNE_PAGE) return;
+    }
+  }
+
+  async function pruneStateHistory(key) {
+    const prefix = HISTORY_PREFIX + key + ':';
+    while (true) {
+      const { data, error } = await supabase
+        .from('user_state')
+        .select('state_key')
+        .eq('user_id', currentUser.id)
+        .like('state_key', prefix + '%')
+        .order('updated_at', { ascending: false })
+        .range(STATE_HISTORY_KEEP, STATE_HISTORY_KEEP + ARCHIVE_PRUNE_PAGE - 1);
+      if (error) throw error;
+      const stale = data || [];
+      if (!stale.length) return;
+      await deleteArchiveRows(stale.map(row => row.state_key));
+      if (stale.length < ARCHIVE_PRUNE_PAGE) return;
+    }
+  }
+
+  async function pruneArchivesSafely(task, label) {
+    try {
+      await task();
+    } catch (error) {
+      console.warn('Could not prune ' + label + ':', error);
+    }
+  }
+
   async function createFullSnapshot(reason) {
     if (!currentUser) throw new Error('Cloud sync is not ready.');
     const rows = await fetchRemoteStates();
@@ -340,6 +410,7 @@
       states,
       updatedAt
     });
+    await pruneArchivesSafely(() => pruneFullSnapshots(), 'full snapshots');
     return stateKey;
   }
 
@@ -391,7 +462,7 @@
 
   async function saveRemoteHistory(key, row, reason) {
     const stateKey = HISTORY_PREFIX + key + ':' + Date.now().toString(36) + ':' + randomId();
-    return insertArchive(stateKey, {
+    const archived = await insertArchive(stateKey, {
       kind: 'state-history',
       guardVersion: SYNC_GUARD_VERSION,
       stateKey: key,
@@ -402,6 +473,8 @@
       sourceHash: hashValue(row.state_data),
       value: row.state_data
     });
+    await pruneArchivesSafely(() => pruneStateHistory(key), stateLabel(key) + ' history');
+    return archived;
   }
 
   function valueStats(value) {
@@ -732,12 +805,51 @@
     return `cloud://${fullPath}`;
   }
 
+  function assetPathFromValue(value) {
+    if (!value || !String(value).startsWith('cloud://')) return '';
+    const path = String(value).slice('cloud://'.length).replace(/^\/+/, '');
+    return path.startsWith(currentUser.id + '/') ? path : '';
+  }
+
+  async function listAssets(relativePrefix) {
+    const cleanPrefix = String(relativePrefix || '').replace(/^\/+|\/+$/g, '');
+    const folder = currentUser.id + (cleanPrefix ? '/' + cleanPrefix : '');
+    const values = [];
+    let offset = 0;
+    while (true) {
+      const { data, error } = await supabase.storage
+        .from('user-assets')
+        .list(folder, {
+          limit: 1000,
+          offset,
+          sortBy: { column: 'name', order: 'asc' }
+        });
+      if (error) throw error;
+      const rows = data || [];
+      for (const row of rows) {
+        if (row && row.name && row.id) values.push('cloud://' + folder + '/' + row.name);
+      }
+      if (rows.length < 1000) break;
+      offset += rows.length;
+    }
+    return values;
+  }
+
+  async function deleteAssets(values) {
+    const paths = [...new Set((Array.isArray(values) ? values : [values])
+      .map(assetPathFromValue)
+      .filter(Boolean))];
+    for (let i = 0; i < paths.length; i += 100) {
+      const batch = paths.slice(i, i + 100);
+      const { error } = await supabase.storage.from('user-assets').remove(batch);
+      if (error) throw error;
+      for (const path of batch) assetCache.delete(path);
+    }
+    return paths.length;
+  }
+
   async function deleteAsset(value) {
-    if (!value || !String(value).startsWith('cloud://')) return;
-    const path = String(value).slice('cloud://'.length);
-    const { error } = await supabase.storage.from('user-assets').remove([path]);
-    if (error) console.warn('Could not delete cloud asset:', error);
-    assetCache.delete(path);
+    return deleteAssets([value]);
   }
 
   function observeCloudImages(root) {
