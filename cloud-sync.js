@@ -15,6 +15,7 @@
   const IMPORT_SNAPSHOT_KEEP = 3;
   const STATE_HISTORY_KEEP = 10;
   const ARCHIVE_PRUNE_PAGE = 500;
+  const ARCHIVE_PRUNE_DAY_KEY = 'liminal_cloud_archive_prune_day_v1';
   const SYNC_GUARD_VERSION = 2;
   const STATE_KEYS = [
     'daily_db', 'daily_presets', 'gacha_st', 'bean_st', 'habit_db', 'story_db',
@@ -131,6 +132,7 @@
       observeCloudImages(document);
       startObservers();
       scanLocalChanges();
+      scheduleArchivePrune();
     } catch (error) {
       console.error('Cloud sync start failed:', error);
       setBadge('云端暂不可用', 'error');
@@ -388,6 +390,20 @@
     } catch (error) {
       console.warn('Could not prune ' + label + ':', error);
     }
+  }
+
+  function scheduleArchivePrune() {
+    const day = localDayKey();
+    if (localStorage.getItem(ARCHIVE_PRUNE_DAY_KEY) === day) return;
+    setTimeout(async () => {
+      try {
+        await pruneFullSnapshots();
+        for (const key of STATE_KEYS) await pruneStateHistory(key);
+        localStorage.setItem(ARCHIVE_PRUNE_DAY_KEY, day);
+      } catch (error) {
+        console.warn('Could not run daily archive cleanup:', error);
+      }
+    }, 0);
   }
 
   async function createFullSnapshot(reason) {
