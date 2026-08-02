@@ -26,7 +26,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .branch-stack>.branch-room.is-stack-front{z-index:20}
 .branch-stack:not(.has-active-room){pointer-events:none}
 .branch-top{z-index:1}
-.branch-left{flex:1;z-index:2}
+.branch-left{flex:0 0 50%;width:50%;min-width:0;z-index:2}
 .branch-adaptive{z-index:4;margin-top:-1px}
 
 /* ── Room boxes ── */
@@ -35,7 +35,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 /* Ensure rooms with connectors on their edges stack above neighbors */
 .room-neal{aspect-ratio:2/1}
 .room-jane{aspect-ratio:1.2/1}
-.room-natumi{flex:1;aspect-ratio:1.2/1;z-index:3;margin-left:-1px}
+.room-natumi{flex:0 0 50%;width:50%;min-width:0;aspect-ratio:1.2/1;z-index:3;margin-left:0;border-left:0}
 /* Will: full width 2.4 × 1.6 */
 .room-will{aspect-ratio:2.4/1.6;transition:max-height 0.35s,opacity 0.35s;overflow:hidden}
 .room-will.will-off{max-height:0;opacity:0;border-color:transparent}
