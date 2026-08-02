@@ -35,7 +35,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 /* Ensure rooms with connectors on their edges stack above neighbors */
 .room-neal{aspect-ratio:2/1}
 .room-jane{aspect-ratio:1.2/1}
-.room-natumi{flex:0 0 50%;width:50%;min-width:0;aspect-ratio:1.2/1;z-index:3;margin-left:0;border-left:0;border-top-left-radius:0;border-bottom-left-radius:0}
+.room-natumi{flex:0 0 50%;width:50%;min-width:0;aspect-ratio:1.2/1;z-index:3;margin-left:0;border-left:0}
 /* Will: full width 2.4 × 1.6 */
 .room-will{aspect-ratio:2.4/1.6;transition:max-height 0.35s,opacity 0.35s;overflow:hidden}
 .room-will.will-off{max-height:0;opacity:0;border-color:transparent}
@@ -43,11 +43,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 /* Hidden rooms */
 .room-box.off{max-height:0;opacity:0;border-color:transparent;overflow:hidden;pointer-events:none}
 .room-box.off *{visibility:hidden}
-
-/* Mobile/portrait: the row above owns the shared horizontal border. */
-@media(max-width:899px),(orientation:portrait){
-  .apt-wrap.has-will-room>.branch-adaptive>.room-will{border-top:0}
-}
 
 /* ── Connectors: absolutely positioned on room edges ── */
 /* Neal↔Jane: top center of Jane's room */
