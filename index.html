@@ -27,7 +27,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .branch-stack:not(.has-active-room){pointer-events:none}
 .branch-top{z-index:1}
 .branch-left{flex:1;z-index:2}
-.branch-adaptive{z-index:4;margin-top:-1px;position:relative}
+.branch-adaptive{z-index:4;margin-top:-1px}
 
 /* ── Room boxes ── */
 .room-box{position:relative;border:1px solid #E8E8E8;border-radius:4px;background:#fff;overflow:visible}
@@ -44,12 +44,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .room-box.off{max-height:0;opacity:0;border-color:transparent;overflow:hidden;pointer-events:none}
 .room-box.off *{visibility:hidden}
 
-/* Mobile/portrait: bridge the tiny outer-edge gaps made by two rounded rooms meeting. */
-.apt-wrap.has-will-room>.branch-adaptive::before{
-  content:"";position:absolute;left:0;right:0;top:-4px;height:8px;z-index:5;pointer-events:none;
-  background:
-    linear-gradient(#E8E8E8,#E8E8E8) left center/1px 100% no-repeat,
-    linear-gradient(#E8E8E8,#E8E8E8) right center/1px 100% no-repeat
+/* Mobile/portrait: the row above owns the shared horizontal border. */
+@media(max-width:899px),(orientation:portrait){
+  .apt-wrap.has-will-room>.branch-adaptive>.room-will{border-top:0}
 }
 
 /* ── Connectors: absolutely positioned on room edges ── */
@@ -186,7 +183,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   .apt-wrap>.branch-top{grid-area:top-branch;min-height:0}
   .apt-wrap>.mid-row{grid-area:trunk-row;min-height:0}
   .apt-wrap>.branch-adaptive{grid-area:adaptive-branch;margin:0;min-height:0}
-  .apt-wrap.has-will-room>.branch-adaptive::before{display:none}
   .apt-wrap>.branch-adaptive>.room-will{height:100%;max-height:none;aspect-ratio:auto;border-left:0}
   .apt-wrap .conn-on-natumi-adaptive{left:auto;right:0;top:50%;bottom:auto;transform:translate(50%,-50%)}
   .apt-wrap .conn-on-natumi-adaptive.conn-btn{flex-direction:column;padding:3px 2px;gap:1px;white-space:normal;width:14px;text-align:center;line-height:1.2}
