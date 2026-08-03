@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Kitchen build: 2026-08-03-optional-subsections -->
+<!-- Kitchen build: 2026-08-03-optional-subsections-r2 -->
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
@@ -59,6 +59,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 /* ── Item grid (thumbnails) ── */
 .item-grid{padding:16px 0}
 .item-cell{aspect-ratio:1;border-radius:10px;border:1.5px solid #e8e8e8;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all 0.15s;position:relative;overflow:hidden;background:#f5f5f5}
+.section-grid.one-column .item-cell{aspect-ratio:2/1}
 .item-cell:active{transform:scale(0.97)}
 .item-cell .item-img{width:100%;height:100%;object-fit:contain;padding:5px;border-radius:9px;position:absolute;top:0;left:0;background:#fff;filter:grayscale(100%) brightness(0.85);transition:filter 0.4s}
 .item-cell.collected{border-color:#E8B96A}
@@ -173,16 +174,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .section-tag-palette{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
 .section-tag-swatch{width:17px;height:17px;border-radius:50%;border:2px solid transparent;padding:0;cursor:pointer}
 .section-tag-swatch.active{border-color:#333}
-.subsection-editor{width:100%;padding:7px 0;border-top:1px solid #eee}
+.subsection-editor{width:100%;padding:7px 0;border-top:1px solid #eee;position:relative}
 .subsection-editor:first-child{border-top:none}
-.subsection-editor-main{display:grid;grid-template-columns:minmax(76px,1fr) auto auto auto auto;gap:5px;align-items:center}
+.subsection-editor-main{display:grid;grid-template-columns:auto minmax(76px,1fr) auto auto auto auto;gap:5px;align-items:center}
 .subsection-editor-main input,.subsection-editor-main select{min-width:0;width:100%}
+.subsection-drag-handle{width:20px;height:28px;display:flex;align-items:center;justify-content:center;color:#c8c8c8;font-size:12px;letter-spacing:-2px;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+.subsection-editor.sub-dragging{opacity:0.42;background:#f8f8f8}
+.subsection-editor.sub-drag-over{box-shadow:0 -2px 0 0 #E8B96A}
 .subsection-editor-actions{display:flex;gap:2px}
 .subsection-editor-actions button{border:none;background:none;color:#bbb;font-size:11px;padding:3px;cursor:pointer}
 .subsection-add-btn{font-size:11px;color:#999;background:#fff;border:1px dashed #ddd;border-radius:6px;padding:5px 9px;cursor:pointer;font-family:inherit}
 @media(max-width:380px){
-  .subsection-editor-main{grid-template-columns:minmax(70px,1fr) auto auto auto}
-  .subsection-editor-actions{grid-column:1/-1;justify-content:flex-end}
+  .subsection-editor-main{grid-template-columns:auto minmax(70px,1fr) auto auto auto}
+  .subsection-editor-actions{grid-column:2/-1;justify-content:flex-end}
 }
 
 /* ── Action sheet ── */
@@ -217,6 +221,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .section-type-badge.collab{background:#E8B96A20;color:#B9872F}
 .history-list{width:calc(100% - 40px);max-width:520px;margin:8px auto 0}
 .history-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#fff;border:1px solid #eee;border-radius:8px;margin-bottom:6px;font-size:13px}
+.history-item.history-editable{cursor:text}
+.history-item.history-editable:hover{border-color:#e5d2a7}
 .history-date{color:#999;font-size:12px;min-width:80px;flex-shrink:0}
 .history-note{color:#555;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .history-note.is-empty{color:#ccc;font-style:italic}
@@ -1244,6 +1250,90 @@ function moveDraftSubsection(scope,index,subIndex,delta){
   const next=subIndex+delta;if(next<0||next>=sec.subsections.length)return;
   const moved=sec.subsections.splice(subIndex,1)[0];sec.subsections.splice(next,0,moved);rerenderDraftScope(scope);
 }
+let subsectionDragBound=false,subsectionPressState=null;
+function setupSubsectionDrag(){
+  if(subsectionDragBound)return;
+  subsectionDragBound=true;
+  document.addEventListener('pointerdown',e=>{
+    const row=e.target.closest('.subsection-editor');
+    if(e.target.closest('input')||e.target.closest('select')||e.target.closest('button'))return;
+    if(!row||(e.button!==undefined&&e.button!==0))return;
+    const handle=row.querySelector('.subsection-drag-handle');
+    clearSubsectionPress();
+    const state={
+      row,handle,captureEl:e.target,
+      scope:row.dataset.subScope,
+      parentIndex:parseInt(row.dataset.parentIndex),
+      index:parseInt(row.dataset.subIndex),
+      pointerId:e.pointerId,
+      startY:e.clientY,lastY:e.clientY,
+      activated:false,moved:false,timer:null
+    };
+    subsectionPressState=state;
+    if(state.captureEl.setPointerCapture){try{state.captureEl.setPointerCapture(e.pointerId);}catch(err){}}
+    state.timer=setTimeout(()=>{
+      if(subsectionPressState!==state)return;
+      state.timer=null;state.activated=true;state.row.classList.add('sub-dragging');
+      if(navigator.vibrate)navigator.vibrate(12);
+    },330);
+  });
+  document.addEventListener('pointermove',e=>{
+    const state=subsectionPressState;
+    if(!state||state.pointerId!==e.pointerId)return;
+    state.lastY=e.clientY;
+    const distance=Math.abs(e.clientY-state.startY);
+    if(!state.activated){if(distance>10)clearSubsectionPress();return;}
+    if(distance<=5)return;
+    state.moved=true;e.preventDefault();
+    getSubsectionDragRows(state).forEach(row=>row.classList.remove('sub-drag-over'));
+    for(const row of getSubsectionDragRows(state)){
+      if(parseInt(row.dataset.subIndex)===state.index)continue;
+      const rect=row.getBoundingClientRect();
+      if(e.clientY<rect.top+rect.height/2){row.classList.add('sub-drag-over');break;}
+    }
+  },{passive:false});
+  document.addEventListener('pointerup',e=>{
+    const state=subsectionPressState;
+    if(!state||state.pointerId!==e.pointerId)return;
+    if(state.timer){clearTimeout(state.timer);state.timer=null;}
+    if(state.activated&&state.moved)commitSubsectionDrag(state);
+    clearSubsectionPress();
+  });
+  document.addEventListener('pointercancel',e=>{
+    const state=subsectionPressState;
+    if(!state||state.pointerId!==e.pointerId)return;
+    clearSubsectionPress();
+  });
+}
+function getSubsectionDragRows(state){
+  return Array.from(document.querySelectorAll(`.subsection-editor[data-sub-scope="${state.scope}"][data-parent-index="${state.parentIndex}"]`));
+}
+function commitSubsectionDrag(state){
+  const sec=getDraftSection(state.scope,state.parentIndex);if(!sec||!Array.isArray(sec.subsections))return;
+  let toIndex=sec.subsections.length;
+  for(const row of getSubsectionDragRows(state)){
+    const idx=parseInt(row.dataset.subIndex);if(idx===state.index)continue;
+    const rect=row.getBoundingClientRect();
+    if(state.lastY<rect.top+rect.height/2){toIndex=idx;break;}
+  }
+  const insertAt=toIndex>state.index?toIndex-1:toIndex;
+  if(insertAt!==state.index){
+    const moved=sec.subsections.splice(state.index,1)[0];
+    sec.subsections.splice(insertAt,0,moved);
+    rerenderDraftScope(state.scope);
+  }
+}
+function clearSubsectionPress(){
+  const state=subsectionPressState;if(!state)return;
+  if(state.timer)clearTimeout(state.timer);
+  try{
+    if(state.captureEl&&state.captureEl.releasePointerCapture&&
+      (!state.captureEl.hasPointerCapture||state.captureEl.hasPointerCapture(state.pointerId)))state.captureEl.releasePointerCapture(state.pointerId);
+  }catch(e){}
+  state.row&&state.row.classList.remove('sub-dragging');
+  getSubsectionDragRows(state).forEach(row=>row.classList.remove('sub-drag-over'));
+  subsectionPressState=null;
+}
 function sectionTypeOptions(value){
   return`<option value="food"${value==='merch'?'':' selected'}>餐品</option><option value="merch"${value==='merch'?' selected':''}>周边</option>`;
 }
@@ -1256,7 +1346,7 @@ function sectionTagEditorHtml(sec,scope,index){
 }
 function sectionSettingsHtml(sec,scope,index){
   if(Array.isArray(sec.subsections)&&sec.subsections.length){
-    const rows=sec.subsections.map((sub,subIndex)=>`<div class="subsection-editor"><div class="subsection-editor-main"><input type="text" value="${esc(sub.name||'')}" placeholder="子分栏名称" oninput="setSubDraftField('${scope}',${index},${subIndex},'name',this.value)"><select aria-label="子分栏类型" onchange="setSubDraftField('${scope}',${index},${subIndex},'itemType',this.value)">${sectionTypeOptions(normalizeItemType(sub.itemType))}</select><input type="number" value="${Math.max(0,parseInt(sub.count)||0)}" min="0" max="99" aria-label="数量" onchange="setSubDraftField('${scope}',${index},${subIndex},'count',this.value)"><select aria-label="列数" onchange="setSubDraftField('${scope}',${index},${subIndex},'cols',this.value)">${sectionColsOptions(sub.cols)}</select><div class="subsection-editor-actions"><button type="button" aria-label="上移" onclick="moveDraftSubsection('${scope}',${index},${subIndex},-1)">↑</button><button type="button" aria-label="下移" onclick="moveDraftSubsection('${scope}',${index},${subIndex},1)">↓</button><button type="button" aria-label="删除子分栏" onclick="removeDraftSubsection('${scope}',${index},${subIndex})">×</button></div></div></div>`).join('');
+    const rows=sec.subsections.map((sub,subIndex)=>`<div class="subsection-editor" data-sub-scope="${scope}" data-parent-index="${index}" data-sub-index="${subIndex}"><div class="subsection-editor-main"><span class="subsection-drag-handle" title="长按拖动排序" aria-label="长按拖动子分栏">⠿</span><input type="text" value="${esc(sub.name||'')}" placeholder="子分栏名称" oninput="setSubDraftField('${scope}',${index},${subIndex},'name',this.value)"><select aria-label="子分栏类型" onchange="setSubDraftField('${scope}',${index},${subIndex},'itemType',this.value)">${sectionTypeOptions(normalizeItemType(sub.itemType))}</select><input type="number" value="${Math.max(0,parseInt(sub.count)||0)}" min="0" max="99" aria-label="数量" onchange="setSubDraftField('${scope}',${index},${subIndex},'count',this.value)"><select aria-label="列数" onchange="setSubDraftField('${scope}',${index},${subIndex},'cols',this.value)">${sectionColsOptions(sub.cols)}</select><div class="subsection-editor-actions"><button type="button" aria-label="删除子分栏" onclick="removeDraftSubsection('${scope}',${index},${subIndex})">×</button></div></div></div>`).join('');
     return`${rows}<div class="section-config-line"><button type="button" class="subsection-add-btn" onclick="addDraftSubsection('${scope}',${index})">＋ 添加子分栏</button></div>`;
   }
   return`<div class="section-config-line"><span class="section-config-label">内容</span><select aria-label="内容类型" onchange="setDraftField('${scope}',${index},'itemType',this.value,false)">${sectionTypeOptions(normalizeItemType(sec.itemType))}</select><span class="section-config-label">数量</span><input type="number" value="${Math.max(0,parseInt(sec.count)||0)}" min="0" max="99" aria-label="数量" onchange="setDraftField('${scope}',${index},'count',this.value,false)"><select aria-label="列数" onchange="setDraftField('${scope}',${index},'cols',this.value,false)">${sectionColsOptions(sec.cols)}</select><button type="button" class="subsection-add-btn" onclick="addDraftSubsection('${scope}',${index})">＋ 添加子分栏</button></div>`;
@@ -1279,6 +1369,7 @@ function initSectionDrag(){
   sectionDragBound=true;
   const list=document.getElementById('sectionList');
   list.addEventListener('pointerdown',e=>{
+    if(e.target.closest('.subsection-editor'))return;
     if(e.target.closest('input')||e.target.closest('select')||e.target.closest('button'))return;
     const row=e.target.closest('.section-row');
     if(!row||(e.button!==undefined&&e.button!==0))return;
@@ -1517,19 +1608,19 @@ function renderDetail(p){
         if(sc>0){
           const subLabel=String(sub.name||'').trim()||(normalizeItemType(sub.itemType)==='merch'?'周边':'餐品');
           html+=`<div style="font-size:10px;color:#bbb;padding:3px 14px;margin-top:2px">${esc(subLabel)}</div>`;
-          html+=`<div class="section-grid" style="grid-template-columns:repeat(${subC},1fr)">`;
+          html+=`<div class="section-grid${subC===1?' one-column':''}" style="grid-template-columns:repeat(${subC},1fr)">`;
           html+=renderItemCells(secItems.slice(subOff,subOff+sc),offset+subOff,subC);
           html+=`</div>`;
         }
         subOff+=sc;
       });
       if(subOff<secItems.length){
-        html+=`<div class="section-grid" style="grid-template-columns:repeat(${cols},1fr)">`;
+        html+=`<div class="section-grid${cols===1?' one-column':''}" style="grid-template-columns:repeat(${cols},1fr)">`;
         html+=renderItemCells(secItems.slice(subOff),offset+subOff,cols);
         html+=`</div>`;
       }
     }else{
-      html+=`<div class="section-grid" style="grid-template-columns:repeat(${cols},1fr)">`;
+      html+=`<div class="section-grid${cols===1?' one-column':''}" style="grid-template-columns:repeat(${cols},1fr)">`;
       html+=renderItemCells(secItems,offset,cols);
       html+=`</div>`;
     }
@@ -1897,7 +1988,7 @@ function openItem(idx){
     if(history.length){
       html+=`<div class="history-list"><div style="font-size:11px;color:#bbb;padding:4px 14px">打卡记录（${history.length} 次）</div>`;
       history.forEach((record,recordIdx)=>{
-        html+=`<div class="history-item">${record.img?`<img class="history-thumb" src="${record.img}">`:''}<span class="history-date">${esc(record.date||'')}</span><span class="history-note ${record.note?'':'is-empty'}" title="双击编辑感想" ondblclick="startHistoryNoteEdit(this,'collab_food',${recordIdx})">${record.note?esc(record.note):'—'}</span></div>`;
+        html+=`<div class="history-item history-editable" title="双击编辑感想" ondblclick="startHistoryNoteEdit(this.querySelector('.history-note'),'food',${recordIdx})">${record.img?`<img class="history-thumb" src="${record.img}">`:''}<span class="history-date">${esc(record.date||'')}</span><span class="history-note ${record.note?'':'is-empty'}" ondblclick="startHistoryNoteEdit(this,'food',${recordIdx})">${record.note?esc(record.note):'双击添加感想…'}</span></div>`;
       });
       html+='</div>';
     }
@@ -1912,7 +2003,7 @@ function openItem(idx){
         const statusLabel=record.status==='sold'?'已出':record.status==='gifted'?'赠送':'自留';
         const processClass=(record.processStatus||'pending')==='processed'?'processed':'pending';
         const processLabel=(record.processStatus||'pending')==='processed'?'已处理':'待处理';
-        html+=`<div class="history-item">${record.img?`<img class="history-thumb" src="${record.img}">`:''}<span class="history-date">${esc(record.date||'')}</span><span class="history-note ${record.note?'':'is-empty'}" title="双击编辑感想" ondblclick="startHistoryNoteEdit(this,'merch',${recordIdx})">${record.note?esc(record.note):'—'}</span><button class="history-process ${processClass}" onclick="toggleMerchProcessStatus(${recordIdx})">${processLabel}</button>${(record.processStatus||'pending')==='processed'?`<button class="history-status ${statusClass}" onclick="toggleMerchStatus(${recordIdx})">${statusLabel}</button>`:''}${bt==='shopping'&&record.cost?`<span class="cost-tag">¥${record.cost}</span>`:''}<button class="history-delete" aria-label="删除这条记录" onclick="deleteMerchRecord(${recordIdx})">×</button></div>`;
+        html+=`<div class="history-item history-editable" title="双击编辑感想" ondblclick="if(!event.target.closest('button'))startHistoryNoteEdit(this.querySelector('.history-note'),'merch',${recordIdx})">${record.img?`<img class="history-thumb" src="${record.img}">`:''}<span class="history-date">${esc(record.date||'')}</span><span class="history-note ${record.note?'':'is-empty'}" ondblclick="startHistoryNoteEdit(this,'merch',${recordIdx})">${record.note?esc(record.note):'双击添加感想…'}</span><button class="history-process ${processClass}" onclick="toggleMerchProcessStatus(${recordIdx})">${processLabel}</button>${(record.processStatus||'pending')==='processed'?`<button class="history-status ${statusClass}" onclick="toggleMerchStatus(${recordIdx})">${statusLabel}</button>`:''}${bt==='shopping'&&record.cost?`<span class="cost-tag">¥${record.cost}</span>`:''}<button class="history-delete" aria-label="删除这条记录" onclick="deleteMerchRecord(${recordIdx})">×</button></div>`;
       });
       html+='</div>';
       if(bt==='shopping'){
@@ -1991,7 +2082,7 @@ function startHistoryNoteEdit(el,sectionType,recordIdx){
     const val=el.textContent.trim();
     record.note=val;
     if(recordIdx===records.length-1)item.checkinNote=val;
-    el.textContent=val||'—';
+    el.textContent=val||'双击添加感想…';
     el.classList.toggle('is-empty',!val);
     save();
     el.removeEventListener('blur',commit);
@@ -2428,6 +2519,7 @@ function deleteMerchRecord(recordIdx){
 
 /* ═══ INIT ═══ */
 setupItemArrangeGestures();
+setupSubsectionDrag();
 renderProjects();
 migrateLocalImages();
 </script>
