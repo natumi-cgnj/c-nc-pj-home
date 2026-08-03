@@ -115,14 +115,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .file-label{display:block;padding:10px 12px;border:1px dashed #ddd;border-radius:8px;text-align:center;color:#aaa;font-size:12px;cursor:pointer;margin-top:4px}
 .img-preview{width:100%;border-radius:8px;margin-top:8px;max-height:240px;object-fit:contain;background:#f7f7f7}
 /* Duty color selector */
-.duty-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
-.duty-opt{padding:4px 10px;border-radius:6px;border:1.5px solid #e0e0e0;font-size:12px;cursor:pointer;font-family:inherit;background:#fff;transition:all 0.15s}
+.duty-row{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px}
+.duty-opt{padding:3px 9px;border-radius:6px;border:1.5px solid #e0e0e0;font-size:11px;cursor:pointer;font-family:inherit;background:#fff;transition:all 0.15s}
 .duty-opt.active{border-width:2px}
-.duty-custom-row{display:flex;gap:6px;align-items:center;margin-top:8px}
-.duty-custom-row input{flex:1}
-.color-dot{width:20px;height:20px;border-radius:50%;border:1.5px solid #ddd;cursor:pointer;flex-shrink:0}
-.color-picker-row{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
-.color-swatch{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:border 0.15s}
+.duty-custom-row{display:flex;gap:6px;align-items:center;margin-top:6px}
+.duty-custom-row input{flex:1;font-size:12px;padding:6px 8px}
+.color-dot{width:18px;height:18px;border-radius:50%;border:1.5px solid #ddd;cursor:pointer;flex-shrink:0}
+.color-picker-row{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap}
+.color-swatch{width:20px;height:20px;border-radius:50%;cursor:pointer;border:1.5px solid transparent;transition:border 0.15s,transform 0.15s}
+.color-swatch:active{transform:scale(1.15)}
 .color-swatch.active{border-color:#333}
 
 /* ── Checkin celebration ── */
@@ -139,9 +140,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 /* ── Section dividers ── */
 .section-divider{display:flex;align-items:center;gap:10px;padding:10px 20px;background:#fafafa;border-bottom:1px solid #f0f0f0}
 .section-divider-line{flex:1;height:1px;background:#e0e0e0}
+.section-divider-center{display:flex;flex-direction:column;align-items:center;gap:1px;flex-shrink:0}
 .section-divider-label{font-size:11px;color:#999;font-weight:500;letter-spacing:0.3px;cursor:text;border-bottom:1px dashed transparent;transition:color 0.15s,border-color 0.15s}
 .section-divider-label:hover{color:#8B6914;border-bottom-color:#D8C18B}
-.section-progress{font-size:10px;color:#bbb;white-space:nowrap;font-variant-numeric:tabular-nums;flex-shrink:0}
+.section-progress{font-size:9px;color:#c5c5c5;white-space:nowrap;font-variant-numeric:tabular-nums;letter-spacing:0.3px}
 .subcount-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px}
 .subcount-row label{margin:0;font-size:12px;color:#999}
 .subcount-row input[type="number"]{width:60px;font-size:13px;padding:6px 8px}
@@ -155,37 +157,44 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 }
 /* Section editor in modal */
 .section-list{margin-top:8px}
-.section-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f5f5f5;flex-wrap:wrap}
-.section-row input{font-size:13px;padding:6px 8px;border:1px solid #e0e0e0;border-radius:6px;font-family:inherit}
+.section-row{display:flex;align-items:center;gap:6px;padding:8px 0;border-bottom:1px solid #f5f5f5;flex-wrap:wrap}
+.section-row input{font-size:12px;padding:6px 8px;border:1px solid #e8e8e8;border-radius:6px;font-family:inherit;background:#fff}
 .section-row input[type="text"]{flex:1 1 90px;min-width:70px}
-.section-row input[type="number"]{flex:0 0 50px;min-width:0}
-.section-row select{width:60px;font-size:12px;padding:4px;border:1px solid #e0e0e0;border-radius:6px;font-family:inherit}
-.section-row .del-sec{font-size:12px;color:#ccc;background:none;border:none;cursor:pointer;padding:4px}
+.section-row input[type="number"]{flex:0 0 46px;min-width:0}
+.section-row select{width:56px;font-size:11px;padding:4px;border:1px solid #e8e8e8;border-radius:6px;font-family:inherit;background:#fff}
+.section-row .del-sec{font-size:11px;color:#d0d0d0;background:none;border:none;cursor:pointer;padding:4px;transition:color 0.15s}
+.section-row .del-sec:active{color:#D85A30}
 .section-row.sec-dragging{opacity:0.4;background:#f8f8f8}
 .section-row.sec-drag-over{box-shadow:0 -2px 0 0 #E8B96A}
-.add-section-btn{font-size:12px;color:#aaa;background:none;border:1px dashed #ddd;border-radius:6px;padding:6px 12px;cursor:pointer;margin-top:6px;font-family:inherit;width:100%}
-.section-config{width:100%;padding:6px 8px;background:#fafafa;border-radius:8px}
-.section-config-line{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.section-config-line+.section-config-line{margin-top:6px}
+.add-section-btn{font-size:11px;color:#bbb;background:none;border:1px dashed #e0e0e0;border-radius:6px;padding:6px 12px;cursor:pointer;margin-top:6px;font-family:inherit;width:100%;transition:color 0.15s,border-color 0.15s}
+.add-section-btn:active{color:#999;border-color:#ccc}
+.section-config{width:100%;padding:5px 0;margin-top:4px}
+.section-config-line{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.section-config-line+.section-config-line{margin-top:5px}
 .section-config-label{font-size:10px;color:#aaa;white-space:nowrap}
-.section-config input[type="text"]{flex:1 1 96px;min-width:80px}
-.section-config input[type="number"]{width:48px;flex:0 0 48px}
-.section-config select{width:auto;min-width:58px}
-.section-tag-palette{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
-.section-tag-swatch{width:17px;height:17px;border-radius:50%;border:2px solid transparent;padding:0;cursor:pointer}
+.section-config input[type="text"]{flex:1 1 96px;min-width:80px;font-size:12px;padding:5px 8px;border:1px solid #e8e8e8;border-radius:6px;background:#fff}
+.section-config input[type="number"]{width:42px;flex:0 0 42px;font-size:12px;padding:5px 4px;border:1px solid #e8e8e8;border-radius:6px;text-align:center;background:#fff}
+.section-config select{width:auto;min-width:52px;font-size:11px;padding:4px 4px;border:1px solid #e8e8e8;border-radius:6px;background:#fff}
+.section-tag-palette{display:flex;gap:3px;align-items:center;flex-wrap:wrap}
+.section-tag-swatch{width:14px;height:14px;border-radius:50%;border:1.5px solid transparent;padding:0;cursor:pointer;transition:border-color 0.15s,transform 0.15s}
+.section-tag-swatch:active{transform:scale(1.15)}
 .section-tag-swatch.active{border-color:#333}
-.subsection-editor{width:100%;padding:7px 0;border-top:1px solid #eee;position:relative}
+.subsection-editor{width:100%;padding:5px 0;border-top:1px solid #f0f0f0;position:relative}
 .subsection-editor:first-child{border-top:none}
-.subsection-editor-main{display:grid;grid-template-columns:auto minmax(76px,1fr) auto auto auto auto;gap:5px;align-items:center}
-.subsection-editor-main input,.subsection-editor-main select{min-width:0;width:100%}
-.subsection-drag-handle{width:20px;height:28px;display:flex;align-items:center;justify-content:center;color:#c8c8c8;font-size:12px;letter-spacing:-2px;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+.subsection-editor-main{display:grid;grid-template-columns:minmax(70px,1fr) auto auto auto auto;gap:4px;align-items:center}
+.subsection-editor-main input{min-width:0;width:100%;font-size:12px;padding:5px 8px;border:1px solid #e8e8e8;border-radius:6px;background:#fff}
+.subsection-editor-main input[type="number"]{width:42px;padding:5px 4px;text-align:center}
+.subsection-editor-main select{min-width:0;width:100%;font-size:11px;padding:4px 4px;border:1px solid #e8e8e8;border-radius:6px;background:#fff}
+.subsection-drag-handle{display:none}
 .subsection-editor.sub-dragging{opacity:0.42;background:#f8f8f8}
 .subsection-editor.sub-drag-over{box-shadow:0 -2px 0 0 #E8B96A}
 .subsection-editor-actions{display:flex;gap:2px}
-.subsection-editor-actions button{border:none;background:none;color:#bbb;font-size:11px;padding:3px;cursor:pointer}
-.subsection-add-btn{font-size:11px;color:#999;background:#fff;border:1px dashed #ddd;border-radius:6px;padding:5px 9px;cursor:pointer;font-family:inherit}
+.subsection-editor-actions button{border:none;background:none;color:#ccc;font-size:10px;padding:2px;cursor:pointer;transition:color 0.15s}
+.subsection-editor-actions button:active{color:#D85A30}
+.subsection-add-btn{font-size:11px;color:#bbb;background:none;border:1px dashed #e0e0e0;border-radius:6px;padding:4px 8px;cursor:pointer;font-family:inherit;transition:color 0.15s,border-color 0.15s}
+.subsection-add-btn:active{color:#999;border-color:#ccc}
 @media(max-width:380px){
-  .subsection-editor-main{grid-template-columns:auto minmax(70px,1fr) auto auto auto}
+  .subsection-editor-main{grid-template-columns:minmax(60px,1fr) auto auto auto}
   .subsection-editor-actions{grid-column:2/-1;justify-content:flex-end}
 }
 
@@ -1348,7 +1357,7 @@ function sectionTagEditorHtml(sec,scope,index){
 }
 function sectionSettingsHtml(sec,scope,index){
   if(Array.isArray(sec.subsections)&&sec.subsections.length){
-    const rows=sec.subsections.map((sub,subIndex)=>`<div class="subsection-editor" data-sub-scope="${scope}" data-parent-index="${index}" data-sub-index="${subIndex}"><div class="subsection-editor-main"><span class="subsection-drag-handle" title="长按拖动排序" aria-label="长按拖动子分栏">⠿</span><input type="text" value="${esc(sub.name||'')}" placeholder="子分栏名称" oninput="setSubDraftField('${scope}',${index},${subIndex},'name',this.value)"><select aria-label="子分栏类型" onchange="setSubDraftField('${scope}',${index},${subIndex},'itemType',this.value)">${sectionTypeOptions(normalizeItemType(sub.itemType))}</select><input type="number" value="${Math.max(0,parseInt(sub.count)||0)}" min="0" max="99" aria-label="数量" onchange="setSubDraftField('${scope}',${index},${subIndex},'count',this.value)"><select aria-label="列数" onchange="setSubDraftField('${scope}',${index},${subIndex},'cols',this.value)">${sectionColsOptions(sub.cols)}</select><div class="subsection-editor-actions"><button type="button" aria-label="删除子分栏" onclick="removeDraftSubsection('${scope}',${index},${subIndex})">×</button></div></div></div>`).join('');
+    const rows=sec.subsections.map((sub,subIndex)=>`<div class="subsection-editor" data-sub-scope="${scope}" data-parent-index="${index}" data-sub-index="${subIndex}"><div class="subsection-editor-main"><input type="text" value="${esc(sub.name||'')}" placeholder="子分栏名称" oninput="setSubDraftField('${scope}',${index},${subIndex},'name',this.value)"><select aria-label="子分栏类型" onchange="setSubDraftField('${scope}',${index},${subIndex},'itemType',this.value)">${sectionTypeOptions(normalizeItemType(sub.itemType))}</select><input type="number" value="${Math.max(0,parseInt(sub.count)||0)}" min="0" max="99" aria-label="数量" onchange="setSubDraftField('${scope}',${index},${subIndex},'count',this.value)"><select aria-label="列数" onchange="setSubDraftField('${scope}',${index},${subIndex},'cols',this.value)">${sectionColsOptions(sub.cols)}</select><div class="subsection-editor-actions"><button type="button" aria-label="删除子分栏" onclick="removeDraftSubsection('${scope}',${index},${subIndex})">×</button></div></div></div>`).join('');
     return`${rows}<div class="section-config-line"><button type="button" class="subsection-add-btn" onclick="addDraftSubsection('${scope}',${index})">＋ 添加子分栏</button></div>`;
   }
   return`<div class="section-config-line"><span class="section-config-label">内容</span><select aria-label="内容类型" onchange="setDraftField('${scope}',${index},'itemType',this.value,false)">${sectionTypeOptions(normalizeItemType(sec.itemType))}</select><span class="section-config-label">数量</span><input type="number" value="${Math.max(0,parseInt(sec.count)||0)}" min="0" max="99" aria-label="数量" onchange="setDraftField('${scope}',${index},'count',this.value,false)"><select aria-label="列数" onchange="setDraftField('${scope}',${index},'cols',this.value,false)">${sectionColsOptions(sec.cols)}</select><button type="button" class="subsection-add-btn" onclick="addDraftSubsection('${scope}',${index})">＋ 添加子分栏</button></div>`;
@@ -1598,7 +1607,7 @@ function renderDetail(p){
       const secSt=sectionStats(p,si);
       const secPct=secSt.total>0?Math.round(secSt.collected/secSt.total*100):0;
       const progressHtml=`<span class="section-progress">${secSt.collected}/${secSt.total} ${secPct}%</span>`;
-      html+=`<div class="section-divider"><div class="section-divider-line"></div><span class="section-divider-label" title="双击编辑分栏" ondblclick="event.stopPropagation();openSectionQuickEdit(${si})">${esc(sec.name)}${typeBadge}</span><div class="section-divider-line"></div>${progressHtml}</div>`;
+      html+=`<div class="section-divider"><div class="section-divider-line"></div><div class="section-divider-center"><span class="section-divider-label" title="双击编辑分栏" ondblclick="event.stopPropagation();openSectionQuickEdit(${si})">${esc(sec.name)}${typeBadge}</span>${progressHtml}</div><div class="section-divider-line"></div></div>`;
     }else if(si>0){
       html+=`<div class="section-divider"><div class="section-divider-line"></div></div>`;
     }
