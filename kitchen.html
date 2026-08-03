@@ -144,6 +144,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .section-divider-label{font-size:11px;color:#999;font-weight:500;letter-spacing:0.3px;cursor:text;border-bottom:1px dashed transparent;transition:color 0.15s,border-color 0.15s}
 .section-divider-label:hover{color:#8B6914;border-bottom-color:#D8C18B}
 .section-progress{font-size:9px;color:#c5c5c5;white-space:nowrap;font-variant-numeric:tabular-nums;letter-spacing:0.3px}
+.section-banner{width:100%;height:56px;overflow:hidden;cursor:pointer;position:relative}
+.section-banner img{width:100%;height:100%;object-fit:cover;display:block;transition:opacity 0.3s}
+.section-banner-full{position:fixed;inset:0;z-index:280;background:rgba(0,0,0,0.75);display:none;align-items:center;justify-content:center;cursor:pointer}
+.section-banner-full.show{display:flex}
+.section-banner-full img{max-width:92%;max-height:85vh;object-fit:contain;border-radius:8px}
 .subcount-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px}
 .subcount-row label{margin:0;font-size:12px;color:#999}
 .subcount-row input[type="number"]{width:60px;font-size:13px;padding:6px 8px}
@@ -381,6 +386,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <input type="text" id="quickSectionName" maxlength="40" placeholder="分栏名称" onkeydown="if(event.key==='Enter')saveSectionQuickEdit()">
     <label>小标签（选填）</label>
     <div id="quickSectionTag"></div>
+    <label>横幅图（选填）</label>
+    <label class="file-label" id="quickBannerLabel" onclick="document.getElementById('quickBannerInput').click()">点击选择横幅图</label>
+    <input type="file" accept="image/*" id="quickBannerInput" onchange="previewSectionBanner(this,'quick')" style="display:none">
+    <div id="quickBannerPreview" style="display:none;position:relative;margin-top:6px"><img class="img-preview" style="max-height:80px;object-fit:cover;width:100%;border-radius:6px"><button type="button" onclick="clearSectionBanner('quick')" style="position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;border:none;background:rgba(0,0,0,0.45);color:#fff;font-size:11px;cursor:pointer;line-height:20px;text-align:center">×</button></div>
     <label>内容设置</label>
     <div id="quickSectionConfig"></div>
     <div class="btn-row">
@@ -399,6 +408,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <input type="text" id="inputSectionName" placeholder="如: 第二弹、季节限定" maxlength="40">
     <label>小标签（选填）</label>
     <div id="addSectionTag"></div>
+    <label>横幅图（选填）</label>
+    <label class="file-label" id="addBannerLabel" onclick="document.getElementById('addBannerInput').click()">点击选择横幅图</label>
+    <input type="file" accept="image/*" id="addBannerInput" onchange="previewSectionBanner(this,'add')" style="display:none">
+    <div id="addBannerPreview" style="display:none;position:relative;margin-top:6px"><img class="img-preview" style="max-height:80px;object-fit:cover;width:100%;border-radius:6px"><button type="button" onclick="clearSectionBanner('add')" style="position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;border:none;background:rgba(0,0,0,0.45);color:#fff;font-size:11px;cursor:pointer;line-height:20px;text-align:center">×</button></div>
     <label>内容设置</label>
     <div id="addSectionConfig"></div>
     <div class="btn-row">
@@ -406,6 +419,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
       <button class="btn btn-primary" onclick="saveAddSection()">添加</button>
     </div>
   </div>
+</div>
+
+<!-- Banner fullscreen view -->
+<div class="section-banner-full" id="bannerFullView" onclick="this.classList.remove('show')">
+  <img id="bannerFullImg" src="" alt="">
 </div>
 
 <!-- Toast -->
@@ -1529,10 +1547,47 @@ async function saveProject(){
 }
 
 /* ── Add new section from detail view ── */
+/* ── Section banner helpers ── */
+let _sectionBannerTemp={quick:'',add:''};
+function previewSectionBanner(input,scope){
+  if(!input.files||!input.files[0])return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const img=new Image();
+    img.onload=()=>{
+      const c=document.createElement('canvas');
+      const MW=800,MH=300;
+      let w=img.width,h=img.height;
+      if(w>MW){h=h*MW/w;w=MW;}
+      if(h>MH){w=w*MH/h;h=MH;}
+      c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);
+      const data=c.toDataURL('image/jpeg',0.75);
+      _sectionBannerTemp[scope]=data;
+      const wrap=document.getElementById(scope+'BannerPreview');
+      wrap.style.display='block';
+      wrap.querySelector('img').src=data;
+    };
+    img.src=ev.target.result;
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+function clearSectionBanner(scope){
+  _sectionBannerTemp[scope]='';
+  const wrap=document.getElementById(scope+'BannerPreview');
+  wrap.style.display='none';
+  wrap.querySelector('img').src='';
+  document.getElementById(scope+'BannerInput').value='';
+}
+function showBannerFull(src){
+  document.getElementById('bannerFullImg').src=src;
+  document.getElementById('bannerFullView').classList.add('show');
+}
+
 function openAddSection(){
   const p=getProject(curProjectId);if(!p)return;
   document.getElementById('inputSectionName').value='';
   _addSectionDraft={name:'',count:0,cols:3,itemType:'food',tagText:'',tagColor:'#E8B96A',_items:[]};
+  clearSectionBanner('add');
   renderStandaloneSectionDraft('add');
   openModal('addSectionModal');
   requestAnimationFrame(()=>document.getElementById('inputSectionName').focus());
@@ -1551,10 +1606,11 @@ function saveAddSection(){
     p.sections.push({name:'',count:p.items.length,cols:3,itemType:oldType,tagText:'',tagColor:'#E8B96A'});
     p.items.forEach(item=>{if(!item.itemType)item.itemType=oldType;});
   }
+  if(_sectionBannerTemp.add)finalized.section.bannerImg=_sectionBannerTemp.add;
   p.sections.push(finalized.section);
   p.items.push(...finalized.items);
   p.count=p.items.length;
-  _addSectionDraft=null;
+  _addSectionDraft=null;_sectionBannerTemp.add='';
   save();closeModal('addSectionModal');renderDetail(p);
 }
 
@@ -1611,6 +1667,9 @@ function renderDetail(p){
     }else if(si>0){
       html+=`<div class="section-divider"><div class="section-divider-line"></div></div>`;
     }
+    if(sec.bannerImg){
+      html+=`<div class="section-banner" onclick="showBannerFull('${sec.bannerImg.replace(/'/g,"\\'")}')"><img src="${sec.bannerImg}" alt=""></div>`;
+    }
     if(Array.isArray(sec.subsections)&&sec.subsections.length){
       let subOff=0;
       sec.subsections.forEach(sub=>{
@@ -1654,6 +1713,12 @@ function openSectionQuickEdit(sectionIdx){
   _quickSectionDraft=buildSectionDrafts(p)[sectionIdx];
   const nameInput=document.getElementById('quickSectionName');
   nameInput.value=_quickSectionDraft.name||'';
+  const existingBanner=p.sections[sectionIdx].bannerImg||'';
+  _sectionBannerTemp.quick=existingBanner;
+  const wrap=document.getElementById('quickBannerPreview');
+  if(existingBanner){wrap.style.display='block';wrap.querySelector('img').src=existingBanner;}
+  else{wrap.style.display='none';wrap.querySelector('img').src='';}
+  document.getElementById('quickBannerInput').value='';
   renderStandaloneSectionDraft('quick');
   openModal('sectionQuickModal');
   requestAnimationFrame(()=>{nameInput.focus();nameInput.select();});
@@ -1670,6 +1735,8 @@ function saveSectionQuickEdit(){
   const oldCount=Math.max(0,parseInt(p.sections[editSectionIdx].count)||0);
   const finalized=finalizeOneSectionDraft(_quickSectionDraft,start+1);
   p.items.splice(start,oldCount,...finalized.items);
+  if(_sectionBannerTemp.quick)finalized.section.bannerImg=_sectionBannerTemp.quick;
+  else delete finalized.section.bannerImg;
   p.sections[editSectionIdx]=finalized.section;
   p.count=p.items.length;
   normalizeGenericItemNames(p);
@@ -1677,7 +1744,7 @@ function saveSectionQuickEdit(){
   closeModal('sectionQuickModal');
   if(finalized.preserved)showToast(`已保留 ${finalized.preserved} 个有记录的品目`);
   editSectionIdx=null;
-  _quickSectionDraft=null;
+  _quickSectionDraft=null;_sectionBannerTemp.quick='';
   renderDetail(p);
 }
 function deleteSectionQuickEdit(){
