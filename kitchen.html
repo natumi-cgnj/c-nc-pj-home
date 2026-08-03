@@ -1113,7 +1113,7 @@ function buildSectionDrafts(p){
   const drafts=source.map(sec=>{
     const count=Math.max(0,parseInt(sec.count)||0);
     const sectionItems=p.items.slice(offset,offset+count);
-    const draft={name:sec.name||'',count,cols:clampSectionCols(sec.cols),itemType:normalizeItemType(sec.itemType),tagText:sec.tagText||'',tagColor:normalizeTagColor(sec.tagColor)};
+    const draft={name:sec.name||'',count,cols:clampSectionCols(sec.cols),itemType:normalizeItemType(sec.itemType),tagText:sec.tagText||'',tagColor:normalizeTagColor(sec.tagColor),bannerImg:sec.bannerImg||''};
     if(Array.isArray(sec.subsections)&&sec.subsections.length){
       let subOffset=0;
       draft.subsections=sec.subsections.map(sub=>{
@@ -1164,6 +1164,7 @@ function finalizeItemBucket(bucket,requested,itemType,startNumber){
 }
 function finalizeOneSectionDraft(sec,startNumber){
   const result={name:sec.name||'',count:0,cols:clampSectionCols(sec.cols),itemType:normalizeItemType(sec.itemType),tagText:String(sec.tagText||'').trim(),tagColor:normalizeTagColor(sec.tagColor)};
+  if(sec.bannerImg)result.bannerImg=sec.bannerImg;
   let items=[];let preserved=0;
   const activeSubs=Array.isArray(sec.subsections)
     ?sec.subsections.filter(sub=>sub.name||Math.max(0,parseInt(sub.count)||0)>0||(sub._items&&sub._items.length))
@@ -1549,6 +1550,15 @@ async function saveProject(){
 /* ── Add new section from detail view ── */
 /* ── Section banner helpers ── */
 let _sectionBannerTemp={quick:'',add:''};
+async function persistSectionBanner(value,projectId){
+  if(!value||!value.startsWith('data:')||!window.CloudSync)return value||'';
+  try{
+    return await CloudSync.uploadDataUrl(value,`kitchen/${projectId}_section_${gid()}.jpg`);
+  }catch(error){
+    console.warn('Section banner upload pending:',error);
+    return value;
+  }
+}
 function previewSectionBanner(input,scope){
   if(!input.files||!input.files[0])return;
   const reader=new FileReader();
@@ -1592,7 +1602,7 @@ function openAddSection(){
   openModal('addSectionModal');
   requestAnimationFrame(()=>document.getElementById('inputSectionName').focus());
 }
-function saveAddSection(){
+async function saveAddSection(){
   const p=getProject(curProjectId);if(!p)return;
   const secName=document.getElementById('inputSectionName').value.trim();
   if(!_addSectionDraft)return;
@@ -1600,13 +1610,14 @@ function saveAddSection(){
   const finalized=finalizeOneSectionDraft(_addSectionDraft,p.items.length+1);
   const totalCount=finalized.items.length;
   if(totalCount<=0){showToast('请输入品目数量');return;}
+  const savedBanner=await persistSectionBanner(_sectionBannerTemp.add,p.id);
   if(!Array.isArray(p.sections))p.sections=[];
   if(!p.sections.length&&p.items.length){
     const oldType=normalizeItemType(p.items.find(item=>item&&item.itemType)&&p.items.find(item=>item&&item.itemType).itemType);
     p.sections.push({name:'',count:p.items.length,cols:3,itemType:oldType,tagText:'',tagColor:'#E8B96A'});
     p.items.forEach(item=>{if(!item.itemType)item.itemType=oldType;});
   }
-  if(_sectionBannerTemp.add)finalized.section.bannerImg=_sectionBannerTemp.add;
+  if(savedBanner)finalized.section.bannerImg=savedBanner;
   p.sections.push(finalized.section);
   p.items.push(...finalized.items);
   p.count=p.items.length;
@@ -1723,7 +1734,7 @@ function openSectionQuickEdit(sectionIdx){
   openModal('sectionQuickModal');
   requestAnimationFrame(()=>{nameInput.focus();nameInput.select();});
 }
-function saveSectionQuickEdit(){
+async function saveSectionQuickEdit(){
   const p=getProject(curProjectId);
   if(!p||editSectionIdx===null||!p.sections||!p.sections[editSectionIdx])return;
   const nameInput=document.getElementById('quickSectionName');
@@ -1734,8 +1745,9 @@ function saveSectionQuickEdit(){
   const start=getSectionStartIndex(p,editSectionIdx);
   const oldCount=Math.max(0,parseInt(p.sections[editSectionIdx].count)||0);
   const finalized=finalizeOneSectionDraft(_quickSectionDraft,start+1);
+  const savedBanner=await persistSectionBanner(_sectionBannerTemp.quick,p.id);
   p.items.splice(start,oldCount,...finalized.items);
-  if(_sectionBannerTemp.quick)finalized.section.bannerImg=_sectionBannerTemp.quick;
+  if(savedBanner)finalized.section.bannerImg=savedBanner;
   else delete finalized.section.bannerImg;
   p.sections[editSectionIdx]=finalized.section;
   p.count=p.items.length;
@@ -2572,6 +2584,12 @@ async function migrateLocalImages(){
   try{await CloudSync.whenReady();let changed=false;
   for(const p of projects){
     if(p.icon&&p.icon.startsWith('data:')){p.icon=await CloudSync.uploadDataUrl(p.icon,`kitchen/${p.id}_icon.jpg`);changed=true;}
+    for(const section of p.sections||[]){
+      if(section.bannerImg&&section.bannerImg.startsWith('data:')){
+        section.bannerImg=await CloudSync.uploadDataUrl(section.bannerImg,`kitchen/${p.id}_section_${gid()}.jpg`);
+        changed=true;
+      }
+    }
     for(const item of p.items){
       if(item.img&&item.img.startsWith('data:')){item.img=await CloudSync.uploadDataUrl(item.img,`kitchen/${p.id}_${item.id}.jpg`);changed=true;}
       if(item.checkinImg&&item.checkinImg.startsWith('data:')){item.checkinImg=await CloudSync.uploadDataUrl(item.checkinImg,`kitchen/${p.id}_${item.id}_checkin.jpg`);changed=true;}

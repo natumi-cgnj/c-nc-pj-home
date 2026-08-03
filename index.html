@@ -16,7 +16,7 @@
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;background:#FAFAFA;color:#1a1a1a;height:100dvh;overflow:hidden;margin:0;padding:0}
 /* ── Horizontal pager (mobile) ── */
-.home-pager{display:flex;width:200vw;height:100dvh;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.home-pager{display:flex;width:100vw;height:100dvh;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .home-pager::-webkit-scrollbar{display:none}
 .home-page{width:100vw;height:100dvh;flex-shrink:0;scroll-snap-align:start;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 20px;scrollbar-width:none}
 .home-page::-webkit-scrollbar{display:none}
@@ -329,8 +329,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
       <button class="wardrobe-btn" type="button" onclick="openWardrobe('neal',event)" aria-label="打开 Neal 的衣柜" title="衣柜"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a2 2 0 0 0-2 2c0 .74.4 1.39 1 1.73V8l-7 6h16l-7-6V6.73A2 2 0 0 0 12 3z"/><path d="M4 14v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg></button>
     </div>
     <div class="room-away-status" id="away-neal" onclick="onAwayTap('neal',event)"><div class="room-away-label"><span class="away-title" id="away-title-neal"></span><span class="away-eta" id="away-eta-neal"></span></div></div>
-    <div class="char-sprite" id="char-neal" onclick="onCharTap('neal',event)">
-      <img src="assets/characters/neal/neal-default.png" alt="Neal">
+    <div class="char-sprite" id="char-neal" onclick="onCharacterSpriteTap(event)">
+      <img src="assets/characters/neal/neal-default.png" alt="Neal" crossorigin="anonymous">
     </div>
     <div class="speech-bubble" id="bubble-neal"><span class="bubble-status bubble-status-neal" id="status-neal"></span><span id="msg-neal"></span></div>
   </div>
@@ -349,8 +349,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
         <button class="wardrobe-btn" type="button" onclick="openWardrobe('jane',event)" aria-label="打开 Jane 的衣柜" title="衣柜"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a2 2 0 0 0-2 2c0 .74.4 1.39 1 1.73V8l-7 6h16l-7-6V6.73A2 2 0 0 0 12 3z"/><path d="M4 14v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg></button>
       </div>
       <div class="room-away-status" id="away-jane" onclick="onAwayTap('jane',event)"><div class="room-away-label"><span class="away-title" id="away-title-jane"></span><span class="away-eta" id="away-eta-jane"></span></div></div>
-      <div class="char-sprite" id="char-jane" onclick="onCharTap('jane',event)">
-        <img src="assets/characters/jane/jane-default.png?v=20260802-clean1" alt="Jane">
+      <div class="char-sprite" id="char-jane" onclick="onCharacterSpriteTap(event)">
+        <img src="assets/characters/jane/jane-default.png?v=20260802-clean1" alt="Jane" crossorigin="anonymous">
       </div>
       <div class="speech-bubble" id="bubble-jane"><span class="bubble-status bubble-status-jane" id="status-jane"></span><span id="msg-jane"></span></div>
       <button class="conn-btn conn-on-jane-top on" id="cNealJane" onclick="toggleMod('nealjane')"><span class="conn-dot" id="dNealJane" style="background:#5B9AB5"></span> <span id="lNealJane">连接</span></button>
@@ -383,7 +383,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
       <button class="wardrobe-btn" type="button" onclick="openWardrobe('will',event)" aria-label="打开 Will 的衣柜" title="衣柜"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a2 2 0 0 0-2 2c0 .74.4 1.39 1 1.73V8l-7 6h16l-7-6V6.73A2 2 0 0 0 12 3z"/><path d="M4 14v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg></button>
     </div>
     <div class="room-away-status" id="away-will" onclick="onAwayTap('will',event)"><div class="room-away-label"><span class="away-title" id="away-title-will"></span><span class="away-eta" id="away-eta-will"></span></div></div>
-    <div class="char-placeholder" id="char-will" onclick="onCharTap('will',event)">
+    <div class="char-placeholder" id="char-will" onclick="onCharacterSpriteTap(event)">
       <div class="placeholder-circle" style="display:none">W</div>
     </div>
     <div class="speech-bubble" id="bubble-will"><span class="bubble-status bubble-status-will" id="status-will"></span><span id="msg-will"></span></div>
@@ -688,6 +688,96 @@ function placeChar(id){
 
 let bubbleTimers={};
 let bubbleZCounter=30;
+const spriteAlphaCache=new WeakMap();
+
+function spritePixelHit(element,clientX,clientY){
+  if(element.classList.contains('char-placeholder')&&characterUsesPlaceholder(element))return true;
+  const image=element.querySelector('img');
+  if(!image||!image.complete||!image.naturalWidth||!image.naturalHeight)return null;
+  const rect=image.getBoundingClientRect();
+  if(clientX<rect.left||clientX>rect.right||clientY<rect.top||clientY>rect.bottom)return false;
+
+  const source=image.currentSrc||image.src||'';
+  let cached=spriteAlphaCache.get(image);
+  if(!cached||cached.source!==source||cached.width!==image.naturalWidth||cached.height!==image.naturalHeight){
+    cached={source,width:image.naturalWidth,height:image.naturalHeight,data:null,unreadable:false};
+    try{
+      const canvas=document.createElement('canvas');
+      canvas.width=cached.width;
+      canvas.height=cached.height;
+      const context=canvas.getContext('2d',{willReadFrequently:true});
+      if(!context)throw new Error('Canvas unavailable');
+      context.drawImage(image,0,0);
+      cached.data=context.getImageData(0,0,cached.width,cached.height).data;
+    }catch(error){
+      cached.unreadable=true;
+    }
+    spriteAlphaCache.set(image,cached);
+  }
+  if(cached.unreadable||!cached.data)return null;
+
+  const x=Math.max(0,Math.min(cached.width-1,Math.floor((clientX-rect.left)/rect.width*cached.width)));
+  const y=Math.max(0,Math.min(cached.height-1,Math.floor((clientY-rect.top)/rect.height*cached.height)));
+  return cached.data[(y*cached.width+x)*4+3]>12;
+}
+
+function onCharacterSpriteTap(event){
+  event.stopPropagation();
+  const current=event.currentTarget;
+  const room=current&&current.parentElement;
+  if(!current||!room)return;
+
+  const candidates=Array.from(room.children).filter(element=>{
+    if(!element.matches('.char-sprite,.char-placeholder'))return false;
+    if(getComputedStyle(element).display==='none')return false;
+    const rect=element.getBoundingClientRect();
+    return event.clientX>=rect.left&&event.clientX<=rect.right&&event.clientY>=rect.top&&event.clientY<=rect.bottom;
+  }).sort((a,b)=>(parseInt(getComputedStyle(b).zIndex)||0)-(parseInt(getComputedStyle(a).zIndex)||0));
+
+  let chosen=null;
+  for(const candidate of candidates){
+    const hit=spritePixelHit(candidate,event.clientX,event.clientY);
+    if(hit===true){chosen=candidate;break;}
+    // A cross-origin custom skin may not expose pixel data. In that case the
+    // element that actually received the click remains the safest target.
+    if(hit===null&&candidate===current){chosen=current;break;}
+  }
+  chosen=chosen||current;
+  const id=chosen.id&&chosen.id.replace(/^char-/,'');
+  if(id)onCharTap(id,event);
+}
+
+function positionBubbleAtCharacter(bubble,charEl,wrap){
+  if(!bubble||!charEl||!wrap)return;
+  const wrapRect=wrap.getBoundingClientRect();
+  const charRect=charEl.getBoundingClientRect();
+  const charCX=charRect.left+charRect.width/2-wrapRect.left;
+  const charTopInWrap=charRect.top-wrapRect.top;
+  const charBotInWrap=charRect.bottom-wrapRect.top;
+
+  // Measure the rendered bubble after its text changes. Long dialogue must not
+  // reuse the old fixed-height estimate, or its arrow can fall over the sprite.
+  bubble.style.left='0px';
+  bubble.style.top='0px';
+  const bubbleWidth=bubble.offsetWidth||180;
+  const bubbleHeight=bubble.offsetHeight||78;
+  const gap=12;
+  const below=charTopInWrap<bubbleHeight+gap;
+  const containerWidth=wrap.offsetWidth||360;
+  let left=Math.round(charCX-bubbleWidth/2);
+  left=Math.max(4,Math.min(left,Math.max(4,containerWidth-bubbleWidth-4)));
+  const top=below
+    ?Math.round(charBotInWrap+gap)
+    :Math.round(charTopInWrap-bubbleHeight-gap);
+
+  bubble.style.left=left+'px';
+  bubble.style.top=top+'px';
+  bubble.classList.toggle('bubble-below',below);
+  let arrowLeft=Math.round(charCX-left-5);
+  arrowLeft=Math.max(10,Math.min(arrowLeft,Math.max(10,bubbleWidth-20)));
+  bubble.style.setProperty('--arrow-left',arrowLeft+'px');
+}
+
 function showBubble(id){
   const lp=id==='neal'?NEAL_BY_ZONE:id==='jane'?JANE_BY_ZONE:WILL_BY_ZONE;
   const zone=charZone[id]||id;
@@ -702,26 +792,9 @@ function showBubble(id){
   const wrap=document.getElementById('aptWrap');
   // move bubble to apt-wrap so it's never clipped by room boundaries
   if(bubble.parentElement!==wrap) wrap.appendChild(bubble);
-  const isPh=characterUsesPlaceholder(charEl);
-  const charImg=charEl.querySelector('img');
-  const eH=isPh?40:((charImg&&charImg.offsetHeight)||90);
-  const eW=isPh?40:eH*0.55;
   document.getElementById('status-'+id).textContent=line.s;
   document.getElementById('msg-'+id).textContent=line.m;
-  // calculate position relative to apt-wrap
-  const wrapRect=wrap.getBoundingClientRect();
-  const charRect=charEl.getBoundingClientRect();
-  const charCX=charRect.left+charRect.width/2-wrapRect.left;
-  const charTopInWrap=charRect.top-wrapRect.top;
-  const charBotInWrap=charRect.bottom-wrapRect.top;
-  const below=charTopInWrap<50;
-  let bL=Math.round(charCX-90),bT=below?Math.round(charBotInWrap+10):Math.round(charTopInWrap-78);
-  const cW=wrap.offsetWidth||360;
-  if(bL<4)bL=4;if(bL+180>cW)bL=cW-184;
-  bubble.style.left=bL+'px';bubble.style.top=bT+'px';
-  bubble.classList.toggle('bubble-below',below);
-  let al=Math.round(charCX-bL-5);al=Math.max(10,Math.min(al,160));
-  bubble.style.setProperty('--arrow-left',al+'px');
+  positionBubbleAtCharacter(bubble,charEl,wrap);
   if(bubbleTimers[id])clearTimeout(bubbleTimers[id]);
   bubble.style.zIndex=++bubbleZCounter;
   bubble.classList.add('show');
@@ -739,19 +812,7 @@ function onCharTap(id,e){
       document.getElementById('status-'+id).textContent=line.s||'';
       document.getElementById('msg-'+id).textContent=line.m||'';
       var charEl=document.getElementById('char-'+id);
-      var wrapRect=wrap.getBoundingClientRect();
-      var charRect=charEl.getBoundingClientRect();
-      var charCX=charRect.left+charRect.width/2-wrapRect.left;
-      var charTopInWrap=charRect.top-wrapRect.top;
-      var charBotInWrap=charRect.bottom-wrapRect.top;
-      var below=charTopInWrap<50;
-      var bL=Math.round(charCX-90),bT=below?Math.round(charBotInWrap+10):Math.round(charTopInWrap-78);
-      var cW=wrap.offsetWidth||360;
-      if(bL<4)bL=4;if(bL+180>cW)bL=cW-184;
-      bubble.style.left=bL+'px';bubble.style.top=bT+'px';
-      bubble.classList.toggle('bubble-below',below);
-      var al=Math.round(charCX-bL-5);al=Math.max(10,Math.min(al,160));
-      bubble.style.setProperty('--arrow-left',al+'px');
+      positionBubbleAtCharacter(bubble,charEl,wrap);
       if(bubbleTimers[id])clearTimeout(bubbleTimers[id]);
       bubble.style.zIndex=++bubbleZCounter;
       bubble.classList.add('show');
@@ -1379,6 +1440,7 @@ function renderCharacterArt(charId,src){
       image.alt=CHAR_LABEL[charId];
       element.appendChild(image);
     }
+    image.crossOrigin='anonymous';
     if(image.dataset.cloudPath!==src&&image.getAttribute('src')!==src){
       delete image.dataset.cloudPath;
       image.setAttribute('src',src);
