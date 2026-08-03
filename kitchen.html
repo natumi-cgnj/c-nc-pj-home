@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Kitchen build: 2026-08-03-optional-subsections-r2 -->
+<!-- Kitchen build: 2026-08-03-optional-subsections-r3 -->
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
@@ -224,6 +224,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .history-item.history-editable{cursor:text}
 .history-item.history-editable:hover{border-color:#e5d2a7}
 .history-date{color:#999;font-size:12px;min-width:80px;flex-shrink:0}
+.history-date[title]{cursor:pointer}
+.history-date-input{width:126px;max-width:100%;padding:4px 6px;border:1px solid #E8B96A;border-radius:5px;background:#fff;color:#555;font:inherit;font-size:12px;outline:none}
 .history-note{color:#555;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .history-note.is-empty{color:#ccc;font-style:italic}
 .history-note[contenteditable]{outline:none;border-bottom:1px solid #E8B96A;overflow:visible;text-overflow:clip;cursor:text}
@@ -1988,7 +1990,7 @@ function openItem(idx){
     if(history.length){
       html+=`<div class="history-list"><div style="font-size:11px;color:#bbb;padding:4px 14px">打卡记录（${history.length} 次）</div>`;
       history.forEach((record,recordIdx)=>{
-        html+=`<div class="history-item history-editable" title="双击编辑感想" ondblclick="startHistoryNoteEdit(this.querySelector('.history-note'),'food',${recordIdx})">${record.img?`<img class="history-thumb" src="${record.img}">`:''}<span class="history-date">${esc(record.date||'')}</span><span class="history-note ${record.note?'':'is-empty'}" ondblclick="startHistoryNoteEdit(this,'food',${recordIdx})">${record.note?esc(record.note):'双击添加感想…'}</span></div>`;
+        html+=`<div class="history-item history-editable" title="双击编辑感想；双击日期可改日期" ondblclick="startHistoryNoteEdit(this.querySelector('.history-note'),'food',${recordIdx})">${record.img?`<img class="history-thumb" src="${record.img}">`:''}<span class="history-date" title="双击编辑日期" ondblclick="event.stopPropagation();startHistoryDateEdit(this,'food',${recordIdx})">${esc(record.date||'')}</span><span class="history-note ${record.note?'':'is-empty'}" ondblclick="startHistoryNoteEdit(this,'food',${recordIdx})">${record.note?esc(record.note):'双击添加感想…'}</span></div>`;
       });
       html+='</div>';
     }
@@ -2003,7 +2005,7 @@ function openItem(idx){
         const statusLabel=record.status==='sold'?'已出':record.status==='gifted'?'赠送':'自留';
         const processClass=(record.processStatus||'pending')==='processed'?'processed':'pending';
         const processLabel=(record.processStatus||'pending')==='processed'?'已处理':'待处理';
-        html+=`<div class="history-item history-editable" title="双击编辑感想" ondblclick="if(!event.target.closest('button'))startHistoryNoteEdit(this.querySelector('.history-note'),'merch',${recordIdx})">${record.img?`<img class="history-thumb" src="${record.img}">`:''}<span class="history-date">${esc(record.date||'')}</span><span class="history-note ${record.note?'':'is-empty'}" ondblclick="startHistoryNoteEdit(this,'merch',${recordIdx})">${record.note?esc(record.note):'双击添加感想…'}</span><button class="history-process ${processClass}" onclick="toggleMerchProcessStatus(${recordIdx})">${processLabel}</button>${(record.processStatus||'pending')==='processed'?`<button class="history-status ${statusClass}" onclick="toggleMerchStatus(${recordIdx})">${statusLabel}</button>`:''}${bt==='shopping'&&record.cost?`<span class="cost-tag">¥${record.cost}</span>`:''}<button class="history-delete" aria-label="删除这条记录" onclick="deleteMerchRecord(${recordIdx})">×</button></div>`;
+        html+=`<div class="history-item history-editable" title="双击编辑感想；双击日期可改日期" ondblclick="if(!event.target.closest('button'))startHistoryNoteEdit(this.querySelector('.history-note'),'merch',${recordIdx})">${record.img?`<img class="history-thumb" src="${record.img}">`:''}<span class="history-date" title="双击编辑日期" ondblclick="event.stopPropagation();startHistoryDateEdit(this,'merch',${recordIdx})">${esc(record.date||'')}</span><span class="history-note ${record.note?'':'is-empty'}" ondblclick="startHistoryNoteEdit(this,'merch',${recordIdx})">${record.note?esc(record.note):'双击添加感想…'}</span><button class="history-process ${processClass}" onclick="toggleMerchProcessStatus(${recordIdx})">${processLabel}</button>${(record.processStatus||'pending')==='processed'?`<button class="history-status ${statusClass}" onclick="toggleMerchStatus(${recordIdx})">${statusLabel}</button>`:''}${bt==='shopping'&&record.cost?`<span class="cost-tag">¥${record.cost}</span>`:''}<button class="history-delete" aria-label="删除这条记录" onclick="deleteMerchRecord(${recordIdx})">×</button></div>`;
       });
       html+='</div>';
       if(bt==='shopping'){
@@ -2091,6 +2093,40 @@ function startHistoryNoteEdit(el,sectionType,recordIdx){
   function onKey(e){if(e.key==='Enter'){e.preventDefault();el.blur();}}
   el.addEventListener('blur',commit);
   el.addEventListener('keydown',onKey);
+}
+function startHistoryDateEdit(el,sectionType,recordIdx){
+  if(!el||el.querySelector('input'))return;
+  const p=getProject(curProjectId);if(!p||curItemIdx===null)return;
+  const item=p.items[curItemIdx];if(!item)return;
+  const records=sectionType==='collab_food'||sectionType==='food'||sectionType==='content'
+    ?getCheckinHistory(item)
+    :(Array.isArray(item.records)?item.records:[]);
+  const record=records[recordIdx];if(!record)return;
+
+  const original=record.date||'';
+  const input=document.createElement('input');
+  input.type='date';
+  input.className='history-date-input';
+  input.value=original;
+  el.textContent='';
+  el.appendChild(input);
+  input.focus();
+
+  let finished=false;
+  function finish(cancel){
+    if(finished)return;
+    finished=true;
+    const val=cancel?original:input.value;
+    record.date=val;
+    if(recordIdx===records.length-1)item.collectedDate=val||null;
+    el.textContent=val;
+    if(!cancel)save();
+  }
+  input.addEventListener('blur',()=>finish(false));
+  input.addEventListener('keydown',e=>{
+    if(e.key==='Enter'){e.preventDefault();finish(false);}
+    if(e.key==='Escape'){e.preventDefault();finish(true);}
+  });
 }
 function openCheckin(){
   const p=getProject(curProjectId);
