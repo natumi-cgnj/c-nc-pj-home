@@ -14,7 +14,15 @@
 <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiSG9tZSIsInNob3J0X25hbWUiOiJIb21lIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiI0ZBRkFGQSIsInRoZW1lX2NvbG9yIjoiI0ZBRkFGQSJ9">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;background:#FAFAFA;color:#1a1a1a;min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 20px;overflow-x:hidden;overflow-y:auto}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;background:#FAFAFA;color:#1a1a1a;height:100dvh;overflow:hidden;margin:0;padding:0}
+/* ── Horizontal pager (mobile) ── */
+.home-pager{display:flex;width:200vw;height:100dvh;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.home-pager::-webkit-scrollbar{display:none}
+.home-page{width:100vw;height:100dvh;flex-shrink:0;scroll-snap-align:start;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 20px;scrollbar-width:none}
+.home-page::-webkit-scrollbar{display:none}
+.page-dots{position:fixed;bottom:env(safe-area-inset-bottom,12px);left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:60;padding:4px}
+.page-dot{width:6px;height:6px;border-radius:50%;background:rgba(0,0,0,0.12);transition:all 0.25s}
+.page-dot.active{background:rgba(0,0,0,0.35);transform:scale(1.15)}
 .header{text-align:center;margin-bottom:28px;cursor:pointer}
 .header h1{font-size:13px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:#999;margin-bottom:4px}
 .header p{font-size:11px;color:#ccc;letter-spacing:1px}
@@ -118,7 +126,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .shortcut:active:not(.dragging){opacity:0.6}
 .shortcut-icon{width:40px;height:40px;border-radius:10px;border:1px solid #E8E8E8;background:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;color:#999}
 .shortcut-label{font-size:10px;color:#bbb;letter-spacing:0.3px}
-.action-panel{width:100%;display:flex;flex-direction:column;align-items:center}
+.action-panel{width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1}
 /* drag-reorder states */
 .shortcut.dragging{opacity:0.85;transform:scale(1.12);z-index:100;pointer-events:none;position:fixed}
 .shortcut.drag-over .shortcut-icon{border-color:#aaa;box-shadow:0 0 0 2px rgba(0,0,0,0.06)}
@@ -133,8 +141,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .cg-banner .cg-time-tag{position:absolute;bottom:5px;right:8px;font-size:7px;letter-spacing:1.2px;color:rgba(255,255,255,0.5);text-shadow:0 1px 3px rgba(0,0,0,0.4)}
 .cg-banner .cg-close{position:absolute;top:6px;right:7px;width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,0.15);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.18);color:rgba(255,255,255,0.7);font-size:9px;line-height:16px;text-align:center;cursor:pointer;transition:background 0.15s}
 .cg-banner .cg-close:active{background:rgba(255,255,255,0.3)}
-.cg-banner .cg-manage{position:absolute;top:6px;left:7px;height:18px;border-radius:9px;background:rgba(255,255,255,0.15);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.18);color:rgba(255,255,255,.8);font:8px/16px inherit;padding:0 8px;cursor:pointer;letter-spacing:.5px;transition:background 0.15s}
-.cg-banner .cg-manage:active{background:rgba(255,255,255,0.3)}
+.cg-banner .cg-manage{position:absolute;top:5px;left:6px;height:16px;border-radius:8px;background:rgba(0,0,0,0.25);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border:none;color:rgba(255,255,255,.5);font:7px/16px inherit;padding:0 6px;cursor:pointer;letter-spacing:.3px;transition:opacity 0.2s;opacity:0.6}
+.cg-banner .cg-manage:active{opacity:1}
+.cg-banner:hover .cg-manage{opacity:1}
 /* ── CG fullscreen ── */
 .cg-fullscreen{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,0.92);display:none;align-items:center;justify-content:center;cursor:pointer}
 .cg-fullscreen.show{display:flex}
@@ -169,12 +178,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .cg-delete-actions .danger{background:#b06666;color:#fff;border-color:#b06666}
 .cg-delete-actions .danger:active{background:#995555}
 @media(min-width:700px){
-  body{height:auto;min-height:100dvh;display:grid;grid-template-columns:minmax(0,auto) 260px;grid-template-rows:auto auto auto;grid-template-areas:"header actions" "banner actions" "apartment actions";column-gap:clamp(36px,6vw,88px);row-gap:14px;justify-content:center;align-content:start;align-items:start;padding:24px 32px;overflow-x:hidden;overflow-y:auto}
+  body{height:auto;min-height:100dvh;overflow:auto}
+  .home-pager{display:contents}
+  .home-page{width:auto;height:auto;flex-shrink:unset;scroll-snap-align:unset;overflow:visible;padding:0}
+  .page-dots{display:none}
+  body{display:grid;grid-template-columns:minmax(0,auto) 260px;grid-template-rows:auto auto auto;grid-template-areas:"header actions" "banner actions" "apartment actions";column-gap:clamp(36px,6vw,88px);row-gap:14px;justify-content:center;align-content:start;align-items:start;padding:24px 32px;overflow-x:hidden;overflow-y:auto}
   .header{grid-area:header;width:100%;margin:0;align-self:end}
   .cg-banner{grid-area:banner;max-width:none;width:min(460px,calc((100dvh - 103px)*.6),calc(100vw - 390px));margin-bottom:0}
   .apt-wrap{grid-area:apartment;width:min(460px,calc((100dvh - 103px)*.6),calc(100vw - 390px));max-width:none;align-self:start;overflow:visible;max-height:none}
   .char-sprite img,.char-placeholder .character-skin-img{height:clamp(68px,13dvh,100px)}
-  .action-panel{grid-area:actions;width:260px;align-self:center}
+  .action-panel{grid-area:actions;width:260px;align-self:center;justify-content:flex-start;flex:unset}
   .shortcuts{grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(4,auto);grid-auto-flow:column;direction:rtl;gap:16px 12px;margin-top:0;max-width:260px}
   .shortcuts>.shortcut{direction:ltr}
   .shortcut-icon{width:46px;height:46px;font-size:18px}
@@ -278,6 +291,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 </style>
 </head>
 <body>
+<div class="home-pager" id="homePager">
+<div class="home-page" id="pageMain">
 <div class="header"><h1>Liminal Space</h1><p>夹缝空間</p></div>
 <div class="cg-banner" id="cgBanner" onclick="openCgFull()"><img id="cgImg" src="" alt=""><button class="cg-manage" type="button" onclick="openCGLibrary(event)">CG 库</button><button class="cg-close" type="button" onclick="closeCgBanner(event)">✕</button><div class="cg-time-tag" id="cgTimeTag"></div></div>
 <div class="cg-fullscreen" id="cgFull" onclick="closeCgFull()"><img id="cgFullImg" src="" alt=""></div>
@@ -434,6 +449,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 </div>
 
 <div class="tooltip" id="tooltip"></div>
+</div><!-- /pageMain -->
+<div class="home-page" id="pageShortcuts">
 <div class="action-panel">
 <div class="shortcuts" id="shortcutsGrid">
   <a class="shortcut" data-key="daily" href="daily.html"><div class="shortcut-icon">☀</div><div class="shortcut-label">日常</div></a>
@@ -450,6 +467,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <a class="shortcut" data-key="backup" href="backup.html"><div class="shortcut-icon">☁</div><div class="shortcut-label">备份</div></a>
 </div>
 <div class="footer"><div class="time" id="clock"></div><div class="date" id="date"></div></div>
+</div>
+</div><!-- /pageShortcuts -->
+</div><!-- /homePager -->
+<div class="page-dots" id="pageDots">
+  <span class="page-dot active" data-page="0"></span>
+  <span class="page-dot" data-page="1"></span>
 </div>
 
 <script src="cloud-sync.js?v=20260802-outing1"></script>
@@ -1829,5 +1852,25 @@ window.addEventListener('load',function(){
 
 let tipTimer;
 function showTip(t){const el=document.getElementById('tooltip');el.textContent=t;el.classList.add('show');clearTimeout(tipTimer);tipTimer=setTimeout(()=>el.classList.remove('show'),2000);}
+
+/* ═══ HOME PAGER DOTS ═══ */
+(function(){
+  const pager=document.getElementById('homePager');
+  const dots=[...document.querySelectorAll('.page-dot')];
+  if(!pager||!dots.length) return;
+
+  function updateDots(){
+    const idx=Math.round(pager.scrollLeft/pager.clientWidth);
+    dots.forEach((d,i)=>d.classList.toggle('active',i===idx));
+  }
+  pager.addEventListener('scroll',updateDots,{passive:true});
+
+  dots.forEach(d=>{
+    d.addEventListener('click',function(){
+      const p=+this.dataset.page;
+      pager.scrollTo({left:p*pager.clientWidth,behavior:'smooth'});
+    });
+  });
+})();
 </script>
 </body></html>
