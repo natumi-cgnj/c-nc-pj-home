@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Organize">
+<title>整理 · 断舍离</title>
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="favicon.ico">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;background:#FAFAFA;color:#1a1a1a;min-height:100vh;min-height:100dvh;padding-bottom:72px}
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;padding-top:env(safe-area-inset-top,20px);background:#fff;position:sticky;top:0;z-index:50;border-bottom:1px solid #f0f0f0}
+.top-bar h1{font-size:13px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:#999}
+.back-btn{font-size:13px;color:#bbb;text-decoration:none;cursor:pointer;background:none;border:none;font-family:inherit;padding:4px}
+.content{padding:20px}
+.tabs{display:flex;gap:6px;margin-bottom:16px}
+.tab{flex:1;height:34px;border:1px solid #e8e8e8;border-radius:8px;background:#fff;font-size:11px;font-family:inherit;color:#999;cursor:pointer;transition:all .15s}
+.tab.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.section-title{font-size:11px;font-weight:600;color:#999;letter-spacing:1px;margin:20px 0 10px;text-transform:uppercase}
+.item-list{display:flex;flex-direction:column;gap:8px}
+.item{background:#fff;border:1px solid #eee;border-radius:10px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center}
+.item .info .name{font-size:13px;color:#333;font-weight:500}
+.item .info .desc{font-size:10px;color:#bbb;margin-top:3px}
+.item .status{font-size:10px;padding:3px 8px;border-radius:6px;font-weight:600;white-space:nowrap}
+.status-pending{background:#FFF3E0;color:#FF9800}
+.status-listed{background:#E3F2FD;color:#42A5F5}
+.status-done{background:#E8F5E9;color:#66BB6A}
+.add-btn{width:100%;height:44px;border:1px dashed #ddd;border-radius:10px;background:transparent;color:#bbb;font-size:12px;font-family:inherit;cursor:pointer;margin-top:12px;transition:all 0.15s}
+.add-btn:active{background:#f8f8f8;border-color:#bbb}
+.empty{text-align:center;color:#ddd;font-size:12px;padding:60px 20px}
+.modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;padding:16px}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:16px;width:min(360px,100%);padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.15)}
+.modal h2{font-size:15px;font-weight:600;color:#333;margin-bottom:16px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:10px;color:#999;font-weight:600;letter-spacing:.3px;margin-bottom:4px}
+.field input,.field select,.field textarea{width:100%;border:1px solid #e8e8e8;border-radius:8px;padding:0 12px;font-size:12px;font-family:inherit;color:#333;outline:none}
+.field input,.field select{height:36px}
+.field textarea{height:60px;padding:8px 12px;resize:none}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:#6B8AFF}
+.modal-actions{display:flex;gap:8px;margin-top:16px}
+.modal-actions button{flex:1;height:40px;border-radius:10px;border:none;font-size:13px;font-family:inherit;cursor:pointer}
+.btn-cancel{background:#f3f3f3;color:#666}
+.btn-primary{background:#1a1a1a;color:#fff}
+.btn-primary:active{opacity:.7}
+.del-link{font-size:10px;color:#e57373;cursor:pointer;text-align:center;margin-top:8px;background:none;border:none;font-family:inherit}
+.del-link.confirming{width:100%;padding:8px;border:1px solid #f1caca;border-radius:8px;background:#fff4f4;color:#c95656}
+</style>
+</head>
+<body>
+<div class="top-bar">
+<button class="back-btn" onclick="location.href='index.html'">← 返回</button>
+<h1>整理 · 断舍离</h1>
+<div style="width:40px"></div>
+</div>
+<div class="content">
+<div class="tabs">
+<button class="tab active" data-tab="pending" onclick="switchTab('pending')">待整理</button>
+<button class="tab" data-tab="listed" onclick="switchTab('listed')">出品中</button>
+<button class="tab" data-tab="done" onclick="switchTab('done')">已完成</button>
+</div>
+<div class="item-list" id="itemList"></div>
+<button class="add-btn" type="button" onclick="openAdd()">＋ 添加物品</button>
+</div>
+
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+<div class="modal" onclick="event.stopPropagation()">
+<h2 id="modalTitle">添加物品</h2>
+<div class="field"><label>物品名称</label><input id="fName" type="text" maxlength="60"></div>
+<div class="field"><label>分类</label><input id="fCategory" type="text" maxlength="30" placeholder="衣物 / 书籍 / 数码 …"></div>
+<div class="field"><label>处理方式</label>
+<select id="fMethod"><option value="sell">出售</option><option value="give">赠送</option><option value="recycle">回收</option><option value="discard">丢弃</option></select></div>
+<div class="field"><label>状态</label>
+<select id="fStatus"><option value="pending">待整理</option><option value="listed">出品中</option><option value="done">已完成</option></select></div>
+<div class="field"><label>备注</label><textarea id="fNote" maxlength="200"></textarea></div>
+<div class="modal-actions">
+<button class="btn-cancel" type="button" onclick="closeModal()">取消</button>
+<button class="btn-primary" type="button" onclick="saveItem()">保存</button>
+</div>
+<button class="del-link" id="delBtn" type="button" style="display:none" onclick="delItem()">删除</button>
+</div>
+</div>
+
+<script src="cloud-sync.js?v=20260804-layout2"></script>
+<script>
+if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting');
+var DB_KEY='organize_db';
+var currentTab='pending';
+var editIdx=-1;
+var deleteArmed=false;
+function load(){try{return JSON.parse(localStorage.getItem(DB_KEY))||[];}catch(e){return[];}}
+function save(d){localStorage.setItem(DB_KEY,JSON.stringify(d));}
+function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+function appDayKey(value){
+  var d=value instanceof Date?new Date(value.getTime()):new Date(value||Date.now());
+  d.setHours(d.getHours()-4);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function resetDeleteConfirm(){
+  deleteArmed=false;
+  var btn=document.getElementById('delBtn');
+  if(btn){btn.textContent='删除';btn.classList.remove('confirming');}
+}
+function requireDeleteConfirm(){
+  if(deleteArmed)return true;
+  deleteArmed=true;
+  var btn=document.getElementById('delBtn');
+  if(btn){btn.textContent='再次点击确认删除';btn.classList.add('confirming');}
+  return false;
+}
+function switchTab(t){
+  currentTab=t;
+  document.querySelectorAll('.tab').forEach(function(b){b.classList.toggle('active',b.dataset.tab===t);});
+  render();
+}
+function render(){
+  var list=document.getElementById('itemList');
+  var data=load().filter(function(it){return it.status===currentTab;});
+  if(!data.length){list.innerHTML='<div class="empty">暂无物品</div>';return;}
+  var statusMap={pending:['待整理','status-pending'],listed:['出品中','status-listed'],done:['已完成','status-done']};
+  var methodMap={sell:'出售',give:'赠送',recycle:'回收',discard:'丢弃'};
+  var h='';
+  var allData=load();
+  data.forEach(function(it){
+    var i=allData.indexOf(it);
+    var st=statusMap[it.status]||['?',''];
+    h+='<div class="item" onclick="openEdit('+i+')"><div class="info"><div class="name">'+escH(it.name)+'</div><div class="desc">'+(it.category?escH(it.category):'')+(it.method?' · '+methodMap[it.method]:'')+(it.note?' · '+escH(it.note):'')+'</div></div><div class="status '+st[1]+'">'+st[0]+'</div></div>';
+  });
+  list.innerHTML=h;
+}
+function openAdd(){
+  editIdx=-1;
+  resetDeleteConfirm();
+  document.getElementById('modalTitle').textContent='添加物品';
+  document.getElementById('fName').value='';
+  document.getElementById('fCategory').value='';
+  document.getElementById('fMethod').value='sell';
+  document.getElementById('fStatus').value=currentTab;
+  document.getElementById('fNote').value='';
+  document.getElementById('delBtn').style.display='none';
+  document.getElementById('modal').classList.add('show');
+}
+function openEdit(i){
+  var data=load();if(!data[i])return;editIdx=i;
+  resetDeleteConfirm();
+  document.getElementById('modalTitle').textContent='编辑';
+  document.getElementById('fName').value=data[i].name||'';
+  document.getElementById('fCategory').value=data[i].category||'';
+  document.getElementById('fMethod').value=data[i].method||'sell';
+  document.getElementById('fStatus').value=data[i].status||'pending';
+  document.getElementById('fNote').value=data[i].note||'';
+  document.getElementById('delBtn').style.display='';
+  document.getElementById('modal').classList.add('show');
+}
+function closeModal(e){if(e&&e.target!==e.currentTarget)return;document.getElementById('modal').classList.remove('show');resetDeleteConfirm();}
+function saveItem(){
+  var name=document.getElementById('fName').value.trim();
+  if(!name){alert('请输入物品名称');return;}
+  var data=load();
+  var entry={name:name,category:document.getElementById('fCategory').value.trim(),method:document.getElementById('fMethod').value,status:document.getElementById('fStatus').value,note:document.getElementById('fNote').value.trim()};
+  if(editIdx>=0&&data[editIdx]){Object.assign(data[editIdx],entry);}
+  else{entry.id='o_'+Date.now();entry.created=appDayKey(new Date());data.push(entry);}
+  save(data);closeModal();
+  currentTab=entry.status;
+  document.querySelectorAll('.tab').forEach(function(b){b.classList.toggle('active',b.dataset.tab===currentTab);});
+  render();
+}
+function delItem(){if(editIdx<0)return;if(!requireDeleteConfirm())return;var data=load();data.splice(editIdx,1);save(data);closeModal();render();}
+render();
+</script>
+</body>
+</html>

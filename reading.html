@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Reading">
+<title>读书</title>
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="favicon.ico">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;background:#FAFAFA;color:#1a1a1a;min-height:100vh;min-height:100dvh;padding-bottom:72px}
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;padding-top:env(safe-area-inset-top,20px);background:#fff;position:sticky;top:0;z-index:50;border-bottom:1px solid #f0f0f0}
+.top-bar h1{font-size:13px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:#999}
+.back-btn{font-size:13px;color:#bbb;text-decoration:none;cursor:pointer;background:none;border:none;font-family:inherit;padding:4px}
+.content{padding:20px}
+.tabs{display:flex;gap:6px;margin-bottom:16px}
+.tab{flex:1;height:34px;border:1px solid #e8e8e8;border-radius:8px;background:#fff;font-size:11px;font-family:inherit;color:#999;cursor:pointer;transition:all .15s}
+.tab.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.book-list{display:flex;flex-direction:column;gap:10px}
+.book{background:#fff;border:1px solid #eee;border-radius:12px;padding:14px 16px;cursor:pointer}
+.book:active{background:#f9f9f9}
+.book-top{display:flex;justify-content:space-between;align-items:flex-start}
+.book-title{font-size:14px;font-weight:600;color:#333}
+.book-author{font-size:11px;color:#999;margin-top:2px}
+.book-note{font-size:11px;color:#bbb;margin-top:6px;line-height:1.5}
+.progress-bar{height:4px;background:#f0f0f0;border-radius:2px;margin-top:8px;overflow:hidden}
+.progress-fill{height:100%;background:#6B8AFF;border-radius:2px;transition:width .3s}
+.progress-text{font-size:9px;color:#bbb;margin-top:3px;text-align:right}
+.status-badge{font-size:9px;padding:2px 8px;border-radius:5px;font-weight:600;flex-shrink:0}
+.st-reading{background:#E3F2FD;color:#42A5F5}
+.st-finished{background:#E8F5E9;color:#66BB6A}
+.st-wishlist{background:#FFF3E0;color:#FF9800}
+.add-btn{width:100%;height:44px;border:1px dashed #ddd;border-radius:10px;background:transparent;color:#bbb;font-size:12px;font-family:inherit;cursor:pointer;margin-top:12px;transition:all 0.15s}
+.add-btn:active{background:#f8f8f8;border-color:#bbb}
+.empty{text-align:center;color:#ddd;font-size:12px;padding:60px 20px}
+.modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;padding:16px}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:16px;width:min(360px,100%);padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.15);max-height:80vh;overflow-y:auto}
+.modal h2{font-size:15px;font-weight:600;color:#333;margin-bottom:16px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:10px;color:#999;font-weight:600;letter-spacing:.3px;margin-bottom:4px}
+.field input,.field select,.field textarea{width:100%;border:1px solid #e8e8e8;border-radius:8px;padding:0 12px;font-size:12px;font-family:inherit;color:#333;outline:none}
+.field input,.field select{height:36px}
+.field textarea{height:60px;padding:8px 12px;resize:none}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:#6B8AFF}
+.modal-actions{display:flex;gap:8px;margin-top:16px}
+.modal-actions button{flex:1;height:40px;border-radius:10px;border:none;font-size:13px;font-family:inherit;cursor:pointer}
+.btn-cancel{background:#f3f3f3;color:#666}
+.btn-primary{background:#1a1a1a;color:#fff}
+.btn-primary:active{opacity:.7}
+.del-link{font-size:10px;color:#e57373;cursor:pointer;text-align:center;margin-top:8px;background:none;border:none;font-family:inherit}
+.del-link.confirming{width:100%;padding:8px;border:1px solid #f1caca;border-radius:8px;background:#fff4f4;color:#c95656}
+</style>
+</head>
+<body>
+<div class="top-bar">
+<button class="back-btn" onclick="location.href='index.html'">← 返回</button>
+<h1>读书</h1>
+<div style="width:40px"></div>
+</div>
+<div class="content">
+<div class="tabs">
+<button class="tab active" data-tab="reading" onclick="switchTab('reading')">在读</button>
+<button class="tab" data-tab="finished" onclick="switchTab('finished')">读完</button>
+<button class="tab" data-tab="wishlist" onclick="switchTab('wishlist')">想读</button>
+</div>
+<div class="book-list" id="bookList"></div>
+<button class="add-btn" type="button" onclick="openAdd()">＋ 添加书籍</button>
+</div>
+
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+<div class="modal" onclick="event.stopPropagation()">
+<h2 id="modalTitle">添加书籍</h2>
+<div class="field"><label>书名</label><input id="fTitle" type="text" maxlength="100"></div>
+<div class="field"><label>作者</label><input id="fAuthor" type="text" maxlength="60" placeholder="可选"></div>
+<div class="field"><label>状态</label>
+<select id="fStatus"><option value="reading">在读</option><option value="finished">读完</option><option value="wishlist">想读</option></select></div>
+<div class="field"><label>进度 %</label><input id="fProgress" type="number" min="0" max="100" placeholder="0-100"></div>
+<div class="field"><label>备注 / 感想</label><textarea id="fNote" maxlength="500"></textarea></div>
+<div class="modal-actions">
+<button class="btn-cancel" type="button" onclick="closeModal()">取消</button>
+<button class="btn-primary" type="button" onclick="saveBook()">保存</button>
+</div>
+<button class="del-link" id="delBtn" type="button" style="display:none" onclick="delBook()">删除</button>
+</div>
+</div>
+
+<script src="cloud-sync.js?v=20260804-layout2"></script>
+<script>
+if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting');
+var DB_KEY='reading_db';
+var currentTab='reading';
+var editIdx=-1;
+var deleteArmed=false;
+function load(){try{return JSON.parse(localStorage.getItem(DB_KEY))||[];}catch(e){return[];}}
+function save(d){localStorage.setItem(DB_KEY,JSON.stringify(d));}
+function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+function resetDeleteConfirm(){
+  deleteArmed=false;
+  var btn=document.getElementById('delBtn');
+  if(btn){btn.textContent='删除';btn.classList.remove('confirming');}
+}
+function requireDeleteConfirm(){
+  if(deleteArmed)return true;
+  deleteArmed=true;
+  var btn=document.getElementById('delBtn');
+  if(btn){btn.textContent='再次点击确认删除';btn.classList.add('confirming');}
+  return false;
+}
+function switchTab(t){
+  currentTab=t;
+  document.querySelectorAll('.tab').forEach(function(b){b.classList.toggle('active',b.dataset.tab===t);});
+  render();
+}
+function render(){
+  var list=document.getElementById('bookList');
+  var allData=load();
+  var data=allData.filter(function(b){return b.status===currentTab;});
+  if(!data.length){list.innerHTML='<div class="empty">暂无书籍</div>';return;}
+  var stMap={reading:['在读','st-reading'],finished:['读完','st-finished'],wishlist:['想读','st-wishlist']};
+  var h='';
+  data.forEach(function(b){
+    var i=allData.indexOf(b);
+    var st=stMap[b.status]||['?',''];
+    var pct=b.status==='finished'?100:(parseInt(b.progress)||0);
+    h+='<div class="book" onclick="openEdit('+i+')">'
+      +'<div class="book-top"><div><div class="book-title">'+escH(b.title)+'</div>'
+      +(b.author?'<div class="book-author">'+escH(b.author)+'</div>':'')+'</div>'
+      +'<div class="status-badge '+st[1]+'">'+st[0]+'</div></div>';
+    if(b.status==='reading'){
+      h+='<div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%"></div></div>'
+        +'<div class="progress-text">'+pct+'%</div>';
+    }
+    if(b.note){h+='<div class="book-note">'+escH(b.note)+'</div>';}
+    h+='</div>';
+  });
+  list.innerHTML=h;
+}
+function openAdd(){
+  editIdx=-1;
+  resetDeleteConfirm();
+  document.getElementById('modalTitle').textContent='添加书籍';
+  document.getElementById('fTitle').value='';
+  document.getElementById('fAuthor').value='';
+  document.getElementById('fStatus').value=currentTab;
+  document.getElementById('fProgress').value='';
+  document.getElementById('fNote').value='';
+  document.getElementById('delBtn').style.display='none';
+  document.getElementById('modal').classList.add('show');
+}
+function openEdit(i){
+  var data=load();if(!data[i])return;editIdx=i;
+  resetDeleteConfirm();
+  document.getElementById('modalTitle').textContent='编辑';
+  document.getElementById('fTitle').value=data[i].title||'';
+  document.getElementById('fAuthor').value=data[i].author||'';
+  document.getElementById('fStatus').value=data[i].status||'reading';
+  document.getElementById('fProgress').value=data[i].progress||'';
+  document.getElementById('fNote').value=data[i].note||'';
+  document.getElementById('delBtn').style.display='';
+  document.getElementById('modal').classList.add('show');
+}
+function closeModal(e){if(e&&e.target!==e.currentTarget)return;document.getElementById('modal').classList.remove('show');resetDeleteConfirm();}
+function saveBook(){
+  var title=document.getElementById('fTitle').value.trim();
+  if(!title){alert('请输入书名');return;}
+  var data=load();
+  var entry={title:title,author:document.getElementById('fAuthor').value.trim(),status:document.getElementById('fStatus').value,progress:Math.min(100,Math.max(0,parseInt(document.getElementById('fProgress').value)||0)),note:document.getElementById('fNote').value.trim()};
+  if(entry.status==='finished')entry.progress=100;
+  if(editIdx>=0&&data[editIdx]){Object.assign(data[editIdx],entry);}
+  else{entry.id='r_'+Date.now();data.push(entry);}
+  save(data);closeModal();
+  currentTab=entry.status;
+  document.querySelectorAll('.tab').forEach(function(b){b.classList.toggle('active',b.dataset.tab===currentTab);});
+  render();
+}
+function delBook(){if(editIdx<0)return;if(!requireDeleteConfirm())return;var data=load();data.splice(editIdx,1);save(data);closeModal();render();}
+render();
+</script>
+</body>
+</html>

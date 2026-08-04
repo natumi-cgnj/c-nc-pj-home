@@ -273,7 +273,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   </div>
 </div>
 
-<script src="cloud-sync.js?v=20260802-outing1"></script>
+<script src="cloud-sync.js?v=20260804-layout2"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 // ══════════════════════════════════════
@@ -832,6 +832,9 @@ function initDragSort(containerId,dataType){
 // ══════════════════════════════════════
 autoSignin();
 updateIntervalReminders();
+// Deep link: ?tab=drop|todo|habits
+var urlTab = new URLSearchParams(location.search).get('tab');
+if (urlTab && ['drop','todo','habits'].indexOf(urlTab) >= 0) { currentTab = urlTab; }
 render();
 </script>
 </body>

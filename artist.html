@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Artist">
+<title>艺人整理</title>
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="favicon.ico">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;background:#FAFAFA;color:#1a1a1a;min-height:100vh;min-height:100dvh;padding-bottom:72px}
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;padding-top:env(safe-area-inset-top,20px);background:#fff;position:sticky;top:0;z-index:50;border-bottom:1px solid #f0f0f0}
+.top-bar h1{font-size:13px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:#999}
+.back-btn{font-size:13px;color:#bbb;text-decoration:none;cursor:pointer;background:none;border:none;font-family:inherit;padding:4px}
+.content{padding:20px}
+.artist-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}
+.artist-card{background:#fff;border:1px solid #eee;border-radius:12px;padding:16px;text-align:center;cursor:pointer;transition:transform .1s}
+.artist-card:active{transform:scale(.97)}
+.artist-avatar{width:56px;height:56px;border-radius:50%;background:#f3f3f3;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:22px;color:#ccc;overflow:hidden}
+.artist-name{font-size:13px;font-weight:600;color:#333}
+.artist-group{font-size:10px;color:#bbb;margin-top:2px}
+.artist-tag{font-size:9px;color:#fff;background:#6B8AFF;border-radius:4px;padding:1px 6px;display:inline-block;margin-top:6px}
+.add-card{background:transparent;border:1px dashed #ddd;border-radius:12px;padding:16px;text-align:center;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:130px;color:#ccc;font-size:12px}
+.add-card:active{border-color:#bbb;background:#f8f8f8}
+.empty{text-align:center;color:#ddd;font-size:12px;padding:60px 20px}
+.modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;padding:16px}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:16px;width:min(360px,100%);padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.15);max-height:80vh;overflow-y:auto}
+.modal h2{font-size:15px;font-weight:600;color:#333;margin-bottom:16px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:10px;color:#999;font-weight:600;letter-spacing:.3px;margin-bottom:4px}
+.field input,.field textarea{width:100%;border:1px solid #e8e8e8;border-radius:8px;padding:0 12px;font-size:12px;font-family:inherit;color:#333;outline:none}
+.field input{height:36px}
+.field textarea{height:60px;padding:8px 12px;resize:none}
+.field input:focus,.field textarea:focus{border-color:#6B8AFF}
+.modal-actions{display:flex;gap:8px;margin-top:16px}
+.modal-actions button{flex:1;height:40px;border-radius:10px;border:none;font-size:13px;font-family:inherit;cursor:pointer}
+.btn-cancel{background:#f3f3f3;color:#666}
+.btn-primary{background:#1a1a1a;color:#fff}
+.btn-primary:active{opacity:.7}
+.del-link{font-size:10px;color:#e57373;cursor:pointer;text-align:center;margin-top:8px;background:none;border:none;font-family:inherit}
+.del-link.confirming{width:100%;padding:8px;border:1px solid #f1caca;border-radius:8px;background:#fff4f4;color:#c95656}
+</style>
+</head>
+<body>
+<div class="top-bar">
+<button class="back-btn" onclick="location.href='index.html'">← 返回</button>
+<h1>艺人整理</h1>
+<div style="width:40px"></div>
+</div>
+<div class="content">
+<div class="artist-grid" id="grid"></div>
+</div>
+
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+<div class="modal" onclick="event.stopPropagation()">
+<h2 id="modalTitle">添加艺人</h2>
+<div class="field"><label>名前 / Name</label><input id="fName" type="text" maxlength="60"></div>
+<div class="field"><label>团体 / 所属</label><input id="fGroup" type="text" maxlength="60" placeholder="可选"></div>
+<div class="field"><label>标签</label><input id="fTag" type="text" maxlength="30" placeholder="歌手 / 声优 / 俳优 …"></div>
+<div class="field"><label>备注</label><textarea id="fNote" maxlength="300" placeholder="喜欢的作品、推し事 …"></textarea></div>
+<div class="modal-actions">
+<button class="btn-cancel" type="button" onclick="closeModal()">取消</button>
+<button class="btn-primary" type="button" onclick="saveArtist()">保存</button>
+</div>
+<button class="del-link" id="delBtn" type="button" style="display:none" onclick="delArtist()">删除</button>
+</div>
+</div>
+
+<script src="cloud-sync.js?v=20260804-layout2"></script>
+<script>
+if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting');
+var DB_KEY='artist_db';
+var editIdx=-1;
+var deleteArmed=false;
+function load(){try{return JSON.parse(localStorage.getItem(DB_KEY))||[];}catch(e){return[];}}
+function save(d){localStorage.setItem(DB_KEY,JSON.stringify(d));}
+function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+function initial(s){return(s||'?').charAt(0).toUpperCase();}
+function resetDeleteConfirm(){
+  deleteArmed=false;
+  var btn=document.getElementById('delBtn');
+  if(btn){btn.textContent='删除';btn.classList.remove('confirming');}
+}
+function requireDeleteConfirm(){
+  if(deleteArmed)return true;
+  deleteArmed=true;
+  var btn=document.getElementById('delBtn');
+  if(btn){btn.textContent='再次点击确认删除';btn.classList.add('confirming');}
+  return false;
+}
+function render(){
+  var grid=document.getElementById('grid');
+  var data=load();
+  var h='';
+  data.forEach(function(a,i){
+    h+='<div class="artist-card" onclick="openEdit('+i+')">'
+      +'<div class="artist-avatar">'+initial(a.name)+'</div>'
+      +'<div class="artist-name">'+escH(a.name)+'</div>'
+      +(a.group?'<div class="artist-group">'+escH(a.group)+'</div>':'')
+      +(a.tag?'<div class="artist-tag">'+escH(a.tag)+'</div>':'')
+      +'</div>';
+  });
+  h+='<div class="add-card" onclick="openAdd()">＋<br>添加艺人</div>';
+  grid.innerHTML=h;
+}
+function openAdd(){
+  editIdx=-1;
+  resetDeleteConfirm();
+  document.getElementById('modalTitle').textContent='添加艺人';
+  document.getElementById('fName').value='';
+  document.getElementById('fGroup').value='';
+  document.getElementById('fTag').value='';
+  document.getElementById('fNote').value='';
+  document.getElementById('delBtn').style.display='none';
+  document.getElementById('modal').classList.add('show');
+}
+function openEdit(i){
+  var data=load();if(!data[i])return;editIdx=i;
+  resetDeleteConfirm();
+  document.getElementById('modalTitle').textContent='编辑';
+  document.getElementById('fName').value=data[i].name||'';
+  document.getElementById('fGroup').value=data[i].group||'';
+  document.getElementById('fTag').value=data[i].tag||'';
+  document.getElementById('fNote').value=data[i].note||'';
+  document.getElementById('delBtn').style.display='';
+  document.getElementById('modal').classList.add('show');
+}
+function closeModal(e){if(e&&e.target!==e.currentTarget)return;document.getElementById('modal').classList.remove('show');resetDeleteConfirm();}
+function saveArtist(){
+  var name=document.getElementById('fName').value.trim();
+  if(!name){alert('请输入名前');return;}
+  var data=load();
+  var entry={name:name,group:document.getElementById('fGroup').value.trim(),tag:document.getElementById('fTag').value.trim(),note:document.getElementById('fNote').value.trim()};
+  if(editIdx>=0&&data[editIdx]){Object.assign(data[editIdx],entry);}
+  else{entry.id='a_'+Date.now();data.push(entry);}
+  save(data);closeModal();render();
+}
+function delArtist(){if(editIdx<0)return;if(!requireDeleteConfirm())return;var data=load();data.splice(editIdx,1);save(data);closeModal();render();}
+render();
+</script>
+</body>
+</html>

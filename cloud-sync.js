@@ -23,10 +23,11 @@
     'kitchen_db', 'activity_db', 'cinema_db', 'stationery_db', 'wallet_db',
     'home_modules', 'home_lines', 'home_skins', 'home_skin_custom',
     'home_skin_daily', 'home_cg_library', 'home_cg_period', 'shortcut-order',
-    'home_character_runtime', 'home_character_action_packs', 'shared_diary_db'
+    'home_character_runtime', 'home_character_action_packs', 'shared_diary_db',
+    'memo_db', 'study_db', 'organize_db', 'artist_db', 'music_db', 'reading_db'
   ];
   const PAGE_KEYS = {
-    'index.html': ['habit_db', 'wallet_db', 'home_modules', 'home_lines', 'home_skins', 'home_skin_custom', 'home_skin_daily', 'home_cg_library', 'home_cg_period', 'shortcut-order', 'home_character_runtime', 'home_character_action_packs', 'shared_diary_db'],
+    'index.html': ['habit_db', 'wallet_db', 'memo_db', 'home_modules', 'home_lines', 'home_skins', 'home_skin_custom', 'home_skin_daily', 'home_cg_library', 'home_cg_period', 'shortcut-order', 'home_character_runtime', 'home_character_action_packs', 'shared_diary_db'],
     'daily.html': ['daily_db', 'daily_presets', 'gacha_st', 'bean_st', 'habit_db'],
     'gacha.html': ['gacha_st'],
     'habit.html': ['habit_db', 'bean_st'],
@@ -40,6 +41,11 @@
     'wallet.html': ['wallet_db', 'home_character_runtime', 'home_character_action_packs', 'shared_diary_db'],
     'dungeon.html': ['dungeon_db', 'daily_db'],
     'kitchen.html': ['kitchen_db'],
+    'study.html': ['study_db'],
+    'organize.html': ['organize_db'],
+    'artist.html': ['artist_db'],
+    'music.html': ['music_db'],
+    'reading.html': ['reading_db'],
     'backup.html': STATE_KEYS
   };
   const SDK_URL = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
@@ -528,7 +534,9 @@
       cinema_db: '影视', stationery_db: '文具', 'shortcut-order': '首页快捷入口排序',
       wallet_db: '记账', home_modules: '房间连接', home_lines: '首页台词',
       home_skins: '衣柜候选', home_skin_custom: '衣柜衣装', home_skin_daily: '今日衣装',
-      home_cg_library: '首页 CG 库', home_cg_period: '当前时段 CG'
+      home_cg_library: '首页 CG 库', home_cg_period: '当前时段 CG',
+      memo_db: '备忘录', study_db: '学习', organize_db: '整理',
+      artist_db: '艺人', music_db: '音乐', reading_db: '读书'
     };
     return labels[key] || key;
   }

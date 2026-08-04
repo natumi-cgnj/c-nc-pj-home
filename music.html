@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Music">
+<title>音乐</title>
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="favicon.ico">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;background:#FAFAFA;color:#1a1a1a;min-height:100vh;min-height:100dvh;padding-bottom:72px}
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;padding-top:env(safe-area-inset-top,20px);background:#fff;position:sticky;top:0;z-index:50;border-bottom:1px solid #f0f0f0}
+.top-bar h1{font-size:13px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:#999}
+.back-btn{font-size:13px;color:#bbb;text-decoration:none;cursor:pointer;background:none;border:none;font-family:inherit;padding:4px}
+.content{padding:20px}
+.section-title{font-size:11px;font-weight:600;color:#999;letter-spacing:1px;margin:20px 0 10px;text-transform:uppercase}
+.section-title:first-child{margin-top:0}
+.song-list{display:flex;flex-direction:column;gap:6px}
+.song{background:#fff;border:1px solid #eee;border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:12px;cursor:pointer}
+.song:active{background:#f8f8f8}
+.song-num{width:20px;font-size:11px;color:#ccc;text-align:center;flex-shrink:0}
+.song-info{flex:1;min-width:0}
+.song-title{font-size:13px;color:#333;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.song-artist{font-size:10px;color:#bbb;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.song-tag{font-size:9px;color:#6B8AFF;background:#EEF2FF;border-radius:4px;padding:1px 6px;flex-shrink:0}
+.add-btn{width:100%;height:44px;border:1px dashed #ddd;border-radius:10px;background:transparent;color:#bbb;font-size:12px;font-family:inherit;cursor:pointer;margin-top:12px;transition:all 0.15s}
+.add-btn:active{background:#f8f8f8;border-color:#bbb}
+.empty{text-align:center;color:#ddd;font-size:12px;padding:60px 20px}
+.modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;padding:16px}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:16px;width:min(360px,100%);padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.15)}
+.modal h2{font-size:15px;font-weight:600;color:#333;margin-bottom:16px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:10px;color:#999;font-weight:600;letter-spacing:.3px;margin-bottom:4px}
+.field input{width:100%;height:36px;border:1px solid #e8e8e8;border-radius:8px;padding:0 12px;font-size:12px;font-family:inherit;color:#333;outline:none}
+.field input:focus{border-color:#6B8AFF}
+.modal-actions{display:flex;gap:8px;margin-top:16px}
+.modal-actions button{flex:1;height:40px;border-radius:10px;border:none;font-size:13px;font-family:inherit;cursor:pointer}
+.btn-cancel{background:#f3f3f3;color:#666}
+.btn-primary{background:#1a1a1a;color:#fff}
+.btn-primary:active{opacity:.7}
+.del-link{font-size:10px;color:#e57373;cursor:pointer;text-align:center;margin-top:8px;background:none;border:none;font-family:inherit}
+.del-link.confirming{width:100%;padding:8px;border:1px solid #f1caca;border-radius:8px;background:#fff4f4;color:#c95656}
+</style>
+</head>
+<body>
+<div class="top-bar">
+<button class="back-btn" onclick="location.href='index.html'">← 返回</button>
+<h1>音乐</h1>
+<div style="width:40px"></div>
+</div>
+<div class="content">
+<div class="song-list" id="songList"></div>
+<button class="add-btn" type="button" onclick="openAdd()">＋ 收录曲目</button>
+</div>
+
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+<div class="modal" onclick="event.stopPropagation()">
+<h2 id="modalTitle">收录曲目</h2>
+<div class="field"><label>曲名</label><input id="fTitle" type="text" maxlength="100"></div>
+<div class="field"><label>艺人 / CV</label><input id="fArtist" type="text" maxlength="60"></div>
+<div class="field"><label>专辑 / 来源</label><input id="fAlbum" type="text" maxlength="100" placeholder="可选"></div>
+<div class="field"><label>标签</label><input id="fTag" type="text" maxlength="30" placeholder="J-POP / OST / 同人 …"></div>
+<div class="modal-actions">
+<button class="btn-cancel" type="button" onclick="closeModal()">取消</button>
+<button class="btn-primary" type="button" onclick="saveSong()">保存</button>
+</div>
+<button class="del-link" id="delBtn" type="button" style="display:none" onclick="delSong()">删除</button>
+</div>
+</div>
+
+<script src="cloud-sync.js?v=20260804-layout2"></script>
+<script>
+if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting');
+var DB_KEY='music_db';
+var editIdx=-1;
+var deleteArmed=false;
+function load(){try{return JSON.parse(localStorage.getItem(DB_KEY))||[];}catch(e){return[];}}
+function save(d){localStorage.setItem(DB_KEY,JSON.stringify(d));}
+function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+function resetDeleteConfirm(){
+  deleteArmed=false;
+  var btn=document.getElementById('delBtn');
+  if(btn){btn.textContent='删除';btn.classList.remove('confirming');}
+}
+function requireDeleteConfirm(){
+  if(deleteArmed)return true;
+  deleteArmed=true;
+  var btn=document.getElementById('delBtn');
+  if(btn){btn.textContent='再次点击确认删除';btn.classList.add('confirming');}
+  return false;
+}
+function render(){
+  var list=document.getElementById('songList');
+  var data=load();
+  if(!data.length){list.innerHTML='<div class="empty">还没有收录曲目</div>';return;}
+  var h='';
+  data.forEach(function(s,i){
+    h+='<div class="song" onclick="openEdit('+i+')">'
+      +'<div class="song-num">'+(i+1)+'</div>'
+      +'<div class="song-info"><div class="song-title">'+escH(s.title)+'</div>'
+      +'<div class="song-artist">'+escH(s.artist||'Unknown')+(s.album?' · '+escH(s.album):'')+'</div></div>'
+      +(s.tag?'<div class="song-tag">'+escH(s.tag)+'</div>':'')
+      +'</div>';
+  });
+  list.innerHTML=h;
+}
+function openAdd(){
+  editIdx=-1;
+  resetDeleteConfirm();
+  document.getElementById('modalTitle').textContent='收录曲目';
+  document.getElementById('fTitle').value='';
+  document.getElementById('fArtist').value='';
+  document.getElementById('fAlbum').value='';
+  document.getElementById('fTag').value='';
+  document.getElementById('delBtn').style.display='none';
+  document.getElementById('modal').classList.add('show');
+}
+function openEdit(i){
+  var data=load();if(!data[i])return;editIdx=i;
+  resetDeleteConfirm();
+  document.getElementById('modalTitle').textContent='编辑';
+  document.getElementById('fTitle').value=data[i].title||'';
+  document.getElementById('fArtist').value=data[i].artist||'';
+  document.getElementById('fAlbum').value=data[i].album||'';
+  document.getElementById('fTag').value=data[i].tag||'';
+  document.getElementById('delBtn').style.display='';
+  document.getElementById('modal').classList.add('show');
+}
+function closeModal(e){if(e&&e.target!==e.currentTarget)return;document.getElementById('modal').classList.remove('show');resetDeleteConfirm();}
+function saveSong(){
+  var title=document.getElementById('fTitle').value.trim();
+  if(!title){alert('请输入曲名');return;}
+  var data=load();
+  var entry={title:title,artist:document.getElementById('fArtist').value.trim(),album:document.getElementById('fAlbum').value.trim(),tag:document.getElementById('fTag').value.trim()};
+  if(editIdx>=0&&data[editIdx]){Object.assign(data[editIdx],entry);}
+  else{entry.id='m_'+Date.now();data.push(entry);}
+  save(data);closeModal();render();
+}
+function delSong(){if(editIdx<0)return;if(!requireDeleteConfirm())return;var data=load();data.splice(editIdx,1);save(data);closeModal();render();}
+render();
+</script>
+</body>
+</html>

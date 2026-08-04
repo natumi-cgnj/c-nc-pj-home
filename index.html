@@ -177,23 +177,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .cg-delete-actions button:active{background:#f8f0f0}
 .cg-delete-actions .danger{background:#b06666;color:#fff;border-color:#b06666}
 .cg-delete-actions .danger:active{background:#995555}
-@media(min-width:700px){
-  body{height:auto;min-height:100dvh;overflow:auto}
-  .home-pager{display:contents}
-  .home-page{width:auto;height:auto;flex-shrink:unset;scroll-snap-align:unset;overflow:visible;padding:0}
-  .page-dots{display:none}
-  body{display:grid;grid-template-columns:minmax(0,auto) 260px;grid-template-rows:auto auto auto;grid-template-areas:"header actions" "banner actions" "apartment actions";column-gap:clamp(36px,6vw,88px);row-gap:14px;justify-content:center;align-content:start;align-items:start;padding:24px 32px;overflow-x:hidden;overflow-y:auto}
-  .header{grid-area:header;width:100%;margin:0;align-self:end}
-  .cg-banner{grid-area:banner;max-width:none;width:min(460px,calc((100dvh - 103px)*.6),calc(100vw - 390px));margin-bottom:0}
-  .apt-wrap{grid-area:apartment;width:min(460px,calc((100dvh - 103px)*.6),calc(100vw - 390px));max-width:none;align-self:start;overflow:visible;max-height:none}
-  .char-sprite img,.char-placeholder .character-skin-img{height:clamp(68px,13dvh,100px)}
-  .action-panel{grid-area:actions;width:260px;align-self:center;justify-content:flex-start;flex:unset}
-  .shortcuts{grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(4,auto);grid-auto-flow:column;direction:rtl;gap:16px 12px;margin-top:0;max-width:260px}
-  .shortcuts>.shortcut{direction:ltr}
-  .shortcut-icon{width:46px;height:46px;font-size:18px}
-  .shortcut-label{font-size:11px}
-  .footer{margin-top:28px}
-}
+
 @media(min-width:900px) and (orientation:landscape){
   body{--desktop-map-width:min(660px,calc(100vw - 390px),calc((100dvh - 106px)*.98))}
   .cg-banner{width:var(--desktop-map-width)}
@@ -288,10 +272,78 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .room-away-label .away-title{font-weight:600;color:#777}
 .room-away-label .away-eta{font-size:9px;color:#bbb;display:block;margin-top:2px}
 @media(max-width:400px){.apt-wrap{max-width:320px}.char-sprite img,.char-placeholder .character-skin-img{height:74px}.speech-bubble{max-width:148px;font-size:10px}.wardrobe-overlay{padding:10px}.skin-grid{gap:9px;padding:13px}.room-away-label{font-size:9px;padding:4px 8px}}
+
+/* ── Page section layout ── */
+.page-content{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;max-width:360px;margin:0 auto;flex:1;gap:16px;padding:0 0 32px}
+.page-title{font-size:11px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:#bbb;text-align:center;margin-bottom:4px}
+.entry-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px 12px;width:100%;justify-items:center}
+.entry-card{display:flex;flex-direction:column;align-items:center;gap:5px;text-decoration:none;cursor:pointer;transition:opacity 0.2s,transform 0.2s;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+.entry-card:active{opacity:0.6}
+.entry-icon{width:44px;height:44px;border-radius:11px;border:1px solid #E8E8E8;background:#fff;display:flex;align-items:center;justify-content:center;font-size:17px;color:#999;transition:border-color 0.2s}
+.entry-label{font-size:10px;color:#bbb;letter-spacing:0.3px;text-align:center}
+.entry-card.draft .entry-icon{border-style:dashed;border-color:#ddd}
+.entry-card.draft .entry-label{color:#ccc}
+.page-clock{text-align:center;margin-top:auto;padding-top:8px}
+.page-clock .time{font-size:28px;font-weight:200;color:#ccc;letter-spacing:2px;font-variant-numeric:tabular-nums}
+.page-clock .date{font-size:11px;color:#ddd;margin-top:2px;letter-spacing:0.5px}
+/* ── Memo page ── */
+.memo-wrap{width:100%;max-width:360px;margin:0 auto;flex:1;display:flex;flex-direction:column}
+.memo-list{flex:1;overflow-y:auto;padding:0}
+.memo-item{display:flex;align-items:flex-start;gap:10px;padding:12px 0;border-bottom:1px solid #f5f5f5}
+.memo-item.done .memo-text{text-decoration:line-through;color:#ccc}
+.memo-check{width:18px;height:18px;border-radius:50%;border:1.5px solid #ddd;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;color:#bbb;transition:all 0.2s;margin-top:1px}
+.memo-check.checked{background:#f0f0f0;border-color:#ccc;color:#aaa}
+.memo-text{flex:1;font-size:13px;color:#555;line-height:1.6}
+.memo-text .memo-note{display:block;font-size:10px;color:#bbb;margin-top:2px}
+.memo-del{background:none;border:none;font-size:12px;color:#ddd;cursor:pointer;padding:2px;transition:color 0.2s;flex-shrink:0}
+.memo-del:active{color:#e88}
+.memo-add-bar{display:flex;gap:8px;padding:12px 0;border-top:1px solid #f0f0f0;margin-top:auto}
+.memo-input{flex:1;height:36px;border:1px solid #e8e8e8;border-radius:8px;padding:0 12px;font-size:12px;font-family:inherit;color:#333;outline:none}
+.memo-input:focus{border-color:#bbb}
+.memo-add-btn{height:36px;padding:0 14px;border:none;border-radius:8px;background:#1a1a1a;color:#fff;font-size:12px;font-family:inherit;cursor:pointer;transition:opacity 0.2s}
+.memo-add-btn:active{opacity:0.7}
+.memo-empty{text-align:center;color:#ddd;font-size:12px;padding:40px 0}
+
+@media(min-width:700px){
+  body{height:auto;min-height:100dvh;overflow:auto}
+  .home-pager{display:grid;grid-template-columns:minmax(0,auto) 260px;column-gap:clamp(36px,6vw,88px);row-gap:0;justify-content:center;align-content:start;padding:24px 32px;width:auto;height:auto;overflow:visible;scroll-snap-type:none}
+  .home-page{width:auto;height:auto;flex-shrink:unset;scroll-snap-align:unset;overflow:visible;padding:0;justify-content:flex-start}
+  #pageMain{grid-column:1;grid-row:1 / span 5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px 0}
+  #pageDaily{grid-column:2;grid-row:1;order:1}
+  #pageCollect{grid-column:2;grid-row:2;order:2}
+  #pageRewards{grid-column:2;grid-row:3;order:3}
+  #pageMemo{grid-column:2;grid-row:4;order:4}
+  .page-content{max-width:260px;padding:12px 0;gap:10px}
+  .page-title{font-size:10px;letter-spacing:2px;margin-bottom:0}
+  .entry-grid{grid-template-columns:repeat(3,1fr);gap:14px 10px}
+  .entry-icon{width:46px;height:46px;font-size:18px}
+  .entry-label{font-size:11px}
+  .page-clock{display:none}
+  .memo-wrap{max-width:260px}
+  .page-dots{display:none}
+  .header{width:100%;margin:0;align-self:end}
+  .cg-banner{max-width:none;width:min(460px,calc((100dvh - 103px)*.6),calc(100vw - 390px));margin-bottom:0}
+  .apt-wrap{width:min(460px,calc((100dvh - 103px)*.6),calc(100vw - 390px));max-width:none;align-self:start;overflow:visible;max-height:none}
+  .char-sprite img,.char-placeholder .character-skin-img{height:clamp(68px,13dvh,100px)}
+  .footer{margin-top:28px}
+}
+
 </style>
 </head>
 <body>
 <div class="home-pager" id="homePager">
+<div class="home-page" id="pageMemo">
+<div class="page-content" style="justify-content:flex-start;padding-top:env(safe-area-inset-top,20px)">
+<div class="page-title">备忘录</div>
+<div class="memo-wrap">
+<div class="memo-list" id="memoList"></div>
+<div class="memo-add-bar">
+<input class="memo-input" id="memoInput" type="text" placeholder="添加待处理事项…" maxlength="200">
+<button class="memo-add-btn" type="button" onclick="addMemo()">添加</button>
+</div>
+</div>
+</div>
+</div>
 <div class="home-page" id="pageMain">
 <div class="header"><h1>Liminal Space</h1><p>夹缝空間</p></div>
 <div class="cg-banner" id="cgBanner" onclick="openCgFull()"><img id="cgImg" src="" alt=""><button class="cg-manage" type="button" onclick="openCGLibrary(event)">CG 库</button><button class="cg-close" type="button" onclick="closeCgBanner(event)">✕</button><div class="cg-time-tag" id="cgTimeTag"></div></div>
@@ -448,34 +500,66 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   </div>
 </div>
 
+<div class="footer" style="margin-top:20px"><div class="time" id="clock"></div><div class="date" id="date"></div></div>
 <div class="tooltip" id="tooltip"></div>
 </div><!-- /pageMain -->
-<div class="home-page" id="pageShortcuts">
-<div class="action-panel">
-<div class="shortcuts" id="shortcutsGrid">
-  <a class="shortcut" data-key="daily" href="daily.html"><div class="shortcut-icon">☀</div><div class="shortcut-label">日常</div></a>
-  <a class="shortcut" data-key="shop" href="shop.html"><div class="shortcut-icon">🏪</div><div class="shortcut-label">商城</div></a>
-  <a class="shortcut" data-key="gacha" href="gacha.html?v=20260714-4"><div class="shortcut-icon">💎</div><div class="shortcut-label">抽卡</div></a>
-  <a class="shortcut" data-key="story" href="story.html"><div class="shortcut-icon">📖</div><div class="shortcut-label">剧情</div></a>
-  <a class="shortcut" data-key="dungeon" href="dungeon.html"><div class="shortcut-icon">🗝</div><div class="shortcut-label">副本</div></a>
-  <a class="shortcut" data-key="event" href="event.html"><div class="shortcut-icon">🎟</div><div class="shortcut-label">活动</div></a>
-  <a class="shortcut" data-key="kitchen" href="kitchen.html"><div class="shortcut-icon">🍽</div><div class="shortcut-label">饮食</div></a>
-  <a class="shortcut" data-key="cinema" href="cinema.html"><div class="shortcut-icon">🎬</div><div class="shortcut-label">影视</div></a>
-  <a class="shortcut" data-key="bjd" href="bjd.html"><div class="shortcut-icon">✦</div><div class="shortcut-label">BJD</div></a>
-  <a class="shortcut" data-key="stationery" href="stationery.html"><div class="shortcut-icon">✎</div><div class="shortcut-label">文具</div></a>
-  <a class="shortcut" data-key="wallet" href="wallet.html"><div class="shortcut-icon">¥</div><div class="shortcut-label">记账</div></a>
-  <a class="shortcut" data-key="backup" href="backup.html"><div class="shortcut-icon">☁</div><div class="shortcut-label">备份</div></a>
+<div class="home-page" id="pageDaily">
+<div class="page-content">
+<div class="page-title">日常行动</div>
+<div class="entry-grid">
+  <a class="entry-card" href="daily.html?tab=drop"><div class="entry-icon">📋</div><div class="entry-label">委托</div></a>
+  <a class="entry-card" href="daily.html?tab=todo"><div class="entry-icon">📅</div><div class="entry-label">日程</div></a>
+  <a class="entry-card" href="daily.html?tab=habits"><div class="entry-icon">🌿</div><div class="entry-label">日课</div></a>
+  <a class="entry-card" href="habit.html"><div class="entry-icon">✔</div><div class="entry-label">习惯</div></a>
+  <a class="entry-card" href="wallet.html"><div class="entry-icon">¥</div><div class="entry-label">记账</div></a>
+  <a class="entry-card draft" href="study.html"><div class="entry-icon">📖</div><div class="entry-label">学习</div></a>
+  <a class="entry-card draft" href="organize.html"><div class="entry-icon">📦</div><div class="entry-label">整理</div></a>
 </div>
-<div class="footer"><div class="time" id="clock"></div><div class="date" id="date"></div></div>
+<div class="page-clock"><div class="time" id="clock2"></div><div class="date" id="date2"></div></div>
 </div>
-</div><!-- /pageShortcuts -->
-</div><!-- /homePager -->
-<div class="page-dots" id="pageDots">
-  <span class="page-dot active" data-page="0"></span>
-  <span class="page-dot" data-page="1"></span>
 </div>
 
-<script src="cloud-sync.js?v=20260802-outing1"></script>
+<div class="home-page" id="pageCollect">
+<div class="page-content">
+<div class="page-title">收集整理</div>
+<div class="entry-grid">
+  <a class="entry-card" href="kitchen.html"><div class="entry-icon">🍽</div><div class="entry-label">饮食</div></a>
+  <a class="entry-card" href="event.html"><div class="entry-icon">🎟</div><div class="entry-label">活动</div></a>
+  <a class="entry-card" href="stationery.html"><div class="entry-icon">✎</div><div class="entry-label">文具</div></a>
+  <a class="entry-card" href="cinema.html"><div class="entry-icon">🎬</div><div class="entry-label">观影</div></a>
+  <a class="entry-card" href="bjd.html"><div class="entry-icon">✦</div><div class="entry-label">BJD</div></a>
+  <a class="entry-card draft" href="artist.html"><div class="entry-icon">🎤</div><div class="entry-label">艺人</div></a>
+  <a class="entry-card draft" href="music.html"><div class="entry-icon">🎵</div><div class="entry-label">音乐</div></a>
+  <a class="entry-card draft" href="reading.html"><div class="entry-icon">📚</div><div class="entry-label">读书</div></a>
+</div>
+</div>
+</div>
+
+<div class="home-page" id="pageRewards">
+<div class="page-content">
+<div class="page-title">奖励世界</div>
+<div class="entry-grid">
+  <a class="entry-card" href="story.html"><div class="entry-icon">📖</div><div class="entry-label">剧情</div></a>
+  <a class="entry-card" href="dungeon.html"><div class="entry-icon">🗝</div><div class="entry-label">副本</div></a>
+  <a class="entry-card" href="shop.html"><div class="entry-icon">🏪</div><div class="entry-label">商城</div></a>
+  <a class="entry-card" href="gacha.html"><div class="entry-icon">💎</div><div class="entry-label">抽卡</div></a>
+  <a class="entry-card draft" href="techo.html"><div class="entry-icon">📓</div><div class="entry-label">手账</div></a>
+  <a class="entry-card" href="backup.html"><div class="entry-icon">☁</div><div class="entry-label">备份</div></a>
+</div>
+</div>
+</div>
+
+
+</div><!-- /homePager -->
+<div class="page-dots" id="pageDots">
+  <span class="page-dot" data-page="0"></span>
+  <span class="page-dot active" data-page="1"></span>
+  <span class="page-dot" data-page="2"></span>
+  <span class="page-dot" data-page="3"></span>
+  <span class="page-dot" data-page="4"></span>
+</div>
+
+<script src="cloud-sync.js?v=20260804-layout2"></script>
 <script src="character-runtime.js?v=20260802-outing1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
@@ -1140,135 +1224,7 @@ function updateClock(){
 updateClock();
 setInterval(updateClock,10000);
 
-/* ═══ SHORTCUT DRAG-REORDER ═══ */
-(function(){
-  const grid = document.getElementById('shortcutsGrid');
-  if(!grid) return;
-  const LS_KEY = 'shortcut-order';
-  const LONG_PRESS_MS = 400;
 
-  /* ── restore saved order ── */
-  function applyOrder(){
-    const saved = localStorage.getItem(LS_KEY);
-    if(!saved) return;
-    try{
-      const order = JSON.parse(saved);
-      const items = [...grid.children];
-      const map = {};
-      items.forEach(el => { map[el.dataset.key] = el; });
-      order.forEach(key => { if(map[key]){ grid.appendChild(map[key]); delete map[key]; } });
-      Object.values(map).forEach(el => grid.appendChild(el));
-    }catch(e){}
-  }
-  applyOrder();
-
-  function saveOrder(){
-    const keys = [...grid.children].map(el => el.dataset.key);
-    localStorage.setItem(LS_KEY, JSON.stringify(keys));
-  }
-
-  /* ── long-press + drag ── */
-  let pressTimer = null;
-  let dragging = null;    /* the element being dragged */
-  let dragClone = null;   /* visual clone that follows finger */
-  let startX, startY;
-  let moved = false;
-
-  function getItemAt(x, y){
-    const els = grid.querySelectorAll('.shortcut:not(.dragging)');
-    for(const el of els){
-      const r = el.getBoundingClientRect();
-      if(x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return el;
-    }
-    return null;
-  }
-
-  function onStart(e){
-    const item = e.target.closest('.shortcut');
-    if(!item || !grid.contains(item)) return;
-    const touch = e.touches ? e.touches[0] : e;
-    startX = touch.clientX; startY = touch.clientY;
-    moved = false;
-
-    pressTimer = setTimeout(()=>{
-      e.preventDefault();
-      dragging = item;
-      /* create floating clone */
-      dragClone = item.cloneNode(true);
-      dragClone.classList.add('dragging');
-      const rect = item.getBoundingClientRect();
-      dragClone.style.left = rect.left + 'px';
-      dragClone.style.top = rect.top + 'px';
-      dragClone.style.width = rect.width + 'px';
-      document.body.appendChild(dragClone);
-      item.style.opacity = '0.25';
-      grid.classList.add('reordering');
-      /* haptic if available */
-      if(navigator.vibrate) navigator.vibrate(30);
-    }, LONG_PRESS_MS);
-  }
-
-  function onMove(e){
-    const touch = e.touches ? e.touches[0] : e;
-    /* cancel long-press if finger moved too much before activation */
-    if(!dragging && pressTimer){
-      if(Math.abs(touch.clientX - startX) > 8 || Math.abs(touch.clientY - startY) > 8){
-        clearTimeout(pressTimer); pressTimer = null;
-      }
-      return;
-    }
-    if(!dragging) return;
-    e.preventDefault();
-    /* move clone */
-    const cx = touch.clientX, cy = touch.clientY;
-    dragClone.style.left = (cx - dragClone.offsetWidth/2) + 'px';
-    dragClone.style.top  = (cy - dragClone.offsetHeight/2) + 'px';
-    /* highlight target */
-    grid.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
-    const target = getItemAt(cx, cy);
-    if(target && target !== dragging) target.classList.add('drag-over');
-  }
-
-  function onEnd(e){
-    clearTimeout(pressTimer); pressTimer = null;
-    if(!dragging) return;
-    const touch = e.changedTouches ? e.changedTouches[0] : e;
-    const target = getItemAt(touch.clientX, touch.clientY);
-    if(target && target !== dragging){
-      /* swap positions */
-      const items = [...grid.children];
-      const iA = items.indexOf(dragging), iB = items.indexOf(target);
-      if(iA < iB){ grid.insertBefore(dragging, target.nextSibling); }
-      else { grid.insertBefore(dragging, target); }
-      saveOrder();
-    }
-    /* cleanup */
-    dragging.style.opacity = '';
-    grid.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
-    grid.classList.remove('reordering');
-    if(dragClone){ dragClone.remove(); dragClone = null; }
-    dragging = null;
-    /* suppress the click that fires after mouseup/touchend */
-    e.preventDefault();
-    suppressClick = true;
-    setTimeout(()=>{ suppressClick = false; }, 0);
-  }
-
-  let suppressClick = false;
-  grid.addEventListener('click', function(e){
-    if(suppressClick){ e.preventDefault(); e.stopImmediatePropagation(); }
-  }, true);
-
-  /* touch */
-  grid.addEventListener('touchstart', onStart, {passive:false});
-  grid.addEventListener('touchmove', onMove, {passive:false});
-  grid.addEventListener('touchend', onEnd);
-  grid.addEventListener('touchcancel', onEnd);
-  /* mouse (desktop) */
-  grid.addEventListener('mousedown', onStart);
-  document.addEventListener('mousemove', onMove);
-  document.addEventListener('mouseup', onEnd);
-})();
 
 /* ═══ WARDROBE / DAILY OUTFITS ═══ */
 const SKIN_DB={
@@ -1917,22 +1873,76 @@ function showTip(t){const el=document.getElementById('tooltip');el.textContent=t
 
 /* ═══ HOME PAGER DOTS ═══ */
 (function(){
-  const pager=document.getElementById('homePager');
-  const dots=[...document.querySelectorAll('.page-dot')];
+  var pager=document.getElementById('homePager');
+  var dots=[].slice.call(document.querySelectorAll('.page-dot'));
   if(!pager||!dots.length) return;
-
+  var defaultPage=1;
+  requestAnimationFrame(function(){
+    pager.scrollLeft=defaultPage*pager.clientWidth;
+    updateDots();
+  });
   function updateDots(){
-    const idx=Math.round(pager.scrollLeft/pager.clientWidth);
-    dots.forEach((d,i)=>d.classList.toggle('active',i===idx));
+    var w=pager.clientWidth;
+    if(w<1)return;
+    var idx=Math.round(pager.scrollLeft/w);
+    dots.forEach(function(d,i){d.classList.toggle('active',i===idx);});
   }
   pager.addEventListener('scroll',updateDots,{passive:true});
-
-  dots.forEach(d=>{
+  dots.forEach(function(d){
     d.addEventListener('click',function(){
-      const p=+this.dataset.page;
+      var p=+this.dataset.page;
       pager.scrollTo({left:p*pager.clientWidth,behavior:'smooth'});
     });
   });
+})();
+
+/* ═══ MEMO ═══ */
+(function(){
+  var MEMO_KEY='memo_db';
+  function load(){try{return JSON.parse(localStorage.getItem(MEMO_KEY))||[];}catch(e){return[];}}
+  function save(items){localStorage.setItem(MEMO_KEY,JSON.stringify(items));}
+  function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function render(){
+    var list=document.getElementById('memoList');
+    if(!list)return;
+    var items=load();
+    if(!items.length){list.innerHTML='<div class="memo-empty">暂无待处理事项</div>';return;}
+    var h='';
+    items.forEach(function(it,i){
+      var cls=it.done?'memo-item done':'memo-item';
+      var chk=it.done?'memo-check checked':'memo-check';
+      var note=it.note?'<span class="memo-note">'+escH(it.note)+'</span>':'';
+      h+='<div class="'+cls+'"><div class="'+chk+'" onclick="toggleMemo('+i+')">'+(it.done?'\u2713':'')+'</div><div class="memo-text">'+escH(it.text)+note+'</div><button class="memo-del" onclick="delMemo('+i+')">\u2715</button></div>';
+    });
+    list.innerHTML=h;
+  }
+  window.addMemo=function(){
+    var input=document.getElementById('memoInput');
+    var text=(input.value||'').trim();
+    if(!text)return;
+    var items=load();
+    items.push({text:text,done:false,created:Date.now()});
+    save(items);input.value='';render();
+  };
+  window.toggleMemo=function(i){var items=load();if(items[i])items[i].done=!items[i].done;save(items);render();};
+  window.delMemo=function(i){var items=load();items.splice(i,1);save(items);render();};
+  var memoInput=document.getElementById('memoInput');
+  if(memoInput)memoInput.addEventListener('keydown',function(e){if(e.key==='Enter')addMemo();});
+  render();
+})();
+
+/* ═══ CLOCK SYNC ═══ */
+(function(){
+  function syncClocks(){
+    var c2=document.getElementById('clock2');
+    var d2=document.getElementById('date2');
+    var c1=document.getElementById('clock');
+    var d1=document.getElementById('date');
+    if(c2&&c1)c2.textContent=c1.textContent;
+    if(d2&&d1)d2.textContent=d1.textContent;
+  }
+  setInterval(syncClocks,1000);
+  syncClocks();
 })();
 </script>
 </body></html>
