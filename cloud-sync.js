@@ -1,6 +1,15 @@
 (function () {
   'use strict';
 
+  // Navigation links are never meant to be dragged out of the app. Preventing
+  // the browser's native link drag also avoids accidental HTML downloads when
+  // a mouse button reports a click as a short drag.
+  document.addEventListener('dragstart', event => {
+    const target = event.target;
+    const link = target && target.closest ? target.closest('a[href]') : null;
+    if (link) event.preventDefault();
+  }, true);
+
   const PROJECT_URL = 'https://lbxjshaiffklmalcxiif.supabase.co';
   const PUBLISHABLE_KEY = 'sb_publishable_V-NlC2vXgKdl3TE6ig_v2g_4fwSFp-m';
   const PROJECT_REF = 'lbxjshaiffklmalcxiif';
