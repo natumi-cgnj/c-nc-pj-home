@@ -178,17 +178,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .cg-delete-actions .danger{background:#b06666;color:#fff;border-color:#b06666}
 .cg-delete-actions .danger:active{background:#995555}
 
-@media(min-width:900px) and (orientation:landscape){
-  body{--desktop-map-width:min(660px,calc(100vw - 390px),calc((100dvh - 106px)*.98))}
-  .cg-banner{width:var(--desktop-map-width)}
-  .apt-wrap{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);grid-template-rows:minmax(0,6fr) minmax(0,5fr);grid-template-areas:"top-branch adaptive-branch" "trunk-row adaptive-branch";width:var(--desktop-map-width);max-width:none;aspect-ratio:18/11;min-height:0;align-items:stretch}
-  .apt-wrap>.branch-top{grid-area:top-branch;min-height:0}
-  .apt-wrap>.mid-row{grid-area:trunk-row;min-height:0}
-  .apt-wrap>.branch-adaptive{grid-area:adaptive-branch;margin:0;min-height:0}
-  .apt-wrap>.branch-adaptive>.room-will{height:100%;max-height:none;aspect-ratio:auto;border-left:0}
-  .apt-wrap .conn-on-natumi-adaptive{left:auto;right:0;top:50%;bottom:auto;transform:translate(50%,-50%)}
-  .apt-wrap .conn-on-natumi-adaptive.conn-btn{flex-direction:column;padding:3px 2px;gap:1px;white-space:normal;width:14px;text-align:center;line-height:1.2}
-}
 
 /* ── Wardrobe system ── */
 .wardrobe-btn{position:absolute;bottom:8px;right:8px;width:24px;height:28px;border-radius:3px;background:rgba(0,0,0,0.035);border:1px solid rgba(0,0,0,0.06);cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:15;transition:all 0.25s;opacity:0.35}
@@ -304,15 +293,33 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .memo-add-btn:active{opacity:0.7}
 .memo-empty{text-align:center;color:#ddd;font-size:12px;padding:40px 0}
 
+/* ── Entry drag-reorder ── */
+.entry-grid[data-section] .entry-card{-webkit-touch-callout:none;user-select:none;-webkit-user-select:none}
+.entry-grid.drag-active .entry-card{transition:transform 0.2s,opacity 0.15s}
+.entry-card.dragging{opacity:0.3;transform:scale(0.9)}
+.entry-card.drag-over-before .entry-icon,.entry-card.drag-over-after .entry-icon{border-color:#9eb1ff;background:#f7f8ff}
+.drag-ghost{position:fixed;z-index:9999;pointer-events:none;opacity:0.85;transform:scale(1.1);filter:drop-shadow(0 4px 12px rgba(0,0,0,0.18));transition:none}
+.drag-ghost .entry-icon{border-color:#6B8AFF;background:#f0f4ff}
+@keyframes wiggle{0%,100%{transform:rotate(0deg)}25%{transform:rotate(-2deg)}75%{transform:rotate(2deg)}}
+.entry-grid.drag-mode .entry-card{animation:wiggle 0.3s ease-in-out infinite}
+.entry-grid.drag-mode .entry-card.dragging{animation:none}
+/* ── Collapsible sections ── */
+.page-title.collapsible{cursor:pointer;user-select:none;-webkit-user-select:none;position:relative;transition:color 0.2s}
+.page-title.collapsible::after{content:'';display:inline-block;width:6px;height:6px;border-right:1.5px solid #ccc;border-bottom:1.5px solid #ccc;transform:rotate(45deg);margin-left:8px;vertical-align:1px;transition:transform 0.25s}
+.page-title.collapsible.collapsed::after{transform:rotate(-45deg)}
+.page-title.collapsible:hover{color:#999}
+.section-collapse{display:grid;grid-template-rows:1fr;overflow:hidden;transition:grid-template-rows 0.3s ease,opacity 0.25s ease;opacity:1}
+.section-collapse>*{min-height:0}
+.section-collapse.collapsed{grid-template-rows:0fr;opacity:0;pointer-events:none}
 @media(min-width:700px){
-  body{height:auto;min-height:100dvh;overflow:auto}
-  .home-pager{display:grid;grid-template-columns:minmax(0,auto) 260px;column-gap:clamp(36px,6vw,88px);row-gap:0;justify-content:center;align-content:start;padding:24px 32px;width:auto;height:auto;overflow:visible;scroll-snap-type:none}
+  body{display:grid;grid-template-columns:minmax(0,auto) 260px;column-gap:clamp(36px,6vw,88px);row-gap:14px;justify-content:center;align-content:start;align-items:start;padding:24px 32px;height:auto;min-height:100dvh;overflow-x:hidden;overflow-y:auto}
+  .home-pager{display:contents}
   .home-page{width:auto;height:auto;flex-shrink:unset;scroll-snap-align:unset;overflow:visible;padding:0;justify-content:flex-start}
-  #pageMain{grid-column:1;grid-row:1 / span 5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px 0}
-  #pageDaily{grid-column:2;grid-row:1;order:1}
-  #pageCollect{grid-column:2;grid-row:2;order:2}
-  #pageRewards{grid-column:2;grid-row:3;order:3}
-  #pageMemo{grid-column:2;grid-row:4;order:4}
+  #pageMain{grid-column:1;grid-row:1 / span 5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px 0;min-width:0}
+  #pageDaily{grid-column:2;grid-row:2;order:1}
+  #pageCollect{grid-column:2;grid-row:3;order:2}
+  #pageRewards{grid-column:2;grid-row:4;order:3}
+  #pageMemo{grid-column:2;grid-row:1;order:0;margin-top:60px}
   .page-content{max-width:260px;padding:12px 0;gap:10px}
   .page-title{font-size:10px;letter-spacing:2px;margin-bottom:0}
   .entry-grid{grid-template-columns:repeat(3,1fr);gap:14px 10px}
@@ -327,6 +334,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   .char-sprite img,.char-placeholder .character-skin-img{height:clamp(68px,13dvh,100px)}
   .footer{margin-top:28px}
 }
+@media(min-width:900px) and (orientation:landscape){
+  body{--desktop-map-width:min(660px,calc(100vw - 390px),calc((100dvh - 106px)*.98))}
+  .cg-banner{width:var(--desktop-map-width)}
+  .apt-wrap{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);grid-template-rows:minmax(0,6fr) minmax(0,5fr);grid-template-areas:"top-branch adaptive-branch" "trunk-row adaptive-branch";width:var(--desktop-map-width);max-width:none;aspect-ratio:18/11;min-height:0;align-items:stretch}
+  .apt-wrap>.branch-top{grid-area:top-branch;min-height:0}
+  .apt-wrap>.mid-row{grid-area:trunk-row;min-height:0}
+  .apt-wrap>.branch-adaptive{grid-area:adaptive-branch;margin:0;min-height:0}
+  .apt-wrap>.branch-adaptive>.room-will{height:100%;max-height:none;aspect-ratio:auto;border-left:0}
+  .apt-wrap .conn-on-natumi-adaptive{left:auto;right:0;top:50%;bottom:auto;transform:translate(50%,-50%)}
+  .apt-wrap .conn-on-natumi-adaptive.conn-btn{flex-direction:column;padding:3px 2px;gap:1px;white-space:normal;width:14px;text-align:center;line-height:1.2}
+}
+
 
 </style>
 </head>
@@ -334,12 +353,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <div class="home-pager" id="homePager">
 <div class="home-page" id="pageMemo">
 <div class="page-content" style="justify-content:flex-start;padding-top:env(safe-area-inset-top,20px)">
-<div class="page-title">备忘录</div>
-<div class="memo-wrap">
+<div class="page-title" onclick="toggleSection(this)">备忘录</div>
+<div class="section-collapse collapsed"><div class="memo-wrap">
 <div class="memo-list" id="memoList"></div>
 <div class="memo-add-bar">
 <input class="memo-input" id="memoInput" type="text" placeholder="添加待处理事项…" maxlength="200">
 <button class="memo-add-btn" type="button" onclick="addMemo()">添加</button>
+</div>
 </div>
 </div>
 </div>
@@ -505,8 +525,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 </div><!-- /pageMain -->
 <div class="home-page" id="pageDaily">
 <div class="page-content">
-<div class="page-title">日常行动</div>
-<div class="entry-grid">
+<div class="page-title" onclick="toggleSection(this)">日常行动</div>
+<div class="section-collapse"><div class="entry-grid" data-section="daily">
   <a class="entry-card" href="daily.html?tab=drop"><div class="entry-icon">📋</div><div class="entry-label">委托</div></a>
   <a class="entry-card" href="daily.html?tab=todo"><div class="entry-icon">📅</div><div class="entry-label">日程</div></a>
   <a class="entry-card" href="daily.html?tab=habits"><div class="entry-icon">🌿</div><div class="entry-label">日课</div></a>
@@ -515,14 +535,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <a class="entry-card draft" href="study.html"><div class="entry-icon">📖</div><div class="entry-label">学习</div></a>
   <a class="entry-card draft" href="organize.html"><div class="entry-icon">📦</div><div class="entry-label">整理</div></a>
 </div>
+</div>
 <div class="page-clock"><div class="time" id="clock2"></div><div class="date" id="date2"></div></div>
 </div>
 </div>
 
 <div class="home-page" id="pageCollect">
 <div class="page-content">
-<div class="page-title">收集整理</div>
-<div class="entry-grid">
+<div class="page-title" onclick="toggleSection(this)">收集整理</div>
+<div class="section-collapse"><div class="entry-grid" data-section="collect">
   <a class="entry-card" href="kitchen.html"><div class="entry-icon">🍽</div><div class="entry-label">饮食</div></a>
   <a class="entry-card" href="event.html"><div class="entry-icon">🎟</div><div class="entry-label">活动</div></a>
   <a class="entry-card" href="stationery.html"><div class="entry-icon">✎</div><div class="entry-label">文具</div></a>
@@ -534,17 +555,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 </div>
 </div>
 </div>
+</div>
 
 <div class="home-page" id="pageRewards">
 <div class="page-content">
-<div class="page-title">奖励世界</div>
-<div class="entry-grid">
+<div class="page-title" onclick="toggleSection(this)">奖励世界</div>
+<div class="section-collapse"><div class="entry-grid" data-section="rewards">
   <a class="entry-card" href="story.html"><div class="entry-icon">📖</div><div class="entry-label">剧情</div></a>
   <a class="entry-card" href="dungeon.html"><div class="entry-icon">🗝</div><div class="entry-label">副本</div></a>
   <a class="entry-card" href="shop.html"><div class="entry-icon">🏪</div><div class="entry-label">商城</div></a>
   <a class="entry-card" href="gacha.html"><div class="entry-icon">💎</div><div class="entry-label">抽卡</div></a>
   <a class="entry-card draft" href="techo.html"><div class="entry-icon">📓</div><div class="entry-label">手账</div></a>
   <a class="entry-card" href="backup.html"><div class="entry-icon">☁</div><div class="entry-label">备份</div></a>
+</div>
 </div>
 </div>
 </div>
@@ -1943,6 +1966,363 @@ function showTip(t){const el=document.getElementById('tooltip');el.textContent=t
   }
   setInterval(syncClocks,1000);
   syncClocks();
+})();
+
+// ── Collapsible sections ──
+function isDesktopLayout(){return window.innerWidth>=700;}
+function isMemoTitle(titleEl){return !!titleEl.closest('#pageMemo');}
+function canCollapseSection(titleEl){return isDesktopLayout()||isMemoTitle(titleEl);}
+function collapseStorageKey(titleEl){return 'collapse_'+titleEl.textContent.trim();}
+function defaultCollapsed(titleEl){return isMemoTitle(titleEl);}
+
+function setSectionCollapsed(titleEl,isCollapsed,shouldSave){
+  var wrap=titleEl.nextElementSibling;
+  if(!wrap||!wrap.classList.contains('section-collapse'))return;
+  wrap.classList.toggle('collapsed',isCollapsed);
+  titleEl.classList.toggle('collapsed',isCollapsed);
+  titleEl.setAttribute('aria-expanded',isCollapsed?'false':'true');
+  if(shouldSave){
+    try{localStorage.setItem(collapseStorageKey(titleEl),isCollapsed?'1':'0');}catch(e){}
+  }
+}
+
+function toggleSection(titleEl){
+  if(!canCollapseSection(titleEl))return;
+  var wrap=titleEl.nextElementSibling;
+  if(!wrap||!wrap.classList.contains('section-collapse'))return;
+  setSectionCollapsed(titleEl,!wrap.classList.contains('collapsed'),true);
+}
+
+function restoreCollapse(){
+  document.querySelectorAll('.page-title').forEach(function(titleEl){
+    var wrap=titleEl.nextElementSibling;
+    if(!wrap||!wrap.classList.contains('section-collapse'))return;
+    if(!canCollapseSection(titleEl)){
+      titleEl.classList.remove('collapsible','collapsed');
+      titleEl.removeAttribute('role');
+      titleEl.removeAttribute('tabindex');
+      titleEl.removeAttribute('aria-expanded');
+      wrap.classList.remove('collapsed');
+      return;
+    }
+    titleEl.classList.add('collapsible');
+    titleEl.setAttribute('role','button');
+    titleEl.setAttribute('tabindex','0');
+    var saved=null;
+    try{saved=localStorage.getItem(collapseStorageKey(titleEl));}catch(e){}
+    var isCollapsed=saved===null?defaultCollapsed(titleEl):saved==='1';
+    setSectionCollapsed(titleEl,isCollapsed,false);
+  });
+}
+
+document.querySelectorAll('.page-title').forEach(function(titleEl){
+  titleEl.addEventListener('keydown',function(e){
+    if(!canCollapseSection(titleEl))return;
+    if(e.key==='Enter'||e.key===' '){e.preventDefault();toggleSection(titleEl);}
+  });
+});
+restoreCollapse();
+var lastCollapseLayout=isDesktopLayout();
+window.addEventListener('resize',function(){
+  var nextLayout=isDesktopLayout();
+  if(nextLayout===lastCollapseLayout)return;
+  lastCollapseLayout=nextLayout;
+  restoreCollapse();
+});
+
+// ══════════════════════════════════════
+// ENTRY DRAG-REORDER (mobile long-press + desktop drag)
+// ══════════════════════════════════════
+(function(){
+  var LONG_PRESS_MS = 500;
+  var MOVE_CANCEL_PX = 10;
+  var grids = document.querySelectorAll('.entry-grid[data-section]');
+  var canonicalOrders = {};
+  var ghost = null;
+  var dragCard = null;
+  var dragGrid = null;
+  var longTimer = null;
+  var startX = 0, startY = 0;
+  var isDragging = false;
+  var suppressClickUntil = 0;
+  var previousBodyOverflow = '';
+  var previousPagerOverflowX = '';
+
+  function modeKey(){return window.innerWidth >= 700 ? 'desktop' : 'mobile';}
+  function storageKey(section){return 'entry_order_' + modeKey() + '_' + section;}
+
+  grids.forEach(function(grid){
+    canonicalOrders[grid.dataset.section]=Array.from(grid.querySelectorAll('.entry-card')).map(function(card){
+      return card.getAttribute('href');
+    });
+  });
+
+  // ── Save / Restore order ──
+  function saveOrder(grid){
+    var sec = grid.dataset.section;
+    var cards = grid.querySelectorAll('.entry-card');
+    var order = [];
+    cards.forEach(function(c){order.push(c.getAttribute('href'));});
+    try{localStorage.setItem(storageKey(sec), JSON.stringify(order));}catch(e){}
+  }
+
+  function restoreOrder(grid){
+    var sec = grid.dataset.section;
+    var saved=null;
+    try{saved = JSON.parse(localStorage.getItem(storageKey(sec)));}catch(e){}
+    var requestedOrder=Array.isArray(saved)&&saved.length?saved:canonicalOrders[sec];
+    var cards = Array.from(grid.querySelectorAll('.entry-card'));
+    var map = {};
+    cards.forEach(function(c){map[c.getAttribute('href')] = c;});
+    requestedOrder.forEach(function(href){
+      var c = map[href];
+      if(c) grid.appendChild(c);
+      delete map[href];
+    });
+    // append any remaining cards not in saved order (new entries)
+    canonicalOrders[sec].forEach(function(href){
+      if(map[href]){grid.appendChild(map[href]);delete map[href];}
+    });
+    Object.keys(map).forEach(function(href){grid.appendChild(map[href]);});
+  }
+
+  function restoreAll(){
+    grids.forEach(function(g){restoreOrder(g);});
+  }
+
+  // ── Ghost element ──
+  function createGhost(card, x, y){
+    ghost = card.cloneNode(true);
+    ghost.className = 'entry-card drag-ghost';
+    ghost.style.width = card.offsetWidth + 'px';
+    document.body.appendChild(ghost);
+    positionGhost(x, y);
+  }
+  function positionGhost(x, y){
+    if(!ghost) return;
+    ghost.style.left = (x - ghost.offsetWidth/2) + 'px';
+    ghost.style.top = (y - ghost.offsetHeight/2) + 'px';
+  }
+  function removeGhost(){
+    if(ghost && ghost.parentNode) ghost.parentNode.removeChild(ghost);
+    ghost = null;
+  }
+
+  // ── Find drop target ──
+  function getDropTarget(x, y){
+    if(!dragGrid) return null;
+    var gridRect=dragGrid.getBoundingClientRect();
+    if(x<gridRect.left-24||x>gridRect.right+24||y<gridRect.top-24||y>gridRect.bottom+24)return null;
+    if(dragCard){
+      var ownRect=dragCard.getBoundingClientRect();
+      if(x>=ownRect.left&&x<=ownRect.right&&y>=ownRect.top&&y<=ownRect.bottom)return dragCard;
+    }
+    var cards = dragGrid.querySelectorAll('.entry-card:not(.dragging)');
+    var best = null, bestDist = Infinity;
+    cards.forEach(function(c){
+      var r = c.getBoundingClientRect();
+      var cx = r.left + r.width/2;
+      var cy = r.top + r.height/2;
+      var d = Math.abs(x - cx) + Math.abs(y - cy);
+      if(d < bestDist){bestDist = d; best = c;}
+    });
+    return best;
+  }
+
+  function clearOverClasses(){
+    document.querySelectorAll('.drag-over-before,.drag-over-after').forEach(function(el){
+      el.classList.remove('drag-over-before','drag-over-after');
+    });
+  }
+
+  // ── Start drag ──
+  function startDrag(card, x, y){
+    if(isDragging) return;
+    isDragging = true;
+    suppressClickUntil = Date.now()+1500;
+    dragCard = card;
+    dragGrid = card.closest('.entry-grid');
+    dragGrid.classList.add('drag-active','drag-mode');
+    card.classList.add('dragging');
+    createGhost(card, x, y);
+    // disable page scroll on mobile
+    previousBodyOverflow=document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    // disable swipe on pager
+    var pager = document.getElementById('homePager');
+    if(pager){previousPagerOverflowX=pager.style.overflowX;pager.style.overflowX='hidden';}
+  }
+
+  // ── Move drag ──
+  function moveDrag(x, y){
+    if(!isDragging) return;
+    positionGhost(x, y);
+    clearOverClasses();
+    var target = getDropTarget(x, y);
+    if(target && target !== dragCard){
+      var r = target.getBoundingClientRect();
+      var mid = r.left + r.width/2;
+      if(x < mid) target.classList.add('drag-over-before');
+      else target.classList.add('drag-over-after');
+    }
+  }
+
+  // ── End drag ──
+  function endDrag(x, y){
+    if(!isDragging) return;
+    clearOverClasses();
+    var target = getDropTarget(x, y);
+    if(target && target !== dragCard && dragGrid){
+      var r = target.getBoundingClientRect();
+      var mid = r.left + r.width/2;
+      if(x < mid) dragGrid.insertBefore(dragCard, target);
+      else{
+        var next = target.nextElementSibling;
+        if(next) dragGrid.insertBefore(dragCard, next);
+        else dragGrid.appendChild(dragCard);
+      }
+      saveOrder(dragGrid);
+    }
+    if(dragCard) dragCard.classList.remove('dragging');
+    if(dragGrid) dragGrid.classList.remove('drag-active','drag-mode');
+    removeGhost();
+    document.body.style.overflow = previousBodyOverflow;
+    var pager = document.getElementById('homePager');
+    if(pager) pager.style.overflowX = previousPagerOverflowX;
+    suppressClickUntil = Date.now()+800;
+    isDragging = false;
+    dragCard = null;
+    dragGrid = null;
+  }
+
+  function cancelDrag(){
+    if(dragCard) dragCard.classList.remove('dragging');
+    if(dragGrid) dragGrid.classList.remove('drag-active','drag-mode');
+    clearOverClasses();
+    removeGhost();
+    document.body.style.overflow = previousBodyOverflow;
+    var pager = document.getElementById('homePager');
+    if(pager) pager.style.overflowX = previousPagerOverflowX;
+    suppressClickUntil = Date.now()+800;
+    isDragging = false;
+    dragCard = null;
+    dragGrid = null;
+  }
+
+  // ══ TOUCH (mobile long-press) ══
+  grids.forEach(function(grid){
+    grid.addEventListener('touchstart', function(e){
+      var card = e.target.closest('.entry-card');
+      if(!card || !grid.contains(card)) return;
+      var t = e.touches[0];
+      startX = t.clientX; startY = t.clientY;
+      clearTimeout(longTimer);
+      longTimer = setTimeout(function(){
+        longTimer=null;
+        startDrag(card, startX, startY);
+        // vibrate if supported
+        if(navigator.vibrate) navigator.vibrate(30);
+      }, LONG_PRESS_MS);
+    }, {passive:false});
+
+    grid.addEventListener('touchmove', function(e){
+      var t = e.touches[0];
+      if(!isDragging){
+        // if moved too far before long-press fires, cancel
+        if(Math.abs(t.clientX - startX) > 10 || Math.abs(t.clientY - startY) > 10){
+          clearTimeout(longTimer);
+          longTimer=null;
+        }
+        return;
+      }
+      e.preventDefault();
+      moveDrag(t.clientX, t.clientY);
+    }, {passive:false});
+
+    grid.addEventListener('touchend', function(e){
+      clearTimeout(longTimer);
+      longTimer=null;
+      if(!isDragging) return;
+      e.preventDefault();
+      var t = e.changedTouches[0];
+      endDrag(t.clientX, t.clientY);
+    },{passive:false});
+
+    grid.addEventListener('touchcancel', function(){
+      clearTimeout(longTimer);
+      longTimer=null;
+      cancelDrag();
+    });
+
+    grid.addEventListener('contextmenu',function(e){
+      if(isDragging&&e.target.closest('.entry-card'))e.preventDefault();
+    });
+  });
+
+  // ══ MOUSE (desktop long-press) ══
+  grids.forEach(function(grid){
+    grid.addEventListener('mousedown', function(e){
+      if(e.button !== 0) return;
+      var card = e.target.closest('.entry-card');
+      if(!card || !grid.contains(card)) return;
+      startX = e.clientX; startY = e.clientY;
+      var currentX=startX,currentY=startY;
+      clearTimeout(longTimer);
+      longTimer=setTimeout(function(){
+        longTimer=null;
+        startDrag(card,currentX,currentY);
+      },LONG_PRESS_MS);
+
+      function onMove(ev){
+        currentX=ev.clientX;currentY=ev.clientY;
+        if(!isDragging){
+          if(Math.abs(currentX-startX)>MOVE_CANCEL_PX||Math.abs(currentY-startY)>MOVE_CANCEL_PX){
+            clearTimeout(longTimer);
+            longTimer=null;
+          }
+          return;
+        }
+        ev.preventDefault();
+        moveDrag(currentX,currentY);
+      }
+      function onUp(ev){
+        clearTimeout(longTimer);
+        longTimer=null;
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+        if(isDragging){ev.preventDefault();endDrag(ev.clientX, ev.clientY);}
+      }
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+    });
+
+    grid.addEventListener('dragstart',function(e){
+      if(e.target.closest('.entry-card'))e.preventDefault();
+    });
+
+    // prevent link navigation generated after a completed long-press drag
+    grid.addEventListener('click', function(e){
+      if(isDragging||Date.now()<suppressClickUntil){e.preventDefault();e.stopPropagation();}
+    }, true);
+  });
+
+  // ── Init: restore saved orders ──
+  restoreAll();
+  // re-apply on resize (mode may change)
+  var lastMode = modeKey();
+  window.addEventListener('resize', function(){
+    var m = modeKey();
+    if(m !== lastMode){
+      if(isDragging)cancelDrag();
+      lastMode = m;
+      restoreAll();
+    }
+  });
+  window.addEventListener('blur',function(){
+    clearTimeout(longTimer);
+    longTimer=null;
+    if(isDragging)cancelDrag();
+  });
 })();
 </script>
 </body></html>
