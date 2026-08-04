@@ -294,7 +294,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .memo-empty{text-align:center;color:#ddd;font-size:12px;padding:40px 0}
 
 /* ── Entry drag-reorder ── */
-.entry-grid[data-section] .entry-card{-webkit-touch-callout:none;user-select:none;-webkit-user-select:none}
+.entry-grid[data-section] .entry-card{-webkit-touch-callout:none;-webkit-user-drag:none;user-select:none;-webkit-user-select:none}
 .entry-grid.drag-active .entry-card{transition:transform 0.2s,opacity 0.15s}
 .entry-card.dragging{opacity:0.3;transform:scale(0.9)}
 .entry-card.drag-over-before .entry-icon,.entry-card.drag-over-after .entry-icon{border-color:#9eb1ff;background:#f7f8ff}
@@ -582,7 +582,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <span class="page-dot" data-page="4"></span>
 </div>
 
-<script src="cloud-sync.js?v=20260804-layout2"></script>
+<script src="cloud-sync.js?v=20260804-dragguard1"></script>
 <script src="character-runtime.js?v=20260802-outing1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
@@ -2052,7 +2052,9 @@ window.addEventListener('resize',function(){
   function storageKey(section){return 'entry_order_' + modeKey() + '_' + section;}
 
   grids.forEach(function(grid){
-    canonicalOrders[grid.dataset.section]=Array.from(grid.querySelectorAll('.entry-card')).map(function(card){
+    var cards=Array.from(grid.querySelectorAll('.entry-card'));
+    cards.forEach(function(card){card.draggable=false;});
+    canonicalOrders[grid.dataset.section]=cards.map(function(card){
       return card.getAttribute('href');
     });
   });
@@ -2092,8 +2094,10 @@ window.addEventListener('resize',function(){
 
   // ── Ghost element ──
   function createGhost(card, x, y){
-    ghost = card.cloneNode(true);
+    ghost = document.createElement('div');
     ghost.className = 'entry-card drag-ghost';
+    ghost.innerHTML = card.innerHTML;
+    ghost.setAttribute('aria-hidden','true');
     ghost.style.width = card.offsetWidth + 'px';
     document.body.appendChild(ghost);
     positionGhost(x, y);
