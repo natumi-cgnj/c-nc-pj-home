@@ -18,7 +18,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 /* ── Horizontal pager (mobile) ── */
 .home-pager{display:flex;width:100vw;height:100dvh;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .home-pager::-webkit-scrollbar{display:none}
-.home-page{width:100vw;height:100dvh;flex-shrink:0;scroll-snap-align:start;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 20px;scrollbar-width:none}
+.home-page{width:100vw;height:100dvh;flex-shrink:0;scroll-snap-align:start;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:24px 20px;scrollbar-width:none}
 .home-page::-webkit-scrollbar{display:none}
 .page-dots{position:fixed;bottom:env(safe-area-inset-bottom,12px);left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:60;padding:4px}
 .page-dot{width:6px;height:6px;border-radius:50%;background:rgba(0,0,0,0.12);transition:all 0.25s}
@@ -148,6 +148,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .cg-fullscreen{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,0.92);display:none;align-items:center;justify-content:center;cursor:pointer}
 .cg-fullscreen.show{display:flex}
 .cg-fullscreen img{max-width:95vw;max-height:90vh;object-fit:contain;border-radius:6px}
+.cg-manage-full{position:absolute;bottom:env(safe-area-inset-bottom,16px);right:16px;height:24px;border-radius:12px;background:rgba(255,255,255,0.12);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,.5);font:9px/24px inherit;padding:0 10px;cursor:pointer;letter-spacing:.5px;transition:all 0.2s;z-index:101}
+.cg-manage-full:active{background:rgba(255,255,255,0.25);color:rgba(255,255,255,.8)}
 /* ── CG library panel ── */
 .cg-library-overlay{position:fixed;inset:0;z-index:220;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;padding:16px;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
 .cg-library-overlay.show{display:flex}
@@ -272,6 +274,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .entry-label{font-size:10px;color:#bbb;letter-spacing:0.3px;text-align:center}
 .entry-card.draft .entry-icon{border-style:dashed;border-color:#ddd}
 .entry-card.draft .entry-label{color:#ccc}
+#pageMemo .page-content,#pageDaily .page-content,#pageCollect .page-content,#pageRewards .page-content{justify-content:flex-start;padding-top:calc(71px + min(100vw - 40px,360px)*0.28125)}
 .page-clock{text-align:center;margin-top:auto;padding-top:8px}
 .page-clock .time{font-size:28px;font-weight:200;color:#ccc;letter-spacing:2px;font-variant-numeric:tabular-nums}
 .page-clock .date{font-size:11px;color:#ddd;margin-top:2px;letter-spacing:0.5px}
@@ -352,8 +355,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <body>
 <div class="home-pager" id="homePager">
 <div class="home-page" id="pageMemo">
-<div class="page-content" style="justify-content:flex-start;padding-top:env(safe-area-inset-top,20px)">
-<div class="page-title" onclick="toggleSection(this)">备忘录</div>
+<div class="page-content">
+<div class="page-title" onclick="toggleSection(this)">Notes</div>
 <div class="section-collapse collapsed"><div class="memo-wrap">
 <div class="memo-list" id="memoList"></div>
 <div class="memo-add-bar">
@@ -362,17 +365,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 </div>
 </div>
 </div>
+<div class="page-clock"><div class="time" id="clock3"></div><div class="date" id="date3"></div></div>
 </div>
 </div>
 <div class="home-page" id="pageMain">
 <div class="header"><h1>Liminal Space</h1><p>夹缝空間</p></div>
-<div class="cg-banner" id="cgBanner" onclick="openCgFull()"><img id="cgImg" src="" alt=""><button class="cg-manage" type="button" onclick="openCGLibrary(event)">CG 库</button><button class="cg-close" type="button" onclick="closeCgBanner(event)">✕</button><div class="cg-time-tag" id="cgTimeTag"></div></div>
-<div class="cg-fullscreen" id="cgFull" onclick="closeCgFull()"><img id="cgFullImg" src="" alt=""></div>
+<div class="cg-banner" id="cgBanner" onclick="openCgFull()"><img id="cgImg" src="" alt=""><button class="cg-close" type="button" onclick="closeCgBanner(event)">✕</button><div class="cg-time-tag" id="cgTimeTag"></div></div>
+<div class="cg-fullscreen" id="cgFull" onclick="closeCgFull()"><img id="cgFullImg" src="" alt=""><button class="cg-manage-full" type="button" onclick="openCGLibrary(event)">Scenes</button></div>
 <div class="cg-library-overlay" id="cgLibraryOverlay" onclick="closeCGLibrary(event)">
   <div class="cg-library-panel" onclick="event.stopPropagation()">
     <div class="cg-library-header">
-      <span class="cg-library-title">首页 CG 库</span>
-      <button class="wardrobe-close" type="button" onclick="closeCGLibrary()" aria-label="关闭 CG 库">✕</button>
+      <span class="cg-library-title">Scenes</span>
+      <button class="wardrobe-close" type="button" onclick="closeCGLibrary()" aria-label="Close Scenes">✕</button>
     </div>
     <div class="cg-library-body">
       <div class="cg-tabs" id="cgTabs"></div>
@@ -520,12 +524,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   </div>
 </div>
 
-<div class="footer" style="margin-top:20px"><div class="time" id="clock"></div><div class="date" id="date"></div></div>
+<div class="footer" style="margin-top:auto"><div class="time" id="clock"></div><div class="date" id="date"></div></div>
 <div class="tooltip" id="tooltip"></div>
 </div><!-- /pageMain -->
 <div class="home-page" id="pageDaily">
 <div class="page-content">
-<div class="page-title" onclick="toggleSection(this)">日常行动</div>
+<div class="page-title" onclick="toggleSection(this)">Dailies</div>
 <div class="section-collapse"><div class="entry-grid" data-section="daily">
   <a class="entry-card" href="daily.html?tab=drop"><div class="entry-icon">📋</div><div class="entry-label">委托</div></a>
   <a class="entry-card" href="daily.html?tab=todo"><div class="entry-icon">📅</div><div class="entry-label">日程</div></a>
@@ -542,7 +546,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 <div class="home-page" id="pageCollect">
 <div class="page-content">
-<div class="page-title" onclick="toggleSection(this)">收集整理</div>
+<div class="page-title" onclick="toggleSection(this)">Archive</div>
 <div class="section-collapse"><div class="entry-grid" data-section="collect">
   <a class="entry-card" href="kitchen.html"><div class="entry-icon">🍽</div><div class="entry-label">饮食</div></a>
   <a class="entry-card" href="event.html"><div class="entry-icon">🎟</div><div class="entry-label">活动</div></a>
@@ -554,12 +558,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <a class="entry-card draft" href="reading.html"><div class="entry-icon">📚</div><div class="entry-label">读书</div></a>
 </div>
 </div>
+<div class="page-clock"><div class="time" id="clock4"></div><div class="date" id="date4"></div></div>
 </div>
 </div>
 
 <div class="home-page" id="pageRewards">
 <div class="page-content">
-<div class="page-title" onclick="toggleSection(this)">奖励世界</div>
+<div class="page-title" onclick="toggleSection(this)">Rewards</div>
 <div class="section-collapse"><div class="entry-grid" data-section="rewards">
   <a class="entry-card" href="story.html"><div class="entry-icon">📖</div><div class="entry-label">剧情</div></a>
   <a class="entry-card" href="dungeon.html"><div class="entry-icon">🗝</div><div class="entry-label">副本</div></a>
@@ -569,6 +574,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <a class="entry-card" href="backup.html"><div class="entry-icon">☁</div><div class="entry-label">备份</div></a>
 </div>
 </div>
+<div class="page-clock"><div class="time" id="clock5"></div><div class="date" id="date5"></div></div>
 </div>
 </div>
 
@@ -1216,7 +1222,7 @@ async function handleCGUpload(input){
     library.slots[slot].custom.push({id,name:(file.name||'自定义 CG').replace(/\.[^.]+$/,''),src,tag:'',weight:1});
     library.slots[slot].selected.push(id);
     if(!saveCGLibrary(library)){await CloudSync.deleteAsset(src);return;}
-    showTip('已加入 '+CG_SLOT_META[slot].label+' CG 库');
+    showTip('已加入 '+CG_SLOT_META[slot].label+' Scenes');
     renderCGLibrary();
   }catch(e){
     console.error('CG upload failed:',e);
@@ -1957,12 +1963,15 @@ function showTip(t){const el=document.getElementById('tooltip');el.textContent=t
 /* ═══ CLOCK SYNC ═══ */
 (function(){
   function syncClocks(){
-    var c2=document.getElementById('clock2');
-    var d2=document.getElementById('date2');
     var c1=document.getElementById('clock');
     var d1=document.getElementById('date');
-    if(c2&&c1)c2.textContent=c1.textContent;
-    if(d2&&d1)d2.textContent=d1.textContent;
+    if(!c1||!d1)return;
+    [2,3,4,5].forEach(function(i){
+      var c=document.getElementById('clock'+i);
+      var d=document.getElementById('date'+i);
+      if(c)c.textContent=c1.textContent;
+      if(d)d.textContent=d1.textContent;
+    });
   }
   setInterval(syncClocks,1000);
   syncClocks();
