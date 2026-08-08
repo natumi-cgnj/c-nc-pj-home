@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- Music build: 2026-07-31 -->
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
@@ -6,142 +7,1070 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Music">
-<title>音乐</title>
+<title>Music</title>
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="apple-touch-icon.png">
 <link rel="icon" href="favicon.ico">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;background:#FAFAFA;color:#1a1a1a;min-height:100vh;min-height:100dvh;padding-bottom:72px}
-.top-bar{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;padding-top:env(safe-area-inset-top,20px);background:#fff;position:sticky;top:0;z-index:50;border-bottom:1px solid #f0f0f0}
-.top-bar h1{font-size:13px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:#999}
-.back-btn{font-size:13px;color:#bbb;text-decoration:none;cursor:pointer;background:none;border:none;font-family:inherit;padding:4px}
-.content{padding:20px}
-.section-title{font-size:11px;font-weight:600;color:#999;letter-spacing:1px;margin:20px 0 10px;text-transform:uppercase}
-.section-title:first-child{margin-top:0}
-.song-list{display:flex;flex-direction:column;gap:6px}
-.song{background:#fff;border:1px solid #eee;border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:12px;cursor:pointer}
-.song:active{background:#f8f8f8}
-.song-num{width:20px;font-size:11px;color:#ccc;text-align:center;flex-shrink:0}
-.song-info{flex:1;min-width:0}
-.song-title{font-size:13px;color:#333;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.song-artist{font-size:10px;color:#bbb;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.song-tag{font-size:9px;color:#6B8AFF;background:#EEF2FF;border-radius:4px;padding:1px 6px;flex-shrink:0}
-.add-btn{width:100%;height:44px;border:1px dashed #ddd;border-radius:10px;background:transparent;color:#bbb;font-size:12px;font-family:inherit;cursor:pointer;margin-top:12px;transition:all 0.15s}
-.add-btn:active{background:#f8f8f8;border-color:#bbb}
-.empty{text-align:center;color:#ddd;font-size:12px;padding:60px 20px}
-.modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;padding:16px}
-.modal-overlay.show{display:flex}
-.modal{background:#fff;border-radius:16px;width:min(360px,100%);padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.15)}
-.modal h2{font-size:15px;font-weight:600;color:#333;margin-bottom:16px}
-.field{margin-bottom:12px}
-.field label{display:block;font-size:10px;color:#999;font-weight:600;letter-spacing:.3px;margin-bottom:4px}
-.field input{width:100%;height:36px;border:1px solid #e8e8e8;border-radius:8px;padding:0 12px;font-size:12px;font-family:inherit;color:#333;outline:none}
-.field input:focus{border-color:#6B8AFF}
-.modal-actions{display:flex;gap:8px;margin-top:16px}
-.modal-actions button{flex:1;height:40px;border-radius:10px;border:none;font-size:13px;font-family:inherit;cursor:pointer}
-.btn-cancel{background:#f3f3f3;color:#666}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;background:#FAFAFA;color:#1a1a1a;min-height:100vh;min-height:100dvh;padding-bottom:80px}
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;padding-top:max(12px,env(safe-area-inset-top,12px));border-bottom:1px solid #eee;background:#fff;position:sticky;top:0;z-index:50}
+.top-bar h1{font-size:15px;font-weight:600;letter-spacing:2px;color:#3BADA6}
+.back-btn{font-size:13px;color:#999;text-decoration:none;cursor:pointer;background:none;border:none;font-family:inherit;padding:4px}
+.btn-s{font-size:11px;color:#999;background:none;border:1px solid #ddd;border-radius:6px;padding:5px 10px;cursor:pointer;font-family:inherit}
+.view{display:none}.view.active{display:block}
+#viewHome.active{min-height:100vh;min-height:100dvh}
+
+/* ── Project list ── */
+.project-list{padding:8px 0}
+.project-row{display:flex;align-items:center;gap:14px;padding:14px 20px;background:#fff;border-bottom:1px solid #f5f5f5;cursor:pointer;transition:background 0.15s;position:relative}
+.project-row:active{background:#F2FAF9}
+.project-icon-wrap{width:44px;height:44px;border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#E8F8F6;flex-shrink:0}
+.project-icon-wrap img{width:100%;height:100%;object-fit:cover}
+.project-icon-wrap .emoji-fb{font-size:22px}
+.project-row-body{flex:1;min-width:0}
+.project-row-top{display:flex;align-items:center;gap:6px;margin-bottom:2px}
+.project-row-name{font-size:14px;font-weight:500;color:#333}
+.project-row-meta{font-size:11px;color:#bbb;display:flex;align-items:center;gap:8px}
+.project-row-progress{flex:1;max-width:120px;height:3px;background:#f0f0f0;border-radius:2px;overflow:hidden}
+.project-row-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,#4ECDC4,#3BADA6);transition:width 0.3s}
+.project-row-pct{font-size:10px;color:#ccc;font-variant-numeric:tabular-nums;min-width:28px;text-align:right}
+.project-complete-star{font-size:12px;color:#4ECDC4;flex-shrink:0}
+.project-row-add{display:flex;align-items:center;justify-content:center;gap:6px;padding:14px 20px;background:#fff;border-bottom:1px solid #f5f5f5;cursor:pointer;font-size:13px;color:#ccc}
+.project-row-add:active{background:#f8f8f8}
+.shelf-header{display:flex;align-items:center;gap:10px;padding:10px 20px;background:#fafafa;border-bottom:1px solid #f0f0f0;cursor:pointer;user-select:none;-webkit-user-select:none}
+.shelf-header:active{background:#f5f5f5}
+.shelf-line{flex:1;height:1px;background:#e0e0e0}
+.shelf-label{font-size:11px;color:#999;font-weight:500;letter-spacing:0.3px}
+.shelf-arrow{font-size:8px;color:#ccc;transition:transform 0.25s;display:inline-block;width:8px}
+.shelf-header.collapsed .shelf-arrow{transform:rotate(-90deg)}
+.shelf-items{display:grid;grid-template-rows:1fr;overflow:hidden;transition:grid-template-rows 0.3s ease,opacity 0.25s ease;opacity:1}
+.shelf-items>div{min-height:0}
+.shelf-items.collapsed{grid-template-rows:0fr;opacity:0;pointer-events:none}
+.duty-badge{font-size:9px;font-weight:500;letter-spacing:0.5px;display:inline-block;padding:1px 6px;border-radius:4px}
+.project-row{touch-action:pan-y;position:relative}
+.project-delete-x{display:none;position:absolute;top:50%;right:14px;transform:translateY(-50%) scale(0.3);width:20px;height:20px;border:1.5px solid rgba(255,255,255,0.9);border-radius:50%;background:rgba(100,90,130,0.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);color:#fff;font-size:10px;line-height:17px;text-align:center;z-index:6;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,0.08);font-family:inherit;opacity:0;transition:opacity 0.2s,transform 0.2s cubic-bezier(0.34,1.3,0.64,1)}
+#viewHome.project-arrange-mode .project-delete-x{display:block;opacity:1;transform:translateY(-50%) scale(1)}
+#viewHome.project-arrange-mode .project-row{cursor:grab;touch-action:none;-webkit-touch-callout:none;user-select:none}
+#viewHome.project-arrange-mode .project-row-add{pointer-events:none;opacity:0.35}
+.dragging{opacity:0.45;transform:scale(0.97);background:#F2FAF9;transition:opacity 0.2s,transform 0.2s}
+.drag-over{box-shadow:0 -2px 0 0 #4ECDC4}
+
+/* ── Detail header ── */
+.detail-header{padding:12px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #eee;background:#fff;position:sticky;top:0;z-index:50}
+.detail-header h2{font-size:15px;font-weight:600;color:#333;letter-spacing:0.5px}
+.detail-overall{padding:10px 20px;display:flex;align-items:center;gap:8px;font-size:11px;color:#bbb;background:#fff;border-bottom:1px solid #f5f5f5}
+.detail-overall-bar{flex:1;height:3px;background:#f0f0f0;border-radius:2px;overflow:hidden}
+.detail-overall-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,#4ECDC4,#3BADA6);transition:width 0.3s}
+
+/* ── Item list (horizontal rows with poster) ── */
+.item-list{padding:8px 0}
+.item-row{display:flex;align-items:center;gap:12px;padding:12px 20px;background:#fff;border-bottom:1px solid #f5f5f5;cursor:pointer;transition:background 0.15s;position:relative}
+.item-row:active{background:#F2FAF9}
+.item-poster-wrap{width:42px;height:60px;border-radius:6px;overflow:hidden;background:#e4f0ee;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.item-poster-wrap img{width:100%;height:100%;object-fit:cover}
+.item-poster-wrap .poster-placeholder{font-size:20px;color:#ccc}
+.item-row-body{flex:1;min-width:0}
+.item-row-name{font-size:14px;font-weight:500;color:#333;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item-row-sub{font-size:11px;color:#bbb;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item-row-check{width:22px;height:22px;border-radius:50%;border:1.5px solid #ddd;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;transition:all 0.2s}
+.item-row-check.done{background:#4ECDC4;border-color:#4ECDC4}
+.item-delete-x{display:none;position:absolute;top:50%;right:14px;transform:translateY(-50%) scale(0.3);width:20px;height:20px;border:1.5px solid rgba(255,255,255,0.9);border-radius:50%;background:rgba(100,90,130,0.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);color:#fff;font-size:10px;line-height:17px;text-align:center;z-index:6;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,0.08);font-family:inherit;opacity:0;transition:opacity 0.2s,transform 0.2s cubic-bezier(0.34,1.3,0.64,1)}
+#viewDetail.arrange-mode .item-delete-x{display:block;opacity:1;transform:translateY(-50%) scale(1)}
+#viewDetail.arrange-mode .item-row{cursor:grab;touch-action:none;-webkit-touch-callout:none;user-select:none}
+#viewDetail.arrange-mode .item-row-check{display:none}
+#viewDetail.arrange-mode .add-item-btn{pointer-events:none;opacity:0.35}
+.item-row.drag-source{opacity:0.2}
+.item-row.drag-over{box-shadow:0 -2px 0 0 #4ECDC4}
+.add-item-btn{margin:0 20px 16px;padding:10px;border:1.5px dashed #ddd;border-radius:10px;background:#fff;font-size:12px;color:#aaa;cursor:pointer;text-align:center;font-family:inherit;width:calc(100% - 40px)}
+
+/* ── Section dividers ── */
+.section-divider{display:flex;align-items:center;gap:10px;padding:10px 20px;background:#fafafa;border-bottom:1px solid #f0f0f0}
+.section-divider-line{flex:1;height:1px;background:#e0e0e0}
+.section-divider-label{font-size:11px;color:#999;font-weight:500;letter-spacing:0.3px;cursor:text;border-bottom:1px dashed transparent;transition:color 0.15s,border-color 0.15s}
+.section-divider-label:hover{color:#3BADA6;border-bottom-color:#4ECDC4}
+
+/* ── Item detail card ── */
+.card-detail{width:calc(100% - 40px);max-width:520px;margin:20px auto;background:#fff;border:1px solid #eee;border-radius:12px;overflow:hidden}
+.card-detail-media{min-height:180px;max-height:420px;padding:16px;background:#f7f7f7;display:flex;align-items:center;justify-content:center}
+.card-detail-img{display:block;width:auto;max-width:100%;height:auto;max-height:388px;object-fit:contain;border-radius:4px}
+.card-detail-body{padding:14px 16px}
+.card-detail-name{font-size:16px;font-weight:600;color:#333;margin-bottom:4px;cursor:default;border-bottom:1px dashed transparent;transition:border-color 0.15s}
+.card-detail-name:hover{border-bottom-color:#4ECDC4}
+.card-detail-name[contenteditable]{outline:none;border-bottom:1px solid #4ECDC4;cursor:text}
+.card-detail-date{font-size:11px;color:#bbb;margin-bottom:8px}
+.rating-row{display:flex;gap:6px;margin-top:8px;margin-bottom:4px}
+.rating-btn{padding:3px 10px;border-radius:12px;font-size:10px;font-weight:500;cursor:pointer;border:1.5px solid #e8e8e8;background:#fff;font-family:inherit;color:#bbb;transition:all 0.15s;letter-spacing:0.3px}
+.rating-btn.active{color:#fff;border-color:transparent}
+.rating-btn.r-love.active{background:#E85A6E}
+.rating-btn.r-like.active{background:#E8A04A}
+.rating-btn.r-fine.active{background:#B0B0B0}
+.rating-btn.r-dull.active{background:#8AAAC4}
+.rating-btn.r-hate.active{background:#6B6B8A}
+.rating-badge{font-size:8px;font-weight:600;letter-spacing:0.5px;padding:1px 5px;border-radius:3px;color:#fff;display:inline-block;margin-left:4px;vertical-align:1px}
+.rating-badge.r-love{background:#E85A6E}
+.rating-badge.r-like{background:#E8A04A}
+.rating-badge.r-fine{background:#B0B0B0}
+.rating-badge.r-dull{background:#8AAAC4}
+.rating-badge.r-hate{background:#6B6B8A}
+.card-detail-info{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.info-tag{font-size:11px;color:#3BADA6;background:#E8F8F6;padding:2px 8px;border-radius:4px}
+.card-detail-note{font-size:13px;color:#666;line-height:1.6;white-space:pre-wrap}
+.card-detail-note[contenteditable]{outline:none;border-bottom:1px solid #4ECDC4;cursor:text}
+.card-detail-item-note{margin-top:8px;padding:8px 10px;border-radius:8px;background:#f7faf9;font-size:12px;color:#777;line-height:1.6;white-space:pre-wrap}
+.card-detail-item-note-label{display:block;margin-bottom:2px;font-size:9px;color:#bbb;letter-spacing:0.8px}
+.card-actions{width:calc(100% - 40px);max-width:520px;display:flex;gap:8px;padding:0;margin:8px auto 0}
+.card-actions .btn{flex:1;padding:10px;border:none;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit}
+
+/* ── Modals ── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.modal-bg.show{display:flex}
+.modal{background:#fff;border-radius:16px 16px 0 0;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;padding:20px;animation:slideUp 0.25s ease-out}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal h2{font-size:15px;font-weight:600;margin-bottom:16px;color:#333}
+.modal label{display:block;font-size:12px;color:#999;margin-bottom:4px;margin-top:12px}
+.modal input,.modal textarea,.modal select{width:100%;font-size:14px;padding:10px 12px;border:1px solid #e0e0e0;border-radius:8px;font-family:inherit;background:#fff;color:#1a1a1a}
+.modal textarea{resize:vertical;min-height:50px}
+.btn-row{display:flex;gap:8px;margin-top:20px}
+.btn{flex:1;padding:12px;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit}
 .btn-primary{background:#1a1a1a;color:#fff}
-.btn-primary:active{opacity:.7}
-.del-link{font-size:10px;color:#e57373;cursor:pointer;text-align:center;margin-top:8px;background:none;border:none;font-family:inherit}
-.del-link.confirming{width:100%;padding:8px;border:1px solid #f1caca;border-radius:8px;background:#fff4f4;color:#c95656}
+.btn-cancel{background:#f0f0f0;color:#666}
+.btn-del{background:#fff;color:#D85A30;border:1px solid #f0d0c0}
+.file-label{display:block;padding:10px 12px;border:1px dashed #ddd;border-radius:8px;text-align:center;color:#aaa;font-size:12px;cursor:pointer;margin-top:4px}
+.img-preview{width:100%;border-radius:8px;margin-top:8px;max-height:240px;object-fit:contain;background:#f7f7f7}
+.duty-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.duty-opt{padding:4px 10px;border-radius:6px;border:1.5px solid #e0e0e0;font-size:12px;cursor:pointer;font-family:inherit;background:#fff;transition:all 0.15s}
+.duty-opt.active{border-width:2px}
+.duty-custom-row{display:flex;gap:12px;align-items:center;margin-top:8px}
+.duty-custom-row input{flex:0 0 100px;min-width:0}
+.color-picker-row{display:grid;grid-template-columns:repeat(8,28px);gap:5px;flex:1}
+.color-swatch{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:border 0.15s}
+.color-swatch.active{border-color:#333}
+.section-list{margin-top:8px}
+.section-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f5f5f5;flex-wrap:wrap}
+.section-row input{font-size:13px;padding:6px 8px;border:1px solid #e0e0e0;border-radius:6px;font-family:inherit}
+.section-row input[type="text"]{flex:1 1 90px;min-width:70px}
+.section-row input[type="number"]{flex:0 0 50px;min-width:0}
+.section-row .del-sec{font-size:12px;color:#ccc;background:none;border:none;cursor:pointer;padding:4px}
+.section-row.sec-dragging{opacity:0.4;background:#f8f8f8}
+.section-row.sec-drag-over{box-shadow:0 -2px 0 0 #4ECDC4}
+.add-section-btn{font-size:12px;color:#aaa;background:none;border:1px dashed #ddd;border-radius:6px;padding:6px 12px;cursor:pointer;margin-top:6px;font-family:inherit;width:100%}
+
+/* ── Checkin celebration ── */
+.checkin-popup{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center}
+.checkin-popup.show{display:flex}
+.checkin-box{background:#fff;border-radius:16px;padding:24px 20px;width:85%;max-width:300px;text-align:center;animation:revealPop 0.4s cubic-bezier(0.34,1.56,0.64,1)}
+@keyframes revealPop{from{transform:scale(0.6);opacity:0}to{transform:scale(1);opacity:1}}
+.checkin-char-placeholder{width:80px;height:80px;border-radius:50%;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:600;color:#fff}
+.checkin-char-name{font-size:12px;font-weight:600;letter-spacing:0.5px;margin-bottom:4px}
+.checkin-char-line{font-size:13px;color:#555;line-height:1.5;margin-bottom:16px;font-style:italic}
+.checkin-ok{padding:10px 32px;border:1px solid #e0e0e0;border-radius:10px;background:#fff;font-size:13px;cursor:pointer;font-family:inherit}
+
+/* ── Action sheet ── */
+.action-sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:250;display:none;align-items:flex-end;justify-content:center}
+.action-sheet-bg.show{display:flex}
+.action-sheet{background:#fff;border-radius:16px 16px 0 0;width:100%;max-width:400px;padding:8px 0 env(safe-area-inset-bottom,8px)}
+.action-sheet button{display:block;width:100%;padding:14px;background:none;border:none;border-bottom:1px solid #f5f5f5;font-size:14px;cursor:pointer;font-family:inherit;color:#333}
+.action-sheet button:active{background:#f8f8f8}
+.action-sheet button.cancel-as{color:#999;border-bottom:none}
+.action-sheet button.del-as{color:#D85A30}
+
+/* ── Confirm / Toast ── */
+.confirm-bg{position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:300;display:none;align-items:center;justify-content:center}
+.confirm-bg.show{display:flex}
+.confirm-box{background:#fff;border-radius:16px;width:85%;max-width:320px;padding:24px 20px;text-align:center}
+.confirm-box p{font-size:14px;color:#333;margin-bottom:16px;line-height:1.5}
+.confirm-box .btn-row{display:flex;gap:8px;justify-content:center}
+.confirm-box .btn{min-width:80px;flex:none;padding:10px 16px;font-size:13px}
+.toast{position:fixed;top:env(safe-area-inset-top,20px);left:50%;transform:translateX(-50%) translateY(-120%);background:rgba(30,30,30,0.88);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:#fff;font-size:13px;padding:10px 20px;border-radius:10px;z-index:400;pointer-events:none;transition:transform 0.3s cubic-bezier(0.34,1.3,0.64,1),opacity 0.3s;opacity:0}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+@media(min-width:700px){
+  .item-list{max-width:640px;margin:0 auto}
+  .add-item-btn{max-width:600px;margin-left:auto;margin-right:auto;display:block}
+}
 </style>
 </head>
 <body>
-<div class="top-bar">
-<button class="back-btn" onclick="location.href='index.html'">← 返回</button>
-<h1>音乐</h1>
-<div style="width:40px"></div>
-</div>
-<div class="content">
-<div class="song-list" id="songList"></div>
-<button class="add-btn" type="button" onclick="openAdd()">＋ 收录曲目</button>
+
+<!-- HOME VIEW -->
+<div id="viewHome" class="view active">
+  <div class="top-bar">
+    <a class="back-btn" href="index.html">← Home</a>
+    <h1>MUSIC</h1>
+    <button class="btn-s" onclick="openModal('backupModal')">Backup</button>
+  </div>
+  <div class="project-list" id="projectList"></div>
 </div>
 
-<div class="modal-overlay" id="modal" onclick="closeModal(event)">
-<div class="modal" onclick="event.stopPropagation()">
-<h2 id="modalTitle">收录曲目</h2>
-<div class="field"><label>曲名</label><input id="fTitle" type="text" maxlength="100"></div>
-<div class="field"><label>艺人 / CV</label><input id="fArtist" type="text" maxlength="60"></div>
-<div class="field"><label>专辑 / 来源</label><input id="fAlbum" type="text" maxlength="100" placeholder="可选"></div>
-<div class="field"><label>标签</label><input id="fTag" type="text" maxlength="30" placeholder="J-POP / OST / 同人 …"></div>
-<div class="modal-actions">
-<button class="btn-cancel" type="button" onclick="closeModal()">取消</button>
-<button class="btn-primary" type="button" onclick="saveSong()">保存</button>
-</div>
-<button class="del-link" id="delBtn" type="button" style="display:none" onclick="delSong()">删除</button>
-</div>
+<!-- DETAIL VIEW -->
+<div id="viewDetail" class="view">
+  <div class="detail-header">
+    <button class="back-btn" onclick="goHome()">← Back</button>
+    <h2 id="detailTitle"></h2>
+    <button class="btn-s" id="projectHeaderBtn" onclick="handleProjectHeaderButton()">⋯</button>
+  </div>
+  <div class="detail-overall" id="detailOverall"></div>
+  <div class="item-list" id="itemList"></div>
+  <button class="add-item-btn" style="border-color:#E8B96A;color:#E8B96A" onclick="openAddItem()">New Title</button>
+  <button class="add-item-btn" style="border-color:#4ECDC4;color:#4ECDC4" onclick="openAddSection()">New Section</button>
 </div>
 
-<script src="cloud-sync.js?v=20260804-layout2"></script>
+<!-- ITEM VIEW -->
+<div id="viewItem" class="view">
+  <div class="detail-header">
+    <button class="back-btn" id="itemBackBtn">← Back</button>
+    <h2 id="itemTitle"></h2>
+    <button class="btn-s" onclick="openItemMenu()">⋯</button>
+  </div>
+  <div id="itemContent"></div>
+</div>
+
+<!-- Add/Edit project -->
+<div class="modal-bg" id="projectModal">
+  <div class="modal">
+    <h2 id="projectModalTitle">New List</h2>
+    <label>Cover</label>
+    <label class="file-label" id="projectIconLabel">Select</label>
+    <input type="file" accept="image/*" id="projectIconInput" onchange="previewProjectIcon(this)" style="display:none">
+    <img id="projectIconPreview" class="img-preview" style="display:none">
+    <label>Name</label>
+    <input type="text" id="inputProjectName">
+    <label>Shelf</label>
+    <input type="text" id="inputProjectShelf">
+    <label>Sections</label>
+    <div class="section-list" id="sectionList"></div>
+    <button class="add-section-btn" onclick="addSectionRow()">+ Section</button>
+    <label>Notes</label>
+    <textarea id="inputProjectNote"></textarea>
+    <label>Label</label>
+    <div class="duty-custom-row" id="dutyCustomRow" style="display:flex">
+      <input type="text" id="dutyCustomName">
+      <div class="color-picker-row" id="colorPicker"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-cancel" onclick="closeModal('projectModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveProject()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit item -->
+<div class="modal-bg" id="itemModal">
+  <div class="modal">
+    <h2 id="itemModalTitle">New Title</h2>
+    <div id="itemSectionField" style="display:none">
+      <label>Section</label>
+      <select id="inputItemSection"></select>
+    </div>
+    <label>Title</label>
+    <input type="text" id="inputItemName">
+    <label>Cover</label>
+    <label class="file-label" id="itemFileLabel">Select</label>
+    <input type="file" accept="image/*" id="itemImgInput" onchange="previewItemImg(this)" style="display:none">
+    <img id="itemImgPreview" class="img-preview" style="display:none">
+    <label>Artist</label>
+    <input type="text" id="inputItemRelease">
+    <label>Label</label>
+    <input type="text" id="inputItemStudio">
+    <label>Tracks</label>
+    <input type="text" id="inputItemDuration">
+    <label>Notes</label>
+    <textarea id="inputItemNote"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-cancel" onclick="closeModal('itemModal')">Cancel</button>
+      <button class="btn btn-del" id="itemDeleteBtn" style="display:none" onclick="deleteEditingItem()">Delete</button>
+      <button class="btn btn-primary" onclick="saveItem()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Check-in modal -->
+<div class="modal-bg" id="checkinModal">
+  <div class="modal">
+    <h2 id="checkinModalTitle">Check In</h2>
+    <label>Title</label>
+    <input type="text" id="checkinItemName">
+    <label>Date</label>
+    <div style="display:flex;gap:6px;align-items:center">
+      <input type="date" id="checkinDate" style="flex:1">
+      <button class="btn-s" type="button" id="monthOnlyBtn" onclick="toggleMonthOnly()" title="Month only" style="white-space:nowrap;font-size:10px">≈ Month</button>
+    </div>
+    <input type="hidden" id="monthOnlyFlag" value="0">
+    <label>Rating</label>
+    <div class="rating-row" id="ratingRow">
+      <button type="button" class="rating-btn r-love" onclick="pickRating('love')">Love</button>
+      <button type="button" class="rating-btn r-like" onclick="pickRating('like')">Like</button>
+      <button type="button" class="rating-btn r-fine" onclick="pickRating('fine')">Fine</button>
+      <button type="button" class="rating-btn r-dull" onclick="pickRating('dull')">Dull</button>
+      <button type="button" class="rating-btn r-hate" onclick="pickRating('hate')">Hate</button>
+    </div>
+    <input type="hidden" id="ratingValue" value="">
+    <label>Notes</label>
+    <textarea id="checkinNote" maxlength="500" style="min-height:60px"></textarea>
+    <label>Image</label>
+    <label class="file-label" id="checkinImgLabel">Select</label>
+    <input type="file" accept="image/*" id="checkinImgInput" onchange="previewCheckinImg(this)" style="display:none">
+    <img id="checkinImgPreview" class="img-preview" style="display:none">
+    <div class="btn-row">
+      <button class="btn btn-cancel" onclick="closeModal('checkinModal')">Cancel</button>
+      <button class="btn btn-primary" id="checkinSubmitBtn" onclick="saveCheckin()">Check In</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Section modal -->
+<div class="modal-bg" id="addSectionModal">
+  <div class="modal">
+    <h2>New Section</h2>
+    <label>Name</label>
+    <input type="text" id="inputSectionName" maxlength="40">
+    <label>Title count</label>
+    <input type="number" id="inputSectionCount" min="1" max="99" value="">
+    <div class="btn-row">
+      <button class="btn btn-cancel" onclick="closeModal('addSectionModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveAddSection()">Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- Quick section edit -->
+<div class="modal-bg" id="sectionQuickModal">
+  <div class="modal">
+    <h2>Edit Section</h2>
+    <label>Name</label>
+    <input type="text" id="quickSectionName" maxlength="40" onkeydown="if(event.key==='Enter')saveSectionQuickEdit()">
+    <div class="btn-row">
+      <button class="btn btn-del" onclick="deleteSectionQuickEdit()">Delete</button>
+      <button class="btn btn-cancel" onclick="closeModal('sectionQuickModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSectionQuickEdit()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="checkin-popup" id="checkinPopup" onclick="closeCheckinPopup()">
+  <div class="checkin-box" onclick="event.stopPropagation()">
+    <div id="checkinCharVisual"></div>
+    <div class="checkin-char-name" id="checkinCharName"></div>
+    <div class="checkin-char-line" id="checkinCharLine"></div>
+    <button class="checkin-ok" onclick="closeCheckinPopup()">OK</button>
+  </div>
+</div>
+<div class="modal-bg" id="backupModal">
+  <div class="modal">
+    <h2>Music Backup</h2>
+    <div style="padding:8px 0">
+      <button class="btn btn-cancel" style="margin-bottom:8px;width:100%" onclick="exportData()">Export</button>
+      <button class="btn btn-cancel" style="width:100%;margin-bottom:8px" onclick="document.getElementById('importFile').click()">导入数据</button>
+      <input type="file" id="importFile" accept=".json" onchange="importData(this)" style="display:none">
+      <button class="btn btn-cancel" style="width:100%" onclick="checkOrphanedMusicAssets()">Check unused images</button>
+    </div>
+    <div class="btn-row"><button class="btn btn-cancel" onclick="closeModal('backupModal')">Close</button></div>
+  </div>
+</div>
+<div class="confirm-bg" id="confirmBg"><div class="confirm-box"></div></div>
+<div class="action-sheet-bg" id="projectMenuSheet">
+  <div class="action-sheet">
+    <button onclick="closeSheet('projectMenuSheet');openEditProject()">Edit List</button>
+    <button class="del-as" onclick="closeSheet('projectMenuSheet');deleteProject()">Delete List</button>
+    <button class="cancel-as" onclick="closeSheet('projectMenuSheet')">Cancel</button>
+  </div>
+</div>
+<div class="action-sheet-bg" id="itemMenuSheet">
+  <div class="action-sheet">
+    <button onclick="closeSheet('itemMenuSheet');openEditItem()">Edit Title</button>
+    <button onclick="closeSheet('itemMenuSheet');if(getProject(curProjectId).items[curItemIdx].collected){uncollect();}else{openCheckin();}">Check In / Undo</button>
+    <button class="del-as" onclick="closeSheet('itemMenuSheet');deleteItem()">Delete Title</button>
+    <button class="cancel-as" onclick="closeSheet('itemMenuSheet')">Cancel</button>
+  </div>
+</div>
+
+<script src="cloud-sync.js?v=20260802-outing1"></script>
 <script>
-if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting');
-var DB_KEY='music_db';
-var editIdx=-1;
-var deleteArmed=false;
-function load(){try{return JSON.parse(localStorage.getItem(DB_KEY))||[];}catch(e){return[];}}
-function save(d){localStorage.setItem(DB_KEY,JSON.stringify(d));}
-function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
-function resetDeleteConfirm(){
-  deleteArmed=false;
-  var btn=document.getElementById('delBtn');
-  if(btn){btn.textContent='删除';btn.classList.remove('confirming');}
+if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
+
+/* ═══ DATA ═══ */
+const SK='music_db';
+let projects=[];
+try{projects=JSON.parse(localStorage.getItem(SK))||[];}catch(e){projects=[];}
+
+let curProjectId=null,curItemIdx=null,editProjectId=null,editItemIdx=null,editSectionIdx=null;
+let projectTempIcon='',itemArrangeMode=false,itemPressState=null,itemClickSuppressedUntil=0;
+const detailScrollByProject={};
+
+function save(){localStorage.setItem(SK,JSON.stringify(projects));}
+function gid(){return 'p_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+/* ═══ DIALOGS ═══ */
+function customConfirm(msg,onYes,opts){
+  const bg=document.getElementById('confirmBg'),box=bg.querySelector('.confirm-box');
+  const yesLabel=(opts&&opts.yes)||'OK',noLabel=(opts&&opts.no)||'Cancel',isDanger=opts&&opts.danger;
+  box.innerHTML=`<p>${msg}</p><div class="btn-row"><button class="btn btn-cancel" id="confirmNo">${esc(noLabel)}</button><button class="btn ${isDanger?'btn-del':'btn-primary'}" id="confirmYes">${esc(yesLabel)}</button></div>`;
+  bg.classList.add('show');
+  box.querySelector('#confirmYes').onclick=()=>{bg.classList.remove('show');onYes();};
+  box.querySelector('#confirmNo').onclick=()=>{bg.classList.remove('show');};
+  bg.onclick=e=>{if(e.target===bg)bg.classList.remove('show');};
 }
-function requireDeleteConfirm(){
-  if(deleteArmed)return true;
-  deleteArmed=true;
-  var btn=document.getElementById('delBtn');
-  if(btn){btn.textContent='再次点击确认删除';btn.classList.add('confirming');}
-  return false;
+let _toastTimer=null;
+function showToast(msg,ms){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(_toastTimer);_toastTimer=setTimeout(()=>el.classList.remove('show'),ms||2200);}
+function getProject(id){return projects.find(p=>p.id===id);}
+function projectStats(p){let t=0,c=0;(p.items||[]).forEach(item=>{t++;if(item.collected)c++;});return{total:t,collected:c};}
+function isGenericItemName(name){return !String(name||'').trim()||/^Title \d+$/.test(String(name).trim());}
+function getItemDisplayName(p,item,idx){
+  const name=String(item&&item.name||'').trim();
+  if(!isGenericItemName(name))return name;
+  const si=getItemSectionIndex(p,idx);
+  const sec=si>=0&&p&&Array.isArray(p.sections)?p.sections[si]:null;
+  return sec?String(sec.name||'').trim():'';
 }
-function render(){
-  var list=document.getElementById('songList');
-  var data=load();
-  if(!data.length){list.innerHTML='<div class="empty">还没有收录曲目</div>';return;}
-  var h='';
-  data.forEach(function(s,i){
-    h+='<div class="song" onclick="openEdit('+i+')">'
-      +'<div class="song-num">'+(i+1)+'</div>'
-      +'<div class="song-info"><div class="song-title">'+escH(s.title)+'</div>'
-      +'<div class="song-artist">'+escH(s.artist||'Unknown')+(s.album?' · '+escH(s.album):'')+'</div></div>'
-      +(s.tag?'<div class="song-tag">'+escH(s.tag)+'</div>':'')
-      +'</div>';
+
+/* ═══ VIEWS ═══ */
+function switchView(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function goHome(){setItemArrangeMode(false);switchView('viewHome');renderProjects();}
+function currentScrollY(){return window.scrollY||document.documentElement.scrollTop||0;}
+function rememberDetailScroll(){if(curProjectId)detailScrollByProject[curProjectId]=currentScrollY();}
+function restoreDetailScroll(y){const t=Math.max(0,Number(y)||0);requestAnimationFrame(()=>requestAnimationFrame(()=>window.scrollTo(0,t)));}
+function returnToDetail(){
+  const p=getProject(curProjectId);if(!p)return;
+  const active=document.getElementById('viewDetail').classList.contains('active');
+  const target=active?currentScrollY():(detailScrollByProject[curProjectId]||0);
+  detailScrollByProject[curProjectId]=target;
+  renderDetail(p);switchView('viewDetail');restoreDetailScroll(target);
+}
+
+/* ═══ DUTY ═══ */
+const DUTY_PRESETS=[];
+const CUSTOM_COLORS=['#4ECDC4','#3BADA6','#D85A30','#E84A7A','#E8B96A','#C7A24C','#9B6BCC','#4AADE8','#3A8DD4','#5BA66B','#3D8B50','#6B8AFF','#4A6AE0','#888','#B0805A','#4ECDC4'];
+let _dutyState={type:'',color:'#4ECDC4',name:''};
+
+const CHECKIN_LINES={
+  neal:[{line:'镜头语言不错，值得二刷。'},{line:'这个我可以给 7 分。嗯……7.5。'},{line:'配乐是亮点，你注意到了吗？'},{line:'是我推荐的吧？品味从不出错。'},{line:'一起看的时候更有意思。'}],
+  jane:[{line:'嗯……还行。仅此而已。'},{line:'看完了？评价一下。'},{line:'你刚才那个表情……很入戏。'},{line:'偶尔看点好片也不坏。'},{line:'已记录。继续看下一部。'}],
+  will:[{line:'好看吗好看吗！！我也要看！'},{line:'看完了就是满足～你说对不对！'},{line:'下次一起看嘛～'},{line:'还有几部没看？我帮你排计划！'},{line:'看着你打卡我又想看了……'}],
+  other:[{line:'又看完一部，继续加油。'},{line:'观影进度 +1！'},{line:'不错不错，记录下来了。'}]
+};
+function showCheckinCelebration(duty){
+  const d=duty||{};const charType=d.type||'';
+  const lines=CHECKIN_LINES[charType]||CHECKIN_LINES.other;
+  const pick=lines[Math.floor(Math.random()*lines.length)];
+  const color=d.color||'#4ECDC4';
+  const name=charType?DUTY_PRESETS.find(p=>p.type===charType)?.name||d.name||'':'';
+  let visual='';
+  if(name)visual=`<div class="checkin-char-placeholder" style="background:${color}">${name[0]}</div>`;
+  else if(d.name)visual=`<div class="checkin-char-placeholder" style="background:${color}">${d.name[0]||'★'}</div>`;
+  else visual=`<div class="checkin-char-placeholder" style="background:#4ECDC4">🎵</div>`;
+  document.getElementById('checkinCharVisual').innerHTML=visual;
+  document.getElementById('checkinCharName').textContent=name||d.name||'';
+  document.getElementById('checkinCharName').style.color=color;
+  document.getElementById('checkinCharLine').textContent='「'+pick.line+'」';
+  document.getElementById('checkinPopup').classList.add('show');
+}
+function closeCheckinPopup(){document.getElementById('checkinPopup').classList.remove('show');}
+
+function renderDutyRow(sel){
+  document.getElementById('dutyCustomRow').style.display='flex';
+  document.getElementById('dutyCustomName').value=(sel&&sel.name)||'';
+  renderColorPicker((sel&&sel.color)||'#4ECDC4');
+}
+function renderColorPicker(ac){document.getElementById('colorPicker').innerHTML=CUSTOM_COLORS.map(c=>`<div class="color-swatch ${c===ac?'active':''}" style="background:${c}" onclick="pickColor('${c}')"></div>`).join('');}
+function selectDuty(type){}
+function pickColor(c){_dutyState.color=c;renderColorPicker(c);}
+
+/* ═══ PROJECT LIST ═══ */
+function renderProjects(){
+  const list=document.getElementById('projectList');
+  const sorted=projects.sort((a,b)=>(a.order||0)-(b.order||0));
+  const ungrouped=sorted.filter(p=>!p.shelf);
+  const shelves={};const shelfOrder=[];
+  sorted.forEach(p=>{
+    if(!p.shelf)return;
+    if(!shelves[p.shelf]){shelves[p.shelf]=[];shelfOrder.push(p.shelf);}
+    shelves[p.shelf].push(p);
   });
-  list.innerHTML=h;
+  const collapsed=readJson('music_shelf_collapsed',{});
+  let html='';
+  ungrouped.forEach(p=>{html+=renderProjectRow(p);});
+  shelfOrder.forEach(shelf=>{
+    const isColl=!!collapsed[shelf];
+    html+=`<div class="shelf-header${isColl?' collapsed':''}" onclick="toggleShelf('${esc(shelf)}')">
+      <div class="shelf-line"></div>
+      <span class="shelf-label">${esc(shelf)}</span>
+      <span class="shelf-arrow">▼</span>
+      <div class="shelf-line"></div>
+    </div>`;
+    html+=`<div class="shelf-items${isColl?' collapsed':''}"><div>`;
+    shelves[shelf].forEach(p=>{html+=renderProjectRow(p);});
+    html+=`</div></div>`;
+  });
+  html+=`<div class="project-row-add" onclick="openAddProject()">New List</div>`;
+  list.innerHTML=html;initProjectDrag();
 }
-function openAdd(){
-  editIdx=-1;
-  resetDeleteConfirm();
-  document.getElementById('modalTitle').textContent='收录曲目';
-  document.getElementById('fTitle').value='';
-  document.getElementById('fArtist').value='';
-  document.getElementById('fAlbum').value='';
-  document.getElementById('fTag').value='';
-  document.getElementById('delBtn').style.display='none';
-  document.getElementById('modal').classList.add('show');
+function renderProjectRow(p){
+  const st=projectStats(p);const pct=st.total>0?Math.round(st.collected/st.total*100):0;
+  const done=st.collected>=st.total&&st.total>0;
+  const iconHtml=p.icon?`<img src="${p.icon}" alt="">`:`<div class="emoji-fb">🎵</div>`;
+  const duty=p.duty||{};const dc=duty.color||'#4ECDC4';
+  const dn=duty.name||'';
+  const db=dn?`<span class="duty-badge" style="background:${dc}15;color:${dc}">${esc(dn)}</span>`:'';
+  const bs=dn?`border-left:3px solid ${dc}`:'';
+  const fs=dn?`background:linear-gradient(90deg,${dc},${dc}cc)`:'';
+  return`<div class="project-row" style="${bs}" data-id="${p.id}" onclick="handleProjectRowClick('${p.id}')">
+    <div class="project-icon-wrap">${iconHtml}</div>
+    <div class="project-row-body">
+      <div class="project-row-top"><span class="project-row-name">${esc(p.name)}</span>${db}${done?'<span class="project-complete-star">★</span>':''}</div>
+      <div class="project-row-meta"><span>${st.collected} / ${st.total}</span><div class="project-row-progress"><div class="project-row-fill" style="width:${pct}%;${fs}"></div></div><span class="project-row-pct">${pct}%</span></div>
+    </div>
+    <button class="project-delete-x" aria-label="Delete" onclick="handleProjectDeleteClick(event,'${p.id}')">×</button>
+  </div>`;
 }
-function openEdit(i){
-  var data=load();if(!data[i])return;editIdx=i;
-  resetDeleteConfirm();
-  document.getElementById('modalTitle').textContent='编辑';
-  document.getElementById('fTitle').value=data[i].title||'';
-  document.getElementById('fArtist').value=data[i].artist||'';
-  document.getElementById('fAlbum').value=data[i].album||'';
-  document.getElementById('fTag').value=data[i].tag||'';
-  document.getElementById('delBtn').style.display='';
-  document.getElementById('modal').classList.add('show');
+function toggleShelf(name){
+  const collapsed=readJson('music_shelf_collapsed',{});
+  collapsed[name]=!collapsed[name];
+  writeJson('music_shelf_collapsed',collapsed);
+  renderProjects();
 }
-function closeModal(e){if(e&&e.target!==e.currentTarget)return;document.getElementById('modal').classList.remove('show');resetDeleteConfirm();}
-function saveSong(){
-  var title=document.getElementById('fTitle').value.trim();
-  if(!title){alert('请输入曲名');return;}
-  var data=load();
-  var entry={title:title,artist:document.getElementById('fArtist').value.trim(),album:document.getElementById('fAlbum').value.trim(),tag:document.getElementById('fTag').value.trim()};
-  if(editIdx>=0&&data[editIdx]){Object.assign(data[editIdx],entry);}
-  else{entry.id='m_'+Date.now();data.push(entry);}
-  save(data);closeModal();render();
+function readJson(k,d){try{return JSON.parse(localStorage.getItem(k))||d;}catch(e){return d;}}
+function writeJson(k,v){localStorage.setItem(k,JSON.stringify(v));}
+
+/* ── Project drag/arrange ── */
+let projectArrangeMode=false,projectClickSuppressed=0,projectDeleteArmedAt=0,projectGestureBound=false,projectPressState=null;
+function setProjectArrangeMode(a){projectArrangeMode=!!a;document.getElementById('viewHome').classList.toggle('project-arrange-mode',projectArrangeMode);if(a){projectDeleteArmedAt=Date.now()+500;projectClickSuppressed=Date.now()+700;}else{projectDeleteArmedAt=0;projectClickSuppressed=Date.now()+400;clearProjectPress(false);}}
+function handleProjectRowClick(id){if(projectArrangeMode||Date.now()<projectClickSuppressed)return;openProject(id);}
+function handleProjectDeleteClick(e,id){e.preventDefault();e.stopPropagation();if(!projectArrangeMode||Date.now()<projectDeleteArmedAt)return;deleteProjectById(id);}
+function deleteProjectById(id){const p=projects.find(pr=>pr.id===id);customConfirm(`Delete "${esc(p?p.name:'list')}"? All titles and check-in data will be lost.`,()=>{if(curProjectId===id){curProjectId=null;curItemIdx=null;setItemArrangeMode(false);switchView('viewHome');}projects=projects.filter(pr=>pr.id!==id);save();renderProjects();if(!projects.length)setProjectArrangeMode(false);},{yes:'Delete',danger:true});}
+function initProjectDrag(){
+  if(projectGestureBound)return;projectGestureBound=true;
+  const list=document.getElementById('projectList');
+  list.addEventListener('pointerdown',e=>{if(e.target.closest('.project-delete-x'))return;const row=e.target.closest('.project-row');if(!row||e.button)return;clearProjectPress(false);const state={row,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,lastY:e.clientY,activated:false,moved:false,timer:null};projectPressState=state;if(row.setPointerCapture)try{row.setPointerCapture(e.pointerId);}catch(err){}state.timer=setTimeout(()=>{if(projectPressState!==state)return;state.timer=null;state.activated=true;if(!projectArrangeMode)setProjectArrangeMode(true);projectClickSuppressed=Date.now()+700;if(navigator.vibrate)navigator.vibrate(12);},projectArrangeMode?170:450);});
+  list.addEventListener('pointermove',e=>{const s=projectPressState;if(!s||s.pointerId!==e.pointerId)return;s.lastY=e.clientY;const d=Math.hypot(e.clientX-s.startX,e.clientY-s.startY);if(!s.activated){if(d>10)clearProjectPress(false);return;}if(d<=6)return;s.moved=true;s.row.classList.add('dragging');e.preventDefault();list.querySelectorAll('.project-row').forEach(c=>c.classList.remove('drag-over'));for(const card of list.querySelectorAll('.project-row')){if(card===s.row)continue;const r=card.getBoundingClientRect();if(e.clientY<r.top+r.height/2){card.classList.add('drag-over');break;}}},{passive:false});
+  list.addEventListener('pointerup',e=>{const s=projectPressState;if(!s||s.pointerId!==e.pointerId)return;if(s.timer)clearTimeout(s.timer);releaseProjectPointer(s);if(s.activated||s.moved)projectClickSuppressed=Date.now()+700;if(s.activated&&s.moved)commitProjectDrag(s);clearProjectPress(false);});
+  list.addEventListener('pointercancel',e=>{const s=projectPressState;if(!s||s.pointerId!==e.pointerId)return;projectClickSuppressed=Date.now()+700;clearProjectPress(false);});
+  list.addEventListener('contextmenu',e=>{if(e.target.closest('.project-row'))e.preventDefault();});
+  list.addEventListener('dragstart',e=>e.preventDefault());
+  document.addEventListener('click',e=>{if(!projectArrangeMode||!document.getElementById('viewHome').classList.contains('active'))return;if(document.querySelector('.modal-bg.show,.action-sheet-bg.show,.confirm-bg.show'))return;if(e.target.closest('.project-row')||e.target.closest('.btn-s')||e.target.closest('.back-btn'))return;setProjectArrangeMode(false);});
 }
-function delSong(){if(editIdx<0)return;if(!requireDeleteConfirm())return;var data=load();data.splice(editIdx,1);save(data);closeModal();render();}
-render();
+function releaseProjectPointer(s){if(!s||!s.row||!s.row.releasePointerCapture)return;try{if(!s.row.hasPointerCapture||s.row.hasPointerCapture(s.pointerId))s.row.releasePointerCapture(s.pointerId);}catch(e){}}
+function clearProjectPress(release=true){const s=projectPressState;if(!s)return;if(s.timer)clearTimeout(s.timer);if(release)releaseProjectPointer(s);s.row&&s.row.classList.remove('dragging');document.querySelectorAll('#projectList .project-row.drag-over').forEach(r=>r.classList.remove('drag-over'));projectPressState=null;}
+function commitProjectDrag(state){
+  const dragId=state.row.dataset.id;let insertBefore=null;
+  for(const card of document.querySelectorAll('#projectList .project-row')){if(card===state.row||!card.dataset.id)continue;const r=card.getBoundingClientRect();if(state.lastY<r.top+r.height/2){insertBefore=card.dataset.id;break;}}
+  const item=projects.find(p=>p.id===dragId);if(!item)return;const others=projects.filter(p=>p.id!==dragId);const newOrder=[];
+  if(!insertBefore)newOrder.push(...others,item);else others.forEach(p=>{if(p.id===insertBefore)newOrder.push(item);newOrder.push(p);});
+  newOrder.forEach((p,i)=>p.order=i);projects=newOrder;save();renderProjects();
+}
+
+/* ═══ PROJECT MODAL ═══ */
+let _sections=[],sectionDragBound=false,sectionPressState=null;
+function makeEmptyItem(n){return{id:gid(),name:'Title '+n,note:'',img:'',collected:false,collectedDate:null,checkinNote:'',checkinImg:'',artist:'',label:'',tracks:''};}
+function buildSectionDrafts(p){
+  const src=p.sections&&p.sections.length?p.sections:[{name:'',count:p.items.length}];
+  let off=0;const drafts=src.map(sec=>{const c=Math.max(0,parseInt(sec.count)||0);const d={name:sec.name||'',count:c,_items:p.items.slice(off,off+c)};off+=c;return d;});
+  if(off<p.items.length){if(!drafts.length)drafts.push({name:'',count:0,_items:[]});const last=drafts[drafts.length-1];last._items.push(...p.items.slice(off));last.count=last._items.length;}
+  return drafts;
+}
+function itemHasSavedContent(item){return !!(item&&(item.collected||item.img||item.note||item.checkinNote||item.checkinImg||item.artist||item.label||item.tracks||(item.name&&!/^Title \d+$/.test(item.name))));}
+function finalizeSectionDrafts(){
+  const sections=[],items=[];let preserved=0;
+  _sections.filter(s=>s.name||s.count>0||(s._items&&s._items.length)).forEach(sec=>{
+    const req=Math.max(0,parseInt(sec.count)||0);const bucket=Array.isArray(sec._items)?sec._items.slice():[];const group=bucket.slice(0,req);
+    for(let i=req;i<bucket.length;i++)if(itemHasSavedContent(bucket[i])){group.push(bucket[i]);preserved++;}
+    while(group.length<req)group.push(makeEmptyItem(items.length+group.length+1));
+    sections.push({name:sec.name||'',count:group.length});items.push(...group);
+  });
+  items.forEach((item,i)=>{if(/^Title \d+$/.test(item.name||''))item.name='Title '+(i+1);});
+  return{sections,items,preserved};
+}
+function renderSectionList(){
+  const list=document.getElementById('sectionList');
+  if(!_sections.length){list.innerHTML='<div style="font-size:11px;color:#ccc;padding:8px 0">点下方"添加分类"设置分组</div>';return;}
+  list.innerHTML=_sections.map((s,i)=>`<div class="section-row" data-sec-idx="${i}">
+    <input type="text" value="${esc(s.name)}" onchange="_sections[${i}].name=this.value">
+    <input type="number" value="${s.count||0}" min="0" max="99" style="width:50px" onchange="_sections[${i}].count=Math.max(0,parseInt(this.value)||0)">
+    <button class="del-sec" onclick="_sections.splice(${i},1);renderSectionList()">×</button>
+  </div>`).join('');
+  initSectionDrag();
+}
+function addSectionRow(){_sections.push({name:'',count:0,_items:[]});renderSectionList();}
+function initSectionDrag(){
+  if(sectionDragBound)return;
+  sectionDragBound=true;
+  const list=document.getElementById('sectionList');
+  list.addEventListener('pointerdown',e=>{
+    if(e.target.closest('input')||e.target.closest('select')||e.target.closest('button'))return;
+    const row=e.target.closest('.section-row');
+    if(!row||(e.button!==undefined&&e.button!==0))return;
+    clearSectionPress();
+    const state={row,index:parseInt(row.dataset.secIdx),pointerId:e.pointerId,startY:e.clientY,lastY:e.clientY,activated:false,moved:false,timer:null};
+    sectionPressState=state;
+    if(row.setPointerCapture){try{row.setPointerCapture(e.pointerId);}catch(err){}}
+    state.timer=setTimeout(()=>{if(sectionPressState!==state)return;state.timer=null;state.activated=true;if(navigator.vibrate)navigator.vibrate(12);},350);
+  });
+  list.addEventListener('pointermove',e=>{
+    const state=sectionPressState;if(!state||state.pointerId!==e.pointerId)return;
+    state.lastY=e.clientY;const distance=Math.abs(e.clientY-state.startY);
+    if(!state.activated){if(distance>10)clearSectionPress();return;}
+    if(distance<=6)return;state.moved=true;state.row.classList.add('sec-dragging');e.preventDefault();
+    list.querySelectorAll('.section-row').forEach(r=>r.classList.remove('sec-drag-over'));
+    for(const row of list.querySelectorAll('.section-row')){const idx=parseInt(row.dataset.secIdx);if(idx===state.index)continue;const r=row.getBoundingClientRect();if(e.clientY<r.top+r.height/2){row.classList.add('sec-drag-over');break;}}
+  },{passive:false});
+  list.addEventListener('pointerup',e=>{
+    const state=sectionPressState;if(!state||state.pointerId!==e.pointerId)return;
+    if(state.timer){clearTimeout(state.timer);state.timer=null;}
+    if(state.activated&&state.moved)commitSectionDrag(state);clearSectionPress();
+  });
+  list.addEventListener('pointercancel',e=>{
+    const state=sectionPressState;if(!state||state.pointerId!==e.pointerId)return;clearSectionPress();
+  });
+  function commitSectionDrag(state){
+    let toIdx=_sections.length;
+    for(const row of list.querySelectorAll('.section-row')){const idx=parseInt(row.dataset.secIdx);if(idx===state.index)continue;const r=row.getBoundingClientRect();if(state.lastY<r.top+r.height/2){toIdx=idx;break;}}
+    if(toIdx!==state.index){const moved=_sections.splice(state.index,1)[0];const insertAt=toIdx>state.index?toIdx-1:toIdx;_sections.splice(insertAt,0,moved);}
+    renderSectionList();
+  }
+}
+function clearSectionPress(){
+  const state=sectionPressState;if(!state)return;
+  if(state.timer)clearTimeout(state.timer);
+  try{if(state.row&&state.row.releasePointerCapture&&(!state.row.hasPointerCapture||state.row.hasPointerCapture(state.pointerId)))state.row.releasePointerCapture(state.pointerId);}catch(e){}
+  state.row&&state.row.classList.remove('sec-dragging');
+  document.querySelectorAll('#sectionList .section-row.sec-drag-over').forEach(row=>row.classList.remove('sec-drag-over'));
+  sectionPressState=null;
+}
+function openAddProject(){
+  editProjectId=null;projectTempIcon='';
+  document.getElementById('projectModalTitle').textContent='New List';
+  document.getElementById('inputProjectName').value='';document.getElementById('inputProjectNote').value='';document.getElementById('inputProjectShelf').value='';
+  document.getElementById('projectIconPreview').style.display='none';
+  _sections=[{name:'',count:0,_items:[]}];_dutyState={type:'custom',color:'#4ECDC4',name:''};
+  renderSectionList();renderDutyRow(_dutyState);openModal('projectModal');
+}
+function openEditProject(){
+  const p=getProject(curProjectId);if(!p)return;
+  editProjectId=p.id;projectTempIcon=p.icon||'';
+  document.getElementById('projectModalTitle').textContent='Edit List';
+  document.getElementById('inputProjectName').value=p.name;document.getElementById('inputProjectNote').value=p.note||'';document.getElementById('inputProjectShelf').value=p.shelf||'';
+  if(p.icon){document.getElementById('projectIconPreview').src=p.icon;document.getElementById('projectIconPreview').style.display='block';}else document.getElementById('projectIconPreview').style.display='none';
+  _sections=buildSectionDrafts(p);_dutyState=p.duty?{...p.duty}:{type:'',color:'#4ECDC4',name:''};
+  renderSectionList();renderDutyRow(_dutyState);openModal('projectModal');
+}
+function previewProjectIcon(input){
+  if(!input.files||!input.files[0])return;
+  const reader=new FileReader();reader.onload=ev=>{const img=new Image();img.onload=()=>{const c=document.createElement('canvas');const M=200;let w=img.width,h=img.height;if(w>M||h>M){if(w>h){h=h*M/w;w=M;}else{w=w*M/h;h=M;}}c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);projectTempIcon=c.toDataURL('image/jpeg',0.7);const p=document.getElementById('projectIconPreview');p.src=projectTempIcon;p.style.display='block';};img.src=ev.target.result;};reader.readAsDataURL(input.files[0]);
+}
+async function saveProject(){
+  const name=document.getElementById('inputProjectName').value.trim();if(!name)return;
+  const note=document.getElementById('inputProjectNote').value.trim();
+  const shelf=document.getElementById('inputProjectShelf').value.trim();
+  let duty={..._dutyState};duty.name=document.getElementById('dutyCustomName').value.trim();duty.type='custom';
+  const stableProjectId=editProjectId||gid();
+  let icon=projectTempIcon;
+  if(icon&&icon.startsWith('data:')&&window.CloudSync)try{icon=await CloudSync.uploadDataUrl(icon,`music/${stableProjectId}_icon.jpg`);}catch(e){}
+  const fin=finalizeSectionDrafts();
+  if(editProjectId){const p=getProject(editProjectId);if(p){p.name=name;p.note=note;p.shelf=shelf;p.duty=duty;if(icon)p.icon=icon;p.sections=fin.sections;p.items=fin.items;p.count=fin.items.length;}}
+  else projects.push({id:stableProjectId,name,note,shelf,icon:icon||'',count:fin.items.length,duty,items:fin.items,sections:fin.sections,order:projects.length});
+  save();closeModal('projectModal');if(fin.preserved)showToast(`Preserved ${fin.preserved} titles with data`);if(editProjectId)renderDetail();renderProjects();
+}
+function deleteProject(){deleteProjectById(curProjectId);}
+
+/* ═══ DETAIL VIEW ═══ */
+function openProject(id){setItemArrangeMode(false);curProjectId=id;const p=getProject(id);if(!p)return;renderDetail(p);switchView('viewDetail');}
+function renderDetail(p){
+  if(!p)p=getProject(curProjectId);if(!p)return;
+  const st=projectStats(p);const pct=st.total>0?Math.round(st.collected/st.total*100):0;
+  document.getElementById('detailTitle').textContent=p.name;
+  document.getElementById('detailOverall').innerHTML=`<span>${st.collected} / ${st.total}</span><div class="detail-overall-bar"><div class="detail-overall-fill" style="width:${pct}%"></div></div><span>${pct}%</span>`;
+  const container=document.getElementById('itemList');
+  const sections=p.sections&&p.sections.length?p.sections:null;
+  if(!sections){container.innerHTML=renderItemRows(p.items,0);return;}
+  let html='',offset=0;
+  sections.forEach((sec,si)=>{
+    const count=sec.count||0;
+    if(sec.name)html+=`<div class="section-divider"><div class="section-divider-line"></div><span class="section-divider-label" title="双击编辑" ondblclick="event.stopPropagation();openSectionQuickEdit(${si})">${esc(sec.name)}</span><div class="section-divider-line"></div></div>`;
+    else if(si>0)html+=`<div class="section-divider"><div class="section-divider-line"></div></div>`;
+    html+=renderItemRows(p.items.slice(offset,offset+count),offset);
+    offset+=count;
+  });
+  if(offset<p.items.length)html+=renderItemRows(p.items.slice(offset),offset);
+  container.innerHTML=html;
+}
+function renderItemRows(items,globalOffset){
+  return items.map((item,i)=>{
+    const idx=globalOffset+i;
+    const posterHtml=item.img?`<img src="${item.img}" alt="">`:'<div class="poster-placeholder">🎞</div>';
+    const displayName=getItemDisplayName(getProject(curProjectId),item,idx);
+    const subParts=[];
+    if(item.artist)subParts.push(esc(item.artist));
+    if(item.label)subParts.push(esc(item.label));
+    if(item.tracks)subParts.push(esc(item.tracks));
+    if(!subParts.length&&item.note&&!item.collected)subParts.push(esc(item.note));
+    const subHtml=subParts.length?subParts.join(' · '):(item.collectedDate?esc(item.collectedDate):'');
+    return`<div class="item-row" data-index="${idx}" onclick="handleItemClick(${idx})">
+      <div class="item-poster-wrap">${posterHtml}</div>
+      <div class="item-row-body">
+        <div class="item-row-name">${displayName?esc(displayName):('Title '+(idx+1))}${item.rating?`<span class="rating-badge r-${item.rating}">${item.rating.charAt(0).toUpperCase()+item.rating.slice(1)}</span>`:''}</div>
+        ${subHtml?`<div class="item-row-sub">${subHtml}</div>`:''}
+      </div>
+      <div class="item-row-check ${item.collected?'done':''}">${item.collected?'✓':''}</div>
+      <button class="item-delete-x" aria-label="删除" onclick="event.stopPropagation();deleteGridItem(${idx})">×</button>
+    </div>`;
+  }).join('');
+}
+
+/* ── Item arrange mode ── */
+function handleProjectHeaderButton(){if(itemArrangeMode){setItemArrangeMode(false);return;}openProjectMenu();}
+function setItemArrangeMode(a){itemArrangeMode=!!a;const v=document.getElementById('viewDetail'),b=document.getElementById('projectHeaderBtn');if(v)v.classList.toggle('arrange-mode',a);if(b){b.textContent=a?'完成':'⋯';}if(!a)clearItemArrangeGesture();}
+function moveGridItem(fromIdx,toIdx){
+  const p=getProject(curProjectId);if(!p||fromIdx===toIdx||!p.items[fromIdx]||!p.items[toIdx])return false;
+  const fromSec=getItemSectionIndex(p,fromIdx),toSec=getItemSectionIndex(p,toIdx);
+  if(fromSec>=0&&toSec>=0&&fromSec!==toSec){p.sections[fromSec].count=Math.max(0,(parseInt(p.sections[fromSec].count)||0)-1);p.sections[toSec].count=(parseInt(p.sections[toSec].count)||0)+1;}
+  const scroll=currentScrollY(),item=p.items.splice(fromIdx,1)[0];p.items.splice(toIdx,0,item);
+  p.items.forEach((it,i)=>{if(/^Title \d+$/.test(it.name||''))it.name='Title '+(i+1);});
+  save();renderDetail(p);restoreDetailScroll(scroll);return true;
+}
+function clearItemArrangeGesture(){
+  const s=itemPressState;if(s&&s.timer)clearTimeout(s.timer);
+  if(s&&s.row&&s.row.releasePointerCapture)try{s.row.releasePointerCapture(s.pointerId);}catch(e){}
+  document.querySelectorAll('#itemList .drag-source,#itemList .drag-over').forEach(el=>el.classList.remove('drag-source','drag-over'));
+  itemPressState=null;
+}
+function setupItemArrangeGestures(){
+  const list=document.getElementById('itemList');if(!list)return;
+  list.addEventListener('pointerdown',e=>{
+    if(e.target.closest('button'))return;const row=e.target.closest('.item-row');if(!row||(e.button!==undefined&&e.button!==0))return;
+    clearItemArrangeGesture();const state={row,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,targetIdx:parseInt(row.dataset.index),activated:false,timer:null};itemPressState=state;
+    if(row.setPointerCapture)try{row.setPointerCapture(e.pointerId);}catch(err){}
+    state.timer=setTimeout(()=>{if(itemPressState!==state)return;state.activated=true;setItemArrangeMode(true);row.classList.add('drag-source');if(navigator.vibrate)navigator.vibrate(12);},420);
+  });
+  list.addEventListener('pointermove',e=>{
+    const s=itemPressState;if(!s||s.pointerId!==e.pointerId)return;const distance=Math.hypot(e.clientX-s.startX,e.clientY-s.startY);
+    if(!s.activated){if(distance>10)clearItemArrangeGesture();return;}e.preventDefault();
+    document.querySelectorAll('#itemList .item-row.drag-over').forEach(el=>el.classList.remove('drag-over'));
+    const target=document.elementFromPoint(e.clientX,e.clientY)?.closest('.item-row');if(target&&target!==s.row&&list.contains(target)){target.classList.add('drag-over');s.targetIdx=parseInt(target.dataset.index);}
+  },{passive:false});
+  const finish=e=>{const s=itemPressState;if(!s||s.pointerId!==e.pointerId)return;if(s.activated){itemClickSuppressedUntil=Date.now()+700;if(s.targetIdx!==parseInt(s.row.dataset.index))moveGridItem(parseInt(s.row.dataset.index),s.targetIdx);}clearItemArrangeGesture();};
+  list.addEventListener('pointerup',finish);list.addEventListener('pointercancel',finish);
+  list.addEventListener('contextmenu',e=>{if(e.target.closest('.item-row'))e.preventDefault();});
+  list.addEventListener('dragstart',e=>e.preventDefault());
+}
+function deleteGridItem(idx){
+  const p=getProject(curProjectId);if(!p||!p.items[idx])return;
+  const item=p.items[idx];const label=isGenericItemName(item.name)?`Title ${idx+1}`:`「${esc(item.name)}」`;
+  customConfirm(`删除${label}？打卡记录也会一起删除。`,()=>{
+    const si=getItemSectionIndex(p,idx);if(si>=0)p.sections[si].count=Math.max(0,(parseInt(p.sections[si].count)||0)-1);
+    const scroll=currentScrollY();p.items.splice(idx,1);p.count=p.items.length;
+    p.items.forEach((it,i)=>{if(/^Title \d+$/.test(it.name||''))it.name='Title '+(i+1);});
+    curItemIdx=null;editItemIdx=null;save();renderDetail(p);restoreDetailScroll(scroll);
+  },{yes:'Delete',danger:true});
+}
+
+/* ── Section helpers ── */
+function getItemSectionIndex(p,idx){if(!p.sections||!p.sections.length||idx===null||idx<0)return -1;let off=0;for(let i=0;i<p.sections.length;i++){const c=Math.max(0,parseInt(p.sections[i].count)||0);if(idx>=off&&idx<off+c)return i;off+=c;}return -1;}
+function getSectionEndIndex(p,si){let end=0;for(let i=0;i<=si&&i<p.sections.length;i++)end+=Math.max(0,parseInt(p.sections[i].count)||0);return Math.min(end,p.items.length);}
+function openSectionQuickEdit(si){const p=getProject(curProjectId);if(!p||!p.sections||!p.sections[si])return;editSectionIdx=si;document.getElementById('quickSectionName').value=p.sections[si].name||'';openModal('sectionQuickModal');requestAnimationFrame(()=>{const el=document.getElementById('quickSectionName');el.focus();el.select();});}
+function saveSectionQuickEdit(){const p=getProject(curProjectId);if(!p||editSectionIdx===null||!p.sections[editSectionIdx])return;const name=document.getElementById('quickSectionName').value.trim();if(!name)return;p.sections[editSectionIdx].name=name;save();closeModal('sectionQuickModal');editSectionIdx=null;renderDetail(p);}
+function deleteSectionQuickEdit(){
+  const p=getProject(curProjectId);if(!p||editSectionIdx===null)return;const si=editSectionIdx;const sec=p.sections[si];const count=Math.max(0,parseInt(sec.count)||0);
+  customConfirm(`删除分类「${esc(sec.name||'分类')}」？其中 ${count} 部影片也会一起删除。`,()=>{
+    let start=0;for(let i=0;i<si;i++)start+=Math.max(0,parseInt(p.sections[i].count)||0);
+    p.items.splice(start,Math.min(count,Math.max(0,p.items.length-start)));p.sections.splice(si,1);
+    p.count=p.items.length;curItemIdx=null;editItemIdx=null;editSectionIdx=null;
+    save();closeModal('sectionQuickModal');renderDetail(p);
+  },{yes:'Delete',danger:true});
+}
+function openAddSection(){const p=getProject(curProjectId);if(!p)return;document.getElementById('inputSectionName').value='';document.getElementById('inputSectionCount').value='';openModal('addSectionModal');requestAnimationFrame(()=>document.getElementById('inputSectionName').focus());}
+function saveAddSection(){
+  const p=getProject(curProjectId);if(!p)return;const name=document.getElementById('inputSectionName').value.trim();const count=parseInt(document.getElementById('inputSectionCount').value)||0;
+  if(count<=0){showToast('请输入影片Count');return;}if(!p.sections)p.sections=[];
+  p.sections.push({name,count});for(let i=0;i<count;i++)p.items.push(makeEmptyItem(p.items.length+1));
+  p.count=(p.count||0)+count;save();closeModal('addSectionModal');renderDetail(p);
+}
+
+/* ═══ ITEM CLICK ═══ */
+function handleItemClick(idx){
+  if(itemArrangeMode||Date.now()<itemClickSuppressedUntil)return;const p=getProject(curProjectId);if(!p||!p.items[idx])return;
+  curItemIdx=idx;const item=p.items[idx];
+  if(item.collected){openItem(idx);return;}
+  if(item.img||!isGenericItemName(item.name)||item.note||item.artist||item.label||item.tracks){openCheckin();return;}
+  openEditItem();
+}
+function openAddItemQuick(idx){curItemIdx=idx;openCheckin();}
+
+/* ═══ ITEM DETAIL VIEW ═══ */
+function openItem(idx){
+  const p=getProject(curProjectId);if(!p||!p.items[idx])return;
+  if(document.getElementById('viewDetail').classList.contains('active'))rememberDetailScroll();
+  curItemIdx=idx;const item=p.items[idx];
+  const displayName=getItemDisplayName(p,item,idx);
+  document.getElementById('itemTitle').textContent=displayName;
+  document.getElementById('itemBackBtn').onclick=returnToDetail;
+  let html='<div class="card-detail">';
+  if(item.img)html+=`<div class="card-detail-media"><img class="card-detail-img" src="${item.img}"></div>`;
+  html+='<div class="card-detail-body">';
+  if(displayName){
+    const custom=!isGenericItemName(item.name);
+    html+=custom?`<div class="card-detail-name" id="inlineName" title="双击编辑">${esc(displayName)}</div>`:`<div class="card-detail-name">${esc(displayName)}</div>`;
+  }
+  const infoParts=[];
+  if(item.artist)infoParts.push(esc(item.artist));
+  if(item.label)infoParts.push(esc(item.label));
+  if(item.tracks)infoParts.push(esc(item.tracks));
+  if(infoParts.length)html+=`<div class="card-detail-info">${infoParts.map(t=>'<span class="info-tag">'+t+'</span>').join('')}</div>`;
+  if(item.collected&&item.collectedDate)html+=`<div class="card-detail-date">Listened ${esc(item.collectedDate)}${item.rating?` <span class="rating-badge r-${item.rating}">${item.rating.charAt(0).toUpperCase()+item.rating.slice(1)}</span>`:''}</div>`;
+  if(item.note)html+=`<div class="card-detail-item-note"><span class="card-detail-item-note-label">影片备注</span>${esc(item.note)}</div>`;
+  if(item.collected){
+    const noteText=item.checkinNote||'';
+    html+=`<div class="card-detail-note" id="inlineNote" title="Double-click to edit" style="margin-top:8px;${noteText?'':'color:#ccc;font-style:italic'}">${noteText?esc(noteText):'add notes...'}</div>`;
+  }
+  if(item.checkinImg)html+=`<div class="card-detail-media" style="margin-top:12px;border-radius:8px"><img class="card-detail-img" src="${item.checkinImg}"></div>`;
+  html+='</div></div>';
+  html+=item.collected
+    ?'<div class="card-actions"><button class="btn btn-cancel" onclick="uncollect()">Undo Check In</button></div>'
+    :'<div class="card-actions"><button class="btn btn-primary" onclick="openCheckin()">打卡</button></div>';
+  document.getElementById('itemContent').innerHTML=html;
+  const nameEl=document.getElementById('inlineName');if(nameEl)nameEl.addEventListener('dblclick',()=>startInlineEdit('inlineName','name'));
+  const noteEl=document.getElementById('inlineNote');if(noteEl)noteEl.addEventListener('dblclick',()=>startInlineEdit('inlineNote','checkinNote'));
+  switchView('viewItem');
+}
+function startInlineEdit(elId,field){
+  const el=document.getElementById(elId);if(!el)return;const p=getProject(curProjectId);if(!p||curItemIdx===null)return;const item=p.items[curItemIdx];
+  el.contentEditable='true';el.style.color='';el.style.fontStyle='';
+  if(field==='checkinNote'&&!item.checkinNote)el.textContent='';
+  el.focus();const range=document.createRange();range.selectNodeContents(el);const sel=window.getSelection();sel.removeAllRanges();sel.addRange(range);
+  function commit(){el.contentEditable='false';const val=el.textContent.trim();item[field]=val;
+    if(field==='name'){document.getElementById('itemTitle').textContent=getItemDisplayName(p,item,curItemIdx);if(!val)el.textContent=getItemDisplayName(p,item,curItemIdx);}
+    if(field==='checkinNote'&&!val){el.textContent='add notes...';el.style.color='#ccc';el.style.fontStyle='italic';}
+    save();el.removeEventListener('blur',commit);el.removeEventListener('keydown',onKey);}
+  function onKey(e){if(e.key==='Enter'){e.preventDefault();el.blur();}}
+  el.addEventListener('blur',commit);el.addEventListener('keydown',onKey);
+}
+
+/* ═══ CHECKIN ═══ */
+function openCheckin(){const p=getProject(curProjectId);if(!p||curItemIdx===null)return;prepareCheckinModal();}
+function prepareCheckinModal(){
+  const p=getProject(curProjectId);const item=p&&curItemIdx!==null?p.items[curItemIdx]:null;if(!item)return;
+  document.getElementById('checkinItemName').value=!isGenericItemName(item.name)?item.name:'';
+  document.getElementById('checkinDate').value=new Date().toISOString().slice(0,10);
+  document.getElementById('checkinNote').value='';
+  document.getElementById('ratingValue').value='';
+  document.querySelectorAll('.rating-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('monthOnlyFlag').value='0';
+  const mb=document.getElementById('monthOnlyBtn');if(mb){mb.style.borderColor='#ddd';mb.style.color='#999';}
+  document.getElementById('checkinImgPreview').style.display='none';
+  delete document.getElementById('checkinImgPreview').dataset.source;
+  document.getElementById('checkinImgInput').value='';
+  openModal('checkinModal');
+}
+function previewCheckinImg(input){if(!input.files||!input.files[0])return;optimizedImageDataUrl(input.files[0],1000).then(d=>{const p=document.getElementById('checkinImgPreview');p.dataset.source=d;p.src=d;p.style.display='block';}).catch(()=>showToast('图片读取失败'));}
+async function saveCheckin(){
+  const p=getProject(curProjectId);if(!p||curItemIdx===null)return;const item=p.items[curItemIdx];
+  const fromItemView=document.getElementById('viewItem').classList.contains('active');
+  const checkinName=document.getElementById('checkinItemName').value.trim();
+  if(checkinName)item.name=checkinName;
+  let dateVal=document.getElementById('checkinDate').value||new Date().toISOString().slice(0,10);
+  if(document.getElementById('monthOnlyFlag').value==='1')dateVal=dateVal.slice(0,7);
+  const noteVal=document.getElementById('checkinNote').value.trim();
+  const preview=document.getElementById('checkinImgPreview');
+  let cImg=preview.style.display!=='none'?(preview.dataset.source||''):'';
+  if(cImg&&cImg.startsWith('data:')&&window.CloudSync)try{cImg=await CloudSync.uploadDataUrl(cImg,`music/${curProjectId}_${item.id}_checkin.${imagePathExt(cImg)}`);}catch(e){}
+  item.collected=true;item.collectedDate=dateVal;item.checkinNote=noteVal;
+  const ratingVal=document.getElementById('ratingValue').value;
+  if(ratingVal)item.rating=ratingVal;
+  if(cImg)item.checkinImg=cImg;
+  save();closeModal('checkinModal');
+  if(fromItemView)openItem(curItemIdx);else returnToDetail();
+  showCheckinCelebration(p.duty);
+}
+function toggleMonthOnly(){
+  const flag=document.getElementById('monthOnlyFlag');
+  const btn=document.getElementById('monthOnlyBtn');
+  if(flag.value==='0'){flag.value='1';btn.style.borderColor='#4ECDC4';btn.style.color='#4ECDC4';}
+  else{flag.value='0';btn.style.borderColor='#ddd';btn.style.color='#999';}
+}
+function pickRating(val){
+  const cur=document.getElementById('ratingValue');
+  cur.value=cur.value===val?'':val;
+  document.querySelectorAll('.rating-btn').forEach(b=>{b.classList.toggle('active',b.classList.contains('r-'+cur.value));});
+}
+function uncollect(){
+  const p=getProject(curProjectId);if(!p||curItemIdx===null)return;const item=p.items[curItemIdx];
+  item.collected=false;item.collectedDate=null;item.checkinNote='';item.checkinImg='';item.rating=null;
+  save();openItem(curItemIdx);
+}
+
+/* ═══ ITEM MODAL ═══ */
+function renderItemSectionSelect(p,selectedIdx){
+  const field=document.getElementById('itemSectionField'),select=document.getElementById('inputItemSection');
+  if(!p.sections||!p.sections.length){field.style.display='none';select.innerHTML='';return;}
+  const fb=selectedIdx>=0&&selectedIdx<p.sections.length?selectedIdx:0;
+  select.innerHTML=p.sections.map((sec,i)=>`<option value="${i}">${esc(sec.name||('分类 '+(i+1)))}</option>`).join('');
+  select.value=String(fb);field.style.display='block';
+}
+function getSelectedItemSection(p){if(!p.sections||!p.sections.length)return -1;const idx=parseInt(document.getElementById('inputItemSection').value);return Number.isInteger(idx)&&idx>=0&&idx<p.sections.length?idx:0;}
+function openAddItem(){
+  const p=getProject(curProjectId);if(!p)return;editItemIdx=null;
+  document.getElementById('itemModalTitle').textContent='New Title';
+  document.getElementById('inputItemName').value='';document.getElementById('inputItemNote').value='';
+  document.getElementById('inputItemRelease').value='';document.getElementById('inputItemStudio').value='';document.getElementById('inputItemDuration').value='';
+  document.getElementById('itemImgPreview').style.display='none';delete document.getElementById('itemImgPreview').dataset.source;
+  document.getElementById('itemDeleteBtn').style.display='none';
+  renderItemSectionSelect(p,0);openModal('itemModal');
+}
+function openEditItem(){
+  const p=getProject(curProjectId);if(!p||curItemIdx===null)return;const item=p.items[curItemIdx];editItemIdx=curItemIdx;
+  document.getElementById('itemModalTitle').textContent='Edit Title';
+  document.getElementById('inputItemName').value=item.name||'';document.getElementById('inputItemNote').value=item.note||'';
+  document.getElementById('inputItemRelease').value=item.artist||'';document.getElementById('inputItemStudio').value=item.label||'';document.getElementById('inputItemDuration').value=item.tracks||'';
+  if(item.img){const pr=document.getElementById('itemImgPreview');pr.src=item.img;pr.dataset.source=item.img;pr.style.display='block';}
+  else{document.getElementById('itemImgPreview').style.display='none';delete document.getElementById('itemImgPreview').dataset.source;}
+  document.getElementById('itemDeleteBtn').style.display='';
+  renderItemSectionSelect(p,getItemSectionIndex(p,curItemIdx));openModal('itemModal');
+}
+function previewItemImg(input){if(!input.files||!input.files[0])return;optimizedImageDataUrl(input.files[0],1000).then(d=>{const p=document.getElementById('itemImgPreview');p.dataset.source=d;p.src=d;p.style.display='block';}).catch(()=>showToast('图片读取失败'));}
+async function saveItem(){
+  const p=getProject(curProjectId);if(!p)return;const wasEditing=editItemIdx!==null;
+  const existingItem=wasEditing?p.items[editItemIdx]:null;const stableId=existingItem&&existingItem.id?existingItem.id:gid();
+  if(existingItem&&!existingItem.id)existingItem.id=stableId;
+  const selectedSection=getSelectedItemSection(p);
+  const inputName=document.getElementById('inputItemName').value.trim();
+  const name=wasEditing?inputName:(inputName||('影片'+(p.items.length+1)));
+  const note=document.getElementById('inputItemNote').value.trim();
+  const releaseDate=document.getElementById('inputItemRelease').value.trim();
+  const studio=document.getElementById('inputItemStudio').value.trim();
+  const duration=document.getElementById('inputItemDuration').value.trim();
+  const preview=document.getElementById('itemImgPreview');
+  let img=preview.style.display!=='none'?(preview.dataset.source||''):'';
+  if(img&&img.startsWith('data:')&&window.CloudSync)try{img=await CloudSync.uploadDataUrl(img,`music/${curProjectId}_${stableId}.${imagePathExt(img)}`);}catch(e){}
+  if(wasEditing){
+    const item=p.items[editItemIdx];if(item){item.name=name;item.note=note;item.artist=releaseDate;item.label=studio;item.tracks=duration;if(img)item.img=img;
+      const oldSec=getItemSectionIndex(p,editItemIdx);
+      if(selectedSection>=0&&selectedSection!==oldSec){p.items.splice(editItemIdx,1);if(oldSec>=0)p.sections[oldSec].count=Math.max(0,(parseInt(p.sections[oldSec].count)||0)-1);const at=getSectionEndIndex(p,selectedSection);p.items.splice(at,0,item);p.sections[selectedSection].count=(parseInt(p.sections[selectedSection].count)||0)+1;curItemIdx=at;editItemIdx=at;}
+    }
+  }else{
+    const item={id:stableId,name,note,img,collected:false,collectedDate:null,checkinNote:'',checkinImg:'',releaseDate,studio,duration};
+    if(selectedSection>=0){const at=getSectionEndIndex(p,selectedSection);p.items.splice(at,0,item);p.sections[selectedSection].count=(parseInt(p.sections[selectedSection].count)||0)+1;}else p.items.push(item);
+  }
+  p.count=p.items.length;save();closeModal('itemModal');
+  if(wasEditing){if(document.getElementById('viewItem').classList.contains('active'))openItem(curItemIdx);else renderDetail(p);}else renderDetail(p);
+}
+function deleteEditingItem(){if(editItemIdx===null)return;curItemIdx=editItemIdx;deleteItem();}
+function deleteItem(){
+  const p=getProject(curProjectId);if(!p||curItemIdx===null)return;
+  customConfirm('删除这部影片？打卡记录也会一起删除。',()=>{
+    const si=getItemSectionIndex(p,curItemIdx);if(si>=0)p.sections[si].count=Math.max(0,(parseInt(p.sections[si].count)||0)-1);
+    p.items.splice(curItemIdx,1);p.count=p.items.length;curItemIdx=null;editItemIdx=null;
+    closeModal('itemModal');save();returnToDetail();
+  },{yes:'Delete',danger:true});
+}
+
+/* ═══ IMAGE HELPERS ═══ */
+function optimizedImageDataUrl(file,maxSize){
+  return new Promise((resolve,reject)=>{if(!file){reject(new Error('没有选择图片'));return;}
+    const reader=new FileReader();reader.onerror=()=>reject(reader.error);
+    reader.onload=ev=>{const img=new Image();img.onerror=()=>reject(new Error('图片格式无法读取'));
+      img.onload=()=>{const c=document.createElement('canvas');const M=maxSize||1000;let w=img.width,h=img.height;if(w>M||h>M){if(w>h){h=Math.round(h*M/w);w=M;}else{w=Math.round(w*M/h);h=M;}}c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);const keepAlpha=file.type==='image/png';resolve(c.toDataURL(keepAlpha?'image/png':'image/jpeg',keepAlpha?undefined:0.82));};img.src=ev.target.result;};reader.readAsDataURL(file);});
+}
+function imagePathExt(d){if(String(d).startsWith('data:image/png'))return'png';if(String(d).startsWith('data:image/webp'))return'webp';return'jpg';}
+
+async function uploadInlineMusicImages(targetProjects){
+  if(!window.CloudSync)return false;
+  await CloudSync.whenReady();
+  let changed=false;
+  for(const p of targetProjects){
+    if(!p.id){p.id=gid();changed=true;}
+    if(p.icon&&p.icon.startsWith('data:')){p.icon=await CloudSync.uploadDataUrl(p.icon,`music/${p.id}_icon.${imagePathExt(p.icon)}`);changed=true;}
+    if(!Array.isArray(p.items))p.items=[];
+    for(const item of p.items){
+      if(!item.id){item.id=gid();changed=true;}
+      if(item.img&&item.img.startsWith('data:')){item.img=await CloudSync.uploadDataUrl(item.img,`music/${p.id}_${item.id}.${imagePathExt(item.img)}`);changed=true;}
+      if(item.checkinImg&&item.checkinImg.startsWith('data:')){item.checkinImg=await CloudSync.uploadDataUrl(item.checkinImg,`music/${p.id}_${item.id}_checkin.${imagePathExt(item.checkinImg)}`);changed=true;}
+    }
+  }
+  return changed;
+}
+
+function collectMusicAssetRefs(sourceProjects){
+  const refs=new Set();
+  for(const p of sourceProjects||[]){
+    if(p.icon&&String(p.icon).startsWith('cloud://'))refs.add(String(p.icon));
+    for(const item of Array.isArray(p.items)?p.items:[]){
+      if(item.img&&String(item.img).startsWith('cloud://'))refs.add(String(item.img));
+      if(item.checkinImg&&String(item.checkinImg).startsWith('cloud://'))refs.add(String(item.checkinImg));
+    }
+  }
+  return refs;
+}
+
+async function checkOrphanedMusicAssets(){
+  if(!window.CloudSync||typeof CloudSync.listAssets!=='function'||typeof CloudSync.deleteAssets!=='function'){
+    showToast('请刷新页面后再检查');return;
+  }
+  try{
+    showToast('正在检查影视图片…');
+    const stored=await CloudSync.listAssets('cinema');
+    const refs=collectMusicAssetRefs(projects);
+    const orphaned=stored.filter(value=>!refs.has(value));
+    if(!orphaned.length){showToast('没有发现无引用图片');return;}
+    customConfirm(
+      `找到 ${orphaned.length} 张当前片单未引用的图片。清理后，旧快照中若仍有已删影片，其图片将无法恢复。确认清理？`,
+      async()=>{
+        try{
+          const removed=await CloudSync.deleteAssets(orphaned);
+          showToast(`已清理 ${removed} 张无引用图片`);
+        }catch(e){console.warn('Music orphan cleanup failed:',e);showToast('清理失败，请稍后重试');}
+      },
+      {yes:'清理',danger:true}
+    );
+  }catch(e){console.warn('Music orphan scan failed:',e);showToast('检查失败，请稍后重试');}
+}
+
+/* ═══ MENUS / MODALS / BACKUP ═══ */
+function openProjectMenu(){document.getElementById('projectMenuSheet').classList.add('show');}
+function openItemMenu(){document.getElementById('itemMenuSheet').classList.add('show');}
+function closeSheet(id){document.getElementById(id).classList.remove('show');}
+function openModal(id){document.getElementById(id).classList.add('show');}
+function closeModal(id){const m=document.getElementById(id);if(m)m.classList.remove('show');}
+document.querySelectorAll('.modal-bg,.action-sheet-bg').forEach(bg=>{bg.addEventListener('click',e=>{if(e.target===bg)closeModal(bg.id);});});
+document.getElementById('projectIconLabel').addEventListener('click',()=>document.getElementById('projectIconInput').click());
+document.getElementById('itemFileLabel').addEventListener('click',()=>document.getElementById('itemImgInput').click());
+document.getElementById('checkinImgLabel').addEventListener('click',()=>document.getElementById('checkinImgInput').click());
+
+function exportData(){const blob=new Blob([JSON.stringify(projects,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='cinema_backup_'+new Date().toISOString().slice(0,10)+'.json';a.click();}
+function importData(input){
+  if(!input.files||!input.files[0])return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const data=JSON.parse(ev.target.result);
+      if(!Array.isArray(data)){showToast('格式不正确');input.value='';return;}
+      customConfirm('导入数据？将覆盖当前记录。',async()=>{
+        try{
+          if(window.CloudSync){
+            showToast('正在上传导入图片…');
+            await uploadInlineMusicImages(data);
+          }
+          projects=data;save();renderProjects();closeModal('backupModal');showToast('导入完成');
+        }catch(e){console.warn('Music import failed:',e);showToast('图片上传失败，原记录未覆盖');}
+      });
+    }catch(e){showToast('导入失败');}
+    input.value='';
+  };
+  reader.readAsText(input.files[0]);
+}
+
+/* ═══ CLOUD MIGRATE ═══ */
+async function migrateLocalImages(){
+  if(!window.CloudSync)return;
+  try{
+    const changed=await uploadInlineMusicImages(projects);
+    if(changed){save();renderProjects();}
+  }catch(e){console.warn('Music image migration pending:',e);}
+}
+
+/* ═══ INIT ═══ */
+renderProjects();
+setupItemArrangeGestures();
+migrateLocalImages();
 </script>
 </body>
 </html>

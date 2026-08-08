@@ -99,6 +99,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .card-detail-name:hover{border-bottom-color:#9B8AE8}
 .card-detail-name[contenteditable]{outline:none;border-bottom:1px solid #9B8AE8;cursor:text}
 .card-detail-date{font-size:11px;color:#bbb;margin-bottom:8px}
+.rating-row{display:flex;gap:6px;margin-top:8px;margin-bottom:4px}
+.rating-btn{padding:3px 10px;border-radius:12px;font-size:10px;font-weight:500;cursor:pointer;border:1.5px solid #e8e8e8;background:#fff;font-family:inherit;color:#bbb;transition:all 0.15s;letter-spacing:0.3px}
+.rating-btn.active{color:#fff;border-color:transparent}
+.rating-btn.r-love.active{background:#E85A6E}
+.rating-btn.r-like.active{background:#E8A04A}
+.rating-btn.r-fine.active{background:#B0B0B0}
+.rating-btn.r-dull.active{background:#8AAAC4}
+.rating-btn.r-hate.active{background:#6B6B8A}
+.rating-badge{font-size:8px;font-weight:600;letter-spacing:0.5px;padding:1px 5px;border-radius:3px;color:#fff;display:inline-block;margin-left:4px;vertical-align:1px}
+.rating-badge.r-love{background:#E85A6E}
+.rating-badge.r-like{background:#E8A04A}
+.rating-badge.r-fine{background:#B0B0B0}
+.rating-badge.r-dull{background:#8AAAC4}
+.rating-badge.r-hate{background:#6B6B8A}
 .card-detail-info{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
 .info-tag{font-size:11px;color:#6B5ACD;background:#F0EDFF;padding:2px 8px;border-radius:4px}
 .card-detail-note{font-size:13px;color:#666;line-height:1.6;white-space:pre-wrap}
@@ -282,6 +296,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
       <button class="btn-s" type="button" id="monthOnlyBtn" onclick="toggleMonthOnly()" title="Month only" style="white-space:nowrap;font-size:10px">≈ Month</button>
     </div>
     <input type="hidden" id="monthOnlyFlag" value="0">
+    <label>Rating</label>
+    <div class="rating-row" id="ratingRow">
+      <button type="button" class="rating-btn r-love" onclick="pickRating('love')">Love</button>
+      <button type="button" class="rating-btn r-like" onclick="pickRating('like')">Like</button>
+      <button type="button" class="rating-btn r-fine" onclick="pickRating('fine')">Fine</button>
+      <button type="button" class="rating-btn r-dull" onclick="pickRating('dull')">Dull</button>
+      <button type="button" class="rating-btn r-hate" onclick="pickRating('hate')">Hate</button>
+    </div>
+    <input type="hidden" id="ratingValue" value="">
     <label>Notes</label>
     <textarea id="checkinNote" maxlength="500" style="min-height:60px"></textarea>
     <label>Image</label>
@@ -685,7 +708,7 @@ function renderItemRows(items,globalOffset){
     return`<div class="item-row" data-index="${idx}" onclick="handleItemClick(${idx})">
       <div class="item-poster-wrap">${posterHtml}</div>
       <div class="item-row-body">
-        <div class="item-row-name">${displayName?esc(displayName):('Title '+(idx+1))}</div>
+        <div class="item-row-name">${displayName?esc(displayName):('Title '+(idx+1))}${item.rating?`<span class="rating-badge r-${item.rating}">${item.rating.charAt(0).toUpperCase()+item.rating.slice(1)}</span>`:''}</div>
         ${subHtml?`<div class="item-row-sub">${subHtml}</div>`:''}
       </div>
       <div class="item-row-check ${item.collected?'done':''}">${item.collected?'✓':''}</div>
@@ -793,7 +816,7 @@ function openItem(idx){
   if(item.studio)infoParts.push(esc(item.studio));
   if(item.duration)infoParts.push(esc(item.duration));
   if(infoParts.length)html+=`<div class="card-detail-info">${infoParts.map(t=>'<span class="info-tag">'+t+'</span>').join('')}</div>`;
-  if(item.collected&&item.collectedDate)html+=`<div class="card-detail-date">Watched ${esc(item.collectedDate)}</div>`;
+  if(item.collected&&item.collectedDate)html+=`<div class="card-detail-date">Watched ${esc(item.collectedDate)}${item.rating?` <span class="rating-badge r-${item.rating}">${item.rating.charAt(0).toUpperCase()+item.rating.slice(1)}</span>`:''}</div>`;
   if(item.note)html+=`<div class="card-detail-item-note"><span class="card-detail-item-note-label">影片备注</span>${esc(item.note)}</div>`;
   if(item.collected){
     const noteText=item.checkinNote||'';
@@ -829,6 +852,10 @@ function prepareCheckinModal(){
   document.getElementById('checkinItemName').value=!isGenericItemName(item.name)?item.name:'';
   document.getElementById('checkinDate').value=new Date().toISOString().slice(0,10);
   document.getElementById('checkinNote').value='';
+  document.getElementById('ratingValue').value='';
+  document.querySelectorAll('.rating-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('monthOnlyFlag').value='0';
+  const mb=document.getElementById('monthOnlyBtn');if(mb){mb.style.borderColor='#ddd';mb.style.color='#999';}
   document.getElementById('checkinImgPreview').style.display='none';
   delete document.getElementById('checkinImgPreview').dataset.source;
   document.getElementById('checkinImgInput').value='';
@@ -847,6 +874,8 @@ async function saveCheckin(){
   let cImg=preview.style.display!=='none'?(preview.dataset.source||''):'';
   if(cImg&&cImg.startsWith('data:')&&window.CloudSync)try{cImg=await CloudSync.uploadDataUrl(cImg,`cinema/${curProjectId}_${item.id}_checkin.${imagePathExt(cImg)}`);}catch(e){}
   item.collected=true;item.collectedDate=dateVal;item.checkinNote=noteVal;
+  const ratingVal=document.getElementById('ratingValue').value;
+  if(ratingVal)item.rating=ratingVal;
   if(cImg)item.checkinImg=cImg;
   save();closeModal('checkinModal');
   if(fromItemView)openItem(curItemIdx);else returnToDetail();
@@ -858,9 +887,14 @@ function toggleMonthOnly(){
   if(flag.value==='0'){flag.value='1';btn.style.borderColor='#9B8AE8';btn.style.color='#9B8AE8';}
   else{flag.value='0';btn.style.borderColor='#ddd';btn.style.color='#999';}
 }
+function pickRating(val){
+  const cur=document.getElementById('ratingValue');
+  cur.value=cur.value===val?'':val;
+  document.querySelectorAll('.rating-btn').forEach(b=>{b.classList.toggle('active',b.classList.contains('r-'+cur.value));});
+}
 function uncollect(){
   const p=getProject(curProjectId);if(!p||curItemIdx===null)return;const item=p.items[curItemIdx];
-  item.collected=false;item.collectedDate=null;item.checkinNote='';item.checkinImg='';
+  item.collected=false;item.collectedDate=null;item.checkinNote='';item.checkinImg='';item.rating=null;
   save();openItem(curItemIdx);
 }
 
