@@ -278,7 +278,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 @media(max-width:699px){
 #pageMemo .page-content,#pageDaily .page-content,#pageCollect .page-content,#pageRewards .page-content{justify-content:flex-start;padding-top:calc(71px + min(100vw - 40px,360px)*0.28125)}
 }
-.page-clock{text-align:center;margin-top:auto;padding-top:8px}
+.page-clock{text-align:center;margin-bottom:12px}
 .page-clock .time{font-size:28px;font-weight:200;color:#ccc;letter-spacing:2px;font-variant-numeric:tabular-nums}
 .page-clock .date{font-size:11px;color:#ddd;margin-top:2px;letter-spacing:0.5px}
 /* ── Memo page ── */
@@ -359,6 +359,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <div class="home-pager" id="homePager">
 <div class="home-page" id="pageMemo">
 <div class="page-content">
+<div class="page-clock"><div class="time" id="clock3"></div><div class="date" id="date3"></div></div>
 <div class="page-title" onclick="toggleSection(this)">Notes</div>
 <div class="section-collapse collapsed"><div class="memo-wrap">
 <div class="memo-list" id="memoList"></div>
@@ -368,7 +369,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 </div>
 </div>
 </div>
-<div class="page-clock"><div class="time" id="clock3"></div><div class="date" id="date3"></div></div>
 </div>
 </div>
 <div class="home-page" id="pageMain">
@@ -527,11 +527,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   </div>
 </div>
 
-<div class="footer" style="margin-top:auto"><div class="time" id="clock"></div><div class="date" id="date"></div></div>
+<div class="footer" style="display:none"><div class="time" id="clock"></div><div class="date" id="date"></div></div>
 <div class="tooltip" id="tooltip"></div>
 </div><!-- /pageMain -->
 <div class="home-page" id="pageDaily">
 <div class="page-content">
+<div class="page-clock"><div class="time" id="clock2"></div><div class="date" id="date2"></div></div>
 <div class="page-title" onclick="toggleSection(this)">Dailies</div>
 <div class="section-collapse"><div class="entry-grid" data-section="daily">
   <a class="entry-card" href="daily.html?tab=drop"><div class="entry-icon">📋</div><div class="entry-label">委托</div></a>
@@ -543,12 +544,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <a class="entry-card draft" href="organize.html"><div class="entry-icon">📦</div><div class="entry-label">整理</div></a>
 </div>
 </div>
-<div class="page-clock"><div class="time" id="clock2"></div><div class="date" id="date2"></div></div>
+</div>
 </div>
 </div>
 
 <div class="home-page" id="pageCollect">
 <div class="page-content">
+<div class="page-clock"><div class="time" id="clock4"></div><div class="date" id="date4"></div></div>
 <div class="page-title" onclick="toggleSection(this)">Archive</div>
 <div class="section-collapse"><div class="entry-grid" data-section="collect">
   <a class="entry-card" href="kitchen.html"><div class="entry-icon">🍽</div><div class="entry-label">饮食</div></a>
@@ -561,12 +563,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <a class="entry-card draft" href="reading.html"><div class="entry-icon">📚</div><div class="entry-label">读书</div></a>
 </div>
 </div>
-<div class="page-clock"><div class="time" id="clock4"></div><div class="date" id="date4"></div></div>
+</div>
 </div>
 </div>
 
 <div class="home-page" id="pageRewards">
 <div class="page-content">
+<div class="page-clock"><div class="time" id="clock5"></div><div class="date" id="date5"></div></div>
 <div class="page-title" onclick="toggleSection(this)">Rewards</div>
 <div class="section-collapse"><div class="entry-grid" data-section="rewards">
   <a class="entry-card" href="story.html"><div class="entry-icon">📖</div><div class="entry-label">剧情</div></a>
@@ -577,7 +580,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <a class="entry-card" href="backup.html"><div class="entry-icon">☁</div><div class="entry-label">备份</div></a>
 </div>
 </div>
-<div class="page-clock"><div class="time" id="clock5"></div><div class="date" id="date5"></div></div>
+</div>
 </div>
 </div>
 
