@@ -496,7 +496,7 @@ function commitProjectDrag(state){
 }
 
 /* ═══ PROJECT MODAL ═══ */
-let _sections=[],sectionDragBound=false;
+let _sections=[],sectionDragBound=false,sectionPressState=null;
 function makeEmptyItem(n){return{id:gid(),name:'影片'+n,note:'',img:'',collected:false,collectedDate:null,checkinNote:'',checkinImg:'',releaseDate:'',studio:'',duration:''};}
 function buildSectionDrafts(p){
   const src=p.sections&&p.sections.length?p.sections:[{name:'',count:p.items.length}];
@@ -524,8 +524,54 @@ function renderSectionList(){
     <input type="number" value="${s.count||0}" min="0" max="99" style="width:50px" placeholder="数量" onchange="_sections[${i}].count=Math.max(0,parseInt(this.value)||0)">
     <button class="del-sec" onclick="_sections.splice(${i},1);renderSectionList()">×</button>
   </div>`).join('');
+  initSectionDrag();
 }
 function addSectionRow(){_sections.push({name:'',count:0,_items:[]});renderSectionList();}
+function initSectionDrag(){
+  if(sectionDragBound)return;
+  sectionDragBound=true;
+  const list=document.getElementById('sectionList');
+  list.addEventListener('pointerdown',e=>{
+    if(e.target.closest('input')||e.target.closest('select')||e.target.closest('button'))return;
+    const row=e.target.closest('.section-row');
+    if(!row||(e.button!==undefined&&e.button!==0))return;
+    clearSectionPress();
+    const state={row,index:parseInt(row.dataset.secIdx),pointerId:e.pointerId,startY:e.clientY,lastY:e.clientY,activated:false,moved:false,timer:null};
+    sectionPressState=state;
+    if(row.setPointerCapture){try{row.setPointerCapture(e.pointerId);}catch(err){}}
+    state.timer=setTimeout(()=>{if(sectionPressState!==state)return;state.timer=null;state.activated=true;if(navigator.vibrate)navigator.vibrate(12);},350);
+  });
+  list.addEventListener('pointermove',e=>{
+    const state=sectionPressState;if(!state||state.pointerId!==e.pointerId)return;
+    state.lastY=e.clientY;const distance=Math.abs(e.clientY-state.startY);
+    if(!state.activated){if(distance>10)clearSectionPress();return;}
+    if(distance<=6)return;state.moved=true;state.row.classList.add('sec-dragging');e.preventDefault();
+    list.querySelectorAll('.section-row').forEach(r=>r.classList.remove('sec-drag-over'));
+    for(const row of list.querySelectorAll('.section-row')){const idx=parseInt(row.dataset.secIdx);if(idx===state.index)continue;const r=row.getBoundingClientRect();if(e.clientY<r.top+r.height/2){row.classList.add('sec-drag-over');break;}}
+  },{passive:false});
+  list.addEventListener('pointerup',e=>{
+    const state=sectionPressState;if(!state||state.pointerId!==e.pointerId)return;
+    if(state.timer){clearTimeout(state.timer);state.timer=null;}
+    if(state.activated&&state.moved)commitSectionDrag(state);clearSectionPress();
+  });
+  list.addEventListener('pointercancel',e=>{
+    const state=sectionPressState;if(!state||state.pointerId!==e.pointerId)return;clearSectionPress();
+  });
+  function commitSectionDrag(state){
+    let toIdx=_sections.length;
+    for(const row of list.querySelectorAll('.section-row')){const idx=parseInt(row.dataset.secIdx);if(idx===state.index)continue;const r=row.getBoundingClientRect();if(state.lastY<r.top+r.height/2){toIdx=idx;break;}}
+    if(toIdx!==state.index){const moved=_sections.splice(state.index,1)[0];const insertAt=toIdx>state.index?toIdx-1:toIdx;_sections.splice(insertAt,0,moved);}
+    renderSectionList();
+  }
+}
+function clearSectionPress(){
+  const state=sectionPressState;if(!state)return;
+  if(state.timer)clearTimeout(state.timer);
+  try{if(state.row&&state.row.releasePointerCapture&&(!state.row.hasPointerCapture||state.row.hasPointerCapture(state.pointerId)))state.row.releasePointerCapture(state.pointerId);}catch(e){}
+  state.row&&state.row.classList.remove('sec-dragging');
+  document.querySelectorAll('#sectionList .section-row.sec-drag-over').forEach(row=>row.classList.remove('sec-drag-over'));
+  sectionPressState=null;
+}
 function openAddProject(){
   editProjectId=null;projectTempIcon='';
   document.getElementById('projectModalTitle').textContent='添加片单';
