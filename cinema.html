@@ -14,7 +14,7 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;background:#FAFAFA;color:#1a1a1a;min-height:100vh;min-height:100dvh;padding-bottom:80px}
-.top-bar{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;padding-top:env(safe-area-inset-top,24px);border-bottom:1px solid #eee;background:#fff;position:sticky;top:0;z-index:50}
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;padding-top:max(12px,env(safe-area-inset-top,12px));border-bottom:1px solid #eee;background:#fff;position:sticky;top:0;z-index:50}
 .top-bar h1{font-size:15px;font-weight:600;letter-spacing:2px;color:#6B5ACD}
 .back-btn{font-size:13px;color:#999;text-decoration:none;cursor:pointer;background:none;border:none;font-family:inherit;padding:4px}
 .btn-s{font-size:11px;color:#999;background:none;border:1px solid #ddd;border-radius:6px;padding:5px 10px;cursor:pointer;font-family:inherit}
@@ -38,6 +38,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .project-complete-star{font-size:12px;color:#9B8AE8;flex-shrink:0}
 .project-row-add{display:flex;align-items:center;justify-content:center;gap:6px;padding:14px 20px;background:#fff;border-bottom:1px solid #f5f5f5;cursor:pointer;font-size:13px;color:#ccc}
 .project-row-add:active{background:#f8f8f8}
+.shelf-header{display:flex;align-items:center;gap:10px;padding:10px 20px;background:#fafafa;border-bottom:1px solid #f0f0f0;cursor:pointer;user-select:none;-webkit-user-select:none}
+.shelf-header:active{background:#f5f5f5}
+.shelf-line{flex:1;height:1px;background:#e0e0e0}
+.shelf-label{font-size:11px;color:#999;font-weight:500;letter-spacing:0.3px}
+.shelf-arrow{font-size:8px;color:#ccc;transition:transform 0.25s;display:inline-block;width:8px}
+.shelf-header.collapsed .shelf-arrow{transform:rotate(-90deg)}
+.shelf-items{display:grid;grid-template-rows:1fr;overflow:hidden;transition:grid-template-rows 0.3s ease,opacity 0.25s ease;opacity:1}
+.shelf-items>div{min-height:0}
+.shelf-items.collapsed{grid-template-rows:0fr;opacity:0;pointer-events:none}
 .duty-badge{font-size:9px;font-weight:500;letter-spacing:0.5px;display:inline-block;padding:1px 6px;border-radius:4px}
 .project-row{touch-action:pan-y;position:relative}
 .project-delete-x{display:none;position:absolute;top:50%;right:14px;transform:translateY(-50%) scale(0.3);width:20px;height:20px;border:1.5px solid rgba(255,255,255,0.9);border-radius:50%;background:rgba(100,90,130,0.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);color:#fff;font-size:10px;line-height:17px;text-align:center;z-index:6;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,0.08);font-family:inherit;opacity:0;transition:opacity 0.2s,transform 0.2s cubic-bezier(0.34,1.3,0.64,1)}
@@ -118,9 +127,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .duty-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
 .duty-opt{padding:4px 10px;border-radius:6px;border:1.5px solid #e0e0e0;font-size:12px;cursor:pointer;font-family:inherit;background:#fff;transition:all 0.15s}
 .duty-opt.active{border-width:2px}
-.duty-custom-row{display:flex;gap:6px;align-items:center;margin-top:8px}
-.duty-custom-row input{flex:1}
-.color-picker-row{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.duty-custom-row{display:flex;gap:12px;align-items:center;margin-top:8px}
+.duty-custom-row input{flex:0 0 100px;min-width:0}
+.color-picker-row{display:grid;grid-template-columns:repeat(8,28px);gap:5px;flex:1}
 .color-swatch{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:border 0.15s}
 .color-swatch.active{border-color:#333}
 .section-list{margin-top:8px}
@@ -174,7 +183,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <div class="top-bar">
     <a class="back-btn" href="index.html">← Home</a>
     <h1>CINEMA</h1>
-    <button class="btn-s" onclick="openModal('backupModal')">备份</button>
+    <button class="btn-s" onclick="openModal('backupModal')">Backup</button>
   </div>
   <div class="project-list" id="projectList"></div>
 </div>
@@ -182,20 +191,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- DETAIL VIEW -->
 <div id="viewDetail" class="view">
   <div class="detail-header">
-    <button class="back-btn" onclick="goHome()">← 返回</button>
+    <button class="back-btn" onclick="goHome()">← Back</button>
     <h2 id="detailTitle"></h2>
     <button class="btn-s" id="projectHeaderBtn" onclick="handleProjectHeaderButton()">⋯</button>
   </div>
   <div class="detail-overall" id="detailOverall"></div>
   <div class="item-list" id="itemList"></div>
-  <button class="add-item-btn" onclick="openAddItem()">+ 添加影片</button>
-  <button class="add-item-btn" style="border-color:#9B8AE8;color:#9B8AE8" onclick="openAddSection()">+ 追加分类</button>
+  <button class="add-item-btn" style="border-color:#E8B96A;color:#E8B96A" onclick="openAddItem()">New Title</button>
+  <button class="add-item-btn" style="border-color:#9B8AE8;color:#9B8AE8" onclick="openAddSection()">New Section</button>
 </div>
 
 <!-- ITEM VIEW -->
 <div id="viewItem" class="view">
   <div class="detail-header">
-    <button class="back-btn" id="itemBackBtn">← 返回</button>
+    <button class="back-btn" id="itemBackBtn">← Back</button>
     <h2 id="itemTitle"></h2>
     <button class="btn-s" onclick="openItemMenu()">⋯</button>
   </div>
@@ -205,27 +214,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- Add/Edit project -->
 <div class="modal-bg" id="projectModal">
   <div class="modal">
-    <h2 id="projectModalTitle">添加片单</h2>
-    <label>片单图标</label>
-    <label class="file-label" id="projectIconLabel">点击选择图片</label>
+    <h2 id="projectModalTitle">New List</h2>
+    <label>Cover</label>
+    <label class="file-label" id="projectIconLabel">Select</label>
     <input type="file" accept="image/*" id="projectIconInput" onchange="previewProjectIcon(this)" style="display:none">
     <img id="projectIconPreview" class="img-preview" style="display:none">
-    <label>片单名</label>
-    <input type="text" id="inputProjectName" placeholder="如: 漫威宇宙、2024年电影">
-    <label>分类（选填）</label>
+    <label>Name</label>
+    <input type="text" id="inputProjectName">
+    <label>Shelf</label>
+    <input type="text" id="inputProjectShelf">
+    <label>Sections</label>
     <div class="section-list" id="sectionList"></div>
-    <button class="add-section-btn" onclick="addSectionRow()">+ 添加分类</button>
-    <label>备注（选填）</label>
-    <textarea id="inputProjectNote" placeholder="备注信息…"></textarea>
-    <label>值班</label>
-    <div class="duty-row" id="dutyRow"></div>
-    <div class="duty-custom-row" id="dutyCustomRow" style="display:none">
-      <input type="text" id="dutyCustomName" placeholder="自定义名称">
+    <button class="add-section-btn" onclick="addSectionRow()">+ Section</button>
+    <label>Notes</label>
+    <textarea id="inputProjectNote"></textarea>
+    <label>Label</label>
+    <div class="duty-custom-row" id="dutyCustomRow" style="display:flex">
+      <input type="text" id="dutyCustomName">
       <div class="color-picker-row" id="colorPicker"></div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-cancel" onclick="closeModal('projectModal')">取消</button>
-      <button class="btn btn-primary" onclick="saveProject()">保存</button>
+      <button class="btn btn-cancel" onclick="closeModal('projectModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveProject()">Save</button>
     </div>
   </div>
 </div>
@@ -233,29 +243,29 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- Add/Edit item -->
 <div class="modal-bg" id="itemModal">
   <div class="modal">
-    <h2 id="itemModalTitle">添加影片</h2>
+    <h2 id="itemModalTitle">New Title</h2>
     <div id="itemSectionField" style="display:none">
-      <label>所属分类</label>
+      <label>Section</label>
       <select id="inputItemSection"></select>
     </div>
-    <label>片名</label>
-    <input type="text" id="inputItemName" placeholder="影片/剧集名称">
-    <label>封面海报</label>
-    <label class="file-label" id="itemFileLabel">点击选择图片</label>
+    <label>Title</label>
+    <input type="text" id="inputItemName">
+    <label>Cover</label>
+    <label class="file-label" id="itemFileLabel">Select</label>
     <input type="file" accept="image/*" id="itemImgInput" onchange="previewItemImg(this)" style="display:none">
     <img id="itemImgPreview" class="img-preview" style="display:none">
-    <label>上映日期（选填）</label>
-    <input type="text" id="inputItemRelease" placeholder="如: 2024, 2024-03-15">
-    <label>出品方（选填）</label>
-    <input type="text" id="inputItemStudio" placeholder="如: 东宝, Marvel Studios">
-    <label>时长/集数（选填）</label>
-    <input type="text" id="inputItemDuration" placeholder="如: 148分钟, 全12集">
-    <label>备注（选填）</label>
-    <textarea id="inputItemNote" placeholder="导演、类型、其他…"></textarea>
+    <label>Release</label>
+    <input type="text" id="inputItemRelease">
+    <label>Studio</label>
+    <input type="text" id="inputItemStudio">
+    <label>Duration</label>
+    <input type="text" id="inputItemDuration">
+    <label>Notes</label>
+    <textarea id="inputItemNote"></textarea>
     <div class="btn-row">
-      <button class="btn btn-cancel" onclick="closeModal('itemModal')">取消</button>
-      <button class="btn btn-del" id="itemDeleteBtn" style="display:none" onclick="deleteEditingItem()">删除</button>
-      <button class="btn btn-primary" onclick="saveItem()">保存</button>
+      <button class="btn btn-cancel" onclick="closeModal('itemModal')">Cancel</button>
+      <button class="btn btn-del" id="itemDeleteBtn" style="display:none" onclick="deleteEditingItem()">Delete</button>
+      <button class="btn btn-primary" onclick="saveItem()">Save</button>
     </div>
   </div>
 </div>
@@ -263,20 +273,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- Check-in modal -->
 <div class="modal-bg" id="checkinModal">
   <div class="modal">
-    <h2 id="checkinModalTitle">打卡记录</h2>
-    <label>片名</label>
-    <input type="text" id="checkinItemName" placeholder="影片名称">
-    <label>观看日期</label>
-    <input type="date" id="checkinDate">
-    <label>感想（选填）</label>
-    <textarea id="checkinNote" maxlength="500" placeholder="看完有什么想说的…" style="min-height:60px"></textarea>
-    <label>配图（选填）</label>
-    <label class="file-label" id="checkinImgLabel">点击选择图片</label>
+    <h2 id="checkinModalTitle">Check In</h2>
+    <label>Title</label>
+    <input type="text" id="checkinItemName">
+    <label>Date</label>
+    <div style="display:flex;gap:6px;align-items:center">
+      <input type="date" id="checkinDate" style="flex:1">
+      <button class="btn-s" type="button" id="monthOnlyBtn" onclick="toggleMonthOnly()" title="Month only" style="white-space:nowrap;font-size:10px">≈ Month</button>
+    </div>
+    <input type="hidden" id="monthOnlyFlag" value="0">
+    <label>Notes</label>
+    <textarea id="checkinNote" maxlength="500" style="min-height:60px"></textarea>
+    <label>Image</label>
+    <label class="file-label" id="checkinImgLabel">Select</label>
     <input type="file" accept="image/*" id="checkinImgInput" onchange="previewCheckinImg(this)" style="display:none">
     <img id="checkinImgPreview" class="img-preview" style="display:none">
     <div class="btn-row">
-      <button class="btn btn-cancel" onclick="closeModal('checkinModal')">取消</button>
-      <button class="btn btn-primary" id="checkinSubmitBtn" onclick="saveCheckin()">打卡</button>
+      <button class="btn btn-cancel" onclick="closeModal('checkinModal')">Cancel</button>
+      <button class="btn btn-primary" id="checkinSubmitBtn" onclick="saveCheckin()">Check In</button>
     </div>
   </div>
 </div>
@@ -284,14 +298,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- Add Section modal -->
 <div class="modal-bg" id="addSectionModal">
   <div class="modal">
-    <h2>追加分类</h2>
-    <label>名称</label>
-    <input type="text" id="inputSectionName" placeholder="如: 第二季、番外篇" maxlength="40">
-    <label>影片数量</label>
-    <input type="number" id="inputSectionCount" placeholder="数量" min="1" max="99" value="">
+    <h2>New Section</h2>
+    <label>Name</label>
+    <input type="text" id="inputSectionName" maxlength="40">
+    <label>Title count</label>
+    <input type="number" id="inputSectionCount" min="1" max="99" value="">
     <div class="btn-row">
-      <button class="btn btn-cancel" onclick="closeModal('addSectionModal')">取消</button>
-      <button class="btn btn-primary" onclick="saveAddSection()">添加</button>
+      <button class="btn btn-cancel" onclick="closeModal('addSectionModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveAddSection()">Add</button>
     </div>
   </div>
 </div>
@@ -299,13 +313,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- Quick section edit -->
 <div class="modal-bg" id="sectionQuickModal">
   <div class="modal">
-    <h2>编辑分类</h2>
-    <label>分类名</label>
-    <input type="text" id="quickSectionName" maxlength="40" placeholder="分类名称" onkeydown="if(event.key==='Enter')saveSectionQuickEdit()">
+    <h2>Edit Section</h2>
+    <label>Name</label>
+    <input type="text" id="quickSectionName" maxlength="40" onkeydown="if(event.key==='Enter')saveSectionQuickEdit()">
     <div class="btn-row">
-      <button class="btn btn-del" onclick="deleteSectionQuickEdit()">删除</button>
-      <button class="btn btn-cancel" onclick="closeModal('sectionQuickModal')">取消</button>
-      <button class="btn btn-primary" onclick="saveSectionQuickEdit()">保存</button>
+      <button class="btn btn-del" onclick="deleteSectionQuickEdit()">Delete</button>
+      <button class="btn btn-cancel" onclick="closeModal('sectionQuickModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSectionQuickEdit()">Save</button>
     </div>
   </div>
 </div>
@@ -316,35 +330,35 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <div id="checkinCharVisual"></div>
     <div class="checkin-char-name" id="checkinCharName"></div>
     <div class="checkin-char-line" id="checkinCharLine"></div>
-    <button class="checkin-ok" onclick="closeCheckinPopup()">好的</button>
+    <button class="checkin-ok" onclick="closeCheckinPopup()">OK</button>
   </div>
 </div>
 <div class="modal-bg" id="backupModal">
   <div class="modal">
-    <h2>影视记录备份</h2>
+    <h2>Cinema Backup</h2>
     <div style="padding:8px 0">
-      <button class="btn btn-cancel" style="margin-bottom:8px;width:100%" onclick="exportData()">导出数据</button>
+      <button class="btn btn-cancel" style="margin-bottom:8px;width:100%" onclick="exportData()">Export</button>
       <button class="btn btn-cancel" style="width:100%;margin-bottom:8px" onclick="document.getElementById('importFile').click()">导入数据</button>
       <input type="file" id="importFile" accept=".json" onchange="importData(this)" style="display:none">
-      <button class="btn btn-cancel" style="width:100%" onclick="checkOrphanedCinemaAssets()">检查无引用图片</button>
+      <button class="btn btn-cancel" style="width:100%" onclick="checkOrphanedCinemaAssets()">Check unused images</button>
     </div>
-    <div class="btn-row"><button class="btn btn-cancel" onclick="closeModal('backupModal')">关闭</button></div>
+    <div class="btn-row"><button class="btn btn-cancel" onclick="closeModal('backupModal')">Close</button></div>
   </div>
 </div>
 <div class="confirm-bg" id="confirmBg"><div class="confirm-box"></div></div>
 <div class="action-sheet-bg" id="projectMenuSheet">
   <div class="action-sheet">
-    <button onclick="closeSheet('projectMenuSheet');openEditProject()">编辑片单</button>
-    <button class="del-as" onclick="closeSheet('projectMenuSheet');deleteProject()">删除片单</button>
-    <button class="cancel-as" onclick="closeSheet('projectMenuSheet')">取消</button>
+    <button onclick="closeSheet('projectMenuSheet');openEditProject()">Edit List</button>
+    <button class="del-as" onclick="closeSheet('projectMenuSheet');deleteProject()">Delete List</button>
+    <button class="cancel-as" onclick="closeSheet('projectMenuSheet')">Cancel</button>
   </div>
 </div>
 <div class="action-sheet-bg" id="itemMenuSheet">
   <div class="action-sheet">
-    <button onclick="closeSheet('itemMenuSheet');openEditItem()">编辑影片</button>
-    <button onclick="closeSheet('itemMenuSheet');if(getProject(curProjectId).items[curItemIdx].collected){uncollect();}else{openCheckin();}">打卡 / 取消打卡</button>
-    <button class="del-as" onclick="closeSheet('itemMenuSheet');deleteItem()">删除影片</button>
-    <button class="cancel-as" onclick="closeSheet('itemMenuSheet')">取消</button>
+    <button onclick="closeSheet('itemMenuSheet');openEditItem()">Edit Title</button>
+    <button onclick="closeSheet('itemMenuSheet');if(getProject(curProjectId).items[curItemIdx].collected){uncollect();}else{openCheckin();}">Check In / Undo</button>
+    <button class="del-as" onclick="closeSheet('itemMenuSheet');deleteItem()">Delete Title</button>
+    <button class="cancel-as" onclick="closeSheet('itemMenuSheet')">Cancel</button>
   </div>
 </div>
 
@@ -368,7 +382,7 @@ function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').
 /* ═══ DIALOGS ═══ */
 function customConfirm(msg,onYes,opts){
   const bg=document.getElementById('confirmBg'),box=bg.querySelector('.confirm-box');
-  const yesLabel=(opts&&opts.yes)||'确定',noLabel=(opts&&opts.no)||'取消',isDanger=opts&&opts.danger;
+  const yesLabel=(opts&&opts.yes)||'OK',noLabel=(opts&&opts.no)||'Cancel',isDanger=opts&&opts.danger;
   box.innerHTML=`<p>${msg}</p><div class="btn-row"><button class="btn btn-cancel" id="confirmNo">${esc(noLabel)}</button><button class="btn ${isDanger?'btn-del':'btn-primary'}" id="confirmYes">${esc(yesLabel)}</button></div>`;
   bg.classList.add('show');
   box.querySelector('#confirmYes').onclick=()=>{bg.classList.remove('show');onYes();};
@@ -379,7 +393,7 @@ let _toastTimer=null;
 function showToast(msg,ms){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(_toastTimer);_toastTimer=setTimeout(()=>el.classList.remove('show'),ms||2200);}
 function getProject(id){return projects.find(p=>p.id===id);}
 function projectStats(p){let t=0,c=0;(p.items||[]).forEach(item=>{t++;if(item.collected)c++;});return{total:t,collected:c};}
-function isGenericItemName(name){return !String(name||'').trim()||/^影片\d+$/.test(String(name).trim());}
+function isGenericItemName(name){return !String(name||'').trim()||/^Title \d+$/.test(String(name).trim());}
 function getItemDisplayName(p,item,idx){
   const name=String(item&&item.name||'').trim();
   if(!isGenericItemName(name))return name;
@@ -403,8 +417,8 @@ function returnToDetail(){
 }
 
 /* ═══ DUTY ═══ */
-const DUTY_PRESETS=[{type:'neal',name:'Neal',color:'#6B8AFF'},{type:'jane',name:'Jane',color:'#5BA66B'},{type:'will',name:'Will',color:'#D85A30'}];
-const CUSTOM_COLORS=['#9B8AE8','#D85A30','#E84A7A','#9B6BCC','#4AADE8','#5BA66B','#6B8AFF','#888'];
+const DUTY_PRESETS=[];
+const CUSTOM_COLORS=['#9B8AE8','#6B5ACD','#D85A30','#E84A7A','#E8B96A','#C7A24C','#9B6BCC','#4AADE8','#3A8DD4','#5BA66B','#3D8B50','#6B8AFF','#4A6AE0','#888','#B0805A','#4ECDC4'];
 let _dutyState={type:'',color:'#9B8AE8',name:''};
 
 const CHECKIN_LINES={
@@ -432,48 +446,76 @@ function showCheckinCelebration(duty){
 function closeCheckinPopup(){document.getElementById('checkinPopup').classList.remove('show');}
 
 function renderDutyRow(sel){
-  const row=document.getElementById('dutyRow');const t=(sel&&sel.type)||'';
-  let h=DUTY_PRESETS.map(d=>{const a=t===d.type;return`<button class="duty-opt ${a?'active':''}" style="border-color:${d.color};${a?'background:'+d.color+'15;color:'+d.color:''}" onclick="selectDuty('${d.type}')">${d.name}</button>`;}).join('');
-  h+=`<button class="duty-opt ${t==='custom'?'active':''}" style="${t==='custom'?'border-color:'+(sel.color||'#9B8AE8'):''}" onclick="selectDuty('custom')">其他</button>`;
-  row.innerHTML=h;
-  document.getElementById('dutyCustomRow').style.display=t==='custom'?'flex':'none';
-  if(t==='custom'){document.getElementById('dutyCustomName').value=(sel&&sel.name)||'';renderColorPicker((sel&&sel.color)||'#9B8AE8');}
+  document.getElementById('dutyCustomRow').style.display='flex';
+  document.getElementById('dutyCustomName').value=(sel&&sel.name)||'';
+  renderColorPicker((sel&&sel.color)||'#9B8AE8');
 }
 function renderColorPicker(ac){document.getElementById('colorPicker').innerHTML=CUSTOM_COLORS.map(c=>`<div class="color-swatch ${c===ac?'active':''}" style="background:${c}" onclick="pickColor('${c}')"></div>`).join('');}
-function selectDuty(type){if(type==='custom'){_dutyState.type='custom';renderDutyRow(_dutyState);}else{const pr=DUTY_PRESETS.find(d=>d.type===type);_dutyState={type,color:pr.color,name:pr.name};renderDutyRow(_dutyState);}}
+function selectDuty(type){}
 function pickColor(c){_dutyState.color=c;renderColorPicker(c);}
 
 /* ═══ PROJECT LIST ═══ */
 function renderProjects(){
   const list=document.getElementById('projectList');
-  let html=projects.sort((a,b)=>(a.order||0)-(b.order||0)).map(p=>{
-    const st=projectStats(p);const pct=st.total>0?Math.round(st.collected/st.total*100):0;
-    const done=st.collected>=st.total&&st.total>0;
-    const iconHtml=p.icon?`<img src="${p.icon}" alt="">`:`<div class="emoji-fb">🎬</div>`;
-    const duty=p.duty||{};const dc=duty.color||'#9B8AE8';
-    const dn=duty.type?DUTY_PRESETS.find(d=>d.type===duty.type)?.name||duty.name||'':duty.name||'';
-    const db=dn?`<span class="duty-badge" style="background:${dc}15;color:${dc}">${esc(dn)}</span>`:'';
-    const bs=dn?`border-left:3px solid ${dc}`:'';
-    const fs=dn?`background:linear-gradient(90deg,${dc},${dc}cc)`:'';
-    return`<div class="project-row" style="${bs}" data-id="${p.id}" onclick="handleProjectRowClick('${p.id}')">
-      <div class="project-icon-wrap">${iconHtml}</div>
-      <div class="project-row-body">
-        <div class="project-row-top"><span class="project-row-name">${esc(p.name)}</span>${db}${done?'<span class="project-complete-star">★</span>':''}</div>
-        <div class="project-row-meta"><span>${st.collected} / ${st.total}</span><div class="project-row-progress"><div class="project-row-fill" style="width:${pct}%;${fs}"></div></div><span class="project-row-pct">${pct}%</span></div>
-      </div>
-      <button class="project-delete-x" aria-label="删除" onclick="handleProjectDeleteClick(event,'${p.id}')">×</button>
+  const sorted=projects.sort((a,b)=>(a.order||0)-(b.order||0));
+  const ungrouped=sorted.filter(p=>!p.shelf);
+  const shelves={};const shelfOrder=[];
+  sorted.forEach(p=>{
+    if(!p.shelf)return;
+    if(!shelves[p.shelf]){shelves[p.shelf]=[];shelfOrder.push(p.shelf);}
+    shelves[p.shelf].push(p);
+  });
+  const collapsed=readJson('cinema_shelf_collapsed',{});
+  let html='';
+  ungrouped.forEach(p=>{html+=renderProjectRow(p);});
+  shelfOrder.forEach(shelf=>{
+    const isColl=!!collapsed[shelf];
+    html+=`<div class="shelf-header${isColl?' collapsed':''}" onclick="toggleShelf('${esc(shelf)}')">
+      <div class="shelf-line"></div>
+      <span class="shelf-label">${esc(shelf)}</span>
+      <span class="shelf-arrow">▼</span>
+      <div class="shelf-line"></div>
     </div>`;
-  }).join('');
-  html+=`<div class="project-row-add" onclick="openAddProject()">+ 添加片单</div>`;
+    html+=`<div class="shelf-items${isColl?' collapsed':''}"><div>`;
+    shelves[shelf].forEach(p=>{html+=renderProjectRow(p);});
+    html+=`</div></div>`;
+  });
+  html+=`<div class="project-row-add" onclick="openAddProject()">New List</div>`;
   list.innerHTML=html;initProjectDrag();
 }
+function renderProjectRow(p){
+  const st=projectStats(p);const pct=st.total>0?Math.round(st.collected/st.total*100):0;
+  const done=st.collected>=st.total&&st.total>0;
+  const iconHtml=p.icon?`<img src="${p.icon}" alt="">`:`<div class="emoji-fb">🎬</div>`;
+  const duty=p.duty||{};const dc=duty.color||'#9B8AE8';
+  const dn=duty.name||'';
+  const db=dn?`<span class="duty-badge" style="background:${dc}15;color:${dc}">${esc(dn)}</span>`:'';
+  const bs=dn?`border-left:3px solid ${dc}`:'';
+  const fs=dn?`background:linear-gradient(90deg,${dc},${dc}cc)`:'';
+  return`<div class="project-row" style="${bs}" data-id="${p.id}" onclick="handleProjectRowClick('${p.id}')">
+    <div class="project-icon-wrap">${iconHtml}</div>
+    <div class="project-row-body">
+      <div class="project-row-top"><span class="project-row-name">${esc(p.name)}</span>${db}${done?'<span class="project-complete-star">★</span>':''}</div>
+      <div class="project-row-meta"><span>${st.collected} / ${st.total}</span><div class="project-row-progress"><div class="project-row-fill" style="width:${pct}%;${fs}"></div></div><span class="project-row-pct">${pct}%</span></div>
+    </div>
+    <button class="project-delete-x" aria-label="Delete" onclick="handleProjectDeleteClick(event,'${p.id}')">×</button>
+  </div>`;
+}
+function toggleShelf(name){
+  const collapsed=readJson('cinema_shelf_collapsed',{});
+  collapsed[name]=!collapsed[name];
+  writeJson('cinema_shelf_collapsed',collapsed);
+  renderProjects();
+}
+function readJson(k,d){try{return JSON.parse(localStorage.getItem(k))||d;}catch(e){return d;}}
+function writeJson(k,v){localStorage.setItem(k,JSON.stringify(v));}
 
 /* ── Project drag/arrange ── */
 let projectArrangeMode=false,projectClickSuppressed=0,projectDeleteArmedAt=0,projectGestureBound=false,projectPressState=null;
 function setProjectArrangeMode(a){projectArrangeMode=!!a;document.getElementById('viewHome').classList.toggle('project-arrange-mode',projectArrangeMode);if(a){projectDeleteArmedAt=Date.now()+500;projectClickSuppressed=Date.now()+700;}else{projectDeleteArmedAt=0;projectClickSuppressed=Date.now()+400;clearProjectPress(false);}}
 function handleProjectRowClick(id){if(projectArrangeMode||Date.now()<projectClickSuppressed)return;openProject(id);}
 function handleProjectDeleteClick(e,id){e.preventDefault();e.stopPropagation();if(!projectArrangeMode||Date.now()<projectDeleteArmedAt)return;deleteProjectById(id);}
-function deleteProjectById(id){const p=projects.find(pr=>pr.id===id);customConfirm(`删除「${esc(p?p.name:'片单')}」？所有影片和打卡记录都会消失。`,()=>{if(curProjectId===id){curProjectId=null;curItemIdx=null;setItemArrangeMode(false);switchView('viewHome');}projects=projects.filter(pr=>pr.id!==id);save();renderProjects();if(!projects.length)setProjectArrangeMode(false);},{yes:'删除',danger:true});}
+function deleteProjectById(id){const p=projects.find(pr=>pr.id===id);customConfirm(`Delete "${esc(p?p.name:'list')}"? All titles and check-in data will be lost.`,()=>{if(curProjectId===id){curProjectId=null;curItemIdx=null;setItemArrangeMode(false);switchView('viewHome');}projects=projects.filter(pr=>pr.id!==id);save();renderProjects();if(!projects.length)setProjectArrangeMode(false);},{yes:'Delete',danger:true});}
 function initProjectDrag(){
   if(projectGestureBound)return;projectGestureBound=true;
   const list=document.getElementById('projectList');
@@ -497,14 +539,14 @@ function commitProjectDrag(state){
 
 /* ═══ PROJECT MODAL ═══ */
 let _sections=[],sectionDragBound=false,sectionPressState=null;
-function makeEmptyItem(n){return{id:gid(),name:'影片'+n,note:'',img:'',collected:false,collectedDate:null,checkinNote:'',checkinImg:'',releaseDate:'',studio:'',duration:''};}
+function makeEmptyItem(n){return{id:gid(),name:'Title '+n,note:'',img:'',collected:false,collectedDate:null,checkinNote:'',checkinImg:'',releaseDate:'',studio:'',duration:''};}
 function buildSectionDrafts(p){
   const src=p.sections&&p.sections.length?p.sections:[{name:'',count:p.items.length}];
   let off=0;const drafts=src.map(sec=>{const c=Math.max(0,parseInt(sec.count)||0);const d={name:sec.name||'',count:c,_items:p.items.slice(off,off+c)};off+=c;return d;});
   if(off<p.items.length){if(!drafts.length)drafts.push({name:'',count:0,_items:[]});const last=drafts[drafts.length-1];last._items.push(...p.items.slice(off));last.count=last._items.length;}
   return drafts;
 }
-function itemHasSavedContent(item){return !!(item&&(item.collected||item.img||item.note||item.checkinNote||item.checkinImg||item.releaseDate||item.studio||item.duration||(item.name&&!/^影片\d+$/.test(item.name))));}
+function itemHasSavedContent(item){return !!(item&&(item.collected||item.img||item.note||item.checkinNote||item.checkinImg||item.releaseDate||item.studio||item.duration||(item.name&&!/^Title \d+$/.test(item.name))));}
 function finalizeSectionDrafts(){
   const sections=[],items=[];let preserved=0;
   _sections.filter(s=>s.name||s.count>0||(s._items&&s._items.length)).forEach(sec=>{
@@ -513,15 +555,15 @@ function finalizeSectionDrafts(){
     while(group.length<req)group.push(makeEmptyItem(items.length+group.length+1));
     sections.push({name:sec.name||'',count:group.length});items.push(...group);
   });
-  items.forEach((item,i)=>{if(/^影片\d+$/.test(item.name||''))item.name='影片'+(i+1);});
+  items.forEach((item,i)=>{if(/^Title \d+$/.test(item.name||''))item.name='Title '+(i+1);});
   return{sections,items,preserved};
 }
 function renderSectionList(){
   const list=document.getElementById('sectionList');
   if(!_sections.length){list.innerHTML='<div style="font-size:11px;color:#ccc;padding:8px 0">点下方"添加分类"设置分组</div>';return;}
   list.innerHTML=_sections.map((s,i)=>`<div class="section-row" data-sec-idx="${i}">
-    <input type="text" value="${esc(s.name)}" placeholder="分类名称" onchange="_sections[${i}].name=this.value">
-    <input type="number" value="${s.count||0}" min="0" max="99" style="width:50px" placeholder="数量" onchange="_sections[${i}].count=Math.max(0,parseInt(this.value)||0)">
+    <input type="text" value="${esc(s.name)}" onchange="_sections[${i}].name=this.value">
+    <input type="number" value="${s.count||0}" min="0" max="99" style="width:50px" onchange="_sections[${i}].count=Math.max(0,parseInt(this.value)||0)">
     <button class="del-sec" onclick="_sections.splice(${i},1);renderSectionList()">×</button>
   </div>`).join('');
   initSectionDrag();
@@ -574,17 +616,17 @@ function clearSectionPress(){
 }
 function openAddProject(){
   editProjectId=null;projectTempIcon='';
-  document.getElementById('projectModalTitle').textContent='添加片单';
-  document.getElementById('inputProjectName').value='';document.getElementById('inputProjectNote').value='';
+  document.getElementById('projectModalTitle').textContent='New List';
+  document.getElementById('inputProjectName').value='';document.getElementById('inputProjectNote').value='';document.getElementById('inputProjectShelf').value='';
   document.getElementById('projectIconPreview').style.display='none';
-  _sections=[{name:'',count:0,_items:[]}];_dutyState={type:'',color:'#9B8AE8',name:''};
+  _sections=[{name:'',count:0,_items:[]}];_dutyState={type:'custom',color:'#9B8AE8',name:''};
   renderSectionList();renderDutyRow(_dutyState);openModal('projectModal');
 }
 function openEditProject(){
   const p=getProject(curProjectId);if(!p)return;
   editProjectId=p.id;projectTempIcon=p.icon||'';
-  document.getElementById('projectModalTitle').textContent='编辑片单';
-  document.getElementById('inputProjectName').value=p.name;document.getElementById('inputProjectNote').value=p.note||'';
+  document.getElementById('projectModalTitle').textContent='Edit List';
+  document.getElementById('inputProjectName').value=p.name;document.getElementById('inputProjectNote').value=p.note||'';document.getElementById('inputProjectShelf').value=p.shelf||'';
   if(p.icon){document.getElementById('projectIconPreview').src=p.icon;document.getElementById('projectIconPreview').style.display='block';}else document.getElementById('projectIconPreview').style.display='none';
   _sections=buildSectionDrafts(p);_dutyState=p.duty?{...p.duty}:{type:'',color:'#9B8AE8',name:''};
   renderSectionList();renderDutyRow(_dutyState);openModal('projectModal');
@@ -596,14 +638,15 @@ function previewProjectIcon(input){
 async function saveProject(){
   const name=document.getElementById('inputProjectName').value.trim();if(!name)return;
   const note=document.getElementById('inputProjectNote').value.trim();
-  let duty={..._dutyState};if(duty.type==='custom')duty.name=document.getElementById('dutyCustomName').value.trim();
+  const shelf=document.getElementById('inputProjectShelf').value.trim();
+  let duty={..._dutyState};duty.name=document.getElementById('dutyCustomName').value.trim();duty.type='custom';
   const stableProjectId=editProjectId||gid();
   let icon=projectTempIcon;
   if(icon&&icon.startsWith('data:')&&window.CloudSync)try{icon=await CloudSync.uploadDataUrl(icon,`cinema/${stableProjectId}_icon.jpg`);}catch(e){}
   const fin=finalizeSectionDrafts();
-  if(editProjectId){const p=getProject(editProjectId);if(p){p.name=name;p.note=note;p.duty=duty;if(icon)p.icon=icon;p.sections=fin.sections;p.items=fin.items;p.count=fin.items.length;}}
-  else projects.push({id:stableProjectId,name,note,icon:icon||'',count:fin.items.length,duty,items:fin.items,sections:fin.sections,order:projects.length});
-  save();closeModal('projectModal');if(fin.preserved)showToast(`已保留 ${fin.preserved} 个有记录的影片`);if(editProjectId)renderDetail();renderProjects();
+  if(editProjectId){const p=getProject(editProjectId);if(p){p.name=name;p.note=note;p.shelf=shelf;p.duty=duty;if(icon)p.icon=icon;p.sections=fin.sections;p.items=fin.items;p.count=fin.items.length;}}
+  else projects.push({id:stableProjectId,name,note,shelf,icon:icon||'',count:fin.items.length,duty,items:fin.items,sections:fin.sections,order:projects.length});
+  save();closeModal('projectModal');if(fin.preserved)showToast(`Preserved ${fin.preserved} titles with data`);if(editProjectId)renderDetail();renderProjects();
 }
 function deleteProject(){deleteProjectById(curProjectId);}
 
@@ -642,7 +685,7 @@ function renderItemRows(items,globalOffset){
     return`<div class="item-row" data-index="${idx}" onclick="handleItemClick(${idx})">
       <div class="item-poster-wrap">${posterHtml}</div>
       <div class="item-row-body">
-        <div class="item-row-name">${displayName?esc(displayName):('影片 '+(idx+1))}</div>
+        <div class="item-row-name">${displayName?esc(displayName):('Title '+(idx+1))}</div>
         ${subHtml?`<div class="item-row-sub">${subHtml}</div>`:''}
       </div>
       <div class="item-row-check ${item.collected?'done':''}">${item.collected?'✓':''}</div>
@@ -659,7 +702,7 @@ function moveGridItem(fromIdx,toIdx){
   const fromSec=getItemSectionIndex(p,fromIdx),toSec=getItemSectionIndex(p,toIdx);
   if(fromSec>=0&&toSec>=0&&fromSec!==toSec){p.sections[fromSec].count=Math.max(0,(parseInt(p.sections[fromSec].count)||0)-1);p.sections[toSec].count=(parseInt(p.sections[toSec].count)||0)+1;}
   const scroll=currentScrollY(),item=p.items.splice(fromIdx,1)[0];p.items.splice(toIdx,0,item);
-  p.items.forEach((it,i)=>{if(/^影片\d+$/.test(it.name||''))it.name='影片'+(i+1);});
+  p.items.forEach((it,i)=>{if(/^Title \d+$/.test(it.name||''))it.name='Title '+(i+1);});
   save();renderDetail(p);restoreDetailScroll(scroll);return true;
 }
 function clearItemArrangeGesture(){
@@ -689,13 +732,13 @@ function setupItemArrangeGestures(){
 }
 function deleteGridItem(idx){
   const p=getProject(curProjectId);if(!p||!p.items[idx])return;
-  const item=p.items[idx];const label=isGenericItemName(item.name)?`第 ${idx+1} 部`:`「${esc(item.name)}」`;
+  const item=p.items[idx];const label=isGenericItemName(item.name)?`Title ${idx+1}`:`「${esc(item.name)}」`;
   customConfirm(`删除${label}？打卡记录也会一起删除。`,()=>{
     const si=getItemSectionIndex(p,idx);if(si>=0)p.sections[si].count=Math.max(0,(parseInt(p.sections[si].count)||0)-1);
     const scroll=currentScrollY();p.items.splice(idx,1);p.count=p.items.length;
-    p.items.forEach((it,i)=>{if(/^影片\d+$/.test(it.name||''))it.name='影片'+(i+1);});
+    p.items.forEach((it,i)=>{if(/^Title \d+$/.test(it.name||''))it.name='Title '+(i+1);});
     curItemIdx=null;editItemIdx=null;save();renderDetail(p);restoreDetailScroll(scroll);
-  },{yes:'删除',danger:true});
+  },{yes:'Delete',danger:true});
 }
 
 /* ── Section helpers ── */
@@ -710,12 +753,12 @@ function deleteSectionQuickEdit(){
     p.items.splice(start,Math.min(count,Math.max(0,p.items.length-start)));p.sections.splice(si,1);
     p.count=p.items.length;curItemIdx=null;editItemIdx=null;editSectionIdx=null;
     save();closeModal('sectionQuickModal');renderDetail(p);
-  },{yes:'删除',danger:true});
+  },{yes:'Delete',danger:true});
 }
 function openAddSection(){const p=getProject(curProjectId);if(!p)return;document.getElementById('inputSectionName').value='';document.getElementById('inputSectionCount').value='';openModal('addSectionModal');requestAnimationFrame(()=>document.getElementById('inputSectionName').focus());}
 function saveAddSection(){
   const p=getProject(curProjectId);if(!p)return;const name=document.getElementById('inputSectionName').value.trim();const count=parseInt(document.getElementById('inputSectionCount').value)||0;
-  if(count<=0){showToast('请输入影片数量');return;}if(!p.sections)p.sections=[];
+  if(count<=0){showToast('请输入影片Count');return;}if(!p.sections)p.sections=[];
   p.sections.push({name,count});for(let i=0;i<count;i++)p.items.push(makeEmptyItem(p.items.length+1));
   p.count=(p.count||0)+count;save();closeModal('addSectionModal');renderDetail(p);
 }
@@ -750,16 +793,16 @@ function openItem(idx){
   if(item.studio)infoParts.push(esc(item.studio));
   if(item.duration)infoParts.push(esc(item.duration));
   if(infoParts.length)html+=`<div class="card-detail-info">${infoParts.map(t=>'<span class="info-tag">'+t+'</span>').join('')}</div>`;
-  if(item.collected&&item.collectedDate)html+=`<div class="card-detail-date">观看于 ${esc(item.collectedDate)}</div>`;
+  if(item.collected&&item.collectedDate)html+=`<div class="card-detail-date">Watched ${esc(item.collectedDate)}</div>`;
   if(item.note)html+=`<div class="card-detail-item-note"><span class="card-detail-item-note-label">影片备注</span>${esc(item.note)}</div>`;
   if(item.collected){
     const noteText=item.checkinNote||'';
-    html+=`<div class="card-detail-note" id="inlineNote" title="双击编辑感想" style="margin-top:8px;${noteText?'':'color:#ccc;font-style:italic'}">${noteText?esc(noteText):'双击添加感想…'}</div>`;
+    html+=`<div class="card-detail-note" id="inlineNote" title="Double-click to edit" style="margin-top:8px;${noteText?'':'color:#ccc;font-style:italic'}">${noteText?esc(noteText):'add notes...'}</div>`;
   }
   if(item.checkinImg)html+=`<div class="card-detail-media" style="margin-top:12px;border-radius:8px"><img class="card-detail-img" src="${item.checkinImg}"></div>`;
   html+='</div></div>';
   html+=item.collected
-    ?'<div class="card-actions"><button class="btn btn-cancel" onclick="uncollect()">取消打卡</button></div>'
+    ?'<div class="card-actions"><button class="btn btn-cancel" onclick="uncollect()">Undo Check In</button></div>'
     :'<div class="card-actions"><button class="btn btn-primary" onclick="openCheckin()">打卡</button></div>';
   document.getElementById('itemContent').innerHTML=html;
   const nameEl=document.getElementById('inlineName');if(nameEl)nameEl.addEventListener('dblclick',()=>startInlineEdit('inlineName','name'));
@@ -773,7 +816,7 @@ function startInlineEdit(elId,field){
   el.focus();const range=document.createRange();range.selectNodeContents(el);const sel=window.getSelection();sel.removeAllRanges();sel.addRange(range);
   function commit(){el.contentEditable='false';const val=el.textContent.trim();item[field]=val;
     if(field==='name'){document.getElementById('itemTitle').textContent=getItemDisplayName(p,item,curItemIdx);if(!val)el.textContent=getItemDisplayName(p,item,curItemIdx);}
-    if(field==='checkinNote'&&!val){el.textContent='双击添加感想…';el.style.color='#ccc';el.style.fontStyle='italic';}
+    if(field==='checkinNote'&&!val){el.textContent='add notes...';el.style.color='#ccc';el.style.fontStyle='italic';}
     save();el.removeEventListener('blur',commit);el.removeEventListener('keydown',onKey);}
   function onKey(e){if(e.key==='Enter'){e.preventDefault();el.blur();}}
   el.addEventListener('blur',commit);el.addEventListener('keydown',onKey);
@@ -797,7 +840,8 @@ async function saveCheckin(){
   const fromItemView=document.getElementById('viewItem').classList.contains('active');
   const checkinName=document.getElementById('checkinItemName').value.trim();
   if(checkinName)item.name=checkinName;
-  const dateVal=document.getElementById('checkinDate').value||new Date().toISOString().slice(0,10);
+  let dateVal=document.getElementById('checkinDate').value||new Date().toISOString().slice(0,10);
+  if(document.getElementById('monthOnlyFlag').value==='1')dateVal=dateVal.slice(0,7);
   const noteVal=document.getElementById('checkinNote').value.trim();
   const preview=document.getElementById('checkinImgPreview');
   let cImg=preview.style.display!=='none'?(preview.dataset.source||''):'';
@@ -807,6 +851,12 @@ async function saveCheckin(){
   save();closeModal('checkinModal');
   if(fromItemView)openItem(curItemIdx);else returnToDetail();
   showCheckinCelebration(p.duty);
+}
+function toggleMonthOnly(){
+  const flag=document.getElementById('monthOnlyFlag');
+  const btn=document.getElementById('monthOnlyBtn');
+  if(flag.value==='0'){flag.value='1';btn.style.borderColor='#9B8AE8';btn.style.color='#9B8AE8';}
+  else{flag.value='0';btn.style.borderColor='#ddd';btn.style.color='#999';}
 }
 function uncollect(){
   const p=getProject(curProjectId);if(!p||curItemIdx===null)return;const item=p.items[curItemIdx];
@@ -825,7 +875,7 @@ function renderItemSectionSelect(p,selectedIdx){
 function getSelectedItemSection(p){if(!p.sections||!p.sections.length)return -1;const idx=parseInt(document.getElementById('inputItemSection').value);return Number.isInteger(idx)&&idx>=0&&idx<p.sections.length?idx:0;}
 function openAddItem(){
   const p=getProject(curProjectId);if(!p)return;editItemIdx=null;
-  document.getElementById('itemModalTitle').textContent='添加影片';
+  document.getElementById('itemModalTitle').textContent='New Title';
   document.getElementById('inputItemName').value='';document.getElementById('inputItemNote').value='';
   document.getElementById('inputItemRelease').value='';document.getElementById('inputItemStudio').value='';document.getElementById('inputItemDuration').value='';
   document.getElementById('itemImgPreview').style.display='none';delete document.getElementById('itemImgPreview').dataset.source;
@@ -834,7 +884,7 @@ function openAddItem(){
 }
 function openEditItem(){
   const p=getProject(curProjectId);if(!p||curItemIdx===null)return;const item=p.items[curItemIdx];editItemIdx=curItemIdx;
-  document.getElementById('itemModalTitle').textContent='编辑影片';
+  document.getElementById('itemModalTitle').textContent='Edit Title';
   document.getElementById('inputItemName').value=item.name||'';document.getElementById('inputItemNote').value=item.note||'';
   document.getElementById('inputItemRelease').value=item.releaseDate||'';document.getElementById('inputItemStudio').value=item.studio||'';document.getElementById('inputItemDuration').value=item.duration||'';
   if(item.img){const pr=document.getElementById('itemImgPreview');pr.src=item.img;pr.dataset.source=item.img;pr.style.display='block';}
@@ -876,7 +926,7 @@ function deleteItem(){
     const si=getItemSectionIndex(p,curItemIdx);if(si>=0)p.sections[si].count=Math.max(0,(parseInt(p.sections[si].count)||0)-1);
     p.items.splice(curItemIdx,1);p.count=p.items.length;curItemIdx=null;editItemIdx=null;
     closeModal('itemModal');save();returnToDetail();
-  },{yes:'删除',danger:true});
+  },{yes:'Delete',danger:true});
 }
 
 /* ═══ IMAGE HELPERS ═══ */
