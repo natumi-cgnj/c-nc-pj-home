@@ -101,6 +101,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .cat-section-div .section-line{flex:1;height:1px;background:#e8e8e8}
 .cat-section-div .section-label{font-size:11px;color:#bbb}
 .detail-add-row{display:flex;gap:8px;padding:12px 20px;margin-top:8px}
+@media (min-width:700px){
+  #catalogDetailGrid,#refDetailGrid{width:100%;max-width:640px;margin-left:auto;margin-right:auto}
+  #refDetailGrid{grid-template-columns:repeat(5,minmax(0,1fr))}
+  #viewCatalogDetail .detail-add-row,#viewRefDetail .detail-add-row{max-width:600px;margin-left:auto;margin-right:auto}
+  .ref-comment-wrap{width:100%;max-width:640px;margin-left:auto;margin-right:auto}
+}
 
 /* Modals */
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:200;display:none;align-items:flex-end;justify-content:center}
@@ -201,7 +207,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <button class="btn-s" onclick="openEditRef()">Edit</button>
   </div>
   <div class="catalog-grid" id="refDetailGrid"></div>
-  <div style="padding:16px 20px">
+  <div class="ref-comment-wrap" style="padding:16px 20px">
     <textarea id="refComment" style="width:100%;min-height:80px;border:1px solid #e8e8e8;border-radius:10px;padding:12px;font-size:12px;font-family:inherit;background:#fafafa;resize:none;color:#666" onchange="saveRefComment()"></textarea>
   </div>
   <div class="detail-add-row">
