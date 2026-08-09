@@ -372,7 +372,26 @@ const COLORS=['#C4A24C','#8B6B4A','#9B8AE8','#6B5ACD','#D85A30','#E84A7A','#E8B9
 let db={items:[],sections:[],catalogs:[],refs:[],sectionCollapsed:{},shelfCollapsed:{},refShelfCollapsed:{}};
 let curCatalogId=null,curRefId=null,editItemId=null,editCatalogId=null,editRefId=null,editCatItemIdx=null;
 
-function load(){try{const d=JSON.parse(localStorage.getItem(DB_KEY));if(d)db={items:d.items||[],sections:d.sections||[],catalogs:d.catalogs||[],refs:d.refs||[],sectionCollapsed:d.sectionCollapsed||{},shelfCollapsed:d.shelfCollapsed||{},refShelfCollapsed:d.refShelfCollapsed||{}};}catch(e){}}
+function load(){
+  try{const d=JSON.parse(localStorage.getItem(DB_KEY));if(d){db={items:d.items||[],sections:d.sections||[],catalogs:d.catalogs||[],refs:d.refs||[],sectionCollapsed:d.sectionCollapsed||{},shelfCollapsed:d.shelfCollapsed||{},refShelfCollapsed:d.refShelfCollapsed||{}};return;}}catch(e){}
+  // Migrate from old stationery_db if exists
+  try{
+    const old=JSON.parse(localStorage.getItem('stationery_db'));
+    if(old&&Array.isArray(old)&&old.length){
+      old.forEach(function(p){
+        const cat={id:p.id||gid(),name:p.name||'',shelf:'',icon:p.icon||'',note:p.note||'',label:{name:(p.duty&&p.duty.name)||'',color:(p.duty&&p.duty.color)||'#C4A24C'},sections:p.sections||[],items:(p.items||[]).map(function(it){return{id:it.id||gid(),name:it.name||'',img:it.img||'',collected:!!it.collected,locked:false,cost:0,note:it.note||''};}),order:db.catalogs.length};
+        db.catalogs.push(cat);
+        // Create items for collected entries
+        (p.items||[]).forEach(function(it,idx){
+          if(it.collected){
+            db.items.push({id:gid(),name:it.name||'',img:it.img||'',category:'long_term',status:it.inuseStatus?'active':'pending',assignment:null,cost:0,note:'',source:'catalog',catalogRef:{catalogId:cat.id,itemIdx:idx},disposition:it.inuseStatus||null,soldPrice:0,addedAt:Date.now()});
+          }
+        });
+      });
+      save();
+    }
+  }catch(e){}
+}
 function save(){localStorage.setItem(DB_KEY,JSON.stringify(db));}
 function gid(){return Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,6);}
 function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
