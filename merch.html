@@ -100,6 +100,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .cat-section-div{display:flex;align-items:center;gap:10px;padding:12px 20px 4px}
 .cat-section-div .section-line{flex:1;height:1px;background:#e8e8e8}
 .cat-section-div .section-label{font-size:11px;color:#bbb}
+.cat-section-div .section-label-editable{cursor:pointer;border-bottom:1px dashed transparent;transition:color .15s,border-color .15s}
+.cat-section-div .section-label-editable:hover{color:#888;border-bottom-color:#bbb}
 .detail-add-row{display:flex;gap:8px;padding:12px 20px;margin-top:8px}
 @media (min-width:700px){
   #catalogDetailGrid,#refDetailGrid{width:100%;max-width:640px;margin-left:auto;margin-right:auto}
@@ -370,6 +372,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 </div>
 </div>
 
+<!-- Catalog Section Quick Edit Modal -->
+<div class="modal-bg" id="catSectionQuickModal">
+<div class="modal">
+  <h2>Edit Section</h2>
+  <label>Name</label>
+  <input type="text" id="inputQuickCatSectionName">
+  <label>Count</label>
+  <input type="number" id="inputQuickCatSectionCount" min="0" max="999">
+  <label>Columns</label>
+  <select id="inputQuickCatSectionCols">
+    <option value="2">2 columns</option><option value="3">3 columns</option><option value="4">4 columns</option><option value="5">5 columns</option>
+  </select>
+  <div class="btn-row">
+    <button class="btn btn-cancel" onclick="closeModal('catSectionQuickModal')">Cancel</button>
+    <button class="btn btn-primary" onclick="saveCatalogSectionQuick()">Save</button>
+  </div>
+</div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="cloudinary-upload.js"></script>
@@ -379,7 +400,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 const DB_KEY='merch_db';
 const COLORS=['#D85A30','#B04A28','#9B8AE8','#6B5ACD','#993C1D','#E84A7A','#E8B96A','#9B6BCC','#4AADE8','#3A8DD4','#5BA66B','#3D8B50','#6B8AFF','#4A6AE0','#888','#4ECDC4'];
 let db={items:[],sections:[],catalogs:[],refs:[],sectionCollapsed:{},shelfCollapsed:{},refShelfCollapsed:{}};
-let curCatalogId=null,curRefId=null,editItemId=null,editCatalogId=null,editRefId=null,editCatItemIdx=null;
+let curCatalogId=null,curRefId=null,editItemId=null,editCatalogId=null,editRefId=null,editCatItemIdx=null,editCatSectionIdx=null;
 
 function load(){
   try{const d=JSON.parse(localStorage.getItem(DB_KEY));if(d){db={items:d.items||[],sections:d.sections||[],catalogs:d.catalogs||[],refs:d.refs||[],sectionCollapsed:d.sectionCollapsed||{},shelfCollapsed:d.shelfCollapsed||{},refShelfCollapsed:d.refShelfCollapsed||{}};return;}}catch(e){}
@@ -581,9 +602,9 @@ function openCatalogDetail(id){
   let html='';
   if(c.sections&&c.sections.length>1){
     let idx=0;
-    c.sections.forEach(sec=>{
+    c.sections.forEach((sec,sectionIdx)=>{
       const cols=Math.max(2,Math.min(5,sec.cols||3));
-      html+=`<div class="cat-section-div"><div class="section-line"></div><span class="section-label">${esc(sec.name)}</span><div class="section-line"></div></div>`;
+      html+=`<div class="cat-section-div"><div class="section-line"></div><span class="section-label section-label-editable" title="Double-click to edit section" ondblclick="event.stopPropagation();openCatalogSectionQuick(${sectionIdx})">${esc(sec.name)}</span><div class="section-line"></div></div>`;
       html+=`<div class="catalog-grid" style="grid-template-columns:repeat(${cols},1fr)">`;
       for(let i=0;i<sec.count;i++){
         if(idx<c.items.length)html+=renderCatItem(c.items[idx],idx);
@@ -605,7 +626,16 @@ function openCatalogDetail(id){
   document.querySelector('.tab-bar').style.display='none';
 }
 function renderCatItem(item,idx){
-  return`<div class="cat-item${item.collected?' collected':''}" onclick="toggleCollect(${idx})"><img src="${item.img||''}" onerror="this.parentElement.style.background='#e8e8e8'"><button class="cat-edit-btn" aria-label="Edit" onclick="event.stopPropagation();openEditCatItem(${idx})">⋯</button><div class="cat-name">${esc(item.name)}</div>${item.locked?'<div class="lock-icon">🔒</div>':''}${item.collected?'<div class="collect-dot"></div>':''}</div>`;
+  return`<div class="cat-item${item.collected?' collected':''}" onclick="handleCatalogItemClick(${idx})"><img src="${item.img||''}" onerror="this.parentElement.style.background='#e8e8e8'"><button class="cat-edit-btn" aria-label="Edit" onclick="event.stopPropagation();openEditCatItem(${idx})">⋯</button><div class="cat-name">${esc(item.name)}</div>${item.locked?'<div class="lock-icon">🔒</div>':''}${item.collected?'<div class="collect-dot"></div>':''}</div>`;
+}
+function isGenericCatalogItemName(name){return !String(name||'').trim()||/^Title \d+$/.test(String(name||'').trim());}
+function isBlankCatalogItem(item){
+  return!!item&&!item.collected&&!item.img&&!item.locked&&!(parseInt(item.cost)||0)&&!String(item.note||'').trim()&&isGenericCatalogItemName(item.name);
+}
+function handleCatalogItemClick(idx){
+  const c=db.catalogs.find(x=>x.id===curCatalogId);if(!c||!c.items[idx])return;
+  if(isBlankCatalogItem(c.items[idx])){openEditCatItem(idx);return;}
+  toggleCollect(idx);
 }
 function toggleCollect(idx){
   const c=db.catalogs.find(x=>x.id===curCatalogId);if(!c)return;
@@ -620,6 +650,38 @@ function toggleCollect(idx){
     db.items=db.items.filter(i=>!(i.catalogRef&&i.catalogRef.catalogId===curCatalogId&&i.catalogRef.itemIdx===idx&&i.status==='pending'));
   }
   save();openCatalogDetail(curCatalogId);
+}
+
+function openCatalogSectionQuick(idx){
+  const c=db.catalogs.find(x=>x.id===curCatalogId);const sec=c&&c.sections&&c.sections[idx];if(!sec)return;
+  editCatSectionIdx=idx;
+  document.getElementById('inputQuickCatSectionName').value=sec.name||'';
+  document.getElementById('inputQuickCatSectionCount').value=parseInt(sec.count)||0;
+  document.getElementById('inputQuickCatSectionCols').value=String(Math.max(2,Math.min(5,parseInt(sec.cols)||3)));
+  openModal('catSectionQuickModal');
+}
+function saveCatalogSectionQuick(){
+  const c=db.catalogs.find(x=>x.id===curCatalogId);const sec=c&&c.sections&&c.sections[editCatSectionIdx];if(!sec)return;
+  const name=document.getElementById('inputQuickCatSectionName').value.trim();if(!name){toast('Name required');return;}
+  const nextCount=Math.max(0,Math.min(999,parseInt(document.getElementById('inputQuickCatSectionCount').value)||0));
+  const nextCols=Math.max(2,Math.min(5,parseInt(document.getElementById('inputQuickCatSectionCols').value)||3));
+  const oldCount=parseInt(sec.count)||0;
+  let start=0;for(let i=0;i<editCatSectionIdx;i++)start+=parseInt(c.sections[i].count)||0;
+  if(nextCount<oldCount){
+    const removeAt=start+nextCount,removeCount=oldCount-nextCount;
+    if(c.items.slice(removeAt,removeAt+removeCount).some(item=>!isBlankCatalogItem(item))){toast('Clear filled titles before reducing count');return;}
+    c.items.splice(removeAt,removeCount);
+    db.items=db.items.filter(item=>!(item.catalogRef&&item.catalogRef.catalogId===curCatalogId&&item.catalogRef.itemIdx>=removeAt&&item.catalogRef.itemIdx<removeAt+removeCount));
+    db.items.forEach(item=>{if(item.catalogRef&&item.catalogRef.catalogId===curCatalogId&&item.catalogRef.itemIdx>=removeAt+removeCount)item.catalogRef.itemIdx-=removeCount;});
+  }else if(nextCount>oldCount){
+    const insertAt=start+oldCount,addCount=nextCount-oldCount,items=[];
+    for(let i=0;i<addCount;i++)items.push({id:gid(),name:'Title '+(insertAt+i+1),img:'',collected:false,locked:false,cost:0,note:''});
+    c.items.splice(insertAt,0,...items);
+    db.items.forEach(item=>{if(item.catalogRef&&item.catalogRef.catalogId===curCatalogId&&item.catalogRef.itemIdx>=insertAt)item.catalogRef.itemIdx+=addCount;});
+  }
+  sec.name=name;sec.count=nextCount;sec.cols=nextCols;
+  c.items.forEach((item,idx)=>{if(isBlankCatalogItem(item))item.name='Title '+(idx+1);});
+  editCatSectionIdx=null;save();closeModal('catSectionQuickModal');openCatalogDetail(curCatalogId);toast('Section updated');
 }
 
 /* ── Catalog CRUD ── */
