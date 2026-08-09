@@ -95,6 +95,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .cat-item.collected img{opacity:1}
 .cat-item .cat-name{position:absolute;bottom:0;left:0;right:0;font-size:9px;color:#fff;background:rgba(0,0,0,0.45);padding:3px 4px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cat-item .lock-icon{position:absolute;top:3px;right:3px;font-size:10px;opacity:0.6}
+.cat-edit-btn{position:absolute;top:3px;left:3px;width:22px;height:22px;border:0;border-radius:50%;background:rgba(0,0,0,.38);color:#fff;font:12px/22px inherit;text-align:center;cursor:pointer;z-index:2}
 .cat-item.collected .collect-dot{position:absolute;bottom:3px;right:3px;width:8px;height:8px;border-radius:50%;background:#5BA66B;border:1px solid #fff}
 .cat-section-div{display:flex;align-items:center;gap:10px;padding:12px 20px 4px}
 .cat-section-div .section-line{flex:1;height:1px;background:#e8e8e8}
@@ -357,6 +358,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <input type="hidden" id="catItemLocked" value="0">
   <div class="btn-row">
     <button class="btn btn-cancel" onclick="closeModal('catItemModal')">Cancel</button>
+    <button class="btn btn-del" id="catItemDeleteBtn" style="display:none" onclick="deleteCatItem()">Delete</button>
     <button class="btn btn-primary" onclick="saveCatItem()">Save</button>
   </div>
 </div>
@@ -368,29 +370,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <script>
 'use strict';
 const DB_KEY='doll_db2';
-const COLORS=['#9B8AE8','#6B5ACD','#9B8AE8','#6B5ACD','#D85A30','#E84A7A','#E8B96A','#9B6BCC','#4AADE8','#3A8DD4','#5BA66B','#3D8B50','#6B8AFF','#4A6AE0','#888','#4ECDC4'];
+const COLORS=['#9B8AE8','#6B5ACD','#D4537E','#B0805A','#D85A30','#E84A7A','#E8B96A','#9B6BCC','#4AADE8','#3A8DD4','#5BA66B','#3D8B50','#6B8AFF','#4A6AE0','#888','#4ECDC4'];
 let db={items:[],sections:[],catalogs:[],refs:[],sectionCollapsed:{},shelfCollapsed:{},refShelfCollapsed:{}};
 let curCatalogId=null,curRefId=null,editItemId=null,editCatalogId=null,editRefId=null,editCatItemIdx=null;
 
 function load(){
   try{const d=JSON.parse(localStorage.getItem(DB_KEY));if(d){db={items:d.items||[],sections:d.sections||[],catalogs:d.catalogs||[],refs:d.refs||[],sectionCollapsed:d.sectionCollapsed||{},shelfCollapsed:d.shelfCollapsed||{},refShelfCollapsed:d.refShelfCollapsed||{}};return;}}catch(e){}
-  // Migrate from old stationery_db if exists
-  try{
-    const old=JSON.parse(localStorage.getItem('bjd_db3'));
-    if(old&&Array.isArray(old)&&old.length){
-      old.forEach(function(p){
-        const cat={id:p.id||gid(),name:p.name||'',shelf:'',icon:p.icon||'',note:p.note||'',label:{name:(p.duty&&p.duty.name)||'',color:(p.duty&&p.duty.color)||'#9B8AE8'},sections:p.sections||[],items:(p.items||[]).map(function(it){return{id:it.id||gid(),name:it.name||'',img:it.img||'',collected:!!it.collected,locked:false,cost:0,note:it.note||''};}),order:db.catalogs.length};
-        db.catalogs.push(cat);
-        // Create items for collected entries
-        (p.items||[]).forEach(function(it,idx){
-          if(it.collected){
-            db.items.push({id:gid(),name:it.name||'',img:it.img||'',category:'long_term',status:it.inuseStatus?'active':'pending',assignment:null,cost:0,note:'',source:'catalog',catalogRef:{catalogId:cat.id,itemIdx:idx},disposition:it.inuseStatus||null,soldPrice:0,addedAt:Date.now()});
-          }
-        });
-      });
-      save();
-    }
-  }catch(e){}
 }
 function save(){localStorage.setItem(DB_KEY,JSON.stringify(db));}
 function gid(){return Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,6);}
@@ -452,6 +437,19 @@ function openAddItem(){
   document.getElementById('itemDeleteWrap').style.display='none';
   openModal('itemModal');
 }
+function openEditItem(id){
+  const item=db.items.find(i=>i.id===id);if(!item)return;
+  editItemId=id;
+  document.getElementById('itemModalTitle').textContent='Edit Item';
+  document.getElementById('inputItemName').value=item.name||'';
+  document.getElementById('inputItemCost').value=item.cost||'';
+  document.getElementById('inputItemNote').value=item.note||'';
+  const preview=document.getElementById('itemImgPreview');
+  if(item.img){preview.src=item.img;preview.style.display='block';}else{preview.removeAttribute('src');preview.style.display='none';}
+  pickCat(item.category||'long_term');
+  document.getElementById('itemDeleteWrap').style.display='block';
+  closeModal('actionModal');openModal('itemModal');
+}
 function pickCat(val){
   document.getElementById('itemCat').value=val;
   document.querySelectorAll('#catSelect .cat-opt').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase().replace('-','_')===val));
@@ -491,6 +489,7 @@ function openItemAction(id){
     html+=`<div id="soldInput" style="display:none;margin-top:8px"><label>Sold for</label><input type="number" id="soldPrice" min="0" step="1" style="width:100%;padding:10px;border:1px solid #e8e8e8;border-radius:8px;font-size:13px"><div class="btn-row" style="margin-top:8px"><button class="btn btn-primary" onclick="confirmSold('${id}')">Confirm</button></div></div>`;
     html+=`<div class="btn-row" style="margin-top:12px"><button class="btn btn-cancel" onclick="unassignItem('${id}')">Back to pending</button><button class="btn btn-cancel" onclick="closeModal('actionModal')">Close</button></div>`;
   }
+  html+=`<div style="text-align:center;margin-top:12px"><button class="btn btn-cancel" style="width:100%" onclick="openEditItem('${id}')">Edit Item</button></div>`;
   document.getElementById('actionTitle').textContent=item.name;
   document.getElementById('actionContent').innerHTML=html;
   openModal('actionModal');
@@ -598,7 +597,7 @@ function openCatalogDetail(id){
   document.querySelector('.tab-bar').style.display='none';
 }
 function renderCatItem(item,idx){
-  return`<div class="cat-item${item.collected?' collected':''}" onclick="toggleCollect(${idx})"><img src="${item.img||''}" onerror="this.parentElement.style.background='#e8e8e8'"><div class="cat-name">${esc(item.name)}</div>${item.locked?'<div class="lock-icon">🔒</div>':''}${item.collected?'<div class="collect-dot"></div>':''}</div>`;
+  return`<div class="cat-item${item.collected?' collected':''}" onclick="toggleCollect(${idx})"><img src="${item.img||''}" onerror="this.parentElement.style.background='#e8e8e8'"><button class="cat-edit-btn" aria-label="Edit" onclick="event.stopPropagation();openEditCatItem(${idx})">⋯</button><div class="cat-name">${esc(item.name)}</div>${item.locked?'<div class="lock-icon">🔒</div>':''}${item.collected?'<div class="collect-dot"></div>':''}</div>`;
 }
 function toggleCollect(idx){
   const c=db.catalogs.find(x=>x.id===curCatalogId);if(!c)return;
@@ -671,6 +670,36 @@ function openAddCatItem(){
   document.getElementById('inputCatItemName').value='';document.getElementById('inputCatItemCost').value='';
   document.getElementById('catItemImgPreview').style.display='none';
   document.getElementById('catItemLocked').value='0';document.getElementById('lockBtn').classList.remove('active');
+  document.getElementById('catItemDeleteBtn').style.display='none';
+  const c=db.catalogs.find(x=>x.id===curCatalogId);
+  const sectionField=document.getElementById('catItemSectionField');
+  const sectionSelect=document.getElementById('inputCatItemSection');
+  if(c&&c.sections&&c.sections.length){
+    sectionSelect.innerHTML=c.sections.map((s,i)=>`<option value="${i}">${esc(s.name||('Section '+(i+1)))}</option>`).join('');
+    sectionField.style.display='block';
+  }else sectionField.style.display='none';
+  openModal('catItemModal');
+}
+function getCatalogItemSectionIndex(c,itemIdx){
+  let end=0;
+  for(let i=0;i<(c.sections||[]).length;i++){
+    end+=parseInt(c.sections[i].count)||0;
+    if(itemIdx<end)return i;
+  }
+  return -1;
+}
+function openEditCatItem(idx){
+  const c=db.catalogs.find(x=>x.id===curCatalogId);if(!c||!c.items[idx])return;
+  const item=c.items[idx];editCatItemIdx=idx;
+  document.getElementById('catItemModalTitle').textContent='Edit Title';
+  document.getElementById('inputCatItemName').value=item.name||'';
+  document.getElementById('inputCatItemCost').value=item.cost||'';
+  const preview=document.getElementById('catItemImgPreview');
+  if(item.img){preview.src=item.img;preview.style.display='block';}else{preview.removeAttribute('src');preview.style.display='none';}
+  document.getElementById('catItemLocked').value=item.locked?'1':'0';
+  document.getElementById('lockBtn').classList.toggle('active',!!item.locked);
+  document.getElementById('catItemDeleteBtn').style.display='';
+  document.getElementById('catItemSectionField').style.display='none';
   openModal('catItemModal');
 }
 function toggleCatLock(){
@@ -685,8 +714,28 @@ function saveCatItem(){
   const locked=document.getElementById('catItemLocked').value==='1';
   const preview=document.getElementById('catItemImgPreview');
   const img=preview.style.display!=='none'?preview.src:'';
-  c.items.push({id:gid(),name,img,collected:false,locked,cost,note:''});
+  if(editCatItemIdx!==null){
+    const item=c.items[editCatItemIdx];if(item){item.name=name;item.cost=cost;item.locked=locked;if(img)item.img=img;}
+  }else{
+    const newItem={id:gid(),name,img,collected:false,locked,cost,note:''};
+    if(c.sections&&c.sections.length){
+      const sectionIdx=Math.max(0,parseInt(document.getElementById('inputCatItemSection').value)||0);
+      let insertIdx=0;for(let i=0;i<=sectionIdx;i++)insertIdx+=parseInt(c.sections[i].count)||0;
+      c.items.splice(insertIdx,0,newItem);c.sections[sectionIdx].count=(parseInt(c.sections[sectionIdx].count)||0)+1;
+      db.items.forEach(item=>{if(item.catalogRef&&item.catalogRef.catalogId===curCatalogId&&item.catalogRef.itemIdx>=insertIdx)item.catalogRef.itemIdx++;});
+    }else c.items.push(newItem);
+  }
   save();closeModal('catItemModal');openCatalogDetail(curCatalogId);
+}
+function deleteCatItem(){
+  const c=db.catalogs.find(x=>x.id===curCatalogId);if(!c||editCatItemIdx===null||!c.items[editCatItemIdx])return;
+  const removedIdx=editCatItemIdx;
+  const sectionIdx=getCatalogItemSectionIndex(c,removedIdx);
+  if(sectionIdx>=0)c.sections[sectionIdx].count=Math.max(0,(parseInt(c.sections[sectionIdx].count)||0)-1);
+  c.items.splice(removedIdx,1);
+  db.items=db.items.filter(item=>!(item.catalogRef&&item.catalogRef.catalogId===curCatalogId&&item.catalogRef.itemIdx===removedIdx));
+  db.items.forEach(item=>{if(item.catalogRef&&item.catalogRef.catalogId===curCatalogId&&item.catalogRef.itemIdx>removedIdx)item.catalogRef.itemIdx--;});
+  editCatItemIdx=null;save();closeModal('catItemModal');openCatalogDetail(curCatalogId);toast('Deleted');
 }
 function openAddCatSection(){
   const c=db.catalogs.find(x=>x.id===curCatalogId);if(!c)return;
