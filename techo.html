@@ -366,6 +366,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 <div class="toast" id="toast"></div>
 
+<script src="cloudinary-upload.js"></script>
 <script src="cloud-sync.js"></script>
 <script>
 'use strict';
@@ -472,6 +473,7 @@ function pickCat(val){
   document.querySelectorAll('#catSelect .cat-opt').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase().replace('-','_')===val));
 }
 function saveItem(){
+  if(!imageReady('itemImgPreview'))return;
   const name=document.getElementById('inputItemName').value.trim();if(!name){toast('Name required');return;}
   const cost=parseInt(document.getElementById('inputItemCost').value)||0;
   const note=document.getElementById('inputItemNote').value.trim();
@@ -656,6 +658,7 @@ function renderCatSections(){
 function addCatSectionRow(){_catSections.push({name:'',count:0,cols:3});renderCatSections();}
 function renderCatColors(){document.getElementById('catColorPicker').innerHTML=COLORS.map(c=>`<div class="color-swatch${c===_catLabelColor?' active':''}" style="background:${c}" onclick="_catLabelColor='${c}';renderCatColors()"></div>`).join('');}
 function saveCatalog(){
+  if(!imageReady('catIconPreview'))return;
   const name=document.getElementById('inputCatName').value.trim();if(!name){toast('Name required');return;}
   const shelf=document.getElementById('inputCatShelf').value.trim();
   const note=document.getElementById('inputCatNote').value.trim();
@@ -725,6 +728,7 @@ function toggleCatLock(){
   document.getElementById('lockBtn').classList.toggle('active',f.value==='1');
 }
 function saveCatItem(){
+  if(!imageReady('catItemImgPreview'))return;
   const c=db.catalogs.find(x=>x.id===curCatalogId);if(!c)return;
   const name=document.getElementById('inputCatItemName').value.trim()||'Title '+(c.items.length+1);
   const cost=parseInt(document.getElementById('inputCatItemCost').value)||0;
@@ -831,6 +835,7 @@ function openEditRef(){
   openModal('refModal');
 }
 function saveRef(){
+  if(!imageReady('refIconPreview'))return;
   const name=document.getElementById('inputRefName').value.trim();if(!name){toast('Name required');return;}
   const shelf=document.getElementById('inputRefShelf').value.trim();
   const note=document.getElementById('inputRefNote').value.trim();
@@ -850,6 +855,7 @@ function openAddRefItem(){
   openModal('refItemModal');
 }
 function saveRefItem(){
+  if(!imageReady('refItemImgPreview'))return;
   const r=db.refs.find(x=>x.id===curRefId);if(!r)return;
   const name=document.getElementById('inputRefItemName').value.trim()||'Item '+(r.items.length+1);
   const preview=document.getElementById('refItemImgPreview');
@@ -862,11 +868,29 @@ function saveRefItem(){
 function openModal(id){document.getElementById(id).classList.add('show');}
 function closeModal(id){document.getElementById(id).classList.remove('show');}
 function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.style.display='block';clearTimeout(el._t);el._t=setTimeout(()=>el.style.display='none',2000);}
-function previewImg(input,previewId){
+function imageReady(previewId){
+  const p=document.getElementById(previewId);
+  if(p&&p.dataset.uploading==='1'){toast('Please wait for the image upload');return false;}
+  return true;
+}
+async function previewImg(input,previewId){
   if(!input.files||!input.files[0])return;
-  const reader=new FileReader();
-  reader.onload=e=>{const p=document.getElementById(previewId);p.src=e.target.result;p.style.display='block';};
-  reader.readAsDataURL(input.files[0]);
+  const p=document.getElementById(previewId);const file=input.files[0];
+  const previousSrc=p.getAttribute('src')||'';const previousDisplay=p.style.display;
+  const token=Date.now()+'_'+Math.random();p.dataset.uploadToken=token;p.dataset.uploading='1';p.style.opacity='.45';
+  toast('Uploading image…');
+  try{
+    if(!window.CloudinaryAssets)throw new Error('Image service unavailable');
+    const url=await CloudinaryAssets.uploadImage(file);
+    if(p.dataset.uploadToken!==token)return;
+    p.src=url;p.style.display='block';toast('Image uploaded');
+  }catch(e){
+    if(p.dataset.uploadToken!==token)return;
+    if(previousSrc){p.src=previousSrc;p.style.display=previousDisplay||'block';}else{p.removeAttribute('src');p.style.display='none';}
+    input.value='';toast(e&&e.message||'Image upload failed');
+  }finally{
+    if(p.dataset.uploadToken===token){delete p.dataset.uploading;p.style.opacity='';}
+  }
 }
 // Wire file labels
 document.getElementById('itemFileLabel').addEventListener('click',()=>document.getElementById('itemImgInput').click());
