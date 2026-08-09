@@ -4,568 +4,889 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="手账包">
-<title>手账包</title>
+<meta name="apple-mobile-web-app-title" content="Techo">
+<title>Techo</title>
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="icon" type="image/png" href="apple-touch-icon.png">
 <link rel="icon" href="favicon.ico">
 <style>
-* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-body {
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
-  background:#FAFAFA; color:#1a1a1a; min-height:100vh; min-height:100dvh; padding-bottom:40px;
-}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;background:#FAFAFA;color:#1a1a1a;min-height:100dvh;padding-bottom:56px}
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;padding-top:max(12px,env(safe-area-inset-top,12px));border-bottom:1px solid #eee;background:#fff;position:sticky;top:0;z-index:50}
+.top-bar h1{font-size:13px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:#999}
+.back{font-size:13px;color:#bbb;text-decoration:none}
+.top-right{display:flex;gap:8px}
+.btn-s{font-size:11px;color:#999;background:none;border:1px solid #ddd;border-radius:6px;padding:4px 10px;cursor:pointer;font-family:inherit}
 
-.top-bar {
-  display:flex; align-items:center; justify-content:space-between;
-  padding:16px 20px; padding-top:24px; border-bottom:1px solid #eee;
-  background:#fff; position:sticky; top:0; z-index:50;
-}
-.top-bar h1 { font-size:15px; font-weight:600; letter-spacing:1px; color:#666; }
-.top-bar .back { font-size:13px; color:#999; text-decoration:none; cursor:pointer; }
-.top-bar .btn-s { font-size:11px; color:#999; background:none; border:1px solid #ddd; border-radius:6px; padding:4px 10px; cursor:pointer; }
+/* Bottom tab bar */
+.tab-bar{position:fixed;bottom:0;left:0;right:0;display:flex;background:#fff;border-top:1px solid #eee;z-index:50;padding-bottom:env(safe-area-inset-bottom,0)}
+.tab-btn{flex:1;padding:10px 0 8px;text-align:center;font-size:10px;color:#ccc;background:none;border:none;cursor:pointer;font-family:inherit;letter-spacing:0.5px}
+.tab-btn.active{color:#C4A24C;font-weight:600}
 
-/* ── 4-grid home ── */
-.home-grid {
-  display:grid; grid-template-columns:1fr 1fr;
-  max-width:480px; margin:0 auto; background:#fff;
-  border-bottom:1px solid #eee;
-}
-.home-cell {
-  display:flex; flex-direction:column; align-items:center; justify-content:center;
-  padding:28px 12px; cursor:pointer; transition:background 0.2s; position:relative;
-}
-.home-cell:hover { background:rgba(0,0,0,0.01); }
-.home-cell:active { background:rgba(0,0,0,0.03); }
-.home-cell:nth-child(1) { border-right:1px solid #f0f0f0; border-bottom:1px solid #f0f0f0; }
-.home-cell:nth-child(2) { border-bottom:1px solid #f0f0f0; }
-.home-cell:nth-child(3) { border-right:1px solid #f0f0f0; }
-.cell-icon {
-  width:44px; height:44px; border-radius:50%;
-  display:flex; align-items:center; justify-content:center;
-  font-size:16px; font-weight:600; margin-bottom:8px;
-}
-.cell-neal .cell-icon { background:#EEF1FF; color:#6B8AFF; }
-.cell-jane .cell-icon { background:#EDFBEF; color:#5BA66B; }
-.cell-label { font-size:12px; font-weight:600; letter-spacing:0.3px; margin-bottom:2px; }
-.cell-neal .cell-label { color:#6B8AFF; }
-.cell-jane .cell-label { color:#5BA66B; }
-.cell-sub { font-size:10px; color:#bbb; }
-.cell-count { position:absolute; top:8px; right:12px; font-size:10px; color:#ccc; }
+/* Views */
+.view{display:none}.view.active{display:block}
 
-@media (min-width:700px) {
-  .home-grid {
-    max-width:760px;
-    margin:24px auto;
-    border:1px solid #eee;
-    border-radius:12px;
-    overflow:hidden;
-  }
-  .home-cell { padding:44px 20px; }
-}
+/* ── Items view ── */
+.pending-section{padding:12px 20px}
+.pending-header{font-size:10px;color:#bbb;letter-spacing:0.5px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.pending-header .count{background:#f0f0f0;border-radius:8px;padding:1px 6px;font-size:9px;color:#999}
+.pending-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:8px}
+.item-thumb{position:relative;border-radius:8px;overflow:hidden;cursor:pointer;background:#f5f5f5;aspect-ratio:1;display:flex;align-items:center;justify-content:center}
+.item-thumb img{width:100%;height:100%;object-fit:cover}
+.item-thumb .item-name-s{font-size:8px;color:#bbb;text-align:center;padding:2px;word-break:break-all}
+.item-thumb.long-term{border:2px solid #C4A24C22}
+.item-thumb.consumable{border:2px solid #8AAAC422}
 
-/* ── Detail page ── */
-.detail-page { display:none; }
-.detail-page.show { display:block; }
+.section-divider{display:flex;align-items:center;gap:10px;padding:16px 20px 8px;cursor:pointer;user-select:none}
+.section-divider:active{opacity:0.7}
+.section-line{flex:1;height:1px;background:#e0e0e0}
+.section-label{font-size:11px;color:#999;font-weight:500;letter-spacing:0.3px}
+.section-arrow{font-size:8px;color:#ccc;transition:transform 0.2s;display:inline-block}
+.section-divider.collapsed .section-arrow{transform:rotate(-90deg)}
+.section-items{padding:4px 20px 8px}
+.section-items.collapsed{display:none}
 
-/* ── Size control ── */
-.size-bar {
-  display:flex; align-items:center; gap:8px; padding:10px 20px;
-  background:#fff; border-bottom:1px solid #f0f0f0;
-  justify-content:space-between;
-}
-.size-bar .left { display:flex; align-items:center; gap:8px; }
-.size-bar span { font-size:11px; color:#bbb; }
-.size-bar button {
-  width:28px; height:28px; border-radius:6px; border:1px solid #e0e0e0;
-  background:#fff; cursor:pointer; font-size:12px; color:#999;
-}
-.size-bar button.active { background:#1a1a1a; color:#fff; border-color:#1a1a1a; }
-.size-bar .edit-cats-btn { font-size:11px; color:#bbb; cursor:pointer; border:1px solid #e8e8e8; border-radius:6px; padding:4px 10px; background:#fff; }
+.item-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f5f5f5;cursor:pointer}
+.item-row:active{opacity:0.7}
+.item-row-img{width:40px;height:40px;border-radius:6px;object-fit:cover;background:#f0f0f0;flex-shrink:0}
+.item-row-body{flex:1;min-width:0}
+.item-row-name{font-size:13px;font-weight:500;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item-row-meta{font-size:10px;color:#ccc;margin-top:2px}
+.status-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.status-dot.active{background:#C4A24C}
+.status-dot.pending{background:#ddd}
 
-/* ── Category rows ── */
-.cat-section { margin-bottom:4px; }
-.cat-header {
-  display:flex; align-items:center; gap:8px;
-  padding:10px 20px; background:#fff; border-bottom:1px solid #f5f5f5;
-  position:sticky; top:56px; z-index:10;
-}
-.cat-header .cat-name { font-size:13px; font-weight:500; color:#555; }
-.cat-header .cat-count { font-size:11px; color:#ccc; }
-.cat-header .add-in-cat {
-  margin-left:auto; font-size:18px; color:#ccc; cursor:pointer;
-  width:28px; height:28px; display:flex; align-items:center; justify-content:center;
-  border-radius:6px; border:1px solid #eee; background:#fff;
-}
-.cat-header .add-in-cat:active { background:#f5f5f5; }
+.add-row{display:flex;gap:8px;padding:12px 20px}
+.add-btn{flex:1;padding:10px;border:1.5px dashed #ddd;border-radius:10px;background:none;font-size:12px;color:#ccc;cursor:pointer;font-family:inherit;text-align:center}
+.add-btn:active{background:#fafafa}
+.add-btn.gold{border-color:#E8B96A;color:#E8B96A}
 
-/* ── Items row (horizontal scroll) ── */
-.items-row {
-  display:flex; gap:8px; padding:10px 20px;
-  overflow-x:auto; -webkit-overflow-scrolling:touch;
-  background:#fff; border-bottom:1px solid #f0f0f0;
-}
-.items-row::-webkit-scrollbar { display:none; }
+/* ── Catalog view ── */
+.fund-pool{padding:12px 20px;background:#fff;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center}
+.fund-label{font-size:10px;color:#ccc}
+.fund-amount{font-size:16px;font-weight:300;color:#C4A24C;font-variant-numeric:tabular-nums}
+.fund-amount.zero{color:#5BA66B}
 
-.item-card {
-  flex-shrink:0; border:1px solid #eee; border-radius:8px;
-  overflow:hidden; cursor:pointer; transition:box-shadow 0.2s; background:#fff;
-}
-.item-card:active { box-shadow:0 1px 6px rgba(0,0,0,0.04); }
-.item-card img { width:100%; aspect-ratio:1; object-fit:cover; display:block; }
-.item-card .no-img {
-  width:100%; aspect-ratio:1; background:#f5f5f5;
-  display:flex; align-items:center; justify-content:center; font-size:20px; color:#ddd;
-}
-.item-card .item-name {
-  padding:6px 8px; font-size:11px; color:#555;
-  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-}
-/* card sizes */
-.sz-s .item-card { width:80px; }
-.sz-m .item-card { width:110px; }
-.sz-l .item-card { width:150px; }
+.catalog-row{display:flex;align-items:center;gap:12px;padding:14px 20px;background:#fff;border-bottom:1px solid #f5f5f5;cursor:pointer}
+.catalog-row:active{background:#f9f9f9}
+.catalog-icon{width:40px;height:40px;border-radius:8px;object-fit:cover;background:#f0f0f0}
+.catalog-body{flex:1;min-width:0}
+.catalog-name{font-size:14px;font-weight:500;color:#333}
+.catalog-meta{font-size:11px;color:#ccc;margin-top:2px}
+.catalog-add{padding:14px 20px;text-align:center;font-size:13px;color:#ccc;cursor:pointer;background:#fff;border-bottom:1px solid #f5f5f5}
+.catalog-add:active{background:#f8f8f8}
 
-/* techo pages row */
-.techo-row {
-  display:flex; gap:6px; padding:10px 20px;
-  overflow-x:auto; -webkit-overflow-scrolling:touch;
-  background:#fff; border-bottom:1px solid #f0f0f0;
-}
-.techo-row::-webkit-scrollbar { display:none; }
-.techo-page {
-  flex-shrink:0; border-radius:4px; overflow:hidden;
-  cursor:pointer; background:#f0f0f0; position:relative;
-}
-.techo-page img { width:100%; height:100%; object-fit:cover; display:block; }
-.techo-page .page-label {
-  position:absolute; bottom:0; left:0; right:0;
-  padding:3px 6px; font-size:9px; color:#fff;
-  background:linear-gradient(transparent, rgba(0,0,0,0.45));
-}
-.sz-s .techo-page { width:60px; height:80px; }
-.sz-m .techo-page { width:90px; height:120px; }
-.sz-l .techo-page { width:130px; height:173px; }
+/* Shelf (reused from cinema) */
+.shelf-header{display:flex;align-items:center;gap:10px;padding:10px 20px;background:#fafafa;border-bottom:1px solid #f0f0f0;cursor:pointer;user-select:none}
+.shelf-header:active{background:#f5f5f5}
+.shelf-line{flex:1;height:1px;background:#e0e0e0}
+.shelf-label{font-size:11px;color:#999;font-weight:500;letter-spacing:0.3px}
+.shelf-arrow{font-size:8px;color:#ccc;transition:transform 0.25s;display:inline-block}
+.shelf-header.collapsed .shelf-arrow{transform:rotate(-90deg)}
+.shelf-items{overflow:hidden}.shelf-items.collapsed{display:none}
 
-/* ── Empty ── */
-.cat-empty { padding:16px 20px; font-size:12px; color:#ddd; background:#fff; border-bottom:1px solid #f0f0f0; }
+/* ── Catalog detail view ── */
+.detail-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;padding-top:max(12px,env(safe-area-inset-top,12px));background:#fff;border-bottom:1px solid #eee;position:sticky;top:0;z-index:50}
+.detail-bar h1{font-size:14px;font-weight:600;color:#333;text-align:center;flex:1}
+.detail-stats{padding:8px 20px;background:#fff;border-bottom:1px solid #eee;display:flex;justify-content:space-between;font-size:11px;color:#bbb}
+.catalog-grid{display:grid;gap:8px;padding:12px 28px}
+.cat-item{position:relative;border-radius:8px;overflow:hidden;cursor:pointer;background:#f0f0f0;aspect-ratio:1}
+.cat-item img{width:100%;height:100%;object-fit:cover;transition:opacity 0.2s}
+.cat-item:not(.collected) img{opacity:0.3;filter:grayscale(0.6)}
+.cat-item.collected img{opacity:1}
+.cat-item .cat-name{position:absolute;bottom:0;left:0;right:0;font-size:9px;color:#fff;background:rgba(0,0,0,0.45);padding:3px 4px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cat-item .lock-icon{position:absolute;top:3px;right:3px;font-size:10px;opacity:0.6}
+.cat-edit-btn{position:absolute;top:3px;left:3px;width:22px;height:22px;border:0;border-radius:50%;background:rgba(0,0,0,.38);color:#fff;font:12px/22px inherit;text-align:center;cursor:pointer;z-index:2}
+.cat-item.collected .collect-dot{position:absolute;bottom:3px;right:3px;width:8px;height:8px;border-radius:50%;background:#5BA66B;border:1px solid #fff}
+.cat-section-div{display:flex;align-items:center;gap:10px;padding:12px 20px 4px}
+.cat-section-div .section-line{flex:1;height:1px;background:#e8e8e8}
+.cat-section-div .section-label{font-size:11px;color:#bbb}
+.detail-add-row{display:flex;gap:8px;padding:12px 20px;margin-top:8px}
 
-/* ── Modals ── */
-.modal-bg { position:fixed; inset:0; background:rgba(0,0,0,0.3); z-index:200; display:none; align-items:flex-end; justify-content:center; }
-.modal-bg.show { display:flex; }
-.modal {
-  background:#fff; border-radius:16px 16px 0 0; width:100%; max-width:480px; max-height:85vh;
-  overflow-y:auto; padding:20px; animation:slideUp 0.25s ease-out;
-}
-@keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
-.modal h2 { font-size:15px; font-weight:600; margin-bottom:16px; color:#333; }
-.modal label { display:block; font-size:12px; color:#999; margin-bottom:4px; margin-top:12px; }
-.modal input, .modal textarea, .modal select {
-  width:100%; font-size:14px; padding:10px 12px; border:1px solid #e0e0e0; border-radius:8px;
-  font-family:inherit; background:#fff; color:#1a1a1a;
-}
-.modal textarea { height:80px; resize:vertical; }
-.modal .btn-row { display:flex; gap:8px; margin-top:20px; }
-.modal .btn { flex:1; padding:12px; border:none; border-radius:10px; font-size:14px; font-weight:500; cursor:pointer; font-family:inherit; }
-.modal .btn-primary { background:#1a1a1a; color:#fff; }
-.modal .btn-cancel { background:#f0f0f0; color:#666; }
-.modal .img-preview { width:100%; max-height:160px; object-fit:cover; border-radius:8px; margin-top:8px; }
-.modal .file-label {
-  display:inline-block; padding:8px 16px; border:1px dashed #ccc;
-  border-radius:8px; font-size:12px; color:#999; cursor:pointer; text-align:center; width:100%; margin-top:4px;
-}
-.detail-content { padding:4px 0; }
-.detail-content .d-title { font-size:16px; font-weight:500; margin-bottom:6px; }
-.detail-content .d-cat { font-size:12px; color:#999; margin-bottom:8px; }
-.detail-content .d-note { font-size:13px; color:#666; line-height:1.6; margin-bottom:8px; }
-.detail-content img { width:100%; border-radius:8px; margin-bottom:8px; }
-.detail-content .actions { display:flex; gap:8px; justify-content:flex-end; }
-.detail-content .actions button { font-size:11px; padding:5px 12px; border:1px solid #e8e8e8; border-radius:6px; background:#fff; cursor:pointer; color:#999; }
-.del { color:#e07!important; border-color:#fcc!important; }
+/* Modals */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.modal-bg.show{display:flex}
+.modal{background:#fff;border-radius:16px 16px 0 0;width:100%;max-width:420px;max-height:85vh;overflow-y:auto;padding:20px;padding-bottom:env(safe-area-inset-bottom,20px)}
+.modal h2{font-size:16px;font-weight:600;margin-bottom:16px}
+.modal label{font-size:11px;color:#999;display:block;margin:10px 0 4px}
+.modal input[type="text"],.modal input[type="number"],.modal input[type="date"],.modal select,.modal textarea{width:100%;font-size:13px;padding:10px 12px;border:1px solid #e8e8e8;border-radius:8px;font-family:inherit;background:#fafafa}
+.modal textarea{height:60px;resize:none}
+.file-label{display:block;text-align:center;padding:10px;border:1.5px dashed #ddd;border-radius:8px;color:#ccc;cursor:pointer;font-size:12px}
+.img-preview{width:60px;height:60px;object-fit:cover;border-radius:8px;margin-top:6px}
+.btn-row{display:flex;gap:10px;margin-top:16px}
+.btn{flex:1;padding:12px;border:none;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;text-align:center}
+.btn-cancel{background:#f5f5f5;color:#999}
+.btn-primary{background:#1a1a1a;color:#fff}
+.btn-del{background:none;border:1px solid #E85A5A;color:#E85A5A}
 
-/* ── Cat editor ── */
-.ce-row { display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid #f5f5f5; }
-.ce-row .ce-name { flex:1; font-size:13px; }
-.ce-row button { font-size:11px; color:#e07; background:none; border:none; cursor:pointer; }
-.ce-add { display:flex; gap:8px; margin-top:12px; }
-.ce-add input { flex:1; }
-.ce-add button { padding:8px 14px; border:1px solid #e0e0e0; border-radius:8px; background:#fff; cursor:pointer; font-size:12px; }
+/* Section list in modal */
+.section-list{display:flex;flex-direction:column;gap:6px;margin-bottom:6px}
+.section-row{display:flex;gap:6px;align-items:center}
+.section-row input[type="text"]{flex:1}
+.section-row input[type="number"]{width:50px}
+.del-sec{background:none;border:none;color:#ccc;font-size:16px;cursor:pointer}
+.add-section-btn{width:100%;padding:8px;border:1px dashed #ddd;border-radius:8px;background:none;color:#ccc;cursor:pointer;font-size:12px;font-family:inherit}
+
+/* Label */
+.label-row{display:flex;gap:12px;align-items:center;margin-top:8px}
+.label-row input{flex:0 0 100px;min-width:0}
+.color-picker{display:grid;grid-template-columns:repeat(8,28px);gap:5px;flex:1}
+.color-swatch{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:border-color 0.15s}
+.color-swatch.active{border-color:#333}
+
+/* Category select */
+.cat-select{display:flex;gap:6px;margin-top:4px}
+.cat-opt{padding:6px 12px;border-radius:8px;border:1.5px solid #e8e8e8;font-size:11px;color:#999;cursor:pointer;font-family:inherit;background:#fff}
+.cat-opt.active{border-color:#C4A24C;color:#C4A24C;background:#C4A24C0a}
+
+/* Disposition */
+.disp-row{display:flex;gap:6px;margin-top:6px}
+.disp-btn{padding:6px 12px;border-radius:8px;border:1.5px solid #e8e8e8;font-size:11px;color:#999;cursor:pointer;font-family:inherit;background:#fff}
+.disp-btn.active{border-color:#C4A24C;color:#C4A24C}
+.disp-btn.sold.active{border-color:#5BA66B;color:#5BA66B}
+
+.toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.7);color:#fff;font-size:11px;padding:8px 16px;border-radius:8px;display:none;z-index:300}
 </style>
 </head>
 <body>
 
 <div class="top-bar">
-  <a class="back" id="backBtn" href="index.html">&larr; Home</a>
-  <h1 id="pageTitle">手账包</h1>
-  <button class="btn-s" onclick="showModal('exportModal')">备份</button>
+  <a class="back" href="index.html">← Home</a>
+  <h1>Techo</h1>
+  <div class="top-right"><button class="btn-s" onclick="exportData()">Backup</button></div>
 </div>
 
-<!-- Home: 4 grid -->
-<div id="homeView">
-  <div class="home-grid">
-    <div class="home-cell cell-neal" onclick="enter('neal','bag')">
-      <span class="cell-count" id="cnt-neal-bag"></span>
-      <div class="cell-icon">NC</div>
-      <div class="cell-label">Neal's bag</div>
-      <div class="cell-sub">物品</div>
-    </div>
-    <div class="home-cell cell-jane" onclick="enter('jane','bag')">
-      <span class="cell-count" id="cnt-jane-bag"></span>
-      <div class="cell-icon">PJ</div>
-      <div class="cell-label">Jane's bag</div>
-      <div class="cell-sub">物品</div>
-    </div>
-    <div class="home-cell cell-neal" onclick="enter('neal','note')">
-      <span class="cell-count" id="cnt-neal-note"></span>
-      <div class="cell-icon">NC</div>
-      <div class="cell-label">Neal's note</div>
-      <div class="cell-sub">手账</div>
-    </div>
-    <div class="home-cell cell-jane" onclick="enter('jane','note')">
-      <span class="cell-count" id="cnt-jane-note"></span>
-      <div class="cell-icon">PJ</div>
-      <div class="cell-label">Jane's note</div>
-      <div class="cell-sub">手账</div>
-    </div>
+<!-- Items View (default) -->
+<div class="view active" id="viewItems">
+  <div id="pendingArea"></div>
+  <div id="sectionsArea"></div>
+  <div class="add-row">
+    <button class="add-btn gold" onclick="openAddItem()">New Item</button>
+    <button class="add-btn" onclick="openAddSection()">New Section</button>
   </div>
 </div>
 
-<!-- Detail page -->
-<div class="detail-page" id="detailPage">
-  <div class="size-bar">
-    <div class="left">
-      <span>大小</span>
-      <button data-sz="s" onclick="setSz('s')">S</button>
-      <button data-sz="m" class="active" onclick="setSz('m')">M</button>
-      <button data-sz="l" onclick="setSz('l')">L</button>
-    </div>
-    <button class="edit-cats-btn" onclick="showCatEditor()">编辑分类</button>
-  </div>
-  <div id="catContent"></div>
+<!-- Catalog View -->
+<div class="view" id="viewCatalog">
+  <div class="fund-pool" id="fundPool"></div>
+  <div id="catalogList"></div>
+  <div class="catalog-add" onclick="openAddCatalog()">New List</div>
 </div>
 
-<!-- Entry Modal -->
-<div class="modal-bg" id="entryModal">
-  <div class="modal">
-    <h2 id="modalTitle">添加</h2>
-    <label>名称</label>
-    <input type="text" id="entryName" placeholder="名称">
-    <label>分类</label>
-    <select id="entryCat"></select>
-    <label>备注</label>
-    <textarea id="entryNote" placeholder="（选填）"></textarea>
-    <label>图片</label>
-    <label class="file-label" id="fileLabel">点击选择图片</label>
-    <input type="file" accept="image/*" id="entryImg" onchange="previewImg(this)" style="display:none;">
-    <img id="imgPreview" class="img-preview" style="display:none;">
-    <div class="btn-row">
-      <button class="btn btn-cancel" onclick="closeModal('entryModal')">取消</button>
-      <button class="btn btn-primary" onclick="saveEntry()">保存</button>
-    </div>
+<!-- Catalog Detail View -->
+<div class="view" id="viewCatalogDetail">
+  <div class="detail-bar">
+    <a class="back" onclick="showView('viewCatalog')">← Back</a>
+    <h1 id="catalogDetailTitle"></h1>
+    <button class="btn-s" onclick="openEditCatalog()">Edit</button>
+  </div>
+  <div class="detail-stats" id="catalogDetailStats"></div>
+  <div id="catalogDetailGrid"></div>
+  <div class="detail-add-row">
+    <button class="add-btn gold" onclick="openAddCatItem()">New Title</button>
+    <button class="add-btn" onclick="openAddCatSection()">New Section</button>
   </div>
 </div>
 
-<!-- View detail -->
-<div class="modal-bg" id="viewModal">
-  <div class="modal">
-    <div class="detail-content" id="viewContent"></div>
-    <div class="btn-row"><button class="btn btn-cancel" onclick="closeModal('viewModal')">关闭</button></div>
+<!-- Reference View -->
+<div class="view" id="viewRef">
+  <div id="refList"></div>
+  <div class="catalog-add" onclick="openAddRef()">New Reference</div>
+</div>
+
+<!-- Reference Detail View -->
+<div class="view" id="viewRefDetail">
+  <div class="detail-bar">
+    <a class="back" onclick="showView('viewRef');document.querySelector('.tab-bar').style.display='flex'">← Back</a>
+    <h1 id="refDetailTitle"></h1>
+    <button class="btn-s" onclick="openEditRef()">Edit</button>
+  </div>
+  <div class="catalog-grid" id="refDetailGrid"></div>
+  <div style="padding:16px 20px">
+    <textarea id="refComment" style="width:100%;min-height:80px;border:1px solid #e8e8e8;border-radius:10px;padding:12px;font-size:12px;font-family:inherit;background:#fafafa;resize:none;color:#666" onchange="saveRefComment()"></textarea>
+  </div>
+  <div class="detail-add-row">
+    <button class="add-btn gold" onclick="openAddRefItem()">New Title</button>
+    <button class="add-btn" onclick="addRefToList()">Add to List</button>
   </div>
 </div>
 
-<!-- Category editor -->
-<div class="modal-bg" id="catModal">
-  <div class="modal">
-    <h2 id="catModalTitle">编辑分类</h2>
-    <div id="catList"></div>
-    <div class="ce-add">
-      <input type="text" id="newCatName" placeholder="新分类名称">
-      <button onclick="addCat()">添加</button>
-    </div>
-    <div class="btn-row"><button class="btn btn-cancel" onclick="closeModal('catModal')">关闭</button></div>
+<!-- Add/Edit Reference Modal -->
+<div class="modal-bg" id="refModal">
+<div class="modal">
+  <h2 id="refModalTitle">New Reference</h2>
+  <label>Cover</label>
+  <label class="file-label" id="refIconLabel">Select</label>
+  <input type="file" accept="image/*" id="refIconInput" onchange="previewImg(this,'refIconPreview')" style="display:none">
+  <img id="refIconPreview" class="img-preview" style="display:none">
+  <label>Name</label>
+  <input type="text" id="inputRefName">
+  <label>Shelf</label>
+  <input type="text" id="inputRefShelf">
+  <label>Notes</label>
+  <textarea id="inputRefNote"></textarea>
+  <div class="btn-row">
+    <button class="btn btn-cancel" onclick="closeModal('refModal')">Cancel</button>
+    <button class="btn btn-primary" onclick="saveRef()">Save</button>
   </div>
 </div>
-
-<!-- Export/Import -->
-<div class="modal-bg" id="exportModal">
-  <div class="modal">
-    <h2>数据备份</h2>
-    <div style="padding:8px 0;">
-      <button class="btn btn-cancel" style="margin-bottom:8px;width:100%;" onclick="exportData()">导出所有数据</button>
-      <button class="btn btn-cancel" style="width:100%;" onclick="document.getElementById('importFile').click()">从备份导入</button>
-      <input type="file" id="importFile" accept=".json" onchange="importData(this)" style="display:none;">
-      <p style="font-size:11px;color:#bbb;text-align:center;margin-top:12px;">建议定期导出备份</p>
-    </div>
-    <div class="btn-row"><button class="btn btn-cancel" onclick="closeModal('exportModal')">关闭</button></div>
-  </div>
 </div>
 
-<script src="cloud-sync.js?v=20260802-outing1"></script>
+<!-- Add Reference Item Modal -->
+<div class="modal-bg" id="refItemModal">
+<div class="modal">
+  <h2>New Title</h2>
+  <label>Name</label>
+  <input type="text" id="inputRefItemName">
+  <label>Cover</label>
+  <label class="file-label" id="refItemFileLabel">Select</label>
+  <input type="file" accept="image/*" id="refItemImgInput" onchange="previewImg(this,'refItemImgPreview')" style="display:none">
+  <img id="refItemImgPreview" class="img-preview" style="display:none">
+  <div class="btn-row">
+    <button class="btn btn-cancel" onclick="closeModal('refItemModal')">Cancel</button>
+    <button class="btn btn-primary" onclick="saveRefItem()">Save</button>
+  </div>
+</div>
+</div>
+
+<!-- Tab bar -->
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('viewItems')">Items</button>
+  <button class="tab-btn" onclick="switchTab('viewCatalog')">List</button>
+  <button class="tab-btn" onclick="switchTab('viewRef')">Ref</button>
+</div>
+
+<!-- Add/Edit Item Modal -->
+<div class="modal-bg" id="itemModal">
+<div class="modal">
+  <h2 id="itemModalTitle">New Item</h2>
+  <label>Name</label>
+  <input type="text" id="inputItemName">
+  <label>Cover</label>
+  <label class="file-label" id="itemFileLabel">Select</label>
+  <input type="file" accept="image/*" id="itemImgInput" onchange="previewImg(this,'itemImgPreview')" style="display:none">
+  <img id="itemImgPreview" class="img-preview" style="display:none">
+  <label>Category</label>
+  <div class="cat-select" id="catSelect">
+    <button type="button" class="cat-opt active" onclick="pickCat('long_term')">Long-term</button>
+    <button type="button" class="cat-opt" onclick="pickCat('consumable')">Consumable</button>
+  </div>
+  <input type="hidden" id="itemCat" value="long_term">
+  <label>Cost</label>
+  <input type="number" id="inputItemCost" min="0" step="1">
+  <label>Notes</label>
+  <textarea id="inputItemNote"></textarea>
+  <div class="btn-row">
+    <button class="btn btn-cancel" onclick="closeModal('itemModal')">Cancel</button>
+    <button class="btn btn-primary" onclick="saveItem()">Save</button>
+  </div>
+  <div id="itemDeleteWrap" style="display:none;text-align:center;margin-top:12px">
+    <button class="btn-del" style="width:100%;padding:10px;border-radius:10px" onclick="deleteItem()">Delete</button>
+  </div>
+</div>
+</div>
+
+<!-- Add Section Modal -->
+<div class="modal-bg" id="sectionModal">
+<div class="modal">
+  <h2>New Section</h2>
+  <label>Name</label>
+  <input type="text" id="inputSectionName">
+  <div class="btn-row">
+    <button class="btn btn-cancel" onclick="closeModal('sectionModal')">Cancel</button>
+    <button class="btn btn-primary" onclick="saveSection()">Save</button>
+  </div>
+</div>
+</div>
+
+<!-- Item Action Modal (assign/dispose) -->
+<div class="modal-bg" id="actionModal">
+<div class="modal">
+  <h2 id="actionTitle">Item</h2>
+  <div id="actionContent"></div>
+</div>
+</div>
+
+<!-- Add/Edit Catalog Modal -->
+<div class="modal-bg" id="catalogModal">
+<div class="modal">
+  <h2 id="catalogModalTitle">New List</h2>
+  <label>Cover</label>
+  <label class="file-label" id="catIconLabel">Select</label>
+  <input type="file" accept="image/*" id="catIconInput" onchange="previewImg(this,'catIconPreview')" style="display:none">
+  <img id="catIconPreview" class="img-preview" style="display:none">
+  <label>Name</label>
+  <input type="text" id="inputCatName">
+  <label>Shelf</label>
+  <input type="text" id="inputCatShelf">
+  <label>Sections</label>
+  <div class="section-list" id="catSectionList"></div>
+  <button class="add-section-btn" onclick="addCatSectionRow()">+ Section</button>
+  <label>Notes</label>
+  <textarea id="inputCatNote"></textarea>
+  <label>Label</label>
+  <div class="label-row">
+    <input type="text" id="inputCatLabel">
+    <div class="color-picker" id="catColorPicker"></div>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-cancel" onclick="closeModal('catalogModal')">Cancel</button>
+    <button class="btn btn-primary" onclick="saveCatalog()">Save</button>
+  </div>
+</div>
+</div>
+
+<!-- Catalog Item Modal -->
+<div class="modal-bg" id="catItemModal">
+<div class="modal">
+  <h2 id="catItemModalTitle">New Title</h2>
+  <div id="catItemSectionField" style="display:none">
+    <label>Section</label>
+    <select id="inputCatItemSection"></select>
+  </div>
+  <label>Name</label>
+  <input type="text" id="inputCatItemName">
+  <label>Cover</label>
+  <label class="file-label" id="catItemFileLabel">Select</label>
+  <input type="file" accept="image/*" id="catItemImgInput" onchange="previewImg(this,'catItemImgPreview')" style="display:none">
+  <img id="catItemImgPreview" class="img-preview" style="display:none">
+  <label>Cost</label>
+  <input type="number" id="inputCatItemCost" min="0" step="1">
+  <label>Lock</label>
+  <div class="cat-select">
+    <button type="button" class="cat-opt" id="lockBtn" onclick="toggleCatLock()">🔒 Collection only</button>
+  </div>
+  <input type="hidden" id="catItemLocked" value="0">
+  <div class="btn-row">
+    <button class="btn btn-cancel" onclick="closeModal('catItemModal')">Cancel</button>
+    <button class="btn btn-del" id="catItemDeleteBtn" style="display:none" onclick="deleteCatItem()">Delete</button>
+    <button class="btn btn-primary" onclick="saveCatItem()">Save</button>
+  </div>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="cloud-sync.js"></script>
 <script>
-if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
-let db;
-try{db=JSON.parse(localStorage.getItem('techo_db2'));}catch(e){db=null;}
-if(!db||!db.entries||!db.categories) db={entries:[],categories:{neal_bag:[],jane_bag:[],neal_note:[],jane_note:[]}};
-// ensure all keys
-['neal_bag','jane_bag','neal_note','jane_note'].forEach(k=>{if(!db.categories[k])db.categories[k]=[];});
+'use strict';
+const DB_KEY='techo_archive_db';
+const COLORS=['#C4A24C','#8B6B4A','#9B8AE8','#6B5ACD','#D85A30','#E84A7A','#E8B96A','#9B6BCC','#4AADE8','#3A8DD4','#5BA66B','#3D8B50','#6B8AFF','#4A6AE0','#888','#4ECDC4'];
+let db={items:[],sections:[],catalogs:[],refs:[],sectionCollapsed:{},shelfCollapsed:{},refShelfCollapsed:{}};
+let curCatalogId=null,curRefId=null,editItemId=null,editCatalogId=null,editRefId=null,editCatItemIdx=null;
 
-let curOwner=null, curType=null, curSz='m', editingId=null, addToCat=null;
-function dbKey(){return curOwner+'_'+curType;}
-function save(){try{localStorage.setItem('techo_db2',JSON.stringify(db));}catch(e){}}
-
-// ── Home ──
-function showHome() {
-  curOwner=null; curType=null;
-  document.getElementById('homeView').style.display='block';
-  document.getElementById('detailPage').classList.remove('show');
-  document.getElementById('backBtn').href='index.html';
-  document.getElementById('backBtn').onclick=null;
-  document.getElementById('pageTitle').textContent='手账包';
-  updateCounts();
-}
-function updateCounts() {
-  ['neal','jane'].forEach(o=>{['bag','note'].forEach(t=>{
-    const n=db.entries.filter(e=>e.owner===o&&e.type===t).length;
-    const el=document.getElementById('cnt-'+o+'-'+t);
-    if(el) el.textContent=n?n+' items':'';
-  });});
-}
-
-function enter(owner,type) {
-  curOwner=owner; curType=type;
-  document.getElementById('homeView').style.display='none';
-  document.getElementById('detailPage').classList.add('show');
-  const names={neal_bag:"Neal's bag",jane_bag:"Jane's bag",neal_note:"Neal's note",jane_note:"Jane's note"};
-  document.getElementById('pageTitle').textContent=names[dbKey()]||'';
-  document.getElementById('backBtn').href='#';
-  document.getElementById('backBtn').onclick=(e)=>{e.preventDefault();showHome();};
-  renderDetail();
-}
-
-// ── Detail (category rows) ──
-function renderDetail() {
-  const c=document.getElementById('catContent');
-  const key=dbKey();
-  const cats=db.categories[key]||[];
-
-  if(!cats.length) {
-    c.innerHTML=`<div style="text-align:center;padding:60px 20px;color:#ccc;">
-      <p style="font-size:13px;margin-bottom:8px;">还没有分类</p>
-      <p style="font-size:11px;">点右上角「编辑分类」添加</p></div>`;
-    return;
-  }
-
-  const isNote = curType==='note';
-  c.innerHTML = cats.map(cat=>{
-    const items = db.entries.filter(e=>e.owner===curOwner&&e.type===curType&&e.category===cat);
-    const rowClass = isNote ? 'techo-row' : 'items-row';
-    const szClass = 'sz-'+curSz;
-    let content = '';
-    if (!items.length) {
-      content = `<div class="cat-empty">还没有内容，点 + 添加</div>`;
-    } else if (isNote) {
-      content = `<div class="${rowClass} ${szClass}">${items.map(e=>
-        `<div class="techo-page" onclick="showView('${e.id}')">
-          ${e.img?`<img src="${e.img}">`:''}
-          <span class="page-label">${e.name||''}</span>
-        </div>`).join('')}</div>`;
-    } else {
-      content = `<div class="${rowClass} ${szClass}">${items.map(e=>
-        `<div class="item-card" onclick="showView('${e.id}')">
-          ${e.img?`<img src="${e.img}">`:`<div class="no-img">✦</div>`}
-          <div class="item-name">${e.name}</div>
-        </div>`).join('')}</div>`;
+function load(){
+  try{const d=JSON.parse(localStorage.getItem(DB_KEY));if(d){db={items:d.items||[],sections:d.sections||[],catalogs:d.catalogs||[],refs:d.refs||[],sectionCollapsed:d.sectionCollapsed||{},shelfCollapsed:d.shelfCollapsed||{},refShelfCollapsed:d.refShelfCollapsed||{}};return;}}catch(e){}
+  // Migrate from old stationery_db if exists
+  try{
+    const old=JSON.parse(localStorage.getItem('stationery_db'));
+    if(old&&Array.isArray(old)&&old.length){
+      old.forEach(function(p){
+        const cat={id:p.id||gid(),name:p.name||'',shelf:'',icon:p.icon||'',note:p.note||'',label:{name:(p.duty&&p.duty.name)||'',color:(p.duty&&p.duty.color)||'#C4A24C'},sections:p.sections||[],items:(p.items||[]).map(function(it){return{id:it.id||gid(),name:it.name||'',img:it.img||'',collected:!!it.collected,locked:false,cost:0,note:it.note||''};}),order:db.catalogs.length};
+        db.catalogs.push(cat);
+        // Create items for collected entries
+        (p.items||[]).forEach(function(it,idx){
+          if(it.collected){
+            db.items.push({id:gid(),name:it.name||'',img:it.img||'',category:'long_term',status:it.inuseStatus?'active':'pending',assignment:null,cost:0,note:'',source:'catalog',catalogRef:{catalogId:cat.id,itemIdx:idx},disposition:it.inuseStatus||null,soldPrice:0,addedAt:Date.now()});
+          }
+        });
+      });
+      save();
     }
-    return `<div class="cat-section">
-      <div class="cat-header">
-        <span class="cat-name">${cat}</span>
-        <span class="cat-count">${items.length}</span>
-        <div class="add-in-cat" onclick="addInCat('${cat}')">+</div>
-      </div>
-      ${content}
-    </div>`;
-  }).join('');
+  }catch(e){}
+}
+function save(){localStorage.setItem(DB_KEY,JSON.stringify(db));}
+function gid(){return Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,6);}
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+
+/* ═══ VIEWS ═══ */
+function showView(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function switchTab(id){
+  showView(id);
+  const tabs=['viewItems','viewCatalog','viewRef'];
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',tabs[i]===id));
+  document.querySelector('.tab-bar').style.display='flex';
+  if(id==='viewItems')renderItems();else if(id==='viewCatalog')renderCatalogList();else if(id==='viewRef')renderRefList();
 }
 
-function setSz(s) {
-  curSz=s;
-  document.querySelectorAll('.size-bar button[data-sz]').forEach(b=>b.classList.toggle('active',b.dataset.sz===s));
-  renderDetail();
+/* ═══ ITEMS VIEW ═══ */
+function renderItems(){
+  const pending=db.items.filter(i=>i.status==='pending');
+  const longTerm=pending.filter(i=>i.category==='long_term');
+  const consumable=pending.filter(i=>i.category==='consumable');
+  let html='';
+  if(longTerm.length){
+    html+=`<div class="pending-section"><div class="pending-header">Long-term <span class="count">${longTerm.length}</span></div><div class="pending-grid">${longTerm.map(i=>renderThumb(i,'long-term')).join('')}</div></div>`;
+  }
+  if(consumable.length){
+    html+=`<div class="pending-section"><div class="pending-header">Consumable <span class="count">${consumable.length}</span></div><div class="pending-grid">${consumable.map(i=>renderThumb(i,'consumable')).join('')}</div></div>`;
+  }
+  if(!pending.length)html+=`<div class="pending-section"><div class="pending-header" style="justify-content:center;color:#ddd;padding:20px 0">No pending items</div></div>`;
+  document.getElementById('pendingArea').innerHTML=html;
+  let secHtml='';
+  db.sections.forEach(sec=>{
+    const items=db.items.filter(i=>i.assignment===sec.id&&i.status==='active');
+    const coll=db.sectionCollapsed[sec.id];
+    secHtml+=`<div class="section-divider${coll?' collapsed':''}" onclick="toggleItemSection('${sec.id}')"><div class="section-line"></div><span class="section-label">${esc(sec.name)}</span><span class="section-arrow">▼</span><div class="section-line"></div></div>`;
+    secHtml+=`<div class="section-items${coll?' collapsed':''}">`;
+    items.forEach(i=>{
+      secHtml+=`<div class="item-row" onclick="openItemAction('${i.id}')"><img class="item-row-img" src="${i.img||''}" alt="" onerror="this.style.display='none'"><div class="item-row-body"><div class="item-row-name">${esc(i.name)}</div><div class="item-row-meta">${i.category==='consumable'?'Consumable':'Long-term'}</div></div><div class="status-dot active"></div></div>`;
+    });
+    if(!items.length)secHtml+=`<div style="padding:12px 0;text-align:center;font-size:11px;color:#ddd">Empty</div>`;
+    secHtml+=`</div>`;
+  });
+  document.getElementById('sectionsArea').innerHTML=secHtml;
+}
+function renderThumb(item,cls){
+  return`<div class="item-thumb ${cls}" onclick="openItemAction('${item.id}')">${item.img?`<img src="${item.img}" onerror="this.style.display='none'">`:`<div class="item-name-s">${esc(item.name)}</div>`}</div>`;
+}
+function toggleItemSection(id){db.sectionCollapsed[id]=!db.sectionCollapsed[id];save();renderItems();}
+
+/* ── Item CRUD ── */
+function openAddItem(){
+  editItemId=null;
+  document.getElementById('itemModalTitle').textContent='New Item';
+  document.getElementById('inputItemName').value='';
+  document.getElementById('inputItemCost').value='';
+  document.getElementById('inputItemNote').value='';
+  document.getElementById('itemImgPreview').style.display='none';
+  document.getElementById('itemCat').value='long_term';
+  document.querySelectorAll('#catSelect .cat-opt').forEach((b,i)=>b.classList.toggle('active',i===0));
+  document.getElementById('itemDeleteWrap').style.display='none';
+  openModal('itemModal');
+}
+function openEditItem(id){
+  const item=db.items.find(i=>i.id===id);if(!item)return;
+  editItemId=id;
+  document.getElementById('itemModalTitle').textContent='Edit Item';
+  document.getElementById('inputItemName').value=item.name||'';
+  document.getElementById('inputItemCost').value=item.cost||'';
+  document.getElementById('inputItemNote').value=item.note||'';
+  const preview=document.getElementById('itemImgPreview');
+  if(item.img){preview.src=item.img;preview.style.display='block';}else{preview.removeAttribute('src');preview.style.display='none';}
+  pickCat(item.category||'long_term');
+  document.getElementById('itemDeleteWrap').style.display='block';
+  closeModal('actionModal');openModal('itemModal');
+}
+function pickCat(val){
+  document.getElementById('itemCat').value=val;
+  document.querySelectorAll('#catSelect .cat-opt').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase().replace('-','_')===val));
+}
+function saveItem(){
+  const name=document.getElementById('inputItemName').value.trim();if(!name){toast('Name required');return;}
+  const cost=parseInt(document.getElementById('inputItemCost').value)||0;
+  const note=document.getElementById('inputItemNote').value.trim();
+  const cat=document.getElementById('itemCat').value;
+  const preview=document.getElementById('itemImgPreview');
+  const img=preview.style.display!=='none'?preview.src:'';
+  if(editItemId){
+    const item=db.items.find(i=>i.id===editItemId);
+    if(item){item.name=name;item.cost=cost;item.note=note;item.category=cat;if(img)item.img=img;}
+  }else{
+    db.items.push({id:gid(),name,img,category:cat,status:'pending',assignment:null,cost,note,source:'manual',catalogRef:null,disposition:null,soldPrice:0,addedAt:Date.now()});
+  }
+  save();closeModal('itemModal');renderItems();
+}
+function deleteItem(){
+  if(!editItemId)return;
+  db.items=db.items.filter(i=>i.id!==editItemId);
+  save();closeModal('itemModal');closeModal('actionModal');renderItems();toast('Deleted');
 }
 
-// ── Category editor ──
-function showCatEditor() {
-  document.getElementById('catModalTitle').textContent = curType==='bag'?'编辑物品分类':'编辑本子分类';
-  renderCatList();
-  showModal('catModal');
+/* ── Item Actions ── */
+function openItemAction(id){
+  const item=db.items.find(i=>i.id===id);if(!item)return;
+  editItemId=id;
+  let html=`<div style="text-align:center;margin-bottom:12px">${item.img?`<img src="${item.img}" style="width:80px;height:80px;object-fit:cover;border-radius:10px">`:''}<div style="font-size:14px;font-weight:500;margin-top:8px">${esc(item.name)}</div><div style="font-size:10px;color:#ccc;margin-top:2px">${item.category==='consumable'?'Consumable':'Long-term'}${item.cost?' · ¥'+item.cost:''}</div></div>`;
+  if(item.status==='pending'){
+    html+=`<label>Assign to section</label><select id="assignSelect" style="width:100%;padding:10px;border:1px solid #e8e8e8;border-radius:8px;font-size:13px;font-family:inherit"><option value="">Choose...</option>${db.sections.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('')}</select>`;
+    html+=`<div class="btn-row"><button class="btn btn-cancel" onclick="closeModal('actionModal')">Cancel</button><button class="btn btn-primary" onclick="assignItem('${id}')">Assign</button></div>`;
+    html+=`<div style="text-align:center;margin-top:12px"><button class="btn-del" style="padding:8px 16px;border-radius:8px;cursor:pointer;font-family:inherit;border:1px solid #E85A5A;background:none;color:#E85A5A" onclick="editItemId='${id}';deleteItem()">Delete</button></div>`;
+  }else if(item.status==='active'){
+    html+=`<label>Disposition</label><div class="disp-row"><button type="button" class="disp-btn" onclick="disposeItem('${id}','done')">Done</button><button type="button" class="disp-btn sold" onclick="openSoldInput('${id}')">Sold</button><button type="button" class="disp-btn" onclick="disposeItem('${id}','gift')">Gift</button></div>`;
+    html+=`<div id="soldInput" style="display:none;margin-top:8px"><label>Sold for</label><input type="number" id="soldPrice" min="0" step="1" style="width:100%;padding:10px;border:1px solid #e8e8e8;border-radius:8px;font-size:13px"><div class="btn-row" style="margin-top:8px"><button class="btn btn-primary" onclick="confirmSold('${id}')">Confirm</button></div></div>`;
+    html+=`<div class="btn-row" style="margin-top:12px"><button class="btn btn-cancel" onclick="unassignItem('${id}')">Back to pending</button><button class="btn btn-cancel" onclick="closeModal('actionModal')">Close</button></div>`;
+  }
+  html+=`<div style="text-align:center;margin-top:12px"><button class="btn btn-cancel" style="width:100%" onclick="openEditItem('${id}')">Edit Item</button></div>`;
+  document.getElementById('actionTitle').textContent=item.name;
+  document.getElementById('actionContent').innerHTML=html;
+  openModal('actionModal');
 }
-function renderCatList() {
-  const key=dbKey();
-  const cats=db.categories[key]||[];
-  const list=document.getElementById('catList');
-  if(!cats.length){list.innerHTML='<p style="font-size:12px;color:#ccc;padding:8px 0;">还没有分类</p>';return;}
-  list.innerHTML=cats.map((c,i)=>`<div class="ce-row">
-    <span class="ce-name">${c}</span>
-    <button onclick="removeCat(${i})">删除</button>
-  </div>`).join('');
+function assignItem(id){
+  const secId=document.getElementById('assignSelect').value;
+  if(!secId){toast('Choose a section');return;}
+  const item=db.items.find(i=>i.id===id);if(!item)return;
+  item.status='active';item.assignment=secId;
+  save();closeModal('actionModal');renderItems();toast('Assigned');
 }
-function addCat() {
-  const name=document.getElementById('newCatName').value.trim();
-  if(!name)return;
-  const key=dbKey();
-  if(!db.categories[key])db.categories[key]=[];
-  db.categories[key].push(name);
-  document.getElementById('newCatName').value='';
-  save(); renderCatList(); renderDetail();
+function unassignItem(id){
+  const item=db.items.find(i=>i.id===id);if(!item)return;
+  item.status='pending';item.assignment=null;
+  save();closeModal('actionModal');renderItems();
 }
-function removeCat(i) {
-  const key=dbKey();
-  const catName=db.categories[key][i];
-  if(!confirm('删除分类「'+catName+'」？里面的物品也会删除。'))return;
-  db.categories[key].splice(i,1);
-  db.entries=db.entries.filter(e=>!(e.owner===curOwner&&e.type===curType&&e.category===catName));
-  save(); renderCatList(); renderDetail(); updateCounts();
+function disposeItem(id,type){
+  const item=db.items.find(i=>i.id===id);if(!item)return;
+  item.disposition=type;item.status='done';
+  if(item.source==='manual'&&type!=='sold'){db.items=db.items.filter(i=>i.id!==id);}
+  save();closeModal('actionModal');renderItems();toast(type==='done'?'Completed':'Done');
 }
-
-// ── Add entry ──
-function addInCat(cat) { addToCat=cat; showAddEntry(); }
-function showAddEntry() {
-  editingId=null;
-  document.getElementById('modalTitle').textContent=curType==='bag'?'添加物品':'添加页面';
-  document.getElementById('entryName').value='';
-  document.getElementById('entryNote').value='';
-  document.getElementById('imgPreview').style.display='none';
-  delete document.getElementById('imgPreview').dataset.source;
-  document.getElementById('entryImg').value='';
-  const sel=document.getElementById('entryCat');
-  const cats=db.categories[dbKey()]||[];
-  sel.innerHTML=cats.map(c=>`<option ${c===addToCat?'selected':''}>${c}</option>`).join('');
-  addToCat=null;
-  showModal('entryModal');
+function openSoldInput(id){document.getElementById('soldInput').style.display='block';}
+function confirmSold(id){
+  const item=db.items.find(i=>i.id===id);if(!item)return;
+  item.soldPrice=parseInt(document.getElementById('soldPrice').value)||0;
+  item.disposition='sold';item.status='done';
+  if(item.source==='manual'){db.items=db.items.filter(i=>i.id!==id);}
+  save();closeModal('actionModal');renderItems();toast('Sold · ¥'+item.soldPrice);
 }
 
-function editEntry(id) {
-  const e=db.entries.find(x=>x.id===id);if(!e)return;
-  editingId=id;
-  document.getElementById('modalTitle').textContent='编辑';
-  document.getElementById('entryName').value=e.name;
-  document.getElementById('entryNote').value=e.note||'';
-  const sel=document.getElementById('entryCat');
-  const cats=db.categories[e.owner+'_'+e.type]||[];
-  sel.innerHTML=cats.map(c=>`<option ${c===e.category?'selected':''}>${c}</option>`).join('');
-  if(e.img){document.getElementById('imgPreview').dataset.source=e.img;document.getElementById('imgPreview').src=e.img;document.getElementById('imgPreview').style.display='block';}
-  else{document.getElementById('imgPreview').style.display='none';delete document.getElementById('imgPreview').dataset.source;}
-  showModal('entryModal');
+/* ── Section CRUD ── */
+function openAddSection(){
+  document.getElementById('inputSectionName').value='';openModal('sectionModal');
+}
+function saveSection(){
+  const name=document.getElementById('inputSectionName').value.trim();if(!name)return;
+  db.sections.push({id:gid(),name,order:db.sections.length});
+  save();closeModal('sectionModal');renderItems();
 }
 
-function previewImg(input) {
+/* ═══ CATALOG VIEW ═══ */
+function renderCatalogList(){
+  // Fund pool: sum of cost for items still pending (not disposed as keep/gift)
+  const pendingCost=db.items.filter(i=>i.status==='pending'||(!i.disposition&&i.status==='active')).reduce((s,i)=>s+(i.cost||0),0);
+  const soldTotal=db.items.filter(i=>i.disposition==='sold').reduce((s,i)=>s+(i.soldPrice||0),0);
+  // Also count disposed catalog items that are in 'sold' but removed from items
+  // For now just show pending cost and sold recovery
+  const pool=pendingCost-soldTotal;
+  const fp=document.getElementById('fundPool');
+  fp.innerHTML=`<span class="fund-label">Fund Pool</span><span class="fund-amount${pool<=0?' zero':''}">¥${pool.toLocaleString()}</span>`;
+
+  const sorted=db.catalogs.sort((a,b)=>(a.order||0)-(b.order||0));
+  const ungrouped=sorted.filter(c=>!c.shelf);
+  const shelves={};const shelfOrder=[];
+  sorted.forEach(c=>{if(!c.shelf)return;if(!shelves[c.shelf]){shelves[c.shelf]=[];shelfOrder.push(c.shelf);}shelves[c.shelf].push(c);});
+
+  let html='';
+  ungrouped.forEach(c=>{html+=renderCatalogRow(c);});
+  shelfOrder.forEach(shelf=>{
+    const coll=db.shelfCollapsed[shelf];
+    html+=`<div class="shelf-header${coll?' collapsed':''}" onclick="toggleShelf('${esc(shelf)}')"><div class="shelf-line"></div><span class="shelf-label">${esc(shelf)}</span><span class="shelf-arrow">▼</span><div class="shelf-line"></div></div>`;
+    html+=`<div class="shelf-items${coll?' collapsed':''}">`;shelves[shelf].forEach(c=>{html+=renderCatalogRow(c);});html+=`</div>`;
+  });
+  document.getElementById('catalogList').innerHTML=html;
+}
+function renderCatalogRow(c){
+  const collected=c.items.filter(i=>i.collected).length;const total=c.items.length;
+  const label=c.label&&c.label.name?`<span style="font-size:9px;padding:1px 5px;border-radius:3px;background:${c.label.color||'#ccc'}15;color:${c.label.color||'#ccc'};margin-left:4px">${esc(c.label.name)}</span>`:'';
+  return`<div class="catalog-row" onclick="openCatalogDetail('${c.id}')"><img class="catalog-icon" src="${c.icon||''}" onerror="this.style.background='#f0f0f0'"><div class="catalog-body"><div class="catalog-name">${esc(c.name)}${label}</div><div class="catalog-meta">${collected} / ${total}${c.items.length?' · ¥'+c.items.reduce((s,i)=>s+((i.collected&&i.cost)||0),0).toLocaleString():''}</div></div></div>`;
+}
+function toggleShelf(name){db.shelfCollapsed[name]=!db.shelfCollapsed[name];save();renderCatalogList();}
+
+/* ── Catalog detail ── */
+function openCatalogDetail(id){
+  curCatalogId=id;const c=db.catalogs.find(x=>x.id===id);if(!c)return;
+  document.getElementById('catalogDetailTitle').textContent=c.name;
+  const collected=c.items.filter(i=>i.collected).length;
+  const totalCost=c.items.filter(i=>i.collected).reduce((s,i)=>s+(i.cost||0),0);
+  document.getElementById('catalogDetailStats').innerHTML=`<span>${collected} / ${c.items.length}</span><span>¥${totalCost.toLocaleString()}</span>`;
+  let html='';
+  if(c.sections&&c.sections.length>1){
+    let idx=0;
+    c.sections.forEach(sec=>{
+      const cols=Math.max(2,Math.min(5,sec.cols||3));
+      html+=`<div class="cat-section-div"><div class="section-line"></div><span class="section-label">${esc(sec.name)}</span><div class="section-line"></div></div>`;
+      html+=`<div class="catalog-grid" style="grid-template-columns:repeat(${cols},1fr)">`;
+      for(let i=0;i<sec.count;i++){
+        if(idx<c.items.length)html+=renderCatItem(c.items[idx],idx);
+        idx++;
+      }
+      html+=`</div>`;
+    });
+    if(idx<c.items.length){
+      html+=`<div class="catalog-grid" style="grid-template-columns:repeat(3,1fr)">`;
+      for(;idx<c.items.length;idx++)html+=renderCatItem(c.items[idx],idx);
+      html+=`</div>`;
+    }
+  }else{
+    const cols=c.sections&&c.sections[0]?Math.max(2,Math.min(5,c.sections[0].cols||3)):3;
+    html+=`<div class="catalog-grid" style="grid-template-columns:repeat(${cols},1fr)">${c.items.map((item,idx)=>renderCatItem(item,idx)).join('')}</div>`;
+  }
+  document.getElementById('catalogDetailGrid').innerHTML=html;
+  showView('viewCatalogDetail');
+  document.querySelector('.tab-bar').style.display='none';
+}
+function renderCatItem(item,idx){
+  return`<div class="cat-item${item.collected?' collected':''}" onclick="toggleCollect(${idx})"><img src="${item.img||''}" onerror="this.parentElement.style.background='#e8e8e8'"><button class="cat-edit-btn" aria-label="Edit" onclick="event.stopPropagation();openEditCatItem(${idx})">⋯</button><div class="cat-name">${esc(item.name)}</div>${item.locked?'<div class="lock-icon">🔒</div>':''}${item.collected?'<div class="collect-dot"></div>':''}</div>`;
+}
+function toggleCollect(idx){
+  const c=db.catalogs.find(x=>x.id===curCatalogId);if(!c)return;
+  const item=c.items[idx];if(!item)return;
+  item.collected=!item.collected;
+  if(item.collected&&!item.locked){
+    // Create pending item in main items
+    db.items.push({id:gid(),name:item.name,img:item.img||'',category:'long_term',status:'pending',assignment:null,cost:item.cost||0,note:'',source:'catalog',catalogRef:{catalogId:curCatalogId,itemIdx:idx},disposition:null,soldPrice:0,addedAt:Date.now()});
+  }
+  if(!item.collected){
+    // Remove from items if uncollecting
+    db.items=db.items.filter(i=>!(i.catalogRef&&i.catalogRef.catalogId===curCatalogId&&i.catalogRef.itemIdx===idx&&i.status==='pending'));
+  }
+  save();openCatalogDetail(curCatalogId);
+}
+
+/* ── Catalog CRUD ── */
+let _catSections=[],_catLabelColor='#C4A24C';
+function openAddCatalog(){
+  editCatalogId=null;
+  document.getElementById('catalogModalTitle').textContent='New List';
+  document.getElementById('inputCatName').value='';document.getElementById('inputCatShelf').value='';document.getElementById('inputCatNote').value='';document.getElementById('inputCatLabel').value='';
+  document.getElementById('catIconPreview').style.display='none';
+  _catSections=[{name:'',count:0,cols:3}];_catLabelColor='#C4A24C';
+  renderCatSections();renderCatColors();openModal('catalogModal');
+}
+function openEditCatalog(){
+  const c=db.catalogs.find(x=>x.id===curCatalogId);if(!c)return;
+  editCatalogId=c.id;
+  document.getElementById('catalogModalTitle').textContent='Edit List';
+  document.getElementById('inputCatName').value=c.name;document.getElementById('inputCatShelf').value=c.shelf||'';document.getElementById('inputCatNote').value=c.note||'';document.getElementById('inputCatLabel').value=c.label?.name||'';
+  _catSections=c.sections?c.sections.map(s=>({...s})):[{name:'',count:0}];
+  _catLabelColor=c.label?.color||'#C4A24C';
+  renderCatSections();renderCatColors();openModal('catalogModal');
+}
+function renderCatSections(){
+  document.getElementById('catSectionList').innerHTML=_catSections.map((s,i)=>`<div class="section-row"><input type="text" value="${esc(s.name)}" onchange="_catSections[${i}].name=this.value"><input type="number" value="${s.count||0}" min="0" max="999" style="width:50px" onchange="_catSections[${i}].count=parseInt(this.value)||0"><select style="width:42px;padding:4px;border:1px solid #e8e8e8;border-radius:6px;font-size:11px" onchange="_catSections[${i}].cols=parseInt(this.value)||3">${[2,3,4,5].map(n=>`<option value="${n}"${(s.cols||3)===n?' selected':''}>${n}col</option>`).join('')}</select><button class="del-sec" onclick="_catSections.splice(${i},1);renderCatSections()">×</button></div>`).join('');
+}
+function addCatSectionRow(){_catSections.push({name:'',count:0,cols:3});renderCatSections();}
+function renderCatColors(){document.getElementById('catColorPicker').innerHTML=COLORS.map(c=>`<div class="color-swatch${c===_catLabelColor?' active':''}" style="background:${c}" onclick="_catLabelColor='${c}';renderCatColors()"></div>`).join('');}
+function saveCatalog(){
+  const name=document.getElementById('inputCatName').value.trim();if(!name){toast('Name required');return;}
+  const shelf=document.getElementById('inputCatShelf').value.trim();
+  const note=document.getElementById('inputCatNote').value.trim();
+  const labelName=document.getElementById('inputCatLabel').value.trim();
+  const preview=document.getElementById('catIconPreview');
+  const icon=preview.style.display!=='none'?preview.src:'';
+  const sections=_catSections.filter(s=>s.name);
+  const label={name:labelName,color:_catLabelColor};
+  if(editCatalogId){
+    const c=db.catalogs.find(x=>x.id===editCatalogId);
+    if(c){c.name=name;c.shelf=shelf;c.note=note;c.label=label;if(icon)c.icon=icon;
+      const totalNeeded=sections.reduce((s,sec)=>s+sec.count,0);
+      while(c.items.length<totalNeeded)c.items.push({id:gid(),name:'',img:'',collected:false,locked:false,cost:0,note:''});
+      c.sections=sections;
+    }
+  }else{
+    const totalItems=sections.reduce((s,sec)=>s+sec.count,0)||0;
+    const items=[];for(let i=0;i<totalItems;i++)items.push({id:gid(),name:'Title '+(i+1),img:'',collected:false,locked:false,cost:0,note:''});
+    db.catalogs.push({id:gid(),name,shelf,icon:icon||'',note,label,sections,items,order:db.catalogs.length});
+  }
+  save();closeModal('catalogModal');
+  if(editCatalogId)openCatalogDetail(editCatalogId);else renderCatalogList();
+}
+
+/* ── Catalog Item CRUD ── */
+function openAddCatItem(){
+  editCatItemIdx=null;
+  document.getElementById('catItemModalTitle').textContent='New Title';
+  document.getElementById('inputCatItemName').value='';document.getElementById('inputCatItemCost').value='';
+  document.getElementById('catItemImgPreview').style.display='none';
+  document.getElementById('catItemLocked').value='0';document.getElementById('lockBtn').classList.remove('active');
+  document.getElementById('catItemDeleteBtn').style.display='none';
+  const c=db.catalogs.find(x=>x.id===curCatalogId);
+  const sectionField=document.getElementById('catItemSectionField');
+  const sectionSelect=document.getElementById('inputCatItemSection');
+  if(c&&c.sections&&c.sections.length){
+    sectionSelect.innerHTML=c.sections.map((s,i)=>`<option value="${i}">${esc(s.name||('Section '+(i+1)))}</option>`).join('');
+    sectionField.style.display='block';
+  }else sectionField.style.display='none';
+  openModal('catItemModal');
+}
+function getCatalogItemSectionIndex(c,itemIdx){
+  let end=0;
+  for(let i=0;i<(c.sections||[]).length;i++){
+    end+=parseInt(c.sections[i].count)||0;
+    if(itemIdx<end)return i;
+  }
+  return -1;
+}
+function openEditCatItem(idx){
+  const c=db.catalogs.find(x=>x.id===curCatalogId);if(!c||!c.items[idx])return;
+  const item=c.items[idx];editCatItemIdx=idx;
+  document.getElementById('catItemModalTitle').textContent='Edit Title';
+  document.getElementById('inputCatItemName').value=item.name||'';
+  document.getElementById('inputCatItemCost').value=item.cost||'';
+  const preview=document.getElementById('catItemImgPreview');
+  if(item.img){preview.src=item.img;preview.style.display='block';}else{preview.removeAttribute('src');preview.style.display='none';}
+  document.getElementById('catItemLocked').value=item.locked?'1':'0';
+  document.getElementById('lockBtn').classList.toggle('active',!!item.locked);
+  document.getElementById('catItemDeleteBtn').style.display='';
+  document.getElementById('catItemSectionField').style.display='none';
+  openModal('catItemModal');
+}
+function toggleCatLock(){
+  const f=document.getElementById('catItemLocked');
+  f.value=f.value==='0'?'1':'0';
+  document.getElementById('lockBtn').classList.toggle('active',f.value==='1');
+}
+function saveCatItem(){
+  const c=db.catalogs.find(x=>x.id===curCatalogId);if(!c)return;
+  const name=document.getElementById('inputCatItemName').value.trim()||'Title '+(c.items.length+1);
+  const cost=parseInt(document.getElementById('inputCatItemCost').value)||0;
+  const locked=document.getElementById('catItemLocked').value==='1';
+  const preview=document.getElementById('catItemImgPreview');
+  const img=preview.style.display!=='none'?preview.src:'';
+  if(editCatItemIdx!==null){
+    const item=c.items[editCatItemIdx];if(item){item.name=name;item.cost=cost;item.locked=locked;if(img)item.img=img;}
+  }else{
+    const newItem={id:gid(),name,img,collected:false,locked,cost,note:''};
+    if(c.sections&&c.sections.length){
+      const sectionIdx=Math.max(0,parseInt(document.getElementById('inputCatItemSection').value)||0);
+      let insertIdx=0;for(let i=0;i<=sectionIdx;i++)insertIdx+=parseInt(c.sections[i].count)||0;
+      c.items.splice(insertIdx,0,newItem);c.sections[sectionIdx].count=(parseInt(c.sections[sectionIdx].count)||0)+1;
+      db.items.forEach(item=>{if(item.catalogRef&&item.catalogRef.catalogId===curCatalogId&&item.catalogRef.itemIdx>=insertIdx)item.catalogRef.itemIdx++;});
+    }else c.items.push(newItem);
+  }
+  save();closeModal('catItemModal');openCatalogDetail(curCatalogId);
+}
+function deleteCatItem(){
+  const c=db.catalogs.find(x=>x.id===curCatalogId);if(!c||editCatItemIdx===null||!c.items[editCatItemIdx])return;
+  const removedIdx=editCatItemIdx;
+  const sectionIdx=getCatalogItemSectionIndex(c,removedIdx);
+  if(sectionIdx>=0)c.sections[sectionIdx].count=Math.max(0,(parseInt(c.sections[sectionIdx].count)||0)-1);
+  c.items.splice(removedIdx,1);
+  db.items=db.items.filter(item=>!(item.catalogRef&&item.catalogRef.catalogId===curCatalogId&&item.catalogRef.itemIdx===removedIdx));
+  db.items.forEach(item=>{if(item.catalogRef&&item.catalogRef.catalogId===curCatalogId&&item.catalogRef.itemIdx>removedIdx)item.catalogRef.itemIdx--;});
+  editCatItemIdx=null;save();closeModal('catItemModal');openCatalogDetail(curCatalogId);toast('Deleted');
+}
+function openAddCatSection(){
+  const c=db.catalogs.find(x=>x.id===curCatalogId);if(!c)return;
+  const name=prompt('Section name');if(!name)return;
+  const count=parseInt(prompt('Count'))||0;
+  c.sections.push({name,count});
+  for(let i=0;i<count;i++)c.items.push({id:gid(),name:'Title '+(c.items.length+1),img:'',collected:false,locked:false,cost:0,note:''});
+  save();openCatalogDetail(curCatalogId);
+}
+
+/* ═══ REFERENCE VIEW ═══ */
+function renderRefList(){
+  const sorted=db.refs.sort((a,b)=>(a.order||0)-(b.order||0));
+  const ungrouped=sorted.filter(r=>!r.shelf);
+  const shelves={};const shelfOrder=[];
+  sorted.forEach(r=>{if(!r.shelf)return;if(!shelves[r.shelf]){shelves[r.shelf]=[];shelfOrder.push(r.shelf);}shelves[r.shelf].push(r);});
+  let html='';
+  ungrouped.forEach(r=>{html+=renderRefRow(r);});
+  shelfOrder.forEach(shelf=>{
+    const coll=db.refShelfCollapsed[shelf];
+    html+=`<div class="shelf-header${coll?' collapsed':''}" onclick="toggleRefShelf('${esc(shelf)}')"><div class="shelf-line"></div><span class="shelf-label">${esc(shelf)}</span><span class="shelf-arrow">▼</span><div class="shelf-line"></div></div>`;
+    html+=`<div class="shelf-items${coll?' collapsed':''}">`;shelves[shelf].forEach(r=>{html+=renderRefRow(r);});html+=`</div>`;
+  });
+  document.getElementById('refList').innerHTML=html;
+}
+function renderRefRow(r){
+  return`<div class="catalog-row" onclick="openRefDetail('${r.id}')"><img class="catalog-icon" src="${r.icon||''}" onerror="this.style.background='#f0f0f0'"><div class="catalog-body"><div class="catalog-name">${esc(r.name)}</div><div class="catalog-meta">${r.items?r.items.length:0} items</div></div></div>`;
+}
+function toggleRefShelf(name){db.refShelfCollapsed[name]=!db.refShelfCollapsed[name];save();renderRefList();}
+function openRefDetail(id){
+  curRefId=id;const r=db.refs.find(x=>x.id===id);if(!r)return;
+  document.getElementById('refDetailTitle').textContent=r.name;
+  let html=`<div class="catalog-grid">${(r.items||[]).map((item,idx)=>`<div class="cat-item collected" onclick="viewRefImg(${idx})"><img src="${item.img||''}" onerror="this.parentElement.style.background='#e8e8e8'"><div class="cat-name">${esc(item.name)}</div></div>`).join('')}</div>`;
+  document.getElementById('refDetailGrid').innerHTML=html;
+  document.getElementById('refComment').value=r.comment||'';
+  showView('viewRefDetail');
+  document.querySelector('.tab-bar').style.display='none';
+}
+function saveRefComment(){
+  const r=db.refs.find(x=>x.id===curRefId);if(!r)return;
+  r.comment=document.getElementById('refComment').value;save();
+}
+function viewRefImg(idx){
+  const r=db.refs.find(x=>x.id===curRefId);if(!r||!r.items[idx])return;
+  // Simple fullscreen preview
+  const img=r.items[idx].img;if(!img)return;
+  const overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:999;display:flex;align-items:center;justify-content:center;cursor:pointer';
+  overlay.innerHTML=`<img src="${img}" style="max-width:90vw;max-height:90vh;object-fit:contain;border-radius:8px">`;
+  overlay.onclick=()=>overlay.remove();
+  document.body.appendChild(overlay);
+}
+function addRefToList(){
+  const r=db.refs.find(x=>x.id===curRefId);if(!r)return;
+  const name=prompt('Add to List — which items? (enter name)');if(!name)return;
+  // Find or create a catalog with same name
+  let cat=db.catalogs.find(c=>c.name===r.name);
+  if(!cat){cat={id:gid(),name:r.name,shelf:r.shelf||'',icon:r.icon||'',note:'',label:{name:'',color:'#C4A24C'},sections:[],items:[],order:db.catalogs.length};db.catalogs.push(cat);}
+  cat.items.push({id:gid(),name,img:'',collected:false,locked:false,cost:0,note:''});
+  save();toast('Added to List');
+}
+
+/* ── Reference CRUD ── */
+function openAddRef(){
+  editRefId=null;
+  document.getElementById('refModalTitle').textContent='New Reference';
+  document.getElementById('inputRefName').value='';document.getElementById('inputRefShelf').value='';document.getElementById('inputRefNote').value='';
+  document.getElementById('refIconPreview').style.display='none';
+  openModal('refModal');
+}
+function openEditRef(){
+  const r=db.refs.find(x=>x.id===curRefId);if(!r)return;
+  editRefId=r.id;
+  document.getElementById('refModalTitle').textContent='Edit Reference';
+  document.getElementById('inputRefName').value=r.name;document.getElementById('inputRefShelf').value=r.shelf||'';document.getElementById('inputRefNote').value=r.note||'';
+  openModal('refModal');
+}
+function saveRef(){
+  const name=document.getElementById('inputRefName').value.trim();if(!name){toast('Name required');return;}
+  const shelf=document.getElementById('inputRefShelf').value.trim();
+  const note=document.getElementById('inputRefNote').value.trim();
+  const preview=document.getElementById('refIconPreview');
+  const icon=preview.style.display!=='none'?preview.src:'';
+  if(editRefId){
+    const r=db.refs.find(x=>x.id===editRefId);
+    if(r){r.name=name;r.shelf=shelf;r.note=note;if(icon)r.icon=icon;}
+  }else{
+    db.refs.push({id:gid(),name,shelf,icon:icon||'',note,comment:'',items:[],order:db.refs.length});
+  }
+  save();closeModal('refModal');renderRefList();
+}
+function openAddRefItem(){
+  document.getElementById('inputRefItemName').value='';
+  document.getElementById('refItemImgPreview').style.display='none';
+  openModal('refItemModal');
+}
+function saveRefItem(){
+  const r=db.refs.find(x=>x.id===curRefId);if(!r)return;
+  const name=document.getElementById('inputRefItemName').value.trim()||'Item '+(r.items.length+1);
+  const preview=document.getElementById('refItemImgPreview');
+  const img=preview.style.display!=='none'?preview.src:'';
+  r.items.push({id:gid(),name,img});
+  save();closeModal('refItemModal');openRefDetail(curRefId);
+}
+
+/* ═══ HELPERS ═══ */
+function openModal(id){document.getElementById(id).classList.add('show');}
+function closeModal(id){document.getElementById(id).classList.remove('show');}
+function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.style.display='block';clearTimeout(el._t);el._t=setTimeout(()=>el.style.display='none',2000);}
+function previewImg(input,previewId){
   if(!input.files||!input.files[0])return;
   const reader=new FileReader();
-  reader.onload=(ev)=>{
-    const img=new Image();
-    img.onload=()=>{
-      const canvas=document.createElement('canvas');
-      const MAX=800;let w=img.width,h=img.height;
-      if(w>MAX||h>MAX){if(w>h){h=h*MAX/w;w=MAX;}else{w=w*MAX/h;h=MAX;}}
-      canvas.width=w;canvas.height=h;canvas.getContext('2d').drawImage(img,0,0,w,h);
-      const preview=document.getElementById('imgPreview');
-      const dataUrl=canvas.toDataURL('image/jpeg',0.7);
-      preview.dataset.source=dataUrl;
-      preview.src=dataUrl;
-      preview.style.display='block';
-    };
-    img.src=ev.target.result;
-  };
+  reader.onload=e=>{const p=document.getElementById(previewId);p.src=e.target.result;p.style.display='block';};
   reader.readAsDataURL(input.files[0]);
 }
+// Wire file labels
+document.getElementById('itemFileLabel').addEventListener('click',()=>document.getElementById('itemImgInput').click());
+document.getElementById('catIconLabel').addEventListener('click',()=>document.getElementById('catIconInput').click());
+document.getElementById('catItemFileLabel').addEventListener('click',()=>document.getElementById('catItemImgInput').click());
+document.getElementById('refIconLabel').addEventListener('click',()=>document.getElementById('refIconInput').click());
+document.getElementById('refItemFileLabel').addEventListener('click',()=>document.getElementById('refItemImgInput').click());
 
-async function saveEntry() {
-  const name=document.getElementById('entryName').value.trim();
-  if(!name)return;
-  const note=document.getElementById('entryNote').value;
-  const cat=document.getElementById('entryCat').value;
-  const preview=document.getElementById('imgPreview');
-  const entryId=editingId||'te_'+Date.now();
-  let img=preview.style.display!=='none'?(preview.dataset.source||preview.getAttribute('src')||''):'';
-  if(img.startsWith('data:')&&window.CloudSync){
-    try{img=await CloudSync.uploadDataUrl(img,`techo/${entryId}.jpg`);}
-    catch(error){console.warn(error);alert('照片暂时没有传到云端，记录仍会保存在这台设备。');}
-  }
-
-  let oldImg='';
-  if(editingId) {
-    const e=db.entries.find(x=>x.id===editingId);
-    if(e){oldImg=e.img||'';e.name=name;e.note=note;e.category=cat;e.img=img;}
-  } else {
-    db.entries.push({id:entryId,owner:curOwner,type:curType,name,note,img,category:cat,created:new Date().toISOString()});
-  }
-  save();closeModal('entryModal');renderDetail();updateCounts();
-  if(oldImg&&oldImg!==img&&window.CloudSync) CloudSync.deleteAsset(oldImg);
-}
-
-function deleteEntry(id) {
-  if(!confirm('确定删除？'))return;
-  const entry=db.entries.find(e=>e.id===id);
-  db.entries=db.entries.filter(e=>e.id!==id);
-  save();renderDetail();updateCounts();
-  if(entry&&entry.img&&window.CloudSync) CloudSync.deleteAsset(entry.img);
-}
-
-// ── View ──
-function showView(id) {
-  const e=db.entries.find(x=>x.id===id);if(!e)return;
-  document.getElementById('viewContent').innerHTML=`
-    <div class="d-title">${e.name}</div>
-    <div class="d-cat">${e.category||''}</div>
-    ${e.note?`<div class="d-note">${e.note.replace(/\n/g,'<br>')}</div>`:''}
-    ${e.img?`<img src="${e.img}">`:''}
-    <div class="actions">
-      <button onclick="closeModal('viewModal');editEntry('${e.id}')">编辑</button>
-      <button class="del" onclick="closeModal('viewModal');deleteEntry('${e.id}')">删除</button>
-    </div>`;
-  showModal('viewModal');
-}
-
-// ── Export/Import ──
 function exportData(){
   const blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download=`techo_backup_${new Date().toISOString().slice(0,10)}.json`;a.click();
-}
-function importData(input){
-  if(!input.files||!input.files[0])return;
-  const reader=new FileReader();
-  reader.onload=(ev)=>{try{
-    const imp=JSON.parse(ev.target.result);
-    if(imp.entries&&imp.categories){if(confirm('导入数据？')){db=imp;save();showHome();closeModal('exportModal');}}
-    else alert('格式不对');
-  }catch(e){alert('导入失败');}};
-  reader.readAsText(input.files[0]);
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='techo-backup.json';a.click();
 }
 
-// ── Modal ──
-function showModal(id){document.getElementById(id).classList.add('show');}
-function closeModal(id){document.getElementById(id).classList.remove('show');}
-document.querySelectorAll('.modal-bg').forEach(bg=>{bg.addEventListener('click',e=>{if(e.target===bg)bg.classList.remove('show');});});
-document.getElementById('fileLabel').addEventListener('click',()=>document.getElementById('entryImg').click());
-
-async function migrateLocalImages(){
-  if(!window.CloudSync)return;
-  try{
-    await CloudSync.whenReady();
-    let changed=false;
-    for(const entry of db.entries){
-      if(entry.img&&entry.img.startsWith('data:')){
-        entry.img=await CloudSync.uploadDataUrl(entry.img,`techo/${entry.id}.jpg`);
-        changed=true;
-      }
-    }
-    if(changed){save();showHome();}
-  }catch(error){console.warn('手账照片迁移暂未完成：',error);}
-}
-
-// ── Init ──
-showHome(); migrateLocalImages();
+/* ═══ INIT ═══ */
+load();renderItems();
+// Return from catalog detail
+document.querySelector('#viewCatalogDetail .back').addEventListener('click',()=>{
+  document.querySelector('.tab-bar').style.display='flex';
+  switchTab('viewCatalog');
+});
 </script>
 </body>
 </html>
