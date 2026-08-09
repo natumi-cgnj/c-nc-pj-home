@@ -558,7 +558,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <a class="entry-card" href="cinema.html"><div class="entry-icon">🎬</div><div class="entry-label">Cinema</div></a>
   <a class="entry-card draft" href="reading.html"><div class="entry-icon">📚</div><div class="entry-label">Book</div></a>
   <a class="entry-card draft" href="music.html"><div class="entry-icon">🎵</div><div class="entry-label">Music</div></a>
-  <a class="entry-card" href="stationery.html"><div class="entry-icon">✎</div><div class="entry-label">Techo</div></a>
+  <a class="entry-card" href="techo.html"><div class="entry-icon">✎</div><div class="entry-label">Techo</div></a>
   <a class="entry-card" href="bjd.html"><div class="entry-icon">✦</div><div class="entry-label">Doll</div></a>
   <a class="entry-card draft" href="merch.html"><div class="entry-icon">🎁</div><div class="entry-label">Merch</div></a>
 </div>
@@ -2062,7 +2062,11 @@ window.addEventListener('resize',function(){
   var previousPagerOverflowX = '';
 
   function modeKey(){return window.innerWidth >= 700 ? 'desktop' : 'mobile';}
-  function storageKey(section){return 'entry_order_' + modeKey() + '_' + section;}
+  function storageKey(section){
+    // Archive changed from a mixed collection into a fixed 3 + 3 layout.
+    // Version only this section so a legacy drag order cannot scramble it.
+    return 'entry_order_' + (section==='collect'?'v2_':'') + modeKey() + '_' + section;
+  }
 
   grids.forEach(function(grid){
     var cards=Array.from(grid.querySelectorAll('.entry-card'));
