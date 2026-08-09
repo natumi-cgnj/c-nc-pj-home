@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Techo">
-<title>Techo</title>
+<meta name="apple-mobile-web-app-title" content="Merch">
+<title>Merch</title>
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="favicon.ico">
 <style>
@@ -20,7 +20,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 /* Bottom tab bar */
 .tab-bar{position:fixed;bottom:0;left:0;right:0;display:flex;background:#fff;border-top:1px solid #eee;z-index:50;padding-bottom:env(safe-area-inset-bottom,0)}
 .tab-btn{flex:1;padding:10px 0 8px;text-align:center;font-size:10px;color:#ccc;background:none;border:none;cursor:pointer;font-family:inherit;letter-spacing:0.5px}
-.tab-btn.active{color:#C4A24C;font-weight:600}
+.tab-btn.active{color:#D85A30;font-weight:600}
 
 /* Views */
 .view{display:none}.view.active{display:block}
@@ -33,7 +33,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .item-thumb{position:relative;border-radius:8px;overflow:hidden;cursor:pointer;background:#f5f5f5;aspect-ratio:1;display:flex;align-items:center;justify-content:center}
 .item-thumb img{width:100%;height:100%;object-fit:cover}
 .item-thumb .item-name-s{font-size:8px;color:#bbb;text-align:center;padding:2px;word-break:break-all}
-.item-thumb.long-term{border:2px solid #C4A24C22}
+.item-thumb.long-term{border:2px solid #D85A3022}
 .item-thumb.consumable{border:2px solid #8AAAC422}
 
 .section-divider{display:flex;align-items:center;gap:10px;padding:16px 20px 8px;cursor:pointer;user-select:none}
@@ -52,7 +52,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .item-row-name{font-size:13px;font-weight:500;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .item-row-meta{font-size:10px;color:#ccc;margin-top:2px}
 .status-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
-.status-dot.active{background:#C4A24C}
+.status-dot.active{background:#D85A30}
 .status-dot.pending{background:#ddd}
 
 .add-row{display:flex;gap:8px;padding:12px 20px}
@@ -63,7 +63,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 /* ── Catalog view ── */
 .fund-pool{padding:12px 20px;background:#fff;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center}
 .fund-label{font-size:10px;color:#ccc}
-.fund-amount{font-size:16px;font-weight:300;color:#C4A24C;font-variant-numeric:tabular-nums}
+.fund-amount{font-size:16px;font-weight:300;color:#D85A30;font-variant-numeric:tabular-nums}
 .fund-amount.zero{color:#5BA66B}
 
 .catalog-row{display:flex;align-items:center;gap:12px;padding:14px 20px;background:#fff;border-bottom:1px solid #f5f5f5;cursor:pointer}
@@ -135,12 +135,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 /* Category select */
 .cat-select{display:flex;gap:6px;margin-top:4px}
 .cat-opt{padding:6px 12px;border-radius:8px;border:1.5px solid #e8e8e8;font-size:11px;color:#999;cursor:pointer;font-family:inherit;background:#fff}
-.cat-opt.active{border-color:#C4A24C;color:#C4A24C;background:#C4A24C0a}
+.cat-opt.active{border-color:#D85A30;color:#D85A30;background:#D85A300a}
 
 /* Disposition */
 .disp-row{display:flex;gap:6px;margin-top:6px}
 .disp-btn{padding:6px 12px;border-radius:8px;border:1.5px solid #e8e8e8;font-size:11px;color:#999;cursor:pointer;font-family:inherit;background:#fff}
-.disp-btn.active{border-color:#C4A24C;color:#C4A24C}
+.disp-btn.active{border-color:#D85A30;color:#D85A30}
 .disp-btn.sold.active{border-color:#5BA66B;color:#5BA66B}
 
 .toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.7);color:#fff;font-size:11px;padding:8px 16px;border-radius:8px;display:none;z-index:300}
@@ -150,7 +150,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 <div class="top-bar">
   <a class="back" href="index.html">← Home</a>
-  <h1>Techo</h1>
+  <h1>Merch</h1>
   <div class="top-right"><button class="btn-s" onclick="exportData()">Backup</button></div>
 </div>
 
@@ -367,8 +367,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <script src="cloud-sync.js"></script>
 <script>
 'use strict';
-const DB_KEY='techo_db2';
-const COLORS=['#C4A24C','#8B6B4A','#9B8AE8','#6B5ACD','#D85A30','#E84A7A','#E8B96A','#9B6BCC','#4AADE8','#3A8DD4','#5BA66B','#3D8B50','#6B8AFF','#4A6AE0','#888','#4ECDC4'];
+const DB_KEY='merch_db';
+const COLORS=['#D85A30','#B04A28','#9B8AE8','#6B5ACD','#D85A30','#E84A7A','#E8B96A','#9B6BCC','#4AADE8','#3A8DD4','#5BA66B','#3D8B50','#6B8AFF','#4A6AE0','#888','#4ECDC4'];
 let db={items:[],sections:[],catalogs:[],refs:[],sectionCollapsed:{},shelfCollapsed:{},refShelfCollapsed:{}};
 let curCatalogId=null,curRefId=null,editItemId=null,editCatalogId=null,editRefId=null,editCatItemIdx=null;
 
@@ -595,13 +595,13 @@ function toggleCollect(idx){
 }
 
 /* ── Catalog CRUD ── */
-let _catSections=[],_catLabelColor='#C4A24C';
+let _catSections=[],_catLabelColor='#D85A30';
 function openAddCatalog(){
   editCatalogId=null;
   document.getElementById('catalogModalTitle').textContent='New List';
   document.getElementById('inputCatName').value='';document.getElementById('inputCatShelf').value='';document.getElementById('inputCatNote').value='';document.getElementById('inputCatLabel').value='';
   document.getElementById('catIconPreview').style.display='none';
-  _catSections=[{name:'',count:0}];_catLabelColor='#C4A24C';
+  _catSections=[{name:'',count:0}];_catLabelColor='#D85A30';
   renderCatSections();renderCatColors();openModal('catalogModal');
 }
 function openEditCatalog(){
@@ -610,7 +610,7 @@ function openEditCatalog(){
   document.getElementById('catalogModalTitle').textContent='Edit List';
   document.getElementById('inputCatName').value=c.name;document.getElementById('inputCatShelf').value=c.shelf||'';document.getElementById('inputCatNote').value=c.note||'';document.getElementById('inputCatLabel').value=c.label?.name||'';
   _catSections=c.sections?c.sections.map(s=>({...s})):[{name:'',count:0}];
-  _catLabelColor=c.label?.color||'#C4A24C';
+  _catLabelColor=c.label?.color||'#D85A30';
   renderCatSections();renderCatColors();openModal('catalogModal');
 }
 function renderCatSections(){
@@ -723,7 +723,7 @@ function addRefToList(){
   const name=prompt('Add to List — which items? (enter name)');if(!name)return;
   // Find or create a catalog with same name
   let cat=db.catalogs.find(c=>c.name===r.name);
-  if(!cat){cat={id:gid(),name:r.name,shelf:r.shelf||'',icon:r.icon||'',note:'',label:{name:'',color:'#C4A24C'},sections:[],items:[],order:db.catalogs.length};db.catalogs.push(cat);}
+  if(!cat){cat={id:gid(),name:r.name,shelf:r.shelf||'',icon:r.icon||'',note:'',label:{name:'',color:'#D85A30'},sections:[],items:[],order:db.catalogs.length};db.catalogs.push(cat);}
   cat.items.push({id:gid(),name,img:'',collected:false,locked:false,cost:0,note:''});
   save();toast('Added to List');
 }
@@ -790,7 +790,7 @@ document.getElementById('refItemFileLabel').addEventListener('click',()=>documen
 
 function exportData(){
   const blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='techo-backup.json';a.click();
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='merch-backup.json';a.click();
 }
 
 /* ═══ INIT ═══ */

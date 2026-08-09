@@ -29,24 +29,27 @@
   const STATE_KEYS = [
     'daily_db', 'daily_presets', 'gacha_st', 'bean_st', 'habit_db', 'story_db',
     'bjd_db3', 'techo_db2', 'shop_db', 'event_db', 'event_presets', 'dungeon_db',
-    'kitchen_db', 'activity_db', 'cinema_db', 'stationery_db', 'wallet_db',
+    'kitchen_db', 'activity_db', 'cinema_db', 'stationery_db', 'techo_db2', 'doll_db2', 'merch_db', 'wallet_db',
     'home_modules', 'home_lines', 'home_skins', 'home_skin_custom',
     'home_skin_daily', 'home_cg_library', 'home_cg_period', 'shortcut-order',
     'home_character_runtime', 'home_character_action_packs', 'shared_diary_db',
-    'memo_db', 'study_db', 'organize_db', 'artist_db', 'music_db', 'reading_db'
+    'memo_db', 'study_db', 'organize_db', 'artist_db', 'music_db', 'reading_db',
+    'schedule_packs', 'schedule_user_events'
   ];
   const PAGE_KEYS = {
-    'index.html': ['habit_db', 'wallet_db', 'memo_db', 'home_modules', 'home_lines', 'home_skins', 'home_skin_custom', 'home_skin_daily', 'home_cg_library', 'home_cg_period', 'shortcut-order', 'home_character_runtime', 'home_character_action_packs', 'shared_diary_db'],
+    'index.html': ['habit_db', 'wallet_db', 'memo_db', 'home_modules', 'home_lines', 'home_skins', 'home_skin_custom', 'home_skin_daily', 'home_cg_library', 'home_cg_period', 'shortcut-order', 'home_character_runtime', 'home_character_action_packs', 'shared_diary_db', 'schedule_packs', 'schedule_user_events'],
+    'schedule.html': ['schedule_packs', 'schedule_user_events', 'home_character_runtime', 'home_character_action_packs'],
     'daily.html': ['daily_db', 'daily_presets', 'gacha_st', 'bean_st', 'habit_db'],
     'gacha.html': ['gacha_st'],
     'habit.html': ['habit_db', 'bean_st'],
     'shop.html': ['shop_db', 'bean_st', 'daily_db'],
     'story.html': ['story_db', 'gacha_st', 'daily_db'],
-    'bjd.html': ['bjd_db3'],
+    'bjd.html': ['bjd_db3', 'doll_db2'],
+    'merch.html': ['merch_db'],
     'techo.html': ['techo_db2'],
     'event.html': ['activity_db'],
     'cinema.html': ['cinema_db'],
-    'stationery.html': ['stationery_db'],
+    'stationery.html': ['stationery_db', 'techo_db2'],
     'wallet.html': ['wallet_db', 'home_character_runtime', 'home_character_action_packs', 'shared_diary_db'],
     'dungeon.html': ['dungeon_db', 'daily_db'],
     'kitchen.html': ['kitchen_db'],
