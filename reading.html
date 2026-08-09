@@ -361,7 +361,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <h2>Book Backup</h2>
     <div style="padding:8px 0">
       <button class="btn btn-cancel" style="margin-bottom:8px;width:100%" onclick="exportData()">Export</button>
-      <button class="btn btn-cancel" style="width:100%;margin-bottom:8px" onclick="document.getElementById('importFile').click()">导入数据</button>
+      <button class="btn btn-cancel" style="width:100%;margin-bottom:8px" onclick="document.getElementById('importFile').click()">Import</button>
       <input type="file" id="importFile" accept=".json" onchange="importData(this)" style="display:none">
       <button class="btn btn-cancel" style="width:100%" onclick="checkOrphanedBookAssets()">Check unused images</button>
     </div>
@@ -416,7 +416,7 @@ let _toastTimer=null;
 function showToast(msg,ms){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(_toastTimer);_toastTimer=setTimeout(()=>el.classList.remove('show'),ms||2200);}
 function getProject(id){return projects.find(p=>p.id===id);}
 function projectStats(p){let t=0,c=0;(p.items||[]).forEach(item=>{t++;if(item.collected)c++;});return{total:t,collected:c};}
-function isGenericItemName(name){return !String(name||'').trim()||/^Title \d+$/.test(String(name).trim());}
+function isGenericItemName(name){return !String(name||'').trim()||/^(?:Title \d+|影片\d+)$/.test(String(name).trim());}
 function getItemDisplayName(p,item,idx){
   const name=String(item&&item.name||'').trim();
   if(!isGenericItemName(name))return name;
@@ -441,7 +441,7 @@ function returnToDetail(){
 
 /* ═══ DUTY ═══ */
 const DUTY_PRESETS=[];
-const CUSTOM_COLORS=['#B0805A','#8B6B4A','#D85A30','#E84A7A','#E8B96A','#C7A24C','#9B6BCC','#4AADE8','#3A8DD4','#5BA66B','#3D8B50','#6B8AFF','#4A6AE0','#888','#B0805A','#4ECDC4'];
+const CUSTOM_COLORS=['#B0805A','#8B6B4A','#D85A30','#E84A7A','#E8B96A','#C7A24C','#9B6BCC','#4AADE8','#3A8DD4','#5BA66B','#3D8B50','#6B8AFF','#4A6AE0','#888','#7A6654','#4ECDC4'];
 let _dutyState={type:'',color:'#B0805A',name:''};
 
 const CHECKIN_LINES={
@@ -569,7 +569,7 @@ function buildSectionDrafts(p){
   if(off<p.items.length){if(!drafts.length)drafts.push({name:'',count:0,_items:[]});const last=drafts[drafts.length-1];last._items.push(...p.items.slice(off));last.count=last._items.length;}
   return drafts;
 }
-function itemHasSavedContent(item){return !!(item&&(item.collected||item.img||item.note||item.checkinNote||item.checkinImg||item.author||item.publisher||item.format||(item.name&&!/^Title \d+$/.test(item.name))));}
+function itemHasSavedContent(item){return !!(item&&(item.collected||item.img||item.note||item.checkinNote||item.checkinImg||item.author||item.publisher||item.format||!isGenericItemName(item.name)));}
 function finalizeSectionDrafts(){
   const sections=[],items=[];let preserved=0;
   _sections.filter(s=>s.name||s.count>0||(s._items&&s._items.length)).forEach(sec=>{
@@ -578,7 +578,7 @@ function finalizeSectionDrafts(){
     while(group.length<req)group.push(makeEmptyItem(items.length+group.length+1));
     sections.push({name:sec.name||'',count:group.length});items.push(...group);
   });
-  items.forEach((item,i)=>{if(/^Title \d+$/.test(item.name||''))item.name='Title '+(i+1);});
+  items.forEach((item,i)=>{if(isGenericItemName(item.name))item.name='Title '+(i+1);});
   return{sections,items,preserved};
 }
 function renderSectionList(){
@@ -725,7 +725,7 @@ function moveGridItem(fromIdx,toIdx){
   const fromSec=getItemSectionIndex(p,fromIdx),toSec=getItemSectionIndex(p,toIdx);
   if(fromSec>=0&&toSec>=0&&fromSec!==toSec){p.sections[fromSec].count=Math.max(0,(parseInt(p.sections[fromSec].count)||0)-1);p.sections[toSec].count=(parseInt(p.sections[toSec].count)||0)+1;}
   const scroll=currentScrollY(),item=p.items.splice(fromIdx,1)[0];p.items.splice(toIdx,0,item);
-  p.items.forEach((it,i)=>{if(/^Title \d+$/.test(it.name||''))it.name='Title '+(i+1);});
+  p.items.forEach((it,i)=>{if(isGenericItemName(it.name))it.name='Title '+(i+1);});
   save();renderDetail(p);restoreDetailScroll(scroll);return true;
 }
 function clearItemArrangeGesture(){
@@ -759,7 +759,7 @@ function deleteGridItem(idx){
   customConfirm(`删除${label}？打卡记录也会一起删除。`,()=>{
     const si=getItemSectionIndex(p,idx);if(si>=0)p.sections[si].count=Math.max(0,(parseInt(p.sections[si].count)||0)-1);
     const scroll=currentScrollY();p.items.splice(idx,1);p.count=p.items.length;
-    p.items.forEach((it,i)=>{if(/^Title \d+$/.test(it.name||''))it.name='Title '+(i+1);});
+    p.items.forEach((it,i)=>{if(isGenericItemName(it.name))it.name='Title '+(i+1);});
     curItemIdx=null;editItemIdx=null;save();renderDetail(p);restoreDetailScroll(scroll);
   },{yes:'Delete',danger:true});
 }
@@ -781,7 +781,7 @@ function deleteSectionQuickEdit(){
 function openAddSection(){const p=getProject(curProjectId);if(!p)return;document.getElementById('inputSectionName').value='';document.getElementById('inputSectionCount').value='';openModal('addSectionModal');requestAnimationFrame(()=>document.getElementById('inputSectionName').focus());}
 function saveAddSection(){
   const p=getProject(curProjectId);if(!p)return;const name=document.getElementById('inputSectionName').value.trim();const count=parseInt(document.getElementById('inputSectionCount').value)||0;
-  if(count<=0){showToast('请输入影片Count');return;}if(!p.sections)p.sections=[];
+  if(count<=0){showToast('Enter a title count');return;}if(!p.sections)p.sections=[];
   p.sections.push({name,count});for(let i=0;i<count;i++)p.items.push(makeEmptyItem(p.items.length+1));
   p.count=(p.count||0)+count;save();closeModal('addSectionModal');renderDetail(p);
 }
@@ -903,7 +903,7 @@ function renderItemSectionSelect(p,selectedIdx){
   const field=document.getElementById('itemSectionField'),select=document.getElementById('inputItemSection');
   if(!p.sections||!p.sections.length){field.style.display='none';select.innerHTML='';return;}
   const fb=selectedIdx>=0&&selectedIdx<p.sections.length?selectedIdx:0;
-  select.innerHTML=p.sections.map((sec,i)=>`<option value="${i}">${esc(sec.name||('分类 '+(i+1)))}</option>`).join('');
+  select.innerHTML=p.sections.map((sec,i)=>`<option value="${i}">${esc(sec.name||('Section '+(i+1)))}</option>`).join('');
   select.value=String(fb);field.style.display='block';
 }
 function getSelectedItemSection(p){if(!p.sections||!p.sections.length)return -1;const idx=parseInt(document.getElementById('inputItemSection').value);return Number.isInteger(idx)&&idx>=0&&idx<p.sections.length?idx:0;}
@@ -933,7 +933,7 @@ async function saveItem(){
   if(existingItem&&!existingItem.id)existingItem.id=stableId;
   const selectedSection=getSelectedItemSection(p);
   const inputName=document.getElementById('inputItemName').value.trim();
-  const name=wasEditing?inputName:(inputName||('影片'+(p.items.length+1)));
+  const name=wasEditing?inputName:(inputName||('Title '+(p.items.length+1)));
   const note=document.getElementById('inputItemNote').value.trim();
   const releaseDate=document.getElementById('inputItemRelease').value.trim();
   const studio=document.getElementById('inputItemStudio').value.trim();
@@ -947,7 +947,7 @@ async function saveItem(){
       if(selectedSection>=0&&selectedSection!==oldSec){p.items.splice(editItemIdx,1);if(oldSec>=0)p.sections[oldSec].count=Math.max(0,(parseInt(p.sections[oldSec].count)||0)-1);const at=getSectionEndIndex(p,selectedSection);p.items.splice(at,0,item);p.sections[selectedSection].count=(parseInt(p.sections[selectedSection].count)||0)+1;curItemIdx=at;editItemIdx=at;}
     }
   }else{
-    const item={id:stableId,name,note,img,collected:false,collectedDate:null,checkinNote:'',checkinImg:'',releaseDate,studio,duration};
+    const item={id:stableId,name,note,img,collected:false,collectedDate:null,checkinNote:'',checkinImg:'',author:releaseDate,publisher:studio,format:duration};
     if(selectedSection>=0){const at=getSectionEndIndex(p,selectedSection);p.items.splice(at,0,item);p.sections[selectedSection].count=(parseInt(p.sections[selectedSection].count)||0)+1;}else p.items.push(item);
   }
   p.count=p.items.length;save();closeModal('itemModal');
@@ -1007,7 +1007,7 @@ async function checkOrphanedBookAssets(){
   }
   try{
     showToast('正在检查影视图片…');
-    const stored=await CloudSync.listAssets('cinema');
+    const stored=await CloudSync.listAssets('reading');
     const refs=collectBookAssetRefs(projects);
     const orphaned=stored.filter(value=>!refs.has(value));
     if(!orphaned.length){showToast('没有发现无引用图片');return;}
@@ -1035,7 +1035,7 @@ document.getElementById('projectIconLabel').addEventListener('click',()=>documen
 document.getElementById('itemFileLabel').addEventListener('click',()=>document.getElementById('itemImgInput').click());
 document.getElementById('checkinImgLabel').addEventListener('click',()=>document.getElementById('checkinImgInput').click());
 
-function exportData(){const blob=new Blob([JSON.stringify(projects,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='cinema_backup_'+new Date().toISOString().slice(0,10)+'.json';a.click();}
+function exportData(){const blob=new Blob([JSON.stringify(projects,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='book_backup_'+new Date().toISOString().slice(0,10)+'.json';a.click();}
 function importData(input){
   if(!input.files||!input.files[0])return;
   const reader=new FileReader();
