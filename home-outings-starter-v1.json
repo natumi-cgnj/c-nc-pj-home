@@ -1,0 +1,2246 @@
+{
+  "format": "liminal-action-pack",
+  "version": 1,
+  "name": "首页外出状态试用包",
+  "actions": [
+    {
+      "id": "jane_reading",
+      "title": "阅读",
+      "participants": [
+        "jane"
+      ],
+      "world": "own_world",
+      "category": "leisure",
+      "activityMode": "in_room",
+      "defaultLiminalPresence": "present",
+      "location": "阁楼沙发",
+      "timeWindows": [
+        "morning",
+        "day",
+        "evening",
+        "night"
+      ],
+      "durationMin": 60,
+      "durationMax": 180,
+      "weight": 10,
+      "cooldownHours": 12,
+      "roomStatus": "在房间 · 阅读中",
+      "dialogues": {
+        "present": [
+          {
+            "s": "翻页",
+            "m": "……这本讲的是认知偏差。和你无关。大概。"
+          },
+          {
+            "s": "看书",
+            "m": "安静是最高效的环境。你在的话……也还行。"
+          },
+          {
+            "s": "沉浸阅读",
+            "m": "不要出声。我在数第三章的论证漏洞。"
+          }
+        ],
+        "away": [],
+        "break": [],
+        "return": []
+      },
+      "diaryTemplates": [
+        "在阁楼安静地读了一阵书。第三章的论证漏洞比预想中还多。",
+        "今天翻完了一本关于认知偏差的书，也顺手记下了几条值得继续观察的问题。"
+      ],
+      "allowLiminalBreak": false,
+      "artOverride": null,
+      "walletRule": null
+    },
+    {
+      "id": "jane_tea",
+      "title": "品茶",
+      "participants": [
+        "jane"
+      ],
+      "world": "own_world",
+      "category": "food",
+      "activityMode": "in_room",
+      "defaultLiminalPresence": "present",
+      "location": "厨房角落",
+      "timeWindows": [
+        "morning",
+        "day",
+        "evening"
+      ],
+      "durationMin": 30,
+      "durationMax": 90,
+      "weight": 12,
+      "cooldownHours": 12,
+      "roomStatus": "在房间 · 品茶中",
+      "dialogues": {
+        "present": [
+          {
+            "s": "泡茶",
+            "m": "…Earl Grey。别问我为什么。"
+          },
+          {
+            "s": "端着茶杯",
+            "m": "茶温在62度最好喝。这是事实，不是偏好。"
+          },
+          {
+            "s": "闻茶香",
+            "m": "你也想喝？……自己倒。杯子在第二格。"
+          }
+        ],
+        "away": [],
+        "break": [],
+        "return": []
+      },
+      "diaryTemplates": [
+        "泡了一壶Earl Grey。水温和时间都刚好。",
+        "在房间里慢慢喝完了茶。难得没有人来打断。"
+      ],
+      "allowLiminalBreak": false,
+      "artOverride": null,
+      "walletRule": null
+    },
+    {
+      "id": "jane_observing",
+      "title": "观察与思考",
+      "participants": [
+        "jane"
+      ],
+      "world": "own_world",
+      "category": "daily",
+      "activityMode": "in_room",
+      "defaultLiminalPresence": "present",
+      "location": "窗边",
+      "timeWindows": [
+        "morning",
+        "day",
+        "evening",
+        "night"
+      ],
+      "durationMin": 30,
+      "durationMax": 120,
+      "weight": 10,
+      "cooldownHours": 12,
+      "roomStatus": "在房间 · 思考中",
+      "dialogues": {
+        "present": [
+          {
+            "s": "望向窗外",
+            "m": "街对面那个人已经走过三次了。不一定可疑。但值得记录。"
+          },
+          {
+            "s": "闭目思考",
+            "m": "你以为我在发呆？……我在排列事实。仅此而已。"
+          },
+          {
+            "s": "凝视某处",
+            "m": "如果你想说话就说。我不会因为你打断思路就生气。大概。"
+          }
+        ],
+        "away": [],
+        "break": [],
+        "return": []
+      },
+      "diaryTemplates": [
+        "在窗边观察了一阵。街上的人比他们自己以为的更容易被读懂。",
+        "整理了今天看到的几个细节，其中有一条也许以后会派上用场。"
+      ],
+      "allowLiminalBreak": false,
+      "artOverride": null,
+      "walletRule": null
+    },
+    {
+      "id": "jane_notes",
+      "title": "整理笔记",
+      "participants": [
+        "jane"
+      ],
+      "world": "own_world",
+      "category": "work",
+      "activityMode": "in_room",
+      "defaultLiminalPresence": "present",
+      "location": "书桌",
+      "timeWindows": [
+        "day",
+        "evening",
+        "night"
+      ],
+      "durationMin": 45,
+      "durationMax": 120,
+      "weight": 8,
+      "cooldownHours": 18,
+      "roomStatus": "在房间 · 整理笔记",
+      "dialogues": {
+        "present": [
+          {
+            "s": "写字",
+            "m": "记录观察结果而已，不要紧张。"
+          },
+          {
+            "s": "翻笔记本",
+            "m": "我的笔记没有加密。只是字迹潦草到只有我看得懂。"
+          },
+          {
+            "s": "整理便签",
+            "m": "……这张是关于你的。内容不告诉你。"
+          }
+        ],
+        "away": [],
+        "break": [],
+        "return": []
+      },
+      "diaryTemplates": [
+        "重新整理了几页观察笔记，时间线总算清楚了一些。",
+        "把散乱的便签归了类。有一张关于Natumi的，暂时不打算给他看。"
+      ],
+      "allowLiminalBreak": false,
+      "artOverride": null,
+      "walletRule": null
+    },
+    {
+      "id": "jane_cbi_work",
+      "title": "CBI出勤",
+      "participants": [
+        "jane"
+      ],
+      "world": "own_world",
+      "category": "work",
+      "activityMode": "away",
+      "defaultLiminalPresence": "absent",
+      "location": "CBI总部",
+      "timeWindows": [
+        "morning",
+        "day"
+      ],
+      "durationMin": 240,
+      "durationMax": 480,
+      "weight": 12,
+      "cooldownHours": 18,
+      "roomStatus": "外出中 · CBI办公",
+      "dialogues": {
+        "present": [],
+        "away": [
+          {
+            "s": "办公中",
+            "m": "CBI有几个新案子。我去看看有没有值得注意的。"
+          },
+          {
+            "s": "在总部",
+            "m": "总部让我别迟到。我觉得他们太乐观了。"
+          }
+        ],
+        "break": [
+          {
+            "s": "休息中",
+            "m": "你在？……正好。会议还没结束，我在沙发上无聊。"
+          },
+          {
+            "s": "摸鱼中",
+            "m": "别告诉他们我在这里。他们以为我在看证物。"
+          }
+        ],
+        "return": [
+          {
+            "s": "回来了",
+            "m": "回来了。今天的案子不算有趣。嫌疑人太好猜了。"
+          },
+          {
+            "s": "到家",
+            "m": "……我回来了。你还在啊。不是说好不等我的吗。"
+          }
+        ]
+      },
+      "diaryTemplates": [
+        "在CBI度过了{duration}。新案件的嫌疑人名单初步锁定，案件组看起来总算松了口气。",
+        "今天的案件侧写已经完成。回去后想喝杯茶。"
+      ],
+      "allowLiminalBreak": true,
+      "artOverride": null,
+      "walletRule": null
+    },
+    {
+      "id": "jane_solo_investigation",
+      "title": "独自调查",
+      "participants": [
+        "jane"
+      ],
+      "world": "own_world",
+      "category": "work",
+      "activityMode": "away",
+      "defaultLiminalPresence": "absent",
+      "location": "案发现场附近",
+      "timeWindows": [
+        "day",
+        "evening"
+      ],
+      "durationMin": 120,
+      "durationMax": 360,
+      "weight": 7,
+      "cooldownHours": 24,
+      "roomStatus": "外出中 · 调查案件",
+      "dialogues": {
+        "present": [],
+        "away": [
+          {
+            "s": "调查中",
+            "m": "有些线索需要亲自确认。不要跟来。"
+          },
+          {
+            "s": "外出调查",
+            "m": "我去趟案发现场附近。不用担心，只是看看。"
+          }
+        ],
+        "break": [
+          {
+            "s": "暂停调查",
+            "m": "在路边的咖啡店歇一下。你想听听我发现了什么？"
+          },
+          {
+            "s": "等待中",
+            "m": "嫌疑人还没出现。……等人的时候想到了你。不要多想。"
+          }
+        ],
+        "return": [
+          {
+            "s": "调查结束",
+            "m": "回来了。线索比预期的多。我需要整理一下。"
+          },
+          {
+            "s": "回到房间",
+            "m": "……有收获。但需要安静想想。给我倒杯茶好吗。"
+          }
+        ]
+      },
+      "diaryTemplates": [
+        "独自调查了{duration}。在现场发现了几个被忽略的细节，可能是突破口。",
+        "现场取证完毕。有些东西需要回去仔细想想。嫌疑人的行为模式有矛盾。"
+      ],
+      "allowLiminalBreak": true,
+      "artOverride": null,
+      "walletRule": null
+    },
+    {
+      "id": "jane_buying_tea",
+      "title": "买茶叶",
+      "participants": [
+        "jane"
+      ],
+      "world": "own_world",
+      "category": "daily",
+      "activityMode": "away",
+      "defaultLiminalPresence": "absent",
+      "location": "市区茶叶专卖店",
+      "timeWindows": [
+        "day",
+        "evening"
+      ],
+      "durationMin": 60,
+      "durationMax": 120,
+      "weight": 5,
+      "cooldownHours": 48,
+      "roomStatus": "外出中 · 买茶叶",
+      "dialogues": {
+        "present": [],
+        "away": [
+          {
+            "s": "买茶",
+            "m": "茶叶快喝完了。我去补货。不用跟来。"
+          },
+          {
+            "s": "出门买茶",
+            "m": "那家店的老板只认我的脸。你去他不一定卖。"
+          }
+        ],
+        "break": [],
+        "return": [
+          {
+            "s": "买完茶回来",
+            "m": "买到了。还有一种新的白茶，你要试试吗。"
+          },
+          {
+            "s": "带着茶叶回来",
+            "m": "老板今天心情好，多给了我一点样品。……分你一点。"
+          }
+        ]
+      },
+      "diaryTemplates": [
+        "去茶叶店补了货。这次买的白牡丹品质不错。",
+        "茶叶专卖店来了一批新到的大吉岭。买了半磅回来慢慢喝。"
+      ],
+      "allowLiminalBreak": false,
+      "artOverride": null,
+      "walletRule": null
+    },
+    {
+      "id": "jane_bookstore",
+      "title": "逛书店",
+      "participants": [
+        "jane"
+      ],
+      "world": "own_world",
+      "category": "leisure",
+      "activityMode": "away",
+      "defaultLiminalPresence": "absent",
+      "location": "旧书店",
+      "timeWindows": [
+        "day",
+        "evening"
+      ],
+      "durationMin": 60,
+      "durationMax": 180,
+      "weight": 5,
+      "cooldownHours": 36,
+      "roomStatus": "外出中 · 逛书店",
+      "dialogues": {
+        "present": [],
+        "away": [
+          {
+            "s": "在书店",
+            "m": "旧书店来了一批新货。去看看有没有值得带回来的。"
+          },
+          {
+            "s": "逛书店",
+            "m": "那家旧书店可能有绝版的犯罪心理学教材。不去会后悔。"
+          }
+        ],
+        "break": [],
+        "return": [
+          {
+            "s": "带着书回来",
+            "m": "买了三本。……其中一本是给你的。别问是哪本。"
+          },
+          {
+            "s": "从书店回来",
+            "m": "旧书有旧书的味道。像是时间被压缩在纸页之间。"
+          }
+        ]
+      },
+      "diaryTemplates": [
+        "在旧书店待了{duration}。找到了一本1967年版的犯罪侧写手册。",
+        "逛了半天书店。买了几本书，也翻了很多没买的。安静的下午。"
+      ],
+      "allowLiminalBreak": false,
+      "artOverride": null,
+      "walletRule": null
+    },
+    {
+      "id": "neal_painting",
+      "title": "作画",
+      "participants": [
+        "neal"
+      ],
+      "world": "own_world",
+      "category": "leisure",
+      "activityMode": "in_room",
+      "defaultLiminalPresence": "present",
+      "location": "画架前",
+      "timeWindows": [
+        "morning",
+        "day",
+        "evening"
+      ],
+      "durationMin": 60,
+      "durationMax": 180,
+      "weight": 10,
+      "cooldownHours": 18,
+      "roomStatus": "在房间 · 作画中",
+      "dialogues": {
+        "present": [
+          {
+            "s": "作画中",
+            "m": "Light is everything……你站在那里别动，光影刚刚好。"
+          },
+          {
+            "s": "调色",
+            "m": "这个蓝……是你眼睛的颜色。Just saying."
+          },
+          {
+            "s": "画布前",
+            "m": "来看看？还没完成，但构图已经定了。告诉我你的感觉。"
+          }
+        ],
+        "away": [],
+        "break": [],
+        "return": []
+      },
+      "diaryTemplates": [
+        "在画架前待了一阵，终于把那束光的颜色调对了。",
+        "今天的画还没有完成，但构图已经定下来了。想等完成后第一个给Natumi看。"
+      ],
+      "allowLiminalBreak": false,
+      "artOverride": null,
+      "walletRule": null
+    },
+    {
+      "id": "neal_piano",
+      "title": "弹钢琴",
+      "participants": [
+        "neal"
+      ],
+      "world": "own_world",
+      "category": "leisure",
+      "activityMode": "in_room",
+      "defaultLiminalPresence": "present",
+      "location": "钢琴前",
+      "timeWindows": [
+        "morning",
+        "evening",
+        "night"
+      ],
+      "durationMin": 30,
+      "durationMax": 120,
+      "weight": 8,
+      "cooldownHours": 18,
+      "roomStatus": "在房间 · 弹琴中",
+      "dialogues": {
+        "present": [
+          {
+            "s": "弹琴",
+            "m": "Chopin的夜曲。适合有你在的晚上。"
+          },
+          {
+            "s": "练琴中",
+            "m": "你想听什么？……Actually，让我弹给你听我新学的。"
+          },
+          {
+            "s": "弹奏中",
+            "m": "别走开。这首的最后八小节是给你的。"
+          }
+        ],
+        "away": [],
+        "break": [],
+        "return": []
+      },
+      "diaryTemplates": [
+        "弹了几首Chopin。最后八小节比昨天顺了很多。",
+        "晚上在钢琴前坐了一会儿，有些旋律只适合弹给特定的人听。"
+      ],
+      "allowLiminalBreak": false,
+      "artOverride": null,
+      "walletRule": null
+    },
+    {
+      "id": "neal_wine",
+      "title": "品酒",
+      "participants": [
+        "neal"
+      ],
+      "world": "own_world",
+      "category": "food",
+      "activityMode": "in_room",
+      "defaultLiminalPresence": "present",
+      "location": "餐桌旁",
+      "timeWindows": [
+        "evening",
+        "night"
+      ],
+      "durationMin": 30,
+      "durationMax": 90,
+      "weight": 8,
+      "cooldownHours": 24,
+      "roomStatus": "在房间 · 品酒中",
+      "dialogues": {
+        "present": [
+          {
+            "s": "品酒",
+            "m": "2003年的Burgundy。想和你一起喝。Come here."
+          },
+          {
+            "s": "开瓶",
+            "m": "穿得好不是虚荣，喝好酒也是。这是对生活的基本尊重。"
+          },
+          {
+            "s": "举杯",
+            "m": "Give me your glass. 这一杯，敬你回来。"
+          }
+        ],
+        "away": [],
+        "break": [],
+        "return": []
+      },
+      "diaryTemplates": [
+        "开了一瓶保存得很好的Burgundy，香气比预想中更有层次。",
+        "慢慢喝完了一杯酒。好酒确实应该和重要的人一起分享。"
+      ],
+      "allowLiminalBreak": false,
+      "artOverride": null,
+      "walletRule": null
+    },
+    {
+      "id": "neal_wardrobe",
+      "title": "整理衣橱",
+      "participants": [
+        "neal"
+      ],
+      "world": "own_world",
+      "category": "daily",
+      "activityMode": "in_room",
+      "defaultLiminalPresence": "present",
+      "location": "衣帽间",
+      "timeWindows": [
+        "morning",
+        "day"
+      ],
+      "durationMin": 30,
+      "durationMax": 90,
+      "weight": 6,
+      "cooldownHours": 36,
+      "roomStatus": "在房间 · 整理衣橱",
+      "dialogues": {
+        "present": [
+          {
+            "s": "整理衣物",
+            "m": "这件Armani和那条领带更配。你觉得呢？"
+          },
+          {
+            "s": "挑衣服",
+            "m": "你的衣橱我也想整理一下。No offense, but…"
+          },
+          {
+            "s": "搭配中",
+            "m": "Fashion is armor. 不过在你面前我可以不穿盔甲。"
+          }
+        ],
+        "away": [],
+        "break": [],
+        "return": []
+      },
+      "diaryTemplates": [
+        "重新整理了衣橱，也配好了接下来几天可以穿的几套衣服。",
+        "花了一点时间检查领带和口袋巾的搭配。生活细节不能随便。"
+      ],
+      "allowLiminalBreak": false,
+      "artOverride": null,
+      "walletRule": null
+    },
+    {
+      "id": "neal_fbi_work",
+      "title": "FBI出勤",
+      "participants": [
+        "neal"
+      ],
+      "world": "own_world",
+      "category": "work",
+      "activityMode": "away",
+      "defaultLiminalPresence": "absent",
+      "location": "FBI纽约分局",
+      "timeWindows": [
+        "morning",
+        "day"
+      ],
+      "durationMin": 240,
+      "durationMax": 480,
+      "weight": 12,
+      "cooldownHours": 18,
+      "roomStatus": "外出中 · FBI办公",
+      "dialogues": {
+        "present": [],
+        "away": [
+          {
+            "s": "办公中",
+            "m": "Peter叫我去一趟。又是金融犯罪的案子。Boring but necessary."
+          },
+          {
+            "s": "出勤中",
+            "m": "白领犯罪组今天有briefing。希望这次的案子有点意思。"
+          }
+        ],
+        "break": [
+          {
+            "s": "午休",
+            "m": "Hey～在吗？Peter去开会了，我偷溜出来一会儿。Miss you."
+          },
+          {
+            "s": "摸鱼中",
+            "m": "Diana说我工作态度有问题。但如果不想你的话效率更低，所以……"
+          }
+        ],
+        "return": [
+          {
+            "s": "下班回来",
+            "m": "I'm home～今天Peter居然夸我了。难以置信吧？"
+          },
+          {
+            "s": "回来了",
+            "m": "累了。但看到你就好了。给我倒杯酒好不好？"
+          }
+        ]
+      },
+      "diaryTemplates": [
+        "在FBI度过了{duration}。今天的案件涉及一幅伪造的Monet，终于有点意思了。",
+        "白领犯罪组的工作还是老样子。和Peter搭档的默契越来越好。"
+      ],
+      "allowLiminalBreak": true,
+      "artOverride": null,
+      "walletRule": null
+    },
+    {
+      "id": "neal_gallery",
+      "title": "参观画廊",
+      "participants": [
+        "neal"
+      ],
+      "world": "own_world",
+      "category": "leisure",
+      "activityMode": "away",
+      "defaultLiminalPresence": "absent",
+      "location": "曼哈顿画廊区",
+      "timeWindows": [
+        "day",
+        "evening"
+      ],
+      "durationMin": 60,
+      "durationMax": 180,
+      "weight": 8,
+      "cooldownHours": 24,
+      "roomStatus": "外出中 · 逛画廊",
+      "dialogues": {
+        "present": [],
+        "away": [
+          {
+            "s": "在画廊",
+            "m": "Madison大道那家画廊换了新展。Renaissance时期的小品。我得去看看。"
+          },
+          {
+            "s": "逛画廊",
+            "m": "有一幅Caravaggio风格的画，不确定真伪。Let me take a closer look."
+          }
+        ],
+        "break": [],
+        "return": [
+          {
+            "s": "从画廊回来",
+            "m": "那幅画是真品。太美了。回来路上一直在想构图。"
+          },
+          {
+            "s": "看完展回来",
+            "m": "看到了一幅让我想起你的画。下次带你去看。"
+          }
+        ]
+      },
+      "diaryTemplates": [
+        "在画廊待了{duration}。新展的策展水平比上次高了不少。有几幅值得反复看的作品。",
+        "逛了Madison大道的画廊。Caravaggio的光影处理永远让人着迷。"
+      ],
+      "allowLiminalBreak": false,
+      "artOverride": null,
+      "walletRule": null
+    },
+    {
+      "id": "neal_shopping",
+      "title": "逛街购物",
+      "participants": [
+        "neal"
+      ],
+      "world": "own_world",
+      "category": "daily",
+      "activityMode": "away",
+      "defaultLiminalPresence": "absent",
+      "location": "第五大道",
+      "timeWindows": [
+        "day",
+        "evening"
+      ],
+      "durationMin": 60,
+      "durationMax": 180,
+      "weight": 7,
+      "cooldownHours": 24,
+      "roomStatus": "外出中 · 购物中",
+      "dialogues": {
+        "present": [],
+        "away": [
+          {
+            "s": "购物中",
+            "m": "第五大道在打折。It would be a crime not to go."
+          },
+          {
+            "s": "逛街",
+            "m": "需要一条新的pocket square。顺便给你也看看有什么合适的。"
+          }
+        ],
+        "break": [],
+        "return": [
+          {
+            "s": "拎着购物袋回来",
+            "m": "Look at this! 纯丝质的领带，质感太好了。你要试试吗？"
+          },
+          {
+            "s": "买完回来",
+            "m": "我可能……买多了一点。但每一件都有充分的理由。Trust me."
+          }
+        ]
+      },
+      "diaryTemplates": [
+        "在第五大道度过了一个完美的{duration}。入手了一条Tom Ford领带和一件大衣。",
+        "购物是一种art form。今天的收获让我非常满意。"
+      ],
+      "allowLiminalBreak": false,
+      "artOverride": null,
+      "walletRule": null
+    },
+    {
+      "id": "neal_coffee",
+      "title": "去咖啡店",
+      "participants": [
+        "neal"
+      ],
+      "world": "own_world",
+      "category": "food",
+      "activityMode": "away",
+      "defaultLiminalPresence": "absent",
+      "location": "街角咖啡馆",
+      "timeWindows": [
+        "morning",
+        "day",
+        "evening"
+      ],
+      "durationMin": 30,
+      "durationMax": 90,
+      "weight": 10,
+      "cooldownHours": 12,
+      "roomStatus": "外出中 · 喝咖啡",
+      "dialogues": {
+        "present": [],
+        "away": [
+          {
+            "s": "喝咖啡",
+            "m": "给你也来一杯？手冲的。我去常去的那家。"
+          },
+          {
+            "s": "在咖啡店",
+            "m": "今天的single origin是Ethiopian Yirgacheffe。不去尝尝太可惜了。"
+          }
+        ],
+        "break": [],
+        "return": [
+          {
+            "s": "带着咖啡回来",
+            "m": "给你带了一杯。Flat white，和你一样——看起来简单，其实很有层次。"
+          },
+          {
+            "s": "从咖啡店回来",
+            "m": "咖啡师今天的拉花特别好看。But not as good-looking as you."
+          }
+        ]
+      },
+      "diaryTemplates": [
+        "在咖啡店坐了一会儿。手冲的Ethiopian很不错。给Natumi带了一杯回来。",
+        "今天试了新豆子。酸度恰到好处，余韵有蓝莓的香气。"
+      ],
+      "allowLiminalBreak": false,
+      "artOverride": null,
+      "walletRule": null
+    },
+    {
+      "id": "jn_joint_investigation",
+      "title": "联合调查",
+      "participants": [
+        "jane",
+        "neal"
+      ],
+      "world": "own_world",
+      "category": "work",
+      "activityMode": "away",
+      "defaultLiminalPresence": "absent",
+      "location": "案件现场",
+      "timeWindows": [
+        "morning",
+        "day"
+      ],
+      "durationMin": 180,
+      "durationMax": 480,
+      "weight": 10,
+      "cooldownHours": 24,
+      "roomStatus": "外出中 · 联合调查",
+      "dialogues": {
+        "present": [],
+        "away": [
+          {
+            "s": "联合调查中",
+            "m": "CBI和FBI有交叉案件。我和Neal一起去现场了。——Jane"
+          },
+          {
+            "s": "联合行动",
+            "m": "Jane的观察力加上我的charm，这案子很快就能破。——Neal"
+          },
+          {
+            "s": "出发了",
+            "m": "和Jane出门了。他不让我开车。Every single time.——Neal"
+          }
+        ],
+        "break": [
+          {
+            "s": "案件讨论",
+            "m": "Neal在旁边吃三明治。我在想嫌疑人的动机。——Jane"
+          },
+          {
+            "s": "休息中",
+            "m": "Jane说我分析得不够严谨。但他刚才偷笑了。——Neal"
+          }
+        ],
+        "return": [
+          {
+            "s": "调查结束",
+            "m": "案件有了突破。Neal的直觉这次居然是对的。——Jane"
+          },
+          {
+            "s": "一起回来了",
+            "m": "We make a good team. Jane不会承认但他也这么想。——Neal"
+          }
+        ]
+      },
+      "diaryTemplates": [
+        "和Neal进行了联合调查。CBI和FBI的跨部门合作比想象中顺利。Neal的社交能力在取证时意外地有用。",
+        "Joint investigation with Jane. 他的侧写能力令人印象深刻。我们在{duration}内取得了重大进展。——Neal"
+      ],
+      "allowLiminalBreak": true,
+      "artOverride": null,
+      "walletRule": null
+    },
+    {
+      "id": "jn_crime_scene",
+      "title": "勘查现场",
+      "participants": [
+        "jane",
+        "neal"
+      ],
+      "world": "own_world",
+      "category": "work",
+      "activityMode": "away",
+      "defaultLiminalPresence": "absent",
+      "location": "犯罪现场",
+      "timeWindows": [
+        "morning",
+        "day",
+        "evening"
+      ],
+      "durationMin": 120,
+      "durationMax": 300,
+      "weight": 8,
+      "cooldownHours": 24,
+      "roomStatus": "外出中 · 勘查现场",
+      "dialogues": {
+        "present": [],
+        "away": [
+          {
+            "s": "现场勘查",
+            "m": "犯罪现场的细节比证词可靠。我和Neal去看看。——Jane"
+          },
+          {
+            "s": "勘查中",
+            "m": "Jane让我别碰任何东西。Fair enough.——Neal"
+          }
+        ],
+        "break": [
+          {
+            "s": "现场等待",
+            "m": "鉴识组还在取样。Neal在看天花板上的画。——Jane"
+          },
+          {
+            "s": "等结果",
+            "m": "Jane盯着地板上的一个点已经五分钟了。Fascinating.——Neal"
+          }
+        ],
+        "return": [
+          {
+            "s": "勘查完毕",
+            "m": "现场证据和我的推测一致。回去整理一下。——Jane"
+          },
+          {
+            "s": "回来了",
+            "m": "Jane在车上就开始写报告了。我负责开车。Teamwork.——Neal"
+          }
+        ]
+      },
+      "diaryTemplates": [
+        "和Neal一起勘查了犯罪现场。发现了几个关键证据点。Neal意外地没有破坏现场。",
+        "勘查现场{duration}。这次的血迹分布很有规律。需要进一步分析。"
+      ],
+      "allowLiminalBreak": true,
+      "artOverride": null,
+      "walletRule": null
+    },
+    {
+      "id": "jn_tracking_leads",
+      "title": "追踪线索",
+      "participants": [
+        "jane",
+        "neal"
+      ],
+      "world": "own_world",
+      "category": "work",
+      "activityMode": "away",
+      "defaultLiminalPresence": "absent",
+      "location": "萨克拉门托市区",
+      "timeWindows": [
+        "day",
+        "evening"
+      ],
+      "durationMin": 120,
+      "durationMax": 360,
+      "weight": 8,
+      "cooldownHours": 24,
+      "roomStatus": "外出中 · 追踪线索",
+      "dialogues": {
+        "present": [],
+        "away": [
+          {
+            "s": "追踪线索",
+            "m": "有几条线索需要实地核实。Neal开车，我观察。——Jane"
+          },
+          {
+            "s": "外出追踪",
+            "m": "Jane说跟着直觉走。我说跟着证据走。结果我们去了同一个地方。——Neal"
+          }
+        ],
+        "break": [
+          {
+            "s": "蹲点中",
+            "m": "在目标地点附近等待。Neal买了两杯咖啡。还算贴心。——Jane"
+          },
+          {
+            "s": "等候",
+            "m": "蹲点无聊到要命。但Jane的profile分析很精彩。Pass the time.——Neal"
+          }
+        ],
+        "return": [
+          {
+            "s": "追踪结束",
+            "m": "线索确认了。方向是对的。——Jane"
+          },
+          {
+            "s": "回来了",
+            "m": "跟Jane跑了一整天。累但worth it.——Neal"
+          }
+        ]
+      },
+      "diaryTemplates": [
+        "和Neal追踪线索{duration}。走访了三个地点，收集到了新的证人证词。",
+        "追踪了一整天线索。最后在一个二手店找到了关键物证。"
+      ],
+      "allowLiminalBreak": true,
+      "artOverride": null,
+      "walletRule": null
+    },
+    {
+      "id": "jn_interviewing",
+      "title": "询问证人",
+      "participants": [
+        "jane",
+        "neal"
+      ],
+      "world": "own_world",
+      "category": "work",
+      "activityMode": "away",
+      "defaultLiminalPresence": "absent",
+      "location": "证人住所",
+      "timeWindows": [
+        "day",
+        "evening"
+      ],
+      "durationMin": 60,
+      "durationMax": 180,
+      "weight": 8,
+      "cooldownHours": 18,
+      "roomStatus": "外出中 · 询问证人",
+      "dialogues": {
+        "present": [],
+        "away": [
+          {
+            "s": "询问证人",
+            "m": "Neal负责套话，我负责观察微表情。分工明确。——Jane"
+          },
+          {
+            "s": "问询中",
+            "m": "Jane让我当好人。She'll be the one watching.——Neal"
+          }
+        ],
+        "break": [],
+        "return": [
+          {
+            "s": "问询结束",
+            "m": "证人说了谎。但至少现在知道他在隐瞒什么了。——Jane"
+          },
+          {
+            "s": "回来了",
+            "m": "那个证人一开始不配合。But you know me, I have my ways.——Neal"
+          }
+        ]
+      },
+      "diaryTemplates": [
+        "和Neal一起询问了关键证人。对方有所隐瞒，但通过微表情分析锁定了矛盾点。",
+        "证人问询{duration}。Neal的社交技巧确实有用——虽然我不会当面说。"
+      ],
+      "allowLiminalBreak": false,
+      "artOverride": null,
+      "walletRule": null
+    },
+    {
+      "id": "jn_evidence_review",
+      "title": "审查证据",
+      "participants": [
+        "jane",
+        "neal"
+      ],
+      "world": "own_world",
+      "category": "work",
+      "activityMode": "away",
+      "defaultLiminalPresence": "absent",
+      "location": "CBI证物室",
+      "timeWindows": [
+        "day",
+        "evening"
+      ],
+      "durationMin": 120,
+      "durationMax": 300,
+      "weight": 7,
+      "cooldownHours": 24,
+      "roomStatus": "外出中 · 审查证据",
+      "dialogues": {
+        "present": [],
+        "away": [
+          {
+            "s": "证物室",
+            "m": "在CBI证物室整理线索。Neal在帮忙归档。——Jane"
+          },
+          {
+            "s": "审查中",
+            "m": "证物太多了。Jane的整理方式我看不懂但apparently有效。——Neal"
+          }
+        ],
+        "break": [
+          {
+            "s": "喝茶休息",
+            "m": "证物室的空调太冷了。泡了杯茶暖手。——Jane"
+          },
+          {
+            "s": "休息一下",
+            "m": "在证物室坐了太久。Need to stretch. Jane还在盯着那个信封。——Neal"
+          }
+        ],
+        "return": [
+          {
+            "s": "审查完毕",
+            "m": "证据链基本完整了。还差一环。明天继续。——Jane"
+          },
+          {
+            "s": "结束了",
+            "m": "在证物室待了一整天。我需要一杯酒和一个hot shower.——Neal"
+          }
+        ]
+      },
+      "diaryTemplates": [
+        "和Neal审查了本案全部物证。发现了一个之前被忽略的纤维样本。",
+        "在证物室度过了{duration}。逐一比对后发现了时间线上的漏洞。"
+      ],
+      "allowLiminalBreak": true,
+      "artOverride": null,
+      "walletRule": null
+    },
+    {
+      "id": "jn_business_trip",
+      "title": "临时出差",
+      "participants": [
+        "jane",
+        "neal"
+      ],
+      "world": "own_world",
+      "category": "work",
+      "activityMode": "away",
+      "defaultLiminalPresence": "absent",
+      "location": "外州",
+      "timeWindows": [
+        "morning",
+        "day"
+      ],
+      "durationMin": 360,
+      "durationMax": 480,
+      "weight": 5,
+      "cooldownHours": 48,
+      "roomStatus": "外出中 · 出差",
+      "dialogues": {
+        "present": [],
+        "away": [
+          {
+            "s": "出差中",
+            "m": "跨州案件。和Neal一起去了。信号可能不太好。——Jane"
+          },
+          {
+            "s": "外州出差",
+            "m": "Road trip with Jane. 他负责导航但不看地图。Classic.——Neal"
+          }
+        ],
+        "break": [
+          {
+            "s": "在酒店",
+            "m": "今天的进展还行。在酒店整理资料。——Jane"
+          },
+          {
+            "s": "酒店休息",
+            "m": "酒店的bed thread count不够。但案件进展不错so I'll survive.——Neal"
+          }
+        ],
+        "return": [
+          {
+            "s": "出差回来",
+            "m": "回来了。外州的案子告一段落。——Jane"
+          },
+          {
+            "s": "终于回来",
+            "m": "Finally home. 出差让我更appreciate纽约。And you.——Neal"
+          }
+        ]
+      },
+      "diaryTemplates": [
+        "和Neal出差{duration}。跨州案件比预想的复杂，但总算有了眉目。",
+        "外州出差结束。和Neal在当地吃了一家还不错的餐厅。案件方面也取得了突破。"
+      ],
+      "allowLiminalBreak": true,
+      "artOverride": null,
+      "walletRule": null
+    },
+    {
+      "id": "jn_dinner",
+      "title": "一起吃饭",
+      "participants": [
+        "jane",
+        "neal"
+      ],
+      "world": "own_world",
+      "category": "food",
+      "activityMode": "away",
+      "defaultLiminalPresence": "absent",
+      "location": "曼哈顿餐厅",
+      "timeWindows": [
+        "evening",
+        "night"
+      ],
+      "durationMin": 60,
+      "durationMax": 150,
+      "weight": 10,
+      "cooldownHours": 18,
+      "roomStatus": "外出中 · 聚餐",
+      "dialogues": {
+        "present": [],
+        "away": [
+          {
+            "s": "吃饭",
+            "m": "Neal非要去那家意大利餐厅。我无所谓。——Jane"
+          },
+          {
+            "s": "聚餐中",
+            "m": "终于说服Jane和我出去吃饭了。Tonight is going to be great.——Neal"
+          }
+        ],
+        "break": [],
+        "return": [
+          {
+            "s": "吃完回来",
+            "m": "食物还行。Neal点了太多。——Jane"
+          },
+          {
+            "s": "吃饱回来",
+            "m": "Jane只点了一道主菜but he ate half of mine. I'm not complaining.——Neal"
+          }
+        ]
+      },
+      "diaryTemplates": [
+        "和Neal在曼哈顿的意大利餐厅吃了饭。他点的tiramisu确实不错。",
+        "Dinner with Jane. 他假装不饿但吃了比我还多。Beautiful evening.——Neal"
+      ],
+      "allowLiminalBreak": false,
+      "artOverride": null,
+      "walletRule": null
+    },
+    {
+      "id": "jn_shopping_bookstore",
+      "title": "逛街买书",
+      "participants": [
+        "jane",
+        "neal"
+      ],
+      "world": "own_world",
+      "category": "daily",
+      "activityMode": "away",
+      "defaultLiminalPresence": "absent",
+      "location": "市中心商业街",
+      "timeWindows": [
+        "day",
+        "evening"
+      ],
+      "durationMin": 60,
+      "durationMax": 180,
+      "weight": 7,
+      "cooldownHours": 24,
+      "roomStatus": "外出中 · 逛街",
+      "dialogues": {
+        "present": [],
+        "away": [
+          {
+            "s": "逛街",
+            "m": "Neal要买东西。我去旁边的书店等他。——Jane"
+          },
+          {
+            "s": "购物中",
+            "m": "带Jane shopping！虽然他只想去书店。But baby steps.——Neal"
+          }
+        ],
+        "break": [],
+        "return": [
+          {
+            "s": "回来了",
+            "m": "Neal买了一堆不需要的东西。我买了两本书。高下立判。——Jane"
+          },
+          {
+            "s": "买完回来",
+            "m": "给Jane买了一条围巾。他嘴上说不需要但已经围上了。——Neal"
+          }
+        ]
+      },
+      "diaryTemplates": [
+        "和Neal在市中心逛了{duration}。他往衣橱里又添了三件。我在书店找到了一本绝版诗集。",
+        "和Jane一起逛街。他假装对fashion毫无兴趣但在橱窗前站了很久。——Neal"
+      ],
+      "allowLiminalBreak": false,
+      "artOverride": null,
+      "walletRule": null
+    },
+    {
+      "id": "jn_exhibition",
+      "title": "看展",
+      "participants": [
+        "jane",
+        "neal"
+      ],
+      "world": "own_world",
+      "category": "leisure",
+      "activityMode": "away",
+      "defaultLiminalPresence": "absent",
+      "location": "大都会博物馆",
+      "timeWindows": [
+        "day",
+        "evening"
+      ],
+      "durationMin": 90,
+      "durationMax": 240,
+      "weight": 6,
+      "cooldownHours": 36,
+      "roomStatus": "外出中 · 看展览",
+      "dialogues": {
+        "present": [],
+        "away": [
+          {
+            "s": "看展中",
+            "m": "Neal对这个展期待了很久。陪他去看看。——Jane"
+          },
+          {
+            "s": "参观展览",
+            "m": "This exhibition is incredible. Jane pretends不感兴趣但同一幅画前站了十分钟。——Neal"
+          }
+        ],
+        "break": [],
+        "return": [
+          {
+            "s": "看完展",
+            "m": "有几幅作品确实值得思考。Neal太激动了。——Jane"
+          },
+          {
+            "s": "展览结束",
+            "m": "What an experience! Jane说他最喜欢第三展厅。他有品位。——Neal"
+          }
+        ]
+      },
+      "diaryTemplates": [
+        "和Neal去了大都会博物馆看展。展览主题是印象派晚期。Neal的解说比官方导览有趣得多。",
+        "和Jane看了exhibition。他对Degas的色彩运用发表了长篇评论。Unexpectedly passionate.——Neal"
+      ],
+      "allowLiminalBreak": false,
+      "artOverride": null,
+      "walletRule": null
+    },
+    {
+      "id": "jn_walking",
+      "title": "散步",
+      "participants": [
+        "jane",
+        "neal"
+      ],
+      "world": "own_world",
+      "category": "daily",
+      "activityMode": "away",
+      "defaultLiminalPresence": "absent",
+      "location": "中央公园附近",
+      "timeWindows": [
+        "morning",
+        "evening"
+      ],
+      "durationMin": 30,
+      "durationMax": 90,
+      "weight": 8,
+      "cooldownHours": 18,
+      "roomStatus": "外出中 · 散步",
+      "dialogues": {
+        "present": [],
+        "away": [
+          {
+            "s": "散步中",
+            "m": "傍晚的风很舒服。Neal在旁边讲他今天办的案子。——Jane"
+          },
+          {
+            "s": "走路中",
+            "m": "Evening walk with Jane. 他走路的时候最放松。I like that.——Neal"
+          }
+        ],
+        "break": [],
+        "return": [
+          {
+            "s": "散完步",
+            "m": "走了一圈。Neal话太多了但……还好。——Jane"
+          },
+          {
+            "s": "回来了",
+            "m": "公园的灯刚亮的时候最漂亮。和Jane一起看到了。Perfect.——Neal"
+          }
+        ]
+      },
+      "diaryTemplates": [
+        "和Neal在中央公园附近散了步。傍晚的光线很好。他讲了今天的案子，我只是听着。",
+        "Evening walk with Jane. 风很舒服，他难得没有催我少说几句。——Neal"
+      ],
+      "allowLiminalBreak": false,
+      "artOverride": null,
+      "walletRule": null
+    },
+    {
+      "id": "will_snacking",
+      "title": "吃零食",
+      "participants": [
+        "will"
+      ],
+      "world": "own_world",
+      "category": "food",
+      "activityMode": "in_room",
+      "defaultLiminalPresence": "present",
+      "location": "沙发上",
+      "timeWindows": [
+        "day",
+        "evening",
+        "night"
+      ],
+      "durationMin": 30,
+      "durationMax": 90,
+      "weight": 12,
+      "cooldownHours": 12,
+      "roomStatus": "在房间 · 吃零食",
+      "dialogues": {
+        "present": [
+          {
+            "s": "吃零食",
+            "m": "你要吃吗？这个炸鸡真的超好吃的……"
+          },
+          {
+            "s": "嚼嚼嚼",
+            "m": "嘿嘿，这个薯片是限定口味的哦！你尝尝？"
+          },
+          {
+            "s": "翻零食",
+            "m": "Natumi～我发现了一包你藏的巧克力。可以吃吗？嘿嘿。"
+          },
+          {
+            "s": "啃鸡翅",
+            "m": "这个蜂蜜黄油味的也太香了吧！你真的不来一个吗？"
+          }
+        ],
+        "away": [],
+        "break": [],
+        "return": []
+      },
+      "diaryTemplates": [
+        "在沙发上吃掉了几包限定零食。炸鸡口味的那包最好吃！",
+        "发现了新的薯片口味，也给Natumi留了一点。真的只有一点。"
+      ],
+      "allowLiminalBreak": false,
+      "artOverride": null,
+      "walletRule": null
+    },
+    {
+      "id": "will_variety_show",
+      "title": "看综艺",
+      "participants": [
+        "will"
+      ],
+      "world": "own_world",
+      "category": "leisure",
+      "activityMode": "in_room",
+      "defaultLiminalPresence": "present",
+      "location": "沙发上",
+      "timeWindows": [
+        "evening",
+        "night"
+      ],
+      "durationMin": 30,
+      "durationMax": 120,
+      "weight": 10,
+      "cooldownHours": 12,
+      "roomStatus": "在房间 · 看综艺",
+      "dialogues": {
+        "present": [
+          {
+            "s": "看综艺",
+            "m": "哈哈哈哈这个好好笑！你快过来看！"
+          },
+          {
+            "s": "看节目",
+            "m": "这个综艺新一季终于开播了！一起看吧～"
+          },
+          {
+            "s": "盯着屏幕",
+            "m": "哦——这个整人环节也太狠了吧哈哈哈哈！"
+          }
+        ],
+        "away": [],
+        "break": [],
+        "return": []
+      },
+      "diaryTemplates": [
+        "看了新一集综艺，整人环节笑得肚子都痛了。",
+        "窝在沙发上补了几期节目。下次想拉着Natumi一起看。"
+      ],
+      "allowLiminalBreak": false,
+      "artOverride": null,
+      "walletRule": null
+    },
+    {
+      "id": "will_magic",
+      "title": "练魔术",
+      "participants": [
+        "will"
+      ],
+      "world": "own_world",
+      "category": "leisure",
+      "activityMode": "in_room",
+      "defaultLiminalPresence": "present",
+      "location": "桌前",
+      "timeWindows": [
+        "day",
+        "evening"
+      ],
+      "durationMin": 30,
+      "durationMax": 90,
+      "weight": 7,
+      "cooldownHours": 18,
+      "roomStatus": "在房间 · 练魔术",
+      "dialogues": {
+        "present": [
+          {
+            "s": "练魔术",
+            "m": "看好了哦！三、二、一……哎等一下让我再来一次。"
+          },
+          {
+            "s": "变魔术",
+            "m": "Natumi你看！这个牌是不是你选的那张？……不是吗？哦。"
+          },
+          {
+            "s": "翻扑克牌",
+            "m": "嘿嘿，我最近学了一个新的。等我练好了变给你看！"
+          },
+          {
+            "s": "研究道具",
+            "m": "这个消失术好难哦……但我觉得我快学会了！你等我！"
+          }
+        ],
+        "away": [],
+        "break": [],
+        "return": []
+      },
+      "diaryTemplates": [
+        "练了新的纸牌魔术。成功了几次，也失败了更多次。",
+        "研究了一下午消失术的道具，感觉已经快抓到诀窍了！"
+      ],
+      "allowLiminalBreak": false,
+      "artOverride": null,
+      "walletRule": null
+    },
+    {
+      "id": "will_rehearsal",
+      "title": "排练",
+      "participants": [
+        "will"
+      ],
+      "world": "own_world",
+      "category": "work",
+      "activityMode": "away",
+      "defaultLiminalPresence": "absent",
+      "location": "排练室",
+      "timeWindows": [
+        "morning",
+        "day"
+      ],
+      "durationMin": 120,
+      "durationMax": 360,
+      "weight": 12,
+      "cooldownHours": 18,
+      "roomStatus": "外出中 · 排练",
+      "dialogues": {
+        "present": [],
+        "away": [
+          {
+            "s": "排练中",
+            "m": "今天排练新歌！晚上回来唱给你听哦～"
+          },
+          {
+            "s": "在排练室",
+            "m": "编舞老师今天特别严格……但我会加油的！"
+          }
+        ],
+        "break": [
+          {
+            "s": "排练休息",
+            "m": "休息十分钟！赶紧来跟你说句话。你在干嘛？"
+          },
+          {
+            "s": "喝水中",
+            "m": "哦好累……但跳完一遍感觉超爽的！嘿嘿。"
+          }
+        ],
+        "return": [
+          {
+            "s": "排练结束",
+            "m": "回来了！！今天排了五个小时但新舞蹈好帅的！"
+          },
+          {
+            "s": "回到家",
+            "m": "Natumi～我回来了！好饿哦，有什么吃的吗？"
+          }
+        ]
+      },
+      "diaryTemplates": [
+        "排练了{duration}。新歌的副歌部分舞蹈很难但终于跳流畅了。好有成就感！",
+        "今天排练超级累但很开心。新编曲效果比预期好。回家路上买了炸鸡。"
+      ],
+      "allowLiminalBreak": true,
+      "artOverride": null,
+      "walletRule": null
+    },
+    {
+      "id": "will_concert",
+      "title": "演唱会",
+      "participants": [
+        "will"
+      ],
+      "world": "own_world",
+      "category": "work",
+      "activityMode": "away",
+      "defaultLiminalPresence": "absent",
+      "location": "演出场馆",
+      "timeWindows": [
+        "evening",
+        "night"
+      ],
+      "durationMin": 180,
+      "durationMax": 360,
+      "weight": 8,
+      "cooldownHours": 48,
+      "roomStatus": "外出中 · 演唱会",
+      "dialogues": {
+        "present": [],
+        "away": [
+          {
+            "s": "演唱会",
+            "m": "今晚的演唱会拜托拜托顺利！我会努力的！"
+          },
+          {
+            "s": "准备上台",
+            "m": "化好妆了！好紧张哦……但一想到你在就不怕了。嘿嘿。"
+          }
+        ],
+        "break": [
+          {
+            "s": "中场休息",
+            "m": "上半场结束了！观众好热情！下半场继续加油！"
+          },
+          {
+            "s": "后台喝水",
+            "m": "嗓子有点干但状态超好！等结束了告诉你今天的encore曲目。"
+          }
+        ],
+        "return": [
+          {
+            "s": "演唱会结束",
+            "m": "你还没睡吧？？演唱会超顺利的！！观众的反应太感动了……"
+          },
+          {
+            "s": "从演出回来",
+            "m": "回来了～嗓子有点哑哈哈。但今天真的太棒了。想吃宵夜。"
+          }
+        ]
+      },
+      "diaryTemplates": [
+        "今晚的演唱会太棒了！唱了{duration}，全场大合唱的时候差点哭出来。安可唱了三首。",
+        "演唱会完美结束。观众的热情让我充满力量。回酒店的路上买了泡面当宵夜。"
+      ],
+      "allowLiminalBreak": true,
+      "artOverride": null,
+      "walletRule": null
+    },
+    {
+      "id": "will_tv_recording",
+      "title": "录制节目",
+      "participants": [
+        "will"
+      ],
+      "world": "own_world",
+      "category": "work",
+      "activityMode": "away",
+      "defaultLiminalPresence": "absent",
+      "location": "电视台",
+      "timeWindows": [
+        "morning",
+        "day"
+      ],
+      "durationMin": 180,
+      "durationMax": 420,
+      "weight": 10,
+      "cooldownHours": 24,
+      "roomStatus": "外出中 · 录节目",
+      "dialogues": {
+        "present": [],
+        "away": [
+          {
+            "s": "录节目",
+            "m": "今天要录综艺！希望不要有太吓人的环节……"
+          },
+          {
+            "s": "在电视台",
+            "m": "化妆师说我今天气色很好。嘿嘿那当然因为昨天睡得好。"
+          }
+        ],
+        "break": [
+          {
+            "s": "录制中场",
+            "m": "导演说休息十五分钟。我赶紧来跟你说话！"
+          },
+          {
+            "s": "换衣服中",
+            "m": "换下一个look！造型师给我选的这件外套好好看。"
+          }
+        ],
+        "return": [
+          {
+            "s": "录制结束",
+            "m": "录完了～今天好好笑有一个游戏环节我输得很惨哈哈哈哈。"
+          },
+          {
+            "s": "从电视台回来",
+            "m": "回来了！今天录了一整天好累但很开心。节目组发了好多零食嘿嘿。"
+          }
+        ]
+      },
+      "diaryTemplates": [
+        "在电视台录了{duration}的综艺。游戏环节虽然输了但笑得很开心。带了几包零食回来。",
+        "综艺录制顺利！今天的来宾超有趣。后台聊了好久。"
+      ],
+      "allowLiminalBreak": true,
+      "artOverride": null,
+      "walletRule": null
+    },
+    {
+      "id": "will_interview",
+      "title": "接受采访",
+      "participants": [
+        "will"
+      ],
+      "world": "own_world",
+      "category": "work",
+      "activityMode": "away",
+      "defaultLiminalPresence": "absent",
+      "location": "杂志社",
+      "timeWindows": [
+        "day",
+        "evening"
+      ],
+      "durationMin": 60,
+      "durationMax": 180,
+      "weight": 8,
+      "cooldownHours": 24,
+      "roomStatus": "外出中 · 采访中",
+      "dialogues": {
+        "present": [],
+        "away": [
+          {
+            "s": "采访中",
+            "m": "今天有杂志专访。记者人好好的！"
+          },
+          {
+            "s": "在采访",
+            "m": "问了很多音乐方面的问题。我好好地回答了。嘿嘿。"
+          }
+        ],
+        "break": [],
+        "return": [
+          {
+            "s": "采访结束",
+            "m": "专访结束了。记者说要给我拍几张照片当封面，帅吧？"
+          },
+          {
+            "s": "采访完回来",
+            "m": "回来啦。被问到恋爱观的时候好害羞哦……但我没有乱说！"
+          }
+        ]
+      },
+      "diaryTemplates": [
+        "接受了杂志专访{duration}。聊了很多音乐创作的灵感来源。",
+        "采访很顺利。记者问的问题都很有深度。希望成品好看。"
+      ],
+      "allowLiminalBreak": false,
+      "artOverride": null,
+      "walletRule": null
+    },
+    {
+      "id": "will_photoshoot",
+      "title": "拍摄写真",
+      "participants": [
+        "will"
+      ],
+      "world": "own_world",
+      "category": "work",
+      "activityMode": "away",
+      "defaultLiminalPresence": "absent",
+      "location": "摄影棚",
+      "timeWindows": [
+        "morning",
+        "day"
+      ],
+      "durationMin": 120,
+      "durationMax": 300,
+      "weight": 8,
+      "cooldownHours": 24,
+      "roomStatus": "外出中 · 拍摄中",
+      "dialogues": {
+        "present": [],
+        "away": [
+          {
+            "s": "拍摄中",
+            "m": "今天拍写真！造型师说这次的concept很酷。期待成品！"
+          },
+          {
+            "s": "在摄影棚",
+            "m": "换了三套衣服了。摄影师说光线不对在调灯……好无聊。"
+          }
+        ],
+        "break": [
+          {
+            "s": "换造型中",
+            "m": "等换造型的时候偷偷来看你一眼～还要拍两组。"
+          },
+          {
+            "s": "休息",
+            "m": "摄影师说先休息。我去买了杯奶茶嘿嘿。"
+          }
+        ],
+        "return": [
+          {
+            "s": "拍摄结束",
+            "m": "写真拍完了！今天拍了好多帅照！回来给你看！"
+          },
+          {
+            "s": "回来了",
+            "m": "终于拍完了～五套造型拍了一整天。但成品肯定超好看的。"
+          }
+        ]
+      },
+      "diaryTemplates": [
+        "在摄影棚拍了{duration}的写真。这次的造型概念很满意。期待成片。",
+        "写真拍摄结束。换了好多套衣服。摄影师说我今天状态很好嘿嘿。"
+      ],
+      "allowLiminalBreak": true,
+      "artOverride": null,
+      "walletRule": null
+    },
+    {
+      "id": "will_meeting",
+      "title": "开会",
+      "participants": [
+        "will"
+      ],
+      "world": "own_world",
+      "category": "work",
+      "activityMode": "away",
+      "defaultLiminalPresence": "absent",
+      "location": "经纪公司",
+      "timeWindows": [
+        "morning",
+        "day"
+      ],
+      "durationMin": 60,
+      "durationMax": 180,
+      "weight": 8,
+      "cooldownHours": 18,
+      "roomStatus": "外出中 · 开会中",
+      "dialogues": {
+        "present": [],
+        "away": [
+          {
+            "s": "开会中",
+            "m": "经纪人叫我去开会讨论下个月的行程。好无聊哦。"
+          },
+          {
+            "s": "在公司",
+            "m": "开会开会……不过下个月的活动安排好像很有趣。"
+          }
+        ],
+        "break": [],
+        "return": [
+          {
+            "s": "开完会",
+            "m": "会开完了。下个月有个超大型活动！但暂时不能说是什么嘿嘿。"
+          },
+          {
+            "s": "从公司回来",
+            "m": "回来了！开会真的好困……但至少结束了。Natumi抱抱。"
+          }
+        ]
+      },
+      "diaryTemplates": [
+        "在经纪公司开了{duration}的会。讨论了接下来的行程规划和合作提案。",
+        "会议结束。下个月的安排排得很满但都是好活动。期待！"
+      ],
+      "allowLiminalBreak": false,
+      "artOverride": null,
+      "walletRule": null
+    },
+    {
+      "id": "will_personal_outing",
+      "title": "私人外出",
+      "participants": [
+        "will"
+      ],
+      "world": "own_world",
+      "category": "daily",
+      "activityMode": "away",
+      "defaultLiminalPresence": "absent",
+      "location": "市区",
+      "timeWindows": [
+        "day",
+        "evening"
+      ],
+      "durationMin": 60,
+      "durationMax": 180,
+      "weight": 6,
+      "cooldownHours": 24,
+      "roomStatus": "外出中 · 私人行程",
+      "dialogues": {
+        "present": [],
+        "away": [
+          {
+            "s": "外出中",
+            "m": "我出去转转～逛逛街买点东西。想吃什么我给你带！"
+          },
+          {
+            "s": "出去玩",
+            "m": "今天天气好好！出去走走。你要一起来吗？……不来吗那我自己去了哦。"
+          }
+        ],
+        "break": [],
+        "return": [
+          {
+            "s": "逛完回来",
+            "m": "回来了！在路边发现了一家超好吃的小吃摊！给你带了点！"
+          },
+          {
+            "s": "买东西回来",
+            "m": "Natumi～看我买了什么！嘿嘿猜不到吧。"
+          }
+        ]
+      },
+      "diaryTemplates": [
+        "出去逛了{duration}。发现了一家很棒的小吃摊，买了好多回来。",
+        "私人外出。在市区闲逛了一圈，给Natumi带了小礼物。"
+      ],
+      "allowLiminalBreak": false,
+      "artOverride": null,
+      "walletRule": null
+    },
+    {
+      "id": "neal_osaka_shopping",
+      "title": "大阪购物",
+      "participants": [
+        "neal"
+      ],
+      "world": "user_world",
+      "category": "daily",
+      "activityMode": "away",
+      "defaultLiminalPresence": "absent",
+      "location": "大阪心斋桥",
+      "timeWindows": [
+        "day",
+        "evening"
+      ],
+      "durationMin": 90,
+      "durationMax": 240,
+      "weight": 3,
+      "cooldownHours": 48,
+      "roomStatus": "外出中 · 大阪购物",
+      "dialogues": {
+        "present": [],
+        "away": [
+          {
+            "s": "大阪购物中",
+            "m": "心斋桥的vintage shop太amazing了。Natumi你的卡在我这里对吧？"
+          },
+          {
+            "s": "在心斋桥",
+            "m": "日本的买手店审美太好了。I might need a bigger suitcase."
+          }
+        ],
+        "break": [],
+        "return": [
+          {
+            "s": "买完回来",
+            "m": "买到了好几件incredible的单品。谢谢你的卡。I'll pay you back. Maybe."
+          },
+          {
+            "s": "拎着购物袋回来",
+            "m": "Osaka是购物天堂。Look at this jacket! 你觉得怎么样？"
+          }
+        ]
+      },
+      "diaryTemplates": [
+        "在心斋桥购物了{duration}。日本的面料质感和裁剪真的很特别。入手了几件vintage。",
+        "大阪购物之旅。买手店里找到了几件one of a kind的单品。Natumi的品味也在进步。"
+      ],
+      "allowLiminalBreak": false,
+      "artOverride": null,
+      "walletRule": {
+        "mode": "existing_outing",
+        "costMin": 2000,
+        "costMax": 5000,
+        "note": "心斋桥购物花费"
+      }
+    },
+    {
+      "id": "will_japan_ramen",
+      "title": "吃拉面",
+      "participants": [
+        "will"
+      ],
+      "world": "user_world",
+      "category": "food",
+      "activityMode": "away",
+      "defaultLiminalPresence": "absent",
+      "location": "日本拉面店",
+      "timeWindows": [
+        "day",
+        "evening"
+      ],
+      "durationMin": 30,
+      "durationMax": 90,
+      "weight": 4,
+      "cooldownHours": 36,
+      "roomStatus": "外出中 · 吃拉面",
+      "dialogues": {
+        "present": [],
+        "away": [
+          {
+            "s": "吃拉面中",
+            "m": "这家拉面超级好吃的！！汤底浓郁得不行！Natumi你一定要来！"
+          },
+          {
+            "s": "在拉面店",
+            "m": "已经第二碗了嘿嘿……老板推荐加了溏心蛋太对了。"
+          }
+        ],
+        "break": [],
+        "return": [
+          {
+            "s": "吃完拉面",
+            "m": "吃撑了哈哈哈……但真的太好吃了！下次我们一起去！"
+          },
+          {
+            "s": "从拉面店回来",
+            "m": "日本的拉面果然是世界级的！我要记住这家店的地址。"
+          }
+        ]
+      },
+      "diaryTemplates": [
+        "在日本吃了超好吃的拉面。点了特浓豚骨加溏心蛋。好幸福！",
+        "今天的拉面太感动了。汤都喝光了。下次一定要带Natumi来。"
+      ],
+      "allowLiminalBreak": false,
+      "artOverride": null,
+      "walletRule": {
+        "mode": "existing_outing",
+        "costMin": 800,
+        "costMax": 1500,
+        "note": "拉面套餐"
+      }
+    },
+    {
+      "id": "jn_osaka_visit",
+      "title": "大阪观光",
+      "participants": [
+        "jane",
+        "neal"
+      ],
+      "world": "user_world",
+      "category": "leisure",
+      "activityMode": "away",
+      "defaultLiminalPresence": "absent",
+      "location": "大阪城周边",
+      "timeWindows": [
+        "day",
+        "evening"
+      ],
+      "durationMin": 120,
+      "durationMax": 300,
+      "weight": 2,
+      "cooldownHours": 48,
+      "roomStatus": "外出中 · 大阪观光",
+      "dialogues": {
+        "present": [],
+        "away": [
+          {
+            "s": "大阪观光中",
+            "m": "大阪城的建筑结构值得仔细观察。Neal在拍照。——Jane"
+          },
+          {
+            "s": "游览中",
+            "m": "大阪太有意思了！Jane居然对城堡的防御设计很感兴趣。Very him.——Neal"
+          }
+        ],
+        "break": [],
+        "return": [
+          {
+            "s": "观光回来",
+            "m": "大阪的城市规划比Sacramento合理得多。也更有趣。——Jane"
+          },
+          {
+            "s": "逛完回来",
+            "m": "和Jane在大阪的一天。He actually smiled at the sunset. 我偷偷拍到了。——Neal"
+          }
+        ]
+      },
+      "diaryTemplates": [
+        "和Neal在大阪观光了{duration}。大阪城的历史建筑令人印象深刻。Neal对道顿堀的霓虹灯很着迷。",
+        "大阪之旅。天守阁的视野很好。Jane对石墙的构造分析了十五分钟。Classic Jane.——Neal"
+      ],
+      "allowLiminalBreak": false,
+      "artOverride": null,
+      "walletRule": null
+    },
+    {
+      "id": "will_japan_fashion",
+      "title": "日本买衣服",
+      "participants": [
+        "will"
+      ],
+      "world": "user_world",
+      "category": "daily",
+      "activityMode": "away",
+      "defaultLiminalPresence": "absent",
+      "location": "原宿·表参道",
+      "timeWindows": [
+        "day",
+        "evening"
+      ],
+      "durationMin": 60,
+      "durationMax": 180,
+      "weight": 3,
+      "cooldownHours": 48,
+      "roomStatus": "外出中 · 逛原宿",
+      "dialogues": {
+        "present": [],
+        "away": [
+          {
+            "s": "逛原宿",
+            "m": "原宿的街头风格太酷了！好多限定款！Natumi借我点钱嘿嘿。"
+          },
+          {
+            "s": "在表参道",
+            "m": "日本的设计师品牌好厉害哦！这件外套版型太好了！"
+          }
+        ],
+        "break": [],
+        "return": [
+          {
+            "s": "买完衣服",
+            "m": "看我的战利品！！这件限定T恤只有原宿有卖哦！太帅了！"
+          },
+          {
+            "s": "从原宿回来",
+            "m": "逛得好开心！日本的时尚真的很有自己的风格。嘿嘿花了一点点你的钱。"
+          }
+        ]
+      },
+      "diaryTemplates": [
+        "在原宿和表参道逛了{duration}。入手了几件日本限定的潮牌单品。太开心了！",
+        "原宿的街拍让我灵感爆棚。买了两件限定款。Natumi说我又乱花钱了嘿嘿。"
+      ],
+      "allowLiminalBreak": false,
+      "artOverride": null,
+      "walletRule": {
+        "mode": "existing_outing",
+        "costMin": 1500,
+        "costMax": 4000,
+        "note": "原宿服饰购物"
+      }
+    },
+    {
+      "id": "will_japan_sushi",
+      "title": "吃寿司",
+      "participants": [
+        "will"
+      ],
+      "world": "user_world",
+      "category": "food",
+      "activityMode": "away",
+      "defaultLiminalPresence": "absent",
+      "location": "寿司店",
+      "timeWindows": [
+        "day",
+        "evening"
+      ],
+      "durationMin": 60,
+      "durationMax": 120,
+      "weight": 3,
+      "cooldownHours": 48,
+      "roomStatus": "外出中 · 吃寿司",
+      "dialogues": {
+        "present": [],
+        "away": [
+          {
+            "s": "吃寿司中",
+            "m": "Natumi！这个寿司太新鲜了！入口即化！！！"
+          },
+          {
+            "s": "在寿司店",
+            "m": "师傅推荐了今天的金枪鱼大腹。哦天啊太好吃了……"
+          }
+        ],
+        "break": [],
+        "return": [
+          {
+            "s": "吃完寿司",
+            "m": "吃了好多好多寿司……好幸福……日本的鱼真的不一样。"
+          },
+          {
+            "s": "从寿司店回来",
+            "m": "这是我吃过最好吃的寿司！没有之一！下次你一定要跟我一起来！"
+          }
+        ]
+      },
+      "diaryTemplates": [
+        "在寿司店吃了超棒的omakase。从白身鱼到大腹。师傅的手艺太厉害了。",
+        "日本的寿司果然是别的level。吃到了入口即化的金枪鱼大腹。好幸福。"
+      ],
+      "allowLiminalBreak": false,
+      "artOverride": null,
+      "walletRule": {
+        "mode": "existing_outing",
+        "costMin": 1000,
+        "costMax": 3000,
+        "note": "寿司套餐"
+      }
+    }
+  ]
+}
