@@ -30,14 +30,14 @@
     'daily_db', 'daily_presets', 'gacha_st', 'bean_st', 'habit_db', 'story_db',
     'bjd_db3', 'techo_db2', 'techo_archive_db', 'shop_db', 'event_db', 'event_presets', 'dungeon_db',
     'kitchen_db', 'activity_db', 'cinema_db', 'stationery_db', 'doll_db2', 'merch_db', 'wallet_db',
-    'home_modules', 'home_lines', 'home_skins', 'home_skin_custom',
+    'home_modules', 'home_lines', 'home_skins', 'home_skin_custom', 'home_wardrobe_tabs',
     'home_skin_daily', 'home_cg_library', 'home_cg_period', 'shortcut-order',
     'home_character_runtime', 'home_character_action_packs', 'shared_diary_db',
     'memo_db', 'study_db', 'organize_db', 'artist_db', 'music_db', 'reading_db',
     'schedule_packs', 'schedule_user_events'
   ];
   const PAGE_KEYS = {
-    'index.html': ['habit_db', 'wallet_db', 'memo_db', 'home_modules', 'home_lines', 'home_skins', 'home_skin_custom', 'home_skin_daily', 'home_cg_library', 'home_cg_period', 'shortcut-order', 'home_character_runtime', 'home_character_action_packs', 'shared_diary_db', 'schedule_packs', 'schedule_user_events'],
+    'index.html': ['habit_db', 'wallet_db', 'memo_db', 'home_modules', 'home_lines', 'home_skins', 'home_skin_custom', 'home_wardrobe_tabs', 'home_skin_daily', 'home_cg_library', 'home_cg_period', 'shortcut-order', 'home_character_runtime', 'home_character_action_packs', 'shared_diary_db', 'schedule_packs', 'schedule_user_events'],
     'schedule.html': ['schedule_packs', 'schedule_user_events', 'home_character_runtime', 'home_character_action_packs'],
     'daily.html': ['daily_db', 'daily_presets', 'gacha_st', 'bean_st', 'habit_db'],
     'gacha.html': ['gacha_st'],
@@ -544,7 +544,7 @@
       dungeon_db: '副本库存', kitchen_db: '饮食', activity_db: '活动收集',
       cinema_db: '影视', stationery_db: '文具', 'shortcut-order': '首页快捷入口排序',
       wallet_db: '记账', home_modules: '房间连接', home_lines: '首页台词',
-      home_skins: '衣柜候选', home_skin_custom: '衣柜衣装', home_skin_daily: '今日衣装',
+      home_skins: '衣柜候选', home_skin_custom: '衣柜衣装', home_wardrobe_tabs: '衣柜分类', home_skin_daily: '今日衣装',
       home_cg_library: '首页 CG 库', home_cg_period: '当前时段 CG',
       memo_db: '备忘录', study_db: '学习', organize_db: '整理',
       artist_db: '艺人', music_db: '音乐', reading_db: '读书'

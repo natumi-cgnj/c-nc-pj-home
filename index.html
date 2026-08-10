@@ -215,6 +215,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .wardrobe-footer{padding:10px 18px 18px;border-top:1px solid #f0f0f0;font-size:9px;color:#bbb;line-height:1.7;flex-shrink:0}
 .wardrobe-footer strong{color:#666;font-weight:600}
 .wardrobe-hdr-right{display:flex;gap:6px;align-items:center}
+.wardrobe-tabs{display:flex;gap:6px;padding:8px 18px;border-bottom:1px solid #f0f0f0;overflow-x:auto;flex-shrink:0;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.wardrobe-tabs::-webkit-scrollbar{display:none}
+.wtab{padding:4px 12px;border-radius:14px;font-size:11px;font-weight:500;border:1px solid #e8e8e8;background:#fafafa;color:#999;cursor:pointer;white-space:nowrap;transition:all 0.2s;user-select:none;-webkit-user-select:none}
+.wtab.active{background:var(--cc,#6B8AFF);color:#fff;border-color:transparent}
+.wtab-add{padding:4px 10px;border-radius:14px;font-size:12px;border:1px dashed #ddd;background:transparent;color:#ccc;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:color 0.2s}
+.wtab-add:active{color:#999}
 .edit-toggle{height:26px;border-radius:6px;border:1px solid #e0e0e0;background:#fff;cursor:pointer;font-size:10px;color:#999;padding:0 10px;font-family:inherit;letter-spacing:0.3px;transition:all 0.2s}
 .edit-toggle:hover{color:#666;background:#f8f8f8}
 .edit-toggle.active{background:var(--cc,#4A7BF7);color:#fff;border-color:var(--cc,#4A7BF7)}
@@ -276,7 +282,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .entry-card.draft .entry-icon{border-style:dashed;border-color:#ddd}
 .entry-card.draft .entry-label{color:#ccc}
 @media(max-width:699px){
-#pageMemo .page-content,#pageDaily .page-content,#pageCollect .page-content,#pageRewards .page-content{justify-content:flex-start;padding-top:calc(71px + min(100vw - 40px,360px)*0.28125)}
+#pageMemo .page-content,#pageDaily .page-content,#pageEvents .page-content,#pageCollect .page-content,#pageRewards .page-content{justify-content:flex-start;padding-top:calc(71px + min(100vw - 40px,360px)*0.28125)}
 }
 .page-clock{text-align:center;margin-bottom:12px}
 .page-clock .time{font-size:28px;font-weight:200;color:#ccc;letter-spacing:2px;font-variant-numeric:tabular-nums}
@@ -323,15 +329,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   .home-page{width:auto;height:auto;flex-shrink:unset;scroll-snap-align:unset;overflow:visible;padding:0;justify-content:flex-start}
   #pageMain{grid-column:1;grid-row:1 / span 5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px 0;min-width:0}
   #pageDaily{grid-column:2;grid-row:2;order:1}
-  #pageCollect{grid-column:2;grid-row:3;order:2}
-  #pageRewards{grid-column:2;grid-row:4;order:3}
+  #pageEvents{grid-column:2;grid-row:3;order:2}
+  #pageCollect{grid-column:2;grid-row:4;order:3}
+  #pageRewards{grid-column:2;grid-row:5;order:4}
   #pageMemo{grid-column:2;grid-row:1;order:0;margin-top:60px}
   .page-content{max-width:260px;padding:12px 0;gap:10px}
   .page-title{font-size:10px;letter-spacing:2px;margin-bottom:0}
   .entry-grid{grid-template-columns:repeat(3,1fr);gap:14px 10px}
   .entry-icon{width:46px;height:46px;font-size:18px}
   .entry-label{font-size:11px}
-  #pageDaily .page-clock,#pageCollect .page-clock,#pageRewards .page-clock{display:none}
+  #pageDaily .page-clock,#pageEvents .page-clock,#pageCollect .page-clock,#pageRewards .page-clock{display:none}
   .memo-wrap{max-width:260px}
   .page-dots{display:none}
   .header{width:100%;margin:0;align-self:end}
@@ -479,6 +486,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
         <button class="wardrobe-close" type="button" onclick="closeWardrobe()" aria-label="关闭衣柜">✕</button>
       </div>
     </div>
+    <div class="wardrobe-tabs" id="wardrobeTabs"></div>
     <div class="wardrobe-body">
       <div class="skin-grid" id="skinGrid"></div>
       <div class="skin-editor" id="skinEditor">
@@ -516,6 +524,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
             </div>
           </div>
         </div>
+        <span class="editor-label">系列</span>
+        <select class="editor-select" id="editorSeries"><option value="">未分类</option></select>
         <div>
           <span class="editor-label">来源</span>
           <input class="editor-input" id="editorSource" type="text" maxlength="100" placeholder="例：饮食图鉴打卡奖励">
@@ -535,14 +545,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <div class="page-clock"><div class="time" id="clock2"></div><div class="date" id="date2"></div></div>
 <div class="page-title" onclick="toggleSection(this)">Dailies</div>
 <div class="section-collapse"><div class="entry-grid" data-section="daily">
-  <a class="entry-card" href="daily.html?tab=drop"><div class="entry-icon">📋</div><div class="entry-label">委托</div></a>
-  <a class="entry-card" href="daily.html?tab=todo"><div class="entry-icon">📅</div><div class="entry-label">日程</div></a>
   <a class="entry-card" href="daily.html?tab=habits"><div class="entry-icon">🌿</div><div class="entry-label">日课</div></a>
   <a class="entry-card" href="habit.html"><div class="entry-icon">✔</div><div class="entry-label">习惯</div></a>
+  <a class="entry-card" href="daily.html?tab=todo"><div class="entry-icon">📅</div><div class="entry-label">日程</div></a>
   <a class="entry-card" href="wallet.html"><div class="entry-icon">¥</div><div class="entry-label">记账</div></a>
-  <a class="entry-card draft" href="study.html"><div class="entry-icon">📖</div><div class="entry-label">学习</div></a>
-  <a class="entry-card draft" href="organize.html"><div class="entry-icon">📦</div><div class="entry-label">整理</div></a>
   <a class="entry-card" href="kitchen.html"><div class="entry-icon">🍽</div><div class="entry-label">饮食</div></a>
+  <a class="entry-card draft"><div class="entry-icon">👔</div><div class="entry-label">穿搭</div></a>
+</div>
+</div>
+</div>
+</div>
+
+<div class="home-page" id="pageEvents">
+<div class="page-content">
+<div class="page-clock"><div class="time" id="clock6"></div><div class="date" id="date6"></div></div>
+<div class="page-title" onclick="toggleSection(this)">Events</div>
+<div class="section-collapse"><div class="entry-grid" data-section="events">
+  <a class="entry-card" href="daily.html?tab=drop"><div class="entry-icon">📋</div><div class="entry-label">委托</div></a>
   <a class="entry-card" href="event.html"><div class="entry-icon">🎟</div><div class="entry-label">活动</div></a>
   <a class="entry-card draft" href="artist.html"><div class="entry-icon">🎤</div><div class="entry-label">艺人</div></a>
 </div>
@@ -556,11 +575,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <div class="page-title" onclick="toggleSection(this)">Archive</div>
 <div class="section-collapse"><div class="entry-grid" data-section="collect">
   <a class="entry-card" href="cinema.html"><div class="entry-icon">🎬</div><div class="entry-label">Cinema</div></a>
-  <a class="entry-card draft" href="reading.html"><div class="entry-icon">📚</div><div class="entry-label">Book</div></a>
-  <a class="entry-card draft" href="music.html"><div class="entry-icon">🎵</div><div class="entry-label">Music</div></a>
+  <a class="entry-card" href="reading.html"><div class="entry-icon">📚</div><div class="entry-label">Book</div></a>
+  <a class="entry-card" href="music.html"><div class="entry-icon">🎵</div><div class="entry-label">Music</div></a>
   <a class="entry-card" href="techo.html"><div class="entry-icon">✎</div><div class="entry-label">Techo</div></a>
   <a class="entry-card" href="bjd.html"><div class="entry-icon">✦</div><div class="entry-label">Doll</div></a>
-  <a class="entry-card draft" href="merch.html"><div class="entry-icon">🎁</div><div class="entry-label">Merch</div></a>
+  <a class="entry-card" href="merch.html"><div class="entry-icon">🎁</div><div class="entry-label">Merch</div></a>
 </div>
 </div>
 </div>
@@ -590,6 +609,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <span class="page-dot" data-page="2"></span>
   <span class="page-dot" data-page="3"></span>
   <span class="page-dot" data-page="4"></span>
+  <span class="page-dot" data-page="5"></span>
 </div>
 
 <script src="cloud-sync.js?v=20260804-dragguard1"></script>
@@ -1473,11 +1493,98 @@ function safeSkinColor(value,fallback){
 
 let currentWardrobeChar=null;
 let editMode=false;
+let currentWardrobeTab='';
+const WARDROBE_TABS_KEY='home_wardrobe_tabs';
+function loadWardrobeTabs(){return readWardrobeJson(WARDROBE_TABS_KEY,{});}
+function saveWardrobeTabs(v){return saveWardrobeJson(WARDROBE_TABS_KEY,v);}
+function getCharTabs(charId){const t=loadWardrobeTabs();return Array.isArray(t[charId])?t[charId]:[];}
+function setCharTabs(charId,tabs){const t=loadWardrobeTabs();t[charId]=tabs;saveWardrobeTabs(t);}
+
+function renderWardrobeTabs(charId){
+  const c=document.getElementById('wardrobeTabs');
+  const cc=MC[charId]||'#999';
+  const tabs=getCharTabs(charId);
+  c.style.setProperty('--cc',cc);
+  c.replaceChildren();
+  const allT=makeWardrobeNode('div','wtab'+(currentWardrobeTab===''?' active':''),'全部');
+  allT.addEventListener('click',()=>{currentWardrobeTab='';renderWardrobe(charId);});
+  c.appendChild(allT);
+  tabs.forEach(name=>{
+    const t=makeWardrobeNode('div','wtab'+(currentWardrobeTab===name?' active':''),name);
+    t.addEventListener('click',()=>{currentWardrobeTab=name;renderWardrobe(charId);});
+    let pt;
+    t.addEventListener('pointerdown',()=>{pt=setTimeout(()=>{pt=null;showTabActions(charId,name);},500);});
+    t.addEventListener('pointerup',()=>{if(pt)clearTimeout(pt);});
+    t.addEventListener('pointercancel',()=>{if(pt)clearTimeout(pt);});
+    t.addEventListener('pointermove',()=>{if(pt)clearTimeout(pt);});
+    c.appendChild(t);
+  });
+  const add=makeWardrobeNode('div','wtab-add','+');
+  add.addEventListener('click',()=>addWardrobeTab(charId));
+  c.appendChild(add);
+}
+function addWardrobeTab(charId){
+  const n=prompt('新系列名称：');
+  if(!n||!n.trim())return;
+  const name=n.trim();
+  const tabs=getCharTabs(charId);
+  if(tabs.includes(name)){showTip('系列已存在');return;}
+  tabs.push(name);
+  setCharTabs(charId,tabs);
+  currentWardrobeTab=name;
+  renderWardrobe(charId);
+}
+function showTabActions(charId,tabName){
+  const r=prompt('「'+tabName+'」\n输入新名称可重命名，输入 删除 可删除此系列：',tabName);
+  if(r===null)return;
+  if(r.trim()==='删除'){deleteWardrobeTab(charId,tabName);}
+  else if(r.trim()&&r.trim()!==tabName){renameWardrobeTab(charId,tabName,r.trim());}
+}
+function renameWardrobeTab(charId,oldN,newN){
+  const tabs=getCharTabs(charId);
+  const i=tabs.indexOf(oldN);
+  if(i<0)return;
+  if(tabs.includes(newN)){showTip('系列名已存在');return;}
+  tabs[i]=newN;
+  setCharTabs(charId,tabs);
+  const custom=loadCustomSkins();
+  const list=Array.isArray(custom[charId])?custom[charId]:[];
+  list.forEach(s=>{if(s.series===oldN)s.series=newN;});
+  saveCustomSkins(custom);
+  if(currentWardrobeTab===oldN)currentWardrobeTab=newN;
+  renderWardrobe(charId);
+}
+function deleteWardrobeTab(charId,tabName){
+  if(!confirm('删除系列「'+tabName+'」？衣装不会被删除，仅取消分类。'))return;
+  const tabs=getCharTabs(charId);
+  const i=tabs.indexOf(tabName);
+  if(i<0)return;
+  tabs.splice(i,1);
+  setCharTabs(charId,tabs);
+  const custom=loadCustomSkins();
+  const list=Array.isArray(custom[charId])?custom[charId]:[];
+  list.forEach(s=>{if(s.series===tabName)delete s.series;});
+  saveCustomSkins(custom);
+  if(currentWardrobeTab===tabName)currentWardrobeTab='';
+  renderWardrobe(charId);
+}
+function populateSeriesSelect(charId,currentVal){
+  const sel=document.getElementById('editorSeries');
+  const tabs=getCharTabs(charId);
+  sel.innerHTML='<option value="">未分类</option>';
+  tabs.forEach(name=>{
+    const o=document.createElement('option');
+    o.value=name;o.textContent=name;
+    if(name===currentVal)o.selected=true;
+    sel.appendChild(o);
+  });
+}
 
 function openWardrobe(charId,event){
   if(event)event.stopPropagation();
   currentWardrobeChar=charId;
   editMode=false;
+  currentWardrobeTab='';
   renderWardrobe(charId);
   document.getElementById('wardrobeOverlay').classList.add('show');
 }
@@ -1498,11 +1605,14 @@ function renderWardrobe(charId){
   body.classList.toggle('is-edit-mode',editMode);
   document.getElementById('skinEditor').classList.remove('show');
   grid.style.display='';
+  document.getElementById('wardrobeTabs').style.display='';
   document.getElementById('wardrobeFooter').style.display='';
   grid.style.setProperty('--cc',charColor);
   grid.replaceChildren();
+  renderWardrobeTabs(charId);
+  const filtered=currentWardrobeTab?skins.filter(s=>(s.series||'')===currentWardrobeTab):skins;
 
-  skins.forEach(skin=>{
+  filtered.forEach(skin=>{
     const canUse=skin.status==='obtained';
     const selected=canUse&&cfg.selected.includes(skin.id);
     const card=makeWardrobeNode('div','skin-card'+(selected?' is-selected':'')+(canUse?'':' is-locked'));
@@ -1638,6 +1748,7 @@ function openEditor(charId,skinId){
   document.getElementById('editorDesc').value=skin?(skin.desc||''):'';
   document.getElementById('editorStatus').value=skin?skin.status:'obtained';
   document.getElementById('editorSource').value=skin?(skin.source||''):'';
+  populateSeriesSelect(charId,skin?(skin.series||''):(currentWardrobeTab||''));
   const colorInput=document.getElementById('editorColor');
   colorInput.value=safeSkinColor(skin&&skin.color,charColor);
   document.getElementById('editorColorHex').textContent=colorInput.value;
@@ -1652,6 +1763,7 @@ function openEditor(charId,skinId){
   editor.style.setProperty('--cc',charColor);
   document.getElementById('editorSaveBtn').style.background=charColor;
   document.getElementById('skinGrid').style.display='none';
+  document.getElementById('wardrobeTabs').style.display='none';
   document.getElementById('wardrobeFooter').style.display='none';
   editor.classList.add('show');
 }
@@ -1762,6 +1874,9 @@ async function saveEditor(){
   entry.desc=document.getElementById('editorDesc').value.trim();
   entry.status=status;
   entry.color=safeSkinColor(document.getElementById('editorColor').value,MC[editorCharId]);
+  const series=document.getElementById('editorSeries').value;
+  if(series)entry.series=series;
+  else delete entry.series;
   const source=document.getElementById('editorSource').value.trim();
   if(source)entry.source=source;
   else delete entry.source;
@@ -1909,7 +2024,8 @@ function showTip(t){const el=document.getElementById('tooltip');el.textContent=t
   var pager=document.getElementById('homePager');
   var dots=[].slice.call(document.querySelectorAll('.page-dot'));
   if(!pager||!dots.length) return;
-  var defaultPage=1;
+  var urlP=new URLSearchParams(window.location.search).get('p');
+  var defaultPage=urlP!==null?+urlP:1;
   requestAnimationFrame(function(){
     pager.scrollLeft=defaultPage*pager.clientWidth;
     updateDots();
@@ -1970,7 +2086,7 @@ function showTip(t){const el=document.getElementById('tooltip');el.textContent=t
     var c1=document.getElementById('clock');
     var d1=document.getElementById('date');
     if(!c1||!d1)return;
-    [2,3,4,5].forEach(function(i){
+    [2,3,4,5,6].forEach(function(i){
       var c=document.getElementById('clock'+i);
       var d=document.getElementById('date'+i);
       if(c)c.textContent=c1.textContent;

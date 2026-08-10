@@ -81,6 +81,7 @@ class FakeDocument {
   getElementById() {
     return null;
   }
+  addEventListener() {}
   querySelectorAll() {
     return [];
   }

@@ -10,17 +10,18 @@
 <link rel="icon" href="favicon.ico">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;background:#FAFAFA;color:#1a1a1a;min-height:100dvh;padding-bottom:56px}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;background:#FAFAFA;color:#1a1a1a;min-height:100dvh}
 .top-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;padding-top:max(12px,env(safe-area-inset-top,12px));border-bottom:1px solid #eee;background:#fff;position:sticky;top:0;z-index:50}
 .top-bar h1{font-size:13px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:#999}
 .back{font-size:13px;color:#bbb;text-decoration:none}
 .top-right{display:flex;gap:8px}
 .btn-s{font-size:11px;color:#999;background:none;border:1px solid #ddd;border-radius:6px;padding:4px 10px;cursor:pointer;font-family:inherit}
 
-/* Bottom tab bar */
-.tab-bar{position:fixed;bottom:0;left:0;right:0;display:flex;background:#fff;border-top:1px solid #eee;z-index:50;padding-bottom:env(safe-area-inset-bottom,0)}
-.tab-btn{flex:1;padding:10px 0 8px;text-align:center;font-size:10px;color:#ccc;background:none;border:none;cursor:pointer;font-family:inherit;letter-spacing:0.5px}
-.tab-btn.active{color:#9B8AE8;font-weight:600}
+/* Sub-navigation */
+.sub-bar{padding:10px 20px;background:#fafafa;border-bottom:1px solid #eee}
+.sub-bar .back{font-size:12px;color:#bbb;text-decoration:none;cursor:pointer}
+.nav-deeper{display:flex;align-items:center;justify-content:center;gap:6px;padding:14px 20px;margin:4px 20px 24px;border-radius:10px;background:#fff;font-size:12px;color:#bbb;cursor:pointer;border:1px solid #eee;letter-spacing:0.3px}
+.nav-deeper:active{background:#f8f8f8}
 
 /* Views */
 .view{display:none}.view.active{display:block}
@@ -137,8 +138,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 /* Label */
 .label-row{display:flex;gap:12px;align-items:center;margin-top:8px}
 .label-row input{flex:0 0 100px;min-width:0}
-.color-picker{display:grid;grid-template-columns:repeat(8,28px);gap:5px;flex:1}
-.color-swatch{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:border-color 0.15s}
+.color-picker{display:grid;grid-template-columns:repeat(8,1fr);gap:5px;flex:1;min-width:0}
+.color-swatch{width:100%;aspect-ratio:1;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:border-color 0.15s;box-sizing:border-box}
 .color-swatch.active{border-color:#333}
 
 /* Category select */
@@ -158,7 +159,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <body>
 
 <div class="top-bar">
-  <a class="back" href="index.html">← Home</a>
+  <a class="back" href="index.html?p=4">← Home</a>
   <h1>Doll</h1>
   <div class="top-right"><button class="btn-s" onclick="exportData()">Backup</button></div>
 </div>
@@ -171,19 +172,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <button class="add-btn gold" onclick="openAddItem()">New Item</button>
     <button class="add-btn" onclick="openAddSection()">New Section</button>
   </div>
+  <div class="nav-deeper" onclick="navTo('viewCatalog')">List →</div>
 </div>
 
 <!-- Catalog View -->
 <div class="view" id="viewCatalog">
+  <div class="sub-bar"><a class="back" onclick="navTo('viewItems')">← Items</a></div>
   <div class="fund-pool" id="fundPool"></div>
   <div id="catalogList"></div>
   <div class="catalog-add" onclick="openAddCatalog()">New List</div>
+  <div class="nav-deeper" onclick="navTo('viewRef')">Ref →</div>
 </div>
 
 <!-- Catalog Detail View -->
 <div class="view" id="viewCatalogDetail">
   <div class="detail-bar">
-    <a class="back" onclick="showView('viewCatalog')">← Back</a>
+    <a class="back" onclick="navTo('viewCatalog')">← Back</a>
     <h1 id="catalogDetailTitle"></h1>
     <button class="btn-s" onclick="openEditCatalog()">Edit</button>
   </div>
@@ -197,6 +201,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 <!-- Reference View -->
 <div class="view" id="viewRef">
+  <div class="sub-bar"><a class="back" onclick="navTo('viewCatalog')">← List</a></div>
   <div id="refList"></div>
   <div class="catalog-add" onclick="openAddRef()">New Reference</div>
 </div>
@@ -204,7 +209,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- Reference Detail View -->
 <div class="view" id="viewRefDetail">
   <div class="detail-bar">
-    <a class="back" onclick="showView('viewRef');document.querySelector('.tab-bar').style.display='flex'">← Back</a>
+    <a class="back" onclick="navTo('viewRef')">← Back</a>
     <h1 id="refDetailTitle"></h1>
     <button class="btn-s" onclick="openEditRef()">Edit</button>
   </div>
@@ -214,7 +219,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   </div>
   <div class="detail-add-row">
     <button class="add-btn gold" onclick="openAddRefItem()">New Title</button>
-    <button class="add-btn" onclick="addRefToList()">Add to List</button>
   </div>
 </div>
 
@@ -232,6 +236,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <input type="text" id="inputRefShelf">
   <label>Notes</label>
   <textarea id="inputRefNote"></textarea>
+  <label>Columns</label>
+  <select id="inputRefCols" style="width:100%;font-size:13px;padding:10px 12px;border:1px solid #e8e8e8;border-radius:8px;font-family:inherit;background:#fafafa">
+    <option value="2">2 columns</option><option value="3" selected>3 columns</option><option value="4">4 columns</option><option value="5">5 columns</option>
+  </select>
   <div class="btn-row">
     <button class="btn btn-cancel" onclick="closeModal('refModal')">Cancel</button>
     <button class="btn btn-primary" onclick="saveRef()">Save</button>
@@ -239,28 +247,30 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 </div>
 </div>
 
-<!-- Add Reference Item Modal -->
+<!-- Add/Edit Reference Item Modal -->
 <div class="modal-bg" id="refItemModal">
 <div class="modal">
-  <h2>New Title</h2>
+  <h2 id="refItemModalTitle">New Title</h2>
   <label>Name</label>
   <input type="text" id="inputRefItemName">
   <label>Cover</label>
   <label class="file-label" id="refItemFileLabel">Select</label>
   <input type="file" accept="image/*" id="refItemImgInput" onchange="previewImg(this,'refItemImgPreview')" style="display:none">
   <img id="refItemImgPreview" class="img-preview" style="display:none">
+  <label>Notes</label>
+  <textarea id="inputRefItemNote"></textarea>
+  <label>List</label>
+  <div class="cat-select" id="refItemListSelect">
+    <button type="button" class="cat-opt active" onclick="pickRefItemList(false)">未添加list</button>
+    <button type="button" class="cat-opt" onclick="pickRefItemList(true)">添加list</button>
+  </div>
+  <input type="hidden" id="refItemInList" value="0">
   <div class="btn-row">
     <button class="btn btn-cancel" onclick="closeModal('refItemModal')">Cancel</button>
+    <button class="btn btn-del" id="refItemDeleteBtn" style="display:none" onclick="deleteRefItem()">Delete</button>
     <button class="btn btn-primary" onclick="saveRefItem()">Save</button>
   </div>
 </div>
-</div>
-
-<!-- Tab bar -->
-<div class="tab-bar">
-  <button class="tab-btn active" onclick="switchTab('viewItems')">Items</button>
-  <button class="tab-btn" onclick="switchTab('viewCatalog')">List</button>
-  <button class="tab-btn" onclick="switchTab('viewRef')">Ref</button>
 </div>
 
 <!-- Add/Edit Item Modal -->
@@ -400,7 +410,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 const DB_KEY='doll_db2';
 const COLORS=['#9B8AE8','#6B5ACD','#D4537E','#B0805A','#D85A30','#E84A7A','#E8B96A','#9B6BCC','#4AADE8','#3A8DD4','#5BA66B','#3D8B50','#6B8AFF','#4A6AE0','#888','#4ECDC4'];
 let db={items:[],sections:[],catalogs:[],refs:[],sectionCollapsed:{},shelfCollapsed:{},refShelfCollapsed:{}};
-let curCatalogId=null,curRefId=null,editItemId=null,editCatalogId=null,editRefId=null,editCatItemIdx=null,editCatSectionIdx=null;
+let curCatalogId=null,curRefId=null,editItemId=null,editCatalogId=null,editRefId=null,editCatItemIdx=null,editCatSectionIdx=null,editRefItemIdx=null;
 
 function load(){
   try{const d=JSON.parse(localStorage.getItem(DB_KEY));if(d){db={items:d.items||[],sections:d.sections||[],catalogs:d.catalogs||[],refs:d.refs||[],sectionCollapsed:d.sectionCollapsed||{},shelfCollapsed:d.shelfCollapsed||{},refShelfCollapsed:d.refShelfCollapsed||{}};return;}}catch(e){}
@@ -410,12 +420,9 @@ function gid(){return Date.now().toString(36)+'_'+Math.random().toString(36).sli
 function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 
 /* ═══ VIEWS ═══ */
-function showView(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(id).classList.add('active');}
-function switchTab(id){
+function showView(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);}
+function navTo(id){
   showView(id);
-  const tabs=['viewItems','viewCatalog','viewRef'];
-  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',tabs[i]===id));
-  document.querySelector('.tab-bar').style.display='flex';
   if(id==='viewItems')renderItems();else if(id==='viewCatalog')renderCatalogList();else if(id==='viewRef')renderRefList();
 }
 
@@ -623,7 +630,6 @@ function openCatalogDetail(id){
   }
   document.getElementById('catalogDetailGrid').innerHTML=html;
   showView('viewCatalogDetail');
-  document.querySelector('.tab-bar').style.display='none';
 }
 function renderCatItem(item,idx){
   return`<div class="cat-item${item.collected?' collected':''}" onclick="handleCatalogItemClick(${idx})"><img src="${item.img||''}" onerror="this.parentElement.style.background='#e8e8e8'"><button class="cat-edit-btn" aria-label="Edit" onclick="event.stopPropagation();openEditCatItem(${idx})">⋯</button><div class="cat-name">${esc(item.name)}</div>${item.locked?'<div class="lock-icon">🔒</div>':''}${item.collected?'<div class="collect-dot"></div>':''}</div>`;
@@ -840,11 +846,15 @@ function toggleRefShelf(name){db.refShelfCollapsed[name]=!db.refShelfCollapsed[n
 function openRefDetail(id){
   curRefId=id;const r=db.refs.find(x=>x.id===id);if(!r)return;
   document.getElementById('refDetailTitle').textContent=r.name;
-  let html=`<div class="catalog-grid">${(r.items||[]).map((item,idx)=>`<div class="cat-item collected" onclick="viewRefImg(${idx})"><img src="${item.img||''}" onerror="this.parentElement.style.background='#e8e8e8'"><div class="cat-name">${esc(item.name)}</div></div>`).join('')}</div>`;
+  const cols=Math.max(2,Math.min(5,r.cols||3));
+  let html=`<div class="catalog-grid" style="grid-template-columns:repeat(${cols},1fr)">`;
+  (r.items||[]).forEach((item,idx)=>{
+    html+=`<div class="cat-item${item.inList?' collected':''}" onclick="openEditRefItem(${idx})">${item.img?`<img src="${item.img}" onerror="this.parentElement.style.background='#e8e8e8'">`:`<div style="width:100%;height:100%"></div>`}<button class="cat-edit-btn" aria-label="Edit" onclick="event.stopPropagation();openEditRefItem(${idx})">⋯</button><div class="cat-name">${esc(item.name)}</div>${item.inList?'<div class="collect-dot"></div>':''}</div>`;
+  });
+  html+=`</div>`;
   document.getElementById('refDetailGrid').innerHTML=html;
   document.getElementById('refComment').value=r.comment||'';
   showView('viewRefDetail');
-  document.querySelector('.tab-bar').style.display='none';
 }
 function saveRefComment(){
   const r=db.refs.find(x=>x.id===curRefId);if(!r)return;
@@ -852,7 +862,6 @@ function saveRefComment(){
 }
 function viewRefImg(idx){
   const r=db.refs.find(x=>x.id===curRefId);if(!r||!r.items[idx])return;
-  // Simple fullscreen preview
   const img=r.items[idx].img;if(!img)return;
   const overlay=document.createElement('div');
   overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:999;display:flex;align-items:center;justify-content:center;cursor:pointer';
@@ -860,14 +869,56 @@ function viewRefImg(idx){
   overlay.onclick=()=>overlay.remove();
   document.body.appendChild(overlay);
 }
-function addRefToList(){
-  const r=db.refs.find(x=>x.id===curRefId);if(!r)return;
-  const name=prompt('Add to List — which items? (enter name)');if(!name)return;
-  // Find or create a catalog with same name
-  let cat=db.catalogs.find(c=>c.name===r.name);
-  if(!cat){cat={id:gid(),name:r.name,shelf:r.shelf||'',icon:r.icon||'',note:'',label:{name:'',color:'#9B8AE8'},sections:[],items:[],order:db.catalogs.length};db.catalogs.push(cat);}
-  cat.items.push({id:gid(),name,img:'',collected:false,locked:false,cost:0,note:''});
-  save();toast('Added to List');
+function pickRefItemList(val){
+  document.getElementById('refItemInList').value=val?'1':'0';
+  document.querySelectorAll('#refItemListSelect .cat-opt').forEach((b,i)=>b.classList.toggle('active',val?i===1:i===0));
+}
+function openEditRefItem(idx){
+  const r=db.refs.find(x=>x.id===curRefId);if(!r||!r.items[idx])return;
+  const item=r.items[idx];
+  editRefItemIdx=idx;
+  document.getElementById('refItemModalTitle').textContent='Edit Title';
+  document.getElementById('inputRefItemName').value=item.name||'';
+  document.getElementById('inputRefItemNote').value=item.note||'';
+  const preview=document.getElementById('refItemImgPreview');
+  if(item.img){preview.src=item.img;preview.style.display='block';}else{preview.removeAttribute('src');preview.style.display='none';}
+  pickRefItemList(!!item.inList);
+  document.getElementById('refItemDeleteBtn').style.display='';
+  openModal('refItemModal');
+}
+function deleteRefItem(){
+  const r=db.refs.find(x=>x.id===curRefId);if(!r||editRefItemIdx===null||!r.items[editRefItemIdx])return;
+  const item=r.items[editRefItemIdx];
+  if(item.inList)removeRefItemFromCatalog(r,item);
+  r.items.splice(editRefItemIdx,1);
+  editRefItemIdx=null;save();closeModal('refItemModal');openRefDetail(curRefId);toast('Deleted');
+}
+function addRefItemToCatalog(ref,item){
+  let cat=db.catalogs.find(c=>c.name===ref.name);
+  if(!cat){cat={id:gid(),name:ref.name,shelf:ref.shelf||'',icon:ref.icon||'',note:'',label:{name:'',color:'#9B8AE8'},sections:[],items:[],order:db.catalogs.length};db.catalogs.push(cat);}
+  const ci={id:gid(),name:item.name,img:item.img||'',collected:false,locked:false,cost:0,note:''};
+  cat.items.push(ci);
+  item.listRef={catalogId:cat.id,catItemId:ci.id};
+}
+function removeRefItemFromCatalog(ref,item){
+  if(!item.listRef)return;
+  const cat=db.catalogs.find(c=>c.id===item.listRef.catalogId);
+  if(cat){
+    const idx=cat.items.findIndex(ci=>ci.id===item.listRef.catItemId);
+    if(idx>=0){
+      const si=getCatalogItemSectionIndex(cat,idx);
+      if(si>=0)cat.sections[si].count=Math.max(0,(parseInt(cat.sections[si].count)||0)-1);
+      cat.items.splice(idx,1);
+      db.items=db.items.filter(entry=>!(entry.catalogRef&&entry.catalogRef.catalogId===cat.id&&entry.catalogRef.itemIdx===idx));
+      db.items.forEach(entry=>{if(entry.catalogRef&&entry.catalogRef.catalogId===cat.id&&entry.catalogRef.itemIdx>idx)entry.catalogRef.itemIdx--;});
+    }
+  }
+  delete item.listRef;
+}
+function updateRefItemInCatalog(ref,item){
+  if(!item.listRef)return;
+  const cat=db.catalogs.find(c=>c.id===item.listRef.catalogId);
+  if(cat){const ci=cat.items.find(x=>x.id===item.listRef.catItemId);if(ci){ci.name=item.name;if(item.img)ci.img=item.img;}}
 }
 
 /* ── Reference CRUD ── */
@@ -875,6 +926,7 @@ function openAddRef(){
   editRefId=null;
   document.getElementById('refModalTitle').textContent='New Reference';
   document.getElementById('inputRefName').value='';document.getElementById('inputRefShelf').value='';document.getElementById('inputRefNote').value='';
+  document.getElementById('inputRefCols').value='3';
   document.getElementById('refIconPreview').style.display='none';
   openModal('refModal');
 }
@@ -883,6 +935,7 @@ function openEditRef(){
   editRefId=r.id;
   document.getElementById('refModalTitle').textContent='Edit Reference';
   document.getElementById('inputRefName').value=r.name;document.getElementById('inputRefShelf').value=r.shelf||'';document.getElementById('inputRefNote').value=r.note||'';
+  document.getElementById('inputRefCols').value=String(Math.max(2,Math.min(5,r.cols||3)));
   openModal('refModal');
 }
 function saveRef(){
@@ -890,28 +943,50 @@ function saveRef(){
   const name=document.getElementById('inputRefName').value.trim();if(!name){toast('Name required');return;}
   const shelf=document.getElementById('inputRefShelf').value.trim();
   const note=document.getElementById('inputRefNote').value.trim();
+  const cols=Math.max(2,Math.min(5,parseInt(document.getElementById('inputRefCols').value)||3));
   const preview=document.getElementById('refIconPreview');
   const icon=preview.style.display!=='none'?preview.src:'';
   if(editRefId){
     const r=db.refs.find(x=>x.id===editRefId);
-    if(r){r.name=name;r.shelf=shelf;r.note=note;if(icon)r.icon=icon;}
+    if(r){r.name=name;r.shelf=shelf;r.note=note;r.cols=cols;if(icon)r.icon=icon;}
   }else{
-    db.refs.push({id:gid(),name,shelf,icon:icon||'',note,comment:'',items:[],order:db.refs.length});
+    db.refs.push({id:gid(),name,shelf,icon:icon||'',note,comment:'',items:[],cols,order:db.refs.length});
   }
-  save();closeModal('refModal');renderRefList();
+  save();closeModal('refModal');
+  if(editRefId&&curRefId===editRefId)openRefDetail(curRefId);else renderRefList();
 }
 function openAddRefItem(){
+  editRefItemIdx=null;
+  document.getElementById('refItemModalTitle').textContent='New Title';
   document.getElementById('inputRefItemName').value='';
+  document.getElementById('inputRefItemNote').value='';
   document.getElementById('refItemImgPreview').style.display='none';
+  pickRefItemList(false);
+  document.getElementById('refItemDeleteBtn').style.display='none';
   openModal('refItemModal');
 }
 function saveRefItem(){
   if(!imageReady('refItemImgPreview'))return;
   const r=db.refs.find(x=>x.id===curRefId);if(!r)return;
   const name=document.getElementById('inputRefItemName').value.trim()||'Item '+(r.items.length+1);
+  const note=document.getElementById('inputRefItemNote').value.trim();
   const preview=document.getElementById('refItemImgPreview');
   const img=preview.style.display!=='none'?preview.src:'';
-  r.items.push({id:gid(),name,img});
+  const inList=document.getElementById('refItemInList').value==='1';
+  if(editRefItemIdx!==null){
+    const item=r.items[editRefItemIdx];
+    if(item){
+      const wasInList=!!item.inList;
+      item.name=name;item.note=note;if(img)item.img=img;item.inList=inList;
+      if(inList&&!wasInList)addRefItemToCatalog(r,item);
+      if(!inList&&wasInList)removeRefItemFromCatalog(r,item);
+      if(inList&&wasInList)updateRefItemInCatalog(r,item);
+    }
+  }else{
+    const newItem={id:gid(),name,img,note,inList};
+    r.items.push(newItem);
+    if(inList)addRefItemToCatalog(r,newItem);
+  }
   save();closeModal('refItemModal');openRefDetail(curRefId);
 }
 
@@ -957,11 +1032,6 @@ function exportData(){
 
 /* ═══ INIT ═══ */
 load();renderItems();
-// Return from catalog detail
-document.querySelector('#viewCatalogDetail .back').addEventListener('click',()=>{
-  document.querySelector('.tab-bar').style.display='flex';
-  switchTab('viewCatalog');
-});
 </script>
 </body>
 </html>

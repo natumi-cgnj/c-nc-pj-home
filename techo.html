@@ -10,17 +10,18 @@
 <link rel="icon" href="favicon.ico">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;background:#FAFAFA;color:#1a1a1a;min-height:100dvh;padding-bottom:56px}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;background:#FAFAFA;color:#1a1a1a;min-height:100dvh}
 .top-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;padding-top:max(12px,env(safe-area-inset-top,12px));border-bottom:1px solid #eee;background:#fff;position:sticky;top:0;z-index:50}
 .top-bar h1{font-size:13px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:#999}
 .back{font-size:13px;color:#bbb;text-decoration:none}
 .top-right{display:flex;gap:8px}
 .btn-s{font-size:11px;color:#999;background:none;border:1px solid #ddd;border-radius:6px;padding:4px 10px;cursor:pointer;font-family:inherit}
 
-/* Bottom tab bar */
-.tab-bar{position:fixed;bottom:0;left:0;right:0;display:flex;background:#fff;border-top:1px solid #eee;z-index:50;padding-bottom:env(safe-area-inset-bottom,0)}
-.tab-btn{flex:1;padding:10px 0 8px;text-align:center;font-size:10px;color:#ccc;background:none;border:none;cursor:pointer;font-family:inherit;letter-spacing:0.5px}
-.tab-btn.active{color:#C4A24C;font-weight:600}
+/* Sub-navigation */
+.sub-bar{padding:10px 20px;background:#fafafa;border-bottom:1px solid #eee}
+.sub-bar .back{font-size:12px;color:#bbb;text-decoration:none;cursor:pointer}
+.nav-deeper{display:flex;align-items:center;justify-content:center;gap:6px;padding:14px 20px;margin:4px 20px 24px;border-radius:10px;background:#fff;font-size:12px;color:#bbb;cursor:pointer;border:1px solid #eee;letter-spacing:0.3px}
+.nav-deeper:active{background:#f8f8f8}
 
 /* Views */
 .view{display:none}.view.active{display:block}
@@ -137,8 +138,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 /* Label */
 .label-row{display:flex;gap:12px;align-items:center;margin-top:8px}
 .label-row input{flex:0 0 100px;min-width:0}
-.color-picker{display:grid;grid-template-columns:repeat(8,28px);gap:5px;flex:1}
-.color-swatch{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:border-color 0.15s}
+.color-picker{display:grid;grid-template-columns:repeat(8,1fr);gap:5px;flex:1;min-width:0}
+.color-swatch{width:100%;aspect-ratio:1;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:border-color 0.15s;box-sizing:border-box}
 .color-swatch.active{border-color:#333}
 
 /* Category select */
@@ -158,7 +159,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <body>
 
 <div class="top-bar">
-  <a class="back" href="index.html">← Home</a>
+  <a class="back" href="index.html?p=4">← Home</a>
   <h1>Techo</h1>
   <div class="top-right"><button class="btn-s" onclick="exportData()">Backup</button></div>
 </div>
@@ -171,19 +172,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <button class="add-btn gold" onclick="openAddItem()">New Item</button>
     <button class="add-btn" onclick="openAddSection()">New Section</button>
   </div>
+  <div class="nav-deeper" onclick="navTo('viewCatalog')">List →</div>
 </div>
 
 <!-- Catalog View -->
 <div class="view" id="viewCatalog">
+  <div class="sub-bar"><a class="back" onclick="navTo('viewItems')">← Items</a></div>
   <div class="fund-pool" id="fundPool"></div>
   <div id="catalogList"></div>
   <div class="catalog-add" onclick="openAddCatalog()">New List</div>
+  <div class="nav-deeper" onclick="navTo('viewRef')">Ref →</div>
 </div>
 
 <!-- Catalog Detail View -->
 <div class="view" id="viewCatalogDetail">
   <div class="detail-bar">
-    <a class="back" onclick="showView('viewCatalog')">← Back</a>
+    <a class="back" onclick="navTo('viewCatalog')">← Back</a>
     <h1 id="catalogDetailTitle"></h1>
     <button class="btn-s" onclick="openEditCatalog()">Edit</button>
   </div>
@@ -197,6 +201,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 <!-- Reference View -->
 <div class="view" id="viewRef">
+  <div class="sub-bar"><a class="back" onclick="navTo('viewCatalog')">← List</a></div>
   <div id="refList"></div>
   <div class="catalog-add" onclick="openAddRef()">New Reference</div>
 </div>
@@ -204,7 +209,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- Reference Detail View -->
 <div class="view" id="viewRefDetail">
   <div class="detail-bar">
-    <a class="back" onclick="showView('viewRef');document.querySelector('.tab-bar').style.display='flex'">← Back</a>
+    <a class="back" onclick="navTo('viewRef')">← Back</a>
     <h1 id="refDetailTitle"></h1>
     <button class="btn-s" onclick="openEditRef()">Edit</button>
   </div>
@@ -254,13 +259,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <button class="btn btn-primary" onclick="saveRefItem()">Save</button>
   </div>
 </div>
-</div>
-
-<!-- Tab bar -->
-<div class="tab-bar">
-  <button class="tab-btn active" onclick="switchTab('viewItems')">Items</button>
-  <button class="tab-btn" onclick="switchTab('viewCatalog')">List</button>
-  <button class="tab-btn" onclick="switchTab('viewRef')">Ref</button>
 </div>
 
 <!-- Add/Edit Item Modal -->
@@ -427,12 +425,9 @@ function gid(){return Date.now().toString(36)+'_'+Math.random().toString(36).sli
 function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 
 /* ═══ VIEWS ═══ */
-function showView(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(id).classList.add('active');}
-function switchTab(id){
+function showView(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);}
+function navTo(id){
   showView(id);
-  const tabs=['viewItems','viewCatalog','viewRef'];
-  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',tabs[i]===id));
-  document.querySelector('.tab-bar').style.display='flex';
   if(id==='viewItems')renderItems();else if(id==='viewCatalog')renderCatalogList();else if(id==='viewRef')renderRefList();
 }
 
@@ -640,7 +635,6 @@ function openCatalogDetail(id){
   }
   document.getElementById('catalogDetailGrid').innerHTML=html;
   showView('viewCatalogDetail');
-  document.querySelector('.tab-bar').style.display='none';
 }
 function renderCatItem(item,idx){
   return`<div class="cat-item${item.collected?' collected':''}" onclick="handleCatalogItemClick(${idx})"><img src="${item.img||''}" onerror="this.parentElement.style.background='#e8e8e8'"><button class="cat-edit-btn" aria-label="Edit" onclick="event.stopPropagation();openEditCatItem(${idx})">⋯</button><div class="cat-name">${esc(item.name)}</div>${item.locked?'<div class="lock-icon">🔒</div>':''}${item.collected?'<div class="collect-dot"></div>':''}</div>`;
@@ -861,7 +855,6 @@ function openRefDetail(id){
   document.getElementById('refDetailGrid').innerHTML=html;
   document.getElementById('refComment').value=r.comment||'';
   showView('viewRefDetail');
-  document.querySelector('.tab-bar').style.display='none';
 }
 function saveRefComment(){
   const r=db.refs.find(x=>x.id===curRefId);if(!r)return;
@@ -974,11 +967,7 @@ function exportData(){
 
 /* ═══ INIT ═══ */
 load();renderItems();
-// Return from catalog detail
-document.querySelector('#viewCatalogDetail .back').addEventListener('click',()=>{
-  document.querySelector('.tab-bar').style.display='flex';
-  switchTab('viewCatalog');
-});
+
 </script>
 </body>
 </html>
