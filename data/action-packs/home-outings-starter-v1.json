@@ -865,7 +865,7 @@
           },
           {
             "s": "出发了",
-            "m": "和Jane出门了。她不让我开车。Every single time.——Neal"
+            "m": "和Jane出门了。他不让我开车。Every single time.——Neal"
           }
         ],
         "break": [
@@ -875,7 +875,7 @@
           },
           {
             "s": "休息中",
-            "m": "Jane说我分析得不够严谨。但她刚才偷笑了。——Neal"
+            "m": "Jane说我分析得不够严谨。但他刚才偷笑了。——Neal"
           }
         ],
         "return": [
@@ -885,13 +885,13 @@
           },
           {
             "s": "一起回来了",
-            "m": "We make a good team. Jane不会承认但她也这么想。——Neal"
+            "m": "We make a good team. Jane不会承认但他也这么想。——Neal"
           }
         ]
       },
       "diaryTemplates": [
         "和Neal进行了联合调查。CBI和FBI的跨部门合作比想象中顺利。Neal的社交能力在取证时意外地有用。",
-        "Joint investigation with Jane. 她的侧写能力令人印象深刻。我们在{duration}内取得了重大进展。——Neal"
+        "Joint investigation with Jane. 他的侧写能力令人印象深刻。我们在{duration}内取得了重大进展。——Neal"
       ],
       "allowLiminalBreak": true,
       "artOverride": null,
@@ -1167,7 +1167,7 @@
           },
           {
             "s": "外州出差",
-            "m": "Road trip with Jane. 她负责导航但不看地图。Classic.——Neal"
+            "m": "Road trip with Jane. 他负责导航但不看地图。Classic.——Neal"
           }
         ],
         "break": [
@@ -1240,13 +1240,13 @@
           },
           {
             "s": "吃饱回来",
-            "m": "Jane只点了一道主菜but she ate half of mine. I'm not complaining.——Neal"
+            "m": "Jane只点了一道主菜but he ate half of mine. I'm not complaining.——Neal"
           }
         ]
       },
       "diaryTemplates": [
         "和Neal在曼哈顿的意大利餐厅吃了饭。他点的tiramisu确实不错。",
-        "Dinner with Jane. 她假装不饿但吃了比我还多。Beautiful evening.——Neal"
+        "Dinner with Jane. 他假装不饿但吃了比我还多。Beautiful evening.——Neal"
       ],
       "allowLiminalBreak": false,
       "artOverride": null,
@@ -1282,7 +1282,7 @@
           },
           {
             "s": "购物中",
-            "m": "带Jane shopping！虽然她只想去书店。But baby steps.——Neal"
+            "m": "带Jane shopping！虽然他只想去书店。But baby steps.——Neal"
           }
         ],
         "break": [],
@@ -1293,13 +1293,13 @@
           },
           {
             "s": "买完回来",
-            "m": "给Jane买了一条围巾。她嘴上说不需要但已经围上了。——Neal"
+            "m": "给Jane买了一条围巾。他嘴上说不需要但已经围上了。——Neal"
           }
         ]
       },
       "diaryTemplates": [
         "和Neal在市中心逛了{duration}。他往衣橱里又添了三件。我在书店找到了一本绝版诗集。",
-        "和Jane一起逛街。她假装对fashion毫无兴趣但在橱窗前站了很久。——Neal"
+        "和Jane一起逛街。他假装对fashion毫无兴趣但在橱窗前站了很久。——Neal"
       ],
       "allowLiminalBreak": false,
       "artOverride": null,
@@ -1346,13 +1346,13 @@
           },
           {
             "s": "展览结束",
-            "m": "What an experience! Jane说她最喜欢第三展厅。她有品位。——Neal"
+            "m": "What an experience! Jane说他最喜欢第三展厅。他有品位。——Neal"
           }
         ]
       },
       "diaryTemplates": [
         "和Neal去了大都会博物馆看展。展览主题是印象派晚期。Neal的解说比官方导览有趣得多。",
-        "和Jane看了exhibition。她对Degas的色彩运用发表了长篇评论。Unexpectedly passionate.——Neal"
+        "和Jane看了exhibition。他对Degas的色彩运用发表了长篇评论。Unexpectedly passionate.——Neal"
       ],
       "allowLiminalBreak": false,
       "artOverride": null,
@@ -1388,7 +1388,7 @@
           },
           {
             "s": "走路中",
-            "m": "Evening walk with Jane. 她走路的时候最放松。I like that.——Neal"
+            "m": "Evening walk with Jane. 他走路的时候最放松。I like that.——Neal"
           }
         ],
         "break": [],
@@ -1405,7 +1405,7 @@
       },
       "diaryTemplates": [
         "和Neal在中央公园附近散了步。傍晚的光线很好。他讲了今天的案子，我只是听着。",
-        "Evening walk with Jane. 风很舒服，她难得没有催我少说几句。——Neal"
+        "Evening walk with Jane. 风很舒服，他难得没有催我少说几句。——Neal"
       ],
       "allowLiminalBreak": false,
       "artOverride": null,
@@ -2105,7 +2105,7 @@
           },
           {
             "s": "游览中",
-            "m": "大阪太有意思了！Jane居然对城堡的防御设计很感兴趣。Very her.——Neal"
+            "m": "大阪太有意思了！Jane居然对城堡的防御设计很感兴趣。Very him.——Neal"
           }
         ],
         "break": [],
@@ -2116,7 +2116,7 @@
           },
           {
             "s": "逛完回来",
-            "m": "和Jane在大阪的一天。She actually smiled at the sunset. 我偷偷拍到了。——Neal"
+            "m": "和Jane在大阪的一天。He actually smiled at the sunset. 我偷偷拍到了。——Neal"
           }
         ]
       },
