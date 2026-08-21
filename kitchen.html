@@ -114,6 +114,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .btn-del{background:#fff;color:#D85A30;border:1px solid #f0d0c0}
 .file-label{display:block;padding:10px 12px;border:1px dashed #ddd;border-radius:8px;text-align:center;color:#aaa;font-size:12px;cursor:pointer;margin-top:4px}
 .img-preview{width:100%;border-radius:8px;margin-top:8px;max-height:240px;object-fit:contain;background:#f7f7f7}
+.project-icon-editor{width:min(180px,100%);margin:8px auto 0}
+.project-icon-pos-frame{width:100%;aspect-ratio:1;border-radius:16px;overflow:hidden;position:relative;cursor:grab;touch-action:none;border:1px solid #eee;background:#f7f7f7}
+.project-icon-pos-frame:active{cursor:grabbing}
+.project-icon-pos-frame img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;user-select:none;-webkit-user-select:none}
+.project-icon-clear{position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;border:none;background:rgba(0,0,0,0.45);color:#fff;font-size:12px;cursor:pointer;line-height:22px;text-align:center;z-index:2}
 /* Duty color selector */
 .duty-row{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px}
 .duty-opt{padding:3px 9px;border-radius:6px;border:1.5px solid #e0e0e0;font-size:11px;cursor:pointer;font-family:inherit;background:#fff;transition:all 0.15s}
@@ -144,11 +149,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .section-divider-label{font-size:11px;color:#999;font-weight:500;letter-spacing:0.3px;cursor:text;border-bottom:1px dashed transparent;transition:color 0.15s,border-color 0.15s}
 .section-divider-label:hover{color:#8B6914;border-bottom-color:#D8C18B}
 .section-progress{font-size:9px;color:#c5c5c5;white-space:nowrap;font-variant-numeric:tabular-nums;letter-spacing:0.3px}
-.section-banner{width:100%;height:56px;overflow:hidden;cursor:pointer;position:relative}
+.section-banner{height:clamp(68px,10vw,88px);overflow:hidden;cursor:pointer;position:relative;margin:0 20px;border-radius:10px}
 .section-banner img{width:100%;height:100%;object-fit:cover;display:block;transition:opacity 0.3s}
 .section-banner-full{position:fixed;inset:0;z-index:280;background:rgba(0,0,0,0.75);display:none;align-items:center;justify-content:center;cursor:pointer}
 .section-banner-full.show{display:flex}
 .section-banner-full img{max-width:92%;max-height:85vh;object-fit:contain;border-radius:8px}
+/* Banner position editor */
+.banner-pos-editor{margin-top:6px;position:relative}
+.banner-pos-frame{width:100%;height:clamp(68px,10vw,88px);border-radius:10px;overflow:hidden;position:relative;cursor:grab;touch-action:none;border:1px solid #eee}
+.banner-pos-frame:active{cursor:grabbing}
+.banner-pos-frame img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;user-select:none;-webkit-user-select:none}
+.banner-pos-hint{display:flex;align-items:center;justify-content:space-between;margin-top:5px}
+.banner-pos-hint-text{font-size:10px;color:#bbb}
+.banner-pos-reset{font-size:10px;color:#aaa;background:none;border:1px solid #e0e0e0;border-radius:6px;padding:2px 8px;cursor:pointer}
+.banner-pos-reset:hover{color:#888;border-color:#ccc}
 .subcount-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px}
 .subcount-row label{margin:0;font-size:12px;color:#999}
 .subcount-row input[type="number"]{width:60px;font-size:13px;padding:6px 8px}
@@ -300,7 +314,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <label>项目图标</label>
     <label class="file-label" id="projectIconLabel">点击选择图片</label>
     <input type="file" accept="image/*" id="projectIconInput" onchange="previewProjectIcon(this)" style="display:none">
-    <img id="projectIconPreview" class="img-preview" style="display:none">
+    <div id="projectIconEditor" class="project-icon-editor" style="display:none">
+      <div id="projectIconPosFrame" class="project-icon-pos-frame" onmousedown="startProjectIconDrag(event)" ontouchstart="startProjectIconDrag(event)">
+        <img id="projectIconPreview" src="" alt="">
+        <button type="button" class="project-icon-clear" aria-label="清除项目图片" onclick="event.stopPropagation();clearProjectIcon()">×</button>
+      </div>
+      <div class="banner-pos-hint"><span class="banner-pos-hint-text">拖动图片调整显示区域</span><button type="button" class="banner-pos-reset" onclick="resetProjectIconPos()">恢复居中</button></div>
+    </div>
     <label>项目名</label>
     <input type="text" id="inputProjectName" placeholder="如: Subway 三明治收集">
     <label>项目细分</label>
@@ -389,7 +409,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <label>横幅图（选填）</label>
     <label class="file-label" id="quickBannerLabel" onclick="document.getElementById('quickBannerInput').click()">点击选择横幅图</label>
     <input type="file" accept="image/*" id="quickBannerInput" onchange="previewSectionBanner(this,'quick')" style="display:none">
-    <div id="quickBannerPreview" style="display:none;position:relative;margin-top:6px"><img class="img-preview" style="max-height:80px;object-fit:cover;width:100%;border-radius:6px"><button type="button" onclick="clearSectionBanner('quick')" style="position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;border:none;background:rgba(0,0,0,0.45);color:#fff;font-size:11px;cursor:pointer;line-height:20px;text-align:center">×</button></div>
+    <div id="quickBannerPreview" class="banner-pos-editor" style="display:none">
+      <div class="banner-pos-frame" id="quickBannerPosFrame" onmousedown="startBannerDrag(event,'quick')" ontouchstart="startBannerDrag(event,'quick')">
+        <img class="img-preview" src="" alt="">
+        <button type="button" onclick="clearSectionBanner('quick')" style="position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;border:none;background:rgba(0,0,0,0.45);color:#fff;font-size:11px;cursor:pointer;line-height:20px;text-align:center;z-index:2">×</button>
+      </div>
+      <div class="banner-pos-hint"><span class="banner-pos-hint-text">拖动图片调整显示区域</span><button type="button" class="banner-pos-reset" onclick="resetBannerPos('quick')">恢复居中</button></div>
+    </div>
     <label>内容设置</label>
     <div id="quickSectionConfig"></div>
     <div class="btn-row">
@@ -411,7 +437,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <label>横幅图（选填）</label>
     <label class="file-label" id="addBannerLabel" onclick="document.getElementById('addBannerInput').click()">点击选择横幅图</label>
     <input type="file" accept="image/*" id="addBannerInput" onchange="previewSectionBanner(this,'add')" style="display:none">
-    <div id="addBannerPreview" style="display:none;position:relative;margin-top:6px"><img class="img-preview" style="max-height:80px;object-fit:cover;width:100%;border-radius:6px"><button type="button" onclick="clearSectionBanner('add')" style="position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;border:none;background:rgba(0,0,0,0.45);color:#fff;font-size:11px;cursor:pointer;line-height:20px;text-align:center">×</button></div>
+    <div id="addBannerPreview" class="banner-pos-editor" style="display:none">
+      <div class="banner-pos-frame" id="addBannerPosFrame" onmousedown="startBannerDrag(event,'add')" ontouchstart="startBannerDrag(event,'add')">
+        <img class="img-preview" src="" alt="">
+        <button type="button" onclick="clearSectionBanner('add')" style="position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;border:none;background:rgba(0,0,0,0.45);color:#fff;font-size:11px;cursor:pointer;line-height:20px;text-align:center;z-index:2">×</button>
+      </div>
+      <div class="banner-pos-hint"><span class="banner-pos-hint-text">拖动图片调整显示区域</span><button type="button" class="banner-pos-reset" onclick="resetBannerPos('add')">恢复居中</button></div>
+    </div>
     <label>内容设置</label>
     <div id="addSectionConfig"></div>
     <div class="btn-row">
@@ -479,7 +511,7 @@ if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 
 /* ═══ DATA ═══ */
 const SK='kitchen_db';
-const SECTION_TAG_COLORS=['#888888','#E8B96A','#D85A30','#E84A7A','#9B6BCC','#4AADE8','#5BA66B','#6B8AFF'];
+const SECTION_TAG_COLORS=['#9B8AE8','#6B5ACD','#D85A30','#E84A7A','#E8B96A','#C7A24C','#9B6BCC','#4AADE8','#3A8DD4','#5BA66B','#3D8B50','#6B8AFF','#4A6AE0','#888','#B0805A','#4ECDC4'];
 let projects=[];
 try{projects=JSON.parse(localStorage.getItem(SK))||[];}catch(e){projects=[];}
 
@@ -531,12 +563,14 @@ if(projects.length&&projects[0]&&projects[0].series){
 let curProjectId=null, curItemIdx=null, quickItemIdx=null, editSectionIdx=null;
 let editProjectId=null, editItemIdx=null;
 let projectTempIcon='';
+let projectIconPosTemp={x:50,y:50};
 const detailScrollByProject={};
 let itemArrangeMode=false,itemPressState=null,itemDragState=null,itemClickSuppressedUntil=0;
 
 function save(){localStorage.setItem(SK,JSON.stringify(projects));}
 function gid(){return 'p_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function clampImagePosition(value){const n=Number(value);return Number.isFinite(n)?Math.max(0,Math.min(100,n)):50;}
 
 /* ═══ CUSTOM DIALOGS (replace confirm/alert/prompt) ═══ */
 function customConfirm(msg,onYes,opts){
@@ -807,7 +841,7 @@ const DUTY_PRESETS=[
   {type:'jane',name:'Jane',color:'#5BA66B'},
   {type:'will',name:'Will',color:'#D85A30'}
 ];
-const CUSTOM_COLORS=['#E8B96A','#D85A30','#E84A7A','#9B6BCC','#4AADE8','#5BA66B','#6B8AFF','#888888'];
+const CUSTOM_COLORS=['#9B8AE8','#6B5ACD','#D85A30','#E84A7A','#E8B96A','#C7A24C','#9B6BCC','#4AADE8','#3A8DD4','#5BA66B','#3D8B50','#6B8AFF','#4A6AE0','#888','#B0805A','#4ECDC4'];
 
 /* ── Celebration lines per character ── */
 const CHECKIN_LINES={
@@ -869,7 +903,9 @@ function renderProjects(){
     const st=projectStats(p);
     const pct=st.total>0?Math.round(st.collected/st.total*100):0;
     const done=st.collected>=st.total&&st.total>0;
-    const iconHtml=p.icon?`<img src="${p.icon}" alt="">`:`<div class="emoji-fb">🍽</div>`;
+    const iconPosX=clampImagePosition(p.iconPositionX);
+    const iconPosY=clampImagePosition(p.iconPositionY);
+    const iconHtml=p.icon?`<img src="${p.icon}" alt="" style="object-position:${iconPosX}% ${iconPosY}%">`:`<div class="emoji-fb">🍽</div>`;
     const duty=p.duty||{};
     const dutyColor=duty.color||'#E8B96A';
     const dutyName=duty.type?DUTY_PRESETS.find(d=>d.type===duty.type)?.name||duty.name||'':duty.name||'';
@@ -1113,7 +1149,7 @@ function buildSectionDrafts(p){
   const drafts=source.map(sec=>{
     const count=Math.max(0,parseInt(sec.count)||0);
     const sectionItems=p.items.slice(offset,offset+count);
-    const draft={name:sec.name||'',count,cols:clampSectionCols(sec.cols),itemType:normalizeItemType(sec.itemType),tagText:sec.tagText||'',tagColor:normalizeTagColor(sec.tagColor),bannerImg:sec.bannerImg||''};
+    const draft={name:sec.name||'',count,cols:clampSectionCols(sec.cols),itemType:normalizeItemType(sec.itemType),tagText:sec.tagText||'',tagColor:normalizeTagColor(sec.tagColor),bannerImg:sec.bannerImg||'',bannerPositionX:sec.bannerPositionX!=null?sec.bannerPositionX:50,bannerPositionY:sec.bannerPositionY!=null?sec.bannerPositionY:50};
     if(Array.isArray(sec.subsections)&&sec.subsections.length){
       let subOffset=0;
       draft.subsections=sec.subsections.map(sub=>{
@@ -1164,7 +1200,7 @@ function finalizeItemBucket(bucket,requested,itemType,startNumber){
 }
 function finalizeOneSectionDraft(sec,startNumber){
   const result={name:sec.name||'',count:0,cols:clampSectionCols(sec.cols),itemType:normalizeItemType(sec.itemType),tagText:String(sec.tagText||'').trim(),tagColor:normalizeTagColor(sec.tagColor)};
-  if(sec.bannerImg)result.bannerImg=sec.bannerImg;
+  if(sec.bannerImg){result.bannerImg=sec.bannerImg;result.bannerPositionX=sec.bannerPositionX!=null?sec.bannerPositionX:50;result.bannerPositionY=sec.bannerPositionY!=null?sec.bannerPositionY:50;}
   let items=[];let preserved=0;
   const activeSubs=Array.isArray(sec.subsections)
     ?sec.subsections.filter(sub=>sub.name||Math.max(0,parseInt(sub.count)||0)>0||(sub._items&&sub._items.length))
@@ -1193,8 +1229,17 @@ function finalizeOneSectionDraft(sec,startNumber){
 }
 function removeSectionRow(index){
   if(index<0||index>=_sections.length)return;
-  _sections.splice(index,1);
-  renderSectionList();
+  const sec=_sections[index];
+  if(sectionDraftHasItems(sec)){
+    const sName=sec.name||('分栏 '+(index+1));
+    customConfirm(`删除分栏「${esc(sName)}」？其中品目会一起删除。`,()=>{
+      _sections.splice(index,1);
+      renderSectionList();
+    },{yes:'确认删除'});
+  }else{
+    _sections.splice(index,1);
+    renderSectionList();
+  }
 }
 function sectionDraftHasItems(sec){
   return !!(sec&&((sec._items&&sec._items.length)||(Array.isArray(sec.subsections)&&sec.subsections.some(sub=>sub._items&&sub._items.length))));
@@ -1491,11 +1536,14 @@ function addSectionRow(){
 }
 
 function openAddProject(){
-  editProjectId=null;projectTempIcon='';
+  editProjectId=null;projectTempIcon='';projectIconPosTemp={x:50,y:50};
   document.getElementById('projectModalTitle').textContent='添加项目';
   document.getElementById('inputProjectName').value='';
   document.getElementById('inputProjectNote').value='';
-  document.getElementById('projectIconPreview').style.display='none';
+  document.getElementById('projectIconInput').value='';
+  document.getElementById('projectIconEditor').style.display='none';
+  const iconPreview=document.getElementById('projectIconPreview');
+  iconPreview.src='';iconPreview.style.objectPosition='50% 50%';
   _sections=[{name:'',count:0,cols:3,itemType:'food',tagText:'',tagColor:'#E8B96A',_items:[]}];
   _dutyState={type:'',color:'#E8B96A',name:''};
   renderSectionList();renderDutyRow(_dutyState);
@@ -1504,11 +1552,15 @@ function openAddProject(){
 function openEditProject(){
   const p=getProject(curProjectId);if(!p)return;
   editProjectId=p.id;projectTempIcon=p.icon||'';
+  projectIconPosTemp={x:clampImagePosition(p.iconPositionX),y:clampImagePosition(p.iconPositionY)};
   document.getElementById('projectModalTitle').textContent='编辑项目';
   document.getElementById('inputProjectName').value=p.name;
   document.getElementById('inputProjectNote').value=p.note||'';
-  if(p.icon){document.getElementById('projectIconPreview').src=p.icon;document.getElementById('projectIconPreview').style.display='block';}
-  else{document.getElementById('projectIconPreview').style.display='none';}
+  document.getElementById('projectIconInput').value='';
+  const iconEditor=document.getElementById('projectIconEditor');
+  const iconPreview=document.getElementById('projectIconPreview');
+  if(p.icon){iconPreview.src=p.icon;iconPreview.style.objectPosition=projectIconPosTemp.x+'% '+projectIconPosTemp.y+'%';iconEditor.style.display='block';}
+  else{iconPreview.src='';iconPreview.style.objectPosition='50% 50%';iconEditor.style.display='none';}
   // Keep each section and its own item group together in the edit draft.
   _sections=buildSectionDrafts(p);
   _dutyState=p.duty?{...p.duty}:{type:'',color:'#E8B96A',name:''};
@@ -1522,6 +1574,8 @@ async function saveProject(){
   let duty={..._dutyState};
   if(duty.type==='custom'){duty.name=document.getElementById('dutyCustomName').value.trim();}
   let icon=projectTempIcon;
+  const iconPositionX=clampImagePosition(projectIconPosTemp.x);
+  const iconPositionY=clampImagePosition(projectIconPosTemp.y);
   if(icon&&icon.startsWith('data:')&&window.CloudSync){try{icon=await CloudSync.uploadDataUrl(icon,`kitchen/${editProjectId||gid()}_icon.jpg`);}catch(e){}}
 
   // Finalize section metadata and its matching item groups together.
@@ -1533,13 +1587,14 @@ async function saveProject(){
   if(editProjectId){
     const p=getProject(editProjectId);
     if(p){
-      p.name=name;p.note=note;p.duty=duty;if(icon)p.icon=icon;
+      p.name=name;p.note=note;p.duty=duty;p.icon=icon||'';
+      p.iconPositionX=icon?iconPositionX:50;p.iconPositionY=icon?iconPositionY:50;
       p.sections=sections;
       p.items=items;
       p.count=totalCount;
     }
   }else{
-    projects.push({id:gid(),name,note,icon:icon||'',count:totalCount,duty,items,sections,order:projects.length});
+    projects.push({id:gid(),name,note,icon:icon||'',iconPositionX:icon?iconPositionX:50,iconPositionY:icon?iconPositionY:50,count:totalCount,duty,items,sections,order:projects.length});
   }
   save();closeModal('projectModal');
   if(finalized.preserved)showToast(`已保留 ${finalized.preserved} 个有记录的品目`);
@@ -1550,6 +1605,8 @@ async function saveProject(){
 /* ── Add new section from detail view ── */
 /* ── Section banner helpers ── */
 let _sectionBannerTemp={quick:'',add:''};
+let _bannerPosTemp={quick:{x:50,y:50},add:{x:50,y:50}};
+let _bannerDragState=null;
 async function persistSectionBanner(value,projectId){
   if(!value||!value.startsWith('data:')||!window.CloudSync)return value||'';
   try{
@@ -1573,9 +1630,12 @@ function previewSectionBanner(input,scope){
       c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);
       const data=c.toDataURL('image/jpeg',0.75);
       _sectionBannerTemp[scope]=data;
+      _bannerPosTemp[scope]={x:50,y:50};
       const wrap=document.getElementById(scope+'BannerPreview');
       wrap.style.display='block';
-      wrap.querySelector('img').src=data;
+      const pimg=wrap.querySelector('img');
+      pimg.src=data;
+      pimg.style.objectPosition='50% 50%';
     };
     img.src=ev.target.result;
   };
@@ -1583,20 +1643,66 @@ function previewSectionBanner(input,scope){
 }
 function clearSectionBanner(scope){
   _sectionBannerTemp[scope]='';
+  _bannerPosTemp[scope]={x:50,y:50};
   const wrap=document.getElementById(scope+'BannerPreview');
   wrap.style.display='none';
-  wrap.querySelector('img').src='';
+  const pimg=wrap.querySelector('img');
+  pimg.src='';pimg.style.objectPosition='50% 50%';
   document.getElementById(scope+'BannerInput').value='';
 }
 function showBannerFull(src){
   document.getElementById('bannerFullImg').src=src;
   document.getElementById('bannerFullView').classList.add('show');
 }
+function startBannerDrag(e,scope){
+  if(e.target.tagName==='BUTTON')return;
+  e.preventDefault();
+  const frame=document.getElementById(scope+'BannerPosFrame');
+  const img=frame.querySelector('img');
+  if(!img.src||!img.naturalWidth)return;
+  const startX=e.touches?e.touches[0].clientX:e.clientX;
+  const startY=e.touches?e.touches[0].clientY:e.clientY;
+  const startPosX=_bannerPosTemp[scope].x;
+  const startPosY=_bannerPosTemp[scope].y;
+  const frameW=frame.offsetWidth;
+  const frameH=frame.offsetHeight;
+  const imgAspect=img.naturalWidth/img.naturalHeight;
+  const frameAspect=frameW/frameH;
+  let rangeX=0,rangeY=0;
+  if(imgAspect>frameAspect){rangeX=((img.naturalWidth*(frameH/img.naturalHeight))-frameW);rangeY=0;}
+  else{rangeX=0;rangeY=((img.naturalHeight*(frameW/img.naturalWidth))-frameH);}
+  function onMove(ev){
+    const cx=ev.touches?ev.touches[0].clientX:ev.clientX;
+    const cy=ev.touches?ev.touches[0].clientY:ev.clientY;
+    const dx=cx-startX;
+    const dy=cy-startY;
+    let nx=startPosX,ny=startPosY;
+    if(rangeX>0)nx=Math.max(0,Math.min(100,startPosX-(dx/rangeX)*100));
+    if(rangeY>0)ny=Math.max(0,Math.min(100,startPosY-(dy/rangeY)*100));
+    _bannerPosTemp[scope]={x:Math.round(nx*10)/10,y:Math.round(ny*10)/10};
+    img.style.objectPosition=_bannerPosTemp[scope].x+'% '+_bannerPosTemp[scope].y+'%';
+  }
+  function onEnd(){
+    document.removeEventListener('mousemove',onMove);
+    document.removeEventListener('mouseup',onEnd);
+    document.removeEventListener('touchmove',onMove);
+    document.removeEventListener('touchend',onEnd);
+  }
+  document.addEventListener('mousemove',onMove);
+  document.addEventListener('mouseup',onEnd);
+  document.addEventListener('touchmove',onMove,{passive:false});
+  document.addEventListener('touchend',onEnd);
+}
+function resetBannerPos(scope){
+  _bannerPosTemp[scope]={x:50,y:50};
+  const frame=document.getElementById(scope+'BannerPosFrame');
+  if(frame){const img=frame.querySelector('img');if(img)img.style.objectPosition='50% 50%';}
+}
 
 function openAddSection(){
   const p=getProject(curProjectId);if(!p)return;
   document.getElementById('inputSectionName').value='';
-  _addSectionDraft={name:'',count:0,cols:3,itemType:'food',tagText:'',tagColor:'#E8B96A',_items:[]};
+  _addSectionDraft={name:'',count:0,cols:3,itemType:'food',tagText:'',tagColor:'#E8B96A',_items:[],bannerPositionX:50,bannerPositionY:50};
   clearSectionBanner('add');
   renderStandaloneSectionDraft('add');
   openModal('addSectionModal');
@@ -1617,19 +1723,69 @@ async function saveAddSection(){
     p.sections.push({name:'',count:p.items.length,cols:3,itemType:oldType,tagText:'',tagColor:'#E8B96A'});
     p.items.forEach(item=>{if(!item.itemType)item.itemType=oldType;});
   }
-  if(savedBanner)finalized.section.bannerImg=savedBanner;
+  if(savedBanner){finalized.section.bannerImg=savedBanner;finalized.section.bannerPositionX=_bannerPosTemp.add.x;finalized.section.bannerPositionY=_bannerPosTemp.add.y;}
   p.sections.push(finalized.section);
   p.items.push(...finalized.items);
   p.count=p.items.length;
-  _addSectionDraft=null;_sectionBannerTemp.add='';
+  _addSectionDraft=null;_sectionBannerTemp.add='';_bannerPosTemp.add={x:50,y:50};
   save();closeModal('addSectionModal');renderDetail(p);
 }
 
 function previewProjectIcon(input){
   if(!input.files||!input.files[0])return;
   const reader=new FileReader();
-  reader.onload=ev=>{const img=new Image();img.onload=()=>{const c=document.createElement('canvas');const M=200;let w=img.width,h=img.height;if(w>M||h>M){if(w>h){h=h*M/w;w=M;}else{w=w*M/h;h=M;}}c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);projectTempIcon=c.toDataURL('image/jpeg',0.7);const p=document.getElementById('projectIconPreview');p.src=projectTempIcon;p.style.display='block';};img.src=ev.target.result;};
+  reader.onload=ev=>{const img=new Image();img.onload=()=>{const c=document.createElement('canvas');const M=200;let w=img.width,h=img.height;if(w>M||h>M){if(w>h){h=h*M/w;w=M;}else{w=w*M/h;h=M;}}c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);projectTempIcon=c.toDataURL('image/jpeg',0.7);projectIconPosTemp={x:50,y:50};const p=document.getElementById('projectIconPreview');p.src=projectTempIcon;p.style.objectPosition='50% 50%';document.getElementById('projectIconEditor').style.display='block';};img.src=ev.target.result;};
   reader.readAsDataURL(input.files[0]);
+}
+function clearProjectIcon(){
+  projectTempIcon='';projectIconPosTemp={x:50,y:50};
+  document.getElementById('projectIconInput').value='';
+  const preview=document.getElementById('projectIconPreview');
+  preview.src='';preview.style.objectPosition='50% 50%';
+  document.getElementById('projectIconEditor').style.display='none';
+}
+function resetProjectIconPos(){
+  projectIconPosTemp={x:50,y:50};
+  document.getElementById('projectIconPreview').style.objectPosition='50% 50%';
+}
+function startProjectIconDrag(e){
+  if(e.target.tagName==='BUTTON')return;
+  e.preventDefault();
+  const frame=document.getElementById('projectIconPosFrame');
+  const img=document.getElementById('projectIconPreview');
+  if(!img.src||!img.naturalWidth)return;
+  const startX=e.touches?e.touches[0].clientX:e.clientX;
+  const startY=e.touches?e.touches[0].clientY:e.clientY;
+  const startPosX=projectIconPosTemp.x;
+  const startPosY=projectIconPosTemp.y;
+  const frameW=frame.offsetWidth;
+  const frameH=frame.offsetHeight;
+  const imgAspect=img.naturalWidth/img.naturalHeight;
+  const frameAspect=frameW/frameH;
+  let rangeX=0,rangeY=0;
+  if(imgAspect>frameAspect)rangeX=(img.naturalWidth*(frameH/img.naturalHeight))-frameW;
+  else if(imgAspect<frameAspect)rangeY=(img.naturalHeight*(frameW/img.naturalWidth))-frameH;
+  function onMove(ev){
+    const cx=ev.touches?ev.touches[0].clientX:ev.clientX;
+    const cy=ev.touches?ev.touches[0].clientY:ev.clientY;
+    const dx=cx-startX;
+    const dy=cy-startY;
+    let nx=startPosX,ny=startPosY;
+    if(rangeX>0)nx=Math.max(0,Math.min(100,startPosX-(dx/rangeX)*100));
+    if(rangeY>0)ny=Math.max(0,Math.min(100,startPosY-(dy/rangeY)*100));
+    projectIconPosTemp={x:Math.round(nx*10)/10,y:Math.round(ny*10)/10};
+    img.style.objectPosition=projectIconPosTemp.x+'% '+projectIconPosTemp.y+'%';
+  }
+  function onEnd(){
+    document.removeEventListener('mousemove',onMove);
+    document.removeEventListener('mouseup',onEnd);
+    document.removeEventListener('touchmove',onMove);
+    document.removeEventListener('touchend',onEnd);
+  }
+  document.addEventListener('mousemove',onMove);
+  document.addEventListener('mouseup',onEnd);
+  document.addEventListener('touchmove',onMove,{passive:false});
+  document.addEventListener('touchend',onEnd);
 }
 
 function deleteProject(){
@@ -1679,7 +1835,9 @@ function renderDetail(p){
       html+=`<div class="section-divider"><div class="section-divider-line"></div></div>`;
     }
     if(sec.bannerImg){
-      html+=`<div class="section-banner" onclick="showBannerFull('${sec.bannerImg.replace(/'/g,"\\'")}')"><img src="${sec.bannerImg}" alt=""></div>`;
+      const bpx=sec.bannerPositionX!=null?sec.bannerPositionX:50;
+      const bpy=sec.bannerPositionY!=null?sec.bannerPositionY:50;
+      html+=`<div class="section-banner" onclick="showBannerFull('${sec.bannerImg.replace(/'/g,"\\'")}')"><img src="${sec.bannerImg}" alt="" style="object-position:${bpx}% ${bpy}%"></div>`;
     }
     if(Array.isArray(sec.subsections)&&sec.subsections.length){
       let subOff=0;
@@ -1726,8 +1884,11 @@ function openSectionQuickEdit(sectionIdx){
   nameInput.value=_quickSectionDraft.name||'';
   const existingBanner=p.sections[sectionIdx].bannerImg||'';
   _sectionBannerTemp.quick=existingBanner;
+  const ebpx=p.sections[sectionIdx].bannerPositionX!=null?p.sections[sectionIdx].bannerPositionX:50;
+  const ebpy=p.sections[sectionIdx].bannerPositionY!=null?p.sections[sectionIdx].bannerPositionY:50;
+  _bannerPosTemp.quick={x:ebpx,y:ebpy};
   const wrap=document.getElementById('quickBannerPreview');
-  if(existingBanner){wrap.style.display='block';wrap.querySelector('img').src=existingBanner;}
+  if(existingBanner){wrap.style.display='block';const pimg=wrap.querySelector('img');pimg.src=existingBanner;pimg.style.objectPosition=ebpx+'% '+ebpy+'%';}
   else{wrap.style.display='none';wrap.querySelector('img').src='';}
   document.getElementById('quickBannerInput').value='';
   renderStandaloneSectionDraft('quick');
@@ -1747,8 +1908,8 @@ async function saveSectionQuickEdit(){
   const finalized=finalizeOneSectionDraft(_quickSectionDraft,start+1);
   const savedBanner=await persistSectionBanner(_sectionBannerTemp.quick,p.id);
   p.items.splice(start,oldCount,...finalized.items);
-  if(savedBanner)finalized.section.bannerImg=savedBanner;
-  else delete finalized.section.bannerImg;
+  if(savedBanner){finalized.section.bannerImg=savedBanner;finalized.section.bannerPositionX=_bannerPosTemp.quick.x;finalized.section.bannerPositionY=_bannerPosTemp.quick.y;}
+  else{delete finalized.section.bannerImg;delete finalized.section.bannerPositionX;delete finalized.section.bannerPositionY;}
   p.sections[editSectionIdx]=finalized.section;
   p.count=p.items.length;
   normalizeGenericItemNames(p);
@@ -1756,7 +1917,7 @@ async function saveSectionQuickEdit(){
   closeModal('sectionQuickModal');
   if(finalized.preserved)showToast(`已保留 ${finalized.preserved} 个有记录的品目`);
   editSectionIdx=null;
-  _quickSectionDraft=null;_sectionBannerTemp.quick='';
+  _quickSectionDraft=null;_sectionBannerTemp.quick='';_bannerPosTemp.quick={x:50,y:50};
   renderDetail(p);
 }
 function deleteSectionQuickEdit(){
@@ -1766,10 +1927,7 @@ function deleteSectionQuickEdit(){
   const sec=p.sections[sectionIdx];
   const count=Math.max(0,parseInt(sec.count)||0);
   const sectionName=sec.name||('分栏 '+(sectionIdx+1));
-  const message=count>0
-    ?`删除分栏「${esc(sectionName)}」？其中 ${count} 个品目及打卡记录也会一起删除。`
-    :`删除空分栏「${esc(sectionName)}」？`;
-  customConfirm(message,()=>{
+  const doDelete=()=>{
     let start=0;
     for(let i=0;i<sectionIdx;i++)start+=Math.max(0,parseInt(p.sections[i].count)||0);
     p.items.splice(start,Math.min(count,Math.max(0,p.items.length-start)));
@@ -1780,7 +1938,12 @@ function deleteSectionQuickEdit(){
     const scroll=currentScrollY();
     save();closeModal('sectionQuickModal');
     renderDetail(p);restoreDetailScroll(scroll);
-  },{yes:'删除',danger:true});
+  };
+  if(count>0){
+    customConfirm(`删除分栏「${esc(sectionName)}」？其中品目会一起删除。`,doDelete,{yes:'确认删除'});
+  }else{
+    doDelete();
+  }
 }
 
 function renderItemCells(items,globalOffset,cols){
