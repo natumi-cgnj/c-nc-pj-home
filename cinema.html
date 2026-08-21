@@ -377,9 +377,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   </div>
 </div>
 <div class="action-sheet-bg" id="itemMenuSheet">
-  <div class="action-sheet">
+  <div class="action-sheet" id="itemMenuSheetInner">
     <button onclick="closeSheet('itemMenuSheet');openEditItem()">Edit Title</button>
-    <button onclick="closeSheet('itemMenuSheet');if(getProject(curProjectId).items[curItemIdx].collected){uncollect();}else{openCheckin();}">Check In / Undo</button>
+    <button id="itemMenuCheckinBtn" onclick="closeSheet('itemMenuSheet');openCheckin();">Check In</button>
+    <button id="itemMenuEditCheckinBtn" style="display:none" onclick="closeSheet('itemMenuSheet');openEditCheckin();">Edit Check In</button>
+    <button id="itemMenuUndoBtn" style="display:none" onclick="closeSheet('itemMenuSheet');uncollect();">Undo Check In</button>
     <button class="del-as" onclick="closeSheet('itemMenuSheet');deleteItem()">Delete Title</button>
     <button class="cancel-as" onclick="closeSheet('itemMenuSheet')">Cancel</button>
   </div>
@@ -394,7 +396,7 @@ const SK='cinema_db';
 let projects=[];
 try{projects=JSON.parse(localStorage.getItem(SK))||[];}catch(e){projects=[];}
 
-let curProjectId=null,curItemIdx=null,editProjectId=null,editItemIdx=null,editSectionIdx=null;
+let curProjectId=null,curItemIdx=null,editProjectId=null,editItemIdx=null,editSectionIdx=null,checkinEditMode=false;
 let projectTempIcon='',itemArrangeMode=false,itemPressState=null,itemClickSuppressedUntil=0;
 const detailScrollByProject={};
 
@@ -825,7 +827,7 @@ function openItem(idx){
   if(item.checkinImg)html+=`<div class="card-detail-media" style="margin-top:12px;border-radius:8px"><img class="card-detail-img" src="${item.checkinImg}"></div>`;
   html+='</div></div>';
   html+=item.collected
-    ?'<div class="card-actions"><button class="btn btn-cancel" onclick="uncollect()">Undo Check In</button></div>'
+    ?'<div class="card-actions"><button class="btn btn-primary" onclick="openEditCheckin()">Edit Check In</button><button class="btn btn-cancel" onclick="uncollect()">Undo Check In</button></div>'
     :'<div class="card-actions"><button class="btn btn-primary" onclick="openCheckin()">打卡</button></div>';
   document.getElementById('itemContent').innerHTML=html;
   const nameEl=document.getElementById('inlineName');if(nameEl)nameEl.addEventListener('dblclick',()=>startInlineEdit('inlineName','name'));
@@ -847,7 +849,31 @@ function startInlineEdit(elId,field){
 
 /* ═══ CHECKIN ═══ */
 function openCheckin(){const p=getProject(curProjectId);if(!p||curItemIdx===null)return;prepareCheckinModal();}
+function openEditCheckin(){
+  const p=getProject(curProjectId);if(!p||curItemIdx===null)return;
+  const item=p.items[curItemIdx];if(!item||!item.collected)return;
+  checkinEditMode=true;
+  document.getElementById('checkinModalTitle').textContent='Edit Check In';
+  document.getElementById('checkinSubmitBtn').textContent='Save';
+  document.getElementById('checkinItemName').value=item.name||'';
+  const isMonthOnly=item.collectedDate&&item.collectedDate.length===7;
+  document.getElementById('monthOnlyFlag').value=isMonthOnly?'1':'0';
+  const mb=document.getElementById('monthOnlyBtn');
+  if(mb){if(isMonthOnly){mb.style.borderColor='#9B8AE8';mb.style.color='#9B8AE8';}else{mb.style.borderColor='#ddd';mb.style.color='#999';}}
+  document.getElementById('checkinDate').value=isMonthOnly?(item.collectedDate+'-01'):(item.collectedDate||new Date().toISOString().slice(0,10));
+  document.getElementById('ratingValue').value=item.rating||'';
+  document.querySelectorAll('.rating-btn').forEach(b=>b.classList.toggle('active',!!item.rating&&b.classList.contains('r-'+item.rating)));
+  document.getElementById('checkinNote').value=item.checkinNote||'';
+  const preview=document.getElementById('checkinImgPreview');
+  if(item.checkinImg){preview.src=item.checkinImg;preview.dataset.source=item.checkinImg;preview.style.display='block';}
+  else{preview.style.display='none';delete preview.dataset.source;}
+  document.getElementById('checkinImgInput').value='';
+  openModal('checkinModal');
+}
 function prepareCheckinModal(){
+  checkinEditMode=false;
+  document.getElementById('checkinModalTitle').textContent='Check In';
+  document.getElementById('checkinSubmitBtn').textContent='Check In';
   const p=getProject(curProjectId);const item=p&&curItemIdx!==null?p.items[curItemIdx]:null;if(!item)return;
   document.getElementById('checkinItemName').value=!isGenericItemName(item.name)?item.name:'';
   document.getElementById('checkinDate').value=new Date().toISOString().slice(0,10);
@@ -875,11 +901,11 @@ async function saveCheckin(){
   if(cImg&&cImg.startsWith('data:')&&window.CloudSync)try{cImg=await CloudSync.uploadDataUrl(cImg,`cinema/${curProjectId}_${item.id}_checkin.${imagePathExt(cImg)}`);}catch(e){}
   item.collected=true;item.collectedDate=dateVal;item.checkinNote=noteVal;
   const ratingVal=document.getElementById('ratingValue').value;
-  if(ratingVal)item.rating=ratingVal;
-  if(cImg)item.checkinImg=cImg;
+  item.rating=ratingVal||null;
+  if(checkinEditMode){item.checkinImg=cImg;}else{if(cImg)item.checkinImg=cImg;}
   save();closeModal('checkinModal');
   if(fromItemView)openItem(curItemIdx);else returnToDetail();
-  showCheckinCelebration(p.duty);
+  if(!checkinEditMode)showCheckinCelebration(p.duty);
 }
 function toggleMonthOnly(){
   const flag=document.getElementById('monthOnlyFlag');
@@ -1026,7 +1052,14 @@ async function checkOrphanedCinemaAssets(){
 
 /* ═══ MENUS / MODALS / BACKUP ═══ */
 function openProjectMenu(){document.getElementById('projectMenuSheet').classList.add('show');}
-function openItemMenu(){document.getElementById('itemMenuSheet').classList.add('show');}
+function openItemMenu(){
+  const p=getProject(curProjectId);const item=p&&curItemIdx!==null?p.items[curItemIdx]:null;
+  const collected=item&&item.collected;
+  document.getElementById('itemMenuCheckinBtn').style.display=collected?'none':'';
+  document.getElementById('itemMenuEditCheckinBtn').style.display=collected?'':'none';
+  document.getElementById('itemMenuUndoBtn').style.display=collected?'':'none';
+  document.getElementById('itemMenuSheet').classList.add('show');
+}
 function closeSheet(id){document.getElementById(id).classList.remove('show');}
 function openModal(id){document.getElementById(id).classList.add('show');}
 function closeModal(id){const m=document.getElementById(id);if(m)m.classList.remove('show');}
