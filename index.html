@@ -359,6 +359,52 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   .apt-wrap .conn-on-natumi-adaptive.conn-btn{flex-direction:column;padding:3px 2px;gap:1px;white-space:normal;width:14px;text-align:center;line-height:1.2}
 }
 
+/* ── Desktop sidebar: blocks, shortcuts, popup (hidden on mobile) ── */
+.desktop-shortcuts-wrap,.desktop-blocks{display:none}
+.cat-popup-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.3);align-items:center;justify-content:center;padding:24px}
+.cat-popup{background:#fff;border-radius:16px;width:100%;max-width:400px;max-height:80dvh;overflow-y:auto;padding:0}
+.cat-popup-header{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 8px;position:sticky;top:0;background:#fff;z-index:1;border-radius:16px 16px 0 0}
+.cat-popup-title{font-size:13px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:#888}
+.cat-popup-close{background:none;border:none;font-size:18px;color:#bbb;cursor:pointer;padding:4px}
+.cat-popup-body{padding:12px 18px 24px}
+.cat-popup-body .entry-grid{grid-template-columns:repeat(3,1fr);gap:18px 14px}
+.shortcut-picker-overlay{display:none;position:fixed;inset:0;z-index:210;background:rgba(0,0,0,0.3);align-items:center;justify-content:center;padding:24px}
+.shortcut-picker{background:#fff;border-radius:16px;width:100%;max-width:420px;max-height:80dvh;overflow-y:auto;padding:18px}
+.shortcut-picker-title{font-size:13px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:#888;margin-bottom:12px}
+.sp-cat-label{font-size:10px;color:#bbb;letter-spacing:2px;text-transform:uppercase;margin:14px 0 8px}
+.sp-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:6px}
+.sp-item{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:6px 2px;border-radius:8px;transition:background 0.15s}
+.sp-item:hover{background:#f5f5f5}
+.sp-item.selected{background:#f0f0ff}
+.sp-icon{width:36px;height:36px;border-radius:9px;border:1px solid #e8e8e8;background:#fff;display:flex;align-items:center;justify-content:center;font-size:15px}
+.sp-item.selected .sp-icon{border-color:#9B8AE8;background:#f8f6ff}
+.sp-label{font-size:9px;color:#bbb;text-align:center}
+.sp-item.draft .sp-icon{border-style:dashed}
+@media(min-width:700px){
+  #pageDaily,#pageEvents,#pageCollect,#pageRewards{display:none}
+  .desktop-shortcuts-wrap{display:block;grid-column:2;grid-row:2;max-width:260px;padding:4px 0}
+  .desktop-shortcuts{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start;min-height:0}
+  .ds-item{display:flex;flex-direction:column;align-items:center;gap:4px;text-decoration:none;cursor:pointer;position:relative;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:manipulation;transition:opacity 0.15s,transform 0.15s}
+  .ds-item .entry-icon{width:40px;height:40px;font-size:15px}
+  .ds-item .entry-label{font-size:9px}
+  .ds-item.ds-dragging{opacity:0.3;transform:scale(0.92)}
+  .ds-item.ds-drag-before .entry-icon,.ds-item.ds-drag-after .entry-icon{border-color:#9B8AE8;background:#f8f6ff}
+  .ds-shortcut-ghost{position:fixed;z-index:9999;pointer-events:none;opacity:0.88;transform:translate(-50%,-50%) scale(1.06);filter:drop-shadow(0 4px 12px rgba(0,0,0,0.18))}
+  .ds-shortcut-ghost .ds-item-del{display:none!important}
+  .ds-item-del{position:absolute;top:-4px;right:-4px;width:16px;height:16px;border-radius:50%;background:#e88;color:#fff;border:none;font-size:10px;line-height:16px;text-align:center;cursor:pointer;display:none;padding:0}
+  .ds-item:hover .ds-item-del{display:block}
+  .ds-add{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer}
+  .ds-add .entry-icon{width:40px;height:40px;font-size:15px;border-style:dashed;color:#ccc}
+  .ds-add .entry-label{font-size:9px;color:#ccc}
+  .desktop-blocks{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;grid-column:2;grid-row:3;max-width:260px;padding:4px 0}
+  .db-block{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:14px 8px;border-radius:12px;border:1px solid #e8e8e8;background:#fff;cursor:pointer;transition:border-color 0.2s,background 0.15s}
+  .db-block:hover{border-color:#ccc;background:#fafafa}
+  .db-block:active{background:#f0f0f0}
+  .db-icon{font-size:20px}
+  .db-label{font-size:10px;color:#999;letter-spacing:0.5px}
+  .cat-popup-overlay.show{display:flex}
+  .shortcut-picker-overlay.show{display:flex}
+}
 
 </style>
 </head>
@@ -610,6 +656,35 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <span class="page-dot" data-page="3"></span>
   <span class="page-dot" data-page="4"></span>
   <span class="page-dot" data-page="5"></span>
+</div>
+
+<div class="desktop-shortcuts-wrap" id="desktopShortcutsWrap">
+<div class="desktop-shortcuts" id="desktopShortcuts"></div>
+<div class="ds-add" onclick="openShortcutPicker()"><div class="entry-icon">＋</div><div class="entry-label">添加</div></div>
+</div>
+
+<div class="desktop-blocks">
+<div class="db-block" onclick="openCategoryPopup('daily')"><div class="db-icon">📋</div><div class="db-label">Dailies</div></div>
+<div class="db-block" onclick="openCategoryPopup('events')"><div class="db-icon">🎫</div><div class="db-label">Events</div></div>
+<div class="db-block" onclick="openCategoryPopup('collect')"><div class="db-icon">📂</div><div class="db-label">Archive</div></div>
+<div class="db-block" onclick="openCategoryPopup('rewards')"><div class="db-icon">⭐</div><div class="db-label">Rewards</div></div>
+</div>
+
+<div class="cat-popup-overlay" id="catPopupOverlay" onclick="closeCategoryPopup(event)">
+<div class="cat-popup" onclick="event.stopPropagation()">
+<div class="cat-popup-header">
+<span class="cat-popup-title" id="catPopupTitle"></span>
+<button class="cat-popup-close" type="button" onclick="closeCategoryPopup()">✕</button>
+</div>
+<div class="cat-popup-body" id="catPopupBody"></div>
+</div>
+</div>
+
+<div class="shortcut-picker-overlay" id="shortcutPickerOverlay" onclick="closeShortcutPicker(event)">
+<div class="shortcut-picker" onclick="event.stopPropagation()">
+<div class="shortcut-picker-title">添加快捷入口</div>
+<div id="shortcutPickerContent"></div>
+</div>
 </div>
 
 <script src="cloud-sync.js?v=20260804-dragguard1"></script>
@@ -2460,6 +2535,235 @@ window.addEventListener('resize',function(){
     longTimer=null;
     if(isDragging)cancelDrag();
   });
+})();
+
+/* ═══ DESKTOP CATEGORY POPUP ═══ */
+var CATEGORY_MAP={
+  daily:{title:'Dailies',pageId:'pageDaily'},
+  events:{title:'Events',pageId:'pageEvents'},
+  collect:{title:'Archive',pageId:'pageCollect'},
+  rewards:{title:'Rewards',pageId:'pageRewards'}
+};
+var activeCatKey=null;
+function openCategoryPopup(catKey){
+  if(!isDesktopLayout())return;
+  var overlay=document.getElementById('catPopupOverlay');
+  var data=CATEGORY_MAP[catKey];
+  if(!overlay||!data)return;
+  document.getElementById('catPopupTitle').textContent=data.title;
+  var body=document.getElementById('catPopupBody');
+  body.innerHTML='';
+  var page=document.getElementById(data.pageId);
+  if(page){
+    var grid=page.querySelector('.entry-grid');
+    if(grid)body.appendChild(grid);
+  }
+  activeCatKey=catKey;
+  overlay.classList.add('show');
+  document.body.style.overflow='hidden';
+}
+function closeCategoryPopup(e){
+  if(e&&e.target!==e.currentTarget)return;
+  var overlay=document.getElementById('catPopupOverlay');
+  overlay.classList.remove('show');
+  document.body.style.overflow='';
+  if(activeCatKey){
+    var data=CATEGORY_MAP[activeCatKey];
+    if(data){
+      var body=document.getElementById('catPopupBody');
+      var grid=body.querySelector('.entry-grid');
+      var page=document.getElementById(data.pageId);
+      if(grid&&page){
+        var collapse=page.querySelector('.section-collapse');
+        if(collapse)collapse.appendChild(grid);
+      }
+    }
+    activeCatKey=null;
+  }
+}
+
+/* ═══ DESKTOP CUSTOM SHORTCUTS ═══ */
+var DS_KEY='home_custom_shortcuts';
+function loadDSShortcuts(){try{return JSON.parse(localStorage.getItem(DS_KEY))||[];}catch(e){return[];}}
+function saveDSShortcuts(list){try{localStorage.setItem(DS_KEY,JSON.stringify(list));}catch(e){}}
+function renderDSShortcuts(){
+  var wrap=document.getElementById('desktopShortcuts');
+  if(!wrap)return;
+  var list=loadDSShortcuts();
+  wrap.innerHTML=list.map(function(s,i){
+    var cls='ds-item'+(s.draft?' draft':'');
+    return '<a class="'+cls+'" href="'+(s.href||'#')+'" data-ds-idx="'+i+'">'
+      +'<div class="entry-icon">'+s.icon+'</div>'
+      +'<div class="entry-label">'+s.label+'</div>'
+      +'<button class="ds-item-del" onclick="event.preventDefault();event.stopPropagation();removeDSShortcut('+i+')">✕</button>'
+      +'</a>';
+  }).join('');
+}
+function removeDSShortcut(idx){
+  var list=loadDSShortcuts();
+  list.splice(idx,1);
+  saveDSShortcuts(list);
+  renderDSShortcuts();
+}
+function getAllDSEntries(){
+  var result=[];
+  var pages=[
+    {cat:'daily',pageId:'pageDaily'},
+    {cat:'events',pageId:'pageEvents'},
+    {cat:'collect',pageId:'pageCollect'},
+    {cat:'rewards',pageId:'pageRewards'}
+  ];
+  pages.forEach(function(p){
+    var page=document.getElementById(p.pageId);
+    if(!page)return;
+    page.querySelectorAll('.entry-card').forEach(function(card){
+      var href=card.getAttribute('href')||'';
+      var iconEl=card.querySelector('.entry-icon');
+      var labelEl=card.querySelector('.entry-label');
+      var icon=iconEl?iconEl.textContent:'';
+      var label=labelEl?labelEl.textContent:'';
+      var draft=card.classList.contains('draft');
+      if(label)result.push({href:href,icon:icon,label:label,category:p.cat,draft:draft});
+    });
+  });
+  return result;
+}
+function openShortcutPicker(){
+  var overlay=document.getElementById('shortcutPickerOverlay');
+  var content=document.getElementById('shortcutPickerContent');
+  var all=getAllDSEntries();
+  var existing=loadDSShortcuts();
+  var existingSet={};
+  existing.forEach(function(s){existingSet[s.href+'|'+s.label]=true;});
+  var cats={daily:'Dailies',events:'Events',collect:'Archive',rewards:'Rewards'};
+  var grouped={};
+  all.forEach(function(e){
+    if(!grouped[e.category])grouped[e.category]=[];
+    grouped[e.category].push(e);
+  });
+  var html='';
+  ['daily','events','collect','rewards'].forEach(function(cat){
+    if(!grouped[cat])return;
+    html+='<div class="sp-cat-label">'+cats[cat]+'</div><div class="sp-grid">';
+    grouped[cat].forEach(function(entry){
+      var key=entry.href+'|'+entry.label;
+      var sel=existingSet[key]?' selected':'';
+      var dr=entry.draft?' draft':'';
+      html+='<div class="sp-item'+dr+sel+'" data-href="'+entry.href+'" data-icon="'+entry.icon+'" data-label="'+entry.label+'" data-cat="'+entry.category+'" data-draft="'+(entry.draft?'1':'')+'" onclick="togglePickerEntry(this)">'
+        +'<div class="sp-icon">'+entry.icon+'</div>'
+        +'<div class="sp-label">'+entry.label+'</div>'
+        +'</div>';
+    });
+    html+='</div>';
+  });
+  content.innerHTML=html;
+  overlay.classList.add('show');
+}
+function closeShortcutPicker(e){
+  if(e&&e.target!==e.currentTarget)return;
+  document.getElementById('shortcutPickerOverlay').classList.remove('show');
+}
+function togglePickerEntry(el){
+  var href=el.dataset.href||'';
+  var icon=el.dataset.icon||'';
+  var label=el.dataset.label||'';
+  var cat=el.dataset.cat||'';
+  var draft=el.dataset.draft==='1';
+  var list=loadDSShortcuts();
+  var idx=-1;
+  list.forEach(function(s,i){if(s.href===href&&s.label===label)idx=i;});
+  if(idx>=0){
+    list.splice(idx,1);
+    el.classList.remove('selected');
+  }else{
+    list.push({href:href,icon:icon,label:label,category:cat,draft:draft});
+    el.classList.add('selected');
+  }
+  saveDSShortcuts(list);
+  renderDSShortcuts();
+}
+renderDSShortcuts();
+
+/* ── Desktop shortcut long-press reorder ── */
+(function initDSShortcutReorder(){
+  var wrap=document.getElementById('desktopShortcuts');
+  if(!wrap)return;
+  var LONG_PRESS_MS=500,MOVE_CANCEL_PX=10;
+  var press=null,longTimer=null,ghost=null,suppressClickUntil=0;
+
+  function clearTimer(){if(longTimer){clearTimeout(longTimer);longTimer=null;}}
+  function clearMarkers(){wrap.querySelectorAll('.ds-drag-before,.ds-drag-after').forEach(function(el){el.classList.remove('ds-drag-before','ds-drag-after');});}
+  function positionGhost(x,y){if(ghost){ghost.style.left=x+'px';ghost.style.top=y+'px';}}
+  function beginDrag(){
+    if(!press||press.active)return;
+    press.active=true;suppressClickUntil=Date.now()+1200;
+    press.item.classList.add('ds-dragging');
+    ghost=press.item.cloneNode(true);ghost.classList.remove('ds-dragging');ghost.classList.add('ds-shortcut-ghost');
+    ghost.style.width=press.item.offsetWidth+'px';document.body.appendChild(ghost);
+    positionGhost(press.x,press.y);
+    if(navigator.vibrate)navigator.vibrate(20);
+  }
+  function findTarget(x,y){
+    var hit=document.elementFromPoint(x,y);
+    var target=hit&&hit.closest?hit.closest('.ds-item'):null;
+    return target&&wrap.contains(target)&&press&&target!==press.item?target:null;
+  }
+  function persistOrder(){
+    var oldList=loadDSShortcuts(),next=[];
+    wrap.querySelectorAll('.ds-item').forEach(function(el){
+      var idx=parseInt(el.dataset.dsIdx,10);
+      if(Number.isInteger(idx)&&oldList[idx])next.push(oldList[idx]);
+    });
+    if(next.length===oldList.length)saveDSShortcuts(next);
+  }
+  function finishDrag(shouldMove){
+    clearTimer();clearMarkers();
+    if(press&&press.active&&shouldMove&&press.target){
+      if(press.after){
+        var next=press.target.nextElementSibling;
+        if(next)wrap.insertBefore(press.item,next);else wrap.appendChild(press.item);
+      }else wrap.insertBefore(press.item,press.target);
+      persistOrder();
+    }
+    if(press&&press.item)press.item.classList.remove('ds-dragging');
+    if(ghost&&ghost.parentNode)ghost.parentNode.removeChild(ghost);
+    ghost=null;
+    if(press&&press.active){
+      suppressClickUntil=Date.now()+800;
+      setTimeout(renderDSShortcuts,0);
+    }
+    press=null;
+  }
+
+  wrap.addEventListener('pointerdown',function(e){
+    if(!isDesktopLayout()||(e.button!==undefined&&e.button!==0)||e.target.closest('.ds-item-del'))return;
+    var item=e.target.closest('.ds-item');if(!item||!wrap.contains(item))return;
+    clearTimer();press={item:item,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,x:e.clientX,y:e.clientY,active:false,target:null,after:false};
+    longTimer=setTimeout(beginDrag,LONG_PRESS_MS);
+  });
+  document.addEventListener('pointermove',function(e){
+    if(!press||e.pointerId!==press.pointerId)return;
+    press.x=e.clientX;press.y=e.clientY;
+    if(!press.active){
+      if(Math.hypot(e.clientX-press.startX,e.clientY-press.startY)>MOVE_CANCEL_PX){clearTimer();press=null;}
+      return;
+    }
+    e.preventDefault();positionGhost(e.clientX,e.clientY);clearMarkers();
+    var target=findTarget(e.clientX,e.clientY);press.target=target;
+    if(!target)return;
+    var r=target.getBoundingClientRect();press.after=e.clientX>r.left+r.width/2;
+    target.classList.add(press.after?'ds-drag-after':'ds-drag-before');
+  },{passive:false});
+  document.addEventListener('pointerup',function(e){
+    if(!press||e.pointerId!==press.pointerId)return;
+    if(press.active)e.preventDefault();finishDrag(true);
+  });
+  document.addEventListener('pointercancel',function(e){if(press&&e.pointerId===press.pointerId)finishDrag(false);});
+  wrap.addEventListener('click',function(e){if(Date.now()<suppressClickUntil){e.preventDefault();e.stopPropagation();}},true);
+  wrap.addEventListener('contextmenu',function(e){if(e.target.closest('.ds-item'))e.preventDefault();});
+  wrap.addEventListener('dragstart',function(e){if(e.target.closest('.ds-item'))e.preventDefault();});
+  window.addEventListener('blur',function(){if(press)finishDrag(false);});
+  window.addEventListener('resize',function(){if(press)finishDrag(false);});
 })();
 </script>
 </body></html>
