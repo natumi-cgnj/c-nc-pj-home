@@ -405,6 +405,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   .cat-popup-overlay.show{display:flex}
   .shortcut-picker-overlay.show{display:flex}
 }
+/* ── Room Package ── */
+.room-pkg-btn{position:absolute;top:4px;right:6px;z-index:5;background:none;border:none;font-size:14px;color:rgba(0,0,0,0.22);cursor:pointer;padding:2px 4px;line-height:1;letter-spacing:2px;font-family:inherit}
+.room-pkg-btn:hover{color:rgba(0,0,0,0.45)}
+.room-pkg-sheet{display:none;position:fixed;inset:0;z-index:250;background:rgba(0,0,0,0.3);align-items:flex-end;justify-content:center}
+.room-pkg-sheet.show{display:flex}
+.room-pkg-menu{background:#fff;border-radius:14px 14px 0 0;width:100%;max-width:380px;padding:18px 20px 28px;animation:sheetUp 0.25s ease}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.room-pkg-menu-title{font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:#999;margin-bottom:14px}
+.room-pkg-option{display:flex;align-items:center;gap:10px;padding:12px 14px;border:1px solid #eee;border-radius:10px;margin-bottom:8px;cursor:pointer;transition:border-color 0.2s,background 0.2s}
+.room-pkg-option:hover{background:#fafafa}
+.room-pkg-option.active{border-color:#5BA66B;background:#f0f7f2}
+.room-pkg-option-dot{width:10px;height:10px;border-radius:50%;border:2px solid #ccc;flex-shrink:0}
+.room-pkg-option.active .room-pkg-option-dot{border-color:#5BA66B;background:#5BA66B}
+.room-pkg-option-label{font-size:13px;color:#333}
+.room-pkg-option-sub{font-size:10px;color:#aaa;margin-top:2px}
+/* CBI x Boss AU room style overrides */
+.room-jane.room-pkg-cbi-boss .jane-couch{background:#D4A843}
+.room-jane.room-pkg-cbi-boss .jane-teatable{background:#D4A843}
+.room-jane.room-pkg-cbi-boss .jane-painting{background:#D4A843}
+/* Jane 留下的少量物件继续使用绿色 */
+.room-jane.room-pkg-cbi-boss .jane-lamp{background:#5BA66B}
+.room-jane.room-pkg-cbi-boss .jane-blanket{background:#5BA66B}
 
 </style>
 </head>
@@ -479,6 +501,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
         <div class="furniture jane-lamp"></div><div class="furniture jane-painting"></div>
         <div class="furniture jane-blanket"></div>
         <button class="wardrobe-btn" type="button" onclick="openWardrobe('jane',event)" aria-label="打开 Jane 的衣柜" title="衣柜"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a2 2 0 0 0-2 2c0 .74.4 1.39 1 1.73V8l-7 6h16l-7-6V6.73A2 2 0 0 0 12 3z"/><path d="M4 14v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg></button>
+        <button class="room-pkg-btn" type="button" onclick="openRoomPkgSheet('jane',event)" aria-label="切换房间包" title="房间包">⋯</button>
       </div>
       <div class="room-away-status" id="away-jane" onclick="onAwayTap('jane',event)"><div class="room-away-label"><span class="away-title" id="away-title-jane"></span><span class="away-eta" id="away-eta-jane"></span></div></div>
       <div class="char-sprite" id="char-jane" onclick="onCharacterSpriteTap(event)">
@@ -684,6 +707,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <div class="shortcut-picker" onclick="event.stopPropagation()">
 <div class="shortcut-picker-title">添加快捷入口</div>
 <div id="shortcutPickerContent"></div>
+</div>
+</div>
+
+<div class="room-pkg-sheet" id="roomPkgSheet" onclick="closeRoomPkgSheet(event)">
+<div class="room-pkg-menu" onclick="event.stopPropagation()">
+<div class="room-pkg-menu-title">Room Package</div>
+<div id="roomPkgOptions"></div>
 </div>
 </div>
 
@@ -1067,7 +1097,7 @@ function loadLines() {
 }
 const _custom = loadLines();
 const NEAL_BY_ZONE = _custom ? _custom.neal : DEFAULT_NEAL;
-const JANE_BY_ZONE = _custom ? _custom.jane : DEFAULT_JANE;
+let JANE_BY_ZONE = _custom ? _custom.jane : DEFAULT_JANE;
 const WILL_BY_ZONE = (_custom && _custom.will) ? _custom.will : DEFAULT_WILL;
 /* ═══ CG · four independent time-slot libraries ═══ */
 const CG_LIBRARY_KEY='home_cg_library';
@@ -2765,5 +2795,144 @@ renderDSShortcuts();
   window.addEventListener('blur',function(){if(press)finishDrag(false);});
   window.addEventListener('resize',function(){if(press)finishDrag(false);});
 })();
+
+/* ═══ ROOM PACKAGES ═══ */
+const JANE_CBI_BOSS_LINES = {
+  jane:[
+    {s:'泡茶中',m:'Boss 厨房里的茶叶只剩立顿了……算了，有热水就行。'},
+    {s:'整理茶杯',m:'这个杯子是我自己带的。客房里唯一属于我的东西。'},
+    {s:'看沙发',m:'沙发上全是 Boss 的外套……我只好坐扶手。'},
+    {s:'翻案卷',m:'这份口供前后矛盾太明显了，连 Rigsby 都能看出来。'},
+    {s:'靠着墙',m:'……这间客房的隔音不行。Boss 半夜打游戏我全听到了。'},
+    {s:'闭眼休息',m:'别人的房子住久了就习惯了。我没说舒服，我说习惯。'},
+    {s:'观察中',m:'Boss 今天出门前换了三件衬衫，最后穿了第一件。有意思。'},
+    {s:'喝茶',m:'Cho 说 Boss 十一岁抢了他钱包……我完全不意外。'},
+    {s:'随口说',m:'我没有在等他回来，我在等水开。这是两回事。'},
+    {s:'嘴角微扬',m:'Lisbon 昨天拿着报告追了 Boss 三层楼。新人不容易。'},
+    {s:'假装看窗外',m:'"要跟我约会吗"——谁第一天上班这么说话的？……偏偏有用。'},
+    {s:'碎碎念',m:'Van Pelt 问我为什么住这里，我说房租便宜。没再追问。'},
+    {s:'半躺着',m:'CBI 的案子没完没了，但至少咨询顾问不用填表。'},
+    {s:'把玩硬币',m:'催眠靠的是注意力分配，不是硬币。硬币只是道具。'},
+    {s:'环顾房间',m:'黄色靠枕，黄色毯子，黄色马克杯——他是在标记领地吗。'},
+    {s:'叹气',m:'Red John 的事……不是现在。先把茶喝完。'}
+  ],
+  neal:[
+    {s:'在 Neal 那边',m:'我没有搬进 Neal 那边。阁楼在维护。'},
+    {s:'去拿书',m:'去拿我落在那边的书。仅此而已。'},
+    {s:'观察中',m:'Neal 的品味确实……不差。仅此而已。'},
+    {s:'坐在吧台',m:'他的咖啡还行。仅此而已。'},
+    {s:'假装路过',m:'我只是顺路经过，不要多想。'}
+  ],
+  natumi:[
+    {s:'翻找中',m:'我来找那本书。它昨天还在客房，今天又被你放回来了。'},
+    {s:'看着椅背',m:'这件外套已经在这里待了三天。我开始怀疑它有自己的座位。'},
+    {s:'整理案卷',m:'你把案卷放在地上是为了分类？……好吧，我姑且相信。'},
+    {s:'环顾房间',m:'你的房间比客房乱得更有层次。某种意义上，很有辨识度。'}
+  ]
+};
+
+const ROOM_PACKAGES = {
+  jane: {
+    'default': {
+      id: 'default',
+      label: 'CBI Attic',
+      description: 'Jane 的阁楼',
+      roomClass: '',
+      roomLabelColor: '#5BA66B',
+      lines: null, // null = use DEFAULT_JANE or custom
+      outingProfileId: null,
+      extraCharacterIds: null
+    },
+    'cbi-boss': {
+      id: 'cbi-boss',
+      label: "Boss's Guest Room",
+      description: 'CBI x Boss AU',
+      roomClass: 'room-pkg-cbi-boss',
+      roomLabelColor: '#D4A843',
+      lines: JANE_CBI_BOSS_LINES,
+      outingProfileId: null,
+      extraCharacterIds: null
+    }
+  }
+};
+
+const ROOM_PKG_KEY_PREFIX = 'room_pkg_';
+let _roomPkgSheetCharId = null;
+
+function getActiveRoomPkg(charId) {
+  try {
+    const saved = localStorage.getItem(ROOM_PKG_KEY_PREFIX + charId);
+    if (saved && ROOM_PACKAGES[charId] && ROOM_PACKAGES[charId][saved]) return saved;
+  } catch(e) {}
+  return 'default';
+}
+
+function setActiveRoomPkg(charId, pkgId) {
+  try { localStorage.setItem(ROOM_PKG_KEY_PREFIX + charId, pkgId); } catch(e) {}
+}
+
+function applyRoomPkg(charId) {
+  const pkgs = ROOM_PACKAGES[charId];
+  if (!pkgs) return;
+  const activeId = getActiveRoomPkg(charId);
+  const pkg = pkgs[activeId] || pkgs['default'];
+  const roomEl = document.getElementById(roomIdMap[charId]);
+  if (!roomEl) return;
+  // Remove all package classes, add the active one
+  Object.values(pkgs).forEach(function(p) {
+    if (p.roomClass) roomEl.classList.remove(p.roomClass);
+  });
+  if (pkg.roomClass) roomEl.classList.add(pkg.roomClass);
+  // Update room label
+  var label = roomEl.querySelector('.room-label');
+  if (label) {
+    label.textContent = pkg.label;
+    label.style.color = pkg.roomLabelColor || '';
+  }
+  // Switch dialogue lines
+  if (charId === 'jane') {
+    if (pkg.lines) {
+      JANE_BY_ZONE = pkg.lines;
+    } else {
+      JANE_BY_ZONE = _custom ? _custom.jane : DEFAULT_JANE;
+    }
+  }
+}
+
+function openRoomPkgSheet(charId, e) {
+  if (e) e.stopPropagation();
+  const pkgs = ROOM_PACKAGES[charId];
+  if (!pkgs) return;
+  _roomPkgSheetCharId = charId;
+  const activeId = getActiveRoomPkg(charId);
+  const container = document.getElementById('roomPkgOptions');
+  var html = '';
+  Object.values(pkgs).forEach(function(pkg) {
+    var cls = pkg.id === activeId ? ' active' : '';
+    html += '<div class="room-pkg-option' + cls + '" onclick="selectRoomPkg(\'' + charId + '\',\'' + pkg.id + '\')">'
+      + '<div class="room-pkg-option-dot"></div>'
+      + '<div><div class="room-pkg-option-label">' + pkg.label + '</div>'
+      + '<div class="room-pkg-option-sub">' + pkg.description + '</div></div>'
+      + '</div>';
+  });
+  container.innerHTML = html;
+  document.getElementById('roomPkgSheet').classList.add('show');
+}
+
+function closeRoomPkgSheet(e) {
+  if (e && e.target !== e.currentTarget) return;
+  document.getElementById('roomPkgSheet').classList.remove('show');
+  _roomPkgSheetCharId = null;
+}
+
+function selectRoomPkg(charId, pkgId) {
+  setActiveRoomPkg(charId, pkgId);
+  applyRoomPkg(charId);
+  closeRoomPkgSheet(null);
+}
+
+// Apply saved room package on load
+applyRoomPkg('jane');
+
 </script>
 </body></html>
