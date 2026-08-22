@@ -104,3 +104,15 @@
 - 验证：世界上下文、旧数据归属、CBI 主线派生、单主页结构、稳定入口 ID、云同步与备份共 9 项测试通过；三个 HTML 的内联脚本语法与重复 DOM ID 检查通过；`git diff --check` 通过。
 - 遗留：当前运行环境没有可用 Chromium，未做真实浏览器截图；CBI 办公室与案卷页保留为轻量第一版，后续可只调整 CSS 与场景美术。
 - 请勿误改：世界按钮不得迁移、复制、重命名或清空业务数据；未标记旧数据默认属于 `liminal`；不要让 CBI 空模块读取夹缝空间数据库；MAINLINE 必须继续从案宗 `mainlineStatus` 自动生成；不要复制第二份 Jane DOM。
+
+## 2026-08-22｜CBI 世界内地点切换
+
+- 执行者：GPT
+- 分支：`main`
+- 提交：`fae0ad59d62b7d157ff0def913f5196b3bd56741`
+- 涉及文件：`index.html`、`world-context.js`、`backup.html`、`cbi.html`、`world-empty.html`、世界层测试与架构文档。
+- 用户目标：将原本夹缝空间中的 `CBI × Boss` Jane 房间包迁入 CBI 世界，在 CBI 办公室与 Boss 家之间切换，并解决办公室仍播放居家台词的问题。
+- 实际改动：CBI 注册 `office` 与 `home` 两个地点并分别记忆；旧房间包入口从夹缝空间退役，原客房／Boss房间样式与居家台词转为 Boss 家；办公室改用独立台词池；地点切换只改变场景、Jane位置和台词，不改变 CBI 路由或 `cbi_db`。
+- 验证：世界／地点记忆、v1 世界存档兼容、数据边界、单 Jane DOM、地点入口与同步备份共 10 项测试通过；HTML 内联脚本语法、重复 DOM ID 与 `git diff --check` 通过。
+- 遗留：办公室与 Boss 家继续沿用结构毛坯，等待只涉及 CSS 和场景装饰的视觉调整。
+- 请勿误改：不要把地点重新拆成世界或独立数据库；办公室台词使用 `JANE_CBI_OFFICE_LINES`，Boss 家使用 `JANE_CBI_BOSS_LINES`；夹缝空间不要恢复旧 CBI 房间包入口。
