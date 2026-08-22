@@ -33,17 +33,20 @@
     'home_modules', 'home_lines', 'home_skins', 'home_skin_custom', 'home_wardrobe_tabs',
     'home_skin_daily', 'home_cg_library', 'home_cg_period', 'shortcut-order',
     'home_character_runtime', 'home_character_action_packs', 'shared_diary_db',
+    'omniverse_world_context', 'cbi_db',
     'memo_db', 'study_db', 'organize_db', 'artist_db', 'music_db', 'reading_db',
     'schedule_packs', 'schedule_user_events'
   ];
   const PAGE_KEYS = {
-    'index.html': ['habit_db', 'wallet_db', 'memo_db', 'home_modules', 'home_lines', 'home_skins', 'home_skin_custom', 'home_wardrobe_tabs', 'home_skin_daily', 'home_cg_library', 'home_cg_period', 'shortcut-order', 'home_character_runtime', 'home_character_action_packs', 'shared_diary_db', 'schedule_packs', 'schedule_user_events'],
+    'index.html': ['habit_db', 'wallet_db', 'memo_db', 'home_modules', 'home_lines', 'home_skins', 'home_skin_custom', 'home_wardrobe_tabs', 'home_skin_daily', 'home_cg_library', 'home_cg_period', 'shortcut-order', 'home_character_runtime', 'home_character_action_packs', 'shared_diary_db', 'schedule_packs', 'schedule_user_events', 'omniverse_world_context'],
     'schedule.html': ['schedule_packs', 'schedule_user_events', 'home_character_runtime', 'home_character_action_packs'],
     'daily.html': ['daily_db', 'daily_presets', 'gacha_st', 'bean_st', 'habit_db'],
     'gacha.html': ['gacha_st'],
     'habit.html': ['habit_db', 'bean_st'],
     'shop.html': ['shop_db', 'bean_st', 'daily_db'],
     'story.html': ['story_db', 'gacha_st', 'daily_db'],
+    'cbi.html': ['cbi_db', 'omniverse_world_context'],
+    'world-empty.html': ['omniverse_world_context'],
     'bjd.html': ['doll_db2'],
     'merch.html': ['merch_db'],
     'techo.html': ['techo_archive_db', 'stationery_db'],

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>World Module</title>
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="favicon.ico">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;background:#FAFAFA;color:#1a1a1a;min-height:100vh;min-height:100dvh}
+.top-bar{height:58px;display:grid;grid-template-columns:72px 1fr 72px;align-items:center;padding:0 18px;padding-top:env(safe-area-inset-top,0);border-bottom:1px solid #eee;background:#fff}
+.back{font-size:12px;color:#aaa;text-decoration:none}.title{text-align:center;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#999}
+.shell{min-height:calc(100dvh - 58px);display:flex;align-items:center;justify-content:center;padding:30px 20px}
+.empty{width:min(360px,100%);background:#fff;border:1px solid #ece8df;border-radius:14px;padding:34px 24px;text-align:center;box-shadow:0 8px 26px rgba(0,0,0,.035)}
+.world{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#b7a77e;margin-bottom:11px}.module{font-size:20px;font-weight:500;color:#444;margin-bottom:10px}
+.code{font-size:10px;letter-spacing:1.4px;color:#bbb;margin-bottom:18px}.hint{font-size:12px;line-height:1.8;color:#aaa}
+</style>
+</head>
+<body>
+<div class="top-bar"><a class="back" id="backLink" href="index.html?p=1">← Home</a><div class="title" id="topTitle">MODULE</div><span></span></div>
+<main class="shell"><section class="empty">
+  <div class="world" id="worldName"></div>
+  <div class="module" id="moduleName"></div>
+  <div class="code">NO WORLD DATA YET</div>
+  <p class="hint">当前世界的数据源已经与夹缝空间分开。<br>模块内容尚未配置，原有存档没有被读取或改写。</p>
+</section></main>
+<script src="world-context.js?v=20260822-world1"></script>
+<script src="cloud-sync.js?v=20260822-world1"></script>
+<script>
+if(window.__LIMINAL_REDIRECTING)throw new Error('Redirecting to cloud login');
+(function(){
+  var meta={
+    daily:{name:'日常',title:'DAILIES',page:2},
+    wallet:{name:'记账',title:'WALLET',page:2},
+    kitchen:{name:'饮食',title:'KITCHEN',page:2},
+    dungeon:{name:'副本',title:'DUNGEON',page:5},
+    shop:{name:'商城',title:'SHOP',page:5},
+    gacha:{name:'抽卡',title:'GACHA',page:5}
+  };
+  var key=new URLSearchParams(location.search).get('module')||'daily';
+  var item=meta[key]||meta.daily;
+  var world=window.WorldContext?WorldContext.getActiveWorld():{label:'当前世界'};
+  document.title=item.name+' · '+world.label;
+  document.getElementById('topTitle').textContent=item.title;
+  document.getElementById('worldName').textContent=world.title||world.label;
+  document.getElementById('moduleName').textContent=item.name;
+  document.getElementById('backLink').href='index.html?p='+item.page;
+})();
+</script>
+</body>
+</html>

@@ -23,7 +23,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .page-dots{position:fixed;bottom:env(safe-area-inset-bottom,12px);left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:60;padding:4px}
 .page-dot{width:6px;height:6px;border-radius:50%;background:rgba(0,0,0,0.12);transition:all 0.25s}
 .page-dot.active{background:rgba(0,0,0,0.35);transform:scale(1.15)}
-.header{text-align:center;margin-bottom:28px;cursor:pointer}
+.header{text-align:center;margin-bottom:28px;cursor:pointer;border-radius:8px;padding:3px 10px;transition:background .15s}
+.header:hover{background:rgba(0,0,0,.02)}
+.header:focus-visible{outline:1px solid #ccc;outline-offset:3px}
 .header h1{font-size:13px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:#999;margin-bottom:4px}
 .header p{font-size:11px;color:#ccc;letter-spacing:1px}
 
@@ -428,6 +430,43 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .room-jane.room-pkg-cbi-boss .jane-lamp{background:#5BA66B}
 .room-jane.room-pkg-cbi-boss .jane-blanket{background:#5BA66B}
 
+/* ── World shell / CBI office ── */
+[hidden]{display:none!important}
+.cg-banner.world-banner-empty{visibility:hidden;pointer-events:none}
+.cbi-office-wrap{position:relative;width:100%;max-width:360px}
+.cbi-office{width:100%;aspect-ratio:18/11;border-color:#e5e0d5;background:#fffdf8;overflow:visible}
+.cbi-office .room-inner{overflow:hidden;background:
+  linear-gradient(rgba(112,101,79,.035) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(112,101,79,.035) 1px,transparent 1px),#fffdf8;
+  background-size:18px 18px}
+.cbi-office-label{position:absolute;left:10px;top:8px;font-size:8px;letter-spacing:1.3px;color:#a99770;text-transform:uppercase;opacity:.55}
+.cbi-office-window{position:absolute;left:9%;top:18%;width:24%;height:22%;border:1px solid rgba(101,121,130,.16);background:linear-gradient(180deg,rgba(157,185,196,.14),rgba(238,226,190,.14));border-radius:2px}
+.cbi-office-window::after{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(101,121,130,.13)}
+.cbi-desk{position:absolute;width:25%;height:15%;border-radius:3px;background:#9b896d;opacity:.1;border:1px solid rgba(80,67,50,.18)}
+.cbi-desk::after{content:'';position:absolute;width:34%;height:26%;left:12%;top:18%;border-radius:1px;background:#566b72;opacity:.42}
+.cbi-desk span{position:absolute;left:0;right:0;bottom:-13px;text-align:center;font-size:6px;color:#b5aa95;letter-spacing:.7px;text-transform:uppercase}
+.cbi-desk-boss{left:39%;top:18%}.cbi-desk-cho{left:8%;bottom:23%}.cbi-desk-rigsby{left:38%;bottom:23%}.cbi-desk-grace{right:7%;bottom:23%}
+.cbi-sofa{position:absolute;right:7%;top:18%;width:21%;height:11%;border-radius:4px;background:#5BA66B;opacity:.09}
+.cbi-tea-table{position:absolute;right:13%;top:34%;width:9%;aspect-ratio:1;border-radius:50%;background:#5BA66B;opacity:.08}
+.cbi-files{position:absolute;right:4%;top:46%;width:8%;height:35%;display:flex;gap:2px;align-items:flex-end}
+.cbi-files i{display:block;flex:1;background:#c4a85f;opacity:.22;border-radius:1px 1px 0 0}.cbi-files i:nth-child(1){height:74%}.cbi-files i:nth-child(2){height:92%}.cbi-files i:nth-child(3){height:81%}.cbi-files i:nth-child(4){height:100%}
+.cbi-pinboard{position:absolute;left:39%;top:43%;width:25%;height:8%;border:1px solid rgba(168,140,80,.15);background:rgba(214,190,132,.08)}
+.cbi-office .wardrobe-btn{bottom:8px;right:8px}
+.cbi-office .char-sprite{z-index:15}
+@media(max-width:400px){.cbi-office-wrap{max-width:320px}}
+@media(min-width:700px){.cbi-office-wrap{width:min(460px,calc((100dvh - 103px)*.6),calc(100vw - 390px));max-width:none;align-self:start}.cbi-office{aspect-ratio:18/11}}
+@media(min-width:900px) and (orientation:landscape){.cbi-office-wrap{width:var(--desktop-map-width)}}
+
+/* ── World selector ── */
+.world-switch-overlay{display:none;position:fixed;inset:0;z-index:270;background:rgba(0,0,0,.3);align-items:center;justify-content:center;padding:20px;-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px)}
+.world-switch-overlay.show{display:flex}
+.world-switch-panel{width:min(380px,100%);background:#fff;border-radius:16px;padding:18px;box-shadow:0 20px 70px rgba(0,0,0,.16)}
+.world-switch-title{font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:#888;margin:0 2px 13px}
+.world-option{width:100%;display:grid;grid-template-columns:12px minmax(0,1fr);gap:10px;text-align:left;border:1px solid #eee;background:#fff;border-radius:10px;padding:12px 13px;margin-top:8px;color:#444}
+.world-option:active{background:#fafafa}.world-option.active{border-color:#bca66f;background:#fbf8f0}
+.world-option-dot{width:10px;height:10px;margin-top:3px;border-radius:50%;border:2px solid #ccc}.world-option.active .world-option-dot{border-color:#a88e54;background:#a88e54}
+.world-option-label{font-size:13px;font-weight:600}.world-option-desc{font-size:10px;color:#aaa;margin-top:3px;line-height:1.45}
+
 </style>
 </head>
 <body>
@@ -447,7 +486,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 </div>
 </div>
 <div class="home-page" id="pageMain">
-<div class="header"><h1>Liminal Space</h1><p>夹缝空間</p></div>
+<div class="header" id="worldHeader" role="button" tabindex="0" aria-label="切换世界" onclick="openWorldSwitcher()"><h1 id="worldHeaderTitle">Liminal Space</h1><p id="worldHeaderSubtitle">夹缝空間</p></div>
 <div class="cg-banner" id="cgBanner" onclick="openCgFull()"><img id="cgImg" src="" alt=""><button class="cg-close" type="button" onclick="closeCgBanner(event)">✕</button><a class="cg-time-tag" id="cgTimeTag" href="schedule.html" onclick="event.stopPropagation()"></a></div>
 <div class="cg-fullscreen" id="cgFull" onclick="closeCgFull()"><img id="cgFullImg" src="" alt=""><button class="cg-manage-full" type="button" onclick="openCGLibrary(event)">Scenes</button></div>
 <div class="cg-library-overlay" id="cgLibraryOverlay" onclick="closeCGLibrary(event)">
@@ -546,6 +585,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   </div>
 </div>
 
+<div class="cbi-office-wrap" id="cbiOfficeWrap" hidden>
+  <div class="room-box cbi-office" id="roomCbiOffice" data-room-id="cbi" data-character-id="jane">
+    <div class="room-inner">
+      <div class="cbi-office-label">CBI · Serious Crimes Unit</div>
+      <div class="cbi-office-window"></div>
+      <div class="cbi-desk cbi-desk-boss"><span>Boss</span></div>
+      <div class="cbi-desk cbi-desk-cho"><span>Cho</span></div>
+      <div class="cbi-desk cbi-desk-rigsby"><span>Rigsby</span></div>
+      <div class="cbi-desk cbi-desk-grace"><span>Van Pelt</span></div>
+      <div class="cbi-sofa"></div><div class="cbi-tea-table"></div><div class="cbi-pinboard"></div>
+      <div class="cbi-files"><i></i><i></i><i></i><i></i></div>
+      <button class="wardrobe-btn" type="button" onclick="openWardrobe('jane',event)" aria-label="打开 Jane 的衣柜" title="衣柜"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a2 2 0 0 0-2 2c0 .74.4 1.39 1 1.73V8l-7 6h16l-7-6V6.73A2 2 0 0 0 12 3z"/><path d="M4 14v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg></button>
+    </div>
+  </div>
+</div>
+
 <div class="wardrobe-overlay" id="wardrobeOverlay" onclick="closeWardrobe(event)">
   <div class="wardrobe-panel" onclick="event.stopPropagation()">
     <div class="wardrobe-header">
@@ -614,11 +669,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <div class="page-clock"><div class="time" id="clock2"></div><div class="date" id="date2"></div></div>
 <div class="page-title" onclick="toggleSection(this)">Dailies</div>
 <div class="section-collapse"><div class="entry-grid" data-section="daily">
-  <a class="entry-card" href="daily.html?tab=habits"><div class="entry-icon">🌿</div><div class="entry-label">日课</div></a>
+  <a class="entry-card" href="daily.html?tab=habits" data-world-module="daily" data-entry-id="daily-habits"><div class="entry-icon">🌿</div><div class="entry-label">日课</div></a>
   <a class="entry-card" href="habit.html"><div class="entry-icon">✔</div><div class="entry-label">习惯</div></a>
-  <a class="entry-card" href="daily.html?tab=todo"><div class="entry-icon">📅</div><div class="entry-label">日程</div></a>
-  <a class="entry-card" href="wallet.html"><div class="entry-icon">¥</div><div class="entry-label">记账</div></a>
-  <a class="entry-card" href="kitchen.html"><div class="entry-icon">🍽</div><div class="entry-label">饮食</div></a>
+  <a class="entry-card" href="daily.html?tab=todo" data-world-module="daily" data-entry-id="daily-todo"><div class="entry-icon">📅</div><div class="entry-label">日程</div></a>
+  <a class="entry-card" href="wallet.html" data-world-module="wallet" data-entry-id="wallet"><div class="entry-icon">¥</div><div class="entry-label">记账</div></a>
+  <a class="entry-card" href="kitchen.html" data-world-module="kitchen" data-entry-id="kitchen"><div class="entry-icon">🍽</div><div class="entry-label">饮食</div></a>
   <a class="entry-card draft"><div class="entry-icon">👔</div><div class="entry-label">穿搭</div></a>
 </div>
 </div>
@@ -630,7 +685,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <div class="page-clock"><div class="time" id="clock6"></div><div class="date" id="date6"></div></div>
 <div class="page-title" onclick="toggleSection(this)">Events</div>
 <div class="section-collapse"><div class="entry-grid" data-section="events">
-  <a class="entry-card" href="daily.html?tab=drop"><div class="entry-icon">📋</div><div class="entry-label">委托</div></a>
+  <a class="entry-card" href="daily.html?tab=drop" data-world-module="daily" data-entry-id="daily-drop"><div class="entry-icon">📋</div><div class="entry-label">委托</div></a>
   <a class="entry-card" href="event.html"><div class="entry-icon">🎟</div><div class="entry-label">活动</div></a>
   <a class="entry-card draft" href="artist.html"><div class="entry-icon">🎤</div><div class="entry-label">艺人</div></a>
 </div>
@@ -659,10 +714,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <div class="page-clock"><div class="time" id="clock5"></div><div class="date" id="date5"></div></div>
 <div class="page-title" onclick="toggleSection(this)">Rewards</div>
 <div class="section-collapse"><div class="entry-grid" data-section="rewards">
-  <a class="entry-card" href="story.html"><div class="entry-icon">📖</div><div class="entry-label">剧情</div></a>
-  <a class="entry-card" href="dungeon.html"><div class="entry-icon">🗝</div><div class="entry-label">副本</div></a>
-  <a class="entry-card" href="shop.html"><div class="entry-icon">🏪</div><div class="entry-label">商城</div></a>
-  <a class="entry-card" href="gacha.html"><div class="entry-icon">💎</div><div class="entry-label">抽卡</div></a>
+  <a class="entry-card" href="story.html" data-world-module="story" data-entry-id="story"><div class="entry-icon">📖</div><div class="entry-label">剧情</div></a>
+  <a class="entry-card" href="dungeon.html" data-world-module="dungeon" data-entry-id="dungeon"><div class="entry-icon">🗝</div><div class="entry-label">副本</div></a>
+  <a class="entry-card" href="shop.html" data-world-module="shop" data-entry-id="shop"><div class="entry-icon">🏪</div><div class="entry-label">商城</div></a>
+  <a class="entry-card" href="gacha.html" data-world-module="gacha" data-entry-id="gacha"><div class="entry-icon">💎</div><div class="entry-label">抽卡</div></a>
   <a class="entry-card draft" href="techo.html"><div class="entry-icon">📓</div><div class="entry-label">手账</div></a>
   <a class="entry-card" href="backup.html"><div class="entry-icon">☁</div><div class="entry-label">备份</div></a>
 </div>
@@ -717,10 +772,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 </div>
 </div>
 
-<script src="cloud-sync.js?v=20260804-dragguard1"></script>
+<div class="world-switch-overlay" id="worldSwitchOverlay" onclick="closeWorldSwitcher(event)">
+  <div class="world-switch-panel" onclick="event.stopPropagation()">
+    <div class="world-switch-title">World Select</div>
+    <div id="worldSwitchOptions"></div>
+  </div>
+</div>
+
+<script src="world-context.js?v=20260822-world1"></script>
+<script src="cloud-sync.js?v=20260822-world1"></script>
 <script src="character-runtime.js?v=20260802-outing1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
+
+function getActiveWorldId(){return window.WorldContext?WorldContext.getActiveWorldId():'liminal';}
+function isLiminalWorld(){return getActiveWorldId()==='liminal';}
+function worldCharacterEnabled(charId){
+  if(isLiminalWorld())return !!modules[charId];
+  var world=window.WorldContext&&WorldContext.getActiveWorld();
+  return !!(world&&world.characters&&world.characters.indexOf(charId)>=0);
+}
+function getActiveMapWrap(){return isLiminalWorld()?document.getElementById('aptWrap'):document.getElementById('cbiOfficeWrap');}
 
 /* ═══ MODULES ═══ */
 let modules;
@@ -750,6 +822,25 @@ function refreshBranchStacks(){
 }
 
 function applyMod(){
+  if(!isLiminalWorld()){
+    document.getElementById('aptWrap').hidden=true;
+    document.getElementById('cbiOfficeWrap').hidden=false;
+    ['neal','will'].forEach(function(id){
+      var element=document.getElementById('char-'+id);
+      if(element)element.style.display='none';
+      var bubble=document.getElementById('bubble-'+id);
+      if(bubble)bubble.classList.remove('show');
+    });
+    var jane=document.getElementById('char-jane');
+    if(jane)jane.style.display='';
+    var awayJane=document.getElementById('away-jane');
+    if(awayJane)awayJane.classList.remove('show','break-presence');
+    applySkin('jane');
+    requestAnimationFrame(function(){placeChar('jane');});
+    return;
+  }
+  document.getElementById('aptWrap').hidden=false;
+  document.getElementById('cbiOfficeWrap').hidden=true;
   // rooms
   document.getElementById('roomNeal').classList.toggle('off',!modules.neal);
   document.getElementById('roomJane').classList.toggle('off',!modules.jane);
@@ -809,22 +900,28 @@ let charPlacementState={version:CHAR_PLACEMENT_VERSION,periodKey:'',placements:{
 
 function getCharacterPlacementState(){
   const periodKey=getCGPeriodKey(new Date());
-  if(charPlacementState.version===CHAR_PLACEMENT_VERSION&&charPlacementState.periodKey===periodKey)return charPlacementState;
+  const worldId=getActiveWorldId();
+  if(charPlacementState.version===CHAR_PLACEMENT_VERSION&&charPlacementState.periodKey===periodKey&&charPlacementState.worldId===worldId)return charPlacementState;
 
   try{
-    const saved=JSON.parse(localStorage.getItem(CHAR_PLACEMENT_KEY)||'null');
+    const key=worldId==='liminal'?CHAR_PLACEMENT_KEY:CHAR_PLACEMENT_KEY+'__world__'+worldId;
+    const saved=JSON.parse(localStorage.getItem(key)||'null');
     if(saved&&saved.version===CHAR_PLACEMENT_VERSION&&saved.periodKey===periodKey&&saved.placements&&typeof saved.placements==='object'){
-      charPlacementState=saved;
+      charPlacementState=Object.assign({},saved,{worldId:worldId});
       return charPlacementState;
     }
   }catch(e){}
 
-  charPlacementState={version:CHAR_PLACEMENT_VERSION,periodKey,placements:{}};
+  charPlacementState={version:CHAR_PLACEMENT_VERSION,periodKey,worldId:worldId,placements:{}};
   return charPlacementState;
 }
 
 function saveCharacterPlacementState(){
-  try{localStorage.setItem(CHAR_PLACEMENT_KEY,JSON.stringify(charPlacementState));}catch(e){}
+  try{
+    const worldId=charPlacementState.worldId||getActiveWorldId();
+    const key=worldId==='liminal'?CHAR_PLACEMENT_KEY:CHAR_PLACEMENT_KEY+'__world__'+worldId;
+    localStorage.setItem(key,JSON.stringify(charPlacementState));
+  }catch(e){}
 }
 
 function validCharacterPlacement(placement,availableRooms,contextKey,requiredZone){
@@ -849,7 +946,7 @@ function stablePlacementUnit(seed){
 }
 
 function getRuntimePlacementContext(charId,availableRooms){
-  if(!window.CharacterRuntime)return null;
+  if(!isLiminalWorld()||!window.CharacterRuntime)return null;
   const status=CharacterRuntime.getCharacterStatus(charId);
   const activity=status&&status.worldActivity;
 
@@ -881,6 +978,7 @@ function createStablePlacement(charId,availableRooms,contextKey,requiredZone){
 }
 
 function getAvailableRooms(charId){
+  if(!isLiminalWorld())return charId==='jane'?['cbi']:[];
   const rooms=[charId]; // always own room
   // everyone connected to Natumi can visit Natumi's room
   if(modules[charId]) rooms.push('natumi');
@@ -891,10 +989,11 @@ function getAvailableRooms(charId){
   return rooms;
 }
 
-const roomIdMap={neal:'roomNeal',jane:'roomJane',natumi:'roomNatumi',will:'roomWill'};
+const roomIdMap={neal:'roomNeal',jane:'roomJane',natumi:'roomNatumi',will:'roomWill',cbi:'roomCbiOffice'};
 
 function placeChar(id){
   const avail=getAvailableRooms(id);
+  if(!avail.length)return;
   const state=getCharacterPlacementState();
   const runtimeContext=getRuntimePlacementContext(id,avail);
   const requiredZone=runtimeContext&&runtimeContext.zone;
@@ -1031,7 +1130,7 @@ function showBubble(id){
   // habit reminder 30%
   if(id!=='will'){try{const hdb=JSON.parse(localStorage.getItem('habit_db')||'{}');if(hdb.habits&&hdb.records){const sh=new Date();sh.setHours(sh.getHours()-4);const dn=hdb.habits.filter(h=>{if(h.type!=='daily')return false;const iv=h.interval||1;for(let i=0;i<365;i++){const d2=new Date(sh);d2.setDate(d2.getDate()-i);const dk=d2.getFullYear()+'-'+String(d2.getMonth()+1).padStart(2,'0')+'-'+String(d2.getDate()).padStart(2,'0');if(hdb.records[dk]&&hdb.records[dk][h.id]&&Number(hdb.records[dk][h.id].value)>0)return i>=iv;}return true;}).map(h=>h.name);if(dn.length&&Math.random()<0.3){const hab=dn[Math.floor(Math.random()*dn.length)];if(id==='neal')line={s:'提醒你',m:"Hey, 你是不是该"+hab+"了？Don\u0027t put it off."};else line={s:'提醒你',m:'根据记录，你已经超过预定间隔没有'+hab+'了。这不是建议，是数据。'};}}}catch(e){}}
   const bubble=document.getElementById('bubble-'+id);
-  const wrap=document.getElementById('aptWrap');
+  const wrap=getActiveMapWrap();
   // move bubble to apt-wrap so it's never clipped by room boundaries
   if(bubble.parentElement!==wrap) wrap.appendChild(bubble);
   document.getElementById('status-'+id).textContent=line.s;
@@ -1045,11 +1144,11 @@ function showBubble(id){
 function onCharTap(id,e){
   e.stopPropagation();
   // If runtime has a status line for this character, use it
-  if(window.CharacterRuntime){
+  if(isLiminalWorld()&&window.CharacterRuntime){
     var line=CharacterRuntime.getAppropriateLine(id);
     if(line){
       var bubble=document.getElementById('bubble-'+id);
-      var wrap=document.getElementById('aptWrap');
+      var wrap=getActiveMapWrap();
       if(bubble.parentElement!==wrap)wrap.appendChild(bubble);
       document.getElementById('status-'+id).textContent=line.s||'';
       document.getElementById('msg-'+id).textContent=line.m||'';
@@ -1374,7 +1473,7 @@ function updateClock(){
       window.__wardrobeDayKey=nextWardrobeDay;
       ['neal','jane','will'].forEach(charId=>{
         applySkin(charId);
-        if(modules[charId])requestAnimationFrame(()=>placeChar(charId));
+        if(worldCharacterEnabled(charId))requestAnimationFrame(()=>placeChar(charId));
       });
     }
   }
@@ -1570,7 +1669,7 @@ function applySkin(charId){
   const skinId=resolveActiveSkin(charId);
   const skin=getMergedSkins(charId).find(item=>item.id===skinId)||null;
   let runtimeOverride='';
-  if(window.CharacterRuntime){
+  if(isLiminalWorld()&&window.CharacterRuntime){
     const runtimeStatus=CharacterRuntime.getCharacterStatus(charId);
     runtimeOverride=runtimeStatus.worldActivity&&runtimeStatus.worldActivity.artOverride||'';
   }
@@ -2005,7 +2104,7 @@ async function saveEditor(){
   if(activeId===skinId){
     if(status!=='obtained')invalidateDailySkin(editorCharId);
     applySkin(editorCharId);
-    if(modules[editorCharId])requestAnimationFrame(()=>placeChar(editorCharId));
+    if(worldCharacterEnabled(editorCharId))requestAnimationFrame(()=>placeChar(editorCharId));
   }
   if(editorOriginalSrc&&editorOriginalSrc!==savedSrc)await safelyDeleteWardrobeAsset(editorOriginalSrc);
   showTip('已保存');
@@ -2032,7 +2131,7 @@ async function deleteSkinEditor(){
   if(getDailySkinState().active[editorCharId]===editorSkinId){
     invalidateDailySkin(editorCharId);
     applySkin(editorCharId);
-    if(modules[editorCharId])requestAnimationFrame(()=>placeChar(editorCharId));
+    if(worldCharacterEnabled(editorCharId))requestAnimationFrame(()=>placeChar(editorCharId));
   }
   if(removed&&removed.src)await safelyDeleteWardrobeAsset(removed.src);
   showTip('已删除');
@@ -2069,6 +2168,11 @@ function applyRuntimeCharacterArt(id,status){
 
 function renderCharacterRuntime(){
   if(!window.CharacterRuntime)return;
+  if(!isLiminalWorld()){
+    var jane=document.getElementById('char-jane');
+    if(jane){jane.style.display='';applySkin('jane');placeChar('jane');}
+    return;
+  }
   ['neal','jane','will'].forEach(function(id){
     if(!modules[id])return; // module disabled — don't touch
     var status=CharacterRuntime.getCharacterStatus(id);
@@ -2282,6 +2386,8 @@ window.addEventListener('resize',function(){
   var previousBodyOverflow = '';
   var previousPagerOverflowX = '';
 
+  function entryOrderKey(card){return card.dataset.entryId||card.getAttribute('href')||card.querySelector('.entry-label')&&card.querySelector('.entry-label').textContent||'';}
+
   function modeKey(){return window.innerWidth >= 700 ? 'desktop' : 'mobile';}
   function storageKey(section){
     // Archive changed from a mixed collection into a fixed 3 + 3 layout.
@@ -2292,9 +2398,7 @@ window.addEventListener('resize',function(){
   grids.forEach(function(grid){
     var cards=Array.from(grid.querySelectorAll('.entry-card'));
     cards.forEach(function(card){card.draggable=false;});
-    canonicalOrders[grid.dataset.section]=cards.map(function(card){
-      return card.getAttribute('href');
-    });
+    canonicalOrders[grid.dataset.section]=cards.map(entryOrderKey);
   });
 
   // ── Save / Restore order ──
@@ -2302,7 +2406,7 @@ window.addEventListener('resize',function(){
     var sec = grid.dataset.section;
     var cards = grid.querySelectorAll('.entry-card');
     var order = [];
-    cards.forEach(function(c){order.push(c.getAttribute('href'));});
+    cards.forEach(function(c){order.push(entryOrderKey(c));});
     try{localStorage.setItem(storageKey(sec), JSON.stringify(order));}catch(e){}
   }
 
@@ -2312,18 +2416,22 @@ window.addEventListener('resize',function(){
     try{saved = JSON.parse(localStorage.getItem(storageKey(sec)));}catch(e){}
     var requestedOrder=Array.isArray(saved)&&saved.length?saved:canonicalOrders[sec];
     var cards = Array.from(grid.querySelectorAll('.entry-card'));
-    var map = {};
-    cards.forEach(function(c){map[c.getAttribute('href')] = c;});
-    requestedOrder.forEach(function(href){
-      var c = map[href];
-      if(c) grid.appendChild(c);
-      delete map[href];
+    var map = {},used=new Set();
+    cards.forEach(function(c){
+      map[entryOrderKey(c)]=c;
+      var legacyHref=c.dataset.baseHref||c.getAttribute('href');
+      if(legacyHref)map[legacyHref]=c;
+    });
+    requestedOrder.forEach(function(key){
+      var c = map[key];
+      if(c&&!used.has(c)){grid.appendChild(c);used.add(c);}
     });
     // append any remaining cards not in saved order (new entries)
-    canonicalOrders[sec].forEach(function(href){
-      if(map[href]){grid.appendChild(map[href]);delete map[href];}
+    canonicalOrders[sec].forEach(function(key){
+      var c=map[key];
+      if(c&&!used.has(c)){grid.appendChild(c);used.add(c);}
     });
-    Object.keys(map).forEach(function(href){grid.appendChild(map[href]);});
+    cards.forEach(function(c){if(!used.has(c)){grid.appendChild(c);used.add(c);}});
   }
 
   function restoreAll(){
@@ -2622,7 +2730,9 @@ function renderDSShortcuts(){
   var list=loadDSShortcuts();
   wrap.innerHTML=list.map(function(s,i){
     var cls='ds-item'+(s.draft?' draft':'');
-    return '<a class="'+cls+'" href="'+(s.href||'#')+'" data-ds-idx="'+i+'">'
+    var moduleId=s.moduleId||(window.WorldContext?WorldContext.inferModuleId(s.href):'');
+    var href=moduleId&&window.WorldContext&&WorldContext.getActiveWorldId()!=='liminal'?WorldContext.getRoute(moduleId,s.href):s.href;
+    return '<a class="'+cls+'" href="'+(href||'#')+'" data-ds-idx="'+i+'">'
       +'<div class="entry-icon">'+s.icon+'</div>'
       +'<div class="entry-label">'+s.label+'</div>'
       +'<button class="ds-item-del" onclick="event.preventDefault();event.stopPropagation();removeDSShortcut('+i+')">✕</button>'
@@ -2647,13 +2757,14 @@ function getAllDSEntries(){
     var page=document.getElementById(p.pageId);
     if(!page)return;
     page.querySelectorAll('.entry-card').forEach(function(card){
-      var href=card.getAttribute('href')||'';
+      var href=card.dataset.baseHref||card.getAttribute('href')||'';
+      var moduleId=card.dataset.worldModule||'';
       var iconEl=card.querySelector('.entry-icon');
       var labelEl=card.querySelector('.entry-label');
       var icon=iconEl?iconEl.textContent:'';
       var label=labelEl?labelEl.textContent:'';
       var draft=card.classList.contains('draft');
-      if(label)result.push({href:href,icon:icon,label:label,category:p.cat,draft:draft});
+      if(label)result.push({href:href,icon:icon,label:label,category:p.cat,draft:draft,moduleId:moduleId});
     });
   });
   return result;
@@ -2664,7 +2775,7 @@ function openShortcutPicker(){
   var all=getAllDSEntries();
   var existing=loadDSShortcuts();
   var existingSet={};
-  existing.forEach(function(s){existingSet[s.href+'|'+s.label]=true;});
+  existing.forEach(function(s){existingSet[shortcutIdentity(s)]=true;});
   var cats={daily:'Dailies',events:'Events',collect:'Archive',rewards:'Rewards'};
   var grouped={};
   all.forEach(function(e){
@@ -2676,10 +2787,10 @@ function openShortcutPicker(){
     if(!grouped[cat])return;
     html+='<div class="sp-cat-label">'+cats[cat]+'</div><div class="sp-grid">';
     grouped[cat].forEach(function(entry){
-      var key=entry.href+'|'+entry.label;
+      var key=shortcutIdentity(entry);
       var sel=existingSet[key]?' selected':'';
       var dr=entry.draft?' draft':'';
-      html+='<div class="sp-item'+dr+sel+'" data-href="'+entry.href+'" data-icon="'+entry.icon+'" data-label="'+entry.label+'" data-cat="'+entry.category+'" data-draft="'+(entry.draft?'1':'')+'" onclick="togglePickerEntry(this)">'
+      html+='<div class="sp-item'+dr+sel+'" data-href="'+entry.href+'" data-module-id="'+(entry.moduleId||'')+'" data-icon="'+entry.icon+'" data-label="'+entry.label+'" data-cat="'+entry.category+'" data-draft="'+(entry.draft?'1':'')+'" onclick="togglePickerEntry(this)">'
         +'<div class="sp-icon">'+entry.icon+'</div>'
         +'<div class="sp-label">'+entry.label+'</div>'
         +'</div>';
@@ -2697,20 +2808,26 @@ function togglePickerEntry(el){
   var href=el.dataset.href||'';
   var icon=el.dataset.icon||'';
   var label=el.dataset.label||'';
+  var moduleId=el.dataset.moduleId||'';
   var cat=el.dataset.cat||'';
   var draft=el.dataset.draft==='1';
   var list=loadDSShortcuts();
   var idx=-1;
-  list.forEach(function(s,i){if(s.href===href&&s.label===label)idx=i;});
+  var identity=shortcutIdentity({href:href,label:label,moduleId:moduleId});
+  list.forEach(function(s,i){if(shortcutIdentity(s)===identity)idx=i;});
   if(idx>=0){
     list.splice(idx,1);
     el.classList.remove('selected');
   }else{
-    list.push({href:href,icon:icon,label:label,category:cat,draft:draft});
+    list.push({href:href,icon:icon,label:label,category:cat,draft:draft,moduleId:moduleId});
     el.classList.add('selected');
   }
   saveDSShortcuts(list);
   renderDSShortcuts();
+}
+function shortcutIdentity(entry){
+  var moduleId=entry.moduleId||(window.WorldContext?WorldContext.inferModuleId(entry.href):'');
+  return (moduleId||entry.href||'')+'|'+(entry.label||'');
 }
 renderDSShortcuts();
 
@@ -2871,10 +2988,10 @@ function setActiveRoomPkg(charId, pkgId) {
   try { localStorage.setItem(ROOM_PKG_KEY_PREFIX + charId, pkgId); } catch(e) {}
 }
 
-function applyRoomPkg(charId) {
+function applyRoomPkg(charId, forcedId) {
   const pkgs = ROOM_PACKAGES[charId];
   if (!pkgs) return;
-  const activeId = getActiveRoomPkg(charId);
+  const activeId = forcedId || getActiveRoomPkg(charId);
   const pkg = pkgs[activeId] || pkgs['default'];
   const roomEl = document.getElementById(roomIdMap[charId]);
   if (!roomEl) return;
@@ -2931,8 +3048,79 @@ function selectRoomPkg(charId, pkgId) {
   closeRoomPkgSheet(null);
 }
 
-// Apply saved room package on load
-applyRoomPkg('jane');
+/* ═══ WORLD SWITCHING ═══ */
+function applyWorldRoutes(){
+  if(!window.WorldContext)return;
+  var worldId=WorldContext.getActiveWorldId();
+  document.querySelectorAll('[data-world-module]').forEach(function(link){
+    if(!link.dataset.baseHref)link.dataset.baseHref=link.getAttribute('href')||'';
+    var moduleId=link.dataset.worldModule;
+    var nextHref=worldId==='liminal'?link.dataset.baseHref:WorldContext.getRoute(moduleId,link.dataset.baseHref,worldId);
+    link.setAttribute('href',nextHref);
+  });
+  renderDSShortcuts();
+}
+
+function applyWorldView(){
+  if(!window.WorldContext)return;
+  var world=WorldContext.getActiveWorld();
+  document.body.dataset.worldId=world.id;
+  document.getElementById('worldHeaderTitle').textContent=world.title;
+  document.getElementById('worldHeaderSubtitle').textContent=world.subtitle;
+  document.getElementById('cgBanner').classList.toggle('world-banner-empty',world.banner==='empty');
+  closeRoomPkgSheet(null);
+  if(world.id==='cbi'){
+    JANE_BY_ZONE=JANE_CBI_BOSS_LINES;
+  }else{
+    applyRoomPkg('jane');
+  }
+  applyWorldRoutes();
+  applyMod();
+}
+
+function renderWorldOptions(){
+  if(!window.WorldContext)return;
+  var active=WorldContext.getActiveWorldId();
+  var html=Object.keys(WorldContext.worlds).map(function(id){
+    var world=WorldContext.worlds[id];
+    return '<button class="world-option'+(id===active?' active':'')+'" type="button" onclick="selectWorld(\''+id+'\')">'
+      +'<span class="world-option-dot"></span><span><span class="world-option-label">'+world.label+'</span>'
+      +'<span class="world-option-desc">'+world.description+'</span></span></button>';
+  }).join('');
+  document.getElementById('worldSwitchOptions').innerHTML=html;
+}
+
+function openWorldSwitcher(){
+  renderWorldOptions();
+  document.getElementById('worldSwitchOverlay').classList.add('show');
+}
+
+function closeWorldSwitcher(event){
+  if(event&&event.target!==event.currentTarget)return;
+  document.getElementById('worldSwitchOverlay').classList.remove('show');
+}
+
+function selectWorld(worldId){
+  var previous=getActiveWorldId();
+  if(!WorldContext.setActiveWorldId(worldId)){showTip('世界切换失败');return;}
+  closeWorldSwitcher(null);
+  if(previous!==worldId){
+    charPlacementState={version:CHAR_PLACEMENT_VERSION,periodKey:'',worldId:worldId,placements:{}};
+    Object.keys(bubbleTimers).forEach(function(id){clearTimeout(bubbleTimers[id]);});
+    document.querySelectorAll('.speech-bubble').forEach(function(bubble){bubble.classList.remove('show');});
+  }
+  applyWorldView();
+  showTip(WorldContext.getWorld(worldId).label);
+}
+
+document.getElementById('worldHeader').addEventListener('keydown',function(event){
+  if(event.key==='Enter'||event.key===' '){event.preventDefault();openWorldSwitcher();}
+});
+window.addEventListener('storage',function(event){if(event.key===WorldContext.STORAGE_KEY)applyWorldView();});
+window.addEventListener('omniverse:worldchange',function(){applyWorldView();});
+
+applyWorldView();
+if(window.CloudSync&&typeof CloudSync.whenReady==='function')CloudSync.whenReady().then(applyWorldView).catch(function(){});
 
 </script>
 </body></html>

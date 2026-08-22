@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="CBI Files">
+<title>CBI Files</title>
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="favicon.ico">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--ink:#343434;--muted:#aaa;--line:#e9e5dc;--paper:#fffdf8;--folder:#c6a763;--folder-soft:#f6f0e2;--danger:#a95f5f}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;background:#FAFAFA;color:var(--ink);min-height:100vh;min-height:100dvh}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+.top-bar{height:58px;display:grid;grid-template-columns:82px minmax(0,1fr) 82px;align-items:center;padding:0 16px;padding-top:env(safe-area-inset-top,0);border-bottom:1px solid #eee;background:rgba(255,255,255,.94);position:sticky;top:0;z-index:40;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+.top-action{border:0;background:none;color:#aaa;font-size:12px;padding:8px 2px;text-align:left}.top-action.right{text-align:right}.top-action:active{color:#555}
+.top-title{text-align:center;min-width:0}.top-title strong{display:block;font-size:11px;letter-spacing:1.7px;text-transform:uppercase;color:#777;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.top-title span{display:block;font-size:8px;color:#c2b79c;letter-spacing:1px;margin-top:2px}
+.view{display:none}.view.active{display:block}
+.content{width:min(760px,100%);margin:0 auto;padding:20px 18px 70px}
+.masthead{text-align:center;padding:15px 0 20px}.masthead h1{font-size:17px;font-weight:600;letter-spacing:2.6px;text-transform:uppercase;color:#565656}.masthead p{font-size:9px;letter-spacing:1.2px;color:#c0b28f;margin-top:5px}
+.eyebrow{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:#b3a175;margin-bottom:7px}
+.current-card{width:100%;border:1px solid #e4dcc9;border-radius:13px;background:linear-gradient(135deg,#fffdf9,#faf6ec);padding:18px;text-align:left;box-shadow:0 5px 18px rgba(74,61,34,.045);min-height:132px;position:relative;overflow:hidden}
+.current-card::after{content:'';position:absolute;right:-20px;bottom:-28px;width:100px;height:100px;border:1px solid rgba(167,137,75,.12);border-radius:50%}.current-card:active{background:#f8f2e5}
+.case-code{font-size:10px;font-weight:700;letter-spacing:1.1px;color:#ad8f50}.case-title{font-size:18px;font-weight:600;color:#333;margin:8px 0 5px;line-height:1.35}.case-summary{font-size:11px;color:#888;line-height:1.65;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.case-meta{font-size:9px;color:#bbb;margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
+.empty-current{display:flex;flex-direction:column;justify-content:center;min-height:94px}.empty-current .case-title{color:#aaa;letter-spacing:1px;font-size:15px}.empty-current .case-summary{color:#ccc}
+.quick-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px}.quick-card{border:1px solid #eee9df;border-radius:11px;background:#fff;padding:15px 9px;text-align:center;color:#777;min-width:0}.quick-card:active{background:#faf7ef}.quick-icon{font-size:16px;color:#b69a5c;margin-bottom:7px}.quick-name{font-size:10px;font-weight:600;letter-spacing:.5px}.quick-count{font-size:8px;color:#ccc;margin-top:3px}
+.section-head{display:flex;align-items:center;justify-content:space-between;margin:22px 2px 9px}.section-title{font-size:10px;font-weight:600;color:#999;letter-spacing:1.1px;text-transform:uppercase}.small-btn{border:1px solid #e5dfd2;background:#fff;color:#a68c55;border-radius:7px;font-size:10px;padding:6px 10px}.small-btn:active{background:#f8f3e8}
+.list{display:flex;flex-direction:column;gap:7px}.row-card{width:100%;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;border:1px solid #eee;background:#fff;border-radius:10px;padding:13px 14px;text-align:left}.row-card:active{background:#fafafa}.row-main{min-width:0}.row-title{font-size:13px;font-weight:600;color:#444;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.row-sub{font-size:10px;color:#aaa;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.row-side{font-size:9px;color:#c2aa72;text-align:right;white-space:nowrap}
+.empty-list{border:1px dashed #ddd6c8;border-radius:11px;padding:34px 16px;text-align:center;color:#c3b9a3;font-size:11px;line-height:1.7;background:rgba(255,253,248,.5)}
+.view-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:6px 0 16px}.view-heading h2{font-size:18px;font-weight:600;letter-spacing:.4px}.view-heading p{font-size:10px;color:#bbb;margin-top:4px}.add-btn{border:0;border-radius:9px;background:#3d3d3d;color:#fff;padding:9px 13px;font-size:11px;white-space:nowrap}.add-btn:active{opacity:.75}
+.detail-sheet{background:var(--paper);border:1px solid #e8e0d0;border-radius:14px;padding:20px;box-shadow:0 6px 24px rgba(60,50,30,.035)}
+.detail-code{font-size:10px;color:#aa8b4d;font-weight:700;letter-spacing:1.2px}.detail-title{font-size:23px;line-height:1.35;margin:7px 0 9px}.detail-meta{display:flex;flex-wrap:wrap;gap:6px;font-size:9px;color:#999}.pill{padding:3px 7px;background:#f3efe7;border-radius:5px}.detail-section{padding-top:17px;margin-top:17px;border-top:1px solid #ece6da}.detail-section h3{font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:#b19a67;margin-bottom:7px}.detail-section p{font-size:12px;line-height:1.85;color:#5f5f5f;white-space:pre-wrap;overflow-wrap:anywhere}.detail-section .muted{color:#c2bbae}.tag-list{display:flex;gap:5px;flex-wrap:wrap}.tag{font-size:10px;padding:4px 8px;border-radius:6px;background:#f2eee6;color:#777}
+.detail-actions{display:flex;gap:8px;margin-top:20px}.detail-actions button{flex:1;border-radius:9px;padding:10px;border:1px solid #e2dbcd;background:#fff;color:#777;font-size:11px}.detail-actions .danger{color:var(--danger);border-color:#ecd5d5}
+.timeline{position:relative;padding-left:18px}.timeline::before{content:'';position:absolute;left:5px;top:5px;bottom:5px;width:1px;background:#e4dac3}.timeline-item{position:relative;background:#fff;border:1px solid #eee8db;border-radius:10px;padding:14px;margin-bottom:8px}.timeline-item::before{content:'';position:absolute;width:7px;height:7px;border-radius:50%;background:#b79958;left:-17px;top:18px;box-shadow:0 0 0 4px #FAFAFA}.timeline-code{font-size:9px;color:#ab8c4d;font-weight:700;letter-spacing:.8px}.timeline-status{font-size:12px;color:#5b5b5b;line-height:1.7;margin-top:6px;white-space:pre-wrap}.timeline-title{font-size:10px;color:#aaa;margin-top:4px}
+.modal-bg{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.3);display:none;align-items:flex-end;justify-content:center;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}.modal-bg.show{display:flex}
+.modal{width:min(580px,100%);max-height:90dvh;overflow:auto;background:#fff;border-radius:18px 18px 0 0;padding:20px 18px calc(22px + env(safe-area-inset-bottom,0));box-shadow:0 -12px 50px rgba(0,0,0,.12)}
+.modal h2{font-size:15px;margin-bottom:14px}.field{margin-top:12px}.field label{display:block;font-size:9px;font-weight:600;color:#aaa;letter-spacing:.6px;margin:0 0 5px 2px}.field input,.field textarea,.field select{width:100%;border:1px solid #e7e3db;border-radius:8px;background:#fafafa;color:#333;padding:10px 11px;font-size:12px;outline:none}.field input:focus,.field textarea:focus,.field select:focus{border-color:#cdb986;background:#fff}.field textarea{min-height:76px;resize:vertical;line-height:1.6}.field textarea.long{min-height:150px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:9px}.modal-actions{display:flex;gap:8px;margin-top:18px}.modal-actions button{flex:1;border:0;border-radius:9px;padding:11px;font-size:12px}.btn-cancel{background:#f1f1f1;color:#888}.btn-save{background:#383838;color:#fff}
+.confirm-bg{position:fixed;inset:0;z-index:130;background:rgba(0,0,0,.3);display:none;align-items:center;justify-content:center;padding:20px}.confirm-bg.show{display:flex}.confirm{width:min(320px,100%);background:#fff;border-radius:14px;padding:22px;text-align:center}.confirm p{font-size:13px;line-height:1.7;color:#555}.confirm-actions{display:flex;gap:8px;margin-top:17px}.confirm-actions button{flex:1;border:0;border-radius:8px;padding:10px;font-size:11px}.confirm-actions .yes{background:var(--danger);color:#fff}
+.toast{position:fixed;bottom:18%;left:50%;transform:translate(-50%,10px);z-index:160;background:rgba(35,35,35,.9);color:#fff;border-radius:9px;padding:10px 18px;font-size:11px;opacity:0;pointer-events:none;transition:.25s;white-space:nowrap}.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(min-width:700px){.content{padding-top:28px}.modal-bg{align-items:center;padding:24px}.modal{border-radius:16px;max-height:86dvh}.quick-grid{gap:12px}.quick-card{padding:18px}.current-card{padding:22px}.detail-sheet{padding:26px}}
+</style>
+</head>
+<body>
+<header class="top-bar">
+  <button class="top-action" id="backAction" type="button" onclick="handleBack()">← Home</button>
+  <div class="top-title"><strong id="topTitle">CBI · Sacramento</strong><span>California Bureau of Investigation</span></div>
+  <button class="top-action right" id="topRight" type="button"></button>
+</header>
+
+<main>
+  <section class="view active" id="viewHome"><div class="content">
+    <div class="masthead"><h1>CBI · Sacramento</h1><p>CALIFORNIA BUREAU OF INVESTIGATION</p></div>
+    <div class="eyebrow">Current Case</div>
+    <button class="current-card" id="currentCaseCard" type="button"></button>
+    <div class="quick-grid">
+      <button class="quick-card" type="button" onclick="showView('viewCases')"><div class="quick-icon">▤</div><div class="quick-name">CASE FILES</div><div class="quick-count" id="caseCount"></div></button>
+      <button class="quick-card" type="button" onclick="showView('viewPersonnel')"><div class="quick-icon">◉</div><div class="quick-name">PERSONNEL</div><div class="quick-count" id="personCount"></div></button>
+      <button class="quick-card" type="button" onclick="showView('viewMainline')"><div class="quick-icon">⌁</div><div class="quick-name">MAINLINE</div><div class="quick-count" id="mainlineCount"></div></button>
+    </div>
+    <div class="section-head"><div class="section-title">Recent Files</div><button class="small-btn" type="button" onclick="openCaseEditor()">＋ 新增案宗</button></div>
+    <div class="list" id="recentCases"></div>
+  </div></section>
+
+  <section class="view" id="viewCases"><div class="content">
+    <div class="view-heading"><div><h2>案件档案</h2><p>按日期与集数排序</p></div><button class="add-btn" type="button" onclick="openCaseEditor()">＋ 新增案件</button></div>
+    <div class="list" id="caseList"></div>
+  </div></section>
+
+  <section class="view" id="viewPersonnel"><div class="content">
+    <div class="view-heading"><div><h2>人物档案</h2><p>共通履历与长期状态</p></div><button class="add-btn" type="button" onclick="openPersonEditor()">＋ 新增人物</button></div>
+    <div class="list" id="personList"></div>
+  </div></section>
+
+  <section class="view" id="viewMainline"><div class="content">
+    <div class="view-heading"><div><h2>主线记录</h2><p>自动读取案宗中的 MAINLINE STATUS</p></div></div>
+    <div class="timeline" id="mainlineList"></div>
+  </div></section>
+
+  <section class="view" id="viewCaseDetail"><div class="content"><article class="detail-sheet" id="caseDetail"></article></div></section>
+  <section class="view" id="viewPersonDetail"><div class="content"><article class="detail-sheet" id="personDetail"></article></div></section>
+</main>
+
+<div class="modal-bg" id="caseModal" onclick="closeModalOnBg(event,'caseModal')"><div class="modal" onclick="event.stopPropagation()">
+  <h2 id="caseModalTitle">新增案件</h2>
+  <input type="hidden" id="caseId">
+  <div class="field-row">
+    <div class="field"><label>集数 / 档案编号</label><input id="caseEpisode" placeholder="S01E01 / ARCHIVE 00"></div>
+    <div class="field"><label>日期</label><input id="caseDate" type="date"></div>
+  </div>
+  <div class="field"><label>标题</label><input id="caseTitle" placeholder="案件标题"></div>
+  <div class="field"><label>案件状态</label><select id="caseStatus"><option value="active">进行中</option><option value="closed">已结案</option><option value="archive">档案／回忆</option></select></div>
+  <div class="field"><label>本集简介</label><textarea id="caseSummary"></textarea></div>
+  <div class="field"><label>本集人物</label><input id="caseCharacters" placeholder="Boss, Jane, Cho…"></div>
+  <div class="field"><label>MAINLINE STATUS</label><textarea id="caseMainline" placeholder="普通单元案可以留空"></textarea></div>
+  <div class="field"><label>案件正文</label><textarea class="long" id="caseBody"></textarea></div>
+  <div class="field"><label>关系或长期设定变化</label><textarea id="caseChanges" placeholder="没有变化时留空"></textarea></div>
+  <div class="modal-actions"><button class="btn-cancel" type="button" onclick="closeModal('caseModal')">取消</button><button class="btn-save" type="button" onclick="saveCaseEditor()">保存</button></div>
+</div></div>
+
+<div class="modal-bg" id="personModal" onclick="closeModalOnBg(event,'personModal')"><div class="modal" onclick="event.stopPropagation()">
+  <h2 id="personModalTitle">新增人物</h2>
+  <input type="hidden" id="personId">
+  <div class="field-row"><div class="field"><label>姓名</label><input id="personName"></div><div class="field"><label>职位／身份</label><input id="personRole"></div></div>
+  <div class="field"><label>基本履历</label><textarea id="personProfile"></textarea></div>
+  <div class="field"><label>年龄与时间线</label><textarea class="long" id="personTimeline"></textarea></div>
+  <div class="field"><label>能力</label><textarea id="personAbilities"></textarea></div>
+  <div class="field"><label>关系</label><textarea id="personRelationships"></textarea></div>
+  <div class="field"><label>当前长期状态</label><textarea id="personLongTerm"></textarea></div>
+  <div class="modal-actions"><button class="btn-cancel" type="button" onclick="closeModal('personModal')">取消</button><button class="btn-save" type="button" onclick="savePersonEditor()">保存</button></div>
+</div></div>
+
+<div class="confirm-bg" id="confirmBg"><div class="confirm"><p id="confirmText"></p><div class="confirm-actions"><button type="button" onclick="closeConfirm()">取消</button><button class="yes" id="confirmYes" type="button">删除</button></div></div></div>
+<div class="toast" id="toast"></div>
+
+<script src="world-context.js?v=20260822-world1"></script>
+<script src="cloud-sync.js?v=20260822-world1"></script>
+<script src="cbi-data.js?v=20260822-cbi1"></script>
+<script>
+if(window.__LIMINAL_REDIRECTING)throw new Error('Redirecting to cloud login');
+
+var db=CBIData.load();
+var viewStack=[];
+var currentView='viewHome';
+var detailCaseId=null;
+var detailPersonId=null;
+
+var STATUS_LABELS={active:'进行中',closed:'已结案',archive:'档案'};
+
+function esc(value){return String(value==null?'':value).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+function block(value){return esc(value||'').replace(/\n/g,'<br>');}
+function displayCode(item){return item.episodeCode||'UNFILED';}
+function displayTitle(item){return item.title||'未命名案件';}
+function statusLabel(value){return STATUS_LABELS[value]||'已结案';}
+
+function persist(message){
+  var saved=CBIData.save(db);
+  if(!saved){showToast('保存失败，浏览器空间不足');return false;}
+  db=saved;
+  renderAll();
+  if(message)showToast(message);
+  return true;
+}
+
+function setTop(title,rightLabel,rightAction){
+  document.getElementById('topTitle').textContent=title||'CBI · Sacramento';
+  var right=document.getElementById('topRight');
+  right.textContent=rightLabel||'';
+  right.onclick=rightAction||null;
+}
+
+function showView(viewId,options){
+  options=options||{};
+  if(viewId===currentView&&!options.force)return;
+  if(!options.replace)viewStack.push(currentView);
+  document.querySelectorAll('.view').forEach(function(view){view.classList.toggle('active',view.id===viewId);});
+  currentView=viewId;
+  document.getElementById('backAction').textContent=viewId==='viewHome'?'← Home':'← 返回';
+  if(viewId==='viewHome')setTop('CBI · Sacramento');
+  if(viewId==='viewCases')setTop('CASE FILES','＋',openCaseEditor);
+  if(viewId==='viewPersonnel')setTop('PERSONNEL','＋',openPersonEditor);
+  if(viewId==='viewMainline')setTop('MAINLINE');
+  if(viewId==='viewCaseDetail')setTop('CASE FILE', '编辑', function(){openCaseEditor(detailCaseId);});
+  if(viewId==='viewPersonDetail')setTop('PERSONNEL FILE','编辑',function(){openPersonEditor(detailPersonId);});
+  window.scrollTo(0,0);
+}
+
+function handleBack(){
+  if(currentView==='viewHome'){location.href='index.html?p=5';return;}
+  var previous=viewStack.pop()||'viewHome';
+  showView(previous,{replace:true,force:true});
+}
+
+function renderCurrentCase(){
+  var card=document.getElementById('currentCaseCard');
+  var item=db.cases.find(function(entry){return entry.id===db.currentCaseId;});
+  if(!item){
+    card.className='current-card empty-current';
+    card.innerHTML='<div class="case-code">CURRENT CASE</div><div class="case-title">NO ACTIVE CASE</div><div class="case-summary">新建案件并将状态设为“进行中”后显示在这里。</div>';
+    card.onclick=function(){openCaseEditor();};
+    return;
+  }
+  card.className='current-card';
+  card.innerHTML='<div class="case-code">'+esc(displayCode(item))+'</div><div class="case-title">'+esc(displayTitle(item))+'</div><div class="case-summary">'+esc(item.summary||'尚未填写本集简介')+'</div><div class="case-meta"><span>'+esc(item.date||'日期未定')+'</span><span>'+esc(statusLabel(item.status))+'</span></div>';
+  card.onclick=function(){openCaseDetail(item.id);};
+}
+
+function caseRow(item){
+  return '<button class="row-card" type="button" data-case-id="'+esc(item.id)+'"><div class="row-main"><div class="row-title">'+esc(displayTitle(item))+'</div><div class="row-sub">'+esc(item.summary||'尚未填写简介')+'</div></div><div class="row-side">'+esc(displayCode(item))+'<br>'+esc(item.date||statusLabel(item.status))+'</div></button>';
+}
+
+function bindCaseRows(container){
+  container.querySelectorAll('[data-case-id]').forEach(function(button){button.onclick=function(){openCaseDetail(button.dataset.caseId);};});
+}
+
+function renderCaseLists(){
+  var cases=CBIData.sortedCases(db.cases,true);
+  var recent=document.getElementById('recentCases');
+  var list=document.getElementById('caseList');
+  recent.innerHTML=cases.length?cases.slice(0,4).map(caseRow).join(''):'<div class="empty-list">还没有案件档案。<br>可以先建立一个空案宗作为结构测试。</div>';
+  list.innerHTML=cases.length?cases.map(caseRow).join(''):'<div class="empty-list">CASE FILES EMPTY<br>新增后会按日期与集数排列。</div>';
+  bindCaseRows(recent);bindCaseRows(list);
+}
+
+function personRow(item){
+  return '<button class="row-card" type="button" data-person-id="'+esc(item.id)+'"><div class="row-main"><div class="row-title">'+esc(item.name||'未命名人物')+'</div><div class="row-sub">'+esc(item.role||item.longTermStatus||'档案尚未填写')+'</div></div><div class="row-side">PERSONNEL</div></button>';
+}
+
+function renderPersonnel(){
+  var people=db.personnel.slice().sort(function(a,b){return (a.name||'').localeCompare(b.name||'','zh');});
+  var list=document.getElementById('personList');
+  list.innerHTML=people.length?people.map(personRow).join(''):'<div class="empty-list">PERSONNEL EMPTY<br>可以从 Boss、Jane 或小组成员开始建立。</div>';
+  list.querySelectorAll('[data-person-id]').forEach(function(button){button.onclick=function(){openPersonDetail(button.dataset.personId);};});
+}
+
+function renderMainline(){
+  var entries=CBIData.mainlineEntries(db.cases);
+  var list=document.getElementById('mainlineList');
+  list.innerHTML=entries.length?entries.map(function(item){
+    return '<button class="timeline-item" type="button" data-case-id="'+esc(item.id)+'" style="width:100%;text-align:left"><div class="timeline-code">'+esc(displayCode(item))+' · '+esc(item.date||'DATE TBD')+'</div><div class="timeline-status">'+block(item.mainlineStatus)+'</div><div class="timeline-title">'+esc(displayTitle(item))+'</div></button>';
+  }).join(''):'<div class="empty-list" style="margin-left:-18px">NO MAINLINE STATUS<br>案宗填写主线状态后会自动出现在这里。</div>';
+  list.querySelectorAll('[data-case-id]').forEach(function(button){button.onclick=function(){openCaseDetail(button.dataset.caseId);};});
+}
+
+function renderCounts(){
+  document.getElementById('caseCount').textContent=db.cases.length+' FILES';
+  document.getElementById('personCount').textContent=db.personnel.length+' RECORDS';
+  document.getElementById('mainlineCount').textContent=CBIData.mainlineEntries(db.cases).length+' UPDATES';
+}
+
+function renderAll(){renderCurrentCase();renderCaseLists();renderPersonnel();renderMainline();renderCounts();if(detailCaseId&&currentView==='viewCaseDetail')renderCaseDetail();if(detailPersonId&&currentView==='viewPersonDetail')renderPersonDetail();}
+
+function openCaseDetail(id){detailCaseId=id;renderCaseDetail();showView('viewCaseDetail');}
+function renderCaseDetail(){
+  var item=db.cases.find(function(entry){return entry.id===detailCaseId;});
+  if(!item){handleBack();return;}
+  var tags=item.characters.length?'<div class="tag-list">'+item.characters.map(function(name){return '<span class="tag">'+esc(name)+'</span>';}).join('')+'</div>':'<p class="muted">未填写</p>';
+  document.getElementById('caseDetail').innerHTML='<div class="detail-code">'+esc(displayCode(item))+'</div><h1 class="detail-title">'+esc(displayTitle(item))+'</h1><div class="detail-meta"><span class="pill">'+esc(item.date||'日期未定')+'</span><span class="pill">'+esc(statusLabel(item.status))+'</span></div>'
+    +detailSection('本集简介',item.summary)+detailSectionHtml('本集人物',tags)+detailSection('MAINLINE STATUS',item.mainlineStatus)+detailSection('案件正文',item.body)+detailSection('关系或长期设定变化',item.longTermChanges)
+    +'<div class="detail-actions"><button type="button" onclick="openCaseEditor(\''+esc(item.id)+'\')">编辑案宗</button><button class="danger" type="button" onclick="requestDeleteCase(\''+esc(item.id)+'\')">删除</button></div>';
+}
+
+function openPersonDetail(id){detailPersonId=id;renderPersonDetail();showView('viewPersonDetail');}
+function renderPersonDetail(){
+  var item=db.personnel.find(function(entry){return entry.id===detailPersonId;});
+  if(!item){handleBack();return;}
+  document.getElementById('personDetail').innerHTML='<div class="detail-code">PERSONNEL FILE</div><h1 class="detail-title">'+esc(item.name||'未命名人物')+'</h1><div class="detail-meta"><span class="pill">'+esc(item.role||'身份未填写')+'</span></div>'
+    +detailSection('基本履历',item.profile)+detailSection('年龄与时间线',item.timeline)+detailSection('能力',item.abilities)+detailSection('关系',item.relationships)+detailSection('当前长期状态',item.longTermStatus)
+    +'<div class="detail-actions"><button type="button" onclick="openPersonEditor(\''+esc(item.id)+'\')">编辑档案</button><button class="danger" type="button" onclick="requestDeletePerson(\''+esc(item.id)+'\')">删除</button></div>';
+}
+
+function detailSection(title,value){return detailSectionHtml(title,value?'<p>'+block(value)+'</p>':'<p class="muted">未填写</p>');}
+function detailSectionHtml(title,html){return '<section class="detail-section"><h3>'+esc(title)+'</h3>'+html+'</section>';}
+
+function openCaseEditor(id){
+  var item=id?db.cases.find(function(entry){return entry.id===id;}):null;
+  document.getElementById('caseModalTitle').textContent=item?'编辑案件':'新增案件';
+  document.getElementById('caseId').value=item?item.id:'';
+  document.getElementById('caseEpisode').value=item?item.episodeCode:'';
+  document.getElementById('caseDate').value=item?item.date:'';
+  document.getElementById('caseTitle').value=item?item.title:'';
+  document.getElementById('caseStatus').value=item?item.status:'closed';
+  document.getElementById('caseSummary').value=item?item.summary:'';
+  document.getElementById('caseCharacters').value=item?item.characters.join('、'):'';
+  document.getElementById('caseMainline').value=item?item.mainlineStatus:'';
+  document.getElementById('caseBody').value=item?item.body:'';
+  document.getElementById('caseChanges').value=item?item.longTermChanges:'';
+  openModal('caseModal');
+}
+
+function saveCaseEditor(){
+  var id=document.getElementById('caseId').value||CBIData.createId('case');
+  var existing=db.cases.find(function(item){return item.id===id;});
+  var status=document.getElementById('caseStatus').value;
+  var value=CBIData.normalizeCase({
+    id:id,episodeCode:document.getElementById('caseEpisode').value.trim(),date:document.getElementById('caseDate').value,
+    title:document.getElementById('caseTitle').value.trim(),status:status,summary:document.getElementById('caseSummary').value.trim(),
+    characters:document.getElementById('caseCharacters').value,mainlineStatus:document.getElementById('caseMainline').value.trim(),
+    body:document.getElementById('caseBody').value.trim(),longTermChanges:document.getElementById('caseChanges').value.trim(),
+    createdAt:existing&&existing.createdAt,updatedAt:new Date().toISOString()
+  });
+  if(existing)db.cases[db.cases.indexOf(existing)]=value;else db.cases.push(value);
+  if(status==='active'){
+    db.cases.forEach(function(item){if(item.id!==id&&item.status==='active')item.status='closed';});
+    db.currentCaseId=id;
+  }else if(db.currentCaseId===id){db.currentCaseId=null;}
+  closeModal('caseModal');
+  detailCaseId=id;
+  if(persist('案宗已保存')){renderCaseDetail();showView('viewCaseDetail');}
+}
+
+function openPersonEditor(id){
+  var item=id?db.personnel.find(function(entry){return entry.id===id;}):null;
+  document.getElementById('personModalTitle').textContent=item?'编辑人物':'新增人物';
+  document.getElementById('personId').value=item?item.id:'';
+  document.getElementById('personName').value=item?item.name:'';
+  document.getElementById('personRole').value=item?item.role:'';
+  document.getElementById('personProfile').value=item?item.profile:'';
+  document.getElementById('personTimeline').value=item?item.timeline:'';
+  document.getElementById('personAbilities').value=item?item.abilities:'';
+  document.getElementById('personRelationships').value=item?item.relationships:'';
+  document.getElementById('personLongTerm').value=item?item.longTermStatus:'';
+  openModal('personModal');
+}
+
+function savePersonEditor(){
+  var id=document.getElementById('personId').value||CBIData.createId('person');
+  var existing=db.personnel.find(function(item){return item.id===id;});
+  var value=CBIData.normalizePerson({
+    id:id,name:document.getElementById('personName').value.trim(),role:document.getElementById('personRole').value.trim(),
+    profile:document.getElementById('personProfile').value.trim(),timeline:document.getElementById('personTimeline').value.trim(),
+    abilities:document.getElementById('personAbilities').value.trim(),relationships:document.getElementById('personRelationships').value.trim(),
+    longTermStatus:document.getElementById('personLongTerm').value.trim(),createdAt:existing&&existing.createdAt,updatedAt:new Date().toISOString()
+  });
+  if(existing)db.personnel[db.personnel.indexOf(existing)]=value;else db.personnel.push(value);
+  closeModal('personModal');detailPersonId=id;
+  if(persist('人物档案已保存')){renderPersonDetail();showView('viewPersonDetail');}
+}
+
+function requestDeleteCase(id){requestConfirm('删除这份案宗？已有正文和主线状态都会一起删除。',function(){db.cases=db.cases.filter(function(item){return item.id!==id;});if(db.currentCaseId===id)db.currentCaseId=null;detailCaseId=null;persist('案宗已删除');showView('viewCases',{replace:true});});}
+function requestDeletePerson(id){requestConfirm('删除这份人物档案？',function(){db.personnel=db.personnel.filter(function(item){return item.id!==id;});detailPersonId=null;persist('人物档案已删除');showView('viewPersonnel',{replace:true});});}
+
+function openModal(id){document.getElementById(id).classList.add('show');}
+function closeModal(id){document.getElementById(id).classList.remove('show');}
+function closeModalOnBg(event,id){if(event.target===event.currentTarget)closeModal(id);}
+function requestConfirm(message,onYes){document.getElementById('confirmText').textContent=message;var bg=document.getElementById('confirmBg');var yes=document.getElementById('confirmYes');yes.onclick=function(){closeConfirm();onYes();};bg.classList.add('show');}
+function closeConfirm(){document.getElementById('confirmBg').classList.remove('show');}
+var toastTimer=null;function showToast(message){var toast=document.getElementById('toast');toast.textContent=message;toast.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(function(){toast.classList.remove('show');},2200);}
+
+document.addEventListener('keydown',function(event){if(event.key==='Escape'){document.querySelectorAll('.modal-bg.show').forEach(function(item){item.classList.remove('show');});closeConfirm();}});
+renderAll();
+</script>
+</body>
+</html>
