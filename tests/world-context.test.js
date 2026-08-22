@@ -37,6 +37,7 @@ test('world switch changes only context and resolves CBI routes', () => {
   assert.equal(window.WorldContext.getActiveWorldId(), 'cbi');
   assert.equal(window.WorldContext.getRoute('story', 'story.html'), 'cbi.html');
   assert.equal(window.WorldContext.getRoute('wallet', 'wallet.html'), 'world-empty.html?module=wallet');
+  assert.equal(window.WorldContext.getRoute('kitchen', 'kitchen.html'), 'meals.html');
   assert.equal(window.WorldContext.getScopedStorageKey('kitchen_db'), 'kitchen_db__world__cbi');
   assert.equal(JSON.parse(localStorage.getItem(window.WorldContext.STORAGE_KEY)).activeWorldId, 'cbi');
   assert.equal(events.at(-1).type, 'omniverse:worldchange');

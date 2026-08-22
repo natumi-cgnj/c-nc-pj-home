@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Schedule">
+<title>Schedule</title>
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="apple-touch-icon.png">
+<link rel="icon" href="favicon.ico">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;background:#FAFAFA;color:#1a1a1a;min-height:100dvh;overflow-x:hidden}
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;padding-top:24px;border-bottom:1px solid #eee;background:#fff;position:sticky;top:0;z-index:50}
+.top-bar h1{font-size:13px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:#999}
+.top-bar .back{font-size:13px;color:#999;text-decoration:none}
+.top-bar-right{display:flex;gap:8px}
+.btn-s{font-size:11px;color:#999;background:none;border:1px solid #ddd;border-radius:6px;padding:4px 10px;cursor:pointer;font-family:inherit}
+.btn-s:active{background:#f5f5f5}
+
+/* Week nav */
+.week-nav{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:#fff;border-bottom:1px solid #f0f0f0}
+.week-nav button{background:none;border:none;font-size:18px;color:#bbb;cursor:pointer;padding:4px 8px;font-family:inherit}
+.week-nav button:active{color:#666}
+.week-label{font-size:12px;color:#999;letter-spacing:0.5px;font-weight:500}
+.today-btn{font-size:10px;color:#E8B96A;background:none;border:1px solid #E8B96A;border-radius:4px;padding:2px 8px;cursor:pointer;margin-left:8px;font-family:inherit}
+
+/* Week grid */
+.week-grid{display:grid;grid-template-columns:repeat(7,1fr);background:#fff;border-bottom:1px solid #eee}
+.day-col{border-right:1px solid #f5f5f5;min-height:120px;cursor:pointer;transition:background 0.15s}
+.day-col:last-child{border-right:none}
+.day-col:active{background:#fafafa}
+.day-col.is-today{background:#FFFDF5}
+.day-col.is-selected{background:#F5F3EE}
+.day-header{text-align:center;padding:10px 2px 6px;border-bottom:1px solid #f8f8f8}
+.day-weekday{font-size:9px;color:#ccc;letter-spacing:0.5px;text-transform:uppercase}
+.day-number{font-size:16px;font-weight:300;color:#999;margin-top:2px}
+.is-today .day-number{color:#E8B96A;font-weight:500}
+.day-events{padding:4px 3px;display:flex;flex-direction:column;gap:2px}
+.evt-dot{height:6px;border-radius:3px;opacity:0.7}
+.evt-dot.multi-day{border-radius:1px}
+.evt-dot.neal{background:#6B8AFF}
+.evt-dot.jane{background:#5BA66B}
+.evt-dot.will{background:#D85A30}
+.evt-dot.user{background:#E8B96A}
+
+/* Day detail panel */
+.day-detail{background:#fff;border-bottom:1px solid #eee;padding:16px 20px;display:none}
+.day-detail.show{display:block}
+.detail-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.detail-date{font-size:13px;font-weight:500;color:#666}
+.detail-add{font-size:20px;color:#ccc;background:none;border:none;cursor:pointer;line-height:1}
+.detail-empty{font-size:11px;color:#ddd;text-align:center;padding:12px 0}
+.detail-event{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid #f8f8f8}
+.detail-event:last-child{border-bottom:none}
+.detail-color{width:3px;border-radius:2px;align-self:stretch;min-height:28px;flex-shrink:0}
+.detail-color.neal{background:#6B8AFF}
+.detail-color.jane{background:#5BA66B}
+.detail-color.will{background:#D85A30}
+.detail-color.user{background:#E8B96A}
+.detail-color.multi{background:linear-gradient(180deg,#6B8AFF,#5BA66B)}
+.detail-info{flex:1;min-width:0}
+.detail-title{font-size:12px;font-weight:500;color:#444}
+.detail-meta{font-size:10px;color:#bbb;margin-top:2px;display:flex;gap:6px;align-items:center}
+.detail-char-dot{width:6px;height:6px;border-radius:50%;display:inline-block}
+.detail-actions{display:flex;gap:6px}
+.detail-actions button{font-size:10px;color:#ccc;background:none;border:none;cursor:pointer}
+.detail-actions button:active{color:#999}
+.detail-tag{font-size:9px;color:#fff;background:#ddd;border-radius:3px;padding:1px 5px;display:inline-block}
+.detail-tag.schedule{background:#ccc}
+.detail-tag.date{background:#E8B96A}
+
+/* Character legend */
+.legend{display:flex;gap:12px;padding:10px 20px;justify-content:center}
+.legend-item{display:flex;align-items:center;gap:4px;font-size:10px;color:#bbb}
+.legend-dot{width:8px;height:8px;border-radius:50%}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:16px 16px 0 0;width:100%;max-width:420px;max-height:85vh;overflow-y:auto;padding:20px;padding-bottom:env(safe-area-inset-bottom,20px)}
+.modal-title{font-size:14px;font-weight:600;color:#444;margin-bottom:16px;text-align:center}
+.modal label{font-size:11px;color:#999;display:block;margin:12px 0 4px}
+.modal input[type="text"],.modal input[type="date"],.modal textarea{width:100%;font-size:13px;padding:10px 12px;border:1px solid #e8e8e8;border-radius:8px;font-family:inherit;background:#fafafa}
+.modal textarea{height:60px;resize:none}
+.companion-grid{display:flex;gap:10px;margin-top:6px}
+.companion-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 14px;border:2px solid #eee;border-radius:10px;cursor:pointer;background:none;font-family:inherit;transition:all 0.15s}
+.companion-btn.selected{border-color:currentColor}
+.companion-btn.locked{opacity:0.3;pointer-events:none}
+.companion-btn .c-name{font-size:10px;font-weight:500}
+.companion-btn .c-lock{font-size:8px;color:#ccc;max-width:60px;text-align:center;word-break:break-all}
+.companion-btn.neal{color:#6B8AFF}
+.companion-btn.jane{color:#5BA66B}
+.companion-btn.will{color:#D85A30}
+.modal-btns{display:flex;gap:10px;margin-top:20px}
+.modal-btns button{flex:1;padding:12px;border:none;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit}
+.btn-cancel{background:#f5f5f5;color:#999}
+.btn-save{background:#E8B96A;color:#fff}
+.btn-danger{background:none;color:#E85A5A;border:1px solid #E85A5A;font-size:11px;padding:8px 12px;border-radius:8px;cursor:pointer;margin-top:12px;font-family:inherit}
+
+/* Pack info */
+.pack-info{padding:16px 20px;background:#fff;margin-top:8px;border-top:1px solid #f0f0f0;border-bottom:1px solid #f0f0f0}
+.pack-name{font-size:11px;color:#999;margin-bottom:4px}
+.pack-count{font-size:10px;color:#ccc}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <a class="back" href="index.html">← 返回</a>
+  <h1>Schedule</h1>
+  <div class="top-bar-right">
+    <button class="btn-s" onclick="showImportModal()">导入</button>
+    <button class="btn-s" onclick="exportPack()">导出</button>
+  </div>
+</div>
+
+<div class="week-nav">
+  <button onclick="prevWeek()">‹</button>
+  <div style="display:flex;align-items:center">
+    <span class="week-label" id="weekLabel"></span>
+    <button class="today-btn" onclick="goToday()">今天</button>
+  </div>
+  <button onclick="nextWeek()">›</button>
+</div>
+
+<div class="legend" id="legend"></div>
+
+<div class="week-grid" id="weekGrid"></div>
+
+<div class="day-detail" id="dayDetail">
+  <div class="detail-header">
+    <span class="detail-date" id="detailDate"></span>
+    <button class="detail-add" onclick="openAddEvent()" title="添加事件">+</button>
+  </div>
+  <div id="detailEvents"></div>
+</div>
+
+<!-- Add/Edit event modal -->
+<div class="modal-overlay" id="eventModal">
+  <div class="modal">
+    <div class="modal-title" id="modalTitle">添加事件</div>
+    <label>日期</label>
+    <input type="date" id="evtDate">
+    <label>内容</label>
+    <input type="text" id="evtTitle" placeholder="做什么" maxlength="100">
+    <label>备注</label>
+    <textarea id="evtNote" placeholder="可选"></textarea>
+    <label>陪伴角色</label>
+    <div class="companion-grid" id="companionGrid"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal('eventModal')">取消</button>
+      <button class="btn-save" onclick="saveEvent()">保存</button>
+    </div>
+    <div id="deleteWrap" style="text-align:center;display:none">
+      <button class="btn-danger" onclick="deleteEvent()">删除此事件</button>
+    </div>
+  </div>
+</div>
+
+<!-- Import modal -->
+<div class="modal-overlay" id="importModal">
+  <div class="modal">
+    <div class="modal-title">导入日程包</div>
+    <label>选择 JSON 文件</label>
+    <input type="file" id="importFile" accept=".json" style="margin:8px 0">
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal('importModal')">取消</button>
+      <button class="btn-save" onclick="doImport()">导入</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" style="position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.7);color:#fff;font-size:11px;padding:8px 16px;border-radius:8px;display:none;z-index:300"></div>
+
+<script src="world-context.js?v=20260822-world2"></script>
+<script src="cloud-sync.js?v=20260822-schedule1"></script>
+<script src="character-runtime.js?v=20260822-schedule1"></script>
+<script>
+'use strict';
+
+var WORLD_ID = window.WorldContext ? WorldContext.getActiveWorldId() : 'liminal';
+var WORLD_META = {
+  liminal: {
+    label: 'Liminal Space',
+    characters: {
+      neal: { name: 'Neal', color: '#6B8AFF' },
+      jane: { name: 'Jane', color: '#5BA66B' },
+      will: { name: 'Will', color: '#D85A30' }
+    }
+  },
+  cbi: {
+    label: 'CBI · Sacramento',
+    characters: {
+      jane: { name: 'Jane', color: '#5BA66B' },
+      cho: { name: 'Cho', color: '#68747A' },
+      rigsby: { name: 'Rigsby', color: '#7E9AB0' },
+      lisbon: { name: 'Lisbon', color: '#A06F62' },
+      vanpelt: { name: 'Van Pelt', color: '#B48A9B' }
+    }
+  }
+};
+var CHAR_META = (WORLD_META[WORLD_ID] || WORLD_META.liminal).characters;
+var CHARS = Object.keys(CHAR_META);
+var weekStart = getMonday(new Date());
+var selectedDate = null;
+var editingEventId = null;
+
+function getMonday(d) {
+  var date = new Date(d);
+  var day = date.getDay();
+  var diff = date.getDate() - day + (day === 0 ? -6 : 1);
+  date.setDate(diff);
+  date.setHours(0, 0, 0, 0);
+  return date;
+}
+
+function dateStr(d) {
+  return d.getFullYear() + '-' +
+    String(d.getMonth() + 1).padStart(2, '0') + '-' +
+    String(d.getDate()).padStart(2, '0');
+}
+
+function addDays(d, n) {
+  var r = new Date(d);
+  r.setDate(r.getDate() + n);
+  return r;
+}
+
+var WEEKDAYS = ['一', '二', '三', '四', '五', '六', '日'];
+
+function render() {
+  var grid = document.getElementById('weekGrid');
+  grid.innerHTML = '';
+  var todayStr = dateStr(new Date());
+  var sunEnd = addDays(weekStart, 6);
+  document.getElementById('weekLabel').textContent =
+    (weekStart.getMonth() + 1) + '/' + weekStart.getDate() + ' — ' +
+    (sunEnd.getMonth() + 1) + '/' + sunEnd.getDate();
+
+  for (var i = 0; i < 7; i++) {
+    var day = addDays(weekStart, i);
+    var ds = dateStr(day);
+    var col = document.createElement('div');
+    col.className = 'day-col';
+    if (ds === todayStr) col.classList.add('is-today');
+    if (ds === selectedDate) col.classList.add('is-selected');
+    col.setAttribute('data-date', ds);
+    col.onclick = (function (date) { return function () { selectDay(date); }; })(ds);
+
+    var header = document.createElement('div');
+    header.className = 'day-header';
+    header.innerHTML = '<div class="day-weekday">' + WEEKDAYS[i] + '</div>' +
+      '<div class="day-number">' + day.getDate() + '</div>';
+    col.appendChild(header);
+
+    var evtsArea = document.createElement('div');
+    evtsArea.className = 'day-events';
+    var allEvts = CharacterRuntime.getScheduleEventsForDate(ds, WORLD_ID);
+    allEvts.forEach(function (item) {
+      var evt = item.event;
+      var participants = evt.participants || evt.companions || [];
+      participants.forEach(function (charId) {
+        var dot = document.createElement('div');
+        dot.className = 'evt-dot';
+        dot.style.background = CHAR_META[charId] ? CHAR_META[charId].color : '#bbb';
+        if (evt.startDate && evt.endDate && evt.startDate !== evt.endDate) {
+          dot.classList.add('multi-day');
+        }
+        evtsArea.appendChild(dot);
+      });
+      if (item.type === 'user' && (!participants.length || evt.category === 'personal')) {
+        var dot = document.createElement('div');
+        dot.className = 'evt-dot user';
+        evtsArea.appendChild(dot);
+      }
+    });
+    col.appendChild(evtsArea);
+    grid.appendChild(col);
+  }
+
+  if (selectedDate) renderDetail(selectedDate);
+}
+
+function selectDay(ds) {
+  selectedDate = ds;
+  render();
+  var detail = document.getElementById('dayDetail');
+  detail.classList.add('show');
+}
+
+function renderDetail(ds) {
+  var d = new Date(ds + 'T00:00:00');
+  document.getElementById('detailDate').textContent =
+    (d.getMonth() + 1) + '月' + d.getDate() + '日 ' + '月火水木金土日'[d.getDay() === 0 ? 6 : d.getDay() - 1] + '曜日';
+
+  var wrap = document.getElementById('detailEvents');
+  wrap.innerHTML = '';
+  var allEvts = CharacterRuntime.getScheduleEventsForDate(ds, WORLD_ID);
+
+  if (!allEvts.length) {
+    wrap.innerHTML = '<div class="detail-empty">这一天还没有安排</div>';
+    return;
+  }
+
+  allEvts.forEach(function (item) {
+    var evt = item.event;
+    var participants = evt.participants || evt.companions || [];
+    var color = '#E8B96A';
+    if (participants.length === 1 && CHAR_META[participants[0]]) color = CHAR_META[participants[0]].color;
+    else if (participants.length > 1) color = '#8F8290';
+
+    var div = document.createElement('div');
+    div.className = 'detail-event';
+
+    var dotsHtml = participants.map(function (c) {
+      return '<span class="detail-char-dot" style="background:' + (CHAR_META[c] ? CHAR_META[c].color : '#E8B96A') + '"></span>';
+    }).join('');
+
+    var tagHtml = item.type === 'schedule'
+      ? '<span class="detail-tag schedule">日程包</span>'
+      : '<span class="detail-tag date">个人</span>';
+
+    var actionsHtml = '';
+    if (item.type === 'user') {
+      actionsHtml = '<div class="detail-actions">' +
+        '<button onclick="editEvent(\'' + evt.id + '\')">编辑</button>' +
+        '</div>';
+    }
+
+    div.innerHTML = '<div class="detail-color" style="background:' + color + '"></div>' +
+      '<div class="detail-info">' +
+        '<div class="detail-title">' + esc(evt.title || '无标题') + '</div>' +
+        '<div class="detail-meta">' + dotsHtml + ' ' + tagHtml +
+          (evt.note ? ' · ' + esc(evt.note) : '') +
+        '</div>' +
+      '</div>' + actionsHtml;
+    wrap.appendChild(div);
+  });
+}
+
+function prevWeek() { weekStart = addDays(weekStart, -7); render(); }
+function nextWeek() { weekStart = addDays(weekStart, 7); render(); }
+function goToday() {
+  weekStart = getMonday(new Date());
+  selectedDate = dateStr(new Date());
+  render();
+  document.getElementById('dayDetail').classList.add('show');
+}
+
+/* ── Event CRUD ── */
+
+function openAddEvent() {
+  editingEventId = null;
+  document.getElementById('modalTitle').textContent = '添加事件';
+  document.getElementById('evtDate').value = selectedDate || dateStr(new Date());
+  document.getElementById('evtTitle').value = '';
+  document.getElementById('evtNote').value = '';
+  document.getElementById('deleteWrap').style.display = 'none';
+  renderCompanions(selectedDate || dateStr(new Date()), []);
+  showModal('eventModal');
+}
+
+function editEvent(id) {
+  var data = CharacterRuntime.loadUserEvents();
+  var evt = data.events.find(function (e) { return e.id === id; });
+  if (!evt) return;
+  editingEventId = id;
+  document.getElementById('modalTitle').textContent = '编辑事件';
+  document.getElementById('evtDate').value = evt.date;
+  document.getElementById('evtTitle').value = evt.title;
+  document.getElementById('evtNote').value = evt.note || '';
+  document.getElementById('deleteWrap').style.display = 'block';
+  renderCompanions(evt.date, evt.companions || []);
+  showModal('eventModal');
+}
+
+function renderCompanions(dateStr, selected) {
+  var locked = CharacterRuntime.getUnavailableCharacters(dateStr, WORLD_ID);
+  var grid = document.getElementById('companionGrid');
+  grid.innerHTML = '';
+  CHARS.forEach(function (charId) {
+    var meta = CHAR_META[charId];
+    var isLocked = !!locked[charId];
+    var isSelected = selected.indexOf(charId) >= 0;
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'companion-btn ' + charId;
+    if (isSelected && !isLocked) btn.classList.add('selected');
+    if (isLocked) btn.classList.add('locked');
+    btn.innerHTML = '<div class="c-name">' + meta.name + '</div>' +
+      (isLocked ? '<div class="c-lock">' + locked[charId] + '</div>' : '');
+    btn.setAttribute('data-char', charId);
+    if (!isLocked) {
+      btn.onclick = function () {
+        btn.classList.toggle('selected');
+      };
+    }
+    grid.appendChild(btn);
+  });
+}
+
+// Update companions when date changes
+document.getElementById('evtDate').addEventListener('change', function () {
+  var sel = [];
+  document.querySelectorAll('.companion-btn.selected').forEach(function (b) {
+    sel.push(b.getAttribute('data-char'));
+  });
+  renderCompanions(this.value, sel);
+});
+
+function saveEvent() {
+  var title = document.getElementById('evtTitle').value.trim();
+  var date = document.getElementById('evtDate').value;
+  var note = document.getElementById('evtNote').value.trim();
+  if (!title || !date) { toast('请填写日期和内容'); return; }
+  var companions = [];
+  document.querySelectorAll('.companion-btn.selected').forEach(function (b) {
+    companions.push(b.getAttribute('data-char'));
+  });
+  if (editingEventId) {
+    CharacterRuntime.updateUserEvent(editingEventId, {
+      title: title, date: date, note: note, companions: companions
+    }, WORLD_ID);
+  } else {
+    CharacterRuntime.addUserEvent({
+      title: title, date: date, note: note, companions: companions, category: 'personal'
+    }, WORLD_ID);
+  }
+  closeModal('eventModal');
+  selectedDate = date;
+  weekStart = getMonday(new Date(date + 'T00:00:00'));
+  render();
+  toast('已保存');
+}
+
+function deleteEvent() {
+  if (!editingEventId) return;
+  CharacterRuntime.removeUserEvent(editingEventId);
+  editingEventId = null;
+  closeModal('eventModal');
+  render();
+  toast('已删除');
+}
+
+/* ── Import / Export ── */
+
+function showImportModal() { showModal('importModal'); }
+
+function doImport() {
+  var fileInput = document.getElementById('importFile');
+  if (!fileInput.files.length) { toast('请选择文件'); return; }
+  var reader = new FileReader();
+  reader.onload = function (e) {
+    try {
+      var json = JSON.parse(e.target.result);
+      var result = CharacterRuntime.importSchedulePack(json, 'merge', WORLD_ID);
+      if (result.ok) {
+        toast('导入成功 · ' + result.imported + ' 条日程');
+        closeModal('importModal');
+        render();
+      } else {
+        toast('导入失败: ' + result.error);
+      }
+    } catch (err) {
+      toast('文件格式错误');
+    }
+  };
+  reader.readAsText(fileInput.files[0]);
+}
+
+function exportPack() {
+  var data = CharacterRuntime.exportSchedulePacks(WORLD_ID);
+  if (!data) { toast('没有日程包数据'); return; }
+  var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'schedule-pack-' + dateStr(new Date()) + '.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+/* ── Helpers ── */
+
+function showModal(id) { document.getElementById(id).classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+function toast(msg) {
+  var el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.display = 'block';
+  clearTimeout(el._t);
+  el._t = setTimeout(function () { el.style.display = 'none'; }, 2000);
+}
+
+/* ── Boot ── */
+
+function esc(value){var div=document.createElement('div');div.textContent=String(value||'');return div.innerHTML;}
+function renderLegend(){var html='<div class="legend-item"><div class="legend-dot" style="background:#E8B96A"></div>You</div>';CHARS.forEach(function(id){html+='<div class="legend-item"><div class="legend-dot" style="background:'+CHAR_META[id].color+'"></div>'+esc(CHAR_META[id].name)+'</div>';});document.getElementById('legend').innerHTML=html;}
+document.body.dataset.worldId=WORLD_ID;
+document.querySelector('.top-bar h1').textContent='Schedule · '+(WORLD_META[WORLD_ID]||WORLD_META.liminal).label;
+renderLegend();
+CharacterRuntime.init();
+selectedDate = dateStr(new Date());
+document.getElementById('dayDetail').classList.add('show');
+render();
+</script>
+</body>
+</html>

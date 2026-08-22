@@ -5,6 +5,8 @@
  *   home_character_runtime
  *   home_character_action_packs
  *   shared_diary_db
+ *   schedule_packs
+ *   schedule_user_events
  */
 (function () {
   'use strict';
@@ -12,6 +14,8 @@
   const RUNTIME_KEY = 'home_character_runtime';
   const PACKS_KEY = 'home_character_action_packs';
   const DIARY_KEY = 'shared_diary_db';
+  const SCHEDULE_PACKS_KEY = 'schedule_packs';
+  const USER_EVENTS_KEY = 'schedule_user_events';
   const DAY_START_HOUR = 4;
   const CHARACTERS = ['jane', 'neal', 'will'];
   const TIME_SLOTS = ['morning', 'day', 'evening', 'night'];
@@ -491,11 +495,52 @@
       }
     });
 
+    // Fixed Liminal schedule packs may temporarily override random room activity.
+    const todayDateStr = calendarDateStr(now);
+    CHARACTERS.forEach(function (charId) {
+      const state = getCharState(runtime, charId);
+      const scheduleLock = isCharScheduleLocked(charId, todayDateStr, 'liminal');
+      if (scheduleLock && state.worldActivity && !state.worldActivity.isScheduleLock) {
+        state.worldActivity.settled = true;
+        state.worldActivity = null;
+        state.returnState = null;
+        state.nextActionAt = 0;
+        changed = true;
+      }
+    });
+
     // Generate one persistent state only when the character's next decision is due.
     CHARACTERS.forEach(function (charId) {
       const state = getCharState(runtime, charId);
       if (state.worldActivity || state.returnState) return;
       if (state.nextActionAt && now.getTime() < state.nextActionAt) return;
+
+      const scheduleLock = isCharScheduleLocked(charId, todayDateStr, 'liminal');
+      if (scheduleLock) {
+        const endOfDay = new Date(now);
+        endOfDay.setHours(23, 59, 59, 999);
+        state.worldActivity = {
+          eventId: 'sched_' + scheduleLock.id,
+          actionId: 'schedule_' + scheduleLock.id,
+          title: scheduleLock.title,
+          participants: scheduleLock.participants || [charId],
+          world: 'schedule',
+          category: scheduleLock.category || 'schedule',
+          activityMode: 'away',
+          defaultLiminalPresence: 'absent',
+          roomStatus: scheduleLock.roomStatus || '外出中 · ' + scheduleLock.title,
+          startAt: now.getTime(),
+          endAt: endOfDay.getTime(),
+          settled: false,
+          isScheduleLock: true,
+          liminalBreaks: []
+        };
+        state.liminalPresence = 'absent';
+        state.nextActionAt = endOfDay.getTime();
+        state.currentDialogueIndex = 0;
+        changed = true;
+        return;
+      }
 
       const actions = getAvailableActions(charId, packs);
       if (!actions.length) {
@@ -845,6 +890,206 @@
     return runtime;
   }
 
+  /* ═══ WORLD-AWARE SCHEDULE SYSTEM ═══ */
+  const SCHEDULE_CHARACTERS = {
+    liminal: ['neal', 'jane', 'will'],
+    cbi: ['jane', 'cho', 'rigsby', 'lisbon', 'vanpelt']
+  };
+
+  function activeScheduleWorldId() {
+    return window.WorldContext && WorldContext.getActiveWorldId ? WorldContext.getActiveWorldId() : 'liminal';
+  }
+
+  function normalizeScheduleStore(raw) {
+    const source = raw && typeof raw === 'object' ? raw : {};
+    if (source.version === 2 && source.worlds && typeof source.worlds === 'object') {
+      ['liminal', 'cbi'].forEach(function (worldId) {
+        source.worlds[worldId] = source.worlds[worldId] || { packs: [], events: [] };
+        if (!Array.isArray(source.worlds[worldId].packs)) source.worlds[worldId].packs = [];
+        if (!Array.isArray(source.worlds[worldId].events)) source.worlds[worldId].events = [];
+      });
+      return source;
+    }
+    return {
+      version: 2,
+      worlds: {
+        liminal: {
+          packs: Array.isArray(source.packs) ? source.packs : [],
+          events: Array.isArray(source.events) ? source.events : []
+        },
+        cbi: { packs: [], events: [] }
+      }
+    };
+  }
+
+  function loadScheduleStore() {
+    const raw = readJson(SCHEDULE_PACKS_KEY, null);
+    const store = normalizeScheduleStore(raw);
+    if (!raw || raw.version !== 2) writeJson(SCHEDULE_PACKS_KEY, store);
+    return store;
+  }
+
+  function loadSchedulePacks(worldId) {
+    const target = worldId || activeScheduleWorldId();
+    const store = loadScheduleStore();
+    return store.worlds[target] || { packs: [], events: [] };
+  }
+
+  function saveSchedulePacks(data, worldId) {
+    const target = worldId || activeScheduleWorldId();
+    const store = loadScheduleStore();
+    store.worlds[target] = {
+      packs: Array.isArray(data && data.packs) ? data.packs : [],
+      events: Array.isArray(data && data.events) ? data.events : []
+    };
+    writeJson(SCHEDULE_PACKS_KEY, store);
+  }
+
+  function normalizeUserEvents(raw) {
+    const source = raw && typeof raw === 'object' ? raw : {};
+    const events = Array.isArray(source.events) ? source.events : [];
+    let changed = source.version !== 2;
+    events.forEach(function (event) {
+      if (!event.scope) {
+        event.scope = Array.isArray(event.companions) && event.companions.length ? 'world' : 'global';
+        changed = true;
+      }
+      if (event.scope === 'world' && !event.worldId) {
+        event.worldId = 'liminal';
+        changed = true;
+      }
+    });
+    return { value: { version: 2, events: events }, changed: changed };
+  }
+
+  function loadUserEvents() {
+    const normalized = normalizeUserEvents(readJson(USER_EVENTS_KEY, null));
+    if (normalized.changed) writeJson(USER_EVENTS_KEY, normalized.value);
+    return normalized.value;
+  }
+
+  function saveUserEvents(data) {
+    writeJson(USER_EVENTS_KEY, { version: 2, events: Array.isArray(data && data.events) ? data.events : [] });
+  }
+
+  function validateSchedulePack(packJson, worldId) {
+    const target = worldId || activeScheduleWorldId();
+    const allowed = SCHEDULE_CHARACTERS[target] || [];
+    if (!packJson || packJson.format !== 'liminal-schedule-pack' || packJson.version !== 1) return { ok: false, error: 'invalid_format' };
+    if (!Array.isArray(packJson.events) || !packJson.events.length) return { ok: false, error: 'no_events' };
+    for (let i = 0; i < packJson.events.length; i++) {
+      const event = packJson.events[i];
+      if (!event || !event.id || !event.title || !event.startDate || !event.endDate) return { ok: false, error: 'invalid_event', detail: String(i) };
+      if (!Array.isArray(event.participants) || !event.participants.length) return { ok: false, error: 'no_participants', detail: event.id };
+      if (event.participants.some(function (id) { return allowed.indexOf(id) < 0; })) return { ok: false, error: 'invalid_participant', detail: event.id };
+    }
+    return { ok: true };
+  }
+
+  function importSchedulePack(packJson, mode, worldId) {
+    const target = worldId || activeScheduleWorldId();
+    const validation = validateSchedulePack(packJson, target);
+    if (!validation.ok) return validation;
+    const data = loadSchedulePacks(target);
+    if (mode === 'replace') {
+      data.packs = [{ name: packJson.name || '日程包', importedAt: nowMs() }];
+      data.events = packJson.events.slice();
+    } else {
+      data.packs.push({ name: packJson.name || '日程包', importedAt: nowMs() });
+      const ids = new Set(data.events.map(function (event) { return event.id; }));
+      packJson.events.forEach(function (event) { if (!ids.has(event.id)) data.events.push(event); });
+    }
+    saveSchedulePacks(data, target);
+    return { ok: true, imported: packJson.events.length };
+  }
+
+  function calendarDateStr(now) {
+    const date = now === undefined ? nowDate() : new Date(now);
+    return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+  }
+
+  function dateInRange(dateStr, startDate, endDate) {
+    return dateStr >= startDate && dateStr <= endDate;
+  }
+
+  function getScheduleEventsForDate(dateStr, worldId) {
+    const target = worldId || activeScheduleWorldId();
+    const result = [];
+    const schedule = loadSchedulePacks(target);
+    schedule.events.forEach(function (event) {
+      if (dateInRange(dateStr, event.startDate, event.endDate)) result.push({ type: 'schedule', event: event });
+    });
+    loadUserEvents().events.forEach(function (event) {
+      const visible = event.scope === 'global' || (event.scope === 'world' && event.worldId === target);
+      if (visible && event.date === dateStr) result.push({ type: 'user', event: event });
+    });
+    return result;
+  }
+
+  function isCharScheduleLocked(charId, dateStr, worldId) {
+    const events = getScheduleEventsForDate(dateStr || calendarDateStr(), worldId);
+    for (let i = 0; i < events.length; i++) {
+      const item = events[i];
+      if (item.type !== 'schedule' || item.event.immovable === false) continue;
+      if ((item.event.participants || []).indexOf(charId) >= 0) return item.event;
+    }
+    return null;
+  }
+
+  function addUserEvent(eventData, worldId) {
+    const target = worldId || activeScheduleWorldId();
+    const data = loadUserEvents();
+    const companions = Array.isArray(eventData.companions) ? eventData.companions.filter(function (id) {
+      return (SCHEDULE_CHARACTERS[target] || []).indexOf(id) >= 0;
+    }) : [];
+    const event = {
+      id: generateId('uevt'),
+      title: String(eventData.title || '').trim(),
+      date: eventData.date,
+      companions: companions,
+      scope: companions.length ? 'world' : 'global',
+      worldId: companions.length ? target : null,
+      category: eventData.category || 'personal',
+      note: String(eventData.note || '').trim()
+    };
+    data.events.push(event);
+    saveUserEvents(data);
+    return event;
+  }
+
+  function removeUserEvent(eventId) {
+    const data = loadUserEvents();
+    data.events = data.events.filter(function (event) { return event.id !== eventId; });
+    saveUserEvents(data);
+  }
+
+  function updateUserEvent(eventId, changes, worldId) {
+    const target = worldId || activeScheduleWorldId();
+    const data = loadUserEvents();
+    const event = data.events.find(function (item) { return item.id === eventId; });
+    if (!event) return false;
+    if (changes.title !== undefined) event.title = String(changes.title).trim();
+    if (changes.date !== undefined) event.date = changes.date;
+    if (changes.note !== undefined) event.note = String(changes.note).trim();
+    if (changes.companions !== undefined) {
+      event.companions = changes.companions.filter(function (id) { return (SCHEDULE_CHARACTERS[target] || []).indexOf(id) >= 0; });
+      event.scope = event.companions.length ? 'world' : 'global';
+      event.worldId = event.companions.length ? target : null;
+    }
+    saveUserEvents(data);
+    return true;
+  }
+
+  function getUnavailableCharacters(dateStr, worldId) {
+    const target = worldId || activeScheduleWorldId();
+    const locked = {};
+    loadSchedulePacks(target).events.forEach(function (event) {
+      if (!event.immovable || !dateInRange(dateStr, event.startDate, event.endDate)) return;
+      (event.participants || []).forEach(function (id) { locked[id] = event.title; });
+    });
+    return locked;
+  }
+
   window.CharacterRuntime = {
     init: function (options) {
       const opts = options || {};
@@ -910,10 +1155,36 @@
         actions: packs.merged
       };
     },
-    DATA_KEYS: [RUNTIME_KEY, PACKS_KEY, DIARY_KEY],
+    validateSchedulePack: validateSchedulePack,
+    importSchedulePack: importSchedulePack,
+    loadSchedulePacks: loadSchedulePacks,
+    saveSchedulePacks: saveSchedulePacks,
+    loadUserEvents: loadUserEvents,
+    addUserEvent: addUserEvent,
+    removeUserEvent: removeUserEvent,
+    updateUserEvent: updateUserEvent,
+    getScheduleEventsForDate: getScheduleEventsForDate,
+    isCharScheduleLocked: isCharScheduleLocked,
+    getUnavailableCharacters: getUnavailableCharacters,
+    calendarDateStr: calendarDateStr,
+    scheduleCharacters: SCHEDULE_CHARACTERS,
+    exportSchedulePacks: function (worldId) {
+      const target = worldId || activeScheduleWorldId();
+      const data = loadSchedulePacks(target);
+      if (!data.events.length) return null;
+      return {
+        format: 'liminal-schedule-pack',
+        version: 1,
+        name: 'exported_' + target + '_' + calendarDateStr(),
+        events: data.events
+      };
+    },
+    DATA_KEYS: [RUNTIME_KEY, PACKS_KEY, DIARY_KEY, SCHEDULE_PACKS_KEY, USER_EVENTS_KEY],
     RUNTIME_KEY: RUNTIME_KEY,
     PACKS_KEY: PACKS_KEY,
     DIARY_KEY: DIARY_KEY,
+    SCHEDULE_PACKS_KEY: SCHEDULE_PACKS_KEY,
+    USER_EVENTS_KEY: USER_EVENTS_KEY,
     _internal: {
       dayKey: dayKey,
       timeSlot: timeSlot,

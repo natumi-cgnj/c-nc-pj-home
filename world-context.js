@@ -21,7 +21,7 @@
       routes: {
         daily: 'daily.html',
         wallet: 'wallet.html',
-        kitchen: 'kitchen.html',
+        kitchen: 'meals.html',
         story: 'story.html',
         dungeon: 'dungeon.html',
         shop: 'shop.html',
@@ -45,7 +45,7 @@
       routes: {
         daily: 'world-empty.html?module=daily',
         wallet: 'world-empty.html?module=wallet',
-        kitchen: 'world-empty.html?module=kitchen',
+        kitchen: 'meals.html',
         story: 'cbi.html',
         dungeon: 'world-empty.html?module=dungeon',
         shop: 'world-empty.html?module=shop',
@@ -165,6 +165,7 @@
       'daily.html': 'daily',
       'wallet.html': 'wallet',
       'kitchen.html': 'kitchen',
+      'meals.html': 'kitchen',
       'story.html': 'story',
       'cbi.html': 'story',
       'dungeon.html': 'dungeon',

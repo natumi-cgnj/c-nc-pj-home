@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Recipe">
+<title>Recipe</title>
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="favicon.ico">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;background:#FAFAFA;color:#1a1a1a;min-height:100dvh}
+.back-btn{font-size:13px;color:#999;text-decoration:none;cursor:pointer;background:none;border:none;font-family:inherit;padding:4px}
+.btn-s{font-size:11px;color:#999;background:none;border:1px solid #ddd;border-radius:6px;padding:5px 10px;cursor:pointer;font-family:inherit}
+.detail-overall{padding:10px 20px;display:flex;align-items:center;gap:8px;font-size:11px;color:#bbb;background:#fff;border-bottom:1px solid #f5f5f5}
+.detail-overall-bar{flex:1;height:3px;background:#f0f0f0;border-radius:2px;overflow:hidden}
+.detail-overall-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,#E8B96A,#D4A24A);transition:width 0.3s}
+/* Action sheet */
+.action-sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.action-sheet-bg.show{display:flex}
+.action-sheet{background:#fff;border-radius:16px 16px 0 0;width:100%;max-width:480px;padding:8px 0 calc(8px + env(safe-area-inset-bottom,8px))}
+.action-sheet button{display:block;width:100%;padding:14px 20px;border:none;background:none;font-size:14px;text-align:left;cursor:pointer;font-family:inherit;color:#333}
+.action-sheet button:active{background:#f5f5f5}
+.action-sheet .del-as{color:#D85A30}
+.action-sheet .cancel-as{color:#999;border-top:1px solid #f0f0f0}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+/* Modal */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.modal-bg.show{display:flex}
+.modal{background:#fff;border-radius:16px 16px 0 0;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;padding:20px;animation:slideUp 0.25s ease-out}
+.modal h2{font-size:15px;font-weight:600;margin-bottom:16px;color:#333}
+.modal label{display:block;font-size:12px;color:#999;margin-bottom:4px;margin-top:12px}
+.modal input,.modal textarea,.modal select{width:100%;font-size:14px;padding:10px 12px;border:1px solid #e0e0e0;border-radius:8px;font-family:inherit;background:#fff;color:#1a1a1a}
+.modal textarea{resize:vertical;min-height:50px}
+.btn-row{display:flex;gap:8px;margin-top:20px}
+.btn{flex:1;padding:12px;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit}
+.btn-primary{background:#1a1a1a;color:#fff}
+.btn-cancel{background:#f0f0f0;color:#666}
+.file-label{display:block;padding:10px 12px;border:1px dashed #ddd;border-radius:8px;text-align:center;color:#aaa;font-size:12px;cursor:pointer;margin-top:4px}
+.img-preview{width:100%;border-radius:8px;margin-top:8px;max-height:240px;object-fit:contain;background:#f7f7f7}
+.duty-row{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px}
+.duty-opt{padding:3px 9px;border-radius:6px;border:1.5px solid #e0e0e0;font-size:11px;cursor:pointer;font-family:inherit;background:#fff;transition:all 0.15s}
+.duty-opt.active{border-width:2px}
+.duty-custom-row{display:flex;gap:6px;align-items:center;margin-top:6px}
+.duty-custom-row input{flex:1;font-size:12px;padding:6px 8px}
+.color-picker-row{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap}
+.color-swatch{width:20px;height:20px;border-radius:50%;cursor:pointer;border:1.5px solid transparent;transition:border 0.15s,transform 0.15s}
+.color-swatch:active{transform:scale(1.15)}
+.color-swatch.active{border-color:#333}
+.section-list{margin-top:8px}
+.section-row{display:flex;align-items:center;gap:6px;padding:8px 0;border-bottom:1px solid #f5f5f5;flex-wrap:wrap}
+.section-row input{font-size:12px;padding:6px 8px;border:1px solid #e8e8e8;border-radius:6px;font-family:inherit;background:#fff}
+.section-row input[type="text"]{flex:1 1 90px;min-width:70px}
+.section-row input[type="number"]{flex:0 0 46px;min-width:0}
+.section-row select{width:56px;font-size:11px;padding:4px;border:1px solid #e8e8e8;border-radius:6px;font-family:inherit;background:#fff}
+.section-row .del-sec{font-size:11px;color:#d0d0d0;background:none;border:none;cursor:pointer;padding:4px;transition:color 0.15s}
+.section-row .del-sec:active{color:#D85A30}
+.add-section-btn{font-size:11px;color:#bbb;background:none;border:1px dashed #e0e0e0;border-radius:6px;padding:6px 12px;cursor:pointer;margin-top:6px;font-family:inherit;width:100%}
+.section-config{width:100%;padding:5px 0;margin-top:4px}
+.section-config-line{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.section-config-line+.section-config-line{margin-top:5px}
+.section-config-label{font-size:10px;color:#aaa;white-space:nowrap}
+.section-config input[type="text"]{flex:1 1 96px;min-width:80px;font-size:12px;padding:5px 8px;border:1px solid #e8e8e8;border-radius:6px;background:#fff}
+.section-config input[type="number"]{width:42px;flex:0 0 42px;font-size:12px;padding:5px 4px;border:1px solid #e8e8e8;border-radius:6px;text-align:center;background:#fff}
+.section-config select{width:auto;min-width:52px;font-size:11px;padding:4px 4px;border:1px solid #e8e8e8;border-radius:6px;background:#fff}
+.section-tag-palette{display:flex;gap:3px;align-items:center;flex-wrap:wrap}
+.section-tag-swatch{width:14px;height:14px;border-radius:50%;border:1.5px solid transparent;padding:0;cursor:pointer;transition:border-color 0.15s,transform 0.15s}
+.section-tag-swatch:active{transform:scale(1.15)}
+.section-tag-swatch.active{border-color:#333}
+.back{font-size:13px;color:#bbb;text-decoration:none}
+.view{display:none}.view.active{display:block}
+
+/* ── Grid View ── */
+.char-section{padding:0 20px 16px;max-width:640px;margin:0 auto}
+.char-divider{display:flex;align-items:center;gap:10px;padding:16px 0 10px}
+.char-divider-line{flex:1;height:1px;background:#e8e8e8}
+.char-divider-name{font-size:12px;font-weight:500;letter-spacing:1px}
+.recipe-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.recipe-card{aspect-ratio:1;border-radius:12px;cursor:pointer;position:relative;overflow:hidden;transition:transform 0.15s}
+.recipe-card:active{transform:scale(0.95)}
+
+/* Locked */
+.recipe-card.locked{display:flex;align-items:center;justify-content:center;border:2px dashed}
+.recipe-card.locked .card-q{font-size:28px;font-weight:200;opacity:0.6}
+.recipe-card.locked .card-char{position:absolute;top:6px;left:8px;font-size:9px;font-weight:600;opacity:0.5;letter-spacing:0.5px}
+
+/* Active */
+.recipe-card.active-card{background:#fff;border:1.5px solid #e8e8e8;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 6px;gap:4px}
+.recipe-card.active-card .card-name{font-size:10px;color:#555;text-align:center;line-height:1.3;word-break:break-all}
+.recipe-card.active-card .card-dots{display:flex;gap:3px}
+.recipe-card.active-card .card-dots span{width:5px;height:5px;border-radius:50%;background:#e0e0e0}
+.recipe-card.active-card .card-dots span.done{background:#E8B96A}
+.card-char-dot{position:absolute;top:5px;right:5px;width:8px;height:8px;border-radius:50%}
+
+/* Collected */
+.recipe-card.collected-card{background:#fff;border:2px solid;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 6px;gap:4px}
+.recipe-card.collected-card .card-name{font-size:10px;color:#555;text-align:center;line-height:1.3}
+.recipe-card.collected-card .card-check{position:absolute;top:5px;right:5px;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff}
+
+/* Draw animation */
+@keyframes cardReveal{
+  0%{transform:scale(0.6) rotateY(90deg);opacity:0}
+  60%{transform:scale(1.08) rotateY(0);opacity:1}
+  100%{transform:scale(1)}
+}
+.recipe-card.revealing{animation:cardReveal 0.5s cubic-bezier(0.34,1.56,0.64,1)}
+
+/* ── Detail View ── */
+.detail-header{padding:12px 20px;padding-top:calc(12px + env(safe-area-inset-top,0px));display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #eee;background:#fff;position:sticky;top:0;z-index:50}
+.detail-header h2{font-size:15px;font-weight:600;color:#333;letter-spacing:0.5px}
+
+.recipe-detail-card{width:calc(100% - 40px);max-width:420px;margin:20px auto;background:#fff;border-radius:16px;overflow:hidden;border:1px solid #eee}
+.recipe-header{padding:16px 20px 12px;text-align:center}
+.recipe-char-badge{display:inline-block;font-size:10px;font-weight:600;letter-spacing:1px;padding:3px 10px;border-radius:6px;margin-bottom:8px}
+.recipe-title{font-size:18px;font-weight:600;color:#333;letter-spacing:0.5px}
+.recipe-subtitle{font-size:11px;color:#bbb;margin-top:4px}
+
+/* Ingredient checklist */
+.ingredient-list{padding:0 20px 16px}
+.ingredient-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #f5f5f5;cursor:pointer;-webkit-user-select:none;user-select:none}
+.ingredient-item:last-child{border-bottom:none}
+.ingredient-check{width:22px;height:22px;border-radius:6px;border:2px solid #ddd;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;font-size:12px;color:#fff}
+.ingredient-item.checked .ingredient-check{border-color:#E8B96A;background:#E8B96A}
+.ingredient-name{font-size:14px;color:#333;transition:color 0.2s}
+.ingredient-item.checked .ingredient-name{color:#bbb;text-decoration:line-through}
+
+/* Action area */
+.recipe-action{padding:16px 20px;border-top:1px solid #f0f0f0}
+.action-btn{width:100%;padding:14px;border:none;border-radius:12px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;transition:all 0.15s}
+.action-btn:active{transform:scale(0.98)}
+.action-btn.primary{background:#1a1a1a;color:#fff}
+.action-btn.gold{background:linear-gradient(135deg,#E8B96A,#D4A24A);color:#fff}
+.action-btn.disabled{background:#f0f0f0;color:#ccc;pointer-events:none}
+
+/* Comments section */
+.comments-section{padding:16px 20px;border-top:1px solid #f0f0f0}
+.comment-card{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid #f8f8f8}
+.comment-card:last-of-type{border-bottom:none}
+.comment-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff;flex-shrink:0}
+.comment-body{flex:1;min-width:0}
+.comment-name{font-size:11px;font-weight:600;margin-bottom:2px}
+.comment-text{font-size:13px;color:#555;line-height:1.5;font-style:italic}
+.my-comment{margin-top:12px}
+.my-comment textarea{width:100%;min-height:50px;border:1px solid #e8e8e8;border-radius:10px;padding:10px 12px;font-size:13px;font-family:inherit;resize:none;background:#fafafa;color:#555}
+.my-comment textarea::placeholder{color:#ccc}
+.collect-btn-wrap{margin-top:12px}
+
+/* Photo upload */
+.photo-area{padding:16px 20px}
+.photo-slot{aspect-ratio:1;max-width:240px;margin:0 auto;border-radius:12px;border:2px dashed #ddd;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;background:#fafafa;transition:border-color 0.2s}
+.photo-slot:active{border-color:#E8B96A}
+.photo-slot.has-img{border:none}
+.photo-slot img{width:100%;height:100%;object-fit:cover}
+.photo-slot .photo-placeholder{text-align:center;color:#ccc}
+.photo-slot .photo-placeholder .photo-icon{font-size:28px;margin-bottom:4px}
+.photo-slot .photo-placeholder .photo-hint{font-size:11px}
+
+/* Collected badge */
+.collected-banner{text-align:center;padding:12px;color:#E8B96A;font-size:12px;font-weight:500;letter-spacing:1px}
+
+/* Toast */
+.toast{position:fixed;bottom:60px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.7);color:#fff;font-size:12px;padding:8px 16px;border-radius:8px;display:none;z-index:300}
+
+/* Completion */
+.completion-popup{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:300;display:none;align-items:center;justify-content:center}
+.completion-popup.show{display:flex}
+.completion-box{background:#fff;border-radius:16px;padding:28px 24px;width:85%;max-width:300px;text-align:center;animation:popIn 0.4s cubic-bezier(0.34,1.56,0.64,1)}
+@keyframes popIn{from{transform:scale(0.6);opacity:0}to{transform:scale(1);opacity:1}}
+.completion-box h3{font-size:16px;margin-bottom:8px}
+.completion-box p{font-size:13px;color:#777;line-height:1.5;margin-bottom:16px}
+.completion-box button{padding:10px 28px;border:1px solid #e0e0e0;border-radius:10px;background:#fff;font-size:13px;cursor:pointer;font-family:inherit}
+.world-empty{margin:36px 20px;padding:28px 20px;border:1px dashed #ddd;border-radius:14px;background:#fff;text-align:center;color:#aaa}
+.world-empty strong{display:block;margin-bottom:8px;color:#777;font-size:14px;font-weight:500}
+.world-empty span{font-size:11px;line-height:1.7}
+</style>
+</head>
+<body>
+
+<!-- ═══ Grid View ═══ -->
+<div class="view active" id="viewGrid">
+  <div class="detail-header">
+    <button class="back-btn" onclick="location.href='meals.html'">← 返回</button>
+    <h2>沙拉菜谱</h2>
+    <button class="btn-s" id="recipeMenuBtn" onclick="openRecipeMenu()">⋯</button>
+  </div>
+  <div class="detail-overall" id="gridOverall"></div>
+  <div id="recipeGridArea"></div>
+</div>
+
+<!-- ═══ Detail View ═══ -->
+<div class="view" id="viewDetail">
+  <div class="detail-header">
+    <button class="back-btn" onclick="backToGrid()">← 返回</button>
+    <h2 id="recipeDetailTitle">沙拉菜谱</h2>
+    <div style="width:40px"></div>
+  </div>
+  <div id="detailContent"></div>
+</div>
+
+<!-- Action sheet -->
+<div class="action-sheet-bg" id="recipeMenuSheet">
+  <div class="action-sheet">
+    <button onclick="closeSheet('recipeMenuSheet');openEditRecipeProject()">编辑项目</button>
+    <button class="del-as" onclick="closeSheet('recipeMenuSheet');deleteRecipeProject()">删除项目</button>
+    <button class="cancel-as" onclick="closeSheet('recipeMenuSheet')">取消</button>
+  </div>
+</div>
+
+<!-- Edit project modal -->
+<div class="modal-bg" id="projectModal">
+  <div class="modal">
+    <h2 id="projectModalTitle">编辑项目</h2>
+    <label>项目图标</label>
+    <label class="file-label" id="projectIconLabel" onclick="document.getElementById('projectIconInput').click()">点击选择图片</label>
+    <input type="file" accept="image/*" id="projectIconInput" onchange="previewProjectIcon(this)" style="display:none">
+    <img id="projectIconPreview" class="img-preview" style="display:none">
+    <label>项目名</label>
+    <input type="text" id="inputProjectName" placeholder="如: 沙拉菜谱">
+    <label>项目细分</label>
+    <div class="section-list" id="sectionList"></div>
+    <button class="add-section-btn" onclick="addSectionRow()">+ 添加分栏</button>
+    <label>备注（选填）</label>
+    <textarea id="inputProjectNote" placeholder="心斋桥店、只记常规款…"></textarea>
+    <label>值班</label>
+    <div class="duty-row" id="dutyRow"></div>
+    <div class="duty-custom-row" id="dutyCustomRow" style="display:none">
+      <input type="text" id="dutyCustomName" placeholder="如: Hello Kitty">
+      <div class="color-picker-row" id="colorPicker"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-cancel" onclick="closeModal('projectModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveRecipeProject()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Completion popup -->
+<div class="completion-popup" id="completionPopup" onclick="this.classList.remove('show')">
+  <div class="completion-box" onclick="event.stopPropagation()">
+    <h3>🎉</h3>
+    <p id="completionMsg"></p>
+    <button onclick="document.getElementById('completionPopup').classList.remove('show')">好的</button>
+  </div>
+</div>
+
+<input type="file" accept="image/*" id="recipePhotoInput" onchange="onPhotoSelected(this)" style="display:none">
+<div class="toast" id="toast"></div>
+
+<script src="cloudinary-upload.js"></script>
+<script src="world-context.js?v=20260822-world2"></script>
+<script src="cloud-sync.js?v=20260822-meals1"></script>
+<script>
+'use strict';
+const WORLD_ID=window.WorldContext?WorldContext.getActiveWorldId():'liminal';
+const SK=window.WorldContext?WorldContext.getScopedStorageKey('recipe_salad_db',WORLD_ID):'recipe_salad_db';
+const CONFIG_SK=window.WorldContext?WorldContext.getScopedStorageKey('recipe_project_config',WORLD_ID):'recipe_project_config';
+const CHAR={
+  neal:{name:'Neal',color:'#6B8AFF',bg:'#6B8AFF18',border:'#6B8AFF44'},
+  jane:{name:'Jane',color:'#5BA66B',bg:'#5BA66B18',border:'#5BA66B44'},
+  will:{name:'Will',color:'#D85A30',bg:'#D85A3018',border:'#D85A3044'}
+};
+
+const LIMINAL_RECIPES=[
+  // ── Neal ──
+  {id:'n1',char:'neal',name:'スモークサーモンとクリームチーズ',
+   ingredients:['スモークサーモン','クリームチーズ','紫玉ねぎ','レタス','レモン'],
+   comments:{neal:'Go easy on the cream cheese. The salmon should be the star here.',jane:'Kind of a lot of effort for what it is. ...I\'ll eat it though.',will:'哇這也太像餐廳的了吧！好高級！'}},
+  {id:'n2',char:'neal',name:'エビとアボカドのサラダ',
+   ingredients:['むきエビ（冷凍）','アボカド','ミニトマト','レタス','レモン汁'],
+   comments:{neal:'Everything hinges on the ripeness of the avocado. Choose carefully.',jane:'Shrimp\'s fine. I like shrimp.',will:'酪梨跟蝦子都超讚的耶！'}},
+  {id:'n3',char:'neal',name:'生ハムとモッツァレラ',
+   ingredients:['生ハム','モッツァレラチーズ','トマト','バジルの葉'],
+   comments:{neal:'The Italian classic, elevated. Simplicity is the hardest thing to get right.',jane:'That cheese is kind of expensive for a salad.',will:'生火腿耶！！好奢華！！'}},
+  {id:'n4',char:'neal',name:'チキンとくるみのサラダ',
+   ingredients:['サラダチキン','くるみ','ドライクランベリー','ベビーリーフ'],
+   comments:{neal:'The crunch of the walnuts, the tartness of the cranberries. A calculated harmony.',jane:'The cranberries are... not really necessary.',will:'核桃脆脆的好好吃喔～'}},
+  {id:'n5',char:'neal',name:'サーモンとアスパラ',
+   ingredients:['サーモン（刺身用）','アスパラガス','ミニトマト','レモン'],
+   comments:{neal:'Use sashimi-grade salmon. Don\'t compromise on that.',jane:'Do I have to boil the asparagus? ...Sounds like effort.',will:'生鮭魚耶！在日本才吃得到這麼新鮮的！'}},
+  {id:'n6',char:'neal',name:'マッシュルームとパルメザン',
+   ingredients:['マッシュルーム','粉チーズ','ベビーリーフ','オリーブオイル'],
+   comments:{neal:'Slice the mushrooms raw. Trust me on this one.',jane:'...Plain. But I don\'t hate it.',will:'蘑菇也能做沙拉喔！？第一次吃耶好酷！'}},
+
+  // ── Jane ──
+  {id:'j1',char:'jane',name:'ツナコーンサラダ',
+   ingredients:['ツナ缶','コーン缶','きゅうり','レタス'],
+   comments:{neal:'Two cans. Well... it\'s practical, I\'ll give you that.',jane:'Easy and nutritious. That\'s all I need.',will:'鮪魚玉米是最強組合！'}},
+  {id:'j2',char:'jane',name:'ハムチーズレタス',
+   ingredients:['ハム','スライスチーズ','レタス','ミニトマト'],
+   comments:{neal:'Isn\'t this just... the inside of a sandwich?',jane:'The whole point is not having to think about it.',will:'簡單就是最棒的！馬上就能做好！'}},
+  {id:'j3',char:'jane',name:'ゆで卵とブロッコリー',
+   ingredients:['卵','ブロッコリー','ハム','コーン'],
+   comments:{neal:'Soft-boil the eggs, if you would.',jane:'Protein. Vegetables. Enough.',will:'水煮蛋有時候就是會突然超想吃耶～'}},
+  {id:'j4',char:'jane',name:'豆腐と海藻のサラダ',
+   ingredients:['絹豆腐','海藻ミックス（乾燥）','ミニトマト','きゅうり'],
+   comments:{neal:'Japanese ingredients with a Western dressing... Bold choice.',jane:'Low calorie. I like that.',will:'豆腐加沙拉醬居然會合耶！？'}},
+  {id:'j5',char:'jane',name:'ポテトサラダ風',
+   ingredients:['じゃがいも','きゅうり','ハム','ゆで卵'],
+   comments:{neal:'Potato salad might be Japan\'s finest culinary invention.',jane:'Boiling potatoes is... an acceptable amount of effort.',will:'馬鈴薯沙拉！我還要再一碗！！'}},
+  {id:'j6',char:'jane',name:'ささみときゅうりの和風',
+   ingredients:['サラダチキン','きゅうり','海藻ミックス','ごま'],
+   comments:{neal:'The sesame adds a surprisingly nice accent.',jane:'Barely need a knife. Ideal.',will:'清清爽爽的夏天吃超舒服～！'}},
+
+  // ── Will ──
+  {id:'w1',char:'will',name:'ベーコンエッグサラダ',
+   ingredients:['ベーコン','ゆで卵','クルトン','ミニトマト'],
+   comments:{neal:'Fry the bacon crispy. That\'s non-negotiable.',jane:'Feels like breakfast.',will:'培根就是正義你懂嗎！'}},
+  {id:'w2',char:'will',name:'から揚げサラダ',
+   ingredients:['から揚げ（惣菜）','レタス','ミニトマト','コーン'],
+   comments:{neal:'Store-bought karaage... Well, that\'s very you.',jane:'Deep-fried food on a salad. Isn\'t that contradictory?',will:'放了炸雞就是冠軍好嗎！'}},
+  {id:'w3',char:'will',name:'エビマヨサラダ',
+   ingredients:['むきエビ','マヨネーズ','レタス','コーン'],
+   comments:{neal:'Go easy on the mayo. Please.',jane:'I\'m going to pretend I didn\'t see the calories.',will:'蝦子加美乃滋是蝦子最好吃的吃法！'}},
+  {id:'w4',char:'will',name:'アボカドベーコン',
+   ingredients:['アボカド','ベーコン','スライスチーズ','ゆで卵'],
+   comments:{neal:'Not a bad combination, actually. Plate it well and it\'s perfect.',jane:'Calorie bomb. ...Let me have a bite.',will:'把所有喜歡的東西都放進去了！超幸福！'}},
+  {id:'w5',char:'will',name:'ソーセージポテトサラダ',
+   ingredients:['ソーセージ','じゃがいも','ベビーリーフ','ミニトマト'],
+   comments:{neal:'At this point it\'s less of a salad and more of a main course.',jane:'It is filling. I\'ll give it that.',will:'小香腸跟馬鈴薯都超適合沙拉的啦～！'}},
+  {id:'w6',char:'will',name:'チーズたっぷりサラダ',
+   ingredients:['ミックスチーズ','スライスチーズ','ハム','クルトン','ミニトマト'],
+   comments:{neal:'Two kinds of cheese... If that\'s what you want, I suppose.',jane:'Okay, I get it. You like cheese.',will:'起司就是要越多越好！這是我的人生哲學！'}}
+];
+const RECIPES=WORLD_ID==='liminal'?LIMINAL_RECIPES:[];
+
+let state={items:{}};
+
+function load(){
+  try{const d=JSON.parse(localStorage.getItem(SK));if(d&&d.items)state=d;}catch(e){}
+  // init missing recipes
+  RECIPES.forEach(r=>{if(!state.items[r.id])state.items[r.id]={status:'locked',checked:[],made:false,eaten:false,photo:'',myComment:'',drawnAt:null,collectedAt:null};if(!('photo' in state.items[r.id]))state.items[r.id].photo='';});
+}
+function save(){localStorage.setItem(SK,JSON.stringify(state));}
+
+function countCollected(){return Object.values(state.items).filter(s=>s.status==='collected').length;}
+function countByChar(ch){return RECIPES.filter(r=>r.char===ch&&state.items[r.id]&&state.items[r.id].status==='collected').length;}
+function totalByChar(ch){return RECIPES.filter(r=>r.char===ch).length;}
+
+/* ═══ VIEWS ═══ */
+function showView(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);}
+
+/* ═══ GRID ═══ */
+function renderGrid(){
+  const done=countCollected(),total=RECIPES.length,pct=total?Math.round(done/total*100):0;
+  document.getElementById('gridOverall').innerHTML=`<span>${done}/${total}</span><div class="detail-overall-bar"><div class="detail-overall-fill" style="width:${pct}%"></div></div><span>${pct}%</span>`;
+  if(!RECIPES.length){
+    document.getElementById('recipeGridArea').innerHTML='<div class="world-empty"><strong>CBI 菜谱项目尚未建立</strong><span>这里会保存只属于 CBI 世界的菜谱、抽取进度与评语；夹缝空间的18张沙拉卡不会出现在这里。</span></div>';
+    return;
+  }
+  let html='';
+  ['neal','jane','will'].forEach(ch=>{
+    const c=CHAR[ch];
+    html+=`<div class="char-section"><div class="char-divider"><div class="char-divider-line"></div><span class="char-divider-name" style="color:${c.color}">${c.name}</span><div class="char-divider-line"></div></div><div class="recipe-grid">`;
+    RECIPES.filter(r=>r.char===ch).forEach(r=>{
+      const s=state.items[r.id];
+      if(s.status==='locked'){
+        html+=`<div class="recipe-card locked" style="background:${c.bg};border-color:${c.border}" onclick="drawRecipe('${r.id}')"><span class="card-char" style="color:${c.color}">${c.name[0]}</span><span class="card-q" style="color:${c.color}">?</span></div>`;
+      }else if(s.status==='collected'){
+        html+=`<div class="recipe-card collected-card" style="border-color:${c.color}" onclick="openRecipe('${r.id}')"><div class="card-check" style="background:${c.color}">✓</div><div class="card-name">${r.name}</div></div>`;
+      }else{
+        const total=r.ingredients.length;const done=s.checked.filter(Boolean).length;
+        html+=`<div class="recipe-card active-card" onclick="openRecipe('${r.id}')"><div class="card-char-dot" style="background:${c.color}"></div><div class="card-name">${r.name}</div><div class="card-dots">${r.ingredients.map((_,i)=>`<span class="${s.checked[i]?'done':''}"></span>`).join('')}</div></div>`;
+      }
+    });
+    html+=`</div></div>`;
+  });
+  document.getElementById('recipeGridArea').innerHTML=html;
+}
+
+function drawRecipe(id){
+  const s=state.items[id];if(!s||s.status!=='locked')return;
+  s.status='active';s.checked=RECIPES.find(r=>r.id===id).ingredients.map(()=>false);s.drawnAt=Date.now();
+  save();renderGrid();
+  // Animate the card
+  setTimeout(()=>{
+    const cards=document.querySelectorAll('.recipe-card.active-card');
+    cards.forEach(card=>{
+      const name=card.querySelector('.card-name');
+      if(name&&name.textContent===RECIPES.find(r=>r.id===id).name){
+        card.classList.add('revealing');
+        setTimeout(()=>card.classList.remove('revealing'),600);
+      }
+    });
+  },50);
+  // Auto-open after animation
+  setTimeout(()=>openRecipe(id),650);
+}
+
+/* ═══ DETAIL ═══ */
+let curRecipeId=null;
+
+function openRecipe(id){
+  curRecipeId=id;
+  renderDetail();
+  showView('viewDetail');
+}
+function backToGrid(){
+  curRecipeId=null;
+  renderGrid();
+  showView('viewGrid');
+}
+
+function renderDetail(){
+  const r=RECIPES.find(x=>x.id===curRecipeId);if(!r)return;
+  const s=state.items[r.id];if(!s)return;
+  const c=CHAR[r.char];
+  const allChecked=s.checked.length&&s.checked.every(Boolean);
+  document.getElementById('recipeDetailTitle').textContent=r.name;
+
+  let html=`<div class="recipe-detail-card">`;
+  // Header
+  html+=`<div class="recipe-header"><div class="recipe-char-badge" style="background:${c.bg};color:${c.color}">${c.name}'s Recipe</div><div class="recipe-title">${r.name}</div><div class="recipe-subtitle">沙拉 · ${r.ingredients.length}種食材</div></div>`;
+
+  // Show ingredients or photo depending on state
+  const showIngredients=!s.made;
+  if(showIngredients){
+    html+=`<div class="ingredient-list">`;
+    r.ingredients.forEach((ing,i)=>{
+      const checked=s.checked[i];
+      html+=`<div class="ingredient-item${checked?' checked':''}" onclick="toggleIngredient(${i})"><div class="ingredient-check">${checked?'✓':''}</div><div class="ingredient-name">${ing}</div></div>`;
+    });
+    html+=`</div>`;
+  }
+
+  // Action area
+  if(s.status==='active'){
+    if(!allChecked){
+      html+=`<div class="recipe-action"><button class="action-btn disabled">开始制作</button></div>`;
+    }else if(!s.made){
+      html+=`<div class="recipe-action"><button class="action-btn gold" onclick="markMade()">制作完成</button></div>`;
+    }else if(!s.eaten){
+      html+=`<div class="photo-area"><div class="photo-slot${s.photo?' has-img':''}" onclick="pickPhoto()">${s.photo?`<img src="${s.photo}">`:'<div class="photo-placeholder"><div class="photo-icon">📷</div><div class="photo-hint">打卡照片</div></div>'}</div></div>`;
+      html+=`<div class="recipe-action"><button class="action-btn primary" onclick="markEaten()">开始食用</button></div>`;
+    }else{
+      if(s.photo){html+=`<div class="photo-area"><div class="photo-slot has-img"><img src="${s.photo}"></div></div>`;}
+      html+=renderComments(r,s,false);
+    }
+  }else if(s.status==='collected'){
+    if(s.photo){html+=`<div class="photo-area"><div class="photo-slot has-img"><img src="${s.photo}"></div></div>`;}
+    html+=renderComments(r,s,true);
+    html+=`<div class="collected-banner">✦ 已收录 ✦</div>`;
+  }
+
+  html+=`</div>`;
+  document.getElementById('detailContent').innerHTML=html;
+}
+
+function renderComments(recipe,s,readonly){
+  const c=CHAR;
+  let html=`<div class="comments-section">`;
+  ['neal','jane','will'].forEach(ch=>{
+    html+=`<div class="comment-card"><div class="comment-avatar" style="background:${c[ch].color}">${c[ch].name[0]}</div><div class="comment-body"><div class="comment-name" style="color:${c[ch].color}">${c[ch].name}</div><div class="comment-text">「${recipe.comments[ch]}」</div></div></div>`;
+  });
+  if(readonly){
+    if(s.myComment){
+      html+=`<div class="comment-card"><div class="comment-avatar" style="background:#E8B96A">Me</div><div class="comment-body"><div class="comment-name" style="color:#E8B96A">我的评语</div><div class="comment-text">「${esc(s.myComment)}」</div></div></div>`;
+    }
+  }else{
+    html+=`<div class="my-comment"><textarea id="myCommentInput" placeholder="我的评语（选填）">${esc(s.myComment||'')}</textarea></div>`;
+    html+=`<div class="collect-btn-wrap"><button class="action-btn gold" onclick="collectRecipe()">完成收录</button></div>`;
+  }
+  html+=`</div>`;
+  return html;
+}
+
+function toggleIngredient(idx){
+  const s=state.items[curRecipeId];if(!s||s.status!=='active'||s.made)return;
+  s.checked[idx]=!s.checked[idx];
+  save();renderDetail();
+}
+
+function markMade(){
+  const s=state.items[curRecipeId];if(!s)return;
+  s.made=true;save();renderDetail();
+  toast('制作完成！');
+}
+
+function markEaten(){
+  const s=state.items[curRecipeId];if(!s)return;
+  s.eaten=true;save();renderDetail();
+}
+/* ═══ PROJECT CONFIG ═══ */
+const SECTION_TAG_COLORS=['#888888','#E8B96A','#D85A30','#E84A7A','#9B6BCC','#4AADE8','#5BA66B','#6B8AFF'];
+const DUTY_PRESETS=[{type:'neal',name:'Neal',color:'#6B8AFF'},{type:'jane',name:'Jane',color:'#5BA66B'},{type:'will',name:'Will',color:'#D85A30'}];
+const CUSTOM_COLORS=['#E8B96A','#D85A30','#E84A7A','#9B6BCC','#4AADE8','#5BA66B','#6B8AFF','#888888'];
+
+function getProjectConfig(){
+  const def=WORLD_ID==='liminal'?{name:'沙拉菜谱',icon:'',note:'',duty:{type:'',color:'#E8B96A',name:''},
+    sections:[
+      {name:'Neal',count:6,cols:3,itemType:'food',tagText:'',tagColor:'#6B8AFF'},
+      {name:'Jane',count:6,cols:3,itemType:'food',tagText:'',tagColor:'#5BA66B'},
+      {name:'Will',count:6,cols:3,itemType:'food',tagText:'',tagColor:'#D85A30'}
+    ]}:{name:'CBI 菜谱项目',icon:'',note:'',duty:{type:'',color:'#B49A61',name:''},sections:[]};
+  try{const s=localStorage.getItem(CONFIG_SK);return s?{...def,...JSON.parse(s)}:def;}catch(e){return def;}
+}
+function saveProjectConfig(cfg){localStorage.setItem(CONFIG_SK,JSON.stringify(cfg));}
+
+function openModal(id){document.getElementById(id).classList.add('show');}
+function closeModal(id){document.getElementById(id).classList.remove('show');}
+function closeSheet(id){document.getElementById(id).classList.remove('show');}
+function openRecipeMenu(){document.getElementById('recipeMenuSheet').classList.add('show');}
+
+let projectTempIcon='';
+let _sections=[];
+let _dutyState={type:'',color:'#E8B96A',name:''};
+
+function normalizeItemType(t){return t==='merch'?'merch':'food';}
+function clampSectionCols(v){return Math.max(1,Math.min(5,parseInt(v)||3));}
+function normalizeTagColor(c){return /^#[0-9a-f]{6}$/i.test(String(c||''))?String(c):'#E8B96A';}
+
+function openEditRecipeProject(){
+  const cfg=getProjectConfig();
+  projectTempIcon=cfg.icon||'';
+  document.getElementById('projectModalTitle').textContent='编辑项目';
+  document.getElementById('inputProjectName').value=cfg.name;
+  document.getElementById('inputProjectNote').value=cfg.note||'';
+  if(cfg.icon){document.getElementById('projectIconPreview').src=cfg.icon;document.getElementById('projectIconPreview').style.display='block';}
+  else{document.getElementById('projectIconPreview').style.display='none';}
+  _sections=(cfg.sections||[]).map(s=>({...s}));
+  _dutyState=cfg.duty?{...cfg.duty}:{type:'',color:'#E8B96A',name:''};
+  renderSectionList();renderDutyRow(_dutyState);
+  openModal('projectModal');
+}
+
+function saveRecipeProject(){
+  const name=document.getElementById('inputProjectName').value.trim();if(!name)return;
+  const note=document.getElementById('inputProjectNote').value.trim();
+  let duty={..._dutyState};
+  if(duty.type==='custom')duty.name=document.getElementById('dutyCustomName').value.trim();
+  const icon=projectTempIcon;
+  const sections=_sections.filter(s=>s.name||s.count>0).map(s=>({name:s.name,count:Math.max(0,parseInt(s.count)||0),cols:clampSectionCols(s.cols),itemType:normalizeItemType(s.itemType),tagText:s.tagText||'',tagColor:normalizeTagColor(s.tagColor)}));
+  saveProjectConfig({name,icon,note,duty,sections});
+  document.querySelector('#viewGrid .detail-header h2').textContent=name;
+  closeModal('projectModal');
+  renderGrid();
+  toast('已保存');
+}
+
+function deleteRecipeProject(){
+  if(!confirm('删除此项目？所有打卡记录都会消失。'))return;
+  localStorage.removeItem(CONFIG_SK);
+  localStorage.removeItem(SK);
+  location.href='meals.html';
+}
+
+function previewProjectIcon(input){
+  if(!input.files||!input.files[0])return;
+  const reader=new FileReader();
+  reader.onload=ev=>{const img=new Image();img.onload=()=>{const c=document.createElement('canvas');const M=200;let w=img.width,h=img.height;if(w>M||h>M){if(w>h){h=h*M/w;w=M;}else{w=w*M/h;h=M;}}c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);projectTempIcon=c.toDataURL('image/jpeg',0.7);const p=document.getElementById('projectIconPreview');p.src=projectTempIcon;p.style.display='block';};img.src=ev.target.result;};
+  reader.readAsDataURL(input.files[0]);
+}
+
+/* ── Duty row ── */
+function renderDutyRow(selected){
+  const row=document.getElementById('dutyRow');
+  const selType=(selected&&selected.type)||'';
+  let html=DUTY_PRESETS.map(d=>{
+    const active=selType===d.type;
+    return`<button class="duty-opt ${active?'active':''}" style="border-color:${d.color};${active?'background:'+d.color+'15;color:'+d.color:''}" onclick="selectDuty('${d.type}')">${d.name}</button>`;
+  }).join('');
+  html+=`<button class="duty-opt ${selType==='custom'?'active':''}" style="${selType==='custom'?'border-color:'+(selected.color||'#E8B96A'):''}" onclick="selectDuty('custom')">其他</button>`;
+  row.innerHTML=html;
+  document.getElementById('dutyCustomRow').style.display=selType==='custom'?'flex':'none';
+  if(selType==='custom'){
+    document.getElementById('dutyCustomName').value=(selected&&selected.name)||'';
+    renderColorPicker((selected&&selected.color)||'#E8B96A');
+  }
+}
+function renderColorPicker(activeColor){
+  document.getElementById('colorPicker').innerHTML=CUSTOM_COLORS.map(c=>
+    `<div class="color-swatch ${c===activeColor?'active':''}" style="background:${c}" onclick="pickColor('${c}')"></div>`
+  ).join('');
+}
+function selectDuty(type){
+  if(type==='custom'){_dutyState.type='custom';renderDutyRow(_dutyState);}
+  else{const preset=DUTY_PRESETS.find(d=>d.type===type);_dutyState={type:type,color:preset.color,name:preset.name};renderDutyRow(_dutyState);}
+}
+function pickColor(c){_dutyState.color=c;renderColorPicker(c);}
+
+/* ── Section rows ── */
+function sectionTypeOptions(value){return`<option value="food"${value==='merch'?'':' selected'}>餐品</option><option value="merch"${value==='merch'?' selected':''}>周边</option>`;}
+function sectionColsOptions(value){const active=clampSectionCols(value);let html='';for(let i=1;i<=5;i++)html+=`<option value="${i}"${i===active?' selected':''}>${i}列</option>`;return html;}
+function sectionTagEditorHtml(sec,index){
+  const color=normalizeTagColor(sec.tagColor);
+  return`<div class="section-config-line"><input type="text" value="${esc(sec.tagText||'')}" placeholder="如：角落生物、春季限定" maxlength="20" oninput="_sections[${index}].tagText=this.value"><div class="section-tag-palette">${SECTION_TAG_COLORS.map(c=>`<button type="button" class="section-tag-swatch ${c===color?'active':''}" style="background:${c}" onclick="_sections[${index}].tagColor='${c}';renderSectionList()"></button>`).join('')}</div></div>`;
+}
+function sectionSettingsHtml(sec,index){
+  return`<div class="section-config-line"><span class="section-config-label">内容</span><select onchange="_sections[${index}].itemType=this.value">${sectionTypeOptions(normalizeItemType(sec.itemType))}</select><span class="section-config-label">数量</span><input type="number" value="${Math.max(0,parseInt(sec.count)||0)}" min="0" max="99" onchange="_sections[${index}].count=parseInt(this.value)||0"><select onchange="_sections[${index}].cols=parseInt(this.value)||3">${sectionColsOptions(sec.cols)}</select></div>`;
+}
+function renderSectionList(){
+  const list=document.getElementById('sectionList');
+  list.innerHTML=_sections.map((s,i)=>`<div class="section-row"><input type="text" value="${esc(s.name)}" placeholder="分栏名称" oninput="_sections[${i}].name=this.value"><button class="del-sec" onclick="removeSectionRow(${i})">×</button><div class="section-config">${sectionTagEditorHtml(s,i)}${sectionSettingsHtml(s,i)}</div></div>`).join('');
+}
+function addSectionRow(){_sections.push({name:'',count:0,cols:3,itemType:'food',tagText:'',tagColor:'#E8B96A'});renderSectionList();}
+function removeSectionRow(i){if(i>=0&&i<_sections.length){_sections.splice(i,1);renderSectionList();}}
+function pickPhoto(){document.getElementById('recipePhotoInput').click();}
+async function onPhotoSelected(input){
+  if(!input.files||!input.files[0]||!curRecipeId)return;
+  const s=state.items[curRecipeId];if(!s)return;
+  try{
+    toast('上传中…');
+    const url=await CloudinaryAssets.uploadImage(input.files[0]);
+    s.photo=url;save();renderDetail();toast('照片已保存');
+  }catch(e){toast('上传失败');}
+  input.value='';
+}
+
+function collectRecipe(){
+  const s=state.items[curRecipeId];if(!s)return;
+  const input=document.getElementById('myCommentInput');
+  if(input)s.myComment=input.value.trim();
+  s.status='collected';s.collectedAt=Date.now();
+  save();renderDetail();
+  // Check completion
+  const r=RECIPES.find(x=>x.id===curRecipeId);
+  const charCount=countByChar(r.char);
+  const charTotal=totalByChar(r.char);
+  if(countCollected()===RECIPES.length){
+    showCompletion('全18个菜谱已收录完成！沙拉大师！');
+  }else if(charCount===charTotal){
+    showCompletion(`${CHAR[r.char].name}的全部菜谱已收录完成！`);
+  }
+}
+
+function showCompletion(msg){
+  document.getElementById('completionMsg').textContent=msg;
+  document.getElementById('completionPopup').classList.add('show');
+}
+
+/* ═══ HELPERS ═══ */
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.style.display='block';clearTimeout(el._t);el._t=setTimeout(()=>el.style.display='none',2000);}
+
+/* ═══ INIT ═══ */
+load();
+document.body.dataset.worldId=WORLD_ID;
+document.querySelector('#viewGrid .detail-header h2').textContent=getProjectConfig().name;
+document.getElementById('recipeMenuBtn').style.visibility=RECIPES.length?'visible':'hidden';
+renderGrid();
+document.querySelectorAll('.modal-bg,.action-sheet-bg').forEach(bg=>{bg.addEventListener('click',e=>{if(e.target===bg){bg.classList.remove('show');}});});
+</script>
+</body>
+</html>
