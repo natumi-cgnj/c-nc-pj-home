@@ -434,6 +434,31 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 /* Jane 留下的少量物件继续使用绿色 */
 .room-jane.room-pkg-cbi-boss .jane-lamp{background:#5BA66B}
 .room-jane.room-pkg-cbi-boss .jane-blanket{background:#5BA66B}
+/* CBI-only decorative furniture: hidden outside CBI world */
+.furniture.cbi-home-only{display:none}
+body[data-world-id="cbi"] .furniture.cbi-home-only{display:block}
+/* Boss room (natumi) – extra CBI-world clutter */
+.natumi-homedesk{width:28px;height:16px;background:#E8B96A;bottom:16px;right:26px;border-radius:2px;opacity:.11}
+.natumi-homescreen{width:10px;height:4px;background:#566b72;bottom:20px;right:30px;border-radius:1px;opacity:.04}
+.natumi-laundry{width:18px;height:12px;background:#E8B96A;bottom:34px;left:6px;border-radius:4px;opacity:.06;transform:rotate(-8deg)}
+.natumi-sneaker1{width:8px;height:5px;background:#E8B96A;bottom:8px;left:28px;border-radius:1px;opacity:.1;transform:rotate(25deg)}
+.natumi-sneaker2{width:8px;height:5px;background:#E8B96A;bottom:12px;left:36px;border-radius:1px;opacity:.08;transform:rotate(42deg)}
+.natumi-guitar{width:6px;height:24px;background:#E8B96A;top:12px;left:4px;border-radius:3px 3px 1px 1px;opacity:.07;transform:rotate(-12deg)}
+.natumi-gamepad{width:10px;height:7px;background:#E8B96A;bottom:8px;right:10px;border-radius:2px;opacity:.1}
+.natumi-cans{width:5px;height:8px;background:#E8B96A;top:36px;left:14px;border-radius:1px;opacity:.12}
+.natumi-pizzabox{width:16px;height:16px;background:#E8B96A;bottom:44px;right:4px;border-radius:1px;opacity:.04;transform:rotate(3deg)}
+.natumi-casefiles{width:7px;height:14px;background:#c4a85f;top:6px;right:34px;border-radius:1px;opacity:.1}
+.natumi-poster{width:14px;height:10px;background:#E8B96A;top:6px;left:24px;opacity:.05;border-radius:1px}
+.natumi-towel{width:4px;height:16px;background:#E8B96A;top:10px;right:14px;opacity:.06;border-radius:1px}
+/* Jane guest room – extra CBI-world items */
+.cbi-guest-shelf{width:5px;height:22px;background:#5BA66B;top:10px;left:8%;opacity:.1;border-radius:1px}
+.cbi-guest-teacup{width:5px;height:5px;background:#5BA66B;top:32%;left:calc(12% + 50px);border-radius:50%;opacity:.15}
+.cbi-guest-bossbox1{width:14px;height:10px;background:#D4A843;bottom:12px;left:8%;border-radius:1px;opacity:.08;transform:rotate(6deg)}
+.cbi-guest-bossbox2{width:10px;height:8px;background:#D4A843;bottom:24px;right:8%;border-radius:1px;opacity:.06;transform:rotate(-10deg)}
+.cbi-guest-bossjacket{width:14px;height:8px;background:#D4A843;top:18px;right:10%;border-radius:1px;opacity:.06;transform:rotate(-14deg)}
+.cbi-guest-rug{width:42px;height:24px;background:#D4A843;top:55%;left:50%;transform:translate(-50%,-50%);border-radius:2px;opacity:.03}
+.cbi-guest-bosshoe{width:6px;height:4px;background:#D4A843;bottom:8px;right:22%;border-radius:1px;opacity:.09;transform:rotate(15deg)}
+.cbi-guest-janebook{width:8px;height:6px;background:#5BA66B;top:15px;left:calc(8% + 1px);border-radius:1px;opacity:.08}
 
 /* ── World shell / CBI office ── */
 [hidden]{display:none!important}
@@ -448,17 +473,52 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .cbi-location-trigger{position:absolute;left:7px;top:5px;z-index:24;border:0;background:rgba(255,255,255,.72);color:#9c8963;border-radius:6px;padding:4px 7px;font-family:inherit;font-size:7px;line-height:1.2;letter-spacing:1px;text-transform:uppercase;cursor:pointer;-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px)}
 .cbi-location-trigger:active{background:rgba(255,255,255,.95)}
 .cbi-home-trigger{display:none}
-.cbi-office-window{position:absolute;left:9%;top:18%;width:24%;height:22%;border:1px solid rgba(101,121,130,.16);background:linear-gradient(180deg,rgba(157,185,196,.14),rgba(238,226,190,.14));border-radius:2px}
+/* Sacramento window – top left */
+.cbi-office-window{position:absolute;left:6%;top:6%;width:24%;height:20%;border:1px solid rgba(101,121,130,.16);background:linear-gradient(180deg,rgba(157,185,196,.14),rgba(238,226,190,.14));border-radius:2px}
 .cbi-office-window::after{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(101,121,130,.13)}
-.cbi-desk{position:absolute;width:25%;height:15%;border-radius:3px;background:#9b896d;opacity:.1;border:1px solid rgba(80,67,50,.18)}
+/* Desk base */
+.cbi-desk{position:absolute;width:22%;height:14%;border-radius:3px;background:#9b896d;opacity:.1;border:1px solid rgba(80,67,50,.18)}
 .cbi-desk::after{content:'';position:absolute;width:34%;height:26%;left:12%;top:18%;border-radius:1px;background:#566b72;opacity:.42}
 .cbi-desk span{position:absolute;left:0;right:0;bottom:-13px;text-align:center;font-size:6px;color:#b5aa95;letter-spacing:.7px;text-transform:uppercase}
-.cbi-desk-boss{left:39%;top:18%}.cbi-desk-cho{left:8%;bottom:23%}.cbi-desk-rigsby{left:38%;bottom:23%}.cbi-desk-grace{right:7%;bottom:23%}
-.cbi-sofa{position:absolute;right:7%;top:18%;width:21%;height:11%;border-radius:4px;background:#5BA66B;opacity:.09}
-.cbi-tea-table{position:absolute;right:13%;top:34%;width:9%;aspect-ratio:1;border-radius:50%;background:#5BA66B;opacity:.08}
-.cbi-files{position:absolute;right:4%;top:46%;width:8%;height:35%;display:flex;gap:2px;align-items:flex-end}
-.cbi-files i{display:block;flex:1;background:#c4a85f;opacity:.22;border-radius:1px 1px 0 0}.cbi-files i:nth-child(1){height:74%}.cbi-files i:nth-child(2){height:92%}.cbi-files i:nth-child(3){height:81%}.cbi-files i:nth-child(4){height:100%}
-.cbi-pinboard{position:absolute;left:39%;top:43%;width:25%;height:8%;border:1px solid rgba(168,140,80,.15);background:rgba(214,190,132,.08)}
+/* Boss desk – larger, top-center, scattered papers */
+.cbi-desk-boss{left:34%;top:12%;width:28%;height:16%}
+.cbi-desk-boss::before{content:'';position:absolute;width:18%;height:20%;right:8%;top:22%;background:#E8B96A;opacity:.35;border-radius:1px;transform:rotate(5deg)}
+/* Team desks */
+.cbi-desk-lisbon{left:5%;top:44%}
+.cbi-desk-cho{left:5%;bottom:18%}
+.cbi-desk-rigsby{left:30%;bottom:18%}
+.cbi-desk-grace{right:20%;bottom:18%}
+/* Jane sofa & tea table */
+.cbi-sofa{position:absolute;right:5%;top:12%;width:21%;height:11%;border-radius:4px;background:#5BA66B;opacity:.09}
+.cbi-tea-table{position:absolute;right:11%;top:28%;width:9%;aspect-ratio:1;border-radius:50%;background:#5BA66B;opacity:.08}
+/* Filing cabinets */
+.cbi-files{position:absolute;right:3%;top:38%;width:7%;height:38%;display:flex;gap:2px;align-items:flex-end}
+.cbi-files i{display:block;flex:1;background:#c4a85f;opacity:.22;border-radius:1px 1px 0 0}.cbi-files i:nth-child(1){height:74%}.cbi-files i:nth-child(2){height:92%}.cbi-files i:nth-child(3){height:81%}.cbi-files i:nth-child(4){height:100%}.cbi-files i:nth-child(5){height:68%}.cbi-files i:nth-child(6){height:86%}
+/* Case pinboard */
+.cbi-pinboard{position:absolute;left:34%;top:36%;width:26%;height:9%;border:1px solid rgba(168,140,80,.15);background:rgba(214,190,132,.08)}
+.cbi-pinboard::before{content:'';position:absolute;width:8px;height:5px;background:#c4a85f;opacity:.28;top:20%;left:12%;border-radius:1px;transform:rotate(-3deg)}
+.cbi-pinboard::after{content:'';position:absolute;width:7px;height:5px;background:#c4a85f;opacity:.22;top:35%;right:18%;border-radius:1px;transform:rotate(4deg)}
+/* Office chairs */
+.cbi-chair{position:absolute;width:5%;aspect-ratio:1;border-radius:50%;background:#9b896d;opacity:.06}
+.cbi-chair-boss{left:40%;top:30%}
+.cbi-chair-lisbon{left:11%;top:57%}
+.cbi-chair-cho{left:11%;bottom:10%}
+.cbi-chair-rigsby{left:36%;bottom:10%}
+.cbi-chair-grace{right:24%;bottom:10%}
+/* Office accessories */
+.cbi-plant1{position:absolute;left:1%;top:6%;width:4%;aspect-ratio:.8;border-radius:50%;background:#7a9b6b;opacity:.08}
+.cbi-plant2{position:absolute;right:2%;top:4%;width:3.5%;aspect-ratio:.8;border-radius:50%;background:#7a9b6b;opacity:.06}
+.cbi-coffee{position:absolute;left:34%;top:51%;width:8%;height:5%;border-radius:2px;background:#8b7355;opacity:.06}
+.cbi-cooler{position:absolute;right:15%;bottom:6%;width:4%;height:10%;border-radius:2px;background:#96adb8;opacity:.07}
+.cbi-printer{position:absolute;left:56%;bottom:6%;width:8%;height:7%;border-radius:2px;background:#888;opacity:.05}
+.cbi-bin{position:absolute;right:3%;bottom:5%;width:3.5%;aspect-ratio:.9;border-radius:1px;background:#8b7b6b;opacity:.06}
+.cbi-coats{position:absolute;left:1%;bottom:5%;width:3%;height:14%;border-radius:1px;background:#9b896d;opacity:.06}
+.cbi-papers1{position:absolute;left:12%;top:46%;width:6%;height:3%;background:#c4a85f;opacity:.06;border-radius:1px;transform:rotate(-4deg)}
+.cbi-papers2{position:absolute;right:28%;top:50%;width:5%;height:3%;background:#c4a85f;opacity:.05;border-radius:1px;transform:rotate(6deg)}
+.cbi-mug1{position:absolute;left:10%;top:48%;width:2.5%;aspect-ratio:1;border-radius:50%;background:#566b72;opacity:.08}
+.cbi-mug2{position:absolute;right:24%;bottom:22%;width:2.5%;aspect-ratio:1;border-radius:50%;background:#9b6b6b;opacity:.06}
+.cbi-cabinet{position:absolute;left:31%;top:6%;width:3%;height:20%;background:#9b896d;opacity:.05;border-radius:1px}
+.cbi-rug{position:absolute;left:30%;top:52%;width:28%;height:18%;background:rgba(168,140,80,.04);border-radius:3px}
 .cbi-office .wardrobe-btn{bottom:8px;right:8px}
 .cbi-office .char-sprite{z-index:15}
 body[data-world-id="cbi"][data-world-location="home"] .apt-wrap{display:flex;flex-direction:column;aspect-ratio:auto}
@@ -556,6 +616,10 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-home-trigger{display:
         <div class="furniture jane-couch"></div><div class="furniture jane-teatable"></div>
         <div class="furniture jane-lamp"></div><div class="furniture jane-painting"></div>
         <div class="furniture jane-blanket"></div>
+        <div class="furniture cbi-home-only cbi-guest-shelf"></div><div class="furniture cbi-home-only cbi-guest-teacup"></div>
+        <div class="furniture cbi-home-only cbi-guest-bossbox1"></div><div class="furniture cbi-home-only cbi-guest-bossbox2"></div>
+        <div class="furniture cbi-home-only cbi-guest-bossjacket"></div><div class="furniture cbi-home-only cbi-guest-rug"></div>
+        <div class="furniture cbi-home-only cbi-guest-bosshoe"></div><div class="furniture cbi-home-only cbi-guest-janebook"></div>
         <button class="wardrobe-btn" type="button" onclick="openWardrobe('jane',event)" aria-label="打开 Jane 的衣柜" title="衣柜"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a2 2 0 0 0-2 2c0 .74.4 1.39 1 1.73V8l-7 6h16l-7-6V6.73A2 2 0 0 0 12 3z"/><path d="M4 14v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg></button>
       </div>
       <div class="room-away-status" id="away-jane" onclick="onAwayTap('jane',event)"><div class="room-away-label"><span class="away-title" id="away-title-jane"></span><span class="away-eta" id="away-eta-jane"></span></div></div>
@@ -573,6 +637,12 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-home-trigger{display:
         <div class="furniture natumi-bed"></div><div class="furniture natumi-box1"></div><div class="furniture natumi-box2"></div>
         <div class="furniture natumi-box3"></div><div class="furniture natumi-box4"></div><div class="furniture natumi-box5"></div>
         <div class="furniture natumi-box6"></div><div class="furniture natumi-box7"></div>
+        <div class="furniture cbi-home-only natumi-homedesk"></div><div class="furniture cbi-home-only natumi-homescreen"></div>
+        <div class="furniture cbi-home-only natumi-laundry"></div><div class="furniture cbi-home-only natumi-sneaker1"></div>
+        <div class="furniture cbi-home-only natumi-sneaker2"></div><div class="furniture cbi-home-only natumi-guitar"></div>
+        <div class="furniture cbi-home-only natumi-gamepad"></div><div class="furniture cbi-home-only natumi-cans"></div>
+        <div class="furniture cbi-home-only natumi-pizzabox"></div><div class="furniture cbi-home-only natumi-casefiles"></div>
+        <div class="furniture cbi-home-only natumi-poster"></div><div class="furniture cbi-home-only natumi-towel"></div>
       </div>
       <!-- Neal↔Natumi: top center -->
       <button class="conn-btn conn-on-natumi-top branch-connector on" id="cNeal" data-branch-target="top" onclick="toggleMod('neal')"><span class="conn-dot" id="dNeal" style="background:#6B8AFF"></span> <span id="lNeal">连接</span></button>
@@ -606,13 +676,24 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-home-trigger{display:
   <div class="room-box cbi-office" id="roomCbiOffice" data-room-id="cbi" data-character-id="jane">
     <div class="room-inner">
       <button class="cbi-location-trigger" type="button" onclick="openCbiLocationSheet(event)" aria-label="切换 CBI 地点">CBI · Serious Crimes Unit⌄</button>
+      <div class="cbi-rug"></div>
       <div class="cbi-office-window"></div>
+      <div class="cbi-cabinet"></div>
       <div class="cbi-desk cbi-desk-boss"><span>Boss</span></div>
+      <div class="cbi-desk cbi-desk-lisbon"><span>Lisbon</span></div>
       <div class="cbi-desk cbi-desk-cho"><span>Cho</span></div>
       <div class="cbi-desk cbi-desk-rigsby"><span>Rigsby</span></div>
       <div class="cbi-desk cbi-desk-grace"><span>Van Pelt</span></div>
-      <div class="cbi-sofa"></div><div class="cbi-tea-table"></div><div class="cbi-pinboard"></div>
-      <div class="cbi-files"><i></i><i></i><i></i><i></i></div>
+      <div class="cbi-chair cbi-chair-boss"></div><div class="cbi-chair cbi-chair-lisbon"></div>
+      <div class="cbi-chair cbi-chair-cho"></div><div class="cbi-chair cbi-chair-rigsby"></div><div class="cbi-chair cbi-chair-grace"></div>
+      <div class="cbi-sofa"></div><div class="cbi-tea-table"></div>
+      <div class="cbi-pinboard"></div>
+      <div class="cbi-files"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="cbi-plant1"></div><div class="cbi-plant2"></div>
+      <div class="cbi-coffee"></div><div class="cbi-cooler"></div><div class="cbi-printer"></div>
+      <div class="cbi-bin"></div><div class="cbi-coats"></div>
+      <div class="cbi-papers1"></div><div class="cbi-papers2"></div>
+      <div class="cbi-mug1"></div><div class="cbi-mug2"></div>
       <button class="wardrobe-btn" type="button" onclick="openWardrobe('jane',event)" aria-label="打开 Jane 的衣柜" title="衣柜"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a2 2 0 0 0-2 2c0 .74.4 1.39 1 1.73V8l-7 6h16l-7-6V6.73A2 2 0 0 0 12 3z"/><path d="M4 14v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg></button>
     </div>
   </div>
