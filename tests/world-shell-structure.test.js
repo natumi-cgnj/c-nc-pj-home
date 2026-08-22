@@ -56,9 +56,24 @@ test('food archive stays global while meals and recipes switch world layers', ()
   assert.match(index, /href="kitchen\.html" data-entry-id="food-archive"/);
   assert.match(meals, /const LOG_KEY='meal_log_db'/);
   assert.match(meals, /const COMPANION_KEY='meal_companion_db'/);
-  assert.match(meals, /cbi:\{label:'CBI · Sacramento',title:'CBI · 每日饮食',characters:\{\}/);
+  assert.match(meals, /cbi:\{label:'CBI · Sacramento',characters:\{\}/);
+  for (const className of ['mini-cal-row', 'dining-invite', 'shelf-header', 'project-row']) {
+    assert.match(meals, new RegExp(`class="[^"]*${className}`));
+  }
+  assert.match(meals, /id="diningDatePick"/);
+  assert.doesNotMatch(meals, /prompt\(/);
   assert.match(recipe, /getScopedStorageKey\('recipe_salad_db',WORLD_ID\)/);
   assert.match(recipe, /const RECIPES=WORLD_ID==='liminal'\?LIMINAL_RECIPES:\[\]/);
+});
+
+test('CBI locations reuse the apartment room-label typography and pastel palette', () => {
+  assert.match(index, /\.cbi-location-trigger\{[^}]*font-family:inherit;font-size:8px;font-weight:500;[^}]*letter-spacing:1\.2px/);
+  assert.match(index, /\.cbi-office \.room-inner\{overflow:hidden;background:#fff\}/);
+  assert.match(index, /roomLabelColor: '#E8B96A'/);
+  const officeCss = index.slice(index.indexOf('/* ── World shell / CBI office ── */'), index.indexOf('/* ── World selector ── */'));
+  assert.doesNotMatch(officeCss, /background-size:18px|#9b896d|#566b72|#8b7355|#96adb8|#8b7b6b/);
+  assert.match(officeCss, /background:rgba\(232,185,106,/);
+  assert.match(officeCss, /background:rgba\(91,166,107,/);
 });
 
 test('schedule page is world-aware and never auto-imports sample events', () => {
