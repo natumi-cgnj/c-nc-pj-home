@@ -12,6 +12,10 @@
       subtitle: '夹缝空間',
       description: 'Neal / Jane / Will 与大阪的我',
       scene: 'apartment',
+      defaultLocationId: 'apartment',
+      locations: {
+        apartment: { id: 'apartment', label: '夹缝空间', description: 'Neal / Jane / Will 与大阪的我' }
+      },
       characters: ['neal', 'jane', 'will'],
       banner: 'shared',
       routes: {
@@ -26,11 +30,16 @@
     },
     cbi: {
       id: 'cbi',
-      label: 'CBI办公室',
+      label: 'CBI',
       title: 'CBI · Sacramento',
       subtitle: 'California Bureau of Investigation',
       description: 'Boss小组 · CBI AU',
       scene: 'cbi-office',
+      defaultLocationId: 'office',
+      locations: {
+        office: { id: 'office', label: 'CBI办公室', description: 'Serious Crimes Unit' },
+        home: { id: 'home', label: 'Boss家', description: "Boss's Home · Guest Room" }
+      },
       characters: ['jane'],
       banner: 'empty',
       routes: {
@@ -55,9 +64,18 @@
     var saved = safeParse(raw);
     var worldId = saved && typeof saved === 'object' ? saved.activeWorldId : saved;
     if (!WORLD_CONFIGS[worldId]) worldId = DEFAULT_WORLD_ID;
+    var savedLocations = saved && typeof saved === 'object' && saved.locationByWorld && typeof saved.locationByWorld === 'object' ? saved.locationByWorld : {};
+    var locationByWorld = {};
+    Object.keys(WORLD_CONFIGS).forEach(function (id) {
+      var world = WORLD_CONFIGS[id];
+      var locationId = savedLocations[id];
+      if (!world.locations || !world.locations[locationId]) locationId = world.defaultLocationId;
+      locationByWorld[id] = locationId;
+    });
     return {
-      version: 1,
-      activeWorldId: worldId
+      version: 2,
+      activeWorldId: worldId,
+      locationByWorld: locationByWorld
     };
   }
 
@@ -73,6 +91,33 @@
     return getWorld(getActiveWorldId());
   }
 
+  function getActiveLocationId(worldId) {
+    var targetWorldId = worldId || getActiveWorldId();
+    var world = getWorld(targetWorldId);
+    var saved = readContext().locationByWorld[targetWorldId];
+    return world.locations && world.locations[saved] ? saved : world.defaultLocationId;
+  }
+
+  function getLocation(locationId, worldId) {
+    var targetWorldId = worldId || getActiveWorldId();
+    var world = getWorld(targetWorldId);
+    return world.locations && (world.locations[locationId] || world.locations[world.defaultLocationId]) || null;
+  }
+
+  function writeContext(context) {
+    try {
+      global.localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        version: 2,
+        activeWorldId: context.activeWorldId,
+        locationByWorld: context.locationByWorld,
+        updatedAt: new Date().toISOString()
+      }));
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
   function emitWorldChange(worldId) {
     if (!global.dispatchEvent) return;
     try {
@@ -84,17 +129,28 @@
 
   function setActiveWorldId(worldId) {
     if (!WORLD_CONFIGS[worldId]) return false;
-    var previous = getActiveWorldId();
-    try {
-      global.localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        version: 1,
-        activeWorldId: worldId,
-        updatedAt: new Date().toISOString()
-      }));
-    } catch (error) {
-      return false;
-    }
+    var context = readContext();
+    var previous = context.activeWorldId;
+    context.activeWorldId = worldId;
+    if (!writeContext(context)) return false;
     if (previous !== worldId) emitWorldChange(worldId);
+    return true;
+  }
+
+  function setActiveLocationId(worldId, locationId) {
+    var world = WORLD_CONFIGS[worldId];
+    if (!world || !world.locations || !world.locations[locationId]) return false;
+    var context = readContext();
+    var previous = context.locationByWorld[worldId];
+    context.locationByWorld[worldId] = locationId;
+    if (!writeContext(context)) return false;
+    if (previous !== locationId && global.dispatchEvent) {
+      try {
+        global.dispatchEvent(new global.CustomEvent('omniverse:locationchange', {
+          detail: { worldId: worldId, locationId: locationId, location: getLocation(locationId, worldId) }
+        }));
+      } catch (error) {}
+    }
     return true;
   }
 
@@ -140,7 +196,10 @@
     getWorld: getWorld,
     getActiveWorld: getActiveWorld,
     getActiveWorldId: getActiveWorldId,
+    getActiveLocationId: getActiveLocationId,
+    getLocation: getLocation,
     setActiveWorldId: setActiveWorldId,
+    setActiveLocationId: setActiveLocationId,
     getRoute: getRoute,
     inferModuleId: inferModuleId,
     getScopedStorageKey: getScopedStorageKey,

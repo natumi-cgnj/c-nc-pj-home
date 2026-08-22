@@ -25,6 +25,8 @@ function loadScript(file, initial = {}) {
 test('world context defaults to liminal without creating a second save', () => {
   const { window, localStorage } = loadScript('world-context.js');
   assert.equal(window.WorldContext.getActiveWorldId(), 'liminal');
+  assert.equal(window.WorldContext.getActiveLocationId(), 'apartment');
+  assert.equal(window.WorldContext.getActiveLocationId('cbi'), 'office');
   assert.equal(localStorage.getItem(window.WorldContext.STORAGE_KEY), null);
   assert.equal(window.WorldContext.getScopedStorageKey('kitchen_db'), 'kitchen_db');
 });
@@ -38,6 +40,28 @@ test('world switch changes only context and resolves CBI routes', () => {
   assert.equal(window.WorldContext.getScopedStorageKey('kitchen_db'), 'kitchen_db__world__cbi');
   assert.equal(JSON.parse(localStorage.getItem(window.WorldContext.STORAGE_KEY)).activeWorldId, 'cbi');
   assert.equal(events.at(-1).type, 'omniverse:worldchange');
+});
+
+test('CBI location is remembered independently from the active world', () => {
+  const { window, localStorage, events } = loadScript('world-context.js');
+  window.WorldContext.setActiveWorldId('cbi');
+  assert.equal(window.WorldContext.setActiveLocationId('cbi', 'home'), true);
+  assert.equal(window.WorldContext.getActiveLocationId(), 'home');
+  window.WorldContext.setActiveWorldId('liminal');
+  assert.equal(window.WorldContext.getActiveLocationId(), 'apartment');
+  window.WorldContext.setActiveWorldId('cbi');
+  assert.equal(window.WorldContext.getActiveLocationId(), 'home');
+  assert.equal(JSON.parse(localStorage.getItem(window.WorldContext.STORAGE_KEY)).locationByWorld.cbi, 'home');
+  assert.equal(events.some(event => event.type === 'omniverse:locationchange'), true);
+  assert.equal(window.WorldContext.setActiveLocationId('cbi', 'unknown'), false);
+});
+
+test('version one world context opens CBI at the office without rewriting old data', () => {
+  const legacy = JSON.stringify({ version: 1, activeWorldId: 'cbi' });
+  const { window, localStorage } = loadScript('world-context.js', { omniverse_world_context: legacy });
+  assert.equal(window.WorldContext.getActiveWorldId(), 'cbi');
+  assert.equal(window.WorldContext.getActiveLocationId(), 'office');
+  assert.equal(localStorage.getItem('omniverse_world_context'), legacy);
 });
 
 test('legacy records stay liminal while global records remain visible', () => {

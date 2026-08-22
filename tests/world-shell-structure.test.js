@@ -17,6 +17,11 @@ test('one homepage hosts both apartment and CBI scenes', () => {
   assert.match(index, /id="roomCbiOffice"/);
   assert.equal(count(index, /id="char-jane"/g), 1, 'Jane should be re-used instead of duplicated');
   assert.match(index, /WorldContext\.setActiveWorldId\(worldId\)/);
+  assert.match(index, /openCbiLocationSheet\(event\)/);
+  assert.match(index, /WorldContext\.setActiveLocationId\('cbi',locationId\)/);
+  assert.match(index, /JANE_CBI_OFFICE_LINES/);
+  assert.match(index, /JANE_CBI_BOSS_LINES/);
+  assert.doesNotMatch(index, /openRoomPkgSheet/);
 });
 
 test('world-sensitive entries use stable identities instead of mutable hrefs', () => {
