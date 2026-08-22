@@ -326,6 +326,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .section-collapse>*{min-height:0}
 .section-collapse.collapsed{grid-template-rows:0fr;opacity:0;pointer-events:none}
 @media(min-width:700px){
+  html{scrollbar-gutter:stable}
   body{display:grid;grid-template-columns:minmax(0,auto) 260px;column-gap:clamp(36px,6vw,88px);row-gap:14px;justify-content:center;align-content:start;align-items:start;padding:24px 32px;height:auto;min-height:100dvh;overflow-x:hidden;overflow-y:auto}
   .home-pager{display:contents}
   .home-page{width:auto;height:auto;flex-shrink:unset;scroll-snap-align:unset;overflow:visible;padding:0;justify-content:flex-start}
@@ -334,7 +335,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   #pageEvents{grid-column:2;grid-row:3;order:2}
   #pageCollect{grid-column:2;grid-row:4;order:3}
   #pageRewards{grid-column:2;grid-row:5;order:4}
-  #pageMemo{grid-column:2;grid-row:1;order:0;margin-top:60px}
+  #pageMemo{grid-column:2;grid-row:1;order:0;margin-top:60px;width:260px;max-width:260px;min-width:0}
+  #pageMemo .page-content,#pageMemo .section-collapse,#pageMemo .memo-wrap{width:100%;min-width:0}
+  #pageMemo .memo-add-bar{min-width:0}
+  #pageMemo .memo-input{width:0;min-width:0}
+  #pageMemo .memo-text{min-width:0;overflow-wrap:anywhere}
   .page-content{max-width:260px;padding:12px 0;gap:10px}
   .page-title{font-size:10px;letter-spacing:2px;margin-bottom:0}
   .entry-grid{grid-template-columns:repeat(3,1fr);gap:14px 10px}

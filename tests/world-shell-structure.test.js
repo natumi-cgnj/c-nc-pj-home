@@ -47,3 +47,9 @@ test('world and CBI data participate in cloud sync and full backup', () => {
   }
   assert.match(cloud, /'cbi\.html': \['cbi_db', 'omniverse_world_context'\]/);
 });
+
+test('desktop Notes cannot resize or recenter the room column', () => {
+  assert.match(index, /html\{scrollbar-gutter:stable\}/);
+  assert.match(index, /#pageMemo\{[^}]*width:260px;[^}]*min-width:0/);
+  assert.match(index, /#pageMemo \.memo-input\{width:0;min-width:0\}/);
+});
