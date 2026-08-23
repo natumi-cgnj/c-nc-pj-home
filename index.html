@@ -151,6 +151,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .cg-fullscreen{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,0.92);display:none;align-items:center;justify-content:center;cursor:pointer}
 .cg-fullscreen.show{display:flex}
 .cg-fullscreen img{max-width:95vw;max-height:90vh;object-fit:contain;border-radius:6px}
+/* Room sprites are later siblings and can escape above the fullscreen CG on desktop. */
+.cg-fullscreen.show~.apt-wrap .char-sprite,.cg-fullscreen.show~.apt-wrap .char-placeholder,.cg-fullscreen.show~.cbi-office-wrap .char-sprite,.cg-fullscreen.show~.cbi-office-wrap .char-placeholder{visibility:hidden!important}
 .cg-manage-full{position:absolute;bottom:env(safe-area-inset-bottom,16px);right:16px;height:24px;border-radius:12px;background:rgba(255,255,255,0.12);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,.5);font:9px/24px inherit;padding:0 10px;cursor:pointer;letter-spacing:.5px;transition:all 0.2s;z-index:101}
 .cg-manage-full:active{background:rgba(255,255,255,0.25);color:rgba(255,255,255,.8)}
 /* ── CG library panel ── */
@@ -409,6 +411,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   .db-block:active{background:#f0f0f0}
   .db-icon{font-size:20px}
   .db-label{font-size:10px;color:#999;letter-spacing:0.5px}
+  .db-world-files{grid-column:1/-1;min-height:60px;flex-direction:row;justify-content:flex-start;text-align:left;padding:13px 16px;gap:12px}
+  .db-world-files .db-icon{font-size:22px;flex:0 0 auto}
+  .db-world-copy{min-width:0}
+  .db-world-files .db-label{font-size:11px;color:#777;letter-spacing:1.2px}
+  .db-world-sub{font-size:8px;color:#bbb;letter-spacing:.45px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .cat-popup-overlay.show{display:flex}
   .shortcut-picker-overlay.show{display:flex}
 }
@@ -528,6 +535,12 @@ body[data-world-id="cbi"][data-world-location="home"] .room-natumi .natumi-box7{
 .cbi-takeout{position:absolute;left:28.8%;top:47.2%;width:2%;height:2.3%;border-radius:1px;background:rgba(232,185,106,.05);transform:rotate(15deg)}
 .cbi-office .wardrobe-btn{bottom:8px;right:8px}
 .cbi-office .char-sprite{z-index:15}
+.cbi-staff-sprite{display:none}
+.cbi-staff-sprite.is-present{display:block}
+#char-rigsby{left:27%;top:27%;z-index:18}
+#char-vanpelt{left:35%;top:27%;z-index:19}
+#char-lisbon{left:27%;top:59%;z-index:21}
+#char-cho{left:35%;top:59%;z-index:22}
 body[data-world-id="cbi"][data-world-location="home"] .apt-wrap{display:flex;flex-direction:column;aspect-ratio:auto}
 body[data-world-id="cbi"][data-world-location="home"] .apt-wrap>.branch-top,
 body[data-world-id="cbi"][data-world-location="home"] .apt-wrap>.branch-adaptive{display:none!important}
@@ -702,6 +715,10 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-home-trigger{display:
       <div class="cbi-takeout"></div>
       <button class="wardrobe-btn" type="button" onclick="openWardrobe('jane',event)" aria-label="打开 Jane 的衣柜" title="衣柜"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a2 2 0 0 0-2 2c0 .74.4 1.39 1 1.73V8l-7 6h16l-7-6V6.73A2 2 0 0 0 12 3z"/><path d="M4 14v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg></button>
     </div>
+    <div class="char-sprite cbi-staff-sprite" id="char-rigsby" onclick="onCbiStaffTap('rigsby',event)"><img src="assets/characters/cbi/rigsby/rigsby-default.png" alt="Rigsby"></div>
+    <div class="char-sprite cbi-staff-sprite" id="char-vanpelt" onclick="onCbiStaffTap('vanpelt',event)"><img src="assets/characters/cbi/vanpelt/vanpelt-default.png" alt="Van Pelt"></div>
+    <div class="char-sprite cbi-staff-sprite" id="char-lisbon" onclick="onCbiStaffTap('lisbon',event)"><img src="assets/characters/cbi/lisbon/lisbon-default.png" alt="Lisbon"></div>
+    <div class="char-sprite cbi-staff-sprite" id="char-cho" onclick="onCbiStaffTap('cho',event)"><img src="assets/characters/cbi/cho/cho-default.png" alt="Cho"></div>
   </div>
 </div>
 
@@ -851,6 +868,7 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-home-trigger{display:
 <div class="db-block" onclick="openCategoryPopup('events')"><div class="db-icon">🎫</div><div class="db-label">Events</div></div>
 <div class="db-block" onclick="openCategoryPopup('collect')"><div class="db-icon">📂</div><div class="db-label">Archive</div></div>
 <div class="db-block" onclick="openCategoryPopup('rewards')"><div class="db-icon">⭐</div><div class="db-label">Rewards</div></div>
+<div class="db-block db-world-files" id="worldFilesBlock" onclick="openWorldFiles()"><div class="db-icon">🗃️</div><div class="db-world-copy"><div class="db-label">WORLD FILES</div><div class="db-world-sub" id="worldFilesSubtitle">夹缝空间 · ARCHIVE</div></div></div>
 </div>
 
 <div class="cat-popup-overlay" id="catPopupOverlay" onclick="closeCategoryPopup(event)">
@@ -884,9 +902,9 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-home-trigger{display:
   </div>
 </div>
 
-<script src="world-context.js?v=20260822-world2"></script>
+<script src="world-context.js?v=20260823-cbi-duty1"></script>
 <script src="cloud-sync.js?v=20260822-world1"></script>
-<script src="character-runtime.js?v=20260802-outing1"></script>
+<script src="character-runtime.js?v=20260823-cbi-duty1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 
@@ -927,6 +945,45 @@ function refreshBranchStacks(){
 
 }
 
+const CBI_STAFF_NAMES={jane:'Jane',cho:'Cho',rigsby:'Rigsby',lisbon:'Lisbon',vanpelt:'Van Pelt'};
+let currentCbiDuty=null;
+
+function positionCbiOfficeJane(){
+  var jane=document.getElementById('char-jane');
+  var room=document.getElementById('roomCbiOffice');
+  if(!jane||!room)return;
+  if(jane.parentElement!==room)room.appendChild(jane);
+  charZone.jane='cbi';
+  jane.style.left='76%';
+  jane.style.top='31%';
+  jane.style.zIndex='20';
+}
+
+function renderCbiDutyRoster(){
+  if(getActiveWorldId()!=='cbi'||getActiveLocationId()!=='office'||!window.CharacterRuntime)return;
+  var now=new Date();
+  currentCbiDuty=CharacterRuntime.getCbiDutyRoster(CharacterRuntime.calendarDateStr(now),getCGSlot(now));
+  Object.keys(CBI_STAFF_NAMES).forEach(function(id){
+    var element=document.getElementById('char-'+id);
+    if(!element)return;
+    var present=currentCbiDuty.office.indexOf(id)>=0;
+    if(id==='jane'){
+      element.style.display=present?'':'none';
+      if(present)positionCbiOfficeJane();
+    }else{
+      element.classList.toggle('is-present',present);
+    }
+  });
+}
+
+function onCbiStaffTap(charId,event){
+  event.stopPropagation();
+  if(!currentCbiDuty)renderCbiDutyRoster();
+  var assignment=currentCbiDuty&&currentCbiDuty.assignments[charId];
+  if(!assignment)return;
+  showTip(CBI_STAFF_NAMES[charId]+' · '+(assignment.mode==='office'?'办公室':'外勤')+(assignment.manual?' · 手动安排':' · 自动轮值'));
+}
+
 function applyMod(){
   if(!isLiminalWorld()){
     var isCbiHome=getActiveLocationId()==='home';
@@ -939,23 +996,34 @@ function applyMod(){
       if(bubble)bubble.classList.remove('show');
     });
     var jane=document.getElementById('char-jane');
-    if(jane)jane.style.display='';
+    if(jane)renderCharacterArt('jane','assets/characters/cbi/jane/jane-default.png');
     var awayJane=document.getElementById('away-jane');
     if(awayJane)awayJane.classList.remove('show','break-presence');
     if(isCbiHome){
+      if(jane)jane.style.display='';
+      ['rigsby','vanpelt','lisbon','cho'].forEach(function(id){
+        var staff=document.getElementById('char-'+id);
+        if(staff)staff.classList.remove('is-present');
+      });
       document.getElementById('roomNeal').classList.add('off');
       document.getElementById('roomJane').classList.remove('off');
       document.getElementById('roomWill').classList.add('off','will-off');
       document.getElementById('roomWill').classList.remove('will-on');
       document.getElementById('aptWrap').classList.remove('has-will-room');
       refreshBranchStacks();
+      requestAnimationFrame(function(){placeChar('jane');});
+    }else{
+      renderCbiDutyRoster();
     }
-    applySkin('jane');
-    requestAnimationFrame(function(){placeChar('jane');});
     return;
   }
   document.getElementById('aptWrap').hidden=false;
   document.getElementById('cbiOfficeWrap').hidden=true;
+  ['rigsby','vanpelt','lisbon','cho'].forEach(function(id){
+    var staff=document.getElementById('char-'+id);
+    if(staff)staff.classList.remove('is-present');
+  });
+  applySkin('jane');
   // rooms
   document.getElementById('roomNeal').classList.toggle('off',!modules.neal);
   document.getElementById('roomJane').classList.toggle('off',!modules.jane);
@@ -1646,6 +1714,7 @@ function updateClock(){
   document.getElementById('date').textContent=(now.getMonth()+1)+'月'+now.getDate()+'日 '+days[now.getDay()]+'曜日';
   const nextCGPeriod=getCGDisplayPeriodKey(now);
   if(currentCGPeriodKey&&nextCGPeriod!==currentCGPeriodKey)initCG();
+  if(getActiveWorldId()==='cbi'&&getActiveLocationId()==='office'&&window.CharacterRuntime)renderCbiDutyRoster();
   if(window.__wardrobeReady){
     const nextWardrobeDay=getWardrobeDayKey(now);
     if(window.__wardrobeDayKey!==nextWardrobeDay){
@@ -2349,7 +2418,12 @@ function renderCharacterRuntime(){
   if(!window.CharacterRuntime)return;
   if(!isLiminalWorld()){
     var jane=document.getElementById('char-jane');
-    if(jane){jane.style.display='';applySkin('jane');placeChar('jane');}
+    if(jane)renderCharacterArt('jane','assets/characters/cbi/jane/jane-default.png');
+    if(getActiveLocationId()==='home'){
+      if(jane){jane.style.display='';placeChar('jane');}
+    }else{
+      renderCbiDutyRoster();
+    }
     return;
   }
   ['neal','jane','will'].forEach(function(id){
@@ -3232,6 +3306,17 @@ function selectCbiLocation(locationId) {
 }
 
 /* ═══ WORLD SWITCHING ═══ */
+function openWorldFiles(){
+  var href=window.WorldContext?WorldContext.getRoute('story','story.html'): 'story.html';
+  window.location.href=href;
+}
+
+function updateWorldFilesBlock(){
+  var subtitle=document.getElementById('worldFilesSubtitle');
+  if(!subtitle)return;
+  subtitle.textContent=getActiveWorldId()==='cbi'?'CBI · CASE & PERSONNEL':'夹缝空间 · ARCHIVE';
+}
+
 function applyWorldRoutes(){
   if(!window.WorldContext)return;
   var worldId=WorldContext.getActiveWorldId();
@@ -3266,6 +3351,7 @@ function applyWorldView(){
     applyRoomPkg('jane','default');
   }
   applyWorldRoutes();
+  updateWorldFilesBlock();
   applyMod();
 }
 

@@ -84,7 +84,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .modal label{font-size:11px;color:#999;display:block;margin:12px 0 4px}
 .modal input[type="text"],.modal input[type="date"],.modal textarea{width:100%;font-size:13px;padding:10px 12px;border:1px solid #e8e8e8;border-radius:8px;font-family:inherit;background:#fafafa}
 .modal textarea{height:60px;resize:none}
-.companion-grid{display:flex;gap:10px;margin-top:6px}
+.companion-grid{display:flex;gap:10px;margin-top:6px;flex-wrap:wrap}
 .companion-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 14px;border:2px solid #eee;border-radius:10px;cursor:pointer;background:none;font-family:inherit;transition:all 0.15s}
 .companion-btn.selected{border-color:currentColor}
 .companion-btn.locked{opacity:0.3;pointer-events:none}
@@ -93,6 +93,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .companion-btn.neal{color:#6B8AFF}
 .companion-btn.jane{color:#5BA66B}
 .companion-btn.will{color:#D85A30}
+.assignment-section[hidden]{display:none}
+.assignment-switch{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:6px}
+.assignment-btn{border:1px solid #e8e8e8;background:#fafafa;color:#aaa;border-radius:9px;padding:9px 10px;font:inherit;font-size:11px;cursor:pointer}
+.assignment-btn.selected{border-color:#B89B62;background:#FFF9ED;color:#8B7141}
+.duty-preview{border:1px solid #f0ece4;background:#fffdf9;border-radius:10px;padding:10px 12px;margin-bottom:12px}
+.duty-preview-title{font-size:9px;letter-spacing:1.2px;color:#c0aa7d;text-transform:uppercase;margin-bottom:7px}
+.duty-row{display:grid;grid-template-columns:48px minmax(0,1fr);gap:8px;font-size:10px;line-height:1.7;color:#aaa}
+.duty-row strong{font-weight:500;color:#777}
+.duty-name.manual::after{content:' · 手动';font-size:8px;color:#c0aa7d}
 .modal-btns{display:flex;gap:10px;margin-top:20px}
 .modal-btns button{flex:1;padding:12px;border:none;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit}
 .btn-cancel{background:#f5f5f5;color:#999}
@@ -147,7 +156,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <input type="text" id="evtTitle" placeholder="做什么" maxlength="100">
     <label>备注</label>
     <textarea id="evtNote" placeholder="可选"></textarea>
-    <label>陪伴角色</label>
+    <div class="assignment-section" id="assignmentSection" hidden>
+      <label>工作地点</label>
+      <div class="assignment-switch">
+        <button class="assignment-btn selected" type="button" data-assignment="field" onclick="setAssignment('field')">外勤</button>
+        <button class="assignment-btn" type="button" data-assignment="office" onclick="setAssignment('office')">留在办公室</button>
+      </div>
+    </div>
+    <label id="companionLabel">陪伴角色</label>
     <div class="companion-grid" id="companionGrid"></div>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="closeModal('eventModal')">取消</button>
@@ -174,9 +190,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 <div id="toast" style="position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.7);color:#fff;font-size:11px;padding:8px 16px;border-radius:8px;display:none;z-index:300"></div>
 
-<script src="world-context.js?v=20260822-world2"></script>
+<script src="world-context.js?v=20260823-cbi-duty1"></script>
 <script src="cloud-sync.js?v=20260822-schedule1"></script>
-<script src="character-runtime.js?v=20260822-schedule1"></script>
+<script src="character-runtime.js?v=20260823-cbi-duty1"></script>
 <script>
 'use strict';
 
@@ -299,8 +315,10 @@ function renderDetail(ds) {
   wrap.innerHTML = '';
   var allEvts = CharacterRuntime.getScheduleEventsForDate(ds, WORLD_ID);
 
+  if (WORLD_ID === 'cbi') renderDutyPreview(wrap, ds);
+
   if (!allEvts.length) {
-    wrap.innerHTML = '<div class="detail-empty">这一天还没有安排</div>';
+    wrap.insertAdjacentHTML('beforeend', '<div class="detail-empty">这一天还没有手动安排</div>');
     return;
   }
 
@@ -320,7 +338,7 @@ function renderDetail(ds) {
 
     var tagHtml = item.type === 'schedule'
       ? '<span class="detail-tag schedule">日程包</span>'
-      : '<span class="detail-tag date">个人</span>';
+      : '<span class="detail-tag date">' + (WORLD_ID === 'cbi' && evt.assignment ? (evt.assignment === 'field' ? '外勤' : '办公室') : '个人') + '</span>';
 
     var actionsHtml = '';
     if (item.type === 'user') {
@@ -340,6 +358,22 @@ function renderDetail(ds) {
   });
 }
 
+function renderDutyPreview(wrap, ds) {
+  var duty = CharacterRuntime.getCbiDutyRoster(ds, 'day');
+  var panel = document.createElement('div');
+  panel.className = 'duty-preview';
+  function names(ids) {
+    return ids.map(function (id) {
+      var manual = duty.assignments[id] && duty.assignments[id].manual ? ' manual' : '';
+      return '<span class="duty-name' + manual + '">' + esc(CHAR_META[id] ? CHAR_META[id].name : id) + '</span>';
+    }).join(' · ') || '—';
+  }
+  panel.innerHTML = '<div class="duty-preview-title">CBI · DAY SHIFT</div>' +
+    '<div class="duty-row"><strong>办公室</strong><span>' + names(duty.office) + '</span></div>' +
+    '<div class="duty-row"><strong>外勤</strong><span>' + names(duty.field) + '</span></div>';
+  wrap.appendChild(panel);
+}
+
 function prevWeek() { weekStart = addDays(weekStart, -7); render(); }
 function nextWeek() { weekStart = addDays(weekStart, 7); render(); }
 function goToday() {
@@ -353,11 +387,12 @@ function goToday() {
 
 function openAddEvent() {
   editingEventId = null;
-  document.getElementById('modalTitle').textContent = '添加事件';
+  document.getElementById('modalTitle').textContent = WORLD_ID === 'cbi' ? '安排人员' : '添加事件';
   document.getElementById('evtDate').value = selectedDate || dateStr(new Date());
   document.getElementById('evtTitle').value = '';
   document.getElementById('evtNote').value = '';
   document.getElementById('deleteWrap').style.display = 'none';
+  if (WORLD_ID === 'cbi') setAssignment('field');
   renderCompanions(selectedDate || dateStr(new Date()), []);
   showModal('eventModal');
 }
@@ -367,13 +402,25 @@ function editEvent(id) {
   var evt = data.events.find(function (e) { return e.id === id; });
   if (!evt) return;
   editingEventId = id;
-  document.getElementById('modalTitle').textContent = '编辑事件';
+  document.getElementById('modalTitle').textContent = WORLD_ID === 'cbi' ? '编辑人员调度' : '编辑事件';
   document.getElementById('evtDate').value = evt.date;
   document.getElementById('evtTitle').value = evt.title;
   document.getElementById('evtNote').value = evt.note || '';
   document.getElementById('deleteWrap').style.display = 'block';
+  if (WORLD_ID === 'cbi') setAssignment(evt.assignment || 'field');
   renderCompanions(evt.date, evt.companions || []);
   showModal('eventModal');
+}
+
+function setAssignment(value) {
+  document.querySelectorAll('.assignment-btn').forEach(function (button) {
+    button.classList.toggle('selected', button.getAttribute('data-assignment') === value);
+  });
+}
+
+function getSelectedAssignment() {
+  var selected = document.querySelector('.assignment-btn.selected');
+  return selected ? selected.getAttribute('data-assignment') : 'field';
 }
 
 function renderCompanions(dateStr, selected) {
@@ -421,11 +468,15 @@ function saveEvent() {
   });
   if (editingEventId) {
     CharacterRuntime.updateUserEvent(editingEventId, {
-      title: title, date: date, note: note, companions: companions
+      title: title, date: date, note: note, companions: companions,
+      category: WORLD_ID === 'cbi' ? 'dispatch' : 'personal',
+      assignment: WORLD_ID === 'cbi' ? getSelectedAssignment() : ''
     }, WORLD_ID);
   } else {
     CharacterRuntime.addUserEvent({
-      title: title, date: date, note: note, companions: companions, category: 'personal'
+      title: title, date: date, note: note, companions: companions,
+      category: WORLD_ID === 'cbi' ? 'dispatch' : 'personal',
+      assignment: WORLD_ID === 'cbi' ? getSelectedAssignment() : ''
     }, WORLD_ID);
   }
   closeModal('eventModal');
@@ -500,6 +551,11 @@ function esc(value){var div=document.createElement('div');div.textContent=String
 function renderLegend(){var html='<div class="legend-item"><div class="legend-dot" style="background:#E8B96A"></div>You</div>';CHARS.forEach(function(id){html+='<div class="legend-item"><div class="legend-dot" style="background:'+CHAR_META[id].color+'"></div>'+esc(CHAR_META[id].name)+'</div>';});document.getElementById('legend').innerHTML=html;}
 document.body.dataset.worldId=WORLD_ID;
 document.querySelector('.top-bar h1').textContent='Schedule · '+(WORLD_META[WORLD_ID]||WORLD_META.liminal).label;
+if(WORLD_ID==='cbi'){
+  document.getElementById('assignmentSection').hidden=false;
+  document.getElementById('companionLabel').textContent='调度人员';
+  document.getElementById('evtTitle').placeholder='现场调查、办公室查资料……';
+}
 renderLegend();
 CharacterRuntime.init();
 selectedDate = dateStr(new Date());

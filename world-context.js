@@ -40,7 +40,7 @@
         office: { id: 'office', label: 'CBI办公室', description: 'Serious Crimes Unit' },
         home: { id: 'home', label: 'Boss家', description: "Boss's Home · Guest Room" }
       },
-      characters: ['jane'],
+      characters: ['jane', 'cho', 'rigsby', 'lisbon', 'vanpelt'],
       banner: 'location',
       routes: {
         daily: 'world-empty.html?module=daily',

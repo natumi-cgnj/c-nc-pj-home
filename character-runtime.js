@@ -895,6 +895,14 @@
     liminal: ['neal', 'jane', 'will'],
     cbi: ['jane', 'cho', 'rigsby', 'lisbon', 'vanpelt']
   };
+  const CBI_FIELD_PROBABILITY = {
+    rigsby: 0.72,
+    cho: 0.68,
+    lisbon: 0.42,
+    jane: 0.18,
+    vanpelt: 0.14
+  };
+  const CBI_MAX_AUTO_OFFICE = 3;
 
   function activeScheduleWorldId() {
     return window.WorldContext && WorldContext.getActiveWorldId ? WorldContext.getActiveWorldId() : 'liminal';
@@ -1042,14 +1050,17 @@
     const companions = Array.isArray(eventData.companions) ? eventData.companions.filter(function (id) {
       return (SCHEDULE_CHARACTERS[target] || []).indexOf(id) >= 0;
     }) : [];
+    const assignment = target === 'cbi' && (eventData.assignment === 'field' || eventData.assignment === 'office') ? eventData.assignment : '';
+    const worldScoped = companions.length > 0 || !!assignment;
     const event = {
       id: generateId('uevt'),
       title: String(eventData.title || '').trim(),
       date: eventData.date,
       companions: companions,
-      scope: companions.length ? 'world' : 'global',
-      worldId: companions.length ? target : null,
+      scope: worldScoped ? 'world' : 'global',
+      worldId: worldScoped ? target : null,
       category: eventData.category || 'personal',
+      assignment: assignment,
       note: String(eventData.note || '').trim()
     };
     data.events.push(event);
@@ -1071,10 +1082,17 @@
     if (changes.title !== undefined) event.title = String(changes.title).trim();
     if (changes.date !== undefined) event.date = changes.date;
     if (changes.note !== undefined) event.note = String(changes.note).trim();
+    if (changes.category !== undefined) event.category = String(changes.category || 'personal');
+    if (changes.assignment !== undefined) {
+      event.assignment = target === 'cbi' && (changes.assignment === 'field' || changes.assignment === 'office') ? changes.assignment : '';
+    }
     if (changes.companions !== undefined) {
       event.companions = changes.companions.filter(function (id) { return (SCHEDULE_CHARACTERS[target] || []).indexOf(id) >= 0; });
-      event.scope = event.companions.length ? 'world' : 'global';
-      event.worldId = event.companions.length ? target : null;
+    }
+    if (event.companions !== undefined || changes.assignment !== undefined) {
+      const worldScoped = event.companions.length > 0 || !!event.assignment;
+      event.scope = worldScoped ? 'world' : 'global';
+      event.worldId = worldScoped ? target : null;
     }
     saveUserEvents(data);
     return true;
@@ -1088,6 +1106,99 @@
       (event.participants || []).forEach(function (id) { locked[id] = event.title; });
     });
     return locked;
+  }
+
+  function stableScheduleUnit(seed) {
+    let hash = 2166136261;
+    const text = String(seed || '');
+    for (let i = 0; i < text.length; i++) {
+      hash ^= text.charCodeAt(i);
+      hash = Math.imul(hash, 16777619);
+    }
+    return (hash >>> 0) / 4294967296;
+  }
+
+  function getCbiManualAssignments(dateStr) {
+    const assignments = {};
+    getScheduleEventsForDate(dateStr, 'cbi').forEach(function (item) {
+      const event = item.event || {};
+      const assignment = event.assignment;
+      if (assignment !== 'field' && assignment !== 'office') return;
+      const participants = event.participants || event.companions || [];
+      participants.forEach(function (charId) {
+        if (SCHEDULE_CHARACTERS.cbi.indexOf(charId) < 0) return;
+        assignments[charId] = {
+          mode: assignment,
+          title: event.title || (assignment === 'field' ? '外勤' : '办公室'),
+          source: item.type,
+          manual: true
+        };
+      });
+    });
+    return assignments;
+  }
+
+  function getCbiDutyRoster(dateStr, periodKey) {
+    const date = dateStr || calendarDateStr();
+    const period = periodKey || timeSlot();
+    const manual = getCbiManualAssignments(date);
+    const assignments = {};
+    const automaticOffice = [];
+
+    SCHEDULE_CHARACTERS.cbi.forEach(function (charId) {
+      if (manual[charId]) {
+        assignments[charId] = manual[charId];
+        return;
+      }
+      const fieldProbability = CBI_FIELD_PROBABILITY[charId];
+      const roll = stableScheduleUnit('cbi-duty|' + date + '|' + period + '|' + charId);
+      const mode = roll < fieldProbability ? 'field' : 'office';
+      assignments[charId] = {
+        mode: mode,
+        title: mode === 'field' ? '外勤中' : '办公室值班',
+        source: 'automatic',
+        manual: false,
+        roll: roll
+      };
+      if (mode === 'office') {
+        automaticOffice.push({
+          id: charId,
+          stayRank: (1 - fieldProbability) + stableScheduleUnit('cbi-stay|' + date + '|' + period + '|' + charId) * 0.55
+        });
+      }
+    });
+
+    const manualOfficeCount = Object.keys(assignments).filter(function (charId) {
+      return assignments[charId].manual && assignments[charId].mode === 'office';
+    }).length;
+    const automaticOfficeLimit = Math.max(0, CBI_MAX_AUTO_OFFICE - manualOfficeCount);
+    automaticOffice.sort(function (a, b) { return b.stayRank - a.stayRank; });
+    automaticOffice.slice(automaticOfficeLimit).forEach(function (entry) {
+      assignments[entry.id].mode = 'field';
+      assignments[entry.id].title = '外勤中';
+    });
+
+    let office = SCHEDULE_CHARACTERS.cbi.filter(function (charId) { return assignments[charId].mode === 'office'; });
+    if (!office.length) {
+      const fallback = SCHEDULE_CHARACTERS.cbi.filter(function (charId) {
+        return !assignments[charId].manual;
+      }).sort(function (a, b) {
+        return CBI_FIELD_PROBABILITY[a] - CBI_FIELD_PROBABILITY[b];
+      })[0];
+      if (fallback) {
+        assignments[fallback].mode = 'office';
+        assignments[fallback].title = '办公室值班';
+        office = [fallback];
+      }
+    }
+
+    return {
+      date: date,
+      period: period,
+      assignments: assignments,
+      office: office,
+      field: SCHEDULE_CHARACTERS.cbi.filter(function (charId) { return assignments[charId].mode === 'field'; })
+    };
   }
 
   window.CharacterRuntime = {
@@ -1166,6 +1277,8 @@
     getScheduleEventsForDate: getScheduleEventsForDate,
     isCharScheduleLocked: isCharScheduleLocked,
     getUnavailableCharacters: getUnavailableCharacters,
+    getCbiManualAssignments: getCbiManualAssignments,
+    getCbiDutyRoster: getCbiDutyRoster,
     calendarDateStr: calendarDateStr,
     scheduleCharacters: SCHEDULE_CHARACTERS,
     exportSchedulePacks: function (worldId) {

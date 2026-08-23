@@ -25,6 +25,9 @@ test('one homepage hosts both apartment and CBI scenes', () => {
   assert.match(index, /JANE_CBI_OFFICE_LINES/);
   assert.match(index, /JANE_CBI_BOSS_LINES/);
   assert.doesNotMatch(index, /openRoomPkgSheet/);
+  for (const id of ['char-cho', 'char-rigsby', 'char-lisbon', 'char-vanpelt']) {
+    assert.match(index, new RegExp(`id="${id}"`));
+  }
 });
 
 test('CBI locations have separate day and night banner scenes', () => {
@@ -93,10 +96,25 @@ test('CBI locations reuse the apartment room-label typography and pastel palette
   assert.match(officeCss, /background:rgba\(91,166,107,/);
 });
 
+test('room portraits stay behind the fullscreen CG', () => {
+  assert.match(index, /\.cg-fullscreen\.show~\.apt-wrap \.char-sprite/);
+  assert.match(index, /\.cg-fullscreen\.show~\.cbi-office-wrap \.char-sprite/);
+});
+
 test('schedule page is world-aware and never auto-imports sample events', () => {
   assert.match(schedule, /WorldContext\.getActiveWorldId\(\)/);
   assert.match(schedule, /getScheduleEventsForDate\(ds, WORLD_ID\)/);
+  assert.match(schedule, /data-assignment="field"/);
+  assert.match(schedule, /data-assignment="office"/);
+  assert.match(schedule, /getCbiDutyRoster\(ds, 'day'\)/);
   assert.doesNotMatch(schedule, /loadSamplePack|will_concert_osaka|Dutchman/);
+});
+
+test('desktop world files opens the active world archive beneath the existing four blocks', () => {
+  assert.match(index, /id="worldFilesBlock"/);
+  assert.match(index, /class="db-label">WORLD FILES</);
+  assert.match(index, /WorldContext\.getRoute\('story','story\.html'\)/);
+  assert.match(index, /\.db-world-files\{grid-column:1\/-1/);
 });
 
 test('desktop Notes cannot resize or recenter the room column', () => {

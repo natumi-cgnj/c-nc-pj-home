@@ -116,3 +116,33 @@ test('schedule packs validate against each world roster and only fixed packs loc
   runtime.importSchedulePack(flexible, 'replace', 'cbi');
   assert.equal(runtime.isCharScheduleLocked('jane', '2026-08-22', 'cbi'), null);
 });
+
+test('CBI dispatch overrides the deterministic automatic duty roster', () => {
+  const { runtime } = loadRuntime({}, 'cbi');
+  runtime.addUserEvent({
+    title: '现场调查',
+    date: '2026-08-23',
+    companions: ['jane', 'vanpelt'],
+    category: 'dispatch',
+    assignment: 'field'
+  }, 'cbi');
+  runtime.addUserEvent({
+    title: '办公室查资料',
+    date: '2026-08-23',
+    companions: ['cho'],
+    category: 'dispatch',
+    assignment: 'office'
+  }, 'cbi');
+
+  const duty = runtime.getCbiDutyRoster('2026-08-23', 'day');
+  assert.equal(duty.assignments.jane.mode, 'field');
+  assert.equal(duty.assignments.jane.manual, true);
+  assert.equal(duty.assignments.vanpelt.mode, 'field');
+  assert.equal(duty.assignments.cho.mode, 'office');
+  assert.equal(duty.assignments.cho.manual, true);
+  assert.ok(duty.office.length <= 3);
+
+  const repeated = runtime.getCbiDutyRoster('2026-08-23', 'day');
+  assert.deepEqual(Array.from(repeated.office), Array.from(duty.office));
+  assert.deepEqual(Array.from(repeated.field), Array.from(duty.field));
+});
