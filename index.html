@@ -1333,13 +1333,60 @@ const CG_SLOT_META={
     {id:'night-return',name:'取完快递回家',src:'第一视角取完快递回家.png',tag:'おかえり',weight:1}
   ]}
 };
+const CBI_CG_SLOT_META={
+  office:{
+    morning:{label:'清晨',range:'06:00–10:59',builtins:[{id:'cbi-office-day',name:'CBI办公室 · 白日',src:'assets/cg/cbi/office-day.webp',tag:'',weight:1}]},
+    day:{label:'白天',range:'11:00–16:59',builtins:[{id:'cbi-office-day',name:'CBI办公室 · 白日',src:'assets/cg/cbi/office-day.webp',tag:'',weight:1}]},
+    evening:{label:'傍晚',range:'17:00–21:59',builtins:[{id:'cbi-office-night',name:'CBI办公室 · 深夜',src:'assets/cg/cbi/office-night.webp',tag:'',weight:1}]},
+    night:{label:'夜间',range:'22:00–次日 05:59',builtins:[{id:'cbi-office-night',name:'CBI办公室 · 深夜',src:'assets/cg/cbi/office-night.webp',tag:'',weight:1}]}
+  },
+  home:{
+    morning:{label:'清晨',range:'06:00–10:59',builtins:[{id:'cbi-home-day',name:'Boss家 · 晨光',src:'assets/cg/cbi/home-day.webp',tag:'おはよう',weight:1}]},
+    day:{label:'白天',range:'11:00–16:59',builtins:[{id:'cbi-home-day',name:'Boss家 · 晨光',src:'assets/cg/cbi/home-day.webp',tag:'',weight:1}]},
+    evening:{label:'傍晚',range:'17:00–21:59',builtins:[{id:'cbi-home-night',name:'Boss家 · 夜景',src:'assets/cg/cbi/home-night.webp',tag:'',weight:1}]},
+    night:{label:'夜间',range:'22:00–次日 05:59',builtins:[{id:'cbi-home-night',name:'Boss家 · 夜景',src:'assets/cg/cbi/home-night.webp',tag:'おやすみ',weight:1}]}
+  }
+};
 let currentCGPeriodKey='';
 let currentCGLibrarySlot='morning';
+let currentCGLibraryContextId='';
 let pendingCGDeleteId='';
+
+function getCGContextId(){
+  return getActiveWorldId()==='cbi'?'cbi:'+getActiveLocationId():'liminal';
+}
+function getCGSlotMeta(contextId){
+  const target=contextId||getCGContextId();
+  if(target.startsWith('cbi:'))return CBI_CG_SLOT_META[target.split(':')[1]]||CBI_CG_SLOT_META.office;
+  return CG_SLOT_META;
+}
+function getCGDismissedStorageKey(contextId){
+  const target=contextId||getCGContextId();
+  if(target==='liminal')return CG_DISMISSED_PERIOD_KEY;
+  const parts=target.split(':');
+  return CG_DISMISSED_PERIOD_KEY+'__world__'+parts[0]+'__location__'+(parts[1]||'default');
+}
+function getCGDisplayPeriodKey(now,contextId){
+  return (contextId||getCGContextId())+'|'+getCGPeriodKey(now);
+}
 
 function readCGJson(key,fallback){
   try{const value=JSON.parse(localStorage.getItem(key));return value&&typeof value==='object'?value:fallback;}
   catch(e){return fallback;}
+}
+function readCGContextJson(baseKey,contextId){
+  const target=contextId||getCGContextId();
+  const raw=readCGJson(baseKey,{});
+  if(raw.contexts&&typeof raw.contexts==='object')return raw.contexts[target]||{};
+  return target==='liminal'?raw:{};
+}
+function writeCGContextJson(baseKey,contextId,value){
+  const target=contextId||getCGContextId();
+  const raw=readCGJson(baseKey,{});
+  const contexts=raw.contexts&&typeof raw.contexts==='object'?Object.assign({},raw.contexts):{};
+  if(!raw.contexts&&Object.keys(raw).length)contexts.liminal=raw;
+  contexts[target]=value;
+  localStorage.setItem(baseKey,JSON.stringify({version:2,contexts}));
 }
 function getCGSlot(now){
   const h=(now||new Date()).getHours();
@@ -1355,26 +1402,31 @@ function getCGPeriodKey(now){
   const y=date.getFullYear(),m=String(date.getMonth()+1).padStart(2,'0'),d=String(date.getDate()).padStart(2,'0');
   return y+'-'+m+'-'+d+':'+slot;
 }
-function loadCGLibrary(){
-  const raw=readCGJson(CG_LIBRARY_KEY,{});
+function loadCGLibrary(contextId){
+  const target=contextId||getCGContextId();
+  const meta=getCGSlotMeta(target);
+  const raw=readCGContextJson(CG_LIBRARY_KEY,target);
   const source=raw.slots&&typeof raw.slots==='object'?raw.slots:{};
   const slots={};
   CG_SLOT_ORDER.forEach(slot=>{
     const saved=source[slot]&&typeof source[slot]==='object'?source[slot]:{};
     const custom=Array.isArray(saved.custom)?saved.custom.filter(item=>item&&item.id&&item.src):[];
-    const allIds=CG_SLOT_META[slot].builtins.map(item=>item.id).concat(custom.map(item=>item.id));
+    const allIds=meta[slot].builtins.map(item=>item.id).concat(custom.map(item=>item.id));
     const selected=Array.isArray(saved.selected)?[...new Set(saved.selected)].filter(id=>allIds.includes(id)):allIds.slice();
     slots[slot]={selected:selected.length?selected:allIds.slice(0,1),custom};
   });
-  return{version:1,slots};
+  return{version:1,contextId:target,slots};
 }
 function saveCGLibrary(library){
-  try{localStorage.setItem(CG_LIBRARY_KEY,JSON.stringify(library));return true;}
+  const target=library.contextId||getCGContextId();
+  try{writeCGContextJson(CG_LIBRARY_KEY,target,{version:1,slots:library.slots});return true;}
   catch(e){showTip('保存失败，浏览器空间不足');return false;}
 }
 function getCGItems(slot,library){
-  const meta=CG_SLOT_META[slot]||CG_SLOT_META.day;
-  const custom=(library||loadCGLibrary()).slots[slot].custom;
+  const activeLibrary=library||loadCGLibrary();
+  const slotMeta=getCGSlotMeta(activeLibrary.contextId);
+  const meta=slotMeta[slot]||slotMeta.day;
+  const custom=activeLibrary.slots[slot].custom;
   return meta.builtins.concat(custom.map(item=>Object.assign({tag:'',weight:1,custom:true},item)));
 }
 function pickWeightedCG(items){
@@ -1385,19 +1437,20 @@ function pickWeightedCG(items){
 }
 function getCurrentCG(now){
   const date=now||new Date();
+  const contextId=getCGContextId();
   const slot=getCGSlot(date);
-  const periodKey=getCGPeriodKey(date);
-  const library=loadCGLibrary();
+  const periodKey=getCGDisplayPeriodKey(date,contextId);
+  const library=loadCGLibrary(contextId);
   const items=getCGItems(slot,library);
-  const saved=readCGJson(CG_PERIOD_STATE_KEY,{});
+  const saved=readCGContextJson(CG_PERIOD_STATE_KEY,contextId);
   let item=saved.periodKey===periodKey&&saved.slot===slot?items.find(entry=>entry.id===saved.cgId):null;
   if(!item){
     const selected=library.slots[slot].selected;
     const pool=items.filter(entry=>selected.includes(entry.id));
     item=pickWeightedCG(pool.length?pool:items);
-    if(item)localStorage.setItem(CG_PERIOD_STATE_KEY,JSON.stringify({periodKey,slot,cgId:item.id}));
+    if(item)writeCGContextJson(CG_PERIOD_STATE_KEY,contextId,{periodKey,slot,cgId:item.id});
   }
-  return{periodKey,slot,item};
+  return{contextId,periodKey,slot,item};
 }
 function setCGImageSource(image,src){
   if(!image)return;
@@ -1408,7 +1461,7 @@ function initCG(){
   const current=getCurrentCG(new Date());
   currentCGPeriodKey=current.periodKey;
   const banner=document.getElementById('cgBanner');
-  const dismissed=localStorage.getItem(CG_DISMISSED_PERIOD_KEY)===currentCGPeriodKey;
+  const dismissed=localStorage.getItem(getCGDismissedStorageKey(current.contextId))===currentCGPeriodKey;
   banner.style.display=dismissed?'none':'';
   if(!current.item){banner.style.display='none';return;}
   const img=document.getElementById('cgImg');
@@ -1418,12 +1471,16 @@ function initCG(){
     banner.style.display='none';
   };
   setCGImageSource(img,current.item.src);
-  setCGImageSource(document.getElementById('cgFullImg'),current.item.src);
+  img.alt=current.item.name||'Scene';
+  const fullImage=document.getElementById('cgFullImg');
+  setCGImageSource(fullImage,current.item.src);
+  fullImage.alt=current.item.name||'Scene';
   document.getElementById('cgTimeTag').textContent='Schedule';
 }
 function closeCgBanner(event){
   if(event)event.stopPropagation();
-  localStorage.setItem(CG_DISMISSED_PERIOD_KEY,currentCGPeriodKey||getCGPeriodKey(new Date()));
+  const contextId=getCGContextId();
+  localStorage.setItem(getCGDismissedStorageKey(contextId),currentCGPeriodKey||getCGDisplayPeriodKey(new Date(),contextId));
   document.getElementById('cgBanner').style.display='none';
 }
 function openCgFull(){document.getElementById('cgFull').classList.add('show');}
@@ -1431,6 +1488,7 @@ function closeCgFull(){document.getElementById('cgFull').classList.remove('show'
 
 function openCGLibrary(event){
   if(event)event.stopPropagation();
+  currentCGLibraryContextId=getCGContextId();
   currentCGLibrarySlot=getCGSlot(new Date());
   pendingCGDeleteId='';
   renderCGLibrary();
@@ -1442,7 +1500,7 @@ function closeCGLibrary(event){
   pendingCGDeleteId='';
 }
 function setCGLibrarySlot(slot){
-  if(!CG_SLOT_META[slot])return;
+  if(!getCGSlotMeta(currentCGLibraryContextId)[slot])return;
   currentCGLibrarySlot=slot;
   pendingCGDeleteId='';
   renderCGLibrary();
@@ -1454,17 +1512,18 @@ function makeCGNode(tag,className,textValue){
   return node;
 }
 function renderCGLibrary(){
-  const library=loadCGLibrary(),slot=currentCGLibrarySlot,slotState=library.slots[slot];
+  const library=loadCGLibrary(currentCGLibraryContextId),slot=currentCGLibrarySlot,slotState=library.slots[slot];
+  const slotMeta=getCGSlotMeta(library.contextId);
   const tabs=document.getElementById('cgTabs');
   tabs.replaceChildren();
   CG_SLOT_ORDER.forEach(id=>{
-    const button=makeCGNode('button','cg-tab'+(id===slot?' active':''),CG_SLOT_META[id].label);
+    const button=makeCGNode('button','cg-tab'+(id===slot?' active':''),slotMeta[id].label);
     button.type='button';
     button.addEventListener('click',()=>setCGLibrarySlot(id));
     tabs.appendChild(button);
   });
   const items=getCGItems(slot,library);
-  document.getElementById('cgLibrarySummary').textContent=CG_SLOT_META[slot].range+' · 库存 '+items.length+' 张 · 已选 '+slotState.selected.length+' 张（下个时段生效）';
+  document.getElementById('cgLibrarySummary').textContent=slotMeta[slot].range+' · 库存 '+items.length+' 张 · 已选 '+slotState.selected.length+' 张（下个时段生效）';
   const grid=document.getElementById('cgLibraryGrid');
   grid.replaceChildren();
   items.forEach(item=>{
@@ -1493,7 +1552,7 @@ function renderCGLibrary(){
   bar.classList.toggle('show',!!pendingCGDeleteId);
 }
 function toggleCGCandidate(itemId){
-  const library=loadCGLibrary(),slotState=library.slots[currentCGLibrarySlot];
+  const library=loadCGLibrary(currentCGLibraryContextId),slotState=library.slots[currentCGLibrarySlot];
   const index=slotState.selected.indexOf(itemId);
   if(index>=0){
     if(slotState.selected.length===1){showTip('这个时段至少保留一张候选');return;}
@@ -1504,26 +1563,26 @@ function toggleCGCandidate(itemId){
 function requestCGDelete(itemId,event){
   if(event)event.stopPropagation();
   pendingCGDeleteId=itemId;
-  const item=getCGItems(currentCGLibrarySlot,loadCGLibrary()).find(entry=>entry.id===itemId);
+  const item=getCGItems(currentCGLibrarySlot,loadCGLibrary(currentCGLibraryContextId)).find(entry=>entry.id===itemId);
   document.getElementById('cgDeleteText').textContent='删除“'+(item&&item.name||'这张 CG')+'”？';
   renderCGLibrary();
 }
 function cancelCGDelete(){pendingCGDeleteId='';renderCGLibrary();}
 async function confirmCGDelete(){
   if(!pendingCGDeleteId)return;
-  const library=loadCGLibrary(),slot=currentCGLibrarySlot,slotState=library.slots[slot];
+  const library=loadCGLibrary(currentCGLibraryContextId),slot=currentCGLibrarySlot,slotState=library.slots[slot];
   const item=slotState.custom.find(entry=>entry.id===pendingCGDeleteId);
   if(!item){cancelCGDelete();return;}
   slotState.custom=slotState.custom.filter(entry=>entry.id!==pendingCGDeleteId);
   slotState.selected=slotState.selected.filter(id=>id!==pendingCGDeleteId);
   if(!slotState.selected.length){
-    const fallback=CG_SLOT_META[slot].builtins[0];
+    const fallback=getCGSlotMeta(library.contextId)[slot].builtins[0];
     if(fallback)slotState.selected=[fallback.id];
   }
   if(!saveCGLibrary(library))return;
-  const saved=readCGJson(CG_PERIOD_STATE_KEY,{});
+  const saved=readCGContextJson(CG_PERIOD_STATE_KEY,library.contextId);
   if(saved.slot===slot&&saved.cgId===pendingCGDeleteId){
-    localStorage.removeItem(CG_PERIOD_STATE_KEY);
+    writeCGContextJson(CG_PERIOD_STATE_KEY,library.contextId,{});
     initCG();
   }
   if(item.src&&String(item.src).startsWith('cloud://')&&window.CloudSync){
@@ -1558,17 +1617,19 @@ async function handleCGUpload(input){
   const file=input.files&&input.files[0];
   input.value='';
   if(!file)return;
+  const contextId=currentCGLibraryContextId||getCGContextId();
   const slot=currentCGLibrarySlot,id='custom_'+Date.now();
   try{
     showTip('正在保存 CG…');
     const dataUrl=await resizeCGFile(file);
     if(!window.CloudSync||typeof CloudSync.uploadDataUrl!=='function')throw new Error('Cloud upload unavailable');
-    const src=await CloudSync.uploadDataUrl(dataUrl,'cg/'+slot+'/'+id+'.webp');
-    const library=loadCGLibrary();
+    const contextFolder=contextId==='liminal'?'cg':'cg/'+contextId.replace(':','/');
+    const src=await CloudSync.uploadDataUrl(dataUrl,contextFolder+'/'+slot+'/'+id+'.webp');
+    const library=loadCGLibrary(contextId);
     library.slots[slot].custom.push({id,name:(file.name||'自定义 CG').replace(/\.[^.]+$/,''),src,tag:'',weight:1});
     library.slots[slot].selected.push(id);
     if(!saveCGLibrary(library)){await CloudSync.deleteAsset(src);return;}
-    showTip('已加入 '+CG_SLOT_META[slot].label+' Scenes');
+    showTip('已加入 '+getCGSlotMeta(contextId)[slot].label+' Scenes');
     renderCGLibrary();
   }catch(e){
     console.error('CG upload failed:',e);
@@ -1583,7 +1644,7 @@ function updateClock(){
   document.getElementById('clock').textContent=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
   const days=['日','月','火','水','木','金','土'];
   document.getElementById('date').textContent=(now.getMonth()+1)+'月'+now.getDate()+'日 '+days[now.getDay()]+'曜日';
-  const nextCGPeriod=getCGPeriodKey(now);
+  const nextCGPeriod=getCGDisplayPeriodKey(now);
   if(currentCGPeriodKey&&nextCGPeriod!==currentCGPeriodKey)initCG();
   if(window.__wardrobeReady){
     const nextWardrobeDay=getWardrobeDayKey(now);
@@ -3190,6 +3251,7 @@ function applyWorldView(){
   document.getElementById('worldHeaderTitle').textContent=world.title;
   document.getElementById('worldHeaderSubtitle').textContent=world.subtitle;
   document.getElementById('cgBanner').classList.toggle('world-banner-empty',world.banner==='empty');
+  initCG();
   closeCbiLocationSheet(null);
   if(world.id==='cbi'){
     if(locationId==='home'){

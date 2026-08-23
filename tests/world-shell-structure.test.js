@@ -27,6 +27,19 @@ test('one homepage hosts both apartment and CBI scenes', () => {
   assert.doesNotMatch(index, /openRoomPkgSheet/);
 });
 
+test('CBI locations have separate day and night banner scenes', () => {
+  assert.match(index, /const CBI_CG_SLOT_META=/);
+  for (const file of ['home-day.webp', 'home-night.webp', 'office-day.webp', 'office-night.webp']) {
+    assert.match(index, new RegExp(`assets/cg/cbi/${file.replace('.', '\\.')}`));
+    assert.ok(fs.existsSync(`assets/cg/cbi/${file}`), `${file} should exist`);
+  }
+  assert.match(index, /return getActiveWorldId\(\)==='cbi'\?'cbi:'\+getActiveLocationId\(\):'liminal'/);
+  assert.match(index, /readCGContextJson\(CG_LIBRARY_KEY,target\)/);
+  assert.match(index, /localStorage\.setItem\(baseKey,JSON\.stringify\(\{version:2,contexts\}\)\)/);
+  assert.match(index, /function applyWorldView\(\)[\s\S]*?initCG\(\)/);
+  assert.match(fs.readFileSync('world-context.js', 'utf8'), /banner: 'location'/);
+});
+
 test('world-sensitive entries use stable identities instead of mutable hrefs', () => {
   for (const id of ['daily-habits', 'daily-todo', 'daily-drop', 'wallet', 'kitchen', 'story', 'dungeon', 'shop', 'gacha']) {
     assert.match(index, new RegExp(`data-entry-id="${id}"`));
@@ -68,7 +81,7 @@ test('food archive stays global while meals and recipes switch world layers', ()
 
 test('CBI locations reuse the apartment room-label typography and pastel palette', () => {
   assert.match(index, /\.cbi-location-trigger\{[^}]*font-family:inherit;font-size:8px;font-weight:500;[^}]*letter-spacing:1\.2px/);
-  assert.match(index, /\.cbi-office \.room-inner\{overflow:hidden;background:#fff\}/);
+  assert.match(index, /\.cbi-office \.room-inner\{overflow:hidden;border-radius:inherit;background:#fff\}/);
   assert.match(index, /roomLabelColor: '#E8B96A'/);
   const officeCss = index.slice(index.indexOf('/* ── World shell / CBI office ── */'), index.indexOf('/* ── World selector ── */'));
   assert.doesNotMatch(officeCss, /background-size:18px|#9b896d|#566b72|#8b7355|#96adb8|#8b7b6b/);

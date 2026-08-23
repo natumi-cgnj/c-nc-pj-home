@@ -41,7 +41,7 @@
         home: { id: 'home', label: 'Boss家', description: "Boss's Home · Guest Room" }
       },
       characters: ['jane'],
-      banner: 'empty',
+      banner: 'location',
       routes: {
         daily: 'world-empty.html?module=daily',
         wallet: 'world-empty.html?module=wallet',
