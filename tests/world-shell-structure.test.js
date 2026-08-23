@@ -67,6 +67,10 @@ test('world and CBI data participate in cloud sync and full backup', () => {
 test('food archive stays global while meals and recipes switch world layers', () => {
   assert.match(index, /href="meals\.html" data-world-module="kitchen" data-entry-id="kitchen"/);
   assert.match(index, /href="kitchen\.html" data-entry-id="food-archive"/);
+  assert.match(index, /hasSavedModule\?s\.moduleId:/,
+    'desktop shortcuts must preserve an explicitly empty module id for global entries such as Food');
+  assert.doesNotMatch(index, /var moduleId=s\.moduleId\|\|/,
+    'Food must not be inferred back into the world-sensitive kitchen module');
   assert.match(meals, /const LOG_KEY='meal_log_db'/);
   assert.match(meals, /const COMPANION_KEY='meal_companion_db'/);
   assert.match(meals, /cbi:\{label:'CBI · Sacramento',characters:\{\}/);

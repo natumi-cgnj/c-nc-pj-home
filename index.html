@@ -2909,7 +2909,8 @@ function renderDSShortcuts(){
   var list=loadDSShortcuts();
   wrap.innerHTML=list.map(function(s,i){
     var cls='ds-item'+(s.draft?' draft':'');
-    var moduleId=s.moduleId||(window.WorldContext?WorldContext.inferModuleId(s.href):'');
+    var hasSavedModule=Object.prototype.hasOwnProperty.call(s,'moduleId');
+    var moduleId=hasSavedModule?s.moduleId:(window.WorldContext?WorldContext.inferModuleId(s.href):'');
     var href=moduleId&&window.WorldContext&&WorldContext.getActiveWorldId()!=='liminal'?WorldContext.getRoute(moduleId,s.href):s.href;
     return '<a class="'+cls+'" href="'+(href||'#')+'" data-ds-idx="'+i+'">'
       +'<div class="entry-icon">'+s.icon+'</div>'
@@ -3005,7 +3006,8 @@ function togglePickerEntry(el){
   renderDSShortcuts();
 }
 function shortcutIdentity(entry){
-  var moduleId=entry.moduleId||(window.WorldContext?WorldContext.inferModuleId(entry.href):'');
+  var hasSavedModule=Object.prototype.hasOwnProperty.call(entry,'moduleId');
+  var moduleId=hasSavedModule?entry.moduleId:(window.WorldContext?WorldContext.inferModuleId(entry.href):'');
   return (moduleId||entry.href||'')+'|'+(entry.label||'');
 }
 renderDSShortcuts();
