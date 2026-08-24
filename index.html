@@ -3049,6 +3049,12 @@ function renderDSShortcuts(){
     var hasSavedModule=Object.prototype.hasOwnProperty.call(s,'moduleId');
     var moduleId=hasSavedModule?s.moduleId:(window.WorldContext?WorldContext.inferModuleId(s.href):'');
     var href=moduleId&&window.WorldContext&&WorldContext.getActiveWorldId()!=='liminal'?WorldContext.getRoute(moduleId,s.href):s.href;
+    var hrefParts=(s.href||'').split('?');
+    if(moduleId&&window.WorldContext&&WorldContext.getActiveWorldId()!=='liminal'&&hrefParts[1]&&href.indexOf('?')<0)href+='?'+hrefParts.slice(1).join('?');
+    if(moduleId==='daily'&&window.WorldContext&&WorldContext.getActiveWorldId()==='cbi'&&href.indexOf('?')<0){
+      var legacyDailyTab={'委托':'drop','行动':'todo','日程':'todo','日课':'habits'}[s.label];
+      if(legacyDailyTab)href+='?tab='+legacyDailyTab;
+    }
     return '<a class="'+cls+'" href="'+(href||'#')+'" data-ds-idx="'+i+'">'
       +'<div class="entry-icon">'+s.icon+'</div>'
       +'<div class="entry-label">'+s.label+'</div>'

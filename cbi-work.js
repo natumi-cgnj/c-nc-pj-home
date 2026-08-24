@@ -23,6 +23,7 @@
     hard: { label: '棘手', threshold: 60 }
   };
   var activeTab = 'todo';
+  var lockedTab = '';
   var db = null;
   var toastTimer = null;
 
@@ -176,7 +177,7 @@
   }
 
   function setTab(tab) {
-    activeTab = ['drop', 'todo', 'habits'].indexOf(tab) >= 0 ? tab : 'todo';
+    activeTab = lockedTab || (['drop', 'todo', 'habits'].indexOf(tab) >= 0 ? tab : 'todo');
     document.querySelectorAll('.tabs .tab').forEach(function (node) {
       node.classList.toggle('active', node.dataset.tab === activeTab);
     });
@@ -579,15 +580,23 @@
     injectStyles();
     db = global.CBIData.load();
     refreshDailyState();
-    activeTab = options && ['drop', 'todo', 'habits'].indexOf(options.initialTab) >= 0 ? options.initialTab : 'todo';
-    document.title = 'CBI · Operations';
-    document.querySelector('.top-bar h1').textContent = 'CBI · OPERATIONS';
+    lockedTab = options && ['drop', 'todo', 'habits'].indexOf(options.lockedTab) >= 0 ? options.lockedTab : '';
+    activeTab = lockedTab || (options && ['drop', 'todo', 'habits'].indexOf(options.initialTab) >= 0 ? options.initialTab : 'todo');
+    var pageTitles = { drop: 'CBI · COMMISSIONS', todo: 'CBI · ACTIONS', habits: 'CBI · ROUTINE' };
+    document.title = lockedTab ? pageTitles[lockedTab] : 'CBI · Operations';
+    document.querySelector('.top-bar h1').textContent = lockedTab ? pageTitles[lockedTab] : 'CBI · OPERATIONS';
     var utility = document.querySelector('.top-bar .btn-s');
     utility.textContent = '卷宗';
     utility.removeAttribute('onclick');
     utility.onclick = function () { global.location.href = 'backup.html'; };
-    document.querySelector('.tabs').innerHTML = '<div class="tab" data-tab="drop">委托</div><div class="tab" data-tab="todo">行动</div><div class="tab" data-tab="habits">日课</div>';
-    document.querySelectorAll('.tabs .tab').forEach(function (node) { node.addEventListener('click', function () { setTab(node.dataset.tab); }); });
+    var tabs = document.querySelector('.tabs');
+    if (lockedTab) {
+      tabs.innerHTML = '';
+      tabs.style.display = 'none';
+    } else {
+      tabs.innerHTML = '<div class="tab" data-tab="drop">委托</div><div class="tab" data-tab="todo">行动</div><div class="tab" data-tab="habits">日课</div>';
+      document.querySelectorAll('.tabs .tab').forEach(function (node) { node.addEventListener('click', function () { setTab(node.dataset.tab); }); });
+    }
     document.body.insertAdjacentHTML('beforeend', '<div class="modal-bg" id="cbiWorkModal"><div class="modal"><h2 id="cbiWorkModalTitle"></h2><div id="cbiWorkModalBody"></div><div class="btn-row"><button class="btn btn-cancel" id="cbiWorkModalCancel">取消</button><button class="btn btn-primary" id="cbiWorkModalPrimary">保存</button></div></div></div><div class="cbi-toast" id="cbiToast"></div>');
     document.getElementById('cbiWorkModalCancel').addEventListener('click', closeModal);
     modal().addEventListener('click', function (event) { if (event.target === modal()) closeModal(); });

@@ -837,7 +837,7 @@ function initDragSort(containerId,dataType){
 // Deep link: ?tab=drop|todo|habits
 var urlTab = new URLSearchParams(location.search).get('tab');
 if (IS_CBI_DAILY && window.CBIWork) {
-  CBIWork.mount({initialTab:urlTab});
+  CBIWork.mount({initialTab:urlTab,lockedTab:['drop','todo','habits'].indexOf(urlTab)>=0?urlTab:''});
 } else {
   autoSignin();
   updateIntervalReminders();

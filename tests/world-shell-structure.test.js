@@ -183,6 +183,11 @@ test('commissions, habits and actions have separate visual systems and action di
   assert.match(cbiWork, /普通 · 30 点/);
   assert.match(cbiWork, /棘手 · 60 点/);
   assert.match(cbiWork, /progress \/ caseItem\.threshold \* 100/);
+  assert.match(cbiWork, /options\.lockedTab/);
+  assert.match(cbiWork, /tabs\.style\.display = 'none'/);
+  assert.match(daily, /lockedTab:\['drop','todo','habits'\]\.indexOf\(urlTab\)>=0\?urlTab:''/);
+  assert.match(index, /hrefParts\.slice\(1\)\.join\('\?'\)/);
+  assert.match(index, /legacyDailyTab=\{'委托':'drop','行动':'todo','日程':'todo','日课':'habits'\}/);
 });
 
 test('CBI wallet owns funding, investigation, progress and logs but no deployment editor', () => {
