@@ -5,6 +5,11 @@
   var SCHEMA_VERSION = 2;
   var CBI_CHARACTERS = ['jane', 'cho', 'rigsby', 'lisbon', 'vanpelt'];
   var SCORE_IDS = ['boss'].concat(CBI_CHARACTERS);
+  var ACTION_DIFFICULTIES = {
+    quick: { label: '快速', threshold: 15 },
+    normal: { label: '普通', threshold: 30 },
+    hard: { label: '棘手', threshold: 60 }
+  };
   var INVESTIGATOR_CONFIG = {
     rigsby: { activity: 0.78, min: 1, max: 15 },
     vanpelt: { activity: 0.74, min: 1, max: 15 },
@@ -182,11 +187,13 @@
 
   function normalizeAction(item) {
     item = item && typeof item === 'object' ? item : {};
+    var difficulty = Object.prototype.hasOwnProperty.call(ACTION_DIFFICULTIES, item.difficulty) ? item.difficulty : 'normal';
     return {
       id: text(item.id) || createId('action'),
       title: text(item.title).trim(),
       description: text(item.description),
       dueDate: text(item.dueDate),
+      difficulty: difficulty,
       status: ['planned', 'active', 'completed'].indexOf(item.status) >= 0 ? item.status : 'planned',
       anonymousCaseId: text(item.anonymousCaseId) || null,
       createdAt: text(item.createdAt) || new Date().toISOString(),
@@ -209,17 +216,18 @@
 
   function normalizeAnonymousCase(item) {
     item = item && typeof item === 'object' ? item : {};
+    var threshold = Math.max(1, Math.min(100, Math.floor(number(item.threshold, 100))));
     var progress = {};
     var lastRollByCharacter = {};
     CBI_CHARACTERS.forEach(function (id) {
-      progress[id] = Math.max(0, Math.min(100, Math.floor(number(item.progress && item.progress[id], 0))));
+      progress[id] = Math.max(0, Math.min(threshold, Math.floor(number(item.progress && item.progress[id], 0))));
       lastRollByCharacter[id] = text(item.lastRollByCharacter && item.lastRollByCharacter[id]);
     });
     return {
       id: text(item.id) || createId('anonymous'),
       actionId: text(item.actionId),
       status: item.status === 'closed' ? 'closed' : 'active',
-      threshold: 100,
+      threshold: threshold,
       progress: progress,
       lastRollByCharacter: lastRollByCharacter,
       reports: Array.isArray(item.reports) ? item.reports.map(normalizeReport).filter(function (entry) { return entry.characterId; }) : [],
@@ -334,6 +342,8 @@
       reply: text(item.reply),
       sceneId: text(item.sceneId),
       progressDelta: Math.max(0, Math.floor(number(item.progressDelta, 0))),
+      progressBase: Math.max(0, Math.floor(number(item.progressBase, 0))),
+      progressRoll: Math.max(-2, Math.min(2, Math.floor(number(item.progressRoll, 0)))),
       progressLine: text(item.progressLine),
       createdAt: text(item.createdAt) || new Date().toISOString(),
       resolvedAt: text(item.resolvedAt)
@@ -589,6 +599,7 @@
       id: createId('anonymous'),
       actionId: action.id,
       status: 'active',
+      threshold: ACTION_DIFFICULTIES[action.difficulty].threshold,
       createdAt: now
     });
     action.status = 'active';
@@ -801,38 +812,48 @@
 
   var INVESTIGATION_REQUEST_CONFIG = {
     rigsby: {
-      weight: 0.78,
+      weight: 30,
+      min: 300,
+      max: 700,
       requests: [
-        { title: '前往证人住所取证', detail: '往返车费', min: 600, max: 1400 },
-        { title: '补查邻居口供', detail: '跨区交通费', min: 700, max: 1500 }
+        { title: '前往证人住所取证', detail: '短途车费与停车费' },
+        { title: '补查邻居口供', detail: '跨区交通费' }
       ]
     },
     vanpelt: {
-      weight: 0.74,
+      weight: 25,
+      min: 1500,
+      max: 2400,
       requests: [
-        { title: '调取电子记录', detail: '资料复制与检索费用', min: 400, max: 900 },
-        { title: '核对通讯时间线', detail: '档案调阅费用', min: 350, max: 850 }
+        { title: '调取电子记录', detail: '数据检索与设备使用费用' },
+        { title: '核对通讯时间线', detail: '档案调阅与数据处理费用' }
       ]
     },
     lisbon: {
-      weight: 0.62,
+      weight: 20,
+      min: 900,
+      max: 1400,
       requests: [
-        { title: '补充走访关键证人', detail: '停车与交通费用', min: 650, max: 1300 },
-        { title: '返回现场复核证词', detail: '往返交通费', min: 600, max: 1200 }
+        { title: '补充走访关键证人', detail: '停车与交通费用' },
+        { title: '返回现场复核证词', detail: '往返交通与现场协调费用' }
       ]
     },
     cho: {
-      weight: 0.64,
+      weight: 20,
+      min: 800,
+      max: 1300,
       requests: [
-        { title: '核查监控来源', detail: '往返交通费用', min: 550, max: 1100 },
-        { title: '追查车辆登记地址', detail: '燃油与通行费用', min: 700, max: 1400 }
+        { title: '核查监控来源', detail: '往返交通与资料复制费用' },
+        { title: '追查车辆登记地址', detail: '燃油与通行费用' }
       ]
     },
     jane: {
-      weight: 0.06,
+      weight: 5,
+      min: 5000,
+      max: 8500,
       requests: [
-        { title: '非正式接触嫌疑人', detail: '茶与临时场地费用', min: 500, max: 1000 },
-        { title: '观察相关人员反应', detail: '临时交通与饮品费用', min: 450, max: 950 }
+        { title: '非正式接触嫌疑人', detail: '临时场地、餐饮与诱导布置费用' },
+        { title: '安排一次反应测试', detail: '魔术道具、交通与无法说明的杂费' }
       ]
     }
   };
@@ -859,7 +880,7 @@
     if (hasWallet) {
       allowed = allowed.filter(function (id) {
         var personal = Math.max(0, number(db.work.caseFund.charFunds[id], 0));
-        return Math.min(totalFund, personal + openFund) >= 50;
+        return Math.min(totalFund, personal + openFund) >= INVESTIGATION_REQUEST_CONFIG[id].min;
       });
       if (!allowed.length) return { db: db, request: null, created: false, reason: 'insufficient_fund' };
     }
@@ -874,18 +895,18 @@
     var config = INVESTIGATION_REQUEST_CONFIG[characterId];
     var template = config.requests[Math.floor(stableUnit(seedBase + '|template') * config.requests.length)];
     var personalFund = Math.max(0, number(db.work.caseFund.charFunds[characterId], 0));
-    var spendable = hasWallet ? Math.min(totalFund, personalFund + openFund) : template.max;
-    var ceiling = Math.max(50, Math.floor(spendable / 50) * 50);
-    var requestMin = Math.min(template.min, ceiling);
-    var requestMax = Math.min(template.max, ceiling);
-    var rawAmount = requestMin + Math.floor(stableUnit(seedBase + '|amount') * (requestMax - requestMin + 1));
+    var spendable = hasWallet ? Math.min(totalFund, personalFund + openFund) : config.max;
+    var ceiling = Math.min(config.max, Math.floor(spendable / 50) * 50);
+    if (ceiling < config.min) return { db: db, request: null, created: false, reason: 'insufficient_fund' };
+    var amountSteps = Math.floor((ceiling - config.min) / 50);
+    var amount = config.min + Math.floor(stableUnit(seedBase + '|amount') * (amountSteps + 1)) * 50;
     var request = normalizeInvestigation({
       date: date,
       characterId: characterId,
       caseId: caseItem.id,
       title: template.title,
       detail: template.detail,
-      amount: Math.min(ceiling, Math.max(50, Math.ceil(rawAmount / 50) * 50)),
+      amount: amount,
       status: 'pending'
     });
     db.work.caseFund.investigations.push(request);
@@ -911,7 +932,10 @@
       if (target <= 0) { characterId = allowed[index]; break; }
     }
     var config = MAJOR_CASE_CONFIG[characterId];
-    var delta = config.min + Math.floor(stableUnit(seed + '|delta') * (config.max - config.min + 1));
+    var forcedDelta = Number(options.progressDelta);
+    var delta = Number.isFinite(forcedDelta) && forcedDelta > 0
+      ? Math.floor(forcedDelta)
+      : config.min + Math.floor(stableUnit(seed + '|delta') * (config.max - config.min + 1));
     delta = Math.min(delta, 100 - progress.progress);
     var line = config.lines[Math.floor(stableUnit(seed + '|line') * config.lines.length)];
     var scene = normalizeMajorCaseScene({
@@ -938,9 +962,13 @@
     var openFund = unassignedCaseFund(db, walletValue);
     var totalFund = availableCaseFund(db, walletValue);
     if (request.amount > totalFund || request.amount > personal + openFund) return { db: db, request: request, scene: null, reason: 'insufficient_fund' };
+    var progressBase = Math.max(1, Math.round(request.amount / 100));
+    var progressRoll = Math.floor(stableUnit(request.id + '|paid-progress') * 5) - 2;
+    var progressDelta = Math.max(1, progressBase + progressRoll);
     var advanced = advanceMajorCase(db, request.caseId, {
       availableCharacters: [request.characterId],
       cost: request.amount,
+      progressDelta: progressDelta,
       seed: request.id
     });
     if (!advanced.scene) return { db: db, request: request, scene: null, reason: 'no_progress' };
@@ -952,6 +980,8 @@
     request.reply = text(options.reply).trim();
     request.sceneId = advanced.scene.id;
     request.progressDelta = advanced.scene.delta;
+    request.progressBase = progressBase;
+    request.progressRoll = progressRoll;
     request.progressLine = advanced.scene.line;
     request.resolvedAt = new Date().toISOString();
     var content = request.title + ' · 批准 ¥' + request.amount;
@@ -989,6 +1019,7 @@
     STORAGE_KEY: STORAGE_KEY,
     SCHEMA_VERSION: SCHEMA_VERSION,
     CBI_CHARACTERS: CBI_CHARACTERS.slice(),
+    ACTION_DIFFICULTIES: ACTION_DIFFICULTIES,
     INVESTIGATOR_CONFIG: INVESTIGATOR_CONFIG,
     DEFAULT_COMMISSION_POOL: cloneDefaultCommissions(),
     emptyDB: emptyDB,

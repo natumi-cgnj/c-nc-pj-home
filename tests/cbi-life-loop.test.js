@@ -49,6 +49,23 @@ test('filing an action runs one opening round and never rolls twice in a work da
   assert.equal(nextDay.reports.length, 5);
 });
 
+test('action cases use quick, normal and hard thresholds while preserving legacy cases', () => {
+  const { CBIData } = load();
+  const levels = { quick: 15, normal: 30, hard: 60 };
+  for (const [difficulty, threshold] of Object.entries(levels)) {
+    let db = CBIData.addAction(CBIData.emptyDB(), { title: `${difficulty} action`, difficulty }).db;
+    const started = CBIData.startAction(db, db.work.actions[0].id, '2026-08-24');
+    assert.equal(started.caseItem.threshold, threshold);
+    assert.equal(started.action.difficulty, difficulty);
+  }
+
+  const legacy = CBIData.normalize({
+    work: { anonymousCases: [{ id: 'legacy_case', actionId: 'legacy_action', threshold: 100, progress: { cho: 88 } }] }
+  });
+  assert.equal(legacy.work.anonymousCases[0].threshold, 100);
+  assert.equal(legacy.work.anonymousCases[0].progress.cho, 88);
+});
+
 test('completing an action freezes progress and awards every investigator at one hundred', () => {
   const { CBIData } = load();
   let db = CBIData.addAction(CBIData.emptyDB(), { title: '上架两箱娃' }).db;
@@ -203,6 +220,9 @@ test('investigation approval spends assigned funds before the public pool', () =
   assert.ok(approved.scene);
   assert.equal(approved.request.status, 'approved');
   assert.equal(approved.request.reply, '下次跑着去');
+  assert.equal(approved.request.progressBase, 5);
+  assert.ok(approved.request.progressRoll >= -2 && approved.request.progressRoll <= 2);
+  assert.equal(approved.scene.delta, Math.max(1, approved.request.progressBase + approved.request.progressRoll));
   assert.equal(approved.db.work.caseFund.charFunds.rigsby, 0);
   assert.equal(CBIData.availableCaseFund(approved.db, wallet), 1500);
   assert.equal(CBIData.unassignedCaseFund(approved.db, wallet), 1500);
@@ -264,5 +284,53 @@ test('fully assigned funds only generate a request for a funded investigator', (
   const result = CBIData.createInvestigationRequest(db, { date: '2026-08-24', wallet });
   assert.equal(result.created, true);
   assert.equal(result.request.characterId, 'rigsby');
-  assert.ok(result.request.amount >= 50 && result.request.amount <= 500);
+  assert.ok(result.request.amount >= 300 && result.request.amount <= 500);
+});
+
+test('investigator requests keep their own cost scale and fifty-yen steps', () => {
+  const { CBIData } = load();
+  const ranges = {
+    rigsby: [300, 700],
+    cho: [800, 1300],
+    lisbon: [900, 1400],
+    vanpelt: [1500, 2400],
+    jane: [5000, 8500]
+  };
+  for (const [characterId, range] of Object.entries(ranges)) {
+    const db = CBIData.normalize({
+      currentCaseId: 'case_1',
+      cases: [{ id: 'case_1', title: '区间测试案', status: 'active' }]
+    });
+    const result = CBIData.createInvestigationRequest(db, {
+      date: '2026-08-24',
+      availableCharacters: [characterId]
+    });
+    assert.equal(result.created, true);
+    assert.equal(result.request.characterId, characterId);
+    assert.ok(result.request.amount >= range[0] && result.request.amount <= range[1]);
+    assert.equal(result.request.amount % 50, 0);
+  }
+});
+
+test('a Jane allocation waits for a Jane-sized request instead of shrinking it', () => {
+  const { CBIData } = load();
+  const wallet = {
+    categories: [{ id: 'food', dailyBudget: 2400 }],
+    records: [{ date: '2026-08-24', category: 'food', type: 'expense', amount: 0 }],
+    charFunds: {},
+    outings: []
+  };
+  let db = CBIData.normalize({
+    currentCaseId: 'case_1',
+    cases: [{ id: 'case_1', title: '等待Jane案', status: 'active' }]
+  });
+  db = CBIData.allocateCaseFund(db, 'jane', 1200, wallet, '2026-08-24').db;
+  const result = CBIData.createInvestigationRequest(db, {
+    date: '2026-08-24',
+    availableCharacters: ['jane'],
+    wallet
+  });
+  assert.equal(result.request, null);
+  assert.equal(result.reason, 'insufficient_fund');
+  assert.equal(result.db.work.caseFund.charFunds.jane, 1200);
 });

@@ -17,6 +17,11 @@
     lisbon: '#B54E5D',
     vanpelt: '#668BC2'
   };
+  var DIFFICULTIES = {
+    quick: { label: '快速', threshold: 15 },
+    normal: { label: '普通', threshold: 30 },
+    hard: { label: '棘手', threshold: 60 }
+  };
   var activeTab = 'todo';
   var db = null;
   var toastTimer = null;
@@ -101,6 +106,35 @@
       '.cbi-modal-note{font-size:10px;color:#aaa;line-height:1.6;margin-top:6px}',
       '.cbi-checkline{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:12px;color:#666}',
       '.cbi-checkline input{width:auto}',
+      '.cbi-commission-card{position:relative;overflow:hidden;background:linear-gradient(145deg,#fff 0%,#fffaf0 100%);border:1px solid #e6d5ad;border-radius:16px;padding:18px;margin:7px 0 14px;box-shadow:0 10px 28px rgba(112,84,33,.08)}',
+      '.cbi-commission-card:after{content:"REQUEST";position:absolute;right:-4px;top:9px;color:#b99a5c24;font-size:25px;font-weight:700;letter-spacing:2px;transform:rotate(7deg)}',
+      '.cbi-commission-card .cbi-card-top{position:relative;z-index:1;align-items:center}',
+      '.cbi-commission-card .cbi-avatar{width:54px;height:54px}',
+      '.cbi-commission-card .cbi-card-title{font-size:17px;color:#4d3c20}',
+      '.cbi-commission-card .cbi-quote{position:relative;z-index:1;border:0;border-radius:10px;background:#fff;padding:10px 12px;margin-top:14px;box-shadow:0 2px 10px rgba(87,66,30,.06);color:#665b49}',
+      '.cbi-commission-card .cbi-card-copy{position:relative;z-index:1;margin-top:12px;color:#514a40}',
+      '.cbi-commission-summary{border-style:dashed;background:#fffdf8}',
+      '.cbi-habit-sheet{overflow:hidden;background:#fff;border:1px solid #dfe4e6;border-top:4px solid #6d7c82;border-radius:5px;box-shadow:0 5px 18px rgba(52,65,70,.05)}',
+      '.cbi-habit-row{display:grid;grid-template-columns:27px minmax(0,1fr) auto;gap:11px;align-items:start;padding:14px 12px;border-bottom:1px solid #edf0f1}',
+      '.cbi-habit-row:last-child{border-bottom:0}',
+      '.cbi-habit-row.done{background:#f8fbf8}',
+      '.cbi-habit-check{display:grid;place-items:center;width:25px;height:25px;border:1px solid #cdd5d7;border-radius:3px;color:#fff;background:#fff;font-size:14px}',
+      '.cbi-habit-row.done .cbi-habit-check{border-color:#78977d;background:#78977d}',
+      '.cbi-habit-pay{text-align:right;color:#64777d;font-size:14px;font-variant-numeric:tabular-nums;white-space:nowrap}',
+      '.cbi-habit-pay small{display:block;color:#b1b9bb;font-size:7px;letter-spacing:1px;margin-bottom:2px}',
+      '.cbi-habit-row .cbi-actions{margin-top:9px}',
+      '.cbi-case-file{position:relative;background:#fff;border:1px solid #d9dde1;border-top:3px solid #626f7a;border-radius:3px 10px 10px 10px;padding:17px 14px 14px;margin:22px 0 12px;box-shadow:0 5px 18px rgba(50,57,65,.05)}',
+      '.cbi-case-file.planned{border-top-color:#b69a62}',
+      '.cbi-case-file.closed{opacity:.72;border-top-color:#aeb3b7;margin-top:18px}',
+      '.cbi-file-tab{position:absolute;left:-1px;top:-20px;height:19px;display:flex;align-items:center;padding:0 10px;border-radius:5px 5px 0 0;background:#626f7a;color:#fff;font-size:8px;letter-spacing:.6px}',
+      '.cbi-case-file.planned .cbi-file-tab{background:#b69a62}',
+      '.cbi-case-file.closed .cbi-file-tab{background:#aeb3b7}',
+      '.cbi-case-file .cbi-card-title{font-family:Georgia,"Noto Serif SC",serif;letter-spacing:.2px}',
+      '.cbi-case-file .cbi-progress-row{grid-template-columns:65px 1fr 44px}',
+      'body[data-cbi-work-tab="drop"] .cbi-page-title{color:#8d6d2d}',
+      'body[data-cbi-work-tab="habits"] .cbi-page-title{color:#5f7379}',
+      'body[data-cbi-work-tab="todo"] .cbi-page-title{color:#56616b}',
+      '@media(max-width:480px){.cbi-habit-row{grid-template-columns:25px minmax(0,1fr)}.cbi-habit-pay{grid-column:1;text-align:center;font-size:10px}.cbi-habit-pay small{display:none}.cbi-habit-row .cbi-card-main{grid-column:2;grid-row:1/3}.cbi-commission-card{padding:15px}.cbi-commission-card:after{font-size:20px}}',
       '@media(min-width:700px){body[data-cbi-work="1"] .content{max-width:720px;margin:0 auto}.cbi-scoreboard{grid-template-columns:repeat(6,1fr)}}'
     ].join('');
     document.head.appendChild(style);
@@ -123,11 +157,22 @@
 
   function statusBar() {
     var activeCases = db.work.anonymousCases.filter(function (item) { return item.status === 'active'; }).length;
-    document.getElementById('statusBar').innerHTML = [
-      '<div class="status-item"><div class="status-label">CBI 工资</div><div class="status-value cbi-status-value">$' + db.work.salary + '</div></div>',
-      '<div class="status-item"><div class="status-label">委托宝石</div><div class="status-value" style="color:#8069a8">◆ ' + db.work.commissionGems + '</div></div>',
-      '<div class="status-item"><div class="status-label">进行中</div><div class="status-value" style="color:#66717f">' + activeCases + ' 案</div></div>'
-    ].join('');
+    var items;
+    if (activeTab === 'drop') {
+      var affinity = global.CBIData.CBI_CHARACTERS.reduce(function (sum, id) { return sum + db.work.affinity[id]; }, 0);
+      var commissionState = db.work.activeCommissions.length ? '进行中' : (db.work.commissionOffer ? '待接受' : '无');
+      items = [['委托宝石', '◆ ' + db.work.commissionGems, '#8069a8'], ['今日委托', commissionState, '#99763a'], ['累计关系', '+' + affinity, '#7c916f']];
+    } else if (activeTab === 'habits') {
+      var records = db.work.habitRecords[today()] || {};
+      var todayCount = Object.keys(records).reduce(function (sum, id) { return sum + (Number(records[id].value) || 0); }, 0);
+      items = [['CBI 工资', '$' + db.work.salary, '#8a6b31'], ['今日登记', todayCount + ' 次', '#657980'], ['日课表', db.work.habits.length + ' 项', '#899397']];
+    } else {
+      var teamScore = global.CBIData.CBI_CHARACTERS.reduce(function (sum, id) { return sum + db.work.culpritScores[id]; }, 0);
+      items = [['进行中', activeCases + ' 案', '#66717f'], ['Boss 押中', db.work.culpritScores.boss + ' 次', COLORS.boss], ['探员押中', teamScore + ' 次', '#758876']];
+    }
+    document.getElementById('statusBar').innerHTML = items.map(function (item) {
+      return '<div class="status-item"><div class="status-label">' + item[0] + '</div><div class="status-value" style="color:' + item[2] + '">' + item[1] + '</div></div>';
+    }).join('');
   }
 
   function setTab(tab) {
@@ -142,6 +187,7 @@
   }
 
   function render() {
+    document.body.dataset.cbiWorkTab = activeTab;
     statusBar();
     if (activeTab === 'habits') renderHabits();
     else if (activeTab === 'drop') renderCommissions();
@@ -182,6 +228,7 @@
       return;
     }
     var dateKey = today();
+    html += '<div class="cbi-habit-sheet">';
     db.work.habits.forEach(function (habit) {
       var record = db.work.habitRecords[dateKey] && db.work.habitRecords[dateKey][habit.id];
       var todayValue = record ? record.value : 0;
@@ -194,17 +241,18 @@
         due = !todayValue && elapsed >= habit.interval;
         intervalCopy = todayValue ? '今天已完成' : (due ? '已到期' : '还有 ' + (habit.interval - elapsed) + ' 天到期');
       }
-      html += '<div class="cbi-card"><div class="cbi-card-top"><div class="cbi-card-main">';
+      html += '<div class="cbi-habit-row' + (todayValue ? ' done' : '') + '"><div class="cbi-habit-check">' + (todayValue ? '✓' : '') + '</div><div class="cbi-card-main">';
       html += '<div class="cbi-card-title">' + esc(habit.name) + '</div>';
       if (habit.description) html += '<div class="cbi-card-copy">' + esc(habit.description) + '</div>';
       html += '<div class="cbi-meta"><span class="cbi-tag">工资 +$' + habit.salary + '</span><span class="cbi-tag">累计 ' + totals.total + (habit.type === 'interval' ? ' 天' : ' 次') + '</span>';
       if (habit.type === 'interval') html += '<span class="cbi-tag">每 ' + habit.interval + ' 天 · ' + intervalCopy + '</span>';
       if (todayValue) html += '<span class="cbi-tag">今日 ' + todayValue + '</span>';
-      html += '</div></div></div><div class="cbi-actions">';
+      html += '</div><div class="cbi-actions">';
       html += '<button class="cbi-btn gold" data-cbi-action="record-habit" data-id="' + habit.id + '"' + (!due && habit.type === 'interval' ? ' disabled' : '') + '>登记完成</button>';
       if (record && record.events && record.events.length) html += '<button class="cbi-btn" data-cbi-action="undo-habit" data-id="' + habit.id + '">撤销本次</button>';
-      html += '<button class="cbi-btn" data-cbi-action="edit-habit" data-id="' + habit.id + '">编辑</button><button class="cbi-btn danger" data-cbi-action="delete-habit" data-id="' + habit.id + '">删除</button></div></div>';
+      html += '<button class="cbi-btn" data-cbi-action="edit-habit" data-id="' + habit.id + '">编辑</button><button class="cbi-btn danger" data-cbi-action="delete-habit" data-id="' + habit.id + '">删除</button></div></div><div class="cbi-habit-pay"><small>PAY</small>+$' + habit.salary + '</div></div>';
     });
+    html += '</div>';
     content.innerHTML = html;
   }
 
@@ -255,8 +303,13 @@
   function progressRows(caseItem) {
     return global.CBIData.CBI_CHARACTERS.map(function (id) {
       var progress = caseItem.progress[id] || 0;
-      return '<div class="cbi-progress-row"><div class="cbi-progress-name">' + NAMES[id] + '</div><div class="cbi-track"><div class="cbi-fill" style="width:' + progress + '%;background:' + COLORS[id] + '"></div></div><div class="cbi-progress-num">' + progress + '%</div></div>';
+      var percent = Math.min(100, Math.round(progress / caseItem.threshold * 100));
+      return '<div class="cbi-progress-row"><div class="cbi-progress-name">' + NAMES[id] + '</div><div class="cbi-track"><div class="cbi-fill" style="width:' + percent + '%;background:' + COLORS[id] + '"></div></div><div class="cbi-progress-num">' + progress + '/' + caseItem.threshold + '</div></div>';
     }).join('');
+  }
+
+  function difficultyInfo(action) {
+    return DIFFICULTIES[action.difficulty] || DIFFICULTIES.normal;
   }
 
   function latestReport(caseItem) {
@@ -279,16 +332,18 @@
     if (active.length) html += '<div class="cbi-section">正在追查</div>';
     active.forEach(function (action) {
       var caseItem = caseForAction(action);
-      html += '<div class="cbi-card"><div class="cbi-card-title">' + esc(action.title) + '</div>';
+      var difficulty = difficultyInfo(action);
+      html += '<div class="cbi-case-file active"><div class="cbi-file-tab">' + difficulty.label + ' · ' + (caseItem ? caseItem.threshold : difficulty.threshold) + ' 点</div><div class="cbi-card-title">' + esc(action.title) + '</div>';
       if (action.description) html += '<div class="cbi-card-copy">' + esc(action.description) + '</div>';
-      if (action.dueDate) html += '<div class="cbi-meta"><span class="cbi-tag">目标 ' + esc(action.dueDate) + '</span><span class="cbi-tag">立案 ' + esc((action.startedAt || '').slice(0, 10)) + '</span></div>';
+      html += '<div class="cbi-meta">' + (action.dueDate ? '<span class="cbi-tag">目标 ' + esc(action.dueDate) + '</span>' : '') + '<span class="cbi-tag">立案 ' + esc((action.startedAt || '').slice(0, 10)) + '</span></div>';
       if (caseItem) html += progressRows(caseItem) + '<div class="cbi-case-report">今日线索：' + esc(latestReport(caseItem)) + '</div>';
       html += '<div class="cbi-actions"><button class="cbi-btn primary" data-cbi-action="complete-action" data-id="' + action.id + '">我完成了 · 归档</button></div></div>';
     });
 
     if (planned.length) html += '<div class="cbi-section">待立案</div>';
     planned.forEach(function (action) {
-      html += '<div class="cbi-card"><div class="cbi-card-title">' + esc(action.title) + '</div>';
+      var difficulty = difficultyInfo(action);
+      html += '<div class="cbi-case-file planned"><div class="cbi-file-tab">' + difficulty.label + ' · ' + difficulty.threshold + ' 点</div><div class="cbi-card-title">' + esc(action.title) + '</div>';
       if (action.description) html += '<div class="cbi-card-copy">' + esc(action.description) + '</div>';
       if (action.dueDate) html += '<div class="cbi-meta"><span class="cbi-tag">目标 ' + esc(action.dueDate) + '</span></div>';
       html += '<div class="cbi-actions"><button class="cbi-btn gold" data-cbi-action="start-action" data-id="' + action.id + '">立案并开始追查</button><button class="cbi-btn" data-cbi-action="edit-action" data-id="' + action.id + '">编辑</button><button class="cbi-btn danger" data-cbi-action="delete-action" data-id="' + action.id + '">删除</button></div></div>';
@@ -300,7 +355,7 @@
       completed.slice(0, 8).forEach(function (action) {
         var caseItem = caseForAction(action);
         var result = caseItem && caseItem.bossWon ? 'Boss 押中' : (caseItem && caseItem.winners.length ? caseItem.winners.map(function (id) { return NAMES[id]; }).join('、') + ' 押中' : '已归档');
-        html += '<div class="cbi-card"><div class="cbi-card-top"><div class="cbi-card-main"><div class="cbi-card-title">' + esc(action.title) + '</div><div class="cbi-meta"><span class="cbi-tag">' + esc(result) + '</span><span class="cbi-tag">' + esc((action.completedAt || '').slice(0, 10)) + '</span></div></div></div></div>';
+        html += '<div class="cbi-case-file closed"><div class="cbi-file-tab">已归档 · ' + difficultyInfo(action).label + '</div><div class="cbi-card-title">' + esc(action.title) + '</div><div class="cbi-meta"><span class="cbi-tag">' + esc(result) + '</span><span class="cbi-tag">' + esc((action.completedAt || '').slice(0, 10)) + '</span></div></div>';
       });
     }
     content.innerHTML = html;
@@ -330,7 +385,7 @@
   }
 
   function commissionCard(item, mode) {
-    var html = '<div class="cbi-card"><div class="cbi-card-top">' + avatar(item.issuer) + '<div class="cbi-card-main"><div class="cbi-kicker">' + esc(NAMES[item.issuer]) + ' · ' + (mode === 'active' ? '进行中' : '今日委托') + '</div><div class="cbi-card-title">' + esc(item.title) + '</div></div></div>';
+    var html = '<div class="cbi-commission-card" style="border-color:' + COLORS[item.issuer] + '55"><div class="cbi-card-top">' + avatar(item.issuer) + '<div class="cbi-card-main"><div class="cbi-kicker" style="color:' + COLORS[item.issuer] + '">' + esc(NAMES[item.issuer]) + ' · ' + (mode === 'active' ? '进行中' : '今日委托') + '</div><div class="cbi-card-title">' + esc(item.title) + '</div></div></div>';
     if (item.brief) html += '<div class="cbi-quote">“' + esc(item.brief) + '”</div>';
     html += '<div class="cbi-card-copy">' + esc(item.task) + '</div><div class="cbi-meta"><span class="cbi-tag">◆ +' + item.rewardGems + '</span><span class="cbi-tag">' + esc(NAMES[item.issuer]) + ' 好感 +' + item.rewardAffinity + '</span></div>';
     html += '<div class="cbi-actions">' + (mode === 'active'
@@ -351,14 +406,14 @@
 
     var affection = global.CBIData.CBI_CHARACTERS.filter(function (id) { return db.work.affinity[id] > 0; });
     if (affection.length) {
-      html += '<div class="cbi-section">累计关系</div><div class="cbi-card"><div class="cbi-meta">';
+      html += '<div class="cbi-section">累计关系</div><div class="cbi-card cbi-commission-summary"><div class="cbi-meta">';
       affection.forEach(function (id) { html += '<span class="cbi-tag" style="color:' + COLORS[id] + '">' + NAMES[id] + ' +' + db.work.affinity[id] + '</span>'; });
       html += '</div></div>';
     }
     if (db.work.commissionHistory.length) {
       html += '<div class="cbi-section">最近完成</div>';
       db.work.commissionHistory.slice().reverse().slice(0, 6).forEach(function (item) {
-        html += '<div class="cbi-card"><div class="cbi-card-title">' + esc(item.title) + '</div><div class="cbi-meta"><span class="cbi-tag">' + NAMES[item.issuer] + '</span><span class="cbi-tag">◆ +' + item.rewardGems + '</span><span class="cbi-tag">' + esc(item.completedDate) + '</span></div></div>';
+        html += '<div class="cbi-card cbi-commission-summary"><div class="cbi-card-title">' + esc(item.title) + '</div><div class="cbi-meta"><span class="cbi-tag">' + NAMES[item.issuer] + '</span><span class="cbi-tag">◆ +' + item.rewardGems + '</span><span class="cbi-tag">' + esc(item.completedDate) + '</span></div></div>';
       });
     }
     content.innerHTML = html;
@@ -426,12 +481,13 @@
     var item = id ? db.work.actions.find(function (action) { return action.id === id; }) : null;
     var body = '<label>行动目标</label><input id="cbiActionTitle" type="text" placeholder="如：整理完书柜" value="' + esc(item && item.title) + '">';
     body += '<label>说明（可选）</label><textarea id="cbiActionDesc" placeholder="给未来的自己留一点具体线索">' + esc(item && item.description) + '</textarea>';
+    body += '<label>案件难度</label><select id="cbiActionDifficulty"><option value="quick"' + (item && item.difficulty === 'quick' ? ' selected' : '') + '>快速 · 15 点</option><option value="normal"' + (!item || item.difficulty === 'normal' ? ' selected' : '') + '>普通 · 30 点</option><option value="hard"' + (item && item.difficulty === 'hard' ? ' selected' : '') + '>棘手 · 60 点</option></select>';
     body += '<label>目标日期（可选）</label><input id="cbiActionDue" type="date" value="' + esc(item && item.dueDate) + '">';
     body += '<div class="cbi-modal-note">保存后仍是待立案状态。点击“立案并开始追查”才会启动全员首轮推进。</div>';
     openModal(item ? '编辑行动' : '新建行动', body, '保存', function () {
       var title = document.getElementById('cbiActionTitle').value.trim();
       if (!title) return;
-      var data = { title: title, description: document.getElementById('cbiActionDesc').value.trim(), dueDate: document.getElementById('cbiActionDue').value };
+      var data = { title: title, description: document.getElementById('cbiActionDesc').value.trim(), difficulty: document.getElementById('cbiActionDifficulty').value, dueDate: document.getElementById('cbiActionDue').value };
       if (item) Object.assign(item, data);
       else db = global.CBIData.addAction(db, data).db;
       save(); closeModal(); render();

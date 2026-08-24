@@ -49,11 +49,13 @@
       '.cbi-investigation-case{font-size:9px;color:#b09a6c;letter-spacing:.5px;margin-bottom:4px}',
       '.cbi-investigation-amount{font-size:17px;font-weight:400;color:#9a7733;white-space:nowrap}',
       '.cbi-investigation-detail{font-size:11px;color:#999;line-height:1.65;margin-top:4px}',
+      '.cbi-investigation-rule{margin-top:7px;padding:6px 8px;border-radius:6px;background:#f8f5ee;color:#a08b63;font-size:9px;line-height:1.5}',
       '.cbi-reply{width:100%;margin-top:10px;padding:9px 10px;border:1px solid #eee;border-radius:8px;background:#fafafa;font:11px/1.4 inherit;color:#555;outline:none}',
       '.cbi-reply:focus{border-color:#d7c7a4;background:#fff}',
       '.cbi-approve{width:100%;margin-top:8px;padding:10px;border:0;border-radius:8px;background:#292929;color:#fff;font:inherit;font-size:11px;line-height:1;cursor:pointer}',
       '.cbi-approve:disabled{background:#eee;color:#bbb}',
       '.cbi-request-status{display:inline-flex;padding:2px 7px;border-radius:5px;background:#edf5ef;color:#5B8D66;font-size:8px;margin-left:5px}',
+      '.cbi-progress-roll{display:inline-flex;margin-top:6px;padding:3px 7px;border-radius:5px;background:#f7f3e9;color:#9a7b3e;font-size:8px}',
       '.cbi-progress-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:14px 16px 10px}',
       '.cbi-progress-toolbar-copy{font-size:10px;color:#aaa;line-height:1.6}',
       '.cbi-mini-btn{border:1px solid #ddd4c3;border-radius:7px;background:#fff;color:#8c7444;padding:7px 10px;font:inherit;font-size:10px;line-height:1;white-space:nowrap;cursor:pointer}',
@@ -151,6 +153,7 @@
     return '<div class="outing-card" style="border-left:3px solid ' + COLORS[request.characterId] + '">' +
       '<div class="cbi-investigation-head"><div><div class="cbi-investigation-case">' + esc(caseTitle(db, request.caseId)) + '</div><div class="outing-char" style="color:' + COLORS[request.characterId] + '">' + esc(NAMES[request.characterId]) + ' · 报销申请</div><div class="outing-activity">' + esc(request.title) + '</div></div><div class="cbi-investigation-amount">¥' + request.amount + '</div></div>' +
       '<div class="cbi-investigation-detail">' + esc(request.detail) + '。个人经费 ¥' + personal + '，公共经费 ¥' + open + '。</div>' +
+      '<div class="cbi-investigation-rule">批准后必定获得进展：每 ¥100 折算 1 点，本次结果随机浮动 -2～+2。</div>' +
       '<input class="cbi-reply" id="cbiReply_' + request.id + '" type="text" maxlength="120" placeholder="批复一句（选填），例如：下次跑着去">' +
       '<button class="cbi-approve" type="button" onclick="CBIWallet.approveInvestigation(\'' + request.id + '\')"' + (affordable ? '' : ' disabled') + '>' + (affordable ? '批准报销并推进案件' : '当前可用经费不足') + '</button></div>';
   }
@@ -159,7 +162,14 @@
     var status = request.status === 'approved' ? '已批准' : '未批准';
     var html = '<div class="outing-card" style="border-left:3px solid ' + COLORS[request.characterId] + '"><div class="outing-char" style="color:' + COLORS[request.characterId] + '">' + esc(NAMES[request.characterId]) + '<span class="cbi-request-status">' + status + '</span></div><div class="outing-activity">' + esc(request.title) + ' · ¥' + request.amount + '</div>';
     if (request.reply) html += '<div class="outing-dialogue">Boss：「' + esc(request.reply) + '」</div>';
-    if (request.progressLine) html += '<div class="cbi-case-latest">' + esc(request.progressLine) + '　<span style="color:#a88747">+' + request.progressDelta + '</span></div>';
+    if (request.progressLine) {
+      html += '<div class="cbi-case-latest">' + esc(request.progressLine) + '　<span style="color:#a88747">+' + request.progressDelta + '</span>';
+      if (request.progressBase > 0) {
+        var rollCopy = request.progressRoll === 2 ? '关键暴击 +2' : (request.progressRoll === 1 ? '额外线索 +1' : (request.progressRoll === 0 ? '正常推进' : '现场阻力 ' + request.progressRoll));
+        html += '<br><span class="cbi-progress-roll">基础 ' + request.progressBase + ' · ' + rollCopy + '</span>';
+      }
+      html += '</div>';
+    }
     return html + '<div class="outing-cost">' + esc(caseTitle(db, request.caseId)) + ' · ' + esc(request.date) + '</div></div>';
   }
 
@@ -203,7 +213,7 @@
     }
     save(result.db);
     renderInvestigations();
-    global.showToast(NAMES[result.request.characterId] + ' 提交新进展 · +' + result.scene.delta);
+    global.showToast((result.request.progressRoll === 2 ? '暴击！' : '') + NAMES[result.request.characterId] + ' 提交新进展 · +' + result.scene.delta);
   }
 
   function renderProgress() {

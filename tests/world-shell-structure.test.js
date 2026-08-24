@@ -173,6 +173,18 @@ test('CBI reality loop reuses the mature pages without crossing its currencies',
   assert.match(cloud, /'shop\.html': \[[^\]]*'home_skin_custom'/);
 });
 
+test('commissions, habits and actions have separate visual systems and action difficulty', () => {
+  const cbiWork = fs.readFileSync('cbi-work.js', 'utf8');
+  assert.match(cbiWork, /cbi-commission-card/);
+  assert.match(cbiWork, /cbi-habit-sheet/);
+  assert.match(cbiWork, /cbi-case-file/);
+  assert.match(cbiWork, /id="cbiActionDifficulty"/);
+  assert.match(cbiWork, /快速 · 15 点/);
+  assert.match(cbiWork, /普通 · 30 点/);
+  assert.match(cbiWork, /棘手 · 60 点/);
+  assert.match(cbiWork, /progress \/ caseItem\.threshold \* 100/);
+});
+
 test('CBI wallet owns funding, investigation, progress and logs but no deployment editor', () => {
   const cbiWallet = fs.readFileSync('cbi-wallet.js', 'utf8');
   for (const label of ['记账', '经费', '调查', '进度', '日志']) {
