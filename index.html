@@ -407,8 +407,8 @@ body[data-world-id="cbi"][data-world-location="home"] .boss-wardrobe-btn{display
   .ds-shortcut-ghost{position:fixed;z-index:9999;pointer-events:none;opacity:0.88;transform:translate(-50%,-50%) scale(1.06);filter:drop-shadow(0 4px 12px rgba(0,0,0,0.18))}
   .ds-shortcut-ghost .ds-item-del{display:none!important}
   .ds-item-del{position:absolute;top:-4px;right:-4px;width:16px;height:16px;border-radius:50%;background:#e88;color:#fff;border:none;font-size:10px;line-height:16px;text-align:center;cursor:pointer;display:none;padding:0}
-  .ds-item:hover .ds-item-del{display:block}
-  .ds-add{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer}
+  .ds-item.ds-delete-visible .ds-item-del{display:block}
+  .ds-add{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;margin-top:8px}
   .ds-add .entry-icon{width:40px;height:40px;font-size:15px;border-style:dashed;color:#ccc}
   .ds-add .entry-label{font-size:9px;color:#ccc}
   .desktop-blocks{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;grid-column:2;grid-row:3;max-width:260px;padding:4px 0}
@@ -3038,7 +3038,7 @@ function renderDSShortcuts(){
     return '<a class="'+cls+'" href="'+(href||'#')+'" data-ds-idx="'+i+'">'
       +'<div class="entry-icon">'+s.icon+'</div>'
       +'<div class="entry-label">'+s.label+'</div>'
-      +'<button class="ds-item-del" onclick="event.preventDefault();event.stopPropagation();removeDSShortcut('+i+')">✕</button>'
+      +'<button class="ds-item-del" type="button" aria-label="删除 '+s.label+' 快捷入口" onclick="event.preventDefault();event.stopPropagation();removeDSShortcut('+i+')">✕</button>'
       +'</a>';
   }).join('');
 }
@@ -3139,20 +3139,28 @@ renderDSShortcuts();
 (function initDSShortcutReorder(){
   var wrap=document.getElementById('desktopShortcuts');
   if(!wrap)return;
-  var LONG_PRESS_MS=500,MOVE_CANCEL_PX=10;
+  var LONG_PRESS_MS=500,MOVE_CANCEL_PX=10,DRAG_START_PX=6;
   var press=null,longTimer=null,ghost=null,suppressClickUntil=0;
 
   function clearTimer(){if(longTimer){clearTimeout(longTimer);longTimer=null;}}
+  function hideDeleteButtons(){wrap.querySelectorAll('.ds-delete-visible').forEach(function(el){el.classList.remove('ds-delete-visible');});}
+  function revealDeleteButton(item){hideDeleteButtons();if(item)item.classList.add('ds-delete-visible');}
   function clearMarkers(){wrap.querySelectorAll('.ds-drag-before,.ds-drag-after').forEach(function(el){el.classList.remove('ds-drag-before','ds-drag-after');});}
   function positionGhost(x,y){if(ghost){ghost.style.left=x+'px';ghost.style.top=y+'px';}}
+  function armLongPress(){
+    if(!press||press.longPressed)return;
+    press.longPressed=true;suppressClickUntil=Date.now()+1200;
+    revealDeleteButton(press.item);
+    if(navigator.vibrate)navigator.vibrate(20);
+  }
   function beginDrag(){
-    if(!press||press.active)return;
+    if(!press||press.active||!press.longPressed)return;
     press.active=true;suppressClickUntil=Date.now()+1200;
+    hideDeleteButtons();
     press.item.classList.add('ds-dragging');
     ghost=press.item.cloneNode(true);ghost.classList.remove('ds-dragging');ghost.classList.add('ds-shortcut-ghost');
     ghost.style.width=press.item.offsetWidth+'px';document.body.appendChild(ghost);
     positionGhost(press.x,press.y);
-    if(navigator.vibrate)navigator.vibrate(20);
   }
   function findTarget(x,y){
     var hit=document.elementFromPoint(x,y);
@@ -3189,16 +3197,19 @@ renderDSShortcuts();
   wrap.addEventListener('pointerdown',function(e){
     if(!isDesktopLayout()||(e.button!==undefined&&e.button!==0)||e.target.closest('.ds-item-del'))return;
     var item=e.target.closest('.ds-item');if(!item||!wrap.contains(item))return;
-    clearTimer();press={item:item,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,x:e.clientX,y:e.clientY,active:false,target:null,after:false};
-    longTimer=setTimeout(beginDrag,LONG_PRESS_MS);
+    hideDeleteButtons();
+    clearTimer();press={item:item,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,x:e.clientX,y:e.clientY,longPressed:false,active:false,target:null,after:false};
+    longTimer=setTimeout(armLongPress,LONG_PRESS_MS);
   });
   document.addEventListener('pointermove',function(e){
     if(!press||e.pointerId!==press.pointerId)return;
     press.x=e.clientX;press.y=e.clientY;
-    if(!press.active){
+    var distance=Math.hypot(e.clientX-press.startX,e.clientY-press.startY);
+    if(!press.longPressed){
       if(Math.hypot(e.clientX-press.startX,e.clientY-press.startY)>MOVE_CANCEL_PX){clearTimer();press=null;}
       return;
     }
+    if(!press.active){if(distance<=DRAG_START_PX)return;beginDrag();}
     e.preventDefault();positionGhost(e.clientX,e.clientY);clearMarkers();
     var target=findTarget(e.clientX,e.clientY);press.target=target;
     if(!target)return;
@@ -3207,14 +3218,21 @@ renderDSShortcuts();
   },{passive:false});
   document.addEventListener('pointerup',function(e){
     if(!press||e.pointerId!==press.pointerId)return;
-    if(press.active)e.preventDefault();finishDrag(true);
+    if(press.active){e.preventDefault();finishDrag(true);return;}
+    clearTimer();
+    if(press.longPressed){e.preventDefault();suppressClickUntil=Date.now()+800;revealDeleteButton(press.item);}
+    press=null;
   });
-  document.addEventListener('pointercancel',function(e){if(press&&e.pointerId===press.pointerId)finishDrag(false);});
-  wrap.addEventListener('click',function(e){if(Date.now()<suppressClickUntil){e.preventDefault();e.stopPropagation();}},true);
+  document.addEventListener('pointercancel',function(e){
+    if(!press||e.pointerId!==press.pointerId)return;
+    if(press.active)finishDrag(false);else{clearTimer();press=null;}
+  });
+  document.addEventListener('pointerdown',function(e){if(!wrap.contains(e.target))hideDeleteButtons();});
+  wrap.addEventListener('click',function(e){if(Date.now()<suppressClickUntil&&!e.target.closest('.ds-item-del')){e.preventDefault();e.stopPropagation();}},true);
   wrap.addEventListener('contextmenu',function(e){if(e.target.closest('.ds-item'))e.preventDefault();});
   wrap.addEventListener('dragstart',function(e){if(e.target.closest('.ds-item'))e.preventDefault();});
-  window.addEventListener('blur',function(){if(press)finishDrag(false);});
-  window.addEventListener('resize',function(){if(press)finishDrag(false);});
+  window.addEventListener('blur',function(){hideDeleteButtons();if(press&&press.active)finishDrag(false);else{clearTimer();press=null;}});
+  window.addEventListener('resize',function(){hideDeleteButtons();if(press&&press.active)finishDrag(false);else{clearTimer();press=null;}});
 })();
 
 /* ═══ CBI LOCATIONS / REUSED HOME ROOM ═══ */

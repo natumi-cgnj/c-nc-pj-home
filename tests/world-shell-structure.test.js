@@ -151,3 +151,10 @@ test('desktop Notes cannot resize or recenter the room column', () => {
   assert.match(index, /#pageMemo\{[^}]*width:260px;[^}]*min-width:0/);
   assert.match(index, /#pageMemo \.memo-input\{width:0;min-width:0\}/);
 });
+
+test('desktop shortcut deletion requires a long press and wrapped add stays separated', () => {
+  assert.match(index, /\.ds-item\.ds-delete-visible \.ds-item-del\{display:block\}/);
+  assert.doesNotMatch(index, /\.ds-item:hover \.ds-item-del/);
+  assert.match(index, /\.ds-add\{[^}]*margin-top:8px/);
+  assert.match(index, /function armLongPress\(\)[\s\S]*?revealDeleteButton\(press\.item\)/);
+});
