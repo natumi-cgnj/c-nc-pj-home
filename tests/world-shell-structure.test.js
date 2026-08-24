@@ -142,12 +142,39 @@ test('CBI reality loop reuses the mature pages without crossing its currencies',
   assert.match(wallet, /CBIWallet\.mount/);
   assert.match(wallet, /legacyDebtWaiverApplied/);
   assert.match(wallet, /return Math\.max\(0,walletRawSharedFund\(db\)\)/);
+  assert.match(index, /'wallet':'记账'/);
+  assert.doesNotMatch(index, /worldId==='cbi'\?'案件基金':'记账'/);
   assert.match(index, /openWardrobe\('boss',event\)/);
   assert.match(index, /change\.worldId&&change\.worldId!==getActiveWorldId\(\)/);
   assert.match(schedule, /id="cbiDeploymentPanel"/);
   assert.match(schedule, /function returnCbiDeployment\(\)/);
   assert.match(cloud, /'daily\.html': \[[^\]]*'cbi_db'/);
   assert.match(cloud, /'shop\.html': \[[^\]]*'home_skin_custom'/);
+});
+
+test('CBI wallet owns funding, investigation, progress and logs but no deployment editor', () => {
+  const cbiWallet = fs.readFileSync('cbi-wallet.js', 'utf8');
+  for (const label of ['记账', '经费', '调查', '进度', '日志']) {
+    assert.match(cbiWallet, new RegExp(`>${label}<`));
+  }
+  assert.match(cbiWallet, /allocateCaseFund/);
+  assert.match(cbiWallet, /createInvestigationRequest/);
+  assert.match(cbiWallet, /approveInvestigation/);
+  assert.match(cbiWallet, /setCaseFocus/);
+  assert.doesNotMatch(cbiWallet, /今日调度|值班|bossMode|fieldAgents|cbiDeployment/);
+  assert.doesNotMatch(cbiWallet, /schedule\.html/);
+  assert.doesNotMatch(cbi, /function fundMajorCase|批准 ¥'\+cost/);
+  assert.match(cbi, /wallet\.html#investigation/);
+  assert.doesNotMatch(cbi, /item\.id!==id&&item\.status==='active'/);
+});
+
+test('recent liminal outing costs live in the outing tab rather than treasury', () => {
+  const outingsStart = wallet.indexOf('function renderOutings()');
+  const outingsEnd = wallet.indexOf('function processCurrentPeriod()', outingsStart);
+  const treasuryStart = wallet.indexOf('function renderTreasury()');
+  const treasuryEnd = wallet.indexOf('function openTransferModal()', treasuryStart);
+  assert.match(wallet.slice(outingsStart, outingsEnd), /近期外出花费/);
+  assert.doesNotMatch(wallet.slice(treasuryStart, treasuryEnd), /近期外出花费/);
 });
 
 test('desktop world files opens the active world archive beneath the existing four blocks', () => {

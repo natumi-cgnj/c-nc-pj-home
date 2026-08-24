@@ -305,9 +305,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 <script src="world-context.js?v=20260824-cbi-work1"></script>
 <script src="cloud-sync.js?v=20260824-cbi-work1"></script>
-<script src="cbi-data.js?v=20260824-wallet-fix1"></script>
+<script src="cbi-data.js?v=20260824-wallet-world2"></script>
 <script src="character-runtime.js?v=20260824-wallet-fix1"></script>
-<script src="cbi-wallet.js?v=20260824-wallet-fix1"></script>
+<script src="cbi-wallet.js?v=20260824-wallet-world2"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 var SK='wallet_db';
@@ -631,15 +631,7 @@ function renderTreasury(){
     return '<div class="char-fund-card" style="border-color:'+colors[c]+'30"><div class="char-fund-name" style="color:'+colors[c]+'">'+names[c]+'</div><div class="char-fund-amount" style="color:'+(amt>0?colors[c]:'#ccc')+'">¥'+amt+'</div></div>';
   }).join('');
 
-  // Recent outing costs
-  var recent=db.outings.slice(-5).reverse();
-  var logHtml='<div class="history-section-title">近期外出花费</div>';
-  if(!recent.length)logHtml+='<div style="text-align:center;color:#ccc;font-size:12px;padding:20px">还没有外出记录</div>';
-  recent.forEach(function(o){
-    var cfg=db.outingConfig[o.char];
-    logHtml+='<div class="hist-row"><span class="hist-cat" style="background:'+(cfg?cfg.color:'#999')+'20;color:'+(cfg?cfg.color:'#999')+'">'+(cfg?cfg.name:o.char)+'</span><span class="hist-note">'+esc(o.activity||'散步')+'</span><span class="hist-amount expense">-¥'+(o.cost||0)+'</span></div>';
-  });
-  document.getElementById('treasuryLog').innerHTML=logHtml;
+  document.getElementById('treasuryLog').innerHTML='';
 }
 function openTransferModal(){
   var grp=document.getElementById('transferToGroup');
@@ -666,16 +658,21 @@ function renderOutings(){
   var todayOutings=db.outings.filter(function(o){return o.date===today;});
   var cards=document.getElementById('outingCards');
 
-  if(!todayOutings.length){
-    cards.innerHTML='<div class="outing-empty">今天还没有人到这边外出<br><span style="font-size:10px;color:#ddd">人物状态会自动记录来到用户世界的行动</span></div>';
-    return;
-  }
-
   var html='';
+  if(!todayOutings.length)html='<div class="outing-empty">今天还没有人到这边外出<br><span style="font-size:10px;color:#ddd">人物状态会自动记录来到用户世界的行动</span></div>';
   todayOutings.forEach(function(o){
     var cfg=db.outingConfig[o.char]||{color:'#999',name:o.char};
     html+='<div class="outing-card" style="border-left:3px solid '+cfg.color+'"><div class="outing-char" style="color:'+cfg.color+'">'+esc(cfg.name)+' · '+periodName(o.period)+'</div><div class="outing-activity">'+esc(o.activity||'散步')+'</div>'+(o.dialogue?'<div class="outing-dialogue">「'+esc(o.dialogue)+'」</div>':'')+(o.cost?'<div class="outing-cost">-¥'+o.cost+'</div>':'')+'</div>';
   });
+
+  var recent=db.outings.filter(function(o){return Number(o&&o.cost)>0;}).slice(-5).reverse();
+  html+='<div class="history-section" style="padding-top:18px"><div class="history-section-title">近期外出花费</div>';
+  if(!recent.length)html+='<div style="text-align:center;color:#ccc;font-size:12px;padding:20px">还没有外出花费</div>';
+  recent.forEach(function(o){
+    var cfg=db.outingConfig[o.char]||{color:'#999',name:o.char};
+    html+='<div class="hist-row"><span class="hist-cat" style="background:'+cfg.color+'20;color:'+cfg.color+'">'+esc(cfg.name)+'</span><span class="hist-note">'+esc(o.activity||'散步')+'</span><span class="hist-amount expense">-¥'+(o.cost||0)+'</span></div>';
+  });
+  html+='</div>';
 
   cards.innerHTML=html;
 }

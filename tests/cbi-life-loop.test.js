@@ -149,3 +149,120 @@ test('shared and major-case funds never display below zero', () => {
   db.work.majorCaseProgress.example = { scenes: [{ cost: 1500 }] };
   assert.equal(CBIData.availableCaseFund(db, debtWallet), 0);
 });
+
+test('multiple active cases can remain open with an optional focused case', () => {
+  const { CBIData } = load();
+  let db = CBIData.normalize({
+    currentCaseId: null,
+    cases: [
+      { id: 'case_a', title: 'A案', status: 'active' },
+      { id: 'case_b', title: 'B案', status: 'active' }
+    ]
+  });
+  assert.equal(db.cases.filter((item) => item.status === 'active').length, 2);
+  assert.equal(db.currentCaseId, null);
+
+  db = CBIData.setCaseFocus(db, 'case_b');
+  assert.equal(db.currentCaseId, 'case_b');
+  db = CBIData.setCaseFocus(db, '');
+  assert.equal(db.currentCaseId, null);
+  assert.equal(db.cases.filter((item) => item.status === 'active').length, 2);
+});
+
+test('investigation approval spends assigned funds before the public pool', () => {
+  const { CBIData } = load();
+  const wallet = {
+    categories: [{ id: 'food', dailyBudget: 2000 }],
+    records: [{ date: '2026-08-24', category: 'food', type: 'expense', amount: 0 }],
+    charFunds: {},
+    outings: []
+  };
+  let db = CBIData.normalize({
+    currentCaseId: 'case_1',
+    cases: [{ id: 'case_1', title: '模仿犯案', status: 'active' }]
+  });
+  const allocated = CBIData.allocateCaseFund(db, 'rigsby', 300, wallet, '2026-08-24');
+  assert.ok(allocated.allocation);
+  db = allocated.db;
+  assert.equal(CBIData.availableCaseFund(db, wallet), 2000);
+  assert.equal(CBIData.allocatedCaseFund(db), 300);
+  assert.equal(CBIData.unassignedCaseFund(db, wallet), 1700);
+
+  db.work.caseFund.investigations.push(CBIData.normalizeInvestigation({
+    id: 'request_1',
+    date: '2026-08-24',
+    characterId: 'rigsby',
+    caseId: 'case_1',
+    title: '前往证人住所取证',
+    detail: '往返车费',
+    amount: 500,
+    status: 'pending'
+  }));
+  const approved = CBIData.approveInvestigation(db, 'request_1', wallet, { reply: '下次跑着去' });
+  assert.equal(approved.reason, '');
+  assert.ok(approved.scene);
+  assert.equal(approved.request.status, 'approved');
+  assert.equal(approved.request.reply, '下次跑着去');
+  assert.equal(approved.db.work.caseFund.charFunds.rigsby, 0);
+  assert.equal(CBIData.availableCaseFund(approved.db, wallet), 1500);
+  assert.equal(CBIData.unassignedCaseFund(approved.db, wallet), 1500);
+  assert.ok(approved.db.work.majorCaseProgress.case_1.progress > 0);
+  assert.deepEqual(
+    Array.from(approved.db.work.caseFund.logs, (item) => item.type),
+    ['allocation', 'investigation']
+  );
+});
+
+test('new investigation requests prefer the focused case', () => {
+  const { CBIData } = load();
+  const db = CBIData.normalize({
+    currentCaseId: 'case_b',
+    cases: [
+      { id: 'case_a', title: 'A案', status: 'active' },
+      { id: 'case_b', title: 'B案', status: 'active' }
+    ]
+  });
+  const result = CBIData.createInvestigationRequest(db, {
+    date: '2026-08-24',
+    availableCharacters: ['cho']
+  });
+  assert.equal(result.created, true);
+  assert.equal(result.request.caseId, 'case_b');
+  assert.equal(result.request.characterId, 'cho');
+});
+
+test('paid investigation scenes do not appear without spendable case funds', () => {
+  const { CBIData } = load();
+  const wallet = {
+    categories: [{ id: 'food', dailyBudget: 1000 }],
+    records: [{ date: '2026-08-24', category: 'food', type: 'expense', amount: 1000 }],
+    charFunds: {},
+    outings: []
+  };
+  const db = CBIData.normalize({
+    currentCaseId: 'case_1',
+    cases: [{ id: 'case_1', title: '零经费案', status: 'active' }]
+  });
+  const result = CBIData.createInvestigationRequest(db, { date: '2026-08-24', wallet });
+  assert.equal(result.request, null);
+  assert.equal(result.reason, 'insufficient_fund');
+});
+
+test('fully assigned funds only generate a request for a funded investigator', () => {
+  const { CBIData } = load();
+  const wallet = {
+    categories: [{ id: 'food', dailyBudget: 500 }],
+    records: [{ date: '2026-08-24', category: 'food', type: 'expense', amount: 0 }],
+    charFunds: {},
+    outings: []
+  };
+  let db = CBIData.normalize({
+    currentCaseId: 'case_1',
+    cases: [{ id: 'case_1', title: '定向调查案', status: 'active' }]
+  });
+  db = CBIData.allocateCaseFund(db, 'rigsby', 500, wallet, '2026-08-24').db;
+  const result = CBIData.createInvestigationRequest(db, { date: '2026-08-24', wallet });
+  assert.equal(result.created, true);
+  assert.equal(result.request.characterId, 'rigsby');
+  assert.ok(result.request.amount >= 50 && result.request.amount <= 500);
+});

@@ -84,6 +84,14 @@
     return result;
   }
 
+  function emptyCaseFund() {
+    return {
+      charFunds: affinityMap(),
+      investigations: [],
+      logs: []
+    };
+  }
+
   function cloneDefaultCommissions() {
     return DEFAULT_COMMISSION_POOL.map(function (item) { return Object.assign({}, item); });
   }
@@ -100,6 +108,7 @@
       culpritScores: scoreMap(),
       majorCaseStepCost: 500,
       majorCaseProgress: {},
+      caseFund: emptyCaseFund(),
       commissionPool: cloneDefaultCommissions(),
       commissionOffer: null,
       activeCommissions: [],
@@ -311,6 +320,48 @@
     };
   }
 
+  function normalizeInvestigation(item) {
+    item = item && typeof item === 'object' ? item : {};
+    return {
+      id: text(item.id) || createId('investigation'),
+      date: text(item.date) || workDayKey(),
+      characterId: CBI_CHARACTERS.indexOf(item.characterId) >= 0 ? item.characterId : 'rigsby',
+      caseId: text(item.caseId),
+      title: text(item.title),
+      detail: text(item.detail),
+      amount: Math.max(0, Math.floor(number(item.amount, 0))),
+      status: ['pending', 'approved', 'declined'].indexOf(item.status) >= 0 ? item.status : 'pending',
+      reply: text(item.reply),
+      sceneId: text(item.sceneId),
+      progressDelta: Math.max(0, Math.floor(number(item.progressDelta, 0))),
+      progressLine: text(item.progressLine),
+      createdAt: text(item.createdAt) || new Date().toISOString(),
+      resolvedAt: text(item.resolvedAt)
+    };
+  }
+
+  function normalizeCaseFundLog(item) {
+    item = item && typeof item === 'object' ? item : {};
+    return {
+      id: text(item.id) || createId('fund_log'),
+      date: text(item.date) || workDayKey(),
+      type: ['allocation', 'investigation', 'manual'].indexOf(item.type) >= 0 ? item.type : 'manual',
+      characterId: CBI_CHARACTERS.indexOf(item.characterId) >= 0 ? item.characterId : '',
+      caseId: text(item.caseId),
+      content: text(item.content),
+      createdAt: text(item.createdAt) || new Date().toISOString()
+    };
+  }
+
+  function normalizeCaseFund(value) {
+    var source = value && typeof value === 'object' ? value : {};
+    return {
+      charFunds: affinityMap(source.charFunds),
+      investigations: Array.isArray(source.investigations) ? source.investigations.map(normalizeInvestigation) : [],
+      logs: Array.isArray(source.logs) ? source.logs.map(normalizeCaseFundLog).filter(function (item) { return item.content; }) : []
+    };
+  }
+
   function normalizeMajorCaseScene(item) {
     item = item && typeof item === 'object' ? item : {};
     var allowed = ['boss'].concat(CBI_CHARACTERS);
@@ -393,6 +444,7 @@
       culpritScores: scoreMap(source.culpritScores),
       majorCaseStepCost: Math.max(1, Math.floor(number(source.majorCaseStepCost, 500))),
       majorCaseProgress: normalizeMajorCaseProgress(source.majorCaseProgress),
+      caseFund: normalizeCaseFund(source.caseFund),
       commissionPool: commissionPool,
       commissionOffer: offer,
       activeCommissions: Array.isArray(source.activeCommissions) ? source.activeCommissions.map(normalizeActiveCommission) : [],
@@ -404,14 +456,15 @@
 
   function normalize(value) {
     var source = value && typeof value === 'object' ? value : {};
+    var hadCurrentCase = Object.prototype.hasOwnProperty.call(source, 'currentCaseId');
     var result = emptyDB();
     result.cases = Array.isArray(source.cases) ? source.cases.map(normalizeCase) : [];
     result.personnel = Array.isArray(source.personnel) ? source.personnel.map(normalizePerson) : [];
     result.currentCaseId = text(source.currentCaseId) || null;
     result.work = normalizeWork(source.work);
-    if (!result.cases.some(function (item) { return item.id === result.currentCaseId; })) result.currentCaseId = null;
+    if (!result.cases.some(function (item) { return item.id === result.currentCaseId && item.status === 'active'; })) result.currentCaseId = null;
     var active = result.cases.find(function (item) { return item.status === 'active'; });
-    if (!result.currentCaseId && active) result.currentCaseId = active.id;
+    if (!hadCurrentCase && !result.currentCaseId && active) result.currentCaseId = active.id;
     return result;
   }
 
@@ -686,6 +739,57 @@
     return Math.max(0, sharedFundFromWallet(walletValue) - majorCaseSpend(value));
   }
 
+  function allocatedCaseFund(value) {
+    var db = normalize(value);
+    return CBI_CHARACTERS.reduce(function (total, characterId) {
+      return total + Math.max(0, number(db.work.caseFund.charFunds[characterId], 0));
+    }, 0);
+  }
+
+  function unassignedCaseFund(value, walletValue) {
+    return Math.max(0, availableCaseFund(value, walletValue) - allocatedCaseFund(value));
+  }
+
+  function addCaseFundLog(value, options) {
+    var db = normalize(value);
+    options = options && typeof options === 'object' ? options : { content: options };
+    var log = normalizeCaseFundLog({
+      id: options.id,
+      date: options.date || workDayKey(),
+      type: options.type || 'manual',
+      characterId: options.characterId,
+      caseId: options.caseId,
+      content: options.content,
+      createdAt: options.createdAt
+    });
+    if (!log.content.trim()) return { db: db, log: null };
+    db.work.caseFund.logs.push(log);
+    return { db: db, log: log };
+  }
+
+  function allocateCaseFund(value, characterId, amount, walletValue, dateValue) {
+    var db = normalize(value);
+    var normalizedAmount = Math.max(0, Math.floor(number(amount, 0)));
+    if (CBI_CHARACTERS.indexOf(characterId) < 0 || !normalizedAmount) {
+      return { db: db, allocation: null, reason: 'invalid_allocation' };
+    }
+    if (normalizedAmount > unassignedCaseFund(db, walletValue)) {
+      return { db: db, allocation: null, reason: 'insufficient_fund' };
+    }
+    db.work.caseFund.charFunds[characterId] += normalizedAmount;
+    var logged = addCaseFundLog(db, {
+      date: workDayKey(dateValue),
+      type: 'allocation',
+      characterId: characterId,
+      content: '指定调查经费 ¥' + normalizedAmount
+    });
+    return {
+      db: logged.db,
+      allocation: { characterId: characterId, amount: normalizedAmount },
+      reason: ''
+    };
+  }
+
   var MAJOR_CASE_CONFIG = {
     boss: { weight: 0.55, min: 5, max: 15, lines: ['我重新看了一遍现场资料：这里有个顺序不对。', '我把最不像线索的那一项圈了出来。先查这个。'] },
     rigsby: { weight: 0.78, min: 1, max: 15, lines: ['我跑了三处地址。总算有个人肯开口。', '邻居记得一辆车，描述不完整，但时间能对上。'] },
@@ -694,6 +798,99 @@
     cho: { weight: 0.64, min: 8, max: 15, lines: ['找到一段遗漏的记录。时间能对上。', '两份证词用了同一句话。不是巧合。'] },
     jane: { weight: 0.06, min: 50, max: 100, lines: ['你们一直在看答案旁边的东西。', '凶手想让我们注意那个细节，所以真正重要的是他没让我们看的部分。'] }
   };
+
+  var INVESTIGATION_REQUEST_CONFIG = {
+    rigsby: {
+      weight: 0.78,
+      requests: [
+        { title: '前往证人住所取证', detail: '往返车费', min: 600, max: 1400 },
+        { title: '补查邻居口供', detail: '跨区交通费', min: 700, max: 1500 }
+      ]
+    },
+    vanpelt: {
+      weight: 0.74,
+      requests: [
+        { title: '调取电子记录', detail: '资料复制与检索费用', min: 400, max: 900 },
+        { title: '核对通讯时间线', detail: '档案调阅费用', min: 350, max: 850 }
+      ]
+    },
+    lisbon: {
+      weight: 0.62,
+      requests: [
+        { title: '补充走访关键证人', detail: '停车与交通费用', min: 650, max: 1300 },
+        { title: '返回现场复核证词', detail: '往返交通费', min: 600, max: 1200 }
+      ]
+    },
+    cho: {
+      weight: 0.64,
+      requests: [
+        { title: '核查监控来源', detail: '往返交通费用', min: 550, max: 1100 },
+        { title: '追查车辆登记地址', detail: '燃油与通行费用', min: 700, max: 1400 }
+      ]
+    },
+    jane: {
+      weight: 0.06,
+      requests: [
+        { title: '非正式接触嫌疑人', detail: '茶与临时场地费用', min: 500, max: 1000 },
+        { title: '观察相关人员反应', detail: '临时交通与饮品费用', min: 450, max: 950 }
+      ]
+    }
+  };
+
+  function createInvestigationRequest(value, options) {
+    var db = normalize(value);
+    options = options && typeof options === 'object' ? options : {};
+    var pending = db.work.caseFund.investigations.find(function (item) { return item.status === 'pending'; });
+    if (pending) return { db: db, request: pending, created: false, reason: 'pending_exists' };
+    var activeCases = db.cases.filter(function (item) {
+      var state = db.work.majorCaseProgress[item.id];
+      return item.status === 'active' && (!state || state.progress < 100);
+    });
+    if (!activeCases.length) return { db: db, request: null, created: false, reason: 'no_active_case' };
+    var date = workDayKey(options.date);
+    var seedBase = date + '|investigation|' + db.work.caseFund.investigations.length;
+    var caseItem = activeCases.find(function (item) { return item.id === db.currentCaseId; });
+    if (!caseItem) caseItem = activeCases[Math.floor(stableUnit(seedBase + '|case') * activeCases.length)];
+    var allowed = uniqueList(options.availableCharacters, CBI_CHARACTERS);
+    if (!allowed.length) allowed = CBI_CHARACTERS.slice();
+    var hasWallet = Object.prototype.hasOwnProperty.call(options, 'wallet');
+    var totalFund = hasWallet ? availableCaseFund(db, options.wallet) : Infinity;
+    var openFund = hasWallet ? unassignedCaseFund(db, options.wallet) : Infinity;
+    if (hasWallet) {
+      allowed = allowed.filter(function (id) {
+        var personal = Math.max(0, number(db.work.caseFund.charFunds[id], 0));
+        return Math.min(totalFund, personal + openFund) >= 50;
+      });
+      if (!allowed.length) return { db: db, request: null, created: false, reason: 'insufficient_fund' };
+    }
+    var totalWeight = allowed.reduce(function (sum, id) { return sum + INVESTIGATION_REQUEST_CONFIG[id].weight; }, 0);
+    var target = stableUnit(seedBase + '|' + caseItem.id + '|character') * totalWeight;
+    var characterId = allowed[0];
+    allowed.some(function (id) {
+      target -= INVESTIGATION_REQUEST_CONFIG[id].weight;
+      if (target <= 0) { characterId = id; return true; }
+      return false;
+    });
+    var config = INVESTIGATION_REQUEST_CONFIG[characterId];
+    var template = config.requests[Math.floor(stableUnit(seedBase + '|template') * config.requests.length)];
+    var personalFund = Math.max(0, number(db.work.caseFund.charFunds[characterId], 0));
+    var spendable = hasWallet ? Math.min(totalFund, personalFund + openFund) : template.max;
+    var ceiling = Math.max(50, Math.floor(spendable / 50) * 50);
+    var requestMin = Math.min(template.min, ceiling);
+    var requestMax = Math.min(template.max, ceiling);
+    var rawAmount = requestMin + Math.floor(stableUnit(seedBase + '|amount') * (requestMax - requestMin + 1));
+    var request = normalizeInvestigation({
+      date: date,
+      characterId: characterId,
+      caseId: caseItem.id,
+      title: template.title,
+      detail: template.detail,
+      amount: Math.min(ceiling, Math.max(50, Math.ceil(rawAmount / 50) * 50)),
+      status: 'pending'
+    });
+    db.work.caseFund.investigations.push(request);
+    return { db: db, request: request, created: true, reason: '' };
+  }
 
   function advanceMajorCase(value, caseId, options) {
     var db = normalize(value);
@@ -730,6 +927,52 @@
     return { db: db, caseItem: caseItem, progress: progress, scene: scene };
   }
 
+  function approveInvestigation(value, investigationId, walletValue, options) {
+    var db = normalize(value);
+    options = options && typeof options === 'object' ? options : {};
+    var request = db.work.caseFund.investigations.find(function (item) { return item.id === investigationId; });
+    if (!request || request.status !== 'pending') return { db: db, request: request || null, scene: null, reason: 'not_pending' };
+    var caseItem = db.cases.find(function (item) { return item.id === request.caseId && item.status === 'active'; });
+    if (!caseItem) return { db: db, request: request, scene: null, reason: 'no_active_case' };
+    var personal = Math.max(0, number(db.work.caseFund.charFunds[request.characterId], 0));
+    var openFund = unassignedCaseFund(db, walletValue);
+    var totalFund = availableCaseFund(db, walletValue);
+    if (request.amount > totalFund || request.amount > personal + openFund) return { db: db, request: request, scene: null, reason: 'insufficient_fund' };
+    var advanced = advanceMajorCase(db, request.caseId, {
+      availableCharacters: [request.characterId],
+      cost: request.amount,
+      seed: request.id
+    });
+    if (!advanced.scene) return { db: db, request: request, scene: null, reason: 'no_progress' };
+    db = advanced.db;
+    var usedPersonal = Math.min(personal, request.amount);
+    db.work.caseFund.charFunds[request.characterId] = Math.max(0, personal - usedPersonal);
+    request = db.work.caseFund.investigations.find(function (item) { return item.id === investigationId; });
+    request.status = 'approved';
+    request.reply = text(options.reply).trim();
+    request.sceneId = advanced.scene.id;
+    request.progressDelta = advanced.scene.delta;
+    request.progressLine = advanced.scene.line;
+    request.resolvedAt = new Date().toISOString();
+    var content = request.title + ' · 批准 ¥' + request.amount;
+    if (request.reply) content += ' · Boss：' + request.reply;
+    var logged = addCaseFundLog(db, {
+      date: request.date,
+      type: 'investigation',
+      characterId: request.characterId,
+      caseId: request.caseId,
+      content: content
+    });
+    return { db: logged.db, request: request, scene: advanced.scene, reason: '' };
+  }
+
+  function setCaseFocus(value, caseId) {
+    var db = normalize(value);
+    var target = db.cases.find(function (item) { return item.id === caseId && item.status === 'active'; });
+    db.currentCaseId = target ? target.id : null;
+    return db;
+  }
+
   function archiveMajorCase(value, caseId) {
     var db = normalize(value);
     var caseItem = db.cases.find(function (item) { return item.id === caseId; });
@@ -757,6 +1000,8 @@
     normalizeCommission: normalizeCommission,
     normalizeShopItem: normalizeShopItem,
     normalizeDeployment: normalizeDeployment,
+    normalizeInvestigation: normalizeInvestigation,
+    normalizeCaseFund: normalizeCaseFund,
     stringList: stringList,
     load: load,
     save: save,
@@ -776,6 +1021,13 @@
     sharedFundFromWallet: sharedFundFromWallet,
     majorCaseSpend: majorCaseSpend,
     availableCaseFund: availableCaseFund,
+    allocatedCaseFund: allocatedCaseFund,
+    unassignedCaseFund: unassignedCaseFund,
+    addCaseFundLog: addCaseFundLog,
+    allocateCaseFund: allocateCaseFund,
+    createInvestigationRequest: createInvestigationRequest,
+    approveInvestigation: approveInvestigation,
+    setCaseFocus: setCaseFocus,
     advanceMajorCase: advanceMajorCase,
     archiveMajorCase: archiveMajorCase
   });
