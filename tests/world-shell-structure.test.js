@@ -27,7 +27,7 @@ test('one homepage hosts both apartment and CBI scenes', () => {
   assert.match(index, /openCbiLocationSheet\(event\)/);
   assert.match(index, /WorldContext\.setActiveLocationId\('cbi',locationId\)/);
   assert.match(index, /JANE_CBI_OFFICE_LINES/);
-  assert.match(index, /JANE_CBI_BOSS_LINES/);
+  assert.match(index, /JANE_CBI_HOME_LINES/);
   assert.doesNotMatch(index, /openRoomPkgSheet/);
   for (const charId of ['cho', 'rigsby', 'lisbon', 'vanpelt']) {
     assert.match(index, new RegExp(`id="char-${charId}"`));
@@ -37,6 +37,27 @@ test('one homepage hosts both apartment and CBI scenes', () => {
   }
   assert.match(index, /const CBI_STAFF_OFFICE_LINES =/);
   assert.match(index, /function onCbiStaffTap\(charId,event\)[\s\S]*?positionBubbleAtCharacter\(bubble,charEl,wrap\)/);
+});
+
+test('Jane uses first-case lines at the office and home lines at Boss home', () => {
+  const officeStart = index.indexOf('const JANE_CBI_OFFICE_LINES');
+  const homeStart = index.indexOf('const JANE_CBI_HOME_LINES');
+  const roomPackagesStart = index.indexOf('const ROOM_PACKAGES', homeStart);
+  const officeLines = index.slice(officeStart, homeStart);
+  const homeLines = index.slice(homeStart, roomPackagesStart);
+  assert.match(officeLines, /休假中/);
+  assert.match(officeLines, /Lisbon？至少三年/);
+  assert.doesNotMatch(officeLines, /Boss 厨房|这间客房/);
+  assert.match(homeLines, /Boss 厨房/);
+  assert.match(homeLines, /这间客房/);
+  assert.match(index, /JANE_BY_ZONE=JANE_CBI_HOME_LINES/);
+  assert.match(index, /JANE_BY_ZONE=JANE_CBI_OFFICE_LINES/);
+});
+
+test('Lisbon does not assign the whole team on her first day', () => {
+  assert.doesNotMatch(index, /Rigsby 跑现场，Van Pelt 查资料，Cho 跟我过证词/);
+  assert.doesNotMatch(index, /\{s:'分配工作'/);
+  assert.match(index, /我去问死者的恋人。其他人的分工，等组长安排。/);
 });
 
 test('CBI locations have separate day and night banner scenes', () => {

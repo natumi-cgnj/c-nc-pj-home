@@ -3279,7 +3279,7 @@ const CBI_STAFF_OFFICE_LINES = {
     {s:'压着火气',m:'第一天。我不能第一天就因为程序问题和组长吵起来。'},
     {s:'翻报告',m:'公开成绩没有夸大。至于风评……看来也没有。'},
     {s:'看向门口',m:'Jane 不是探员。提醒我等会儿再把这句话说一遍。'},
-    {s:'分配工作',m:'Rigsby 跑现场，Van Pelt 查资料，Cho 跟我过证词。先动起来。'}
+    {s:'确认安排',m:'我去问死者的恋人。其他人的分工，等组长安排。'}
   ],
   vanpelt:[
     {s:'查资料',m:'我把关联记录按时间排好了，最早的一条在这里。'},
@@ -3295,17 +3295,18 @@ const CBI_STAFF_OFFICE_LINES = {
 
 const JANE_CBI_OFFICE_LINES = {
   cbi:[
-    {s:'翻案卷',m:'这份口供前后矛盾太明显了，连 Rigsby 都能看出来。'},
-    {s:'喝茶',m:'Cho 说 Boss 十一岁抢了他钱包……我完全不意外。'},
-    {s:'嘴角微扬',m:'Lisbon 昨天拿着报告追了 Boss 三层楼。新人不容易。'},
-    {s:'假装看窗外',m:'"要跟我约会吗"——谁第一天上班这么说话的？……偏偏有用。'},
-    {s:'半躺着',m:'CBI 的案子没完没了，但至少咨询顾问不用填表。'},
-    {s:'把玩硬币',m:'催眠靠的是注意力分配，不是硬币。硬币只是道具。'},
-    {s:'叹气',m:'Red John 的事……不是现在。先把茶喝完。'}
+    {s:'休假中',m:'我被停职了。现在是休假、旅游，恰好路过。'},
+    {s:'看现场照片',m:'这不是 Red John。笑脸画得太标准，却没放在该放的位置。'},
+    {s:'等工作餐',m:'Taco 里有洋葱和青椒。显然，点单也需要专业人士。'},
+    {s:'隔着玻璃观察',m:'Lisbon？至少三年。另一个不好说。'},
+    {s:'提醒 Rigsby',m:'别太快约她出去。至少等她先记住办公室怎么走。'},
+    {s:'靠着椅背',m:'这是你们的工作。我停职，就不打扰了。'},
+    {s:'观察新人',m:'Lisbon 正在努力忍住不纠正 Boss。她今天会很累。'},
+    {s:'看向审讯室',m:'她知道自己在做什么。现在只是想确认 Boss 到底知不知道。'}
   ]
 };
 
-const JANE_CBI_BOSS_LINES = {
+const JANE_CBI_HOME_LINES = {
   jane:[
     {s:'泡茶中',m:'Boss 厨房里的茶叶只剩立顿了……算了，有热水就行。'},
     {s:'整理茶杯',m:'这个杯子是我自己带的。客房里唯一属于我的东西。'},
@@ -3357,7 +3358,7 @@ const ROOM_PACKAGES = {
       description: 'CBI x Boss AU',
       roomClass: 'room-pkg-cbi-boss',
       roomLabelColor: '#E8B96A',
-      lines: JANE_CBI_BOSS_LINES,
+      lines: JANE_CBI_HOME_LINES,
       outingProfileId: null,
       extraCharacterIds: null
     }
@@ -3478,7 +3479,7 @@ function applyWorldView(){
   if(world.id==='cbi'){
     if(locationId==='home'){
       applyRoomPkg('jane','cbi-boss');
-      JANE_BY_ZONE=JANE_CBI_BOSS_LINES;
+      JANE_BY_ZONE=JANE_CBI_HOME_LINES;
     }else{
       JANE_BY_ZONE=JANE_CBI_OFFICE_LINES;
     }
