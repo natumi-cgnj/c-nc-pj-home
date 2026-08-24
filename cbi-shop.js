@@ -11,7 +11,7 @@
       wearers: ['boss', 'jane'],
       price: 120,
       color: '#4F8A55',
-      reaction: 'Lisbon：你穿这个去现场？\nCho：至少很显眼。\nRigsby：我觉得挺酷。\nVan Pelt：……Jane先生为什么也有一件？\nJane：团队制服。Boss批准了。'
+      reaction: 'Cho：Boss批准的。\nRigsby：我觉得挺酷。\nVan Pelt：……Jane先生为什么也有一件？\nJane：因为我显然是Boss最偏爱的编外成员。'
     },
     {
       id: 'cbi_black_hoodie',
@@ -22,7 +22,7 @@
       wearers: ['boss', 'jane'],
       price: 90,
       color: '#34363B',
-      reaction: 'Lisbon看了一眼：至少这件可以穿去警局。\nJane：她的意思是，你终于看上去像来工作的了。'
+      reaction: 'Rigsby：这件很适合Boss。\nJane慢悠悠地补了一句：我的意思是，他穿什么都像来接管现场的。'
     },
     {
       id: 'cbi_silver_studs',
@@ -33,7 +33,7 @@
       wearers: ['boss'],
       price: 70,
       color: '#AEB5BE',
-      reaction: 'Van Pelt认真看了两秒：很好看。\nLisbon低头继续翻案卷，像是没听见。'
+      reaction: 'Van Pelt认真看了两秒：Boss，很好看。\nJane抬眼盯了更久：……还行。'
     },
     {
       id: 'cbi_jane_tea_tin',

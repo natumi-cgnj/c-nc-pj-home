@@ -41,10 +41,17 @@ test('Jane uses first-case lines at the office and home lines at Boss home', () 
   const officeLines = index.slice(officeStart, homeStart);
   const homeLines = index.slice(homeStart, roomPackagesStart);
   assert.match(officeLines, /休假中/);
-  assert.match(officeLines, /Lisbon？至少三年/);
+  assert.match(officeLines, /看向 Cho/);
+  assert.match(officeLines, /提醒 Rigsby/);
+  assert.match(officeLines, /观察 Van Pelt/);
+  assert.match(officeLines, /观察 Lisbon/);
+  assert.equal(count(officeLines, /Lisbon/g), 1, 'Lisbon may be observed, but must not dominate Jane office lines');
+  assert.match(officeLines, /一有分歧还是会先看 Boss/);
+  assert.doesNotMatch(officeLines, /忍住不纠正 Boss|确认 Boss 到底知不知道/);
   assert.doesNotMatch(officeLines, /Boss 厨房|这间客房/);
   assert.match(homeLines, /Boss 厨房/);
   assert.match(homeLines, /这间客房/);
+  assert.doesNotMatch(homeLines, /Lisbon/);
   assert.match(index, /JANE_BY_ZONE=JANE_CBI_HOME_LINES/);
   assert.match(index, /JANE_BY_ZONE=JANE_CBI_OFFICE_LINES/);
 });
@@ -52,7 +59,9 @@ test('Jane uses first-case lines at the office and home lines at Boss home', () 
 test('Lisbon does not assign the whole team on her first day', () => {
   assert.doesNotMatch(index, /Rigsby 跑现场，Van Pelt 查资料，Cho 跟我过证词/);
   assert.doesNotMatch(index, /\{s:'分配工作'/);
-  assert.match(index, /我去问死者的恋人。其他人的分工，等组长安排。/);
+  assert.doesNotMatch(index, /现场人员名单给我一份|\{s:'核对流程'/);
+  assert.match(index, /Boss，我有个疑问。那位顾问不是在休假吗？/);
+  assert.match(index, /Boss 让我去问死者的恋人/);
 });
 
 test('CBI locations have separate day and night banner scenes', () => {

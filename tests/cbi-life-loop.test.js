@@ -25,12 +25,20 @@ test('schema two keeps legacy case and personnel records intact', () => {
   };
   const { CBIData } = load({ cbi_db: JSON.stringify(legacy) });
   const db = CBIData.load();
-  assert.equal(db.schemaVersion, 2);
+  assert.equal(db.schemaVersion, 3);
+  assert.equal(db.canonVersion, 1);
   assert.equal(db.cases[0].title, '旧案');
   assert.equal(db.cases[0].body, '原线索');
-  assert.equal(db.personnel[0].name, 'Teresa Lisbon');
+  assert.equal(db.personnel.find((item) => item.id === 'boss').name, 'Milo Hayes');
+  const lisbon = db.personnel.find((item) => item.id === 'lisbon');
+  assert.equal(lisbon.name, 'Teresa Lisbon');
+  assert.match(lisbon.profile, /25岁/);
+  assert.match(lisbon.timeline, /没有重要导师，也没有办成过大案要案/);
+  assert.match(lisbon.relationships, /Milo.*真正的导师/);
+  assert.match(lisbon.longTermStatus, /没有核查Boss流程、索要全员名单/);
   assert.equal(db.work.salary, 0);
   assert.equal(db.work.commissionPool.length, 2);
+  assert.equal(db.work.commissionPool[0].title, '带新人熟悉报销');
 });
 
 test('filing an action runs one opening round and never rolls twice in a work day', () => {
@@ -72,6 +80,7 @@ test('completing an action freezes progress and awards every investigator at one
   const actionId = db.work.actions[0].id;
   db = CBIData.startAction(db, actionId, '2026-08-24').db;
   const anonymous = db.work.anonymousCases[0];
+  Object.keys(anonymous.progress).forEach((id) => { anonymous.progress[id] = 0; });
   anonymous.progress.lisbon = 100;
   anonymous.progress.cho = 100;
   const completed = CBIData.completeAction(db, actionId, '2026-08-24');

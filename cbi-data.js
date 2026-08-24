@@ -2,9 +2,72 @@
   'use strict';
 
   var STORAGE_KEY = 'cbi_db';
-  var SCHEMA_VERSION = 2;
+  var SCHEMA_VERSION = 3;
+  var CANON_VERSION = 1;
   var CBI_CHARACTERS = ['jane', 'cho', 'rigsby', 'lisbon', 'vanpelt'];
   var SCORE_IDS = ['boss'].concat(CBI_CHARACTERS);
+  var CANON_PERSONNEL = [
+    {
+      id: 'boss',
+      name: 'Milo Hayes',
+      role: 'CBI 重案组组长 / 现场总指挥 / 小组导师',
+      profile: '27岁。大学提前毕业，已有6—7年调查、审讯与现场经验；大学时期便处理过人质谈判。开局时是小组正式组长，不是名义负责人，也不是由成员代行权力的协调人。履历厚于组内年轻探员，是小组真正的导师与最终决策者。',
+      timeline: '大学提前毕业 → 大学时期的人质谈判经历 → 6—7年一线与重案经验 → 组建并带领现小组。开局时27岁，领导资历与重大现场经验都在Lisbon、Rigsby和Van Pelt之上。',
+      abilities: '小组里最成熟、最聪明的统筹者；擅长现场指挥、审讯、谈判、推理、识人和培养新人。Boss指出的线索、记忆与判断是叙事事实，不得在后文被否定、降级成“记错了”或被他人重新发现。',
+      relationships: 'Jane：Milo亲自留下、最偏爱也最重要的人；Jane的感情归属与“家”最终都指向Milo。Cho：年长而可靠，但主动选择服从Milo的领导。Rigsby：Milo看见并培养他的独立能力。Lisbon：因Milo留下Jane造成的空缺而提前调入；Milo是她进入CBI后的第一位重要导师。Van Pelt：Milo给她最初的重要任务与信任，把她带成真正的探员。',
+      longTermStatus: '绝对主角与关系中心。所有核心角色的成长都必须因Milo而改变；删去Milo后若某人的主线仍能原样成立，说明写偏了。Boss可以授权局部任务，但授权不等于交出全局指挥；所有结果最终回到Boss。'
+    },
+    {
+      id: 'jane',
+      name: 'Patrick Jane',
+      role: 'CBI 顾问 / Milo亲自留下的人',
+      profile: '观察与操纵天赋极高的顾问，不是探员，也不拥有调动小组的行政权。开局时因Milo坚持留下他而继续待在CBI；这个决定直接造成一个人员空缺，并让Lisbon提前获得调入机会。',
+      timeline: 'Milo坚持留下Jane → 原成员被气走、出现空缺 → Lisbon提前调入。关系前期，Jane只把Milo的暧昧理解成惯常调情；低自我价值感使他不敢相信Milo会认真选择自己。Milo约一年后不再和别人约会并继续为Jane留在CBI，Jane才在长期相处中逐渐看懂。',
+      abilities: '天才级观察、读人和心理操纵；可以提出反常判断、挑战常规，但不能抢走Boss已经找到的线索，也不能把Boss挤出自己案件的中心。关键场面里，别人看证据时，Jane会先看Milo。',
+      relationships: 'Milo是Jane最重要的关系、最终的归属与不肯承认的“家”。他可以欣赏其他人的能力，却不会把任何人放到比Milo更核心的位置；“Jane早已知道Milo认真却故意无视”不是本世界事实。',
+      longTermStatus: 'Boss家的猫。当前仍不相信Milo对自己是认真的，关系要通过Milo一次次选择、保护和留下他慢慢建立；不能提前写成已知情后的冷处理。'
+    },
+    {
+      id: 'cho',
+      name: 'Kimball Cho',
+      role: 'CBI 探员 / Milo麾下资深骨干',
+      profile: '33岁左右，比Milo年长约六岁，冷静、稳定、现场经验扎实。他的成熟不构成对Milo的监护或上级关系；他清楚评估过Milo，并主动选择追随这个更年轻的组长。',
+      timeline: '积累一线经验 → 与Rigsby搭档并共同办出真正的大案 → 调入Milo的小组。开局时是可靠骨干，但不是Milo的导师，也不会越过Milo接管全局。',
+      abilities: '执行、观察、审讯和风险判断稳定；能独立完成被授权的任务，并把结果简洁地交回Boss。',
+      relationships: '对Milo的核心关系是经过判断后的主动服从与忠诚。对Rigsby是搭档，不替他决定人生，也不会把小组变成自己的班底。',
+      longTermStatus: '成熟的追随者与执行支柱。能力用于证明Milo会选人、会用人，而不是削弱Milo的领导位置。'
+    },
+    {
+      id: 'rigsby',
+      name: 'Wayne Rigsby',
+      role: 'CBI 探员 / 外勤骨干',
+      profile: '27岁，与Milo同龄。有一定地方警务与现场经验，但在与Cho搭档之前没有经手过真正的大案。体能、走访和现场执行突出，仍需要有人把他从“Cho的搭档”看成能独当一面的探员。',
+      timeline: '地方与现场工作 → 与Cho搭档 → 两人共同办出一宗重要案件 → 被调入Milo的小组。年龄与Milo相同，但领导经验、重案履历与全局判断明显少于Milo。',
+      abilities: '追踪、走访、现场保护、体力执行与建立证人信任。接到任务后可以自主完成过程，但重要判断和调查成果必须向Boss汇报。',
+      relationships: 'Milo是第一个真正把重要责任交给他、让他证明自己不只是Cho附属的人。Cho是搭档；Van Pelt与他有四岁年龄差。',
+      longTermStatus: '在Milo的信任与任务中长成独立骨干。他的高光应当同时体现Milo识人准确，而不是另起一条与Boss无关的成长线。'
+    },
+    {
+      id: 'lisbon',
+      name: 'Teresa Lisbon',
+      role: 'CBI 新调入探员 / Milo的学生',
+      profile: '25岁。大学毕业后在地方警局工作三年，明显比同龄人优秀，但小地方缺少大案和施展空间，年轻女性也很难获得上升机会。她本来还不到调入CBI的时候；Milo坚持留下Jane气走一名成员后出现空缺，她听说年轻组长很难相处，仍闭眼抓住了这个机会。',
+      timeline: '大学毕业 → 地方警局三年 → 因小组临时空缺而提前数年进入CBI。调入前没有重要导师，也没有办成过大案要案；原作中成熟强悍的Lisbon是她在Milo带领下会抵达的终点，不是开局状态。',
+      abilities: '潜力高、学习快、认真、倔强，努力用程序意识和准备充分掩饰紧张。第一次面对疑似Red John现场时也会紧张，只是比Van Pelt更会藏。她可以质疑、提出担忧和请求任务，但必须向Boss提问。',
+      relationships: 'Milo是她进入CBI后的组长、真正的导师和最重要的职业关系。她想向他证明自己值得这次破格机会，是一只年轻、倔强、要Boss亲手带出来的小Kitty；不是照管Boss的妈妈、姐姐或行政上级。',
+      longTermStatus: '开局没有核查Boss流程、索要全员名单、审查人员决定、调动Milo的人或接管全局的权力。只有Milo明确授权时，她才获得局部协调权，而且那代表Milo的权威。她的成长来自Milo的教导、信任和逐步放权。'
+    },
+    {
+      id: 'vanpelt',
+      name: 'Grace Van Pelt',
+      role: 'CBI 新人探员 / Milo带教成员',
+      profile: '23岁。大学毕业后完成一年专项培训，刚正式入职。聪明、认真、技术能力好，但还没有足以让她在重大现场完全镇定的经验。',
+      timeline: '大学毕业 → 一年专项培训 → 23岁进入Milo的小组。与Rigsby相差四岁。第一次看到疑似Red John现场时会明显紧张，需要在任务与信任中慢慢站稳。',
+      abilities: '资料检索、通讯与数据整理潜力突出；当前仍需要明确任务、反馈和现场带教。她找到的信息先交给Boss，由Boss决定它在全案中的位置。',
+      relationships: 'Milo是给她第一份重要任务、第一份真正信任并把她培养成探员与未来领导者的人。她与其他成员可以建立关系，但职业成长的主轴必须经过Milo。',
+      longTermStatus: '年轻新人，不被写成已经完成成长的成熟探员。她会依靠Boss的判断与保护，同时努力成为值得Boss继续托付的人。'
+    }
+  ];
   var ACTION_DIFFICULTIES = {
     quick: { label: '快速', threshold: 15 },
     normal: { label: '普通', threshold: 30 },
@@ -20,11 +83,11 @@
   var DEFAULT_COMMISSION_POOL = [
     {
       id: 'commission_lisbon_no_spend',
-      title: '经费冻结日',
-      task: '完成一天不花钱；可以消耗家里的速食并喝水。',
+      title: '带新人熟悉报销',
+      task: '替Lisbon看一遍她第一次提交的CBI经费单，指出需要修改的地方。',
       issuer: 'lisbon',
-      brief: '上次的经费还没报销，我们需要节约。',
-      completion: 'Lisbon核对了账目，停顿两秒后点了点头。',
+      brief: 'Boss，我不确定CBI这几栏的要求。你有空时教我一次吗？',
+      completion: 'Lisbon按Boss标出的地方逐项改好，把最终版本先交给他确认。',
       rewardGems: 2,
       rewardAffinity: 2,
       repeatable: true,
@@ -131,6 +194,7 @@
   function emptyDB() {
     return {
       schemaVersion: SCHEMA_VERSION,
+      canonVersion: CANON_VERSION,
       currentCaseId: null,
       cases: [],
       personnel: [],
@@ -170,6 +234,56 @@
       createdAt: text(item.createdAt) || new Date().toISOString(),
       updatedAt: text(item.updatedAt) || new Date().toISOString()
     };
+  }
+
+  function canonKeyForPerson(item) {
+    var value = (text(item && item.id) + ' ' + text(item && item.name)).toLowerCase();
+    if (/(^|\s)(boss|milo|hayes)(\s|$)|米洛/.test(value)) return 'boss';
+    if (/(patrick\s*)?jane|简恩|简\b/.test(value)) return 'jane';
+    if (/kimball\s*cho|\bcho\b|周探员/.test(value)) return 'cho';
+    if (/wayne\s*rigsby|\brigsby\b|里格斯比/.test(value)) return 'rigsby';
+    if (/teresa\s*lisbon|\blisbon\b|里斯本/.test(value)) return 'lisbon';
+    if (/grace\s*van\s*pelt|\bvan\s*pelt\b|\bvanpelt\b|范佩尔特/.test(value)) return 'vanpelt';
+    return '';
+  }
+
+  function restoreCanonPersonnel(value) {
+    var source = Array.isArray(value) ? value.map(normalizePerson) : [];
+    var matched = {};
+    var extras = [];
+    source.forEach(function (item) {
+      var key = canonKeyForPerson(item);
+      if (key) {
+        if (!matched[key]) matched[key] = item;
+        return;
+      }
+      extras.push(item);
+    });
+    var now = new Date().toISOString();
+    var core = CANON_PERSONNEL.map(function (canon) {
+      var previous = matched[canon.id];
+      return normalizePerson(Object.assign({}, canon, {
+        createdAt: previous && previous.createdAt ? previous.createdAt : now,
+        updatedAt: now
+      }));
+    });
+    return core.concat(extras);
+  }
+
+  function restoreCanonWork(work) {
+    var replacement = DEFAULT_COMMISSION_POOL.find(function (item) { return item.id === 'commission_lisbon_no_spend'; });
+    work.commissionPool = work.commissionPool.map(function (item) {
+      return item.id === replacement.id ? normalizeCommission(Object.assign({}, item, replacement)) : item;
+    });
+    work.activeCommissions = work.activeCommissions.map(function (item) {
+      if (item.poolId !== replacement.id) return item;
+      return normalizeActiveCommission(Object.assign({}, item, replacement, {
+        id: item.id,
+        poolId: item.poolId,
+        acceptedAt: item.acceptedAt
+      }));
+    });
+    return work;
   }
 
   function normalizeHabit(item) {
@@ -466,12 +580,16 @@
 
   function normalize(value) {
     var source = value && typeof value === 'object' ? value : {};
+    var needsCanonRestore = Math.floor(number(source.canonVersion, 0)) < CANON_VERSION;
     var hadCurrentCase = Object.prototype.hasOwnProperty.call(source, 'currentCaseId');
     var result = emptyDB();
     result.cases = Array.isArray(source.cases) ? source.cases.map(normalizeCase) : [];
     result.personnel = Array.isArray(source.personnel) ? source.personnel.map(normalizePerson) : [];
+    if (needsCanonRestore) result.personnel = restoreCanonPersonnel(result.personnel);
+    result.canonVersion = CANON_VERSION;
     result.currentCaseId = text(source.currentCaseId) || null;
     result.work = normalizeWork(source.work);
+    if (needsCanonRestore) result.work = restoreCanonWork(result.work);
     if (!result.cases.some(function (item) { return item.id === result.currentCaseId && item.status === 'active'; })) result.currentCaseId = null;
     var active = result.cases.find(function (item) { return item.status === 'active'; });
     if (!hadCurrentCase && !result.currentCaseId && active) result.currentCaseId = active.id;
@@ -482,7 +600,14 @@
     var raw = null;
     try { raw = global.localStorage.getItem(STORAGE_KEY); } catch (error) {}
     if (!raw) return emptyDB();
-    try { return normalize(JSON.parse(raw)); } catch (error) { return emptyDB(); }
+    try {
+      var parsed = JSON.parse(raw);
+      var normalized = normalize(parsed);
+      if (Math.floor(number(parsed.schemaVersion, 0)) < SCHEMA_VERSION || Math.floor(number(parsed.canonVersion, 0)) < CANON_VERSION) {
+        global.localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
+      }
+      return normalized;
+    } catch (error) { return emptyDB(); }
   }
 
   function save(value) {
@@ -803,11 +928,11 @@
 
   var MAJOR_CASE_CONFIG = {
     boss: { weight: 0.55, min: 5, max: 15, lines: ['我重新看了一遍现场资料：这里有个顺序不对。', '我把最不像线索的那一项圈了出来。先查这个。'] },
-    rigsby: { weight: 0.78, min: 1, max: 15, lines: ['我跑了三处地址。总算有个人肯开口。', '邻居记得一辆车，描述不完整，但时间能对上。'] },
-    vanpelt: { weight: 0.74, min: 1, max: 15, lines: ['数据库里有一条关联记录，我已经标出来了。', '我把通话记录和时间线叠在一起，有一处重合。'] },
-    lisbon: { weight: 0.62, min: 8, max: 15, lines: ['我把时间线重新排了一遍，有一处说法对不上。', '证词里有个细节反复变过。我们应该再问一次。'] },
-    cho: { weight: 0.64, min: 8, max: 15, lines: ['找到一段遗漏的记录。时间能对上。', '两份证词用了同一句话。不是巧合。'] },
-    jane: { weight: 0.06, min: 50, max: 100, lines: ['你们一直在看答案旁边的东西。', '凶手想让我们注意那个细节，所以真正重要的是他没让我们看的部分。'] }
+    rigsby: { weight: 0.78, min: 1, max: 15, lines: ['Boss，我跑了三处地址。第三个地点终于有人肯开口。', 'Boss，邻居记得一辆车。描述不完整，但时间能对上。'] },
+    vanpelt: { weight: 0.74, min: 1, max: 15, lines: ['Boss，数据库里有一条关联记录，我已经标出来了。', 'Boss，我把通话记录和时间线叠在一起，找到一处重合。'] },
+    lisbon: { weight: 0.62, min: 8, max: 15, lines: ['Boss，我把时间线重新排了一遍，有一处说法对不上。', 'Boss，证词里有个细节反复变过。你要我再问一次吗？'] },
+    cho: { weight: 0.64, min: 8, max: 15, lines: ['Boss，找到一段遗漏的记录。时间能对上。', 'Boss，两份证词用了同一句话。不是巧合。'] },
+    jane: { weight: 0.06, min: 50, max: 100, lines: ['Boss，他们一直在看答案旁边的东西。', '你已经发现了，对吧？凶手拼命让人看的那个细节，正好挡住了真正重要的部分。'] }
   };
 
   var INVESTIGATION_REQUEST_CONFIG = {

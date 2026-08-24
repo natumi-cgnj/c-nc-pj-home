@@ -88,5 +88,7 @@ test('CBI data normalizes, sorts and derives mainline without duplicate storage'
   assert.deepEqual(Array.from(window.CBIData.mainlineEntries(db.cases), item => item.id), ['first', 'later']);
   const saved = window.CBIData.save(db);
   assert.equal(saved.cases.length, 3);
-  assert.equal(JSON.parse(localStorage.getItem('cbi_db')).personnel.length, 0);
+  const personnel = JSON.parse(localStorage.getItem('cbi_db')).personnel;
+  assert.equal(personnel.length, 6);
+  assert.equal(new Set(personnel.map(item => item.id)).size, 6);
 });
