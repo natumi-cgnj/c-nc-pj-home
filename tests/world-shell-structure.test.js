@@ -29,9 +29,14 @@ test('one homepage hosts both apartment and CBI scenes', () => {
   assert.match(index, /JANE_CBI_OFFICE_LINES/);
   assert.match(index, /JANE_CBI_BOSS_LINES/);
   assert.doesNotMatch(index, /openRoomPkgSheet/);
-  for (const id of ['char-cho', 'char-rigsby', 'char-lisbon', 'char-vanpelt']) {
-    assert.match(index, new RegExp(`id="${id}"`));
+  for (const charId of ['cho', 'rigsby', 'lisbon', 'vanpelt']) {
+    assert.match(index, new RegExp(`id="char-${charId}"`));
+    assert.match(index, new RegExp(`id="bubble-${charId}"`));
+    assert.match(index, new RegExp(`id="status-${charId}"`));
+    assert.match(index, new RegExp(`id="msg-${charId}"`));
   }
+  assert.match(index, /const CBI_STAFF_OFFICE_LINES =/);
+  assert.match(index, /function onCbiStaffTap\(charId,event\)[\s\S]*?positionBubbleAtCharacter\(bubble,charEl,wrap\)/);
 });
 
 test('CBI locations have separate day and night banner scenes', () => {
