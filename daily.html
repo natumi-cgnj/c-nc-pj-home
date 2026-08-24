@@ -273,9 +273,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   </div>
 </div>
 
-<script src="cloud-sync.js?v=20260804-layout2"></script>
+<script src="world-context.js?v=20260824-cbi-work1"></script>
+<script src="cloud-sync.js?v=20260824-cbi-work1"></script>
+<script src="cbi-data.js?v=20260824-cbi-work1"></script>
+<script src="cbi-work.js?v=20260824-cbi-work1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
+const IS_CBI_DAILY = window.WorldContext && WorldContext.getActiveWorldId() === 'cbi';
 // ══════════════════════════════════════
 // DROP TASK POOL
 // ══════════════════════════════════════
@@ -353,7 +357,7 @@ function importDropPool(input){if(!input.files||!input.files[0])return;const rea
 // STATE
 // ══════════════════════════════════════
 let db;
-try{db=JSON.parse(localStorage.getItem('daily_db'));}catch(e){db=null;}
+if(!IS_CBI_DAILY){try{db=JSON.parse(localStorage.getItem('daily_db'));}catch(e){db=null;}}
 if(!db)db={affinity:{neal:0,jane:0},gems:{emerald:0,sapphire:0},signin:{streak:0,lastDate:null,history:[]},completedDrops:[],todos:[],
   // New commission structure: preview → accept → active
   commissions:{date:null,preview:{jane:null,neal:null,duo:null},accepted:{jane:null,neal:null,duo:null},active:{jane:null,neal:null,duo:null}}
@@ -398,7 +402,7 @@ let currentTab='todo';
 let habitSubTab='daily';
 let editingTodoId=null;
 let editingHabitId=null;
-function save(){try{localStorage.setItem('daily_db',JSON.stringify(db));}catch(e){}}
+function save(){if(IS_CBI_DAILY)return;try{localStorage.setItem('daily_db',JSON.stringify(db));}catch(e){}}
 save();
 
 // ── Shared gem storage ──
@@ -415,7 +419,7 @@ function addBeans(coffee,tea){const b=getBeans();b.coffee=(b.coffee||0)+coffee;b
 
 // ── Habit storage ──
 let hdb;
-try{hdb=JSON.parse(localStorage.getItem('habit_db'));}catch(e){hdb=null;}
+if(!IS_CBI_DAILY){try{hdb=JSON.parse(localStorage.getItem('habit_db'));}catch(e){hdb=null;}}
 if(!hdb)hdb={habits:[],log:{},records:{}};
 if(!Array.isArray(hdb.habits))hdb.habits=[];
 if(!hdb.log)hdb.log={};
@@ -441,7 +445,7 @@ hdb.habits.forEach(h=>{
   if(h.timerLog&&typeof h.timerLog==='object'){Object.keys(h.timerLog).forEach(date=>{const value=Math.max(0,Number(h.timerLog[date])||0);if(!value)return;if(!hdb.records[date])hdb.records[date]={};const old=hdb.records[date][h.id];if(!old)hdb.records[date][h.id]={value,events:[]};else old.value=Math.max(Number(old.value)||0,value);});}
 });
 Object.keys(hdb.log).forEach(date=>{const ids=Array.isArray(hdb.log[date])?hdb.log[date]:[];if(!hdb.records[date])hdb.records[date]={};ids.forEach(id=>{if(!hdb.records[date][id])hdb.records[date][id]={value:1,events:[]};});});
-function saveHabits(){try{localStorage.setItem('habit_db',JSON.stringify(hdb));}catch(e){}}
+function saveHabits(){if(IS_CBI_DAILY)return;try{localStorage.setItem('habit_db',JSON.stringify(hdb));}catch(e){}}
 saveHabits();
 
 // Daily reset at 4:00 AM
@@ -830,12 +834,16 @@ function initDragSort(containerId,dataType){
 // ══════════════════════════════════════
 // INIT
 // ══════════════════════════════════════
-autoSignin();
-updateIntervalReminders();
 // Deep link: ?tab=drop|todo|habits
 var urlTab = new URLSearchParams(location.search).get('tab');
-if (urlTab && ['drop','todo','habits'].indexOf(urlTab) >= 0) { currentTab = urlTab; }
-render();
+if (IS_CBI_DAILY && window.CBIWork) {
+  CBIWork.mount({initialTab:urlTab});
+} else {
+  autoSignin();
+  updateIntervalReminders();
+  if (urlTab && ['drop','todo','habits'].indexOf(urlTab) >= 0) { currentTab = urlTab; }
+  render();
+}
 </script>
 </body>
 </html>

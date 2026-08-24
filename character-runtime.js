@@ -1138,9 +1138,52 @@
     return assignments;
   }
 
+  function getCbiDeployment(dateStr) {
+    let raw = null;
+    try { raw = JSON.parse(localStorage.getItem('cbi_db')); } catch (error) {}
+    const deployment = raw && raw.work && raw.work.deployments && raw.work.deployments[dateStr];
+    if (!deployment || typeof deployment !== 'object') return null;
+    const fieldAgents = Array.isArray(deployment.fieldAgents)
+      ? deployment.fieldAgents.filter(function (id, index, values) {
+        return SCHEDULE_CHARACTERS.cbi.indexOf(id) >= 0 && values.indexOf(id) === index;
+      })
+      : [];
+    return {
+      date: dateStr,
+      bossMode: ['office', 'temporary_field', 'full_field'].indexOf(deployment.bossMode) >= 0 ? deployment.bossMode : 'office',
+      fieldAgents: fieldAgents,
+      mealLead: SCHEDULE_CHARACTERS.cbi.indexOf(deployment.mealLead) >= 0 ? deployment.mealLead : '',
+      approvedBudget: Math.max(0, Math.floor(Number(deployment.approvedBudget) || 0)),
+      returnedAt: String(deployment.returnedAt || '')
+    };
+  }
+
   function getCbiDutyRoster(dateStr, periodKey) {
     const date = dateStr || calendarDateStr();
     const period = periodKey || timeSlot();
+    const deployment = getCbiDeployment(date);
+    if (deployment) {
+      const assignments = {};
+      SCHEDULE_CHARACTERS.cbi.forEach(function (charId) {
+        const isField = deployment.fieldAgents.indexOf(charId) >= 0;
+        assignments[charId] = {
+          mode: isField ? 'field' : 'office',
+          title: isField
+            ? (deployment.bossMode === 'office' ? '已派外勤' : '随 Boss 外勤')
+            : (deployment.bossMode === 'office' ? '办公室值班' : '留守办公室'),
+          source: 'deployment',
+          manual: true
+        };
+      });
+      return {
+        date: date,
+        period: period,
+        assignments: assignments,
+        office: SCHEDULE_CHARACTERS.cbi.filter(function (charId) { return assignments[charId].mode === 'office'; }),
+        field: SCHEDULE_CHARACTERS.cbi.filter(function (charId) { return assignments[charId].mode === 'field'; }),
+        deployment: deployment
+      };
+    }
     const manual = getCbiManualAssignments(date);
     const assignments = {};
     const automaticOffice = [];

@@ -121,7 +121,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <div class="btn-row"><button class="btn btn-cancel" onclick="cm('addModal')">取消</button><button class="btn btn-primary" onclick="saveItem()">保存</button></div>
 </div></div>
 
-<script src="cloud-sync.js?v=20260802-outing1"></script>
+<script src="world-context.js?v=20260824-cbi-work1"></script>
+<script src="cloud-sync.js?v=20260824-cbi-work1"></script>
+<script src="cbi-data.js?v=20260824-cbi-work1"></script>
+<script src="cbi-shop.js?v=20260824-cbi-work1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 // ══════════════════════════════════════
@@ -412,7 +415,9 @@ function sm(id){document.getElementById(id).classList.add('show');}
 function cm(id){document.getElementById(id).classList.remove('show');}
 document.querySelectorAll('.modal-bg').forEach(bg=>{bg.addEventListener('click',e=>{if(e.target===bg)bg.classList.remove('show');});});
 
-render();
+var isCbiShop = window.WorldContext && WorldContext.getActiveWorldId() === 'cbi';
+if (isCbiShop && window.CBIShop) CBIShop.mount();
+else render();
 </script>
 </body>
 </html>

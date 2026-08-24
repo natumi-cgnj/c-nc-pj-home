@@ -43,12 +43,12 @@
       characters: ['jane', 'cho', 'rigsby', 'lisbon', 'vanpelt'],
       banner: 'location',
       routes: {
-        daily: 'world-empty.html?module=daily',
-        wallet: 'world-empty.html?module=wallet',
+        daily: 'daily.html',
+        wallet: 'wallet.html',
         kitchen: 'meals.html',
         story: 'cbi.html',
         dungeon: 'world-empty.html?module=dungeon',
-        shop: 'world-empty.html?module=shop',
+        shop: 'shop.html',
         gacha: 'world-empty.html?module=gacha'
       }
     }

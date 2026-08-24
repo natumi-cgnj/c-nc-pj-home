@@ -191,6 +191,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .wardrobe-btn:hover{opacity:0.75;background:rgba(0,0,0,0.06)}
 .wardrobe-btn:active{transform:scale(0.9)}
 .wardrobe-btn svg{width:14px;height:14px;stroke:currentColor;stroke-width:1.5;fill:none;color:#888}
+.boss-wardrobe-btn{display:none}
+body[data-world-id="cbi"][data-world-location="home"] .boss-wardrobe-btn{display:flex}
 .wardrobe-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.45);display:none;align-items:center;justify-content:center;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);padding:16px}
 .wardrobe-overlay.show{display:flex}
 .wardrobe-panel{background:#fff;border-radius:18px;width:min(400px,100%);max-height:82dvh;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,0.18);overflow:hidden}
@@ -665,6 +667,7 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-home-trigger{display:
         <div class="furniture cbi-home-only natumi-gamepad"></div><div class="furniture cbi-home-only natumi-cans"></div>
         <div class="furniture cbi-home-only natumi-pizzabox"></div><div class="furniture cbi-home-only natumi-casefiles"></div>
         <div class="furniture cbi-home-only natumi-poster"></div><div class="furniture cbi-home-only natumi-towel"></div>
+        <button class="wardrobe-btn boss-wardrobe-btn" type="button" onclick="openWardrobe('boss',event)" aria-label="打开 Boss 的衣柜" title="Boss 衣柜"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a2 2 0 0 0-2 2c0 .74.4 1.39 1 1.73V8l-7 6h16l-7-6V6.73A2 2 0 0 0 12 3z"/><path d="M4 14v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg></button>
       </div>
       <!-- Neal↔Natumi: top center -->
       <button class="conn-btn conn-on-natumi-top branch-connector on" id="cNeal" data-branch-target="top" onclick="toggleMod('neal')"><span class="conn-dot" id="dNeal" style="background:#6B8AFF"></span> <span id="lNeal">连接</span></button>
@@ -902,9 +905,9 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-home-trigger{display:
   </div>
 </div>
 
-<script src="world-context.js?v=20260823-cbi-duty1"></script>
-<script src="cloud-sync.js?v=20260822-world1"></script>
-<script src="character-runtime.js?v=20260823-cbi-duty1"></script>
+<script src="world-context.js?v=20260824-cbi-work1"></script>
+<script src="cloud-sync.js?v=20260824-cbi-work1"></script>
+<script src="character-runtime.js?v=20260824-cbi-work1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 
@@ -929,7 +932,7 @@ if(modules.nealjane===undefined)modules.nealjane=true;
 function saveMod(){localStorage.setItem('home_modules',JSON.stringify(modules));}
 function toggleMod(id){modules[id]=!modules[id];saveMod();applyMod();}
 
-const MC={neal:'#6B8AFF',jane:'#5BA66B',will:'#D85A30',nealjane:'#5B9AB5'};
+const MC={neal:'#6B8AFF',jane:'#5BA66B',will:'#D85A30',boss:'#E8B96A',nealjane:'#5B9AB5'};
 
 function refreshBranchStacks(){
   document.querySelectorAll('.branch-stack').forEach(stack=>{
@@ -957,6 +960,12 @@ function positionCbiOfficeJane(){
   jane.style.left='76%';
   jane.style.top='31%';
   jane.style.zIndex='20';
+}
+
+function cbiJaneIsAvailable(){
+  if(!window.CharacterRuntime)return true;
+  var duty=CharacterRuntime.getCbiDutyRoster(CharacterRuntime.calendarDateStr(new Date()),getCGSlot(new Date()));
+  return duty.office.indexOf('jane')>=0;
 }
 
 function renderCbiDutyRoster(){
@@ -1000,7 +1009,8 @@ function applyMod(){
     var awayJane=document.getElementById('away-jane');
     if(awayJane)awayJane.classList.remove('show','break-presence');
     if(isCbiHome){
-      if(jane)jane.style.display='';
+      var janeAvailable=cbiJaneIsAvailable();
+      if(jane)jane.style.display=janeAvailable?'':'none';
       ['rigsby','vanpelt','lisbon','cho'].forEach(function(id){
         var staff=document.getElementById('char-'+id);
         if(staff)staff.classList.remove('is-present');
@@ -1011,7 +1021,7 @@ function applyMod(){
       document.getElementById('roomWill').classList.remove('will-on');
       document.getElementById('aptWrap').classList.remove('has-will-room');
       refreshBranchStacks();
-      requestAnimationFrame(function(){placeChar('jane');});
+      if(janeAvailable)requestAnimationFrame(function(){placeChar('jane');});
     }else{
       renderCbiDutyRoster();
     }
@@ -1733,6 +1743,9 @@ setInterval(updateClock,10000);
 
 /* ═══ WARDROBE / DAILY OUTFITS ═══ */
 const SKIN_DB={
+  boss:[
+    {id:'default',name:'日常',desc:'Boss 的日常穿搭',status:'obtained',color:'#E8B96A',useBaseArt:true}
+  ],
   neal:[
     {id:'default',name:'日常',desc:'日常穿搭',status:'obtained',color:'#6B8AFF',useBaseArt:true},
     {id:'formal',name:'正装·晚宴',desc:'黑色三件套，丝绒领结',status:'obtained',color:'#2C2C54'},
@@ -1755,7 +1768,7 @@ const SKIN_DB={
     {id:'tour_navy_sparkle',name:'藏蓝星光',desc:'藏蓝闪钻衬衣与粉色领带',status:'obtained',color:'#334F78',src:'assets/characters/will/will-navy-sparkle.png',source:'巡演衣装'}
   ]
 };
-const CHAR_LABEL={neal:'Neal',jane:'Jane',will:'Will'};
+const CHAR_LABEL={boss:'Boss',neal:'Neal',jane:'Jane',will:'Will'};
 const SKIN_CFG_KEY='home_skins';
 const SKIN_CUSTOM_KEY='home_skin_custom';
 const SKIN_DAILY_KEY='home_skin_daily';
@@ -1793,6 +1806,7 @@ function getMergedSkins(charId){
   const changes=Array.isArray(custom[charId])?custom[charId]:[];
   changes.forEach(change=>{
     if(!change||typeof change.id!=='string')return;
+    if(change.worldId&&change.worldId!==getActiveWorldId())return;
     const index=base.findIndex(skin=>skin.id===change.id);
     if(change._deleted){
       if(index>=0)base.splice(index,1);
@@ -1814,12 +1828,15 @@ function getCharSkinCfg(charId){
   const allCfg=loadSkinCfg();
   const usableIds=getMergedSkins(charId).filter(skin=>skin.status==='obtained').map(skin=>skin.id);
   const existing=allCfg[charId]&&Array.isArray(allCfg[charId].selected)?allCfg[charId].selected:[];
+  const custom=loadCustomSkins();
+  const hiddenWorldIds=(Array.isArray(custom[charId])?custom[charId]:[]).filter(skin=>skin&&skin.worldId&&skin.worldId!==getActiveWorldId()).map(skin=>skin.id);
   let selected=[...new Set(existing)].filter(id=>usableIds.includes(id));
   if(!selected.length)selected=usableIds.slice();
-  const changed=!allCfg[charId]||JSON.stringify(existing)!==JSON.stringify(selected);
+  const persisted=[...new Set(selected.concat(existing.filter(id=>hiddenWorldIds.includes(id))))];
+  const changed=!allCfg[charId]||JSON.stringify(existing)!==JSON.stringify(persisted);
   const result={selected};
   if(changed){
-    allCfg[charId]=result;
+    allCfg[charId]={selected:persisted};
     saveWardrobeJson(SKIN_CFG_KEY,allCfg);
   }
   return result;
@@ -1827,7 +1844,11 @@ function getCharSkinCfg(charId){
 
 function setCharSkinCfg(charId,value){
   const allCfg=loadSkinCfg();
-  allCfg[charId]={selected:[...new Set(value.selected||[])]};
+  const existing=allCfg[charId]&&Array.isArray(allCfg[charId].selected)?allCfg[charId].selected:[];
+  const custom=loadCustomSkins();
+  const hiddenWorldIds=(Array.isArray(custom[charId])?custom[charId]:[]).filter(skin=>skin&&skin.worldId&&skin.worldId!==getActiveWorldId()).map(skin=>skin.id);
+  const preserved=existing.filter(id=>hiddenWorldIds.includes(id));
+  allCfg[charId]={selected:[...new Set((value.selected||[]).concat(preserved))]};
   return saveWardrobeJson(SKIN_CFG_KEY,allCfg);
 }
 
@@ -2420,7 +2441,7 @@ function renderCharacterRuntime(){
     var jane=document.getElementById('char-jane');
     if(jane)renderCharacterArt('jane','assets/characters/cbi/jane/jane-default.png');
     if(getActiveLocationId()==='home'){
-      if(jane){jane.style.display='';placeChar('jane');}
+      if(jane){var available=cbiJaneIsAvailable();jane.style.display=available?'':'none';if(available)placeChar('jane');}
     }else{
       renderCbiDutyRoster();
     }
@@ -3324,7 +3345,19 @@ function applyWorldRoutes(){
     if(!link.dataset.baseHref)link.dataset.baseHref=link.getAttribute('href')||'';
     var moduleId=link.dataset.worldModule;
     var nextHref=worldId==='liminal'?link.dataset.baseHref:WorldContext.getRoute(moduleId,link.dataset.baseHref,worldId);
+    var baseParts=link.dataset.baseHref.split('?');
+    if(worldId!=='liminal'&&baseParts[1]&&nextHref.indexOf('?')<0&&nextHref===baseParts[0])nextHref+='?'+baseParts[1];
     link.setAttribute('href',nextHref);
+  });
+  var worldLabels={
+    'daily-habits':'日课',
+    'daily-todo':worldId==='cbi'?'行动':'日程',
+    'wallet':worldId==='cbi'?'案件基金':'记账',
+    'shop':'商城'
+  };
+  Object.keys(worldLabels).forEach(function(entryId){
+    var entry=document.querySelector('[data-entry-id="'+entryId+'"] .entry-label');
+    if(entry)entry.textContent=worldLabels[entryId];
   });
   renderDSShortcuts();
 }

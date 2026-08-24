@@ -112,6 +112,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .pack-info{padding:16px 20px;background:#fff;margin-top:8px;border-top:1px solid #f0f0f0;border-bottom:1px solid #f0f0f0}
 .pack-name{font-size:11px;color:#999;margin-bottom:4px}
 .pack-count{font-size:10px;color:#ccc}
+.cbi-deployment{display:none;margin:10px 20px 14px;background:#fff;border:1px solid #e7e1d6;border-radius:12px;padding:14px;box-shadow:0 2px 10px rgba(50,45,35,.025)}
+body[data-world-id="cbi"] .cbi-deployment{display:block}
+.cbi-deploy-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.cbi-deploy-kicker{font-size:9px;color:#b39a69;letter-spacing:1.1px;text-transform:uppercase}
+.cbi-deploy-title{font-size:14px;color:#444;font-weight:600;margin-top:3px}
+.cbi-deploy-note{font-size:10px;color:#aaa;line-height:1.6;margin-top:4px}
+.cbi-deploy-label{font-size:10px;color:#999;margin:12px 0 6px}
+.cbi-mode-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.cbi-mode-btn,.cbi-agent-btn{border:1px solid #e7e4de;background:#fafafa;color:#999;border-radius:8px;padding:8px 5px;font:inherit;font-size:10px;cursor:pointer}
+.cbi-mode-btn.selected,.cbi-agent-btn.selected{border-color:#d7b870;background:#fff9ec;color:#84672e}
+.cbi-agent-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.cbi-deploy-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.cbi-deploy-fields label{font-size:9px;color:#aaa;display:block;margin-bottom:4px}
+.cbi-deploy-fields select,.cbi-deploy-fields input{width:100%;border:1px solid #e5e2dc;border-radius:8px;padding:8px;font:inherit;font-size:11px;background:#fafafa;color:#555}
+.cbi-deploy-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
+.cbi-deploy-actions button{border:1px solid #ddd;background:#fff;color:#777;border-radius:8px;padding:8px 10px;font:inherit;font-size:10px;cursor:pointer}
+.cbi-deploy-actions .primary{background:#222;color:#fff;border-color:#222}
+.cbi-deploy-actions .return{color:#8c713b;border-color:#decba5}
 </style>
 </head>
 <body>
@@ -135,6 +153,29 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 </div>
 
 <div class="legend" id="legend"></div>
+
+<div class="cbi-deployment" id="cbiDeploymentPanel">
+  <div class="cbi-deploy-head">
+    <div><div class="cbi-deploy-kicker">CBI · deployment</div><div class="cbi-deploy-title" id="cbiDeployTitle">今日调度</div><div class="cbi-deploy-note" id="cbiDeployNote"></div></div>
+    <button class="btn-s" type="button" onclick="selectAllDeploymentAgents()">全员</button>
+  </div>
+  <div class="cbi-deploy-label">Boss 今天</div>
+  <div class="cbi-mode-grid">
+    <button class="cbi-mode-btn" type="button" data-mode="office" onclick="setCbiBossMode('office')">留办公室</button>
+    <button class="cbi-mode-btn" type="button" data-mode="temporary_field" onclick="setCbiBossMode('temporary_field')">临时外勤</button>
+    <button class="cbi-mode-btn" type="button" data-mode="full_field" onclick="setCbiBossMode('full_field')">全天外勤</button>
+  </div>
+  <div class="cbi-deploy-label" id="cbiAgentLabel">选择外勤人员</div>
+  <div class="cbi-agent-grid" id="cbiAgentGrid"></div>
+  <div class="cbi-deploy-fields">
+    <div><label>工作餐线索</label><select id="cbiMealLead"></select></div>
+    <div><label>批准经费</label><input id="cbiApprovedBudget" type="number" min="0" step="1" value="0"></div>
+  </div>
+  <div class="cbi-deploy-actions">
+    <button class="primary" type="button" onclick="saveCbiDeployment()">保存调度</button>
+    <button class="return" type="button" id="cbiReturnBtn" onclick="returnCbiDeployment()">归队 · 回办公室</button>
+  </div>
+</div>
 
 <div class="week-grid" id="weekGrid"></div>
 
@@ -190,9 +231,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 <div id="toast" style="position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.7);color:#fff;font-size:11px;padding:8px 16px;border-radius:8px;display:none;z-index:300"></div>
 
-<script src="world-context.js?v=20260823-cbi-duty1"></script>
-<script src="cloud-sync.js?v=20260822-schedule1"></script>
-<script src="character-runtime.js?v=20260823-cbi-duty1"></script>
+<script src="world-context.js?v=20260824-cbi-work1"></script>
+<script src="cloud-sync.js?v=20260824-cbi-work1"></script>
+<script src="cbi-data.js?v=20260824-cbi-work1"></script>
+<script src="character-runtime.js?v=20260824-cbi-work1"></script>
 <script>
 'use strict';
 
@@ -307,6 +349,7 @@ function selectDay(ds) {
 }
 
 function renderDetail(ds) {
+  if (WORLD_ID === 'cbi') renderCbiDeployment(ds);
   var d = new Date(ds + 'T00:00:00');
   document.getElementById('detailDate').textContent =
     (d.getMonth() + 1) + '月' + d.getDate() + '日 ' + '月火水木金土日'[d.getDay() === 0 ? 6 : d.getDay() - 1] + '曜日';
@@ -369,9 +412,115 @@ function renderDutyPreview(wrap, ds) {
     }).join(' · ') || '—';
   }
   panel.innerHTML = '<div class="duty-preview-title">CBI · DAY SHIFT</div>' +
+    (duty.deployment ? '<div class="duty-row"><strong>Boss</strong><span>' + ({office:'办公室',temporary_field:'临时外勤',full_field:'全天外勤'}[duty.deployment.bossMode] || '办公室') + '</span></div>' : '') +
     '<div class="duty-row"><strong>办公室</strong><span>' + names(duty.office) + '</span></div>' +
-    '<div class="duty-row"><strong>外勤</strong><span>' + names(duty.field) + '</span></div>';
+    '<div class="duty-row"><strong>外勤</strong><span>' + names(duty.field) + '</span></div>' +
+    (duty.deployment && duty.deployment.mealLead ? '<div class="duty-row"><strong>工作餐</strong><span>' + esc(CHAR_META[duty.deployment.mealLead].name) + ' 提议</span></div>' : '') +
+    (duty.deployment && duty.deployment.approvedBudget ? '<div class="duty-row"><strong>经费</strong><span>已批 ¥' + duty.deployment.approvedBudget + '</span></div>' : '');
   wrap.appendChild(panel);
+}
+
+function loadCbiScheduleDb() {
+  return window.CBIData ? CBIData.load() : null;
+}
+
+function cbiDeploymentFor(ds) {
+  var current = loadCbiScheduleDb();
+  return current && current.work.deployments[ds] ? current.work.deployments[ds] : CBIData.normalizeDeployment({date:ds}, ds);
+}
+
+function getCbiBossMode() {
+  var selected = document.querySelector('.cbi-mode-btn.selected');
+  return selected ? selected.getAttribute('data-mode') : 'office';
+}
+
+function selectedDeploymentAgents() {
+  return Array.from(document.querySelectorAll('#cbiAgentGrid .cbi-agent-btn.selected')).map(function (button) { return button.getAttribute('data-char'); });
+}
+
+function setCbiBossMode(mode) {
+  document.querySelectorAll('.cbi-mode-btn').forEach(function (button) { button.classList.toggle('selected', button.getAttribute('data-mode') === mode); });
+  updateCbiDeploymentControls();
+}
+
+function toggleCbiDeploymentAgent(charId) {
+  var button = document.querySelector('#cbiAgentGrid [data-char="' + charId + '"]');
+  if (button) button.classList.toggle('selected');
+  updateCbiDeploymentControls();
+}
+
+function selectAllDeploymentAgents() {
+  if (WORLD_ID !== 'cbi') return;
+  setCbiBossMode('full_field');
+  document.querySelectorAll('#cbiAgentGrid .cbi-agent-btn').forEach(function (button) { button.classList.add('selected'); });
+  updateCbiDeploymentControls();
+}
+
+function updateCbiDeploymentControls() {
+  if (WORLD_ID !== 'cbi') return;
+  var mode = getCbiBossMode();
+  var field = selectedDeploymentAgents();
+  var withBoss = mode === 'office' ? CHARS.filter(function (id) { return field.indexOf(id) < 0; }) : field;
+  document.getElementById('cbiAgentLabel').textContent = mode === 'office' ? '派去外勤的人员' : '陪 Boss 外勤的人员';
+  document.getElementById('cbiDeployNote').textContent = mode === 'office'
+    ? (field.length ? field.length + ' 人外勤，Boss 留守并批准经费。' : '今天全员在办公室；也可以临时改成外勤。')
+    : (field.length ? 'Boss 与 ' + field.map(function (id) { return CHAR_META[id].name; }).join('、') + ' 一起外勤。' : 'Boss 单独外勤，其他人留守办公室。');
+  var meal = document.getElementById('cbiMealLead');
+  var previous = meal.value;
+  meal.innerHTML = '<option value="">不指定</option>' + withBoss.map(function (id) { return '<option value="' + id + '">' + esc(CHAR_META[id].name) + '</option>'; }).join('');
+  meal.value = withBoss.indexOf(previous) >= 0 ? previous : '';
+}
+
+function renderCbiDeployment(ds) {
+  var deployment = cbiDeploymentFor(ds);
+  document.getElementById('cbiDeployTitle').textContent = ds + ' 调度';
+  document.getElementById('cbiAgentGrid').innerHTML = CHARS.map(function (id) {
+    return '<button class="cbi-agent-btn' + (deployment.fieldAgents.indexOf(id) >= 0 ? ' selected' : '') + '" type="button" data-char="' + id + '" onclick="toggleCbiDeploymentAgent(\'' + id + '\')">' + esc(CHAR_META[id].name) + '</button>';
+  }).join('');
+  document.querySelectorAll('.cbi-mode-btn').forEach(function (button) { button.classList.toggle('selected', button.getAttribute('data-mode') === deployment.bossMode); });
+  document.getElementById('cbiApprovedBudget').value = deployment.approvedBudget || 0;
+  updateCbiDeploymentControls();
+  document.getElementById('cbiMealLead').value = deployment.mealLead || '';
+  document.getElementById('cbiReturnBtn').style.display = deployment.fieldAgents.length || deployment.bossMode !== 'office' ? '' : 'none';
+}
+
+function saveCbiDeployment() {
+  if (WORLD_ID !== 'cbi' || !selectedDate) return;
+  var current = loadCbiScheduleDb();
+  var previous = current.work.deployments[selectedDate] || {};
+  current.work.deployments[selectedDate] = CBIData.normalizeDeployment({
+    date: selectedDate,
+    bossMode: getCbiBossMode(),
+    fieldAgents: selectedDeploymentAgents(),
+    returnedAgents: previous.returnedAgents || [],
+    mealLead: document.getElementById('cbiMealLead').value,
+    approvedBudget: document.getElementById('cbiApprovedBudget').value,
+    returnedAt: '',
+    updatedAt: new Date().toISOString()
+  }, selectedDate);
+  CBIData.save(current);
+  render();
+  toast('调度与经费已保存');
+}
+
+function returnCbiDeployment() {
+  if (WORLD_ID !== 'cbi' || !selectedDate) return;
+  var current = loadCbiScheduleDb();
+  var previous = current.work.deployments[selectedDate] || CBIData.normalizeDeployment({date:selectedDate}, selectedDate);
+  var returned = Array.from(new Set((previous.returnedAgents || []).concat(previous.fieldAgents || [])));
+  current.work.deployments[selectedDate] = CBIData.normalizeDeployment({
+    date: selectedDate,
+    bossMode: 'office',
+    fieldAgents: [],
+    returnedAgents: returned,
+    mealLead: '',
+    approvedBudget: previous.approvedBudget || 0,
+    returnedAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  }, selectedDate);
+  CBIData.save(current);
+  render();
+  toast('全员归队，回到办公室');
 }
 
 function prevWeek() { weekStart = addDays(weekStart, -7); render(); }
