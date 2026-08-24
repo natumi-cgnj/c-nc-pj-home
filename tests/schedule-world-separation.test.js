@@ -146,3 +146,35 @@ test('CBI dispatch overrides the deterministic automatic duty roster', () => {
   assert.deepEqual(Array.from(repeated.office), Array.from(duty.office));
   assert.deepEqual(Array.from(repeated.field), Array.from(duty.field));
 });
+
+test('CBI daily deployment overrides events and permits an all-team field day', () => {
+  const cbiDb = {
+    work: {
+      deployments: {
+        '2026-08-24': {
+          date: '2026-08-24',
+          bossMode: 'full_field',
+          fieldAgents: ['jane', 'cho', 'rigsby', 'lisbon', 'vanpelt'],
+          mealLead: 'rigsby',
+          approvedBudget: 2500
+        }
+      }
+    }
+  };
+  const { runtime } = loadRuntime({ cbi_db: JSON.stringify(cbiDb) }, 'cbi');
+  runtime.addUserEvent({
+    title: '旧的办公室安排',
+    date: '2026-08-24',
+    companions: ['cho'],
+    category: 'dispatch',
+    assignment: 'office'
+  }, 'cbi');
+
+  const duty = runtime.getCbiDutyRoster('2026-08-24', 'day');
+  assert.deepEqual(Array.from(duty.office), []);
+  assert.deepEqual(Array.from(duty.field), ['jane', 'cho', 'rigsby', 'lisbon', 'vanpelt']);
+  assert.equal(duty.assignments.cho.mode, 'field');
+  assert.equal(duty.assignments.cho.source, 'deployment');
+  assert.equal(duty.deployment.mealLead, 'rigsby');
+  assert.equal(duty.deployment.approvedBudget, 2500);
+});

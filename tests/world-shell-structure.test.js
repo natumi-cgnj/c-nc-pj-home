@@ -9,6 +9,10 @@ const backup = fs.readFileSync('backup.html', 'utf8');
 const meals = fs.readFileSync('meals.html', 'utf8');
 const recipe = fs.readFileSync('recipe.html', 'utf8');
 const schedule = fs.readFileSync('schedule.html', 'utf8');
+const daily = fs.readFileSync('daily.html', 'utf8');
+const shop = fs.readFileSync('shop.html', 'utf8');
+const wallet = fs.readFileSync('wallet.html', 'utf8');
+const worldContext = fs.readFileSync('world-context.js', 'utf8');
 
 function count(text, pattern) {
   return [...text.matchAll(pattern)].length;
@@ -64,7 +68,7 @@ test('world and CBI data participate in cloud sync and full backup', () => {
     assert.match(cloud, new RegExp(`'${key}'`));
     assert.match(backup, new RegExp(`key:'${key}'`));
   }
-  assert.match(cloud, /'cbi\.html': \['cbi_db', 'omniverse_world_context'\]/);
+  assert.match(cloud, /'cbi\.html': \['cbi_db', 'wallet_db',[^\]]*'omniverse_world_context'\]/);
 });
 
 test('food archive stays global while meals and recipes switch world layers', () => {
@@ -108,6 +112,24 @@ test('schedule page is world-aware and never auto-imports sample events', () => 
   assert.match(schedule, /data-assignment="office"/);
   assert.match(schedule, /getCbiDutyRoster\(ds, 'day'\)/);
   assert.doesNotMatch(schedule, /loadSamplePack|will_concert_osaka|Dutchman/);
+});
+
+test('CBI reality loop reuses the mature pages without crossing its currencies', () => {
+  assert.match(worldContext, /daily: 'daily\.html'/);
+  assert.match(worldContext, /wallet: 'wallet\.html'/);
+  assert.match(worldContext, /shop: 'shop\.html'/);
+  assert.match(daily, /cbi-work\.js/);
+  assert.match(daily, /CBIWork\.mount/);
+  assert.match(shop, /cbi-shop\.js/);
+  assert.match(shop, /CBIShop\.mount/);
+  assert.match(wallet, /cbi-wallet\.js/);
+  assert.match(wallet, /CBIWallet\.mount/);
+  assert.match(index, /openWardrobe\('boss',event\)/);
+  assert.match(index, /change\.worldId&&change\.worldId!==getActiveWorldId\(\)/);
+  assert.match(schedule, /id="cbiDeploymentPanel"/);
+  assert.match(schedule, /function returnCbiDeployment\(\)/);
+  assert.match(cloud, /'daily\.html': \[[^\]]*'cbi_db'/);
+  assert.match(cloud, /'shop\.html': \[[^\]]*'home_skin_custom'/);
 });
 
 test('desktop world files opens the active world archive beneath the existing four blocks', () => {
