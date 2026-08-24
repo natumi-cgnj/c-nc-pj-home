@@ -119,6 +119,16 @@ test('schedule page is world-aware and never auto-imports sample events', () => 
   assert.doesNotMatch(schedule, /loadSamplePack|will_concert_osaka|Dutchman/);
 });
 
+test('CBI schedule puts the calendar and duty preview before the simplified deployment form', () => {
+  assert.ok(schedule.indexOf('id="weekGrid"') < schedule.indexOf('id="dayDetail"'));
+  assert.ok(schedule.indexOf('id="dayDetail"') < schedule.indexOf('id="cbiDeploymentPanel"'));
+  assert.match(schedule, /\.day-events:empty\{display:none\}/);
+  assert.match(schedule, /\.cbi-agent-grid\{[^}]*repeat\(5,minmax\(0,1fr\)\)/);
+  assert.match(schedule, /restoreDefaultCbiDeployment\(\)/);
+  assert.doesNotMatch(schedule, /id="cbiMealLead"|id="cbiApprovedBudget"/);
+  assert.doesNotMatch(schedule, /<strong>工作餐<\/strong>|<strong>经费<\/strong>/);
+});
+
 test('CBI reality loop reuses the mature pages without crossing its currencies', () => {
   assert.match(worldContext, /daily: 'daily\.html'/);
   assert.match(worldContext, /wallet: 'wallet\.html'/);
