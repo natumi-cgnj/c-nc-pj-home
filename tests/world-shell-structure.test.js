@@ -126,6 +126,7 @@ test('CBI schedule puts the calendar and duty preview before the simplified depl
   assert.match(schedule, /\.cbi-agent-grid\{[^}]*repeat\(5,minmax\(0,1fr\)\)/);
   assert.match(schedule, /restoreDefaultCbiDeployment\(\)/);
   assert.doesNotMatch(schedule, /id="cbiMealLead"|id="cbiApprovedBudget"/);
+  assert.doesNotMatch(schedule, /<strong>Boss<\/strong>/);
   assert.doesNotMatch(schedule, /<strong>工作餐<\/strong>|<strong>经费<\/strong>/);
 });
 

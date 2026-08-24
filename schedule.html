@@ -407,7 +407,6 @@ function renderDutyPreview(wrap, ds) {
     }).join(' · ') || '—';
   }
   panel.innerHTML = '<div class="duty-preview-title">CBI · DAY SHIFT</div>' +
-    (duty.deployment ? '<div class="duty-row"><strong>Boss</strong><span>' + ({office:'办公室',temporary_field:'临时外勤',full_field:'全天外勤'}[duty.deployment.bossMode] || '办公室') + '</span></div>' : '') +
     '<div class="duty-row"><strong>办公室</strong><span>' + names(duty.office) + '</span></div>' +
     '<div class="duty-row"><strong>外勤</strong><span>' + names(duty.field) + '</span></div>';
   wrap.appendChild(panel);
