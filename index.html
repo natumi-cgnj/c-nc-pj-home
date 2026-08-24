@@ -970,6 +970,7 @@ function refreshBranchStacks(){
 }
 
 const CBI_STAFF_NAMES={jane:'Jane',cho:'Cho',rigsby:'Rigsby',lisbon:'Lisbon',vanpelt:'Van Pelt'};
+const CBI_DUTY_PERIOD='day';
 let currentCbiDuty=null;
 
 function positionCbiOfficeJane(){
@@ -985,14 +986,14 @@ function positionCbiOfficeJane(){
 
 function cbiJaneIsAvailable(){
   if(!window.CharacterRuntime)return true;
-  var duty=CharacterRuntime.getCbiDutyRoster(CharacterRuntime.calendarDateStr(new Date()),getCGSlot(new Date()));
+  var duty=CharacterRuntime.getCbiDutyRoster(CharacterRuntime.calendarDateStr(new Date()),CBI_DUTY_PERIOD);
   return duty.office.indexOf('jane')>=0;
 }
 
 function renderCbiDutyRoster(){
   if(getActiveWorldId()!=='cbi'||getActiveLocationId()!=='office'||!window.CharacterRuntime)return;
   var now=new Date();
-  currentCbiDuty=CharacterRuntime.getCbiDutyRoster(CharacterRuntime.calendarDateStr(now),getCGSlot(now));
+  currentCbiDuty=CharacterRuntime.getCbiDutyRoster(CharacterRuntime.calendarDateStr(now),CBI_DUTY_PERIOD);
   Object.keys(CBI_STAFF_NAMES).forEach(function(id){
     var element=document.getElementById('char-'+id);
     if(!element)return;

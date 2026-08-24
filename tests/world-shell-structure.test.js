@@ -165,6 +165,12 @@ test('mobile world files sits below the room and follows the active world archiv
   assert.match(index, /querySelectorAll\('\[data-world-files-subtitle\]'\)/);
 });
 
+test('CBI room keeps one daily roster instead of rerolling with CG time slots', () => {
+  assert.match(index, /const CBI_DUTY_PERIOD='day'/);
+  assert.equal((index.match(/,CBI_DUTY_PERIOD\)/g) || []).length, 2);
+  assert.doesNotMatch(index, /getCbiDutyRoster\([^\n]*getCGSlot/);
+});
+
 test('desktop Notes cannot resize or recenter the room column', () => {
   assert.match(index, /html\{scrollbar-gutter:stable\}/);
   assert.match(index, /#pageMemo\{[^}]*width:260px;[^}]*min-width:0/);
