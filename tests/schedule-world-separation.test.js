@@ -178,3 +178,42 @@ test('CBI daily deployment overrides events and permits an all-team field day', 
   assert.equal(duty.deployment.mealLead, 'rigsby');
   assert.equal(duty.deployment.approvedBudget, 2500);
 });
+
+test('legacy automatic outing debt is waived once and new paid outings require funds', () => {
+  const wallet = {
+    schemaVersion: 1,
+    categories: [{ id: 'food', dailyBudget: 1000 }],
+    records: [],
+    charFunds: { jane: 0 },
+    outings: [{ eventId: 'old_auto_outing', char: 'jane', cost: 600, source: 'character-runtime' }]
+  };
+  const { runtime, localStorage } = loadRuntime({ wallet_db: JSON.stringify(wallet) });
+  const paidAction = {
+    id: 'jane_paid_tea',
+    title: '买茶叶',
+    participants: ['jane'],
+    world: 'user_world',
+    walletRule: { mode: 'existing_outing', costMin: 500, costMax: 500, note: '补了一罐茶叶。' }
+  };
+
+  const migrated = runtime._internal.migrateWalletDebt();
+  assert.equal(migrated.legacyDebtWaiver, 600);
+  assert.equal(migrated.legacyDebtWaiverApplied, true);
+  assert.equal(migrated.schemaVersion, 2);
+  assert.equal(runtime._internal.walletSharedFund(migrated), 0);
+  assert.equal(runtime._internal.migrateWalletDebt().legacyDebtWaiver, 600, 'the waiver must only run once');
+  assert.equal(runtime._internal.canAffordWalletAction(paidAction), false);
+  assert.equal(runtime._internal.reserveWallet(paidAction, 'evt_without_funds', Date.parse('2026-08-24T12:00:00Z')), null);
+  assert.equal(JSON.parse(localStorage.getItem('wallet_db')).outings.length, 1);
+
+  const funded = JSON.parse(localStorage.getItem('wallet_db'));
+  funded.records.push({ date: '2026-08-24', category: 'food', type: 'expense', amount: 0 });
+  localStorage.setItem('wallet_db', JSON.stringify(funded));
+  assert.equal(runtime._internal.canAffordWalletAction(paidAction), true);
+  assert.equal(runtime._internal.reserveWallet(paidAction, 'evt_with_funds', Date.parse('2026-08-24T12:00:00Z')), 500);
+
+  const saved = JSON.parse(localStorage.getItem('wallet_db'));
+  assert.equal(saved.outings.length, 2);
+  assert.equal(saved.outings[1].eventId, 'evt_with_funds');
+  assert.equal(runtime._internal.walletSharedFund(saved), 500);
+});

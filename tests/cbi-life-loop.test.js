@@ -130,3 +130,22 @@ test('funded major-case scenes consume the shared surplus and can close a full c
   assert.equal(archived.db.cases[0].status, 'closed');
   assert.equal(archived.db.currentCaseId, null);
 });
+
+test('shared and major-case funds never display below zero', () => {
+  const { CBIData } = load();
+  const debtWallet = {
+    categories: [{ id: 'food', dailyBudget: 1000 }],
+    records: [],
+    charFunds: {},
+    outings: [{ cost: 600 }]
+  };
+  assert.equal(CBIData.sharedFundFromWallet(debtWallet), 0);
+
+  debtWallet.legacyDebtWaiver = 600;
+  debtWallet.records.push({ date: '2026-08-24', category: 'food', type: 'expense', amount: 0 });
+  assert.equal(CBIData.sharedFundFromWallet(debtWallet), 1000);
+
+  const db = CBIData.emptyDB();
+  db.work.majorCaseProgress.example = { scenes: [{ cost: 1500 }] };
+  assert.equal(CBIData.availableCaseFund(db, debtWallet), 0);
+});

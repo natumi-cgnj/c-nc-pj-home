@@ -129,6 +129,8 @@ test('CBI reality loop reuses the mature pages without crossing its currencies',
   assert.match(shop, /CBIShop\.mount/);
   assert.match(wallet, /cbi-wallet\.js/);
   assert.match(wallet, /CBIWallet\.mount/);
+  assert.match(wallet, /legacyDebtWaiverApplied/);
+  assert.match(wallet, /return Math\.max\(0,walletRawSharedFund\(db\)\)/);
   assert.match(index, /openWardrobe\('boss',event\)/);
   assert.match(index, /change\.worldId&&change\.worldId!==getActiveWorldId\(\)/);
   assert.match(schedule, /id="cbiDeploymentPanel"/);
