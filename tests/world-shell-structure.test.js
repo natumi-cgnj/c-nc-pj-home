@@ -157,6 +157,14 @@ test('desktop world files opens the active world archive beneath the existing fo
   assert.match(index, /\.db-world-files\{grid-column:1\/-1/);
 });
 
+test('mobile world files sits below the room and follows the active world archive', () => {
+  assert.ok(index.indexOf('id="cbiOfficeWrap"') < index.indexOf('id="mobileWorldFilesBlock"'));
+  assert.match(index, /class="mobile-world-files" id="mobileWorldFilesBlock"/);
+  assert.match(index, /\.mobile-world-files\{width:100%;max-width:360px/);
+  assert.match(index, /@media\(min-width:700px\)\{[\s\S]*?\.mobile-world-files\{display:none\}/);
+  assert.match(index, /querySelectorAll\('\[data-world-files-subtitle\]'\)/);
+});
+
 test('desktop Notes cannot resize or recenter the room column', () => {
   assert.match(index, /html\{scrollbar-gutter:stable\}/);
   assert.match(index, /#pageMemo\{[^}]*width:260px;[^}]*min-width:0/);
