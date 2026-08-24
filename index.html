@@ -118,6 +118,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .bubble-status-neal{color:#6B8AFF}
 .bubble-status-jane{color:#5BA66B}
 .bubble-status-will{color:#D85A30}
+.bubble-status-cho{color:#68747A}
+.bubble-status-rigsby{color:#7E9AB0}
+.bubble-status-lisbon{color:#A06F62}
+.bubble-status-vanpelt{color:#B48A9B}
 .speech-bubble.bubble-below::after{bottom:auto;top:-5px}
 .tooltip{position:fixed;bottom:20%;left:50%;transform:translateX(-50%) translateY(10px);background:rgba(0,0,0,0.75);color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:500;opacity:0;pointer-events:none;transition:all 0.3s;white-space:nowrap;z-index:50}
 .tooltip.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -719,9 +723,13 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-home-trigger{display:
       <button class="wardrobe-btn" type="button" onclick="openWardrobe('jane',event)" aria-label="打开 Jane 的衣柜" title="衣柜"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a2 2 0 0 0-2 2c0 .74.4 1.39 1 1.73V8l-7 6h16l-7-6V6.73A2 2 0 0 0 12 3z"/><path d="M4 14v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg></button>
     </div>
     <div class="char-sprite cbi-staff-sprite" id="char-rigsby" onclick="onCbiStaffTap('rigsby',event)"><img src="assets/characters/cbi/rigsby/rigsby-default.png" alt="Rigsby"></div>
+    <div class="speech-bubble" id="bubble-rigsby"><span class="bubble-status bubble-status-rigsby" id="status-rigsby"></span><span id="msg-rigsby"></span></div>
     <div class="char-sprite cbi-staff-sprite" id="char-vanpelt" onclick="onCbiStaffTap('vanpelt',event)"><img src="assets/characters/cbi/vanpelt/vanpelt-default.png" alt="Van Pelt"></div>
+    <div class="speech-bubble" id="bubble-vanpelt"><span class="bubble-status bubble-status-vanpelt" id="status-vanpelt"></span><span id="msg-vanpelt"></span></div>
     <div class="char-sprite cbi-staff-sprite" id="char-lisbon" onclick="onCbiStaffTap('lisbon',event)"><img src="assets/characters/cbi/lisbon/lisbon-default.png" alt="Lisbon"></div>
+    <div class="speech-bubble" id="bubble-lisbon"><span class="bubble-status bubble-status-lisbon" id="status-lisbon"></span><span id="msg-lisbon"></span></div>
     <div class="char-sprite cbi-staff-sprite" id="char-cho" onclick="onCbiStaffTap('cho',event)"><img src="assets/characters/cbi/cho/cho-default.png" alt="Cho"></div>
+    <div class="speech-bubble" id="bubble-cho"><span class="bubble-status bubble-status-cho" id="status-cho"></span><span id="msg-cho"></span></div>
   </div>
 </div>
 
@@ -982,6 +990,8 @@ function renderCbiDutyRoster(){
     }else{
       element.classList.toggle('is-present',present);
     }
+    var bubble=document.getElementById('bubble-'+id);
+    if(!present&&bubble)bubble.classList.remove('show');
   });
 }
 
@@ -990,7 +1000,25 @@ function onCbiStaffTap(charId,event){
   if(!currentCbiDuty)renderCbiDutyRoster();
   var assignment=currentCbiDuty&&currentCbiDuty.assignments[charId];
   if(!assignment)return;
-  showTip(CBI_STAFF_NAMES[charId]+' · '+(assignment.mode==='office'?'办公室':'外勤')+(assignment.manual?' · 手动安排':' · 自动轮值'));
+  var pool=CBI_STAFF_OFFICE_LINES[charId]||[];
+  var bubble=document.getElementById('bubble-'+charId);
+  var charEl=document.getElementById('char-'+charId);
+  var statusEl=document.getElementById('status-'+charId);
+  var messageEl=document.getElementById('msg-'+charId);
+  var wrap=getActiveMapWrap();
+  if(!pool.length||!bubble||!charEl||!statusEl||!messageEl||!wrap){
+    showTip(CBI_STAFF_NAMES[charId]+' · '+(assignment.mode==='office'?'办公室':'外勤'));
+    return;
+  }
+  var line=pool[Math.floor(Math.random()*pool.length)];
+  if(bubble.parentElement!==wrap)wrap.appendChild(bubble);
+  statusEl.textContent=line.s||'';
+  messageEl.textContent=line.m||'';
+  positionBubbleAtCharacter(bubble,charEl,wrap);
+  if(bubbleTimers[charId])clearTimeout(bubbleTimers[charId]);
+  bubble.style.zIndex=++bubbleZCounter;
+  bubble.classList.add('show');
+  bubbleTimers[charId]=setTimeout(function(){bubble.classList.remove('show');},4500);
 }
 
 function applyMod(){
@@ -3190,6 +3218,49 @@ renderDSShortcuts();
 })();
 
 /* ═══ CBI LOCATIONS / REUSED HOME ROOM ═══ */
+const CBI_STAFF_OFFICE_LINES = {
+  cho:[
+    {s:'看报告',m:'这一页没有签名。退回去。'},
+    {s:'核对证词',m:'两个版本的时间不一样。'},
+    {s:'简短汇报',m:'外勤记录整理完了。重点标了三处。'},
+    {s:'等咖啡',m:'Rigsby 买的。太甜。'},
+    {s:'看向 Boss 桌',m:'五分钟。他把办公室弄得像第二现场。'},
+    {s:'翻档案',m:'Jane 拿走第三页，又放回第四页。他说这样比较有趣。'},
+    {s:'面无表情',m:'Boss 说他没忘，只是还没想起来。就是忘了。'},
+    {s:'确认安排',m:'我去现场。Rigsby 开车。'}
+  ],
+  rigsby:[
+    {s:'刚回办公室',m:'跑了三个地址。第二个没人，第三个邻居倒是什么都知道。'},
+    {s:'拆工作餐',m:'汉堡算工作餐。只要别让 Lisbon 看见报销单。'},
+    {s:'整理笔记',m:'门牌号我记了。肯定记了。等一下。'},
+    {s:'看向 Cho',m:'Cho 说那条线没用。通常他说完这句，我还得再跑一趟。'},
+    {s:'压低声音',m:'新人第一天就敢跟 Boss 讲程序。她挺厉害。'},
+    {s:'递文件',m:'Van Pelt 查到的，我顺路打印了。'},
+    {s:'清点证物',m:'我没碰。只是差点碰。'},
+    {s:'揉了揉脸',m:'如果一会儿还要去现场，先让我把咖啡喝完。'}
+  ],
+  lisbon:[
+    {s:'整理时间线',m:'先把最后见到她的人、通话记录和出入时间放在一起。'},
+    {s:'核对流程',m:'现场人员名单给我一份。包括那位“休假旅游”的顾问。'},
+    {s:'写笔记',m:'经费、证物、人员安排。总得有人把它们记清楚。'},
+    {s:'重新确认',m:'他的证件是真的，他确实是组长。我已经确认过了。'},
+    {s:'压着火气',m:'第一天。我不能第一天就因为程序问题和组长吵起来。'},
+    {s:'翻报告',m:'公开成绩没有夸大。至于风评……看来也没有。'},
+    {s:'看向门口',m:'Jane 不是探员。提醒我等会儿再把这句话说一遍。'},
+    {s:'分配工作',m:'Rigsby 跑现场，Van Pelt 查资料，Cho 跟我过证词。先动起来。'}
+  ],
+  vanpelt:[
+    {s:'查资料',m:'我把关联记录按时间排好了，最早的一条在这里。'},
+    {s:'认真记录',m:'第一次出差就直接进现场……我会跟上的。'},
+    {s:'小声确认',m:'Rigsby，Boss 平时也会这样突然改安排吗？'},
+    {s:'看着证件照',m:'那条领带上的图案……真的是小恐龙。'},
+    {s:'整理档案',m:'我已经按人物关系和时间分成两份，查起来会快一点。'},
+    {s:'对照记录',m:'这里有一处重合。我再确认一次来源。'},
+    {s:'忍住好奇',m:'Jane 刚才只看了一眼。他到底看见了什么？'},
+    {s:'抬起头',m:'数据库检索结束了。我找到几条可以继续查的记录。'}
+  ]
+};
+
 const JANE_CBI_OFFICE_LINES = {
   cbi:[
     {s:'翻案卷',m:'这份口供前后矛盾太明显了，连 Rigsby 都能看出来。'},
