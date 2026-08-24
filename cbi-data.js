@@ -669,7 +669,8 @@
     var charFunds = wallet.charFunds && typeof wallet.charFunds === 'object' ? wallet.charFunds : {};
     Object.keys(charFunds).forEach(function (id) { total -= Math.max(0, number(charFunds[id], 0)); });
     (Array.isArray(wallet.outings) ? wallet.outings : []).forEach(function (outing) { total -= Math.max(0, number(outing && outing.cost, 0)); });
-    return Math.floor(total);
+    total += Math.max(0, number(wallet.legacyDebtWaiver, 0));
+    return Math.max(0, Math.floor(total));
   }
 
   function majorCaseSpend(value) {
@@ -682,7 +683,7 @@
   }
 
   function availableCaseFund(value, walletValue) {
-    return sharedFundFromWallet(walletValue) - majorCaseSpend(value);
+    return Math.max(0, sharedFundFromWallet(walletValue) - majorCaseSpend(value));
   }
 
   var MAJOR_CASE_CONFIG = {

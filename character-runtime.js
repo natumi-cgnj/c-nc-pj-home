@@ -14,6 +14,7 @@
   const RUNTIME_KEY = 'home_character_runtime';
   const PACKS_KEY = 'home_character_action_packs';
   const DIARY_KEY = 'shared_diary_db';
+  const WALLET_KEY = 'wallet_db';
   const SCHEDULE_PACKS_KEY = 'schedule_packs';
   const USER_EVENTS_KEY = 'schedule_user_events';
   const DAY_START_HOUR = 4;
@@ -76,6 +77,110 @@
       console.warn('character-runtime: save failed', key, error);
       return false;
     }
+  }
+
+  function walletNumber(value) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+
+  function walletTotalSurplus(walletValue) {
+    const wallet = walletValue && typeof walletValue === 'object' ? walletValue : {};
+    const categories = Array.isArray(wallet.categories) ? wallet.categories : [];
+    const records = Array.isArray(wallet.records) ? wallet.records : [];
+    const byDate = {};
+    records.forEach(function (record) {
+      if (!record || !record.date || !record.category) return;
+      if (!byDate[record.date]) byDate[record.date] = {};
+      if (!byDate[record.date][record.category]) byDate[record.date][record.category] = { spent: 0, earned: 0 };
+      if (record.type === 'expense') byDate[record.date][record.category].spent += Math.max(0, walletNumber(record.amount));
+      else byDate[record.date][record.category].earned += Math.max(0, walletNumber(record.amount));
+    });
+    let total = 0;
+    Object.keys(byDate).forEach(function (date) {
+      categories.forEach(function (category) {
+        const current = byDate[date][category.id] || { spent: 0, earned: 0 };
+        total += Math.max(0, walletNumber(category.dailyBudget)) - current.spent + current.earned;
+      });
+    });
+    return total;
+  }
+
+  function walletRawSharedFund(walletValue) {
+    const wallet = walletValue && typeof walletValue === 'object' ? walletValue : {};
+    let total = walletTotalSurplus(wallet);
+    const charFunds = wallet.charFunds && typeof wallet.charFunds === 'object' ? wallet.charFunds : {};
+    Object.keys(charFunds).forEach(function (id) { total -= Math.max(0, walletNumber(charFunds[id])); });
+    (Array.isArray(wallet.outings) ? wallet.outings : []).forEach(function (outing) {
+      total -= Math.max(0, walletNumber(outing && outing.cost));
+    });
+    total += Math.max(0, walletNumber(wallet.legacyDebtWaiver));
+    return Math.floor(total);
+  }
+
+  function walletSharedFund(walletValue) {
+    return Math.max(0, walletRawSharedFund(walletValue));
+  }
+
+  function migrateWalletDebt() {
+    const wallet = readJson(WALLET_KEY, null);
+    if (!wallet) return null;
+    wallet.charFunds = wallet.charFunds && typeof wallet.charFunds === 'object' ? wallet.charFunds : {};
+    wallet.outings = Array.isArray(wallet.outings) ? wallet.outings : [];
+    wallet.legacyDebtWaiver = Math.max(0, walletNumber(wallet.legacyDebtWaiver));
+    if (wallet.legacyDebtWaiverApplied !== true) {
+      const raw = walletRawSharedFund(wallet);
+      if (raw < 0) wallet.legacyDebtWaiver += Math.abs(raw);
+      wallet.legacyDebtWaiverApplied = true;
+      wallet.schemaVersion = Math.max(2, Math.floor(walletNumber(wallet.schemaVersion)));
+      writeJson(WALLET_KEY, wallet);
+    }
+    return wallet;
+  }
+
+  function walletFundsForCharacter(wallet, charId) {
+    const personal = wallet && wallet.charFunds && typeof wallet.charFunds === 'object'
+      ? Math.max(0, walletNumber(wallet.charFunds[charId])) : 0;
+    return walletSharedFund(wallet) + personal;
+  }
+
+  function canAffordWalletAction(action, walletValue) {
+    if (!action || action.world !== 'user_world' || !action.walletRule) return true;
+    const wallet = walletValue || migrateWalletDebt();
+    if (!wallet) return false;
+    const charId = Array.isArray(action.participants) ? action.participants[0] : '';
+    return walletFundsForCharacter(wallet, charId) >= Math.max(0, walletNumber(action.walletRule.costMin));
+  }
+
+  function reserveWallet(action, eventId, startAt) {
+    const rule = action && action.walletRule;
+    if (!rule || rule.mode !== 'existing_outing') return 0;
+    const wallet = migrateWalletDebt();
+    if (!wallet) return null;
+    if (wallet.outings.some(function (outing) { return outing.eventId === eventId; })) return 0;
+    const charId = Array.isArray(action.participants) ? action.participants[0] : '';
+    const available = Math.floor(walletFundsForCharacter(wallet, charId));
+    const minimum = Math.max(0, Math.floor(walletNumber(rule.costMin)));
+    const maximum = Math.min(Math.floor(walletNumber(rule.costMax)), available);
+    if (available < minimum || maximum < minimum) return null;
+    const cost = randomDuration(minimum, maximum);
+    const charFund = Math.max(0, walletNumber(wallet.charFunds[charId]));
+    wallet.charFunds[charId] = Math.max(0, charFund - cost);
+    const eventStart = Number.isFinite(startAt) ? new Date(startAt) : nowDate();
+    wallet.outings.push({
+      id: generateId('w'),
+      eventId: eventId,
+      date: dayKey(eventStart),
+      period: timeSlot(eventStart),
+      char: charId,
+      activity: action.title,
+      dialogue: rule.note || action.title,
+      cost: cost,
+      activityId: action.actionId || action.id || null,
+      source: 'character-runtime',
+      reservedAt: nowMs()
+    });
+    return writeJson(WALLET_KEY, wallet) ? cost : null;
   }
 
   function createDefaultCharState() {
@@ -550,7 +655,10 @@
       }
 
       const slot = timeSlot(now);
-      const eligible = filterEligible(actions, charId, slot, now, runtime);
+      const walletSnapshot = migrateWalletDebt();
+      const eligible = filterEligible(actions, charId, slot, now, runtime).filter(function (action) {
+        return canAffordWalletAction(action, walletSnapshot);
+      });
       if (!eligible.length) {
         scheduleNextAction(state, now, 30, 60);
         changed = true;
@@ -597,6 +705,15 @@
       const eventId = generateId('evt');
       const duration = randomDuration(chosen.durationMin, chosen.durationMax);
       const startAt = now.getTime();
+      let walletCost = null;
+      if (chosen.walletRule && chosen.world === 'user_world') {
+        walletCost = reserveWallet(chosen, eventId, startAt);
+        if (walletCost === null) {
+          scheduleNextAction(state, now, 15, 45);
+          changed = true;
+          return;
+        }
+      }
       const endAt = startAt + duration * 60000;
       const diaryTemplates = Array.isArray(chosen.diaryTemplates) ? chosen.diaryTemplates : [];
       const diaryTemplate = diaryTemplates.length ?
@@ -616,6 +733,7 @@
           (chosen.activityMode === 'away' ? '外出中 · ' : '在房间 · ') + chosen.title,
         diaryTemplate: diaryTemplate,
         walletRule: chosen.walletRule || null,
+        walletCost: walletCost,
         artOverride: chosen.artOverride || null,
         startAt: startAt,
         endAt: endAt,
@@ -794,33 +912,11 @@
   }
 
   function settleWallet(activity) {
-    const walletDb = readJson('wallet_db', null);
-    if (!walletDb) return;
-    walletDb.outings = Array.isArray(walletDb.outings) ? walletDb.outings : [];
-    walletDb.charFunds = walletDb.charFunds && typeof walletDb.charFunds === 'object' ? walletDb.charFunds : {};
-    if (walletDb.outings.some(function (outing) { return outing.eventId === activity.eventId; })) return;
-
-    const rule = activity.walletRule;
-    if (!rule || rule.mode !== 'existing_outing' ||
-        !Number.isFinite(rule.costMin) || !Number.isFinite(rule.costMax) || rule.costMax < rule.costMin) return;
-    const cost = randomDuration(rule.costMin, rule.costMax);
-    const charId = activity.participants[0];
-    const charFund = walletDb.charFunds[charId] || 0;
-    const eventStart = Number.isFinite(activity.startAt) ? new Date(activity.startAt) : nowDate();
-    walletDb.charFunds[charId] = Math.max(0, charFund - cost);
-    walletDb.outings.push({
-      id: generateId('w'),
-      eventId: activity.eventId,
-      date: dayKey(eventStart),
-      period: timeSlot(eventStart),
-      char: charId,
-      activity: activity.title,
-      dialogue: rule.note || activity.title,
-      cost: cost,
-      activityId: activity.actionId,
-      source: 'character-runtime'
-    });
-    writeJson('wallet_db', walletDb);
+    const wallet = migrateWalletDebt();
+    if (!wallet) return null;
+    const existing = wallet.outings.find(function (outing) { return outing.eventId === activity.eventId; });
+    if (existing) return Math.max(0, walletNumber(existing.cost));
+    return reserveWallet(activity, activity.eventId, activity.startAt);
   }
 
   function getCharacterStatus(charId) {
@@ -1251,6 +1347,8 @@
       if (opts.randomFn) _randomFn = opts.randomFn;
       if (opts.onTick !== undefined) _onTick = opts.onTick;
 
+      migrateWalletDebt();
+
       const hadRuntime = localStorage.getItem(RUNTIME_KEY) !== null;
       const packsBeforeDefault = loadPacks();
       const hadPacks = !!(packsBeforeDefault.merged && packsBeforeDefault.merged.length);
@@ -1349,6 +1447,11 @@
       randomDuration: randomDuration,
       settleEvent: settleEvent,
       settleWallet: settleWallet,
+      walletRawSharedFund: walletRawSharedFund,
+      walletSharedFund: walletSharedFund,
+      migrateWalletDebt: migrateWalletDebt,
+      canAffordWalletAction: canAffordWalletAction,
+      reserveWallet: reserveWallet,
       writeDiaryEntry: writeDiaryEntry,
       renderDiaryTemplate: renderDiaryTemplate,
       loadRuntime: loadRuntime,

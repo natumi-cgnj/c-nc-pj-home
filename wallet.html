@@ -305,9 +305,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 <script src="world-context.js?v=20260824-cbi-work1"></script>
 <script src="cloud-sync.js?v=20260824-cbi-work1"></script>
-<script src="cbi-data.js?v=20260824-cbi-work1"></script>
-<script src="character-runtime.js?v=20260824-cbi-work1"></script>
-<script src="cbi-wallet.js?v=20260824-cbi-work1"></script>
+<script src="cbi-data.js?v=20260824-wallet-fix1"></script>
+<script src="character-runtime.js?v=20260824-wallet-fix1"></script>
+<script src="cbi-wallet.js?v=20260824-wallet-fix1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 var SK='wallet_db';
@@ -316,6 +316,7 @@ try{db=walletRaw?JSON.parse(walletRaw):null;}catch(e){db=null;}
 
 function createDefaultDB(){
   return{
+    schemaVersion:2,
     categories:[
       {id:'stationery',name:'文具',dailyBudget:300,color:'#4AADE8'},
       {id:'goods',name:'谷子',dailyBudget:500,color:'#9B6BCC'},
@@ -326,6 +327,8 @@ function createDefaultDB(){
     records:[],
     charFunds:{neal:0,jane:0,will:0},
     outings:[],
+    legacyDebtWaiver:0,
+    legacyDebtWaiverApplied:true,
     lastProcessed:null,
     processedPeriods:{},
     activitySets:[
@@ -423,7 +426,14 @@ function normalizeWalletDB(value){
     result.outingConfig[id].probs=Object.assign({},defaults.outingConfig[id].probs,(result.outingConfig[id]||{}).probs||{});
   });
   result.activitySets=mergeActivitySets(value.activitySets,defaults.activitySets);
-  result.schemaVersion=1;
+  result.legacyDebtWaiver=Math.max(0,Number(value.legacyDebtWaiver)||0);
+  result.legacyDebtWaiverApplied=value.legacyDebtWaiverApplied===true;
+  result.schemaVersion=2;
+  if(!result.legacyDebtWaiverApplied){
+    var rawFund=walletRawSharedFund(result);
+    if(rawFund<0)result.legacyDebtWaiver+=Math.abs(rawFund);
+    result.legacyDebtWaiverApplied=true;
+  }
   return result;
 }
 db=normalizeWalletDB(db);
@@ -508,34 +518,39 @@ function getCategoryToday(catId){
   });
   return{spent:spent,earned:earned,net:spent-earned};
 }
-function getTotalSurplus(){
+function walletTotalSurplus(value){
+  var wallet=value&&typeof value==='object'?value:{};
   var total=0;
   var byDate={};
-  db.records.forEach(function(r){
+  (Array.isArray(wallet.records)?wallet.records:[]).forEach(function(r){
     if(!byDate[r.date])byDate[r.date]={};
     if(!byDate[r.date][r.category])byDate[r.date][r.category]={spent:0,earned:0};
-    if(r.type==='expense')byDate[r.date][r.category].spent+=r.amount;
-    else byDate[r.date][r.category].earned+=r.amount;
+    if(r.type==='expense')byDate[r.date][r.category].spent+=Math.max(0,Number(r.amount)||0);
+    else byDate[r.date][r.category].earned+=Math.max(0,Number(r.amount)||0);
   });
   var dates=Object.keys(byDate).sort();
   dates.forEach(function(date){
-    db.categories.forEach(function(cat){
+    (Array.isArray(wallet.categories)?wallet.categories:[]).forEach(function(cat){
       var rec=byDate[date]&&byDate[date][cat.id];
       var spent=rec?rec.spent:0;
       var earned=rec?rec.earned:0;
-      total+=(cat.dailyBudget-spent+earned);
+      total+=(Math.max(0,Number(cat.dailyBudget)||0)-spent+earned);
     });
   });
-  // If no records for today, don't count today's budget yet
   return total;
 }
+function getTotalSurplus(){return walletTotalSurplus(db);}
+function walletRawSharedFund(value){
+  var wallet=value&&typeof value==='object'?value:{};
+  var total=walletTotalSurplus(wallet);
+  var funds=wallet.charFunds&&typeof wallet.charFunds==='object'?wallet.charFunds:{};
+  Object.keys(funds).forEach(function(id){total-=Math.max(0,Number(funds[id])||0);});
+  (Array.isArray(wallet.outings)?wallet.outings:[]).forEach(function(o){total-=Math.max(0,Number(o&&o.cost)||0);});
+  total+=Math.max(0,Number(wallet.legacyDebtWaiver)||0);
+  return Math.floor(total);
+}
 function getSharedFund(){
-  var total=getTotalSurplus();
-  var charTotal=(db.charFunds.neal||0)+(db.charFunds.jane||0)+(db.charFunds.will||0);
-  // Subtract character outing costs
-  var outingCosts=0;
-  db.outings.forEach(function(o){outingCosts+=o.cost||0;});
-  return total-charTotal-outingCosts;
+  return Math.max(0,walletRawSharedFund(db));
 }
 
 /* ═══ LEDGER ═══ */

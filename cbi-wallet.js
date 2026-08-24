@@ -38,7 +38,7 @@
 
   function fundAmount() {
     var shared = typeof global.getSharedFund === 'function' ? global.getSharedFund() : 0;
-    return shared - global.CBIData.majorCaseSpend(global.CBIData.load());
+    return Math.max(0, shared - global.CBIData.majorCaseSpend(global.CBIData.load()));
   }
 
   function deployment() {
@@ -49,7 +49,7 @@
   function renderTreasury() {
     var fund = fundAmount();
     var plan = deployment();
-    var remaining = fund - plan.approvedBudget;
+    var remaining = Math.max(0, fund - plan.approvedBudget);
     document.getElementById('treasuryCard').innerHTML = '<div class="treasury-label">重大案件基金 · REALITY SURPLUS</div><div class="treasury-amount ' + (fund >= 0 ? 'positive' : 'negative') + '">¥' + fund + '</div><div class="cbi-fund-note">沿用共享钱包：现实里省下来的钱会留在这里，作为大案剧情和外勤的可用经费。</div>';
     document.getElementById('charFunds').style.display = 'none';
     document.querySelector('#viewTreasury .transfer-btn').style.display = 'none';
