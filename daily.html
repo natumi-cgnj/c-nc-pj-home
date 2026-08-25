@@ -276,10 +276,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <script src="world-context.js?v=20260824-cbi-work1"></script>
 <script src="cloud-sync.js?v=20260824-cbi-work1"></script>
 <script src="cbi-data.js?v=20260825-canon2"></script>
-<script src="cbi-work.js?v=20260824-cbi-work1"></script>
+<script src="cbi-work.js?v=20260825-daily2"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 const IS_CBI_DAILY = window.WorldContext && WorldContext.getActiveWorldId() === 'cbi';
+const DAILY_URL_TAB = new URLSearchParams(location.search).get('tab');
+const IS_CBI_HABITS = IS_CBI_DAILY && DAILY_URL_TAB === 'habits';
+let cbiDailyDb = null;
 // ══════════════════════════════════════
 // DROP TASK POOL
 // ══════════════════════════════════════
@@ -419,7 +422,14 @@ function addBeans(coffee,tea){const b=getBeans();b.coffee=(b.coffee||0)+coffee;b
 
 // ── Habit storage ──
 let hdb;
-if(!IS_CBI_DAILY){try{hdb=JSON.parse(localStorage.getItem('habit_db'));}catch(e){hdb=null;}}
+if(IS_CBI_HABITS&&window.CBIData){
+  cbiDailyDb=CBIData.load();
+  hdb={
+    habits:cbiDailyDb.work.habits.map(h=>Object.assign({},h,{type:h.type==='interval'?'daily':'count'})),
+    log:{},
+    records:cbiDailyDb.work.habitRecords||{}
+  };
+}else if(!IS_CBI_DAILY){try{hdb=JSON.parse(localStorage.getItem('habit_db'));}catch(e){hdb=null;}}
 if(!hdb)hdb={habits:[],log:{},records:{}};
 if(!Array.isArray(hdb.habits))hdb.habits=[];
 if(!hdb.log)hdb.log={};
@@ -445,7 +455,24 @@ hdb.habits.forEach(h=>{
   if(h.timerLog&&typeof h.timerLog==='object'){Object.keys(h.timerLog).forEach(date=>{const value=Math.max(0,Number(h.timerLog[date])||0);if(!value)return;if(!hdb.records[date])hdb.records[date]={};const old=hdb.records[date][h.id];if(!old)hdb.records[date][h.id]={value,events:[]};else old.value=Math.max(Number(old.value)||0,value);});}
 });
 Object.keys(hdb.log).forEach(date=>{const ids=Array.isArray(hdb.log[date])?hdb.log[date]:[];if(!hdb.records[date])hdb.records[date]={};ids.forEach(id=>{if(!hdb.records[date][id])hdb.records[date][id]={value:1,events:[]};});});
-function saveHabits(){if(IS_CBI_DAILY)return;try{localStorage.setItem('habit_db',JSON.stringify(hdb));}catch(e){}}
+function saveHabits(){
+  if(IS_CBI_HABITS&&cbiDailyDb){
+    cbiDailyDb.work.habits=hdb.habits.map(h=>({
+      id:h.id,
+      name:h.name,
+      description:h.description||'',
+      type:(h.type||'count')==='daily'?'interval':'count',
+      interval:Math.max(1,Math.min(365,Number(h.interval)||1)),
+      salary:Math.max(0,Math.floor(Number(h.salary)||0)),
+      createdAt:h.createdAt||new Date().toISOString()
+    }));
+    cbiDailyDb.work.habitRecords=hdb.records;
+    cbiDailyDb=CBIData.save(cbiDailyDb)||cbiDailyDb;
+    return;
+  }
+  if(IS_CBI_DAILY)return;
+  try{localStorage.setItem('habit_db',JSON.stringify(hdb));}catch(e){}
+}
 saveHabits();
 
 // Daily reset at 4:00 AM
@@ -562,7 +589,7 @@ function completeActive(slot){
 // RENDER
 // ══════════════════════════════════════
 function render(){
-  initCommissions();
+  if(!IS_CBI_HABITS)initCommissions();
   renderStatusBar();
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===currentTab));
   const c=document.getElementById('content');
@@ -575,7 +602,8 @@ function switchTab(t){currentTab=t;render();}
 function renderStatusBar(){
   const bar=document.getElementById('statusBar');
   let labelA,valueA,classA,labelB,valueB,classB;
-  if(currentTab==='drop'){const gems=getGems();labelA='蓝宝石';valueA=gems.sapphire||0;classA='sapphire-color';labelB='祖母绿';valueB=gems.emerald||0;classB='emerald-color';}
+  if(IS_CBI_HABITS){const records=hdb.records[today()]||{};const todayCount=Object.keys(records).reduce((sum,id)=>sum+(Number(records[id].value)||0),0);labelA='工资';valueA='$'+(cbiDailyDb.work.salary||0);classA='coffee-color';labelB='今日登记';valueB=todayCount+' 次';classB='tea-color';}
+  else if(currentTab==='drop'){const gems=getGems();labelA='蓝宝石';valueA=gems.sapphire||0;classA='sapphire-color';labelB='祖母绿';valueB=gems.emerald||0;classB='emerald-color';}
   else if(currentTab==='habits'){const beans=getBeans();labelA='咖啡豆';valueA=beans.coffee||0;classA='coffee-color';labelB='茶叶';valueB=beans.tea||0;classB='tea-color';}
   else{labelA='画作碎片';valueA=db.affinity.neal||0;classA='neal-color';labelB='档案碎片';valueB=db.affinity.jane||0;classB='jane-color';}
   bar.innerHTML='<div class="status-item"><div class="status-label">'+labelA+'</div><div class="status-value '+classA+'">'+valueA+'</div></div><div class="status-item"><div class="status-label">'+labelB+'</div><div class="status-value '+classB+'">'+valueB+'</div></div>';
@@ -708,7 +736,7 @@ function getIntervalStatus(h){
 }
 
 function renderHabits(c){
-  let html='<div class="sub-tabs">';
+  let html='<div class="task-reward-toast" id="habitToast"></div><div class="sub-tabs">';
   html+='<button class="sub-tab'+(habitSubTab==='daily'?' active':'')+'" onclick="switchHabitSub(\'daily\')">间隔打卡</button>';
   html+='<button class="sub-tab'+(habitSubTab==='count'?' active':'')+'" onclick="switchHabitSub(\'count\')">Times</button>';
   html+='</div>';
@@ -735,7 +763,9 @@ function renderHabitCard(h){
   const total=getHabitTotal(h.id);
   const streak=getHabitStreak(h.id);
   const streakBonus=getHabitStreakBonus(streak);
-  const rewardParts=[];if(h.coffee)rewardParts.push('☕豆+'+h.coffee);if(h.tea)rewardParts.push('🍃叶+'+h.tea);
+  const rewardParts=[];
+  if(IS_CBI_HABITS){if(h.salary)rewardParts.push('工资 +$'+h.salary);}
+  else{if(h.coffee)rewardParts.push('☕豆+'+h.coffee);if(h.tea)rewardParts.push('🍃叶+'+h.tea);}
   const record=getHabitRecord(today(),h.id,false);
   const canUndo=!!(record&&record.events&&record.events.length);
   const undoLink=canUndo?'<button class="habit-undo-link" onclick="event.stopPropagation();undoHabitProgress(\''+h.id+'\')">撤回</button>':'';
@@ -764,6 +794,13 @@ function recordHabitProgress(id,value){
   const streak=getHabitStreak(id);
   const streakBonus=type==='daily'?getHabitStreakBonus(streak):0;
   const rewardUnits=Math.max(0,baseUnits);
+  if(IS_CBI_HABITS){
+    const salary=(h.salary||0)*rewardUnits+Math.round((h.salary||0)*Math.max(0,baseUnits)*streakBonus);
+    record.events.push({value,salary,streak,streakBonus,at:new Date().toISOString()});
+    cbiDailyDb.work.salary=(cbiDailyDb.work.salary||0)+salary;
+    saveHabits();render();
+    return;
+  }
   const coffee=(h.coffee||0)*rewardUnits+Math.round((h.coffee||0)*Math.max(0,baseUnits)*streakBonus);
   const tea=(h.tea||0)*rewardUnits+Math.round((h.tea||0)*Math.max(0,baseUnits)*streakBonus);
   record.events.push({value,coffee,tea,streak,streakBonus,at:Date.now()});
@@ -775,14 +812,28 @@ function recordHabitProgress(id,value){
 
 function undoHabitProgress(id){
   const record=getHabitRecord(today(),id,false);if(!record||!record.events||!record.events.length)return;
-  const event=record.events.pop();record.value=Math.max(0,(Number(record.value)||0)-(Number(event.value)||0));
+  const event=record.events.pop();
+  if(IS_CBI_HABITS){
+    const salary=Math.max(0,Number(event.salary)||0);
+    if((cbiDailyDb.work.salary||0)<salary){record.events.push(event);showHabitNotice('这笔工资已经花掉了，不能撤回本次登记');return;}
+    record.value=Math.max(0,(Number(record.value)||0)-(Number(event.value)||0));
+    cbiDailyDb.work.salary=Math.max(0,(cbiDailyDb.work.salary||0)-salary);
+    if(record.value===0&&record.events.length===0)delete hdb.records[today()][id];
+    if(hdb.records[today()]&&!Object.keys(hdb.records[today()]).length)delete hdb.records[today()];
+    saveHabits();render();
+    return;
+  }
+  record.value=Math.max(0,(Number(record.value)||0)-(Number(event.value)||0));
   const beans=getBeans();beans.coffee=Math.max(0,(beans.coffee||0)-(event.coffee||0));beans.tea=Math.max(0,(beans.tea||0)-(event.tea||0));saveBeans(beans);
   if(record.value===0&&record.events.length===0)delete hdb.records[today()][id];
   saveHabits();render();updateIntervalReminders();
 }
 
+function showHabitNotice(message){const el=document.getElementById('habitToast');if(!el)return;el.textContent=message;setTimeout(()=>{if(el.textContent===message)el.textContent='';},2600);}
+
 // Store due habits for index.html character line reminders
 function updateIntervalReminders(){
+  if(IS_CBI_HABITS)return;
   const dueHabits=hdb.habits.filter(h=>h.type==='daily').map(h=>{
     const status=getIntervalStatus(h);return status.due?h.name:null;
   }).filter(Boolean);
@@ -796,11 +847,73 @@ function setHabitType(type,force=false){
   document.getElementById('intervalRow').style.display=type==='daily'?'block':'none';
   updateHabitTypeHint();
 }
-function openAddHabit(type='count'){editingHabitId=null;document.getElementById('habitModalTitle').textContent='添加日课';document.getElementById('habitName').value='';document.getElementById('habitDescription').value='';document.getElementById('habitType').dataset.locked='false';document.getElementById('habitTypeToggle').classList.remove('locked');document.getElementById('habitCoffee').value='10';document.getElementById('habitTea').value='10';document.getElementById('habitInterval').value='1';setHabitType(type,true);showModal('habitModal');}
-function openEditHabit(id){const h=hdb.habits.find(x=>x.id===id);if(!h)return;editingHabitId=id;document.getElementById('habitModalTitle').textContent='编辑日课';document.getElementById('habitName').value=h.name||'';document.getElementById('habitDescription').value=h.description||'';const locked=getHabitTotal(id)>0;document.getElementById('habitType').dataset.locked=String(locked);document.getElementById('habitTypeToggle').classList.toggle('locked',locked);document.getElementById('habitCoffee').value=h.coffee||0;document.getElementById('habitTea').value=h.tea||0;document.getElementById('habitInterval').value=h.interval||1;setHabitType(h.type||'count',true);showModal('habitModal');}
-function updateHabitTypeHint(){const type=document.getElementById('habitType').value;const locked=document.getElementById('habitType').dataset.locked==='true';const hints={daily:'设置间隔天数，到期提醒打卡',count:'适合贴纸、收纳等一次一次累积的事'};document.getElementById('habitTypeNote').textContent=locked?'已有统计记录，类型不再更改':(hints[type]||'');document.getElementById('habitRewardLabel').textContent='每次记录产出';document.getElementById('habitRewardHint').textContent='只按实际记录累计';}
-function saveHabit(){const name=document.getElementById('habitName').value.trim();if(!name)return;const description=document.getElementById('habitDescription').value.trim();const type=document.getElementById('habitType').value;const coffee=Math.max(0,Math.min(100,parseInt(document.getElementById('habitCoffee').value)||0));const tea=Math.max(0,Math.min(100,parseInt(document.getElementById('habitTea').value)||0));const interval=Math.max(1,Math.min(30,parseInt(document.getElementById('habitInterval').value)||1));if(editingHabitId){const h=hdb.habits.find(x=>x.id===editingHabitId);if(h){h.name=name;h.description=description;if(getHabitTotal(h.id)===0)h.type=type;h.coffee=coffee;h.tea=tea;h.interval=interval;}}else{hdb.habits.push({id:'hb_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),name,description,type,coffee,tea,interval});}editingHabitId=null;document.getElementById('habitType').dataset.locked='false';document.getElementById('habitTypeToggle').classList.remove('locked');saveHabits();closeModal('habitModal');render();updateIntervalReminders();}
-function openHabitDetail(id){const h=hdb.habits.find(x=>x.id===id);if(!h)return;const type=h.type||'count';const streak=getHabitStreak(id);const streakBonus=getHabitStreakBonus(streak);const parts=[type==='daily'?'间隔打卡 (每'+(h.interval||1)+'天)':'Times','今日：'+(getHabitToday(id)>0?'已完成':'未完成'),'累计：'+getHabitTotal(id)+(type==='daily'?'日':'次')];if(streak)parts.push('连续：'+streak+'天'+(streakBonus?'（奖励 +'+Math.round(streakBonus*100)+'%）':''));if(h.coffee)parts.push('咖啡豆 +'+h.coffee+'/次');if(h.tea)parts.push('茶叶 +'+h.tea+'/次');document.getElementById('detailTitle').textContent=h.name||'日课';document.getElementById('detailDescription').textContent=h.description||'没有填写详细说明';document.getElementById('detailMeta').textContent=parts.join(' · ');showModal('detailModal');}
+function openAddHabit(type='count'){
+  editingHabitId=null;
+  document.getElementById('habitModalTitle').textContent='添加日课';
+  document.getElementById('habitName').value='';
+  document.getElementById('habitDescription').value='';
+  document.getElementById('habitType').dataset.locked='false';
+  document.getElementById('habitTypeToggle').classList.remove('locked');
+  document.getElementById('habitCoffee').value='10';
+  document.getElementById('habitTea').value=IS_CBI_HABITS?'0':'10';
+  document.getElementById('habitInterval').value='1';
+  setHabitType(type,true);showModal('habitModal');
+}
+function openEditHabit(id){
+  const h=hdb.habits.find(x=>x.id===id);if(!h)return;
+  editingHabitId=id;
+  document.getElementById('habitModalTitle').textContent='编辑日课';
+  document.getElementById('habitName').value=h.name||'';
+  document.getElementById('habitDescription').value=h.description||'';
+  const locked=getHabitTotal(id)>0;
+  document.getElementById('habitType').dataset.locked=String(locked);
+  document.getElementById('habitTypeToggle').classList.toggle('locked',locked);
+  document.getElementById('habitCoffee').value=IS_CBI_HABITS?(h.salary||0):(h.coffee||0);
+  document.getElementById('habitTea').value=IS_CBI_HABITS?0:(h.tea||0);
+  document.getElementById('habitInterval').value=h.interval||1;
+  setHabitType(h.type||'count',true);showModal('habitModal');
+}
+function updateHabitTypeHint(){
+  const type=document.getElementById('habitType').value;
+  const locked=document.getElementById('habitType').dataset.locked==='true';
+  const hints={daily:'设置间隔天数，到期提醒打卡',count:'适合贴纸、收纳等一次一次累积的事'};
+  document.getElementById('habitTypeNote').textContent=locked?'已有统计记录，类型不再更改':(hints[type]||'');
+  document.getElementById('habitRewardLabel').textContent=IS_CBI_HABITS?'每次记录工资':'每次记录产出';
+  document.getElementById('habitRewardHint').textContent='只按实际记录累计';
+}
+function saveHabit(){
+  const name=document.getElementById('habitName').value.trim();if(!name)return;
+  const description=document.getElementById('habitDescription').value.trim();
+  const type=document.getElementById('habitType').value;
+  const salary=Math.max(0,Math.floor(Number(document.getElementById('habitCoffee').value)||0));
+  const coffee=IS_CBI_HABITS?0:Math.max(0,Math.min(100,salary));
+  const tea=IS_CBI_HABITS?0:Math.max(0,Math.min(100,parseInt(document.getElementById('habitTea').value)||0));
+  const interval=Math.max(1,Math.min(IS_CBI_HABITS?365:30,parseInt(document.getElementById('habitInterval').value)||1));
+  if(editingHabitId){
+    const h=hdb.habits.find(x=>x.id===editingHabitId);
+    if(h){h.name=name;h.description=description;if(getHabitTotal(h.id)===0)h.type=type;if(IS_CBI_HABITS)h.salary=salary;else{h.coffee=coffee;h.tea=tea;}h.interval=interval;}
+  }else{
+    const habit={id:'hb_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),name,description,type,interval};
+    if(IS_CBI_HABITS){habit.salary=salary;habit.createdAt=new Date().toISOString();}else{habit.coffee=coffee;habit.tea=tea;}
+    hdb.habits.push(habit);
+  }
+  editingHabitId=null;
+  document.getElementById('habitType').dataset.locked='false';
+  document.getElementById('habitTypeToggle').classList.remove('locked');
+  saveHabits();closeModal('habitModal');render();updateIntervalReminders();
+}
+function openHabitDetail(id){
+  const h=hdb.habits.find(x=>x.id===id);if(!h)return;
+  const type=h.type||'count';const streak=getHabitStreak(id);const streakBonus=getHabitStreakBonus(streak);
+  const parts=[type==='daily'?'间隔打卡 (每'+(h.interval||1)+'天)':'Times','今日：'+(getHabitToday(id)>0?'已完成':'未完成'),'累计：'+getHabitTotal(id)+(type==='daily'?'日':'次')];
+  if(streak)parts.push('连续：'+streak+'天'+(streakBonus?'（奖励 +'+Math.round(streakBonus*100)+'%）':''));
+  if(IS_CBI_HABITS&&h.salary)parts.push('工资 +$'+h.salary+'/次');
+  if(!IS_CBI_HABITS&&h.coffee)parts.push('咖啡豆 +'+h.coffee+'/次');
+  if(!IS_CBI_HABITS&&h.tea)parts.push('茶叶 +'+h.tea+'/次');
+  document.getElementById('detailTitle').textContent=h.name||'日课';
+  document.getElementById('detailDescription').textContent=h.description||'没有填写详细说明';
+  document.getElementById('detailMeta').textContent=parts.join(' · ');showModal('detailModal');
+}
 function deleteHabit(id){hdb.habits=hdb.habits.filter(x=>x.id!==id);Object.keys(hdb.records).forEach(date=>{delete hdb.records[date][id];if(!Object.keys(hdb.records[date]).length)delete hdb.records[date];});Object.keys(hdb.log).forEach(date=>{if(Array.isArray(hdb.log[date]))hdb.log[date]=hdb.log[date].filter(x=>x!==id);if(Array.isArray(hdb.log[date])&&!hdb.log[date].length)delete hdb.log[date];});saveHabits();render();}
 
 // ══════════════════════════════════════
@@ -834,9 +947,30 @@ function initDragSort(containerId,dataType){
 // ══════════════════════════════════════
 // INIT
 // ══════════════════════════════════════
+function prepareCbiHabitPage(){
+  document.body.dataset.cbiHabits='1';
+  currentTab='habits';
+  const tabs=document.querySelector('.tabs');
+  if(tabs)tabs.style.display='none';
+  const utility=document.querySelector('.top-bar .btn-s');
+  if(utility)utility.remove();
+  const salaryInput=document.getElementById('habitCoffee');
+  if(salaryInput){
+    salaryInput.removeAttribute('max');
+    const label=salaryInput.parentElement&&salaryInput.parentElement.querySelector('label');
+    if(label)label.textContent='工资';
+  }
+  const teaInput=document.getElementById('habitTea');
+  if(teaInput&&teaInput.parentElement)teaInput.parentElement.style.display='none';
+  document.getElementById('habitInterval').max='365';
+  updateHabitTypeHint();
+}
 // Deep link: ?tab=drop|todo|habits
-var urlTab = new URLSearchParams(location.search).get('tab');
-if (IS_CBI_DAILY && window.CBIWork) {
+var urlTab = DAILY_URL_TAB;
+if (IS_CBI_HABITS) {
+  prepareCbiHabitPage();
+  render();
+} else if (IS_CBI_DAILY && window.CBIWork) {
   CBIWork.mount({initialTab:urlTab,lockedTab:['drop','todo','habits'].indexOf(urlTab)>=0?urlTab:''});
 } else {
   autoSignin();

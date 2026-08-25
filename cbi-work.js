@@ -115,15 +115,6 @@
       '.cbi-commission-card .cbi-quote{position:relative;z-index:1;border:0;border-radius:10px;background:#fff;padding:10px 12px;margin-top:14px;box-shadow:0 2px 10px rgba(87,66,30,.06);color:#665b49}',
       '.cbi-commission-card .cbi-card-copy{position:relative;z-index:1;margin-top:12px;color:#514a40}',
       '.cbi-commission-summary{border-style:dashed;background:#fffdf8}',
-      '.cbi-habit-sheet{overflow:hidden;background:#fff;border:1px solid #dfe4e6;border-top:4px solid #6d7c82;border-radius:5px;box-shadow:0 5px 18px rgba(52,65,70,.05)}',
-      '.cbi-habit-row{display:grid;grid-template-columns:27px minmax(0,1fr) auto;gap:11px;align-items:start;padding:14px 12px;border-bottom:1px solid #edf0f1}',
-      '.cbi-habit-row:last-child{border-bottom:0}',
-      '.cbi-habit-row.done{background:#f8fbf8}',
-      '.cbi-habit-check{display:grid;place-items:center;width:25px;height:25px;border:1px solid #cdd5d7;border-radius:3px;color:#fff;background:#fff;font-size:14px}',
-      '.cbi-habit-row.done .cbi-habit-check{border-color:#78977d;background:#78977d}',
-      '.cbi-habit-pay{text-align:right;color:#64777d;font-size:14px;font-variant-numeric:tabular-nums;white-space:nowrap}',
-      '.cbi-habit-pay small{display:block;color:#b1b9bb;font-size:7px;letter-spacing:1px;margin-bottom:2px}',
-      '.cbi-habit-row .cbi-actions{margin-top:9px}',
       '.cbi-case-file{position:relative;background:#fff;border:1px solid #d9dde1;border-top:3px solid #626f7a;border-radius:3px 10px 10px 10px;padding:17px 14px 14px;margin:22px 0 12px;box-shadow:0 5px 18px rgba(50,57,65,.05)}',
       '.cbi-case-file.planned{border-top-color:#b69a62}',
       '.cbi-case-file.closed{opacity:.72;border-top-color:#aeb3b7;margin-top:18px}',
@@ -135,7 +126,7 @@
       'body[data-cbi-work-tab="drop"] .cbi-page-title{color:#8d6d2d}',
       'body[data-cbi-work-tab="habits"] .cbi-page-title{color:#5f7379}',
       'body[data-cbi-work-tab="todo"] .cbi-page-title{color:#56616b}',
-      '@media(max-width:480px){.cbi-habit-row{grid-template-columns:25px minmax(0,1fr)}.cbi-habit-pay{grid-column:1;text-align:center;font-size:10px}.cbi-habit-pay small{display:none}.cbi-habit-row .cbi-card-main{grid-column:2;grid-row:1/3}.cbi-commission-card{padding:15px}.cbi-commission-card:after{font-size:20px}}',
+      '@media(max-width:480px){.cbi-commission-card{padding:15px}.cbi-commission-card:after{font-size:20px}}',
       '@media(min-width:700px){body[data-cbi-work="1"] .content{max-width:720px;margin:0 auto}.cbi-scoreboard{grid-template-columns:repeat(6,1fr)}}'
     ].join('');
     document.head.appendChild(style);
@@ -163,10 +154,6 @@
       var affinity = global.CBIData.CBI_CHARACTERS.reduce(function (sum, id) { return sum + db.work.affinity[id]; }, 0);
       var commissionState = db.work.activeCommissions.length ? '进行中' : (db.work.commissionOffer ? '待接受' : '无');
       items = [['委托宝石', '◆ ' + db.work.commissionGems, '#8069a8'], ['今日委托', commissionState, '#99763a'], ['累计关系', '+' + affinity, '#7c916f']];
-    } else if (activeTab === 'habits') {
-      var records = db.work.habitRecords[today()] || {};
-      var todayCount = Object.keys(records).reduce(function (sum, id) { return sum + (Number(records[id].value) || 0); }, 0);
-      items = [['CBI 工资', '$' + db.work.salary, '#8a6b31'], ['今日登记', todayCount + ' 次', '#657980'], ['日课表', db.work.habits.length + ' 项', '#899397']];
     } else {
       var teamScore = global.CBIData.CBI_CHARACTERS.reduce(function (sum, id) { return sum + db.work.culpritScores[id]; }, 0);
       items = [['进行中', activeCases + ' 案', '#66717f'], ['Boss 押中', db.work.culpritScores.boss + ' 次', COLORS.boss], ['探员押中', teamScore + ' 次', '#758876']];
@@ -177,6 +164,10 @@
   }
 
   function setTab(tab) {
+    if (tab === 'habits') {
+      global.location.href = 'daily.html?tab=habits';
+      return;
+    }
     activeTab = lockedTab || (['drop', 'todo', 'habits'].indexOf(tab) >= 0 ? tab : 'todo');
     document.querySelectorAll('.tabs .tab').forEach(function (node) {
       node.classList.toggle('active', node.dataset.tab === activeTab);
@@ -190,105 +181,8 @@
   function render() {
     document.body.dataset.cbiWorkTab = activeTab;
     statusBar();
-    if (activeTab === 'habits') renderHabits();
-    else if (activeTab === 'drop') renderCommissions();
+    if (activeTab === 'drop') renderCommissions();
     else renderActions();
-  }
-
-  function habitTotals(habitId) {
-    var total = 0;
-    var days = 0;
-    Object.keys(db.work.habitRecords).forEach(function (dateKey) {
-      var record = db.work.habitRecords[dateKey] && db.work.habitRecords[dateKey][habitId];
-      if (!record || !record.value) return;
-      total += Number(record.value) || 0;
-      days += 1;
-    });
-    return { total: total, days: days };
-  }
-
-  function getLastHabitDay(habitId, beforeDate) {
-    return Object.keys(db.work.habitRecords).filter(function (dateKey) {
-      var record = db.work.habitRecords[dateKey] && db.work.habitRecords[dateKey][habitId];
-      return dateKey < beforeDate && record && record.value > 0;
-    }).sort().pop() || '';
-  }
-
-  function dayDistance(left, right) {
-    var a = left.split('-').map(Number);
-    var b = right.split('-').map(Number);
-    return Math.round((Date.UTC(b[0], b[1] - 1, b[2]) - Date.UTC(a[0], a[1] - 1, a[2])) / 86400000);
-  }
-
-  function renderHabits() {
-    var content = document.getElementById('content');
-    var html = '<div class="cbi-page-head"><div><div class="cbi-kicker">Routine payroll</div><div class="cbi-page-title">日课</div><div class="cbi-page-note">处理琐碎事务，按次领取 CBI 工资。</div></div><button class="cbi-btn primary" data-cbi-action="new-habit">+ 新日课</button></div>';
-    if (!db.work.habits.length) {
-      html += '<div class="cbi-empty">还没有日课。<br>适合放消耗小东西、上架或寄出物品这类可以慢慢累计的事。</div>';
-      content.innerHTML = html;
-      return;
-    }
-    var dateKey = today();
-    html += '<div class="cbi-habit-sheet">';
-    db.work.habits.forEach(function (habit) {
-      var record = db.work.habitRecords[dateKey] && db.work.habitRecords[dateKey][habit.id];
-      var todayValue = record ? record.value : 0;
-      var totals = habitTotals(habit.id);
-      var due = true;
-      var intervalCopy = '';
-      if (habit.type === 'interval') {
-        var last = getLastHabitDay(habit.id, dateKey);
-        var elapsed = last ? dayDistance(last, dateKey) : habit.interval;
-        due = !todayValue && elapsed >= habit.interval;
-        intervalCopy = todayValue ? '今天已完成' : (due ? '已到期' : '还有 ' + (habit.interval - elapsed) + ' 天到期');
-      }
-      html += '<div class="cbi-habit-row' + (todayValue ? ' done' : '') + '"><div class="cbi-habit-check">' + (todayValue ? '✓' : '') + '</div><div class="cbi-card-main">';
-      html += '<div class="cbi-card-title">' + esc(habit.name) + '</div>';
-      if (habit.description) html += '<div class="cbi-card-copy">' + esc(habit.description) + '</div>';
-      html += '<div class="cbi-meta"><span class="cbi-tag">工资 +$' + habit.salary + '</span><span class="cbi-tag">累计 ' + totals.total + (habit.type === 'interval' ? ' 天' : ' 次') + '</span>';
-      if (habit.type === 'interval') html += '<span class="cbi-tag">每 ' + habit.interval + ' 天 · ' + intervalCopy + '</span>';
-      if (todayValue) html += '<span class="cbi-tag">今日 ' + todayValue + '</span>';
-      html += '</div><div class="cbi-actions">';
-      html += '<button class="cbi-btn gold" data-cbi-action="record-habit" data-id="' + habit.id + '"' + (!due && habit.type === 'interval' ? ' disabled' : '') + '>登记完成</button>';
-      if (record && record.events && record.events.length) html += '<button class="cbi-btn" data-cbi-action="undo-habit" data-id="' + habit.id + '">撤销本次</button>';
-      html += '<button class="cbi-btn" data-cbi-action="edit-habit" data-id="' + habit.id + '">编辑</button><button class="cbi-btn danger" data-cbi-action="delete-habit" data-id="' + habit.id + '">删除</button></div></div><div class="cbi-habit-pay"><small>PAY</small>+$' + habit.salary + '</div></div>';
-    });
-    html += '</div>';
-    content.innerHTML = html;
-  }
-
-  function recordHabit(id) {
-    var habit = db.work.habits.find(function (item) { return item.id === id; });
-    if (!habit) return;
-    var dateKey = today();
-    if (!db.work.habitRecords[dateKey]) db.work.habitRecords[dateKey] = {};
-    var record = db.work.habitRecords[dateKey][id] || { value: 0, events: [] };
-    if (habit.type === 'interval' && record.value > 0) return;
-    record.value += 1;
-    record.events.push({ value: 1, salary: habit.salary, at: new Date().toISOString() });
-    db.work.habitRecords[dateKey][id] = record;
-    db.work.salary += habit.salary;
-    save();
-    showToast(habit.name + ' 已登记 · CBI 工资 +$' + habit.salary);
-    render();
-  }
-
-  function undoHabit(id) {
-    var dateKey = today();
-    var record = db.work.habitRecords[dateKey] && db.work.habitRecords[dateKey][id];
-    if (!record || !record.events.length) return;
-    var event = record.events.pop();
-    if (db.work.salary < (event.salary || 0)) {
-      record.events.push(event);
-      showToast('这笔工资已经花掉了，不能撤销本次登记');
-      return;
-    }
-    record.value = Math.max(0, record.value - (event.value || 1));
-    db.work.salary = Math.max(0, db.work.salary - (event.salary || 0));
-    if (!record.events.length && !record.value) delete db.work.habitRecords[dateKey][id];
-    if (db.work.habitRecords[dateKey] && !Object.keys(db.work.habitRecords[dateKey]).length) delete db.work.habitRecords[dateKey];
-    save();
-    render();
   }
 
   function caseForAction(action) {
@@ -454,30 +348,6 @@
     modal().classList.remove('show');
   }
 
-  function habitModal(id) {
-    var item = id ? db.work.habits.find(function (habit) { return habit.id === id; }) : null;
-    var body = '<label>名称</label><input id="cbiHabitName" type="text" placeholder="如：寄出一件闲置" value="' + esc(item && item.name) + '">';
-    body += '<label>说明（可选）</label><textarea id="cbiHabitDesc" placeholder="哪些动作算完成">' + esc(item && item.description) + '</textarea>';
-    body += '<label>类型</label><select id="cbiHabitType"><option value="count"' + (!item || item.type === 'count' ? ' selected' : '') + '>按次累计</option><option value="interval"' + (item && item.type === 'interval' ? ' selected' : '') + '>间隔日课</option></select>';
-    body += '<div class="aff-row"><div><label>间隔天数</label><input id="cbiHabitInterval" type="number" min="1" max="365" value="' + (item ? item.interval : 1) + '"></div><div><label>每次工资</label><input id="cbiHabitSalary" type="number" min="0" value="' + (item ? item.salary : 10) + '"></div></div>';
-    openModal(item ? '编辑日课' : '添加日课', body, '保存', function () {
-      var name = document.getElementById('cbiHabitName').value.trim();
-      if (!name) return;
-      var data = {
-        id: item ? item.id : global.CBIData.createId('habit'),
-        name: name,
-        description: document.getElementById('cbiHabitDesc').value.trim(),
-        type: document.getElementById('cbiHabitType').value,
-        interval: Math.max(1, Number(document.getElementById('cbiHabitInterval').value) || 1),
-        salary: Math.max(0, Math.floor(Number(document.getElementById('cbiHabitSalary').value) || 0)),
-        createdAt: item ? item.createdAt : new Date().toISOString()
-      };
-      if (item) Object.assign(item, data);
-      else db.work.habits.push(data);
-      save(); closeModal(); render();
-    });
-  }
-
   function actionModal(id) {
     var item = id ? db.work.actions.find(function (action) { return action.id === id; }) : null;
     var body = '<label>行动目标</label><input id="cbiActionTitle" type="text" placeholder="如：整理完书柜" value="' + esc(item && item.title) + '">';
@@ -531,15 +401,6 @@
     });
   }
 
-  function deleteHabit(id) {
-    db.work.habits = db.work.habits.filter(function (item) { return item.id !== id; });
-    Object.keys(db.work.habitRecords).forEach(function (dateKey) {
-      delete db.work.habitRecords[dateKey][id];
-      if (!Object.keys(db.work.habitRecords[dateKey]).length) delete db.work.habitRecords[dateKey];
-    });
-    save(); render();
-  }
-
   function deleteAction(id) {
     db.work.actions = db.work.actions.filter(function (item) { return item.id !== id || item.status !== 'planned'; });
     save(); render();
@@ -558,12 +419,7 @@
     if (!target) return;
     var action = target.dataset.cbiAction;
     var id = target.dataset.id;
-    if (action === 'new-habit') habitModal(null);
-    else if (action === 'edit-habit') habitModal(id);
-    else if (action === 'record-habit') recordHabit(id);
-    else if (action === 'undo-habit') undoHabit(id);
-    else if (action === 'delete-habit') deleteHabit(id);
-    else if (action === 'new-action') actionModal(null);
+    if (action === 'new-action') actionModal(null);
     else if (action === 'edit-action') actionModal(id);
     else if (action === 'start-action') startAction(id);
     else if (action === 'complete-action') completeAction(id);
@@ -586,16 +442,16 @@
     document.title = lockedTab ? pageTitles[lockedTab] : 'CBI · Operations';
     document.querySelector('.top-bar h1').textContent = lockedTab ? pageTitles[lockedTab] : 'CBI · OPERATIONS';
     var utility = document.querySelector('.top-bar .btn-s');
-    utility.textContent = '卷宗';
-    utility.removeAttribute('onclick');
-    utility.onclick = function () { global.location.href = 'backup.html'; };
+    if (utility) utility.remove();
     var tabs = document.querySelector('.tabs');
     if (lockedTab) {
       tabs.innerHTML = '';
       tabs.style.display = 'none';
     } else {
       tabs.innerHTML = '<div class="tab" data-tab="drop">委托</div><div class="tab" data-tab="todo">行动</div><div class="tab" data-tab="habits">日课</div>';
-      document.querySelectorAll('.tabs .tab').forEach(function (node) { node.addEventListener('click', function () { setTab(node.dataset.tab); }); });
+      document.querySelectorAll('.tabs .tab').forEach(function (node) {
+        node.addEventListener('click', function () { setTab(node.dataset.tab); });
+      });
     }
     document.body.insertAdjacentHTML('beforeend', '<div class="modal-bg" id="cbiWorkModal"><div class="modal"><h2 id="cbiWorkModalTitle"></h2><div id="cbiWorkModalBody"></div><div class="btn-row"><button class="btn btn-cancel" id="cbiWorkModalCancel">取消</button><button class="btn btn-primary" id="cbiWorkModalPrimary">保存</button></div></div></div><div class="cbi-toast" id="cbiToast"></div>');
     document.getElementById('cbiWorkModalCancel').addEventListener('click', closeModal);
