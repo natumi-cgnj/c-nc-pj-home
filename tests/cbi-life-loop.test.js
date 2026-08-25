@@ -26,7 +26,7 @@ test('schema two keeps legacy case and personnel records intact', () => {
   const { CBIData } = load({ cbi_db: JSON.stringify(legacy) });
   const db = CBIData.load();
   assert.equal(db.schemaVersion, 3);
-  assert.equal(db.canonVersion, 1);
+  assert.equal(db.canonVersion, 2);
   assert.equal(db.cases[0].title, '旧案');
   assert.equal(db.cases[0].body, '原线索');
   assert.equal(db.personnel.find((item) => item.id === 'boss').name, 'Milo Hayes');
@@ -35,7 +35,7 @@ test('schema two keeps legacy case and personnel records intact', () => {
   assert.match(lisbon.profile, /25岁/);
   assert.match(lisbon.timeline, /没有重要导师，也没有办成过大案要案/);
   assert.match(lisbon.relationships, /Milo.*真正的导师/);
-  assert.match(lisbon.longTermStatus, /没有核查Boss流程、索要全员名单/);
+  assert.match(lisbon.longTermStatus, /尚无核查组长流程、索要全员名单/);
   assert.equal(db.work.salary, 0);
   assert.equal(db.work.commissionPool.length, 2);
   assert.equal(db.work.commissionPool[0].title, '带新人熟悉报销');

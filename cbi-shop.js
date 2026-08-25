@@ -11,7 +11,7 @@
       wearers: ['boss', 'jane'],
       price: 120,
       color: '#4F8A55',
-      reaction: 'Cho：Boss批准的。\nRigsby：我觉得挺酷。\nVan Pelt：……Jane先生为什么也有一件？\nJane：因为我显然是Boss最偏爱的编外成员。'
+      reaction: 'Cho：很显眼。\nRigsby：我觉得挺酷。\nVan Pelt：……Jane先生为什么也有一件？\nJane：团队制服。只是有人偏心，多给了我一件。'
     },
     {
       id: 'cbi_black_hoodie',
@@ -22,7 +22,7 @@
       wearers: ['boss', 'jane'],
       price: 90,
       color: '#34363B',
-      reaction: 'Rigsby：这件很适合Boss。\nJane慢悠悠地补了一句：我的意思是，他穿什么都像来接管现场的。'
+      reaction: 'Rigsby：这件很适合Boss。\nJane：至少这件不用配领带。'
     },
     {
       id: 'cbi_silver_studs',
