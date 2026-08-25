@@ -75,7 +75,7 @@ test('legacy records stay liminal while global records remain visible', () => {
   assert.equal(window.WorldContext.recordIsVisible({ id: 3, scope: 'global' }), true);
 });
 
-test('CBI data normalizes, sorts and derives mainline without duplicate storage', () => {
+test('CBI data restores the confirmed prehistory and merges every case into the timeline', () => {
   const { window, localStorage } = loadScript('cbi-data.js');
   const db = window.CBIData.normalize({
     cases: [
@@ -86,8 +86,12 @@ test('CBI data normalizes, sorts and derives mainline without duplicate storage'
   });
   assert.equal(db.currentCaseId, 'first');
   assert.deepEqual(Array.from(window.CBIData.mainlineEntries(db.cases), item => item.id), ['first', 'later']);
+  assert.equal(db.timeline.length, 7);
+  assert.match(db.timeline.find(item => item.id === 'timeline_jane_meets_team').continuity, /仍然没有揭晓/);
+  assert.deepEqual(Array.from(window.CBIData.timelineEntries(db).filter(item => item.source === 'case'), item => item.sourceId), ['archive', 'first', 'later']);
   const saved = window.CBIData.save(db);
   assert.equal(saved.cases.length, 3);
+  assert.equal(saved.timeline.length, 7);
   const personnel = JSON.parse(localStorage.getItem('cbi_db')).personnel;
   assert.equal(personnel.length, 6);
   assert.equal(new Set(personnel.map(item => item.id)).size, 6);

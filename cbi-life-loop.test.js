@@ -17,7 +17,7 @@ function load(initial = {}) {
   return { CBIData: window.CBIData, localStorage };
 }
 
-test('schema two keeps legacy case and personnel records intact', () => {
+test('schema four keeps legacy case records and adds the confirmed story timeline', () => {
   const legacy = {
     currentCaseId: 'case_1',
     cases: [{ id: 'case_1', title: '旧案', status: 'active', body: '原线索' }],
@@ -25,8 +25,10 @@ test('schema two keeps legacy case and personnel records intact', () => {
   };
   const { CBIData } = load({ cbi_db: JSON.stringify(legacy) });
   const db = CBIData.load();
-  assert.equal(db.schemaVersion, 3);
+  assert.equal(db.schemaVersion, 4);
   assert.equal(db.canonVersion, 2);
+  assert.equal(db.timelineVersion, 1);
+  assert.equal(db.timeline.length, 7);
   assert.equal(db.cases[0].title, '旧案');
   assert.equal(db.cases[0].body, '原线索');
   assert.equal(db.personnel.find((item) => item.id === 'boss').name, 'Milo Hayes');
@@ -53,8 +55,9 @@ test('filing an action runs one opening round and never rolls twice in a work da
   const advanced = CBIData.advanceAnonymousCases(db, '2026-08-24');
   assert.equal(advanced.reports.length, 0);
   assert.equal(advanced.db.work.anonymousCases[0].reports.length, 5);
+  const eligibleNextDay = Object.values(advanced.db.work.anonymousCases[0].progress).filter((value) => value < advanced.db.work.anonymousCases[0].threshold).length;
   const nextDay = CBIData.advanceAnonymousCases(advanced.db, '2026-08-25');
-  assert.equal(nextDay.reports.length, 5);
+  assert.equal(nextDay.reports.length, eligibleNextDay);
 });
 
 test('completing an action freezes progress and awards every investigator at one hundred', () => {
@@ -81,6 +84,7 @@ test('Boss scores when the action closes before anyone reaches one hundred', () 
   let db = CBIData.addAction(CBIData.emptyDB(), { title: '丢掉空罐' }).db;
   const actionId = db.work.actions[0].id;
   db = CBIData.startAction(db, actionId, '2026-08-24').db;
+  Object.keys(db.work.anonymousCases[0].progress).forEach((id) => { db.work.anonymousCases[0].progress[id] = 0; });
   const completed = CBIData.completeAction(db, actionId, '2026-08-24');
   assert.equal(completed.caseItem.bossWon, true);
   assert.equal(completed.db.work.culpritScores.boss, 1);

@@ -95,11 +95,15 @@ test('world-sensitive entries use stable identities instead of mutable hrefs', (
   assert.match(index, /c\.dataset\.baseHref\|\|c\.getAttribute\('href'\)/);
 });
 
-test('CBI case shell exposes only the confirmed first-version fields', () => {
+test('CBI files keep case fields and expose the editable merged timeline', () => {
   for (const id of ['caseEpisode', 'caseDate', 'caseTitle', 'caseStatus', 'caseSummary', 'caseCharacters', 'caseMainline', 'caseBody', 'caseChanges']) {
     assert.match(cbi, new RegExp(`id="${id}"`));
   }
-  assert.match(cbi, /CBIData\.mainlineEntries\(db\.cases\)/);
+  for (const id of ['timelineWhen', 'timelineSortDate', 'timelineType', 'timelineEpisode', 'timelineTitle', 'timelineSummary', 'timelineCharacters', 'timelineContinuity']) {
+    assert.match(cbi, new RegExp(`id="${id}"`));
+  }
+  assert.match(cbi, /CBIData\.timelineEntries\(db\)/);
+  assert.match(cbi, /onclick="openCaseEditor\(\)">＋ 案件/);
   assert.doesNotMatch(cbi, /relationship graph|score|评分|API/i);
 });
 

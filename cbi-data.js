@@ -2,8 +2,9 @@
   'use strict';
 
   var STORAGE_KEY = 'cbi_db';
-  var SCHEMA_VERSION = 3;
+  var SCHEMA_VERSION = 4;
   var CANON_VERSION = 2;
+  var TIMELINE_VERSION = 1;
   var CBI_CHARACTERS = ['jane', 'cho', 'rigsby', 'lisbon', 'vanpelt'];
   var SCORE_IDS = ['boss'].concat(CBI_CHARACTERS);
   var CANON_PERSONNEL = [
@@ -66,6 +67,85 @@
       abilities: '资料检索、通讯与数据整理潜力突出；能自行归纳关联记录并标出可疑之处，当前仍需要明确任务、反馈和现场带教。',
       relationships: 'Milo是给她第一份重要任务、第一份真正信任并把她培养成探员与未来领导者的人。她与其他成员可以建立关系，但职业成长的主轴必须经过Milo。',
       longTermStatus: '年轻新人，不被写成已经完成成长的成熟探员。她会在Milo给出的任务与保护中慢慢建立判断，也努力成为能被继续托付的人。'
+    }
+  ];
+  var CANON_TIMELINE = [
+    {
+      id: 'timeline_red_john_transfer',
+      sortDate: '2003-10-01',
+      timeLabel: '2003年秋冬',
+      episodeCode: '',
+      type: 'career',
+      title: 'Red John 专案增援',
+      summary: 'Angela与Charlotte遇害，Jane入院。CBI原本就在考虑为Red John连环案增援；案件舆论压力骤升后，Milo被正式调入，Minelli同时表达了以后让他独立带组的意向。Milo申请询问Jane被医院拒绝。此后线索耗尽，专案组解散，案件转为长期悬案。',
+      characters: ['Milo', 'Jane', 'Minelli'],
+      continuity: 'Milo此时只是被提前调入增援，尚未独立带组；他与Jane没有正式见面。'
+    },
+    {
+      id: 'timeline_boss_promoted',
+      sortDate: '2004-03-01',
+      timeLabel: '2004年春',
+      episodeCode: '',
+      type: 'career',
+      title: 'Milo独立带组',
+      summary: '调入CBI约半年后，Milo创纪录地晋升组长，开始建立自己的小组。',
+      characters: ['Milo', 'Minelli'],
+      continuity: '这是之后所有成员进入同一支team的组织起点。'
+    },
+    {
+      id: 'timeline_cho_rigsby_join',
+      sortDate: '2005-06-01',
+      timeLabel: '2005年',
+      episodeCode: '',
+      type: 'team',
+      title: 'Cho与Rigsby加入小组',
+      summary: 'Cho主动申请进入Milo的小组；此前已经与Cho搭档的Rigsby也跟着调入。Rigsby已有约五年现场经验，Cho则明显年长且资深，但两人仍选择加入这位年轻组长的team。',
+      characters: ['Milo', 'Cho', 'Rigsby'],
+      continuity: 'Cho与Milo早已相识，但这段旧识的具体内容此时不对其他人公开。'
+    },
+    {
+      id: 'timeline_jane_joins',
+      sortDate: '2006-01-05',
+      timeLabel: '2006年初 · S01E01前',
+      episodeCode: '回忆集 01',
+      type: 'flashback',
+      title: 'Jane加入CBI',
+      summary: 'Jane出院后来CBI索要Red John资料，被拒后在走廊遇见Milo。Milo让仍处于创伤、自卑与胆怯状态的Jane跟去现场；Jane不敢靠近尸体、说着许多“也许”，却仍找出关键线索。Milo因此坚持把他留下做顾问。',
+      characters: ['Milo', 'Jane'],
+      continuity: 'Jane还没有恢复成后来从容嚣张的样子；他把Milo的调戏理解成不太合时宜的玩笑。'
+    },
+    {
+      id: 'timeline_jane_meets_team',
+      sortDate: '2006-01-12',
+      timeLabel: '2006年初 · S01E01前',
+      episodeCode: '回忆集 02',
+      type: 'flashback',
+      title: '“只是觉得这个人值得”',
+      summary: 'Jane逐渐与组员混熟，大部分时间住在CBI。他看出Cho有过帮派经历，也察觉Cho与Milo早已认识；追问Cho为什么愿意进入这支年轻小组时，只得到一句“有时候就是觉得这个人值得”。',
+      characters: ['Milo', 'Jane', 'Cho', 'Rigsby'],
+      continuity: 'Jane只确认Cho与Milo是旧识；两人如何相识、为什么Cho很早就相信Milo，仍然没有揭晓。'
+    },
+    {
+      id: 'timeline_jane_not_ready',
+      sortDate: '2006-01-20',
+      timeLabel: '2006年初 · S01E01前',
+      episodeCode: '回忆集 03',
+      type: 'relationship',
+      title: '“你怎么不追我了？”',
+      summary: 'Milo最近交了女朋友，对Jane的调戏随之减少。Jane开玩笑问他为什么不追了，Milo坦然回答：因为觉得Jane还没有准备好进入下一段恋情，需要时间。',
+      characters: ['Milo', 'Jane'],
+      continuity: 'Jane只把这句话当成带着真诚关心的玩笑，完全没有意识到Milo一句玩笑都没开。'
+    },
+    {
+      id: 'timeline_s01e01_start',
+      sortDate: '2006-02-01',
+      timeLabel: '2006年初',
+      episodeCode: 'S01E01',
+      type: 'mainline',
+      title: '主线开场 · 两名新探员入组',
+      summary: 'Lisbon与Van Pelt同日调入Milo的小组；重启版主线从这里正式开始。',
+      characters: ['Milo', 'Jane', 'Cho', 'Rigsby', 'Lisbon', 'Van Pelt'],
+      continuity: 'Jane加入CBI、逐渐混熟以及此前关系变化都作为回忆集穿插，不挤占S01E01的当前开场。'
     }
   ];
   var ACTION_DIFFICULTIES = {
@@ -195,8 +275,10 @@
     return {
       schemaVersion: SCHEMA_VERSION,
       canonVersion: CANON_VERSION,
+      timelineVersion: TIMELINE_VERSION,
       currentCaseId: null,
       cases: [],
+      timeline: cloneCanonTimeline(),
       personnel: [],
       work: emptyWork()
     };
@@ -234,6 +316,38 @@
       createdAt: text(item.createdAt) || new Date().toISOString(),
       updatedAt: text(item.updatedAt) || new Date().toISOString()
     };
+  }
+
+  function normalizeTimelineItem(item) {
+    item = item && typeof item === 'object' ? item : {};
+    var allowedTypes = ['career', 'team', 'flashback', 'relationship', 'mainline', 'other'];
+    return {
+      id: text(item.id) || createId('timeline'),
+      sortDate: text(item.sortDate),
+      timeLabel: text(item.timeLabel),
+      episodeCode: text(item.episodeCode),
+      type: allowedTypes.indexOf(item.type) >= 0 ? item.type : 'other',
+      title: text(item.title),
+      summary: text(item.summary),
+      characters: stringList(item.characters),
+      continuity: text(item.continuity),
+      createdAt: text(item.createdAt) || new Date().toISOString(),
+      updatedAt: text(item.updatedAt) || new Date().toISOString()
+    };
+  }
+
+  function cloneCanonTimeline() {
+    return CANON_TIMELINE.map(function (item) { return normalizeTimelineItem(item); });
+  }
+
+  function restoreCanonTimeline(value) {
+    var source = Array.isArray(value) ? value.map(normalizeTimelineItem) : [];
+    var ids = {};
+    source.forEach(function (item) { ids[item.id] = true; });
+    cloneCanonTimeline().forEach(function (item) {
+      if (!ids[item.id]) source.push(item);
+    });
+    return source;
   }
 
   function canonKeyForPerson(item) {
@@ -581,9 +695,13 @@
   function normalize(value) {
     var source = value && typeof value === 'object' ? value : {};
     var needsCanonRestore = Math.floor(number(source.canonVersion, 0)) < CANON_VERSION;
+    var needsTimelineRestore = Math.floor(number(source.timelineVersion, 0)) < TIMELINE_VERSION;
     var hadCurrentCase = Object.prototype.hasOwnProperty.call(source, 'currentCaseId');
     var result = emptyDB();
     result.cases = Array.isArray(source.cases) ? source.cases.map(normalizeCase) : [];
+    result.timeline = Array.isArray(source.timeline) ? source.timeline.map(normalizeTimelineItem) : [];
+    if (needsTimelineRestore) result.timeline = restoreCanonTimeline(result.timeline);
+    result.timelineVersion = TIMELINE_VERSION;
     result.personnel = Array.isArray(source.personnel) ? source.personnel.map(normalizePerson) : [];
     if (needsCanonRestore) result.personnel = restoreCanonPersonnel(result.personnel);
     result.canonVersion = CANON_VERSION;
@@ -603,7 +721,7 @@
     try {
       var parsed = JSON.parse(raw);
       var normalized = normalize(parsed);
-      if (Math.floor(number(parsed.schemaVersion, 0)) < SCHEMA_VERSION || Math.floor(number(parsed.canonVersion, 0)) < CANON_VERSION) {
+      if (Math.floor(number(parsed.schemaVersion, 0)) < SCHEMA_VERSION || Math.floor(number(parsed.canonVersion, 0)) < CANON_VERSION || Math.floor(number(parsed.timelineVersion, 0)) < TIMELINE_VERSION) {
         global.localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
       }
       return normalized;
@@ -650,6 +768,52 @@
     return sortedCases(cases, false).filter(function (item) {
       return text(item.mainlineStatus).trim();
     });
+  }
+
+  function timelineDateValue(item) {
+    var direct = text(item && (item.sortDate || item.date)).trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(direct)) return direct;
+    if (/^\d{4}-\d{2}$/.test(direct)) return direct + '-01';
+    if (/^\d{4}$/.test(direct)) return direct + '-01-01';
+    var year = /((?:19|20)\d{2})/.exec(text(item && item.timeLabel));
+    return year ? year[1] + '-07-01' : '9999-12-31';
+  }
+
+  function compareTimelineEntries(left, right) {
+    var leftDate = timelineDateValue(left);
+    var rightDate = timelineDateValue(right);
+    if (leftDate !== rightDate) return leftDate.localeCompare(rightDate);
+    var a = episodeParts(left && left.episodeCode);
+    var b = episodeParts(right && right.episodeCode);
+    if (a[0] !== b[0]) return a[0] - b[0];
+    if (a[1] !== b[1]) return a[1] - b[1];
+    return text(left && left.createdAt).localeCompare(text(right && right.createdAt));
+  }
+
+  function timelineEntries(value) {
+    var db = value && typeof value === 'object' ? value : {};
+    var entries = (Array.isArray(db.timeline) ? db.timeline : []).map(function (item) {
+      var normalized = normalizeTimelineItem(item);
+      return Object.assign({ source: 'event', sourceId: normalized.id }, normalized);
+    });
+    (Array.isArray(db.cases) ? db.cases : []).forEach(function (item) {
+      entries.push({
+        id: 'case:' + text(item.id),
+        source: 'case',
+        sourceId: text(item.id),
+        sortDate: text(item.date),
+        timeLabel: text(item.date),
+        episodeCode: text(item.episodeCode),
+        type: 'case',
+        title: text(item.title) || '未命名案件',
+        summary: text(item.mainlineStatus).trim() || text(item.summary),
+        characters: stringList(item.characters),
+        continuity: text(item.longTermChanges),
+        createdAt: text(item.createdAt),
+        updatedAt: text(item.updatedAt)
+      });
+    });
+    return entries.sort(compareTimelineEntries);
   }
 
   function workDayKey(value) {
@@ -1152,6 +1316,7 @@
     normalize: normalize,
     normalizeCase: normalizeCase,
     normalizePerson: normalizePerson,
+    normalizeTimelineItem: normalizeTimelineItem,
     normalizeWork: normalizeWork,
     normalizeCommission: normalizeCommission,
     normalizeShopItem: normalizeShopItem,
@@ -1165,6 +1330,8 @@
     compareCases: compareCases,
     sortedCases: sortedCases,
     mainlineEntries: mainlineEntries,
+    compareTimelineEntries: compareTimelineEntries,
+    timelineEntries: timelineEntries,
     workDayKey: workDayKey,
     stableUnit: stableUnit,
     advanceAnonymousCases: advanceAnonymousCases,
