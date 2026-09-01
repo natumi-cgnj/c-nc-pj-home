@@ -1,21 +1,22 @@
 <!DOCTYPE html>
-<!-- Kitchen build: 2026-08-03-optional-subsections-r3 -->
+<!-- Food build: 2026-09-01-project-categories-r1 -->
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Kitchen">
-<title>Kitchen</title>
+<meta name="apple-mobile-web-app-title" content="Food">
+<title>Food</title>
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="apple-touch-icon.png">
 <link rel="icon" href="favicon.ico">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;background:#FAFAFA;color:#1a1a1a;min-height:100vh;min-height:100dvh;padding-bottom:80px}
-.top-bar{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;padding-top:env(safe-area-inset-top,24px);border-bottom:1px solid #eee;background:#fff;position:sticky;top:0;z-index:50}
-.top-bar h1{font-size:15px;font-weight:600;letter-spacing:2px;color:#8B6914}
+.top-bar{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;padding:16px 20px;padding-top:env(safe-area-inset-top,24px);border-bottom:1px solid #eee;background:#fff;position:sticky;top:0;z-index:50}
+.top-bar h1{font-size:15px;font-weight:600;letter-spacing:2px;color:#8B6914;text-align:center}
+.top-bar>:first-child{justify-self:start}.top-bar>:last-child{justify-self:end}
 .back-btn{font-size:13px;color:#999;text-decoration:none;cursor:pointer;background:none;border:none;font-family:inherit;padding:4px}
 .btn-s{font-size:11px;color:#999;background:none;border:1px solid #ddd;border-radius:6px;padding:5px 10px;cursor:pointer;font-family:inherit}
 .view{display:none}.view.active{display:block}
@@ -36,6 +37,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .project-row-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,#E8B96A,#D4A24A);transition:width 0.3s}
 .project-row-pct{font-size:10px;color:#ccc;font-variant-numeric:tabular-nums;min-width:28px;text-align:right}
 .project-complete-star{font-size:12px;color:#E8B96A;flex-shrink:0}
+.project-category-header{width:100%;display:flex;align-items:center;gap:10px;padding:10px 20px;background:#fafafa;border:0;border-bottom:1px solid #f0f0f0;cursor:pointer;user-select:none;-webkit-user-select:none;font-family:inherit}
+.project-category-header:active{background:#f5f5f5}
+.project-category-line{flex:1;height:1px;background:#e0e0e0}
+.project-category-label{font-size:11px;color:#999;font-weight:500;letter-spacing:0.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:55vw}
+.project-category-arrow{font-size:8px;color:#ccc;transition:transform 0.25s;display:inline-block;width:8px;flex-shrink:0}
+.project-category-header.collapsed .project-category-arrow{transform:rotate(-90deg)}
+.project-category-items{display:grid;grid-template-rows:1fr;overflow:hidden;transition:grid-template-rows 0.3s ease,opacity 0.25s ease;opacity:1}
+.project-category-items>div{min-height:0}
+.project-category-items.collapsed{grid-template-rows:0fr;opacity:0;pointer-events:none}
 .project-row-add{display:flex;align-items:center;justify-content:center;gap:6px;padding:14px 20px;background:#fff;border-bottom:1px solid #f5f5f5;cursor:pointer;font-size:13px;color:#ccc}
 .project-row-add:active{background:#f8f8f8}
 /* Duty accent: left border color via inline style */
@@ -275,7 +285,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <div id="viewHome" class="view active">
   <div class="top-bar">
     <a class="back-btn" href="index.html?p=2">← Home</a>
-    <h1>KITCHEN</h1>
+    <h1>FOOD</h1>
     <button class="btn-s" onclick="openModal('backupModal')">备份</button>
   </div>
   <div class="project-list" id="projectList"></div>
@@ -323,6 +333,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     </div>
     <label>项目名</label>
     <input type="text" id="inputProjectName" placeholder="如: Subway 三明治收集">
+    <label>项目分类（选填）</label>
+    <input type="text" id="inputProjectCategory" list="projectCategoryOptions" placeholder="如：三丽鸥、角落生物">
+    <datalist id="projectCategoryOptions"></datalist>
     <label>项目细分</label>
     <div class="section-list" id="sectionList"></div>
     <button class="add-section-btn" onclick="addSectionRow()">+ 添加分栏</button>
@@ -512,6 +525,8 @@ if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 /* ═══ DATA ═══ */
 const SK='kitchen_db';
 const VIEW_SCROLL_SK='kitchen_view_scroll_v1';
+const PROJECT_CATEGORY_COLLAPSE_SK='kitchen_project_category_collapsed_v1';
+const DEFAULT_PROJECT_CATEGORY='未分类';
 if('scrollRestoration' in history)history.scrollRestoration='manual';
 const SECTION_TAG_COLORS=['#9B8AE8','#6B5ACD','#D85A30','#E84A7A','#E8B96A','#C7A24C','#9B6BCC','#4AADE8','#3A8DD4','#5BA66B','#3D8B50','#6B8AFF','#4A6AE0','#888','#B0805A','#4ECDC4'];
 let projects=[];
@@ -956,39 +971,77 @@ function closeCheckinPopup(){document.getElementById('checkinPopup').classList.r
 /* ═══ PROJECT LIST ═══ */
 function renderProjects(){
   const list=document.getElementById('projectList');
-  let html=projects.sort((a,b)=>(a.order||0)-(b.order||0)).map(p=>{
-    const st=projectStats(p);
-    const pct=st.total>0?Math.round(st.collected/st.total*100):0;
-    const done=st.collected>=st.total&&st.total>0;
-    const iconPosX=clampImagePosition(p.iconPositionX);
-    const iconPosY=clampImagePosition(p.iconPositionY);
-    const iconHtml=p.icon?`<img src="${p.icon}" alt="" style="object-position:${iconPosX}% ${iconPosY}%">`:`<div class="emoji-fb">🍽</div>`;
-    const duty=p.duty||{};
-    const dutyColor=duty.color||'#E8B96A';
-    const dutyName=duty.type?DUTY_PRESETS.find(d=>d.type===duty.type)?.name||duty.name||'':duty.name||'';
-    const dutyBadge=dutyName?`<span class="duty-badge" style="background:${dutyColor}15;color:${dutyColor}">${esc(dutyName)}</span>`:'';
-    const borderStyle=dutyName?`border-left:3px solid ${dutyColor}`:'';
-    const fillStyle=dutyName?`background:linear-gradient(90deg,${dutyColor},${dutyColor}cc)`:'';
-    return`<div class="project-row" style="${borderStyle}" data-id="${p.id}" onclick="handleProjectRowClick('${p.id}')">
-      <div class="project-icon-wrap">${iconHtml}</div>
-      <div class="project-row-body">
-        <div class="project-row-top">
-          <span class="project-row-name">${esc(p.name)}</span>
-          ${dutyBadge}
-          ${done?'<span class="project-complete-star">★</span>':''}
-        </div>
-        <div class="project-row-meta">
-          <span>${st.collected} / ${st.total}</span>
-          <div class="project-row-progress"><div class="project-row-fill" style="width:${pct}%;${fillStyle}"></div></div>
-          <span class="project-row-pct">${pct}%</span>
-        </div>
-      </div>
-      <button class="project-delete-x" aria-label="删除项目" onclick="handleProjectDeleteClick(event,'${p.id}')">×</button>
-    </div>`;
-  }).join('');
+  const sorted=[...projects].sort((a,b)=>(a.order||0)-(b.order||0));
+  const categoryGroups=new Map();
+  sorted.forEach(p=>{
+    const category=projectCategoryName(p);
+    if(!categoryGroups.has(category))categoryGroups.set(category,[]);
+    categoryGroups.get(category).push(p);
+  });
+  const collapsed=new Set(readCollapsedProjectCategories());
+  let html='';
+  categoryGroups.forEach((group,category)=>{
+    const isCollapsed=collapsed.has(category);
+    html+=`<button type="button" class="project-category-header${isCollapsed?' collapsed':''}" data-category="${esc(category)}" aria-expanded="${isCollapsed?'false':'true'}" onclick="toggleProjectCategory(this.dataset.category)">
+      <span class="project-category-line"></span>
+      <span class="project-category-label">${esc(category)}</span>
+      <span class="project-category-arrow" aria-hidden="true">▼</span>
+      <span class="project-category-line"></span>
+    </button>`;
+    html+=`<div class="project-category-items${isCollapsed?' collapsed':''}"><div>`;
+    group.forEach(p=>{html+=renderProjectRow(p);});
+    html+='</div></div>';
+  });
   html+=`<div class="project-row-add" onclick="openAddProject()">+ 添加项目</div>`;
   list.innerHTML=html;
   initProjectDrag();
+}
+
+function projectCategoryName(project){
+  const category=typeof project.category==='string'?project.category.trim():'';
+  return category||DEFAULT_PROJECT_CATEGORY;
+}
+function readCollapsedProjectCategories(){
+  try{
+    const value=JSON.parse(localStorage.getItem(PROJECT_CATEGORY_COLLAPSE_SK)||'[]');
+    return Array.isArray(value)?value.filter(name=>typeof name==='string'):[];
+  }catch(e){return[];}
+}
+function toggleProjectCategory(category){
+  const collapsed=new Set(readCollapsedProjectCategories());
+  if(collapsed.has(category))collapsed.delete(category);else collapsed.add(category);
+  localStorage.setItem(PROJECT_CATEGORY_COLLAPSE_SK,JSON.stringify([...collapsed]));
+  renderProjects();
+}
+function renderProjectRow(p){
+  const st=projectStats(p);
+  const pct=st.total>0?Math.round(st.collected/st.total*100):0;
+  const done=st.collected>=st.total&&st.total>0;
+  const iconPosX=clampImagePosition(p.iconPositionX);
+  const iconPosY=clampImagePosition(p.iconPositionY);
+  const iconHtml=p.icon?`<img src="${p.icon}" alt="" style="object-position:${iconPosX}% ${iconPosY}%">`:`<div class="emoji-fb">🍽</div>`;
+  const duty=p.duty||{};
+  const dutyColor=duty.color||'#E8B96A';
+  const dutyName=duty.type?DUTY_PRESETS.find(d=>d.type===duty.type)?.name||duty.name||'':duty.name||'';
+  const dutyBadge=dutyName?`<span class="duty-badge" style="background:${dutyColor}15;color:${dutyColor}">${esc(dutyName)}</span>`:'';
+  const borderStyle=dutyName?`border-left:3px solid ${dutyColor}`:'';
+  const fillStyle=dutyName?`background:linear-gradient(90deg,${dutyColor},${dutyColor}cc)`:'';
+  return`<div class="project-row" style="${borderStyle}" data-id="${p.id}" onclick="handleProjectRowClick('${p.id}')">
+    <div class="project-icon-wrap">${iconHtml}</div>
+    <div class="project-row-body">
+      <div class="project-row-top">
+        <span class="project-row-name">${esc(p.name)}</span>
+        ${dutyBadge}
+        ${done?'<span class="project-complete-star">★</span>':''}
+      </div>
+      <div class="project-row-meta">
+        <span>${st.collected} / ${st.total}</span>
+        <div class="project-row-progress"><div class="project-row-fill" style="width:${pct}%;${fillStyle}"></div></div>
+        <span class="project-row-pct">${pct}%</span>
+      </div>
+    </div>
+    <button class="project-delete-x" aria-label="删除项目" onclick="handleProjectDeleteClick(event,'${p.id}')">×</button>
+  </div>`;
 }
 
 let projectArrangeMode=false,projectClickSuppressed=0,projectDeleteArmedAt=0;
@@ -1113,7 +1166,7 @@ function initProjectDrag(){
     if(!projectArrangeMode)return;
     if(!document.getElementById('viewHome').classList.contains('active'))return;
     if(document.querySelector('.modal-bg.show,.action-sheet-bg.show,.confirm-bg.show'))return;
-    if(e.target.closest('.project-row')||e.target.closest('.btn-s')||e.target.closest('.back-btn'))return;
+    if(e.target.closest('.project-row')||e.target.closest('.project-category-header')||e.target.closest('.btn-s')||e.target.closest('.back-btn'))return;
     setProjectArrangeMode(false);
   });
 }
@@ -1592,10 +1645,18 @@ function addSectionRow(){
   renderSectionList();
 }
 
+function renderProjectCategoryOptions(){
+  const categories=[...new Set(projects.map(p=>{
+    return typeof p.category==='string'?p.category.trim():'';
+  }).filter(Boolean))];
+  document.getElementById('projectCategoryOptions').innerHTML=categories.map(category=>`<option value="${esc(category)}"></option>`).join('');
+}
+
 function openAddProject(){
   editProjectId=null;projectTempIcon='';projectIconPosTemp={x:50,y:50};
   document.getElementById('projectModalTitle').textContent='添加项目';
   document.getElementById('inputProjectName').value='';
+  document.getElementById('inputProjectCategory').value='';
   document.getElementById('inputProjectNote').value='';
   document.getElementById('projectIconInput').value='';
   document.getElementById('projectIconEditor').style.display='none';
@@ -1603,7 +1664,7 @@ function openAddProject(){
   iconPreview.src='';iconPreview.style.objectPosition='50% 50%';
   _sections=[{name:'',count:0,cols:3,itemType:'food',tagText:'',tagColor:'#E8B96A',_items:[]}];
   _dutyState={type:'',color:'#E8B96A',name:''};
-  renderSectionList();renderDutyRow(_dutyState);
+  renderProjectCategoryOptions();renderSectionList();renderDutyRow(_dutyState);
   openModal('projectModal');
 }
 function openEditProject(){
@@ -1612,6 +1673,7 @@ function openEditProject(){
   projectIconPosTemp={x:clampImagePosition(p.iconPositionX),y:clampImagePosition(p.iconPositionY)};
   document.getElementById('projectModalTitle').textContent='编辑项目';
   document.getElementById('inputProjectName').value=p.name;
+  document.getElementById('inputProjectCategory').value=typeof p.category==='string'?p.category:'';
   document.getElementById('inputProjectNote').value=p.note||'';
   document.getElementById('projectIconInput').value='';
   const iconEditor=document.getElementById('projectIconEditor');
@@ -1621,12 +1683,13 @@ function openEditProject(){
   // Keep each section and its own item group together in the edit draft.
   _sections=buildSectionDrafts(p);
   _dutyState=p.duty?{...p.duty}:{type:'',color:'#E8B96A',name:''};
-  renderSectionList();renderDutyRow(_dutyState);
+  renderProjectCategoryOptions();renderSectionList();renderDutyRow(_dutyState);
   openModal('projectModal');
 }
 
 async function saveProject(){
   const name=document.getElementById('inputProjectName').value.trim();if(!name)return;
+  const category=document.getElementById('inputProjectCategory').value.trim();
   const note=document.getElementById('inputProjectNote').value.trim();
   let duty={..._dutyState};
   if(duty.type==='custom'){duty.name=document.getElementById('dutyCustomName').value.trim();}
@@ -1644,14 +1707,14 @@ async function saveProject(){
   if(editProjectId){
     const p=getProject(editProjectId);
     if(p){
-      p.name=name;p.note=note;p.duty=duty;p.icon=icon||'';
+      p.name=name;p.category=category;p.note=note;p.duty=duty;p.icon=icon||'';
       p.iconPositionX=icon?iconPositionX:50;p.iconPositionY=icon?iconPositionY:50;
       p.sections=sections;
       p.items=items;
       p.count=totalCount;
     }
   }else{
-    projects.push({id:gid(),name,note,icon:icon||'',iconPositionX:icon?iconPositionX:50,iconPositionY:icon?iconPositionY:50,count:totalCount,duty,items,sections,order:projects.length});
+    projects.push({id:gid(),name,category,note,icon:icon||'',iconPositionX:icon?iconPositionX:50,iconPositionY:icon?iconPositionY:50,count:totalCount,duty,items,sections,order:projects.length});
   }
   save();closeModal('projectModal');
   if(finalized.preserved)showToast(`已保留 ${finalized.preserved} 个有记录的品目`);
