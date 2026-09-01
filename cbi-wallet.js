@@ -2,7 +2,7 @@
   'use strict';
 
   var NAMES = { jane: 'Jane', cho: 'Cho', rigsby: 'Rigsby', lisbon: 'Lisbon', vanpelt: 'Van Pelt' };
-  var COLORS = { jane: '#5BA66B', cho: '#68747A', rigsby: '#7E9AB0', lisbon: '#A06F62', vanpelt: '#B48A9B' };
+  var COLORS = { jane: '#87977F', cho: '#68747A', rigsby: '#7E9AB0', lisbon: '#A06F62', vanpelt: '#B48A9B' };
 
   function esc(value) {
     return String(value == null ? '' : value)

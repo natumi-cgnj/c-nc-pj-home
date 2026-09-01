@@ -69,3 +69,37 @@ test('wallet page exposes split pools, full history and pending expenses', () =>
   assert.match(html, /销一点挂账/);
   assert.match(html, /activeFrom/);
 });
+
+test('adding or removing a category preserves every unsaved settings-row edit', () => {
+  const html = fs.readFileSync('wallet.html', 'utf8');
+  const start = html.indexOf('function syncSettingsCacheFromRows(){');
+  const end = html.indexOf('\nfunction removeSettingsRow', start);
+  assert.ok(start >= 0 && end > start);
+  const draft = [{ id: 'daily', name: '旧名称', dailyBudget: 100, color: '#111111', account: 'living' }];
+  const values = {
+    '.cat-setting-name': '改过的名称',
+    '.cat-setting-budget': '2750',
+    '.cat-setting-color': '#87977f',
+    '.cat-setting-account': 'entertainment'
+  };
+  const context = vm.createContext({
+    _settingsCache: draft,
+    Object,
+    document: {
+      querySelectorAll: () => [{ querySelector: selector => ({ value: values[selector] }) }]
+    }
+  });
+  vm.runInContext(html.slice(start, end) + '\nsyncSettingsCacheFromRows();', context);
+  assert.equal(draft[0].name, '改过的名称');
+  assert.equal(draft[0].dailyBudget, '2750');
+  assert.equal(draft[0].color, '#87977f');
+  assert.equal(draft[0].account, 'entertainment');
+  assert.match(html, /function removeSettingsRow\(i\)\{\s*syncSettingsCacheFromRows\(\);/);
+  assert.match(html, /function addCategory\(\)\{\s*syncSettingsCacheFromRows\(\);/);
+});
+
+test('CBI wallet gives Jane the muted sage representative color', () => {
+  const script = fs.readFileSync('cbi-wallet.js', 'utf8');
+  assert.match(script, /jane: '#87977F'/);
+  assert.doesNotMatch(script, /jane: '#5BA66B'/);
+});

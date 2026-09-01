@@ -394,7 +394,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <script src="cloud-sync.js?v=20260824-cbi-work1"></script>
 <script src="cbi-data.js?v=20260901-wallet7"></script>
 <script src="character-runtime.js?v=20260824-wallet-fix1"></script>
-<script src="cbi-wallet.js?v=20260901-dual2"></script>
+<script src="cbi-wallet.js?v=20260901-sage1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 var SK='wallet_db';
@@ -983,7 +983,19 @@ function renderSettingsRows(){
     return '<div class="cat-setting-row"><input type="color" class="cat-setting-color" data-i="'+i+'" value="'+cat.color+'" title="颜色"><input type="text" class="cat-setting-name" data-i="'+i+'" value="'+esc(cat.name)+'" placeholder="分类名"><select class="cat-setting-account" data-i="'+i+'" aria-label="资金池"><option value="living"'+(cat.account==='living'?' selected':'')+'>生活</option><option value="entertainment"'+(cat.account==='entertainment'?' selected':'')+'>娱乐</option></select><input type="number" class="cat-setting-budget" data-i="'+i+'" value="'+cat.dailyBudget+'" min="0" step="50" placeholder="日额"><button class="cat-setting-del" data-i="'+i+'" onclick="removeSettingsRow('+i+')" title="删除">×</button></div>';
   }).join('');
 }
+function syncSettingsCacheFromRows(){
+  document.querySelectorAll('#budgetSettings .cat-setting-row').forEach(function(row,i){
+    if(!_settingsCache[i])return;
+    _settingsCache[i]=Object.assign({},_settingsCache[i],{
+      name:row.querySelector('.cat-setting-name').value,
+      dailyBudget:row.querySelector('.cat-setting-budget').value,
+      color:row.querySelector('.cat-setting-color').value,
+      account:row.querySelector('.cat-setting-account').value==='living'?'living':'entertainment'
+    });
+  });
+}
 function removeSettingsRow(i){
+  syncSettingsCacheFromRows();
   if(_settingsCache.length<=2){showToast('两个账户各要保留一个分类');return;}
   var account=_settingsCache[i].account;
   if(_settingsCache.filter(function(category){return category.account===account;}).length<=1){showToast((account==='living'?'生活':'娱乐')+'账户至少保留一个分类');return;}
@@ -991,7 +1003,8 @@ function removeSettingsRow(i){
   renderSettingsRows();
 }
 function addCategory(){
-  var colors=['#4AADE8','#9B6BCC','#E84A7A','#5BA66B','#E8B96A','#D85A30','#6B8AFF','#888'];
+  syncSettingsCacheFromRows();
+  var colors=['#4AADE8','#9B6BCC','#E84A7A','#5BA66B','#E8B96A','#D85A30','#6B8AFF','#888888'];
   var c=colors[_settingsCache.length%colors.length];
   _settingsCache.push({id:'cat_'+gid(),name:'',dailyBudget:300,color:c,account:'entertainment',activeFrom:todayStr()});
   renderSettingsRows();
