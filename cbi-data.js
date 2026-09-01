@@ -2,7 +2,7 @@
   'use strict';
 
   var STORAGE_KEY = 'cbi_db';
-  var SCHEMA_VERSION = 4;
+  var SCHEMA_VERSION = 5;
   var CANON_VERSION = 2;
   var TIMELINE_VERSION = 1;
   var CBI_CHARACTERS = ['jane', 'cho', 'rigsby', 'lisbon', 'vanpelt'];
@@ -558,16 +558,22 @@
 
   function normalizeInvestigation(item) {
     item = item && typeof item === 'object' ? item : {};
+    var source = ['wishlist', 'legacy_case'].indexOf(item.source) >= 0
+      ? item.source
+      : (text(item.caseId) ? 'legacy_case' : 'wishlist');
     return {
       id: text(item.id) || createId('investigation'),
       date: text(item.date) || workDayKey(),
       characterId: CBI_CHARACTERS.indexOf(item.characterId) >= 0 ? item.characterId : 'rigsby',
       caseId: text(item.caseId),
+      source: source,
       title: text(item.title),
       detail: text(item.detail),
       amount: Math.max(0, Math.floor(number(item.amount, 0))),
-      status: ['pending', 'approved', 'declined'].indexOf(item.status) >= 0 ? item.status : 'pending',
+      status: ['pending', 'approved', 'auto', 'declined'].indexOf(item.status) >= 0 ? item.status : 'pending',
       reply: text(item.reply),
+      reaction: text(item.reaction),
+      spentFrom: ['public', 'personal', 'mixed'].indexOf(item.spentFrom) >= 0 ? item.spentFrom : '',
       sceneId: text(item.sceneId),
       progressDelta: Math.max(0, Math.floor(number(item.progressDelta, 0))),
       progressBase: Math.max(0, Math.floor(number(item.progressBase, 0))),
@@ -583,7 +589,7 @@
     return {
       id: text(item.id) || createId('fund_log'),
       date: text(item.date) || workDayKey(),
-      type: ['allocation', 'investigation', 'manual'].indexOf(item.type) >= 0 ? item.type : 'manual',
+      type: ['allocation', 'investigation', 'wish', 'autonomous', 'manual'].indexOf(item.type) >= 0 ? item.type : 'manual',
       characterId: CBI_CHARACTERS.indexOf(item.characterId) >= 0 ? item.characterId : '',
       caseId: text(item.caseId),
       content: text(item.content),
@@ -621,7 +627,8 @@
       result[caseId] = {
         progress: Math.max(0, Math.min(100, Math.floor(number(entry.progress, 0)))),
         scenes: Array.isArray(entry.scenes) ? entry.scenes.map(normalizeMajorCaseScene) : [],
-        archivedAt: text(entry.archivedAt)
+        archivedAt: text(entry.archivedAt),
+        lastAdvancedDate: text(entry.lastAdvancedDate)
       };
     });
     return result;
@@ -1035,19 +1042,52 @@
     return total;
   }
 
-  function availableCaseFund(value, walletValue) {
-    return Math.max(0, sharedFundFromWallet(walletValue) - majorCaseSpend(value));
+  function wishSpend(value) {
+    var db = normalize(value);
+    return db.work.caseFund.investigations.reduce(function (total, request) {
+      return total + (['approved', 'auto'].indexOf(request.status) >= 0 ? request.amount : 0);
+    }, 0);
   }
 
-  function allocatedCaseFund(value) {
+  function allowanceSpend(value) {
+    var db = normalize(value);
+    var wishlistTotal = 0;
+    var legacyRequestTotal = 0;
+    db.work.caseFund.investigations.forEach(function (request) {
+      if (['approved', 'auto'].indexOf(request.status) < 0) return;
+      if (request.source === 'legacy_case') legacyRequestTotal += request.amount;
+      else wishlistTotal += request.amount;
+    });
+    // Legacy approvals stored one payment twice: once on the request and once on
+    // its case scene. Keep the larger legacy total, then add every new wish in full.
+    return wishlistTotal + Math.max(majorCaseSpend(db), legacyRequestTotal);
+  }
+
+  function availableAllowance(value, walletValue) {
+    return Math.max(0, sharedFundFromWallet(walletValue) - allowanceSpend(value));
+  }
+
+  function availableCaseFund(value, walletValue) {
+    return availableAllowance(value, walletValue);
+  }
+
+  function allocatedAllowance(value) {
     var db = normalize(value);
     return CBI_CHARACTERS.reduce(function (total, characterId) {
       return total + Math.max(0, number(db.work.caseFund.charFunds[characterId], 0));
     }, 0);
   }
 
+  function allocatedCaseFund(value) {
+    return allocatedAllowance(value);
+  }
+
+  function unassignedAllowance(value, walletValue) {
+    return Math.max(0, availableAllowance(value, walletValue) - allocatedAllowance(value));
+  }
+
   function unassignedCaseFund(value, walletValue) {
-    return Math.max(0, availableCaseFund(value, walletValue) - allocatedCaseFund(value));
+    return unassignedAllowance(value, walletValue);
   }
 
   function addCaseFundLog(value, options) {
@@ -1067,13 +1107,38 @@
     return { db: db, log: log };
   }
 
-  function allocateCaseFund(value, characterId, amount, walletValue, dateValue) {
+  function settlePersonalWishes(value, characterId, walletValue, dateValue) {
+    var db = normalize(value);
+    var purchases = [];
+    db.work.caseFund.investigations.filter(function (request) {
+      return request.status === 'pending' && request.source === 'wishlist' && request.characterId === characterId;
+    }).sort(function (left, right) {
+      return text(left.createdAt).localeCompare(text(right.createdAt));
+    }).forEach(function (request) {
+      var personal = Math.max(0, number(db.work.caseFund.charFunds[characterId], 0));
+      if (request.amount > personal || request.amount > availableAllowance(db, walletValue)) return;
+      db.work.caseFund.charFunds[characterId] = personal - request.amount;
+      request.status = 'auto';
+      request.spentFrom = 'personal';
+      request.resolvedAt = new Date().toISOString();
+      db.work.caseFund.logs.push(normalizeCaseFundLog({
+        date: request.date || workDayKey(dateValue),
+        type: 'autonomous',
+        characterId: characterId,
+        content: request.title + ' · 自由额度支出 ¥' + request.amount
+      }));
+      purchases.push(request);
+    });
+    return { db: db, purchases: purchases };
+  }
+
+  function allocateAllowance(value, characterId, amount, walletValue, dateValue) {
     var db = normalize(value);
     var normalizedAmount = Math.max(0, Math.floor(number(amount, 0)));
     if (CBI_CHARACTERS.indexOf(characterId) < 0 || !normalizedAmount) {
       return { db: db, allocation: null, reason: 'invalid_allocation' };
     }
-    if (normalizedAmount > unassignedCaseFund(db, walletValue)) {
+    if (normalizedAmount > unassignedAllowance(db, walletValue)) {
       return { db: db, allocation: null, reason: 'insufficient_fund' };
     }
     db.work.caseFund.charFunds[characterId] += normalizedAmount;
@@ -1081,13 +1146,19 @@
       date: workDayKey(dateValue),
       type: 'allocation',
       characterId: characterId,
-      content: '指定调查经费 ¥' + normalizedAmount
+      content: '划拨自由额度 ¥' + normalizedAmount
     });
+    var settled = settlePersonalWishes(logged.db, characterId, walletValue, dateValue);
     return {
-      db: logged.db,
+      db: settled.db,
       allocation: { characterId: characterId, amount: normalizedAmount },
+      autoPurchases: settled.purchases,
       reason: ''
     };
+  }
+
+  function allocateCaseFund(value, characterId, amount, walletValue, dateValue) {
+    return allocateAllowance(value, characterId, amount, walletValue, dateValue);
   }
 
   var MAJOR_CASE_CONFIG = {
@@ -1099,114 +1170,104 @@
     jane: { weight: 0.06, min: 50, max: 100, lines: ['你们一直在看答案旁边的东西。', '凶手拼命让人看的那个细节，正好挡住了真正重要的部分。'] }
   };
 
-  var INVESTIGATION_REQUEST_CONFIG = {
+  var WISH_REQUEST_CONFIG = {
     rigsby: {
       weight: 30,
-      min: 300,
-      max: 700,
+      min: 900,
+      max: 1800,
       requests: [
-        { title: '前往证人住所取证', detail: '短途车费与停车费' },
-        { title: '补查邻居口供', detail: '跨区交通费' }
+        { title: '加班那天订一份披萨', detail: 'Rigsby把菜单折好放在桌角，显然已经选完配料', reaction: '太好了。我可以分Jane一块——如果他先答应不碰菠萝那边。' },
+        { title: '现场回来顺路买汉堡', detail: '他路过那家店三次，第三次终于把收据申请也一起带来了', reaction: 'Boss，我保证这次不会在证物袋旁边吃。' }
       ]
     },
     vanpelt: {
       weight: 25,
-      min: 1500,
+      min: 900,
       max: 2400,
       requests: [
-        { title: '调取电子记录', detail: '数据检索与设备使用费用' },
-        { title: '核对通讯时间线', detail: '档案调阅与数据处理费用' }
+        { title: '添一个桌面文件架', detail: 'Van Pelt已经量好了桌角空位，申请里甚至附了尺寸', reaction: '谢谢，Boss。这样下次要找记录就不用先搬开三叠纸了。' },
+        { title: '买一条备用数据线', detail: '技术部门那条接触不良，她不想第四次借Rigsby的', reaction: '我会贴名字的。Rigsby不能再说他只是“暂时借走”。' }
       ]
     },
     lisbon: {
       weight: 20,
-      min: 900,
-      max: 1400,
+      min: 700,
+      max: 1800,
       requests: [
-        { title: '补充走访关键证人', detail: '停车与交通费用' },
-        { title: '返回现场复核证词', detail: '往返交通与现场协调费用' }
+        { title: '换一本现场笔记本', detail: 'Lisbon把已经写到封底的旧本一起夹在申请后面', reaction: '我会把旧本归档。新的那本……我会写得更清楚一点。' },
+        { title: '补一罐办公室咖啡', detail: '她认真注明了不是给全组续命，只是公共柜刚好空了', reaction: '谢谢。以及这不代表Jane可以往里面兑茶。' }
       ]
     },
     cho: {
       weight: 20,
-      min: 800,
-      max: 1300,
+      min: 600,
+      max: 3200,
       requests: [
-        { title: '核查监控来源', detail: '往返交通与资料复制费用' },
-        { title: '追查车辆登记地址', detail: '燃油与通行费用' }
+        { title: '补一盒黑色签字笔', detail: 'Cho的申请只有品名、数量和金额，正好占一行', reaction: '收到了。Rigsby拿走的那几支不算在内。' },
+        { title: '把车里的急救包换新', detail: '旧的已经过期，他顺手列出了需要替换的全部内容', reaction: '放回后备箱了。希望用不上。' }
       ]
     },
     jane: {
       weight: 5,
-      min: 5000,
-      max: 8500,
+      min: 1800,
+      max: 6500,
       requests: [
-        { title: '非正式接触嫌疑人', detail: '临时场地、餐饮与诱导布置费用' },
-        { title: '安排一次反应测试', detail: '魔术道具、交通与无法说明的杂费' }
+        { title: '买一罐真正能喝的散叶茶', detail: 'Jane把“真正能喝”圈了两遍，没有解释评价对象是谁', reaction: '我就知道你能分辨茶和热水里的褐色灰尘。' },
+        { title: '带回旧书店那本绝版书', detail: '他只写了书名和橱窗位置，价格藏在纸页最下面', reaction: '你同意得比我预计得快。现在它归我了——书是，Boss暂时也是。' }
       ]
     }
   };
 
-  function createInvestigationRequest(value, options) {
+  function createWishRequest(value, options) {
     var db = normalize(value);
     options = options && typeof options === 'object' ? options : {};
-    var pending = db.work.caseFund.investigations.find(function (item) { return item.status === 'pending'; });
-    if (pending) return { db: db, request: pending, created: false, reason: 'pending_exists' };
-    var activeCases = db.cases.filter(function (item) {
-      var state = db.work.majorCaseProgress[item.id];
-      return item.status === 'active' && (!state || state.progress < 100);
-    });
-    if (!activeCases.length) return { db: db, request: null, created: false, reason: 'no_active_case' };
     var date = workDayKey(options.date);
-    var seedBase = date + '|investigation|' + db.work.caseFund.investigations.length;
-    var caseItem = activeCases.find(function (item) { return item.id === db.currentCaseId; });
-    if (!caseItem) caseItem = activeCases[Math.floor(stableUnit(seedBase + '|case') * activeCases.length)];
+    var existing = db.work.caseFund.investigations.find(function (item) {
+      return item.source === 'wishlist' && item.date === date;
+    });
+    if (existing) return { db: db, request: existing, created: false, autoPurchased: existing.status === 'auto', reason: 'today_exists' };
+    var seedBase = date + '|wish|' + db.work.caseFund.investigations.length;
     var allowed = uniqueList(options.availableCharacters, CBI_CHARACTERS);
     if (!allowed.length) allowed = CBI_CHARACTERS.slice();
-    var hasWallet = Object.prototype.hasOwnProperty.call(options, 'wallet');
-    var totalFund = hasWallet ? availableCaseFund(db, options.wallet) : Infinity;
-    var openFund = hasWallet ? unassignedCaseFund(db, options.wallet) : Infinity;
-    if (hasWallet) {
-      allowed = allowed.filter(function (id) {
-        var personal = Math.max(0, number(db.work.caseFund.charFunds[id], 0));
-        return Math.min(totalFund, personal + openFund) >= INVESTIGATION_REQUEST_CONFIG[id].min;
-      });
-      if (!allowed.length) return { db: db, request: null, created: false, reason: 'insufficient_fund' };
-    }
-    var totalWeight = allowed.reduce(function (sum, id) { return sum + INVESTIGATION_REQUEST_CONFIG[id].weight; }, 0);
-    var target = stableUnit(seedBase + '|' + caseItem.id + '|character') * totalWeight;
+    var totalWeight = allowed.reduce(function (sum, id) { return sum + WISH_REQUEST_CONFIG[id].weight; }, 0);
+    var target = stableUnit(seedBase + '|character') * totalWeight;
     var characterId = allowed[0];
     allowed.some(function (id) {
-      target -= INVESTIGATION_REQUEST_CONFIG[id].weight;
+      target -= WISH_REQUEST_CONFIG[id].weight;
       if (target <= 0) { characterId = id; return true; }
       return false;
     });
-    var config = INVESTIGATION_REQUEST_CONFIG[characterId];
+    var config = WISH_REQUEST_CONFIG[characterId];
     var template = config.requests[Math.floor(stableUnit(seedBase + '|template') * config.requests.length)];
-    var personalFund = Math.max(0, number(db.work.caseFund.charFunds[characterId], 0));
-    var spendable = hasWallet ? Math.min(totalFund, personalFund + openFund) : config.max;
-    var ceiling = Math.min(config.max, Math.floor(spendable / 50) * 50);
-    if (ceiling < config.min) return { db: db, request: null, created: false, reason: 'insufficient_fund' };
-    var amountSteps = Math.floor((ceiling - config.min) / 50);
+    var amountSteps = Math.floor((config.max - config.min) / 50);
     var amount = config.min + Math.floor(stableUnit(seedBase + '|amount') * (amountSteps + 1)) * 50;
     var request = normalizeInvestigation({
       date: date,
       characterId: characterId,
-      caseId: caseItem.id,
+      source: 'wishlist',
       title: template.title,
       detail: template.detail,
+      reaction: template.reaction,
       amount: amount,
       status: 'pending'
     });
     db.work.caseFund.investigations.push(request);
-    return { db: db, request: request, created: true, reason: '' };
+    var settled = Object.prototype.hasOwnProperty.call(options, 'wallet')
+      ? settlePersonalWishes(db, characterId, options.wallet, options.date)
+      : { db: db, purchases: [] };
+    request = settled.db.work.caseFund.investigations.find(function (item) { return item.id === request.id; });
+    return { db: settled.db, request: request, created: true, autoPurchased: request.status === 'auto', reason: '' };
+  }
+
+  function createInvestigationRequest(value, options) {
+    return createWishRequest(value, options);
   }
 
   function advanceMajorCase(value, caseId, options) {
     var db = normalize(value);
     var caseItem = db.cases.find(function (item) { return item.id === caseId; });
     if (!caseItem) return { db: db, caseItem: null, progress: null, scene: null };
-    var progress = db.work.majorCaseProgress[caseId] || { progress: 0, scenes: [], archivedAt: '' };
+    var progress = db.work.majorCaseProgress[caseId] || { progress: 0, scenes: [], archivedAt: '', lastAdvancedDate: '' };
     db.work.majorCaseProgress[caseId] = progress;
     if (progress.progress >= 100) return { db: db, caseItem: caseItem, progress: progress, scene: null };
     options = options && typeof options === 'object' ? options : {};
@@ -1232,7 +1293,7 @@
       characterId: characterId,
       line: line,
       delta: delta,
-      cost: Math.max(0, Math.floor(number(options.cost, db.work.majorCaseStepCost))),
+      cost: Math.max(0, Math.floor(number(options.cost, 0))),
       createdAt: new Date().toISOString()
     });
     progress.progress += delta;
@@ -1240,49 +1301,57 @@
     return { db: db, caseItem: caseItem, progress: progress, scene: scene };
   }
 
-  function approveInvestigation(value, investigationId, walletValue, options) {
+  function advanceMajorCaseDay(value, caseId, options) {
+    var db = normalize(value);
+    options = options && typeof options === 'object' ? options : {};
+    var date = workDayKey(options.date);
+    var caseItem = db.cases.find(function (item) { return item.id === caseId && item.status === 'active'; });
+    if (!caseItem) return { db: db, caseItem: caseItem || null, progress: null, scene: null, reason: 'no_active_case', date: date };
+    var progress = db.work.majorCaseProgress[caseId] || { progress: 0, scenes: [], archivedAt: '', lastAdvancedDate: '' };
+    db.work.majorCaseProgress[caseId] = progress;
+    if (progress.progress >= 100) return { db: db, caseItem: caseItem, progress: progress, scene: null, reason: 'complete', date: date };
+    if (progress.lastAdvancedDate === date) return { db: db, caseItem: caseItem, progress: progress, scene: null, reason: 'already_advanced', date: date };
+    var advanced = advanceMajorCase(db, caseId, {
+      availableCharacters: options.availableCharacters || ['boss'].concat(CBI_CHARACTERS),
+      cost: 0,
+      seed: 'case-day|' + date
+    });
+    if (!advanced.scene) return { db: advanced.db, caseItem: caseItem, progress: advanced.progress, scene: null, reason: 'complete', date: date };
+    advanced.progress.lastAdvancedDate = date;
+    return { db: advanced.db, caseItem: advanced.caseItem, progress: advanced.progress, scene: advanced.scene, reason: '', date: date };
+  }
+
+  function approveWishRequest(value, investigationId, walletValue, options) {
     var db = normalize(value);
     options = options && typeof options === 'object' ? options : {};
     var request = db.work.caseFund.investigations.find(function (item) { return item.id === investigationId; });
-    if (!request || request.status !== 'pending') return { db: db, request: request || null, scene: null, reason: 'not_pending' };
-    var caseItem = db.cases.find(function (item) { return item.id === request.caseId && item.status === 'active'; });
-    if (!caseItem) return { db: db, request: request, scene: null, reason: 'no_active_case' };
+    if (!request || request.status !== 'pending') return { db: db, request: request || null, reason: 'not_pending' };
     var personal = Math.max(0, number(db.work.caseFund.charFunds[request.characterId], 0));
-    var openFund = unassignedCaseFund(db, walletValue);
-    var totalFund = availableCaseFund(db, walletValue);
-    if (request.amount > totalFund || request.amount > personal + openFund) return { db: db, request: request, scene: null, reason: 'insufficient_fund' };
-    var progressBase = Math.max(1, Math.round(request.amount / 100));
-    var progressRoll = Math.floor(stableUnit(request.id + '|paid-progress') * 5) - 2;
-    var progressDelta = Math.max(1, progressBase + progressRoll);
-    var advanced = advanceMajorCase(db, request.caseId, {
-      availableCharacters: [request.characterId],
-      cost: request.amount,
-      progressDelta: progressDelta,
-      seed: request.id
-    });
-    if (!advanced.scene) return { db: db, request: request, scene: null, reason: 'no_progress' };
-    db = advanced.db;
+    var openFund = unassignedAllowance(db, walletValue);
+    var totalFund = availableAllowance(db, walletValue);
+    if (request.amount > totalFund || request.amount > personal + openFund) return { db: db, request: request, reason: 'insufficient_fund' };
     var usedPersonal = Math.min(personal, request.amount);
     db.work.caseFund.charFunds[request.characterId] = Math.max(0, personal - usedPersonal);
     request = db.work.caseFund.investigations.find(function (item) { return item.id === investigationId; });
     request.status = 'approved';
     request.reply = text(options.reply).trim();
-    request.sceneId = advanced.scene.id;
-    request.progressDelta = advanced.scene.delta;
-    request.progressBase = progressBase;
-    request.progressRoll = progressRoll;
-    request.progressLine = advanced.scene.line;
+    request.spentFrom = usedPersonal === request.amount ? 'personal' : (usedPersonal ? 'mixed' : 'public');
     request.resolvedAt = new Date().toISOString();
-    var content = request.title + ' · 批准 ¥' + request.amount;
+    var content = request.title + ' · 同意报销 ¥' + request.amount;
     if (request.reply) content += ' · Boss：' + request.reply;
     var logged = addCaseFundLog(db, {
       date: request.date,
-      type: 'investigation',
+      type: 'wish',
       characterId: request.characterId,
       caseId: request.caseId,
       content: content
     });
-    return { db: logged.db, request: request, scene: advanced.scene, reason: '' };
+    request = logged.db.work.caseFund.investigations.find(function (item) { return item.id === investigationId; });
+    return { db: logged.db, request: request, reason: '' };
+  }
+
+  function approveInvestigation(value, investigationId, walletValue, options) {
+    return approveWishRequest(value, investigationId, walletValue, options);
   }
 
   function setCaseFocus(value, caseId) {
@@ -1343,15 +1412,25 @@
     completeCommission: completeCommission,
     sharedFundFromWallet: sharedFundFromWallet,
     majorCaseSpend: majorCaseSpend,
+    wishSpend: wishSpend,
+    allowanceSpend: allowanceSpend,
+    availableAllowance: availableAllowance,
     availableCaseFund: availableCaseFund,
+    allocatedAllowance: allocatedAllowance,
     allocatedCaseFund: allocatedCaseFund,
+    unassignedAllowance: unassignedAllowance,
     unassignedCaseFund: unassignedCaseFund,
     addCaseFundLog: addCaseFundLog,
+    allocateAllowance: allocateAllowance,
     allocateCaseFund: allocateCaseFund,
+    settlePersonalWishes: settlePersonalWishes,
+    createWishRequest: createWishRequest,
     createInvestigationRequest: createInvestigationRequest,
+    approveWishRequest: approveWishRequest,
     approveInvestigation: approveInvestigation,
     setCaseFocus: setCaseFocus,
     advanceMajorCase: advanceMajorCase,
+    advanceMajorCaseDay: advanceMajorCaseDay,
     archiveMajorCase: archiveMajorCase
   });
 })(window);

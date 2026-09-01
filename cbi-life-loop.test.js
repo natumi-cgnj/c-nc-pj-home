@@ -17,7 +17,7 @@ function load(initial = {}) {
   return { CBIData: window.CBIData, localStorage };
 }
 
-test('schema four keeps legacy case records and adds the confirmed story timeline', () => {
+test('schema five keeps legacy case records and adds the confirmed story timeline', () => {
   const legacy = {
     currentCaseId: 'case_1',
     cases: [{ id: 'case_1', title: '旧案', status: 'active', body: '原线索' }],
@@ -25,7 +25,7 @@ test('schema four keeps legacy case records and adds the confirmed story timelin
   };
   const { CBIData } = load({ cbi_db: JSON.stringify(legacy) });
   const db = CBIData.load();
-  assert.equal(db.schemaVersion, 4);
+  assert.equal(db.schemaVersion, 5);
   assert.equal(db.canonVersion, 2);
   assert.equal(db.timelineVersion, 1);
   assert.equal(db.timeline.length, 7);
@@ -108,7 +108,7 @@ test('commission offer, acceptance and rewards stay inside CBI work state', () =
   assert.equal(localStorage.getItem('bean_st'), null);
 });
 
-test('funded major-case scenes consume the shared surplus and can close a full case', () => {
+test('major-case work advances once per day without consuming the reality balance', () => {
   const { CBIData } = load();
   const wallet = {
     categories: [{ id: 'food', dailyBudget: 1000 }],
@@ -121,25 +121,116 @@ test('funded major-case scenes consume the shared surplus and can close a full c
     cases: [{ id: 'major_1', title: '正式大案', status: 'active' }]
   });
   assert.equal(CBIData.sharedFundFromWallet(wallet), 750);
-  assert.equal(CBIData.availableCaseFund(db, wallet), 750);
-  const advanced = CBIData.advanceMajorCase(db, 'major_1', {
+  assert.equal(CBIData.availableAllowance(db, wallet), 750);
+  const advanced = CBIData.advanceMajorCaseDay(db, 'major_1', {
     availableCharacters: ['lisbon'],
-    cost: 500,
-    seed: '2026-08-24'
+    date: '2026-08-24'
   });
   db = advanced.db;
   assert.equal(advanced.scene.characterId, 'lisbon');
   assert.ok(advanced.scene.delta >= 8 && advanced.scene.delta <= 15);
-  assert.equal(CBIData.availableCaseFund(db, wallet), 250);
+  assert.equal(advanced.scene.cost, 0);
+  assert.equal(CBIData.availableAllowance(db, wallet), 750);
+  const repeated = CBIData.advanceMajorCaseDay(db, 'major_1', { availableCharacters: ['jane'], date: '2026-08-24' });
+  assert.equal(repeated.reason, 'already_advanced');
+  assert.equal(repeated.scene, null);
   db.work.majorCaseProgress.major_1.progress = 99;
-  db = CBIData.advanceMajorCase(db, 'major_1', {
+  db = CBIData.advanceMajorCaseDay(db, 'major_1', {
     availableCharacters: ['jane'],
-    cost: 0,
-    seed: 'finish'
+    date: '2026-08-25'
   }).db;
   assert.equal(db.work.majorCaseProgress.major_1.progress, 100);
   const archived = CBIData.archiveMajorCase(db, 'major_1');
   assert.equal(archived.archived, true);
   assert.equal(archived.db.cases[0].status, 'closed');
   assert.equal(archived.db.currentCaseId, null);
+});
+
+test('a new wish can wait without an active case or available money', () => {
+  const { CBIData } = load();
+  const db = CBIData.emptyDB();
+  const created = CBIData.createWishRequest(db, {
+    date: '2026-09-01',
+    availableCharacters: ['vanpelt'],
+    wallet: {}
+  });
+  assert.equal(created.created, true);
+  assert.equal(created.request.characterId, 'vanpelt');
+  assert.equal(created.request.source, 'wishlist');
+  assert.equal(created.request.status, 'pending');
+  assert.equal(created.request.caseId, '');
+  const sameDay = CBIData.createWishRequest(created.db, {
+    date: '2026-09-01',
+    availableCharacters: ['cho'],
+    wallet: {}
+  });
+  assert.equal(sameDay.created, false);
+  assert.equal(sameDay.request.id, created.request.id);
+});
+
+test('approving a wish spends allowance but never changes case progress', () => {
+  const { CBIData } = load();
+  const wallet = {
+    categories: [{ id: 'daily', dailyBudget: 10000 }],
+    records: [{ date: '2026-09-01', category: 'daily', type: 'expense', amount: 0 }]
+  };
+  let db = CBIData.normalize({
+    currentCaseId: 'major_1',
+    cases: [{ id: 'major_1', title: '正式大案', status: 'active' }],
+    work: { majorCaseProgress: { major_1: { progress: 12, scenes: [] } } }
+  });
+  const created = CBIData.createWishRequest(db, {
+    date: '2026-09-01',
+    availableCharacters: ['rigsby']
+  });
+  db = created.db;
+  const before = CBIData.availableAllowance(db, wallet);
+  const approved = CBIData.approveWishRequest(db, created.request.id, wallet, { reply: '可以买。' });
+  assert.equal(approved.reason, '');
+  assert.equal(approved.request.status, 'approved');
+  assert.equal(approved.request.reply, '可以买。');
+  assert.equal(CBIData.availableAllowance(approved.db, wallet), before - approved.request.amount);
+  assert.equal(approved.db.work.majorCaseProgress.major_1.progress, 12);
+  assert.equal(approved.db.work.majorCaseProgress.major_1.scenes.length, 0);
+});
+
+test('personal free allowance automatically settles a waiting wish', () => {
+  const { CBIData } = load();
+  const emptyWallet = {};
+  const fundedWallet = {
+    categories: [{ id: 'daily', dailyBudget: 10000 }],
+    records: [{ date: '2026-09-01', category: 'daily', type: 'expense', amount: 0 }]
+  };
+  const created = CBIData.createWishRequest(CBIData.emptyDB(), {
+    date: '2026-09-01',
+    availableCharacters: ['cho'],
+    wallet: emptyWallet
+  });
+  const allocated = CBIData.allocateAllowance(created.db, 'cho', created.request.amount, fundedWallet, '2026-09-01');
+  const request = allocated.db.work.caseFund.investigations.find((item) => item.id === created.request.id);
+  assert.equal(allocated.autoPurchases.length, 1);
+  assert.equal(request.status, 'auto');
+  assert.equal(request.spentFrom, 'personal');
+  assert.equal(allocated.db.work.caseFund.charFunds.cho, 0);
+  assert.equal(CBIData.availableAllowance(allocated.db, fundedWallet), 10000 - request.amount);
+});
+
+test('legacy paid case requests keep their old balance effect without double counting', () => {
+  const { CBIData } = load();
+  const wallet = {
+    categories: [{ id: 'daily', dailyBudget: 1000 }],
+    records: [{ date: '2026-09-01', category: 'daily', type: 'expense', amount: 0 }]
+  };
+  const db = CBIData.normalize({
+    cases: [{ id: 'legacy', title: '旧制案件', status: 'closed' }],
+    work: {
+      majorCaseProgress: { legacy: { progress: 20, scenes: [{ characterId: 'cho', line: '旧进展', delta: 20, cost: 500 }] } },
+      caseFund: { investigations: [{ id: 'old_request', caseId: 'legacy', characterId: 'cho', title: '旧报销', amount: 500, status: 'approved' }] }
+    }
+  });
+  assert.equal(db.work.caseFund.investigations[0].source, 'legacy_case');
+  assert.equal(CBIData.majorCaseSpend(db), 500);
+  assert.equal(CBIData.wishSpend(db), 500);
+  assert.equal(CBIData.allowanceSpend(db), 500);
+  assert.equal(CBIData.availableAllowance(db, wallet), 500);
 });
