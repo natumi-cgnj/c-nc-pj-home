@@ -511,6 +511,8 @@ if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 
 /* ═══ DATA ═══ */
 const SK='kitchen_db';
+const VIEW_SCROLL_SK='kitchen_view_scroll_v1';
+if('scrollRestoration' in history)history.scrollRestoration='manual';
 const SECTION_TAG_COLORS=['#9B8AE8','#6B5ACD','#D85A30','#E84A7A','#E8B96A','#C7A24C','#9B6BCC','#4AADE8','#3A8DD4','#5BA66B','#3D8B50','#6B8AFF','#4A6AE0','#888','#B0805A','#4ECDC4'];
 let projects=[];
 try{projects=JSON.parse(localStorage.getItem(SK))||[];}catch(e){projects=[];}
@@ -816,23 +818,78 @@ function getItemDisplayName(p,item,itemIdx){
 
 /* ═══ VIEWS ═══ */
 function switchView(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(id).classList.add('active');}
-function goHome(){setItemArrangeMode(false);switchView('viewHome');renderProjects();}
 function currentScrollY(){return window.scrollY||document.documentElement.scrollTop||document.body.scrollTop||0;}
-function rememberDetailScroll(){
-  if(curProjectId)detailScrollByProject[curProjectId]=currentScrollY();
+function readViewScrolls(){
+  try{return JSON.parse(sessionStorage.getItem(VIEW_SCROLL_SK)||'{}')||{};}catch(e){return{};}
 }
-function restoreDetailScroll(y){
+function viewScrollKey(viewId,projectId,itemId){
+  if(viewId==='viewItem')return'item:'+(projectId||'')+':'+(itemId||'');
+  if(viewId==='viewDetail')return'project:'+(projectId||'');
+  return'home';
+}
+function activeViewScrollKey(){
+  const p=getProject(curProjectId);
+  const item=p&&curItemIdx!==null&&curItemIdx!==undefined?p.items[curItemIdx]:null;
+  if(document.getElementById('viewItem').classList.contains('active'))return viewScrollKey('viewItem',curProjectId,item&&item.id);
+  if(document.getElementById('viewDetail').classList.contains('active'))return viewScrollKey('viewDetail',curProjectId);
+  return'home';
+}
+function savedViewScroll(key){
+  const y=Number(readViewScrolls()[key]);
+  return Number.isFinite(y)&&y>0?y:0;
+}
+function saveViewScroll(key,y){
+  try{
+    const scrolls=readViewScrolls();
+    scrolls[key]=Math.max(0,Number(y)||0);
+    sessionStorage.setItem(VIEW_SCROLL_SK,JSON.stringify(scrolls));
+  }catch(e){}
+}
+function saveCurrentViewScroll(){saveViewScroll(activeViewScrollKey(),currentScrollY());}
+function readViewRoute(){
+  const params=new URLSearchParams(location.hash.replace(/^#/,''));
+  return{projectId:params.get('project')||'',itemId:params.get('item')||''};
+}
+function writeViewRoute(projectId,itemId){
+  const params=new URLSearchParams();
+  if(projectId)params.set('project',projectId);
+  if(projectId&&itemId)params.set('item',itemId);
+  const hash=params.toString();
+  const url=location.pathname+location.search+(hash?'#'+hash:'');
+  history.replaceState(history.state,'',url);
+}
+function restoreViewScroll(y){
   const target=Math.max(0,Number(y)||0);
   requestAnimationFrame(()=>requestAnimationFrame(()=>window.scrollTo(0,target)));
+}
+function goHome(){
+  saveCurrentViewScroll();
+  setItemArrangeMode(false);
+  curItemIdx=null;
+  switchView('viewHome');
+  renderProjects();
+  writeViewRoute('','');
+  saveViewScroll('home',0);
+  restoreViewScroll(0);
+}
+function rememberDetailScroll(){
+  if(!curProjectId)return;
+  const y=currentScrollY();
+  detailScrollByProject[curProjectId]=y;
+  saveViewScroll(viewScrollKey('viewDetail',curProjectId),y);
 }
 function returnToDetail(){
   const p=getProject(curProjectId);if(!p)return;
   const detailIsActive=document.getElementById('viewDetail').classList.contains('active');
-  const target=detailIsActive?currentScrollY():(detailScrollByProject[curProjectId]||0);
+  saveCurrentViewScroll();
+  const key=viewScrollKey('viewDetail',curProjectId);
+  const target=detailIsActive?currentScrollY():(detailScrollByProject[curProjectId]??savedViewScroll(key));
   detailScrollByProject[curProjectId]=target;
   renderDetail(p);
   switchView('viewDetail');
-  restoreDetailScroll(target);
+  writeViewRoute(curProjectId,'');
+  saveViewScroll(key,target);
+  restoreViewScroll(target);
 }
 
 /* ═══ DUTY PRESETS ═══ */
@@ -969,7 +1026,7 @@ function deleteProjectById(id){
       curProjectId=null;curItemIdx=null;quickItemIdx=null;
       editProjectId=null;editItemIdx=null;editSectionIdx=null;
       setItemArrangeMode(false);
-      switchView('viewHome');
+      goHome();
     }
     save();renderProjects();
     if(!projects.length)setProjectArrangeMode(false);
@@ -1793,13 +1850,21 @@ function deleteProject(){
 }
 
 /* ═══ PROJECT DETAIL ═══ */
-function openProject(id){
+function openProject(id,options){
+  saveCurrentViewScroll();
   setItemArrangeMode(false);
   curProjectId=id;
+  curItemIdx=null;
   const p=getProject(id);if(!p)return;
+  const key=viewScrollKey('viewDetail',id);
+  const target=options&&options.restoreScroll!==undefined?Math.max(0,Number(options.restoreScroll)||0):0;
+  detailScrollByProject[id]=target;
   document.getElementById('detailTitle').textContent=p.name;
   renderDetail(p);
   switchView('viewDetail');
+  writeViewRoute(id,'');
+  saveViewScroll(key,target);
+  restoreViewScroll(target);
 }
 function renderDetail(p){
   if(!p)p=getProject(curProjectId);if(!p)return;
@@ -2213,11 +2278,15 @@ async function quickItemImgSelected(input){
     quickItemIdx=null;input.value='';
   }
 }
-function openItem(idx){
+function openItem(idx,options){
   const p=getProject(curProjectId);if(!p||!p.items[idx])return;
-  if(document.getElementById('viewDetail').classList.contains('active'))rememberDetailScroll();
+  const detailIsActive=document.getElementById('viewDetail').classList.contains('active');
+  const itemIsActive=document.getElementById('viewItem').classList.contains('active')&&curItemIdx===idx;
+  const currentItemScroll=itemIsActive?currentScrollY():0;
+  if(detailIsActive)rememberDetailScroll();else saveCurrentViewScroll();
   curItemIdx=idx;
   const item=p.items[idx];
+  const target=options&&options.restoreScroll!==undefined?Math.max(0,Number(options.restoreScroll)||0):(itemIsActive?currentItemScroll:0);
   const sectionType=getItemSectionType(p,idx);
   const bt=getItemBehaviorType(p,item,idx);
   ensureItemRecordData(p,item,idx);
@@ -2284,6 +2353,9 @@ function openItem(idx){
   const noteEl=document.getElementById('inlineNote');
   if(noteEl)noteEl.addEventListener('dblclick',()=>startInlineEdit('inlineNote','checkinNote'));
   switchView('viewItem');
+  writeViewRoute(curProjectId,item.id);
+  saveViewScroll(viewScrollKey('viewItem',curProjectId,item.id),target);
+  restoreViewScroll(target);
 }
 function startInlineEdit(elId,field){
   const el=document.getElementById(elId);if(!el)return;
@@ -2810,10 +2882,47 @@ function deleteMerchRecord(recordIdx){
   },{yes:'删除',danger:true});
 }
 
+let viewScrollSaveTimer=null;
+function queueViewScrollSave(){
+  clearTimeout(viewScrollSaveTimer);
+  viewScrollSaveTimer=setTimeout(()=>saveCurrentViewScroll(),120);
+}
+function restoreInitialView(){
+  renderProjects();
+  const route=readViewRoute();
+  const p=getProject(route.projectId);
+  if(!p){
+    curProjectId=null;curItemIdx=null;
+    switchView('viewHome');
+    writeViewRoute('','');
+    saveViewScroll('home',0);
+    restoreViewScroll(0);
+    return;
+  }
+  const projectKey=viewScrollKey('viewDetail',p.id);
+  detailScrollByProject[p.id]=savedViewScroll(projectKey);
+  if(route.itemId){
+    const itemIdx=(p.items||[]).findIndex(item=>String(item.id)===route.itemId);
+    if(itemIdx>=0){
+      curProjectId=p.id;
+      const itemKey=viewScrollKey('viewItem',p.id,p.items[itemIdx].id);
+      openItem(itemIdx,{restoreScroll:savedViewScroll(itemKey)});
+      return;
+    }
+  }
+  openProject(p.id,{restoreScroll:savedViewScroll(projectKey)});
+}
+window.addEventListener('scroll',queueViewScrollSave,{passive:true});
+window.addEventListener('pagehide',saveCurrentViewScroll);
+window.addEventListener('pageshow',()=>{
+  const key=activeViewScrollKey();
+  restoreViewScroll(key==='home'?0:savedViewScroll(key));
+});
+
 /* ═══ INIT ═══ */
 setupItemArrangeGestures();
 setupSubsectionDrag();
-renderProjects();
+restoreInitialView();
 migrateLocalImages();
 </script>
 </body>
