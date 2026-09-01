@@ -27,14 +27,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .view{display:none}.view.active{display:block}
 
 /* ── Ledger ── */
-.category-list{padding:12px 16px}
+.account-ledger-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));background:#fff;border-bottom:1px solid #eeeeec}
+.account-pane{min-width:0;padding-bottom:4px}
+.account-pane:first-child{border-right:1px solid #eeeeec}
+.account-summary{padding:22px 20px 17px;min-height:117px}
+.account-pane.entertainment .account-summary{text-align:right}
+.account-pane.entertainment .cat-header,.account-pane.entertainment .cat-stats{flex-direction:row-reverse}
+.account-pane.entertainment .cat-bar-fill{margin-left:auto}
+.account-kicker{font-size:9px;color:#bbb;letter-spacing:1.2px;text-transform:uppercase}
+.account-remaining{font-size:32px;line-height:1.16;font-weight:250;color:#333;font-variant-numeric:tabular-nums;margin-top:7px}
+.account-spent{font-size:10px;color:#aaa;margin-top:6px}
+.account-available{font-size:9px;color:#bbb;margin-top:3px}
+.category-list{padding:0}
 .category-card{background:#fff;border:1px solid #f0f0f0;border-radius:12px;padding:14px 16px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,0.03);transition:box-shadow 0.15s}
 .cat-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
 .cat-name{font-size:13px;font-weight:600;color:#333}
 .cat-budget{font-size:10px;color:#ccc;letter-spacing:0.3px}
 .cat-bar{height:3px;background:#f0f0f0;border-radius:2px;overflow:hidden;margin-bottom:5px}
 .cat-bar-fill{height:100%;border-radius:2px;transition:width 0.3s}
-.cat-stats{display:flex;justify-content:space-between;font-size:11px;color:#aaa}
+.cat-stats{display:flex;justify-content:space-between;gap:4px;flex-wrap:wrap;font-size:11px;color:#aaa}
 .cat-stats .positive{color:#5BA66B}
 .cat-stats .negative{color:#D85A30}
 .daily-total{background:#fff;border:1px solid #f0f0f0;border-radius:12px;padding:16px;margin:8px 16px;box-shadow:0 1px 4px rgba(0,0,0,0.03);text-align:center}
@@ -53,6 +64,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .hist-note{color:#777;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}
 .hist-del{font-size:13px;color:#ddd;background:none;border:none;cursor:pointer;padding:2px 4px;border-radius:4px;transition:color 0.15s}
 .hist-del:active{color:#D85A30}
+.ledger-fold{background:#fafafa;border:0;border-bottom:1px solid #eeeeec}
+.ledger-fold>summary{list-style:none;display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 20px;color:#aaa;font-size:10px;letter-spacing:.45px;cursor:pointer;background:#fff}
+.ledger-fold>summary::-webkit-details-marker{display:none}
+.ledger-fold>summary:after{content:'▼';font-size:7px;color:#ccc;transition:transform .18s}
+.ledger-fold:not([open])>summary:after{transform:rotate(-90deg)}
+.ledger-fold-count{color:#ccc;font-variant-numeric:tabular-nums}
+.hist-date{font-size:9px;color:#bbb;flex-shrink:0;font-variant-numeric:tabular-nums}
+.pending-summary-total{font-size:10px;color:#999;font-variant-numeric:tabular-nums}
+.pending-row{display:flex;align-items:center;gap:9px;padding:12px 20px;background:#fff;border-bottom:1px solid #f1f1ef}
+.pending-copy{flex:1;min-width:0}
+.pending-note{font-size:11px;color:#777;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pending-date{font-size:8px;color:#ccc;margin-top:3px}
+.pending-amount{font-size:12px;color:#777;white-space:nowrap;font-variant-numeric:tabular-nums}
+.pending-action{border:0;background:none;color:#a5967b;font:10px inherit;padding:5px 2px;cursor:pointer;white-space:nowrap}
+.pending-add{display:block;width:100%;padding:14px 20px;border:0;background:#fff;color:#bbb;font:10px inherit;cursor:pointer}
 
 /* ── Treasury ── */
 .treasury-card{background:#fff;border:1px solid #f0f0f0;border-radius:14px;margin:16px 16px 12px;padding:22px 20px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.04)}
@@ -144,8 +170,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .modal .cat-setting-row input.cat-setting-color{width:24px;height:24px;border:none;border-radius:50%;cursor:pointer;padding:0;flex-shrink:0}
 .modal .cat-setting-row input.cat-setting-name{flex:1;width:auto;font-size:12px;padding:6px 8px;border:1px solid #e8e8e8;border-radius:6px;min-width:0;font-family:inherit;background:#fafafa}
 .modal .cat-setting-row input.cat-setting-budget{width:66px;font-size:12px;padding:6px 8px;border:1px solid #e8e8e8;border-radius:6px;text-align:right;font-family:inherit;background:#fafafa}
+.modal .cat-setting-row select.cat-setting-account{width:64px;font-size:11px;padding:6px 5px;border:1px solid #e8e8e8;border-radius:6px;font-family:inherit;background:#fafafa;color:#777}
 .cat-setting-del{width:26px;height:26px;border:none;background:none;color:#ddd;font-size:14px;cursor:pointer;flex-shrink:0;border-radius:6px;transition:all 0.15s}
 .cat-setting-del:active{background:#fee;color:#D85A30}
+@media(max-width:680px){
+  .account-summary{padding:19px 14px 15px;min-height:108px}
+  .account-remaining{font-size:27px}
+  .category-card{padding:13px 14px}
+  .cat-header{gap:6px}.cat-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.cat-budget{white-space:nowrap}
+  .hist-row{gap:6px}.hist-date{font-size:8px}.hist-note{font-size:11px}
+  .modal .cat-setting-row{display:grid;grid-template-columns:24px minmax(0,1fr) 62px 24px;gap:6px}
+  .modal .cat-setting-row select.cat-setting-account{grid-column:2/3;width:100%}
+  .modal .cat-setting-row input.cat-setting-budget{grid-column:3/4;grid-row:1/3;width:62px}
+  .cat-setting-del{grid-column:4/5;grid-row:1/3}
+}
 </style>
 </head>
 <body>
@@ -158,10 +196,26 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 <!-- LEDGER TAB -->
 <div id="viewLedger" class="view active">
-  <div class="daily-total" id="dailyTotal"></div>
-  <div class="category-list" id="categoryList"></div>
+  <div class="account-ledger-grid">
+    <section class="account-pane living">
+      <div class="account-summary" id="livingSummary"></div>
+      <div class="category-list" id="livingCategoryList"></div>
+    </section>
+    <section class="account-pane entertainment">
+      <div class="account-summary" id="entertainmentSummary"></div>
+      <div class="category-list" id="entertainmentCategoryList"></div>
+    </section>
+  </div>
   <button class="record-btn" onclick="openRecordModal()">+ 记一笔</button>
-  <div class="history-section" id="todayHistory"></div>
+  <details class="ledger-fold" id="historyFold" open>
+    <summary>账本记录 <span class="ledger-fold-count" id="historyCount"></span></summary>
+    <div id="todayHistory"></div>
+  </details>
+  <details class="ledger-fold" id="pendingFold">
+    <summary>挂账 <span class="pending-summary-total" id="pendingTotal"></span></summary>
+    <div id="pendingList"></div>
+    <button class="pending-add" type="button" onclick="openPendingModal()">＋ 挂一笔</button>
+  </details>
 </div>
 
 <!-- TREASURY TAB -->
@@ -291,6 +345,39 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   </div>
 </div>
 
+<!-- Pending expense -->
+<div class="modal-bg" id="pendingModal">
+  <div class="modal">
+    <h2>先挂在这里</h2>
+    <label>金额（日元）</label>
+    <input type="number" id="pendingAmount" placeholder="只记录，不影响余额" min="1" step="1">
+    <label>备注（选填）</label>
+    <input type="text" id="pendingNote" maxlength="120" placeholder="这笔是什么">
+    <p style="font-size:10px;color:#bbb;line-height:1.65;margin-top:9px">挂账不会进入任何资金池；等想处理时再分次转入正式账本。</p>
+    <div class="btn-row">
+      <button class="btn btn-cancel" onclick="closeModal('pendingModal')">取消</button>
+      <button class="btn btn-primary" onclick="savePendingExpense()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Settle pending expense -->
+<div class="modal-bg" id="settlePendingModal">
+  <div class="modal">
+    <h2>销一点挂账</h2>
+    <input type="hidden" id="settlePendingId">
+    <div id="settlePendingInfo" style="font-size:11px;color:#999;line-height:1.65;margin-bottom:12px"></div>
+    <label>本次转入金额（日元）</label>
+    <input type="number" id="settlePendingAmount" min="1" step="1">
+    <label>转入分类</label>
+    <div class="tag-group" id="settlePendingCategoryGroup"></div>
+    <div class="btn-row">
+      <button class="btn btn-cancel" onclick="closeModal('settlePendingModal')">取消</button>
+      <button class="btn btn-primary" onclick="settlePendingExpense()">转入账本</button>
+    </div>
+  </div>
+</div>
+
 <!-- Tab bar -->
 <div class="tab-bar">
   <button class="active" onclick="switchTab('viewLedger',this)"><span class="tab-icon">📝</span>记账</button>
@@ -305,9 +392,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 <script src="world-context.js?v=20260824-cbi-work1"></script>
 <script src="cloud-sync.js?v=20260824-cbi-work1"></script>
-<script src="cbi-data.js?v=20260901-shop6"></script>
+<script src="cbi-data.js?v=20260901-wallet7"></script>
 <script src="character-runtime.js?v=20260824-wallet-fix1"></script>
-<script src="cbi-wallet.js?v=20260901-refine1"></script>
+<script src="cbi-wallet.js?v=20260901-dual2"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 var SK='wallet_db';
@@ -316,15 +403,16 @@ try{db=walletRaw?JSON.parse(walletRaw):null;}catch(e){db=null;}
 
 function createDefaultDB(){
   return{
-    schemaVersion:2,
+    schemaVersion:3,
     categories:[
-      {id:'stationery',name:'文具',dailyBudget:300,color:'#4AADE8'},
-      {id:'goods',name:'谷子',dailyBudget:500,color:'#9B6BCC'},
-      {id:'dolls',name:'娃物',dailyBudget:300,color:'#E84A7A'},
-      {id:'daily',name:'生活用品',dailyBudget:200,color:'#5BA66B'},
-      {id:'food',name:'吃饭',dailyBudget:1500,color:'#E8B96A'}
+      {id:'stationery',name:'文具',dailyBudget:300,color:'#4AADE8',account:'entertainment',activeFrom:''},
+      {id:'goods',name:'谷子',dailyBudget:500,color:'#9B6BCC',account:'entertainment',activeFrom:''},
+      {id:'dolls',name:'娃物',dailyBudget:300,color:'#E84A7A',account:'entertainment',activeFrom:''},
+      {id:'daily',name:'生活用品',dailyBudget:200,color:'#5BA66B',account:'living',activeFrom:''},
+      {id:'food',name:'吃饭',dailyBudget:1500,color:'#E8B96A',account:'living',activeFrom:''}
     ],
     records:[],
+    pendingExpenses:[],
     charFunds:{neal:0,jane:0,will:0},
     outings:[],
     legacyDebtWaiver:0,
@@ -410,12 +498,40 @@ function mergeActivitySets(saved,defaults){
   });
   return merged;
 }
+function inferCategoryAccount(category,index,total){
+  if(category&&category.account==='living'||category&&category.account==='entertainment')return category.account;
+  var marker=((category&&category.id)||'')+' '+((category&&category.name)||'');
+  if(/日用|饮食|生活|吃饭|食物|food|daily|餐/.test(marker))return'living';
+  if(/手账|手帐|文具|谷子|娃|周边|娱乐|爱好|stationery|goods|doll|hobby/.test(marker))return'entertainment';
+  if(total===2)return index===0?'living':'entertainment';
+  return index===0?'living':'entertainment';
+}
+function oldestRecordDate(value){
+  var dates=(Array.isArray(value&&value.records)?value.records:[]).map(function(record){return String(record&&record.date||'');}).filter(Boolean).sort();
+  return dates[0]||todayStr();
+}
 function normalizeWalletDB(value){
   var defaults=createDefaultDB();
   if(!value||typeof value!=='object')return defaults;
   var result=Object.assign({},defaults,value);
-  result.categories=Array.isArray(value.categories)&&value.categories.length?value.categories:defaults.categories;
   result.records=Array.isArray(value.records)?value.records:[];
+  var categorySource=Array.isArray(value.categories)&&value.categories.length?value.categories:defaults.categories;
+  var existingStart=oldestRecordDate(result);
+  result.categories=categorySource.map(function(category,index){
+    category=category&&typeof category==='object'?category:{};
+    return{
+      id:String(category.id||('cat_'+gid())),
+      name:String(category.name||'未命名分类'),
+      dailyBudget:Math.max(0,Math.floor(Number(category.dailyBudget)||0)),
+      color:/^#[0-9a-f]{6}$/i.test(String(category.color||''))?String(category.color):'#888888',
+      account:inferCategoryAccount(category,index,categorySource.length),
+      activeFrom:String(category.activeFrom||existingStart)
+    };
+  });
+  result.pendingExpenses=(Array.isArray(value.pendingExpenses)?value.pendingExpenses:[]).map(function(item){
+    item=item&&typeof item==='object'?item:{};
+    return{id:String(item.id||gid()),amount:Math.max(0,Math.floor(Number(item.amount)||0)),note:String(item.note||''),date:String(item.date||todayStr()),createdAt:String(item.createdAt||'')};
+  }).filter(function(item){return item.amount>0;});
   result.charFunds=Object.assign({},defaults.charFunds,value.charFunds||{});
   result.outings=Array.isArray(value.outings)?value.outings:[];
   result.processedPeriods=value.processedPeriods&&typeof value.processedPeriods==='object'?value.processedPeriods:{};
@@ -428,7 +544,7 @@ function normalizeWalletDB(value){
   result.activitySets=mergeActivitySets(value.activitySets,defaults.activitySets);
   result.legacyDebtWaiver=Math.max(0,Number(value.legacyDebtWaiver)||0);
   result.legacyDebtWaiverApplied=value.legacyDebtWaiverApplied===true;
-  result.schemaVersion=2;
+  result.schemaVersion=3;
   if(!result.legacyDebtWaiverApplied){
     var rawFund=walletRawSharedFund(result);
     if(rawFund<0)result.legacyDebtWaiver+=Math.abs(rawFund);
@@ -518,7 +634,9 @@ function getCategoryToday(catId){
   });
   return{spent:spent,earned:earned,net:spent-earned};
 }
-function walletTotalSurplus(value){
+function categoryAccount(category){return category&&category.account==='living'?'living':'entertainment';}
+function categoryActiveOn(category,dateKey){return !category.activeFrom||String(dateKey)>=String(category.activeFrom);}
+function walletAccountSurplus(value,account){
   var wallet=value&&typeof value==='object'?value:{};
   var total=0;
   var byDate={};
@@ -531,6 +649,7 @@ function walletTotalSurplus(value){
   var dates=Object.keys(byDate).sort();
   dates.forEach(function(date){
     (Array.isArray(wallet.categories)?wallet.categories:[]).forEach(function(cat){
+      if(categoryAccount(cat)!==account||!categoryActiveOn(cat,date))return;
       var rec=byDate[date]&&byDate[date][cat.id];
       var spent=rec?rec.spent:0;
       var earned=rec?rec.earned:0;
@@ -539,10 +658,12 @@ function walletTotalSurplus(value){
   });
   return total;
 }
+function walletTotalSurplus(value){return walletAccountSurplus(value,'living')+walletAccountSurplus(value,'entertainment');}
 function getTotalSurplus(){return walletTotalSurplus(db);}
+function getAccountSurplus(account){return Math.floor(walletAccountSurplus(db,account));}
 function walletRawSharedFund(value){
   var wallet=value&&typeof value==='object'?value:{};
-  var total=walletTotalSurplus(wallet);
+  var total=walletAccountSurplus(wallet,'living');
   var funds=wallet.charFunds&&typeof wallet.charFunds==='object'?wallet.charFunds:{};
   Object.keys(funds).forEach(function(id){total-=Math.max(0,Number(funds[id])||0);});
   (Array.isArray(wallet.outings)?wallet.outings:[]).forEach(function(o){total-=Math.max(0,Number(o&&o.cost)||0);});
@@ -554,33 +675,49 @@ function getSharedFund(){
 }
 
 /* ═══ LEDGER ═══ */
-function renderLedger(){
-  var list=document.getElementById('categoryList');
-  var today=todayStr();
-  list.innerHTML=db.categories.map(function(cat){
+function accountToday(account){
+  var spent=0,earned=0,budget=0;
+  db.categories.forEach(function(category){
+    if(categoryAccount(category)!==account||!categoryActiveOn(category,todayStr()))return;
+    budget+=Math.max(0,Number(category.dailyBudget)||0);
+    var current=getCategoryToday(category.id);spent+=current.spent;earned+=current.earned;
+  });
+  return{spent:spent,earned:earned,budget:budget,remaining:budget-spent+earned};
+}
+function renderAccountSummary(account){
+  var current=accountToday(account);
+  var label=account==='living'?'生活账户 · 今日剩余资金':'娱乐账户 · 今日剩余资金';
+  var available=getAccountSurplus(account);
+  return'<div class="account-kicker">'+label+'</div><div class="account-remaining" style="color:'+(current.remaining>=0?'#333':'#D85A30')+'">¥'+current.remaining+'</div><div class="account-spent">今日已支出 ¥'+current.spent+(current.earned?' · 收入 ¥'+current.earned:'')+'</div><div class="account-available">累计可用额度 '+(available>=0?'':'-')+'¥'+Math.abs(available)+'</div>';
+}
+function renderCategoryCards(account){
+  return db.categories.filter(function(category){return categoryAccount(category)===account;}).map(function(cat){
     var ct=getCategoryToday(cat.id);
     var pct=cat.dailyBudget>0?Math.min(100,Math.round(ct.net/cat.dailyBudget*100)):0;
     var surplus=cat.dailyBudget-ct.net;
-    return '<div class="category-card"><div class="cat-header"><span class="cat-name" style="color:'+cat.color+'">'+esc(cat.name)+'</span><span class="cat-budget">日额 ¥'+cat.dailyBudget+'</span></div><div class="cat-bar"><div class="cat-bar-fill" style="width:'+Math.max(0,pct)+'%;background:'+cat.color+'"></div></div><div class="cat-stats"><span>今日支出 ¥'+ct.spent+(ct.earned?' / 收入 ¥'+ct.earned:'')+'</span><span class="'+(surplus>=0?'positive':'negative')+'">'+(surplus>=0?'+':'')+'¥'+surplus+'</span></div></div>';
-  }).join('');
+    return '<div class="category-card"><div class="cat-header"><span class="cat-name" style="color:'+cat.color+'">'+esc(cat.name)+'</span><span class="cat-budget">日额 ¥'+cat.dailyBudget+'</span></div><div class="cat-bar"><div class="cat-bar-fill" style="width:'+Math.max(0,pct)+'%;background:'+cat.color+'"></div></div><div class="cat-stats"><span>支出 ¥'+ct.spent+(ct.earned?' / 收入 ¥'+ct.earned:'')+'</span><span class="'+(surplus>=0?'positive':'negative')+'">'+(surplus>=0?'+':'')+'¥'+surplus+'</span></div></div>';
+  }).join('')||'<div style="padding:18px 14px;color:#ccc;font-size:10px;text-align:center">还没有分类</div>';
+}
+function renderLedger(){
+  document.getElementById('livingSummary').innerHTML=renderAccountSummary('living');
+  document.getElementById('entertainmentSummary').innerHTML=renderAccountSummary('entertainment');
+  document.getElementById('livingCategoryList').innerHTML=renderCategoryCards('living');
+  document.getElementById('entertainmentCategoryList').innerHTML=renderCategoryCards('entertainment');
 
-  var todayRecords=getTodayRecords();
-  var todayTotal=0;
-  todayRecords.forEach(function(r){todayTotal+=(r.type==='expense'?r.amount:-r.amount);});
-  var totalBudget=0;
-  db.categories.forEach(function(c){totalBudget+=c.dailyBudget;});
-  var daySurplus=totalBudget-todayTotal;
-  document.getElementById('dailyTotal').innerHTML='<div class="daily-total-label">今日总支出</div><div class="daily-total-amount">¥'+todayTotal+'</div><div class="daily-total-surplus" style="color:'+(daySurplus>=0?'#5BA66B':'#D85A30')+'">今日差额 '+(daySurplus>=0?'+':'')+'¥'+daySurplus+'</div>';
-
-  var histHtml='<div class="history-section-title">今日记录</div>';
-  if(!todayRecords.length)histHtml+='<div style="text-align:center;color:#ccc;font-size:12px;padding:20px">还没有记录</div>';
-  todayRecords.slice().reverse().forEach(function(r,i){
+  var records=db.records.map(function(record,index){return{record:record,index:index};}).sort(function(left,right){
+    return String(right.record.date||'').localeCompare(String(left.record.date||''))||right.index-left.index;
+  }).map(function(entry){return entry.record;});
+  document.getElementById('historyCount').textContent=records.length?'· '+records.length+' 笔':'';
+  var histHtml='';
+  if(!records.length)histHtml+='<div style="text-align:center;color:#ccc;font-size:12px;padding:24px">还没有记录</div>';
+  records.forEach(function(r){
     var cat=db.categories.find(function(c){return c.id===r.category;});
     var catColor=cat?cat.color:'#999';
     var catName=cat?cat.name:r.category;
-    histHtml+='<div class="hist-row"><span class="hist-cat" style="background:'+catColor+'20;color:'+catColor+'">'+esc(catName)+'</span><span class="hist-note">'+esc(r.note||'—')+'</span><span class="hist-amount '+(r.type==='expense'?'expense':'income')+'">'+(r.type==='expense'?'-':'+')+'¥'+r.amount+'</span><button class="hist-del" onclick="deleteRecord(\''+r.id+'\')">×</button></div>';
+    histHtml+='<div class="hist-row"><span class="hist-date">'+esc(r.date||'—')+'</span><span class="hist-cat" style="background:'+catColor+'20;color:'+catColor+'">'+esc(catName)+'</span><span class="hist-note">'+esc(r.note||'—')+'</span><span class="hist-amount '+(r.type==='expense'?'expense':'income')+'">'+(r.type==='expense'?'-':'+')+'¥'+r.amount+'</span><button class="hist-del" onclick="deleteRecord(\''+r.id+'\')">×</button></div>';
   });
   document.getElementById('todayHistory').innerHTML=histHtml;
+  renderPendingExpenses();
 }
 function openRecordModal(){
   /* reset type tags */
@@ -588,8 +725,12 @@ function openRecordModal(){
   typeGroup.querySelectorAll('.tag-opt').forEach(function(t,i){t.classList.toggle('selected',i===0);});
   /* build category tags */
   var catGroup=document.getElementById('recordCategoryGroup');
-  catGroup.innerHTML=db.categories.map(function(c,i){
-    return '<button class="tag-opt'+(i===0?' selected':'')+'" data-value="'+c.id+'" onclick="pickTag(this)" style="--tag-c:'+c.color+'">'+esc(c.name)+'</button>';
+  var first=true;
+  catGroup.innerHTML=['living','entertainment'].map(function(account){
+    var buttons=db.categories.filter(function(c){return categoryAccount(c)===account;}).map(function(c){
+      var html='<button class="tag-opt'+(first?' selected':'')+'" data-value="'+c.id+'" onclick="pickTag(this)" style="--tag-c:'+c.color+'">'+esc(c.name)+'</button>';first=false;return html;
+    }).join('');
+    return buttons?'<span style="width:100%;font-size:9px;color:#bbb;margin-top:4px">'+(account==='living'?'生活账户':'娱乐账户')+'</span>'+buttons:'';
   }).join('');
   document.getElementById('recordAmount').value='';
   document.getElementById('recordNote').value='';
@@ -616,6 +757,53 @@ function deleteRecord(id){
     db.records=db.records.filter(function(r){return r.id!==id;});
     save();renderLedger();
   },{yes:'删除',danger:true});
+}
+
+/* ═══ PENDING EXPENSES ═══ */
+function renderPendingExpenses(){
+  var pending=Array.isArray(db.pendingExpenses)?db.pendingExpenses:[];
+  var total=pending.reduce(function(sum,item){return sum+Math.max(0,Number(item.amount)||0);},0);
+  document.getElementById('pendingTotal').textContent=pending.length?'· ¥'+total:'';
+  document.getElementById('pendingList').innerHTML=pending.length?pending.slice().reverse().map(function(item){
+    return'<div class="pending-row"><div class="pending-copy"><div class="pending-note">'+esc(item.note||'未写备注')+'</div><div class="pending-date">'+esc(item.date||'')+'</div></div><span class="pending-amount">¥'+item.amount+'</span><button class="pending-action" type="button" onclick="openSettlePendingModal(\''+item.id+'\')">销一点</button><button class="hist-del" type="button" onclick="deletePendingExpense(\''+item.id+'\')">×</button></div>';
+  }).join(''):'<div style="text-align:center;color:#ccc;font-size:11px;padding:22px">这里现在是空的</div>';
+}
+function openPendingModal(){
+  document.getElementById('pendingAmount').value='';
+  document.getElementById('pendingNote').value='';
+  openModal('pendingModal');
+}
+function savePendingExpense(){
+  var amount=Math.floor(Number(document.getElementById('pendingAmount').value)||0);
+  if(amount<=0){showToast('请输入金额');return;}
+  db.pendingExpenses.push({id:gid(),amount:amount,note:document.getElementById('pendingNote').value.trim(),date:todayStr(),createdAt:new Date().toISOString()});
+  save();closeModal('pendingModal');renderLedger();showToast('已挂账，不影响余额');
+}
+function openSettlePendingModal(id){
+  var item=db.pendingExpenses.find(function(entry){return entry.id===id;});if(!item)return;
+  document.getElementById('settlePendingId').value=id;
+  document.getElementById('settlePendingInfo').textContent=(item.note||'未写备注')+' · 尚余 ¥'+item.amount;
+  document.getElementById('settlePendingAmount').value=item.amount;
+  document.getElementById('settlePendingAmount').max=item.amount;
+  document.getElementById('settlePendingCategoryGroup').innerHTML=db.categories.map(function(category,index){
+    return'<button class="tag-opt'+(index===0?' selected':'')+'" data-value="'+category.id+'" onclick="pickTag(this)" style="--tag-c:'+category.color+'">'+esc(category.name)+'</button>';
+  }).join('');
+  openModal('settlePendingModal');
+}
+function settlePendingExpense(){
+  var id=document.getElementById('settlePendingId').value;
+  var item=db.pendingExpenses.find(function(entry){return entry.id===id;});if(!item)return;
+  var amount=Math.floor(Number(document.getElementById('settlePendingAmount').value)||0);
+  if(amount<=0||amount>item.amount){showToast('请输入不超过挂账余额的金额');return;}
+  var category=getTagValue('settlePendingCategoryGroup');if(!category){showToast('请选择分类');return;}
+  var settledAll=amount===item.amount;
+  db.records.push({id:gid(),date:todayStr(),type:'expense',category:category,amount:amount,note:'挂账转入'+(item.note?' · '+item.note:'')});
+  item.amount-=amount;
+  if(item.amount<=0)db.pendingExpenses=db.pendingExpenses.filter(function(entry){return entry.id!==id;});
+  save();closeModal('settlePendingModal');renderLedger();showToast(settledAll?'已全部转入账本':'已销账 ¥'+amount);
+}
+function deletePendingExpense(id){
+  customConfirm('移除这条挂账？它不会进入正式账本。',function(){db.pendingExpenses=db.pendingExpenses.filter(function(item){return item.id!==id;});save();renderLedger();},{yes:'移除',danger:true});
 }
 
 /* ═══ TREASURY ═══ */
@@ -787,23 +975,25 @@ function renderCollection(){
 /* ═══ SETTINGS ═══ */
 var _settingsCache=[];
 function renderBudgetSettings(){
-  _settingsCache=db.categories.map(function(c){return{id:c.id,name:c.name,dailyBudget:c.dailyBudget,color:c.color};});
+  _settingsCache=db.categories.map(function(c){return{id:c.id,name:c.name,dailyBudget:c.dailyBudget,color:c.color,account:categoryAccount(c),activeFrom:c.activeFrom||todayStr()};});
   renderSettingsRows();
 }
 function renderSettingsRows(){
   document.getElementById('budgetSettings').innerHTML=_settingsCache.map(function(cat,i){
-    return '<div class="cat-setting-row"><input type="color" class="cat-setting-color" data-i="'+i+'" value="'+cat.color+'" title="颜色"><input type="text" class="cat-setting-name" data-i="'+i+'" value="'+esc(cat.name)+'" placeholder="分类名"><input type="number" class="cat-setting-budget" data-i="'+i+'" value="'+cat.dailyBudget+'" min="0" step="50" placeholder="日额"><button class="cat-setting-del" data-i="'+i+'" onclick="removeSettingsRow('+i+')" title="删除">×</button></div>';
+    return '<div class="cat-setting-row"><input type="color" class="cat-setting-color" data-i="'+i+'" value="'+cat.color+'" title="颜色"><input type="text" class="cat-setting-name" data-i="'+i+'" value="'+esc(cat.name)+'" placeholder="分类名"><select class="cat-setting-account" data-i="'+i+'" aria-label="资金池"><option value="living"'+(cat.account==='living'?' selected':'')+'>生活</option><option value="entertainment"'+(cat.account==='entertainment'?' selected':'')+'>娱乐</option></select><input type="number" class="cat-setting-budget" data-i="'+i+'" value="'+cat.dailyBudget+'" min="0" step="50" placeholder="日额"><button class="cat-setting-del" data-i="'+i+'" onclick="removeSettingsRow('+i+')" title="删除">×</button></div>';
   }).join('');
 }
 function removeSettingsRow(i){
-  if(_settingsCache.length<=1){showToast('至少保留一个分类');return;}
+  if(_settingsCache.length<=2){showToast('两个账户各要保留一个分类');return;}
+  var account=_settingsCache[i].account;
+  if(_settingsCache.filter(function(category){return category.account===account;}).length<=1){showToast((account==='living'?'生活':'娱乐')+'账户至少保留一个分类');return;}
   _settingsCache.splice(i,1);
   renderSettingsRows();
 }
 function addCategory(){
   var colors=['#4AADE8','#9B6BCC','#E84A7A','#5BA66B','#E8B96A','#D85A30','#6B8AFF','#888'];
   var c=colors[_settingsCache.length%colors.length];
-  _settingsCache.push({id:'cat_'+gid(),name:'',dailyBudget:300,color:c});
+  _settingsCache.push({id:'cat_'+gid(),name:'',dailyBudget:300,color:c,account:'entertainment',activeFrom:todayStr()});
   renderSettingsRows();
   var rows=document.querySelectorAll('.cat-setting-name');
   if(rows.length)rows[rows.length-1].focus();
@@ -817,10 +1007,11 @@ function saveBudgetSettings(){
     if(!name)return;
     var color=row.querySelector('.cat-setting-color').value;
     var budget=parseInt(row.querySelector('.cat-setting-budget').value)||0;
+    var account=row.querySelector('.cat-setting-account').value==='living'?'living':'entertainment';
     var existing=_settingsCache[i];
-    newCats.push({id:existing?existing.id:('cat_'+gid()),name:name,dailyBudget:budget,color:color});
+    newCats.push({id:existing?existing.id:('cat_'+gid()),name:name,dailyBudget:budget,color:color,account:account,activeFrom:existing&&existing.activeFrom?existing.activeFrom:todayStr()});
   });
-  if(!newCats.length){showToast('至少保留一个分类');return;}
+  if(!newCats.some(function(category){return category.account==='living';})||!newCats.some(function(category){return category.account==='entertainment';})){showToast('生活和娱乐账户各要保留一个分类');return;}
   db.categories=newCats;
   save();closeModal('settingsModal');renderLedger();showToast('分类已更新');
 }

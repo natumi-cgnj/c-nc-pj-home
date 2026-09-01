@@ -2,7 +2,7 @@
   'use strict';
 
   var STORAGE_KEY = 'cbi_db';
-  var SCHEMA_VERSION = 6;
+  var SCHEMA_VERSION = 7;
   var CANON_VERSION = 2;
   var TIMELINE_VERSION = 1;
   var CBI_CHARACTERS = ['jane', 'cho', 'rigsby', 'lisbon', 'vanpelt'];
@@ -547,31 +547,78 @@
   function normalizeShopProjectItem(item) {
     item = item && typeof item === 'object' ? item : {};
     var targets = item.targetIds || item.wearers || (item.target ? [item.target] : []);
+    var image = text(item.img || item.image || item.cover);
     return {
       id: text(item.id) || createId('shop_item'),
       name: text(item.name).trim(),
+      note: text(item.note || item.description),
       description: text(item.description || item.note),
-      image: text(item.image || item.cover),
+      img: image,
+      image: image,
       price: Math.max(0, Math.floor(number(item.price, 0))),
       targetIds: uniqueList(targets, ['boss'].concat(CBI_CHARACTERS)),
       reaction: text(item.reaction),
       acquiredAt: text(item.acquiredAt),
+      collected: !!item.collected || !!text(item.acquiredAt),
+      itemType: 'shopping',
       order: Math.max(0, Math.floor(number(item.order, 0)))
+    };
+  }
+
+  function normalizeShopSection(section, index) {
+    section = section && typeof section === 'object' ? section : {};
+    var tagColor = text(section.tagColor);
+    return {
+      id: text(section.id) || createId('shop_section'),
+      name: text(section.name),
+      count: Math.max(0, Math.floor(number(section.count, 0))),
+      cols: Math.max(1, Math.min(5, Math.floor(number(section.cols, 3)))),
+      tagText: text(section.tagText),
+      tagColor: /^#[0-9a-f]{6}$/i.test(tagColor) ? tagColor : '#E8B96A',
+      order: Math.max(0, Math.floor(number(section.order, index || 0)))
+    };
+  }
+
+  function normalizeShopDuty(value, colorValue, fallbackTarget) {
+    value = value && typeof value === 'object' ? value : {};
+    var allowed = ['boss'].concat(CBI_CHARACTERS);
+    var type = allowed.indexOf(value.type) >= 0 ? value.type : (allowed.indexOf(fallbackTarget) >= 0 ? fallbackTarget : '');
+    var color = text(value.color || colorValue);
+    return {
+      type: type || (value.type === 'custom' ? 'custom' : ''),
+      name: text(value.name),
+      color: /^#[0-9a-f]{6}$/i.test(color) ? color : '#A9A39A'
     };
   }
 
   function normalizeShopProject(project, index) {
     project = project && typeof project === 'object' ? project : {};
     var color = text(project.color);
+    var icon = text(project.icon || project.cover || project.image);
+    var items = Array.isArray(project.items) ? project.items.map(normalizeShopProjectItem) : [];
+    var firstTarget = items.reduce(function (found, item) { return found || (item.targetIds && item.targetIds[0]) || ''; }, '');
+    var duty = normalizeShopDuty(project.duty, color, firstTarget);
+    var sections = Array.isArray(project.sections) ? project.sections.map(normalizeShopSection) : [];
+    if (!sections.length && items.length) sections = [normalizeShopSection({ name: '', count: items.length, cols: 3, tagColor: duty.color }, 0)];
+    var sectionCount = sections.reduce(function (total, section) { return total + section.count; }, 0);
+    if (sectionCount < items.length) {
+      if (!sections.length) sections.push(normalizeShopSection({ name: '', count: items.length, cols: 3, tagColor: duty.color }, 0));
+      else sections[sections.length - 1].count += items.length - sectionCount;
+    }
     return {
       id: text(project.id) || createId('shop_project'),
       name: text(project.name).trim(),
       category: text(project.category).trim() || '未分类',
-      color: /^#[0-9a-f]{6}$/i.test(color) ? color : '#A9A39A',
-      cover: text(project.cover || project.image || project.icon),
+      color: /^#[0-9a-f]{6}$/i.test(color) ? color : duty.color,
+      icon: icon,
+      cover: icon,
+      iconPositionX: Math.max(0, Math.min(100, number(project.iconPositionX, 50))),
+      iconPositionY: Math.max(0, Math.min(100, number(project.iconPositionY, 50))),
       note: text(project.note || project.description),
+      duty: duty,
+      sections: sections,
       order: Math.max(0, Math.floor(number(project.order, index || 0))),
-      items: Array.isArray(project.items) ? project.items.map(normalizeShopProjectItem).filter(function (item) { return item.name; }) : []
+      items: items
     };
   }
 
@@ -606,10 +653,14 @@
     var projects = Array.isArray(source.projects)
       ? source.projects.map(normalizeShopProject).filter(function (project) { return project.name; })
       : migrateLegacyShopProjects(customItems);
+    var ownedFromItems = [];
+    projects.forEach(function (project) {
+      project.items.forEach(function (item) { if (item.collected || item.acquiredAt) ownedFromItems.push(item.id); });
+    });
     return {
       projects: projects,
       customItems: customItems,
-      owned: uniqueList(source.owned),
+      owned: uniqueList((Array.isArray(source.owned) ? source.owned : []).concat(ownedFromItems)),
       purchaseLog: Array.isArray(source.purchaseLog) ? source.purchaseLog.map(function (entry) {
         entry = entry && typeof entry === 'object' ? entry : {};
         return {
@@ -1074,7 +1125,17 @@
     return { db: db, completed: history, completion: active.completion };
   }
 
-  function sharedFundFromWallet(value) {
+  function walletCategoryAccount(category, index, total) {
+    category = category && typeof category === 'object' ? category : {};
+    if (category.account === 'living' || category.account === 'entertainment') return category.account;
+    var marker = text(category.id) + ' ' + text(category.name);
+    if (/日用|饮食|生活|吃饭|食物|food|daily|餐/.test(marker)) return 'living';
+    if (/手账|手帐|文具|谷子|娃|周边|娱乐|爱好|stationery|goods|doll|hobby/.test(marker)) return 'entertainment';
+    if (total === 2) return index === 0 ? 'living' : 'entertainment';
+    return index === 0 ? 'living' : 'entertainment';
+  }
+
+  function walletAccountSurplus(value, account) {
     var wallet = value && typeof value === 'object' ? value : {};
     var categories = Array.isArray(wallet.categories) ? wallet.categories : [];
     var records = Array.isArray(wallet.records) ? wallet.records : [];
@@ -1088,16 +1149,39 @@
     });
     var total = 0;
     Object.keys(byDate).forEach(function (dateKey) {
-      categories.forEach(function (category) {
+      categories.forEach(function (category, index) {
+        if (walletCategoryAccount(category, index, categories.length) !== account) return;
+        if (text(category.activeFrom) && dateKey < text(category.activeFrom)) return;
         var current = byDate[dateKey][category.id] || { spent: 0, earned: 0 };
         total += Math.max(0, number(category.dailyBudget, 0)) - current.spent + current.earned;
       });
     });
+    return Math.floor(total);
+  }
+
+  function sharedFundFromWallet(value) {
+    var wallet = value && typeof value === 'object' ? value : {};
+    var total = walletAccountSurplus(wallet, 'living');
     var charFunds = wallet.charFunds && typeof wallet.charFunds === 'object' ? wallet.charFunds : {};
     Object.keys(charFunds).forEach(function (id) { total -= Math.max(0, number(charFunds[id], 0)); });
     (Array.isArray(wallet.outings) ? wallet.outings : []).forEach(function (outing) { total -= Math.max(0, number(outing && outing.cost, 0)); });
     total += Math.max(0, number(wallet.legacyDebtWaiver, 0));
     return Math.max(0, Math.floor(total));
+  }
+
+  function entertainmentFundFromWallet(value) {
+    return Math.max(0, walletAccountSurplus(value, 'entertainment'));
+  }
+
+  function shopSpend(value) {
+    var db = normalize(value);
+    return db.work.shop.purchaseLog.reduce(function (total, entry) {
+      return total + Math.max(0, Math.floor(number(entry && entry.price, 0)));
+    }, 0);
+  }
+
+  function availableShopFund(value, walletValue) {
+    return Math.max(0, entertainmentFundFromWallet(walletValue) - shopSpend(value));
   }
 
   function majorCaseSpend(value) {
@@ -1201,9 +1285,28 @@
 
   function allocateAllowance(value, characterId, amount, walletValue, dateValue) {
     var db = normalize(value);
-    var normalizedAmount = Math.max(0, Math.floor(number(amount, 0)));
+    var normalizedAmount = Math.floor(number(amount, 0));
     if (CBI_CHARACTERS.indexOf(characterId) < 0 || !normalizedAmount) {
       return { db: db, allocation: null, reason: 'invalid_allocation' };
+    }
+    if (normalizedAmount < 0) {
+      var currentPersonal = Math.max(0, Math.floor(number(db.work.caseFund.charFunds[characterId], 0)));
+      if (!currentPersonal) return { db: db, allocation: null, reason: 'insufficient_personal_fund' };
+      var reclaimed = Math.min(Math.abs(normalizedAmount), currentPersonal);
+      db.work.caseFund.charFunds[characterId] = currentPersonal - reclaimed;
+      var reclaimedLog = addCaseFundLog(db, {
+        date: workDayKey(dateValue),
+        type: 'allocation',
+        characterId: characterId,
+        content: '收回自由额度 ¥' + reclaimed
+      });
+      return {
+        db: reclaimedLog.db,
+        allocation: { characterId: characterId, amount: -reclaimed },
+        autoPurchases: [],
+        clamped: reclaimed < Math.abs(normalizedAmount),
+        reason: ''
+      };
     }
     if (normalizedAmount > unassignedAllowance(db, walletValue)) {
       return { db: db, allocation: null, reason: 'insufficient_fund' };
@@ -1456,8 +1559,10 @@
     normalizeWork: normalizeWork,
     normalizeCommission: normalizeCommission,
     normalizeShopItem: normalizeShopItem,
+    normalizeShop: normalizeShop,
     normalizeShopProject: normalizeShopProject,
     normalizeShopProjectItem: normalizeShopProjectItem,
+    normalizeShopSection: normalizeShopSection,
     normalizeDeployment: normalizeDeployment,
     normalizeInvestigation: normalizeInvestigation,
     normalizeCaseFund: normalizeCaseFund,
@@ -1480,6 +1585,10 @@
     acceptCommission: acceptCommission,
     completeCommission: completeCommission,
     sharedFundFromWallet: sharedFundFromWallet,
+    walletAccountSurplus: walletAccountSurplus,
+    entertainmentFundFromWallet: entertainmentFundFromWallet,
+    shopSpend: shopSpend,
+    availableShopFund: availableShopFund,
     majorCaseSpend: majorCaseSpend,
     wishSpend: wishSpend,
     allowanceSpend: allowanceSpend,

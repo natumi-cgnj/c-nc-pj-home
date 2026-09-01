@@ -3,7 +3,6 @@
 
   var NAMES = { jane: 'Jane', cho: 'Cho', rigsby: 'Rigsby', lisbon: 'Lisbon', vanpelt: 'Van Pelt' };
   var COLORS = { jane: '#5BA66B', cho: '#68747A', rigsby: '#7E9AB0', lisbon: '#A06F62', vanpelt: '#B48A9B' };
-  var LOG_LABELS = { allocation: '划拨', wish: '报销', autonomous: '自由花销', investigation: '旧制调查', manual: '手写' };
 
   function esc(value) {
     return String(value == null ? '' : value)
@@ -43,12 +42,13 @@
       'body[data-cbi-wallet="1"] .tab-bar button.active:before{content:"";position:absolute;left:36%;right:36%;top:0;height:1px;background:#9c907c}',
       'body[data-cbi-wallet="1"] .tab-icon{display:none}',
       'body[data-cbi-wallet="1"] #liminalCloudBadgeHost.liminal-cloud-floating-host{bottom:calc(66px + env(safe-area-inset-bottom,0px))}',
-      'body[data-cbi-wallet="1"] .daily-total{margin:0;padding:24px 20px 18px;text-align:left;border:0;border-bottom:1px solid #eeeeec;border-radius:0;box-shadow:none}',
-      'body[data-cbi-wallet="1"] .daily-total-label{font-size:9px;letter-spacing:1.2px;color:#bbb}',
-      'body[data-cbi-wallet="1"] .daily-total-amount{font-size:32px;line-height:1.15;font-weight:250;font-variant-numeric:tabular-nums}',
-      'body[data-cbi-wallet="1"] .daily-total-surplus{font-size:10px;margin-top:6px}',
+      'body[data-cbi-wallet="1"] .account-ledger-grid{border-bottom:1px solid #eeeeec}',
+      'body[data-cbi-wallet="1"] .account-pane:first-child{border-right:1px solid #e9e9e6}',
+      'body[data-cbi-wallet="1"] .account-summary{background:#fff}',
+      'body[data-cbi-wallet="1"] .account-kicker{color:#aaa}',
+      'body[data-cbi-wallet="1"] .account-available{color:#b5aa97}',
       'body[data-cbi-wallet="1"] .category-list{padding:0;background:#fff;border-bottom:1px solid #eeeeec}',
-      'body[data-cbi-wallet="1"] .category-card{margin:0;padding:15px 20px 13px;border:0;border-bottom:1px solid #f1f1ef;border-radius:0;box-shadow:none;background:#fff}',
+      'body[data-cbi-wallet="1"] .category-card{margin:0;padding:15px 20px 13px;border:0;border-top:1px solid #f1f1ef;border-radius:0;box-shadow:none;background:#fff}',
       'body[data-cbi-wallet="1"] .category-card:last-child{border-bottom:0}',
       'body[data-cbi-wallet="1"] .cat-header{margin-bottom:8px}',
       'body[data-cbi-wallet="1"] .cat-name{font-size:12px;font-weight:500}',
@@ -60,6 +60,8 @@
       'body[data-cbi-wallet="1"] .history-section-title{padding:0 20px 10px;margin:0;font-size:9px;letter-spacing:1px}',
       'body[data-cbi-wallet="1"] .hist-row{margin:0;padding:12px 20px;border:0;border-bottom:1px solid #f1f1ef;border-radius:0;box-shadow:none;background:#fff}',
       'body[data-cbi-wallet="1"] .hist-cat{border-radius:3px;font-size:8px}',
+      'body[data-cbi-wallet="1"] .ledger-fold>summary{background:#fafafa;border-top:1px solid #f3f3f1}',
+      'body[data-cbi-wallet="1"] .pending-add{border-top:1px solid #f1f1ef}',
       'body[data-cbi-wallet="1"] .treasury-card{margin:0;padding:25px 20px 20px;text-align:left;border:0;border-bottom:1px solid #eeeeec;border-radius:0;box-shadow:none}',
       'body[data-cbi-wallet="1"] .treasury-label{font-size:9px;letter-spacing:1.1px}',
       'body[data-cbi-wallet="1"] .treasury-amount{font-size:32px;font-variant-numeric:tabular-nums}',
@@ -95,20 +97,11 @@
       '.cbi-world-files-link{display:block;margin:18px 0 0;padding:15px 20px;border:0;border-top:1px solid #eee;border-bottom:1px solid #eee;border-radius:0;background:#fff;color:#8b806c;text-decoration:none;text-align:center;font-size:9px;letter-spacing:.5px}',
       '.cbi-log-actions{display:flex;border-bottom:1px solid #eeeeec;background:#fff}',
       '.cbi-log-actions button{width:100%;padding:15px 20px;border:0;background:#fff;color:#aaa;font:inherit;font-size:10px;letter-spacing:.3px;cursor:pointer}',
+      '.cbi-reimbursement-divider{height:12px;background:#fafafa;border-top:1px solid #f0f0ee;border-bottom:1px solid #f0f0ee}',
+      '@media(max-width:680px){body[data-cbi-wallet="1"] .account-summary{padding:19px 13px 15px}body[data-cbi-wallet="1"] .category-card{padding:13px 12px 12px}body[data-cbi-wallet="1"] .cat-stats{font-size:9px}body[data-cbi-wallet="1"] .hist-row{padding:11px 12px;gap:5px}body[data-cbi-wallet="1"] .hist-note{min-width:0}}',
       '@media(min-width:720px){body[data-cbi-wallet="1"] .view{max-width:none}.cbi-fund-note{max-width:720px}}'
     ].join('');
     document.head.appendChild(style);
-  }
-
-  function injectModals() {
-    if (document.getElementById('cbiLogModal')) return;
-    document.body.insertAdjacentHTML('beforeend',
-      '<div class="modal-bg" id="cbiLogModal"><div class="modal">' +
-      '<h2>写额度记录</h2><label>内容</label><textarea id="cbiLogContent" rows="4" maxlength="500" placeholder="今天的划拨或支出备注……" style="resize:vertical"></textarea>' +
-      '<div class="btn-row"><button class="btn btn-cancel" type="button" onclick="CBIWallet.closeModal(\'cbiLogModal\')">取消</button><button class="btn btn-primary" type="button" onclick="CBIWallet.saveLog()">保存</button></div>' +
-      '</div></div>');
-    var modal = document.getElementById('cbiLogModal');
-    modal.addEventListener('click', function (event) { if (event.target === modal) closeModal('cbiLogModal'); });
   }
 
   function closeModal(id) {
@@ -134,15 +127,8 @@
     var transfer = document.querySelector('#viewTreasury .transfer-btn');
     transfer.style.display = '';
     transfer.textContent = '划拨角色自由额度';
-    var logs = cbi.work.caseFund.logs.slice().reverse().slice(0, 20);
-    var html = '<div class="cbi-log-actions"><button type="button" onclick="CBIWallet.openLogModal()">＋ 写一条额度备注</button></div><div class="history-section-title">近期额度记录</div>';
-    if (!logs.length) html += '<div class="cbi-log-empty" style="padding:20px">还没有额度记录</div>';
-    logs.forEach(function (item) {
-      var characterColor = COLORS[item.characterId] || '#aaa';
-      var characterName = NAMES[item.characterId] || LOG_LABELS[item.type] || '记录';
-      html += '<div class="hist-row"><span class="hist-cat" style="background:' + characterColor + '18;color:' + characterColor + '">' + esc(characterName) + '</span><span class="hist-note">' + esc(item.content) + '</span><span style="font-size:9px;color:#ccc">' + esc(item.date) + '</span></div>';
-    });
-    document.getElementById('treasuryLog').innerHTML = html;
+    document.getElementById('treasuryLog').innerHTML = '<div class="cbi-reimbursement-divider"></div>';
+    renderWishes();
   }
 
   function openTransferModal() {
@@ -152,25 +138,30 @@
     }).join('');
     var modal = document.getElementById('transferModal');
     modal.querySelector('h2').textContent = '划拨自由额度';
-    modal.querySelector('label').textContent = '划给谁';
-    modal.querySelector('p').textContent = '划拨只改变额度归属；个人自由额度足够时，角色会自行结算仍在等待的愿望。';
+    modal.querySelector('label').textContent = '调整谁的额度';
+    modal.querySelector('p').textContent = '输入正数是划拨；输入负数会从该角色收回自由额度。';
+    document.getElementById('transferAmount').removeAttribute('min');
+    document.getElementById('transferAmount').placeholder = '正数划拨，负数收回';
     document.getElementById('transferAmount').value = '';
     global.openModal('transferModal');
   }
 
   function saveTransfer() {
     var characterId = global.getTagValue('transferToGroup');
-    var amount = Math.max(0, parseInt(document.getElementById('transferAmount').value, 10) || 0);
+    var amount = parseInt(document.getElementById('transferAmount').value, 10) || 0;
     if (!amount) { global.showToast('请输入金额'); return; }
     var result = global.CBIData.allocateAllowance(load(), characterId, amount, walletDb(), new Date());
     if (!result.allocation) {
-      global.showToast(result.reason === 'insufficient_fund' ? '公共额度余额不足' : '划拨失败');
+      global.showToast(result.reason === 'insufficient_fund' ? '公共额度余额不足' : (result.reason === 'insufficient_personal_fund' ? '这个角色目前没有可收回的额度' : '调整失败'));
       return;
     }
     save(result.db);
     global.closeModal('transferModal');
     renderTreasury();
-    if (result.autoPurchases && result.autoPurchases.length) {
+    if (amount < 0) {
+      var reclaimed = Math.abs(result.allocation.amount);
+      global.showToast(result.clamped ? '已收回全部可用额度 ¥' + reclaimed : '已从 ' + NAMES[characterId] + ' 收回 ¥' + reclaimed);
+    } else if (result.autoPurchases && result.autoPurchases.length) {
       global.showToast(NAMES[characterId] + ' 已用自由额度买下等待中的愿望');
     } else {
       global.showToast('已划拨 ¥' + amount + ' 给 ' + NAMES[characterId]);
@@ -252,40 +243,9 @@
     global.showToast('已同意 ' + NAMES[result.request.characterId] + ' 的报销');
   }
 
-  function renderLog() {
-    var db = load();
-    var logs = db.work.caseFund.logs.slice().reverse().slice(0, 60);
-    var html = '<button class="record-btn" type="button" onclick="CBIWallet.openLogModal()">＋ 写一条额度备注</button>';
-    if (!logs.length) html += '<div class="cbi-log-empty">还没有额度记录</div>';
-    logs.forEach(function (item) {
-      html += '<div class="diary-entry"><div class="diary-meta"><span class="diary-type ' + (item.type === 'manual' ? 'manual' : 'auto') + '">' + esc(LOG_LABELS[item.type] || '记录') + '</span><span>' + esc(item.date) + '</span></div>' +
-        (item.caseId ? '<div class="cbi-wish-source">' + esc(caseTitle(db, item.caseId)) + '</div>' : '') +
-        (item.characterId ? '<div class="cbi-log-who" style="color:' + COLORS[item.characterId] + '">' + esc(NAMES[item.characterId]) + '</div>' : '') +
-        '<div class="diary-content">' + esc(item.content) + '</div></div>';
-    });
-    document.getElementById('viewDiary').innerHTML = html;
-  }
-
-  function openLogModal() {
-    document.getElementById('cbiLogContent').value = '';
-    document.getElementById('cbiLogModal').classList.add('show');
-  }
-
-  function saveLog() {
-    var content = document.getElementById('cbiLogContent').value.trim();
-    if (!content) { global.showToast('请输入记录内容'); return; }
-    var result = global.CBIData.addCaseFundLog(load(), { type: 'manual', date: today(), content: content });
-    save(result.db);
-    closeModal('cbiLogModal');
-    renderTreasury();
-    global.showToast('额度记录已保存');
-  }
-
   function renderView(viewId) {
     if (viewId === 'viewLedger') global.renderLedger();
     else if (viewId === 'viewTreasury') renderTreasury();
-    else if (viewId === 'viewOutings') renderWishes();
-    else if (viewId === 'viewDiary') renderLog();
   }
 
   function switchView(viewId, button) {
@@ -294,7 +254,7 @@
     var settings = document.querySelector('.top-bar .btn-s');
     if (settings) settings.style.visibility = viewId === 'viewLedger' ? 'visible' : 'hidden';
     if (global.history && global.history.replaceState) {
-      var viewHash = viewId === 'viewTreasury' ? '#allowance' : (viewId === 'viewOutings' ? '#wishes' : '');
+      var viewHash = viewId === 'viewTreasury' ? '#reimbursement' : '';
       global.history.replaceState(null, '', global.location.pathname + global.location.search + viewHash);
     }
     renderView(viewId);
@@ -304,13 +264,18 @@
     if (!global.CBIData) return false;
     document.body.dataset.cbiWallet = '1';
     injectStyles();
-    injectModals();
     document.title = 'Reality Wallet · CBI';
     document.querySelector('.top-bar h1').textContent = 'REALITY WALLET';
+    var treasuryView = document.getElementById('viewTreasury');
+    var wishBanner = document.getElementById('periodBanner');
+    var wishCards = document.getElementById('outingCards');
+    if (treasuryView && wishBanner && wishCards) {
+      treasuryView.appendChild(wishBanner);
+      treasuryView.appendChild(wishCards);
+    }
     document.querySelector('.tab-bar').innerHTML =
       '<button class="active" data-view="viewLedger" type="button" onclick="CBIWallet.switchView(\'viewLedger\',this)">记账</button>' +
-      '<button data-view="viewTreasury" type="button" onclick="CBIWallet.switchView(\'viewTreasury\',this)">额度</button>' +
-      '<button data-view="viewOutings" type="button" onclick="CBIWallet.switchView(\'viewOutings\',this)">申请</button>' +
+      '<button data-view="viewTreasury" type="button" onclick="CBIWallet.switchView(\'viewTreasury\',this)">报销</button>' +
       '<button data-route="shop" type="button" onclick="location.href=\'shop.html\'">商城</button>';
     global.openTransferModal = openTransferModal;
     global.saveTransfer = saveTransfer;
@@ -320,9 +285,9 @@
       if (active) renderView(active.id);
     } });
     var hash = global.location ? global.location.hash : '';
-    var initialView = hash === '#investigation' || hash === '#wishes'
-      ? 'viewOutings'
-      : (hash === '#allowance' || hash === '#treasury' ? 'viewTreasury' : 'viewLedger');
+    var initialView = hash === '#investigation' || hash === '#wishes' || hash === '#allowance' || hash === '#treasury' || hash === '#reimbursement'
+      ? 'viewTreasury'
+      : 'viewLedger';
     var initialButton = document.querySelector('.tab-bar [data-view="' + initialView + '"]');
     switchView(initialView, initialButton);
     return true;
@@ -335,8 +300,6 @@
     generateInvestigation: generateWish,
     approveWish: approveWish,
     approveInvestigation: approveWish,
-    openLogModal: openLogModal,
-    saveLog: saveLog,
     closeModal: closeModal
   });
 })(window);
