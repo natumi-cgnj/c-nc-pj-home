@@ -32,32 +32,70 @@
     var style = document.createElement('style');
     style.id = 'cbiWalletStyles';
     style.textContent = [
-      'body[data-cbi-wallet="1"] .top-bar h1{color:#999;letter-spacing:3px}',
-      'body[data-cbi-wallet="1"] .tab-bar button.active{color:#9a7733}',
-      'body[data-cbi-wallet="1"] .char-funds{display:grid;grid-template-columns:repeat(5,minmax(0,1fr))}',
-      'body[data-cbi-wallet="1"] .char-fund-card{min-width:0;padding:10px 2px}',
+      'body[data-cbi-wallet="1"]{background:#fafafa;color:#262626;padding-bottom:62px}',
+      'body[data-cbi-wallet="1"] .top-bar{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;padding:15px 20px;padding-top:calc(15px + env(safe-area-inset-top,0px));background:rgba(255,255,255,.96)}',
+      'body[data-cbi-wallet="1"] .top-bar .back-btn{justify-self:start}',
+      'body[data-cbi-wallet="1"] .top-bar .btn-s{justify-self:end;border:0;padding:5px 0;color:#bbb}',
+      'body[data-cbi-wallet="1"] .top-bar h1{color:#8d8579;letter-spacing:3.2px;font-size:12px;white-space:nowrap}',
+      'body[data-cbi-wallet="1"] .tab-bar{background:rgba(255,255,255,.94);padding:0 12px env(safe-area-inset-bottom,0)}',
+      'body[data-cbi-wallet="1"] .tab-bar button{position:relative;padding:15px 0 13px;font-size:10px;letter-spacing:.25px;color:#bbb;display:block}',
+      'body[data-cbi-wallet="1"] .tab-bar button.active{color:#4e4a44}',
+      'body[data-cbi-wallet="1"] .tab-bar button.active:before{content:"";position:absolute;left:36%;right:36%;top:0;height:1px;background:#9c907c}',
+      'body[data-cbi-wallet="1"] .tab-icon{display:none}',
+      'body[data-cbi-wallet="1"] #liminalCloudBadgeHost.liminal-cloud-floating-host{bottom:calc(66px + env(safe-area-inset-bottom,0px))}',
+      'body[data-cbi-wallet="1"] .daily-total{margin:0;padding:24px 20px 18px;text-align:left;border:0;border-bottom:1px solid #eeeeec;border-radius:0;box-shadow:none}',
+      'body[data-cbi-wallet="1"] .daily-total-label{font-size:9px;letter-spacing:1.2px;color:#bbb}',
+      'body[data-cbi-wallet="1"] .daily-total-amount{font-size:32px;line-height:1.15;font-weight:250;font-variant-numeric:tabular-nums}',
+      'body[data-cbi-wallet="1"] .daily-total-surplus{font-size:10px;margin-top:6px}',
+      'body[data-cbi-wallet="1"] .category-list{padding:0;background:#fff;border-bottom:1px solid #eeeeec}',
+      'body[data-cbi-wallet="1"] .category-card{margin:0;padding:15px 20px 13px;border:0;border-bottom:1px solid #f1f1ef;border-radius:0;box-shadow:none;background:#fff}',
+      'body[data-cbi-wallet="1"] .category-card:last-child{border-bottom:0}',
+      'body[data-cbi-wallet="1"] .cat-header{margin-bottom:8px}',
+      'body[data-cbi-wallet="1"] .cat-name{font-size:12px;font-weight:500}',
+      'body[data-cbi-wallet="1"] .cat-budget{font-size:9px}',
+      'body[data-cbi-wallet="1"] .cat-bar{height:2px;margin-bottom:7px}',
+      'body[data-cbi-wallet="1"] .cat-stats{font-size:10px}',
+      'body[data-cbi-wallet="1"] .record-btn{margin:0;width:100%;padding:17px 20px;border:0;border-bottom:1px solid #eeeeec;border-radius:0;background:#fff;color:#aaa;font-size:11px;font-weight:400;letter-spacing:.4px}',
+      'body[data-cbi-wallet="1"] .history-section{padding:20px 0 0}',
+      'body[data-cbi-wallet="1"] .history-section-title{padding:0 20px 10px;margin:0;font-size:9px;letter-spacing:1px}',
+      'body[data-cbi-wallet="1"] .hist-row{margin:0;padding:12px 20px;border:0;border-bottom:1px solid #f1f1ef;border-radius:0;box-shadow:none;background:#fff}',
+      'body[data-cbi-wallet="1"] .hist-cat{border-radius:3px;font-size:8px}',
+      'body[data-cbi-wallet="1"] .treasury-card{margin:0;padding:25px 20px 20px;text-align:left;border:0;border-bottom:1px solid #eeeeec;border-radius:0;box-shadow:none}',
+      'body[data-cbi-wallet="1"] .treasury-label{font-size:9px;letter-spacing:1.1px}',
+      'body[data-cbi-wallet="1"] .treasury-amount{font-size:32px;font-variant-numeric:tabular-nums}',
+      'body[data-cbi-wallet="1"] .char-funds{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;padding:0;margin:0;background:#fff;border-bottom:1px solid #eeeeec}',
+      'body[data-cbi-wallet="1"] .char-fund-card{min-width:0;padding:13px 2px 12px;border:0!important;border-right:1px solid #f1f1ef!important;border-radius:0;box-shadow:none}',
+      'body[data-cbi-wallet="1"] .char-fund-card:last-child{border-right:0!important}',
       'body[data-cbi-wallet="1"] .char-fund-name{font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
       'body[data-cbi-wallet="1"] .char-fund-amount{font-size:13px}',
-      '.cbi-fund-note{font-size:11px;color:#999;line-height:1.65;margin-top:8px}',
-      '.cbi-fund-split{display:flex;justify-content:center;gap:14px;margin-top:9px;font-size:10px;color:#aaa}',
+      'body[data-cbi-wallet="1"] .transfer-btn{margin:0;width:100%;padding:16px;border:0;border-bottom:1px solid #eeeeec;border-radius:0;background:#fff;color:#aaa}',
+      'body[data-cbi-wallet="1"] .period-banner{margin:0;padding:18px 20px;text-align:left;border:0;border-bottom:1px solid #eeeeec;border-radius:0;box-shadow:none}',
+      'body[data-cbi-wallet="1"] .outing-card{margin:0;padding:16px 20px;border:0;border-bottom:1px solid #eeeeec;border-radius:0;box-shadow:none;background:#fff}',
+      'body[data-cbi-wallet="1"] .outing-dialogue{padding:8px 0;margin-top:8px;border-radius:0;background:transparent;border-top:1px solid #f1f1ef}',
+      'body[data-cbi-wallet="1"] .diary-entry{margin:0;padding:14px 20px;border:0;border-bottom:1px solid #f1f1ef;border-radius:0;box-shadow:none;background:#fff}',
+      '.cbi-fund-note{font-size:10px;color:#999;line-height:1.7;margin-top:10px;max-width:560px}',
+      '.cbi-fund-split{display:flex;justify-content:flex-start;gap:18px;margin-top:10px;font-size:10px;color:#aaa}',
       '.cbi-wish-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}',
       '.cbi-wish-source{font-size:9px;color:#b09a6c;letter-spacing:.5px;margin-bottom:4px}',
-      '.cbi-wish-amount{font-size:17px;font-weight:400;color:#9a7733;white-space:nowrap}',
+      '.cbi-wish-amount{font-size:17px;font-weight:350;color:#8a7448;white-space:nowrap}',
       '.cbi-wish-detail{font-size:11px;color:#999;line-height:1.65;margin-top:5px}',
-      '.cbi-wish-rule{margin-top:8px;padding:7px 9px;border-radius:6px;background:#f8f5ee;color:#9a8560;font-size:9px;line-height:1.55}',
-      '.cbi-reply{width:100%;margin-top:10px;padding:9px 10px;border:1px solid #eee;border-radius:8px;background:#fafafa;font:11px/1.4 inherit;color:#555;outline:none}',
+      '.cbi-wish-rule{margin-top:9px;padding:8px 0 0;border-radius:0;border-top:1px solid #eee;background:transparent;color:#9a8560;font-size:9px;line-height:1.55}',
+      '.cbi-reply{width:100%;margin-top:11px;padding:9px 0;border:0;border-bottom:1px solid #ddd;border-radius:0;background:transparent;font:11px/1.4 inherit;color:#555;outline:none}',
       '.cbi-reply:focus{border-color:#d7c7a4;background:#fff}',
-      '.cbi-approve{width:100%;margin-top:8px;padding:10px;border:0;border-radius:8px;background:#292929;color:#fff;font:inherit;font-size:11px;line-height:1;cursor:pointer}',
+      '.cbi-approve{width:100%;margin-top:11px;padding:11px;border:0;border-radius:2px;background:#282828;color:#fff;font:inherit;font-size:10px;letter-spacing:.4px;line-height:1;cursor:pointer}',
       '.cbi-approve:disabled{background:#eee;color:#aaa}',
       '.cbi-request-status{display:inline-flex;padding:2px 7px;border-radius:5px;background:#edf5ef;color:#5B8D66;font-size:8px;margin-left:5px}',
       '.cbi-request-status.auto{background:#f7f1e3;color:#9a7733}',
       '.cbi-legacy{display:inline-flex;margin-top:7px;padding:3px 7px;border-radius:5px;background:#f1f1f1;color:#999;font-size:8px}',
-      '.cbi-reaction{font-size:11px;color:#777;line-height:1.65;margin-top:8px;padding:8px 10px;background:#fafafa;border-radius:7px}',
+      '.cbi-reaction{font-size:11px;color:#777;line-height:1.65;margin-top:8px;padding:8px 0 0;border-top:1px solid #f1f1ef;background:transparent;border-radius:0}',
       '.cbi-log-who{font-size:11px;font-weight:600;color:#777;margin-bottom:3px}',
       '.cbi-log-empty{text-align:center;color:#ccc;font-size:12px;padding:38px 20px}',
-      '.cbi-history-title{margin:18px 16px 8px;font-size:10px;color:#ccc;letter-spacing:.5px;text-transform:uppercase}',
+      '.cbi-history-title{margin:20px 20px 10px;font-size:9px;color:#ccc;letter-spacing:1px;text-transform:uppercase}',
       '.cbi-day-note{text-align:center;color:#c6b894;font-size:9px;line-height:1.6;padding:7px 18px 2px}',
-      '.cbi-world-files-link{display:block;margin:18px 16px 0;padding:10px;border:1px solid #e7dfcf;border-radius:8px;background:#fffaf0;color:#8b7040;text-decoration:none;text-align:center;font-size:10px}'
+      '.cbi-world-files-link{display:block;margin:18px 0 0;padding:15px 20px;border:0;border-top:1px solid #eee;border-bottom:1px solid #eee;border-radius:0;background:#fff;color:#8b806c;text-decoration:none;text-align:center;font-size:9px;letter-spacing:.5px}',
+      '.cbi-log-actions{display:flex;border-bottom:1px solid #eeeeec;background:#fff}',
+      '.cbi-log-actions button{width:100%;padding:15px 20px;border:0;background:#fff;color:#aaa;font:inherit;font-size:10px;letter-spacing:.3px;cursor:pointer}',
+      '@media(min-width:720px){body[data-cbi-wallet="1"] .view{max-width:none}.cbi-fund-note{max-width:720px}}'
     ].join('');
     document.head.appendChild(style);
   }
@@ -96,11 +134,13 @@
     var transfer = document.querySelector('#viewTreasury .transfer-btn');
     transfer.style.display = '';
     transfer.textContent = '划拨角色自由额度';
-    var logs = cbi.work.caseFund.logs.filter(function (item) { return item.type === 'allocation'; }).slice().reverse().slice(0, 8);
-    var html = '<div class="history-section-title">近期划拨</div>';
-    if (!logs.length) html += '<div class="cbi-log-empty" style="padding:20px">还没有自由额度划拨</div>';
+    var logs = cbi.work.caseFund.logs.slice().reverse().slice(0, 20);
+    var html = '<div class="cbi-log-actions"><button type="button" onclick="CBIWallet.openLogModal()">＋ 写一条额度备注</button></div><div class="history-section-title">近期额度记录</div>';
+    if (!logs.length) html += '<div class="cbi-log-empty" style="padding:20px">还没有额度记录</div>';
     logs.forEach(function (item) {
-      html += '<div class="hist-row"><span class="hist-cat" style="background:' + COLORS[item.characterId] + '20;color:' + COLORS[item.characterId] + '">' + esc(NAMES[item.characterId]) + '</span><span class="hist-note">' + esc(item.content) + '</span><span style="font-size:9px;color:#ccc">' + esc(item.date) + '</span></div>';
+      var characterColor = COLORS[item.characterId] || '#aaa';
+      var characterName = NAMES[item.characterId] || LOG_LABELS[item.type] || '记录';
+      html += '<div class="hist-row"><span class="hist-cat" style="background:' + characterColor + '18;color:' + characterColor + '">' + esc(characterName) + '</span><span class="hist-note">' + esc(item.content) + '</span><span style="font-size:9px;color:#ccc">' + esc(item.date) + '</span></div>';
     });
     document.getElementById('treasuryLog').innerHTML = html;
   }
@@ -237,7 +277,7 @@
     var result = global.CBIData.addCaseFundLog(load(), { type: 'manual', date: today(), content: content });
     save(result.db);
     closeModal('cbiLogModal');
-    renderLog();
+    renderTreasury();
     global.showToast('额度记录已保存');
   }
 
@@ -251,6 +291,12 @@
   function switchView(viewId, button) {
     document.querySelectorAll('.view').forEach(function (view) { view.classList.toggle('active', view.id === viewId); });
     document.querySelectorAll('.tab-bar button').forEach(function (node) { node.classList.toggle('active', node === button); });
+    var settings = document.querySelector('.top-bar .btn-s');
+    if (settings) settings.style.visibility = viewId === 'viewLedger' ? 'visible' : 'hidden';
+    if (global.history && global.history.replaceState) {
+      var viewHash = viewId === 'viewTreasury' ? '#allowance' : (viewId === 'viewOutings' ? '#wishes' : '');
+      global.history.replaceState(null, '', global.location.pathname + global.location.search + viewHash);
+    }
     renderView(viewId);
   }
 
@@ -262,10 +308,10 @@
     document.title = 'Reality Wallet · CBI';
     document.querySelector('.top-bar h1').textContent = 'REALITY WALLET';
     document.querySelector('.tab-bar').innerHTML =
-      '<button class="active" data-view="viewLedger" type="button" onclick="CBIWallet.switchView(\'viewLedger\',this)"><span class="tab-icon">📝</span>记账</button>' +
-      '<button data-view="viewTreasury" type="button" onclick="CBIWallet.switchView(\'viewTreasury\',this)"><span class="tab-icon">💰</span>额度</button>' +
-      '<button data-view="viewOutings" type="button" onclick="CBIWallet.switchView(\'viewOutings\',this)"><span class="tab-icon">📌</span>申请</button>' +
-      '<button data-view="viewDiary" type="button" onclick="CBIWallet.switchView(\'viewDiary\',this)"><span class="tab-icon">📓</span>记录</button>';
+      '<button class="active" data-view="viewLedger" type="button" onclick="CBIWallet.switchView(\'viewLedger\',this)">记账</button>' +
+      '<button data-view="viewTreasury" type="button" onclick="CBIWallet.switchView(\'viewTreasury\',this)">额度</button>' +
+      '<button data-view="viewOutings" type="button" onclick="CBIWallet.switchView(\'viewOutings\',this)">申请</button>' +
+      '<button data-route="shop" type="button" onclick="location.href=\'shop.html\'">商城</button>';
     global.openTransferModal = openTransferModal;
     global.saveTransfer = saveTransfer;
     global.renderCurrentTab = renderView;
@@ -274,7 +320,9 @@
       if (active) renderView(active.id);
     } });
     var hash = global.location ? global.location.hash : '';
-    var initialView = hash === '#investigation' || hash === '#wishes' ? 'viewOutings' : 'viewLedger';
+    var initialView = hash === '#investigation' || hash === '#wishes'
+      ? 'viewOutings'
+      : (hash === '#allowance' || hash === '#treasury' ? 'viewTreasury' : 'viewLedger');
     var initialButton = document.querySelector('.tab-bar [data-view="' + initialView + '"]');
     switchView(initialView, initialButton);
     return true;
@@ -292,4 +340,3 @@
     closeModal: closeModal
   });
 })(window);
-

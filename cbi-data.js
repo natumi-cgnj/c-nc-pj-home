@@ -2,7 +2,7 @@
   'use strict';
 
   var STORAGE_KEY = 'cbi_db';
-  var SCHEMA_VERSION = 5;
+  var SCHEMA_VERSION = 6;
   var CANON_VERSION = 2;
   var TIMELINE_VERSION = 1;
   var CBI_CHARACTERS = ['jane', 'cho', 'rigsby', 'lisbon', 'vanpelt'];
@@ -263,6 +263,7 @@
       commissionHistory: [],
       deployments: {},
       shop: {
+        projects: [],
         customItems: [],
         owned: [],
         purchaseLog: [],
@@ -543,14 +544,80 @@
     };
   }
 
+  function normalizeShopProjectItem(item) {
+    item = item && typeof item === 'object' ? item : {};
+    var targets = item.targetIds || item.wearers || (item.target ? [item.target] : []);
+    return {
+      id: text(item.id) || createId('shop_item'),
+      name: text(item.name).trim(),
+      description: text(item.description || item.note),
+      image: text(item.image || item.cover),
+      price: Math.max(0, Math.floor(number(item.price, 0))),
+      targetIds: uniqueList(targets, ['boss'].concat(CBI_CHARACTERS)),
+      reaction: text(item.reaction),
+      acquiredAt: text(item.acquiredAt),
+      order: Math.max(0, Math.floor(number(item.order, 0)))
+    };
+  }
+
+  function normalizeShopProject(project, index) {
+    project = project && typeof project === 'object' ? project : {};
+    var color = text(project.color);
+    return {
+      id: text(project.id) || createId('shop_project'),
+      name: text(project.name).trim(),
+      category: text(project.category).trim() || '未分类',
+      color: /^#[0-9a-f]{6}$/i.test(color) ? color : '#A9A39A',
+      cover: text(project.cover || project.image || project.icon),
+      note: text(project.note || project.description),
+      order: Math.max(0, Math.floor(number(project.order, index || 0))),
+      items: Array.isArray(project.items) ? project.items.map(normalizeShopProjectItem).filter(function (item) { return item.name; }) : []
+    };
+  }
+
+  function migrateLegacyShopProjects(items) {
+    var categoryNames = { clothing: '服装类', accessory: '配饰类', gift: '物品类' };
+    var groups = [];
+    items.forEach(function (item) {
+      var category = categoryNames[item.category] || '未分类';
+      var name = item.series || '旧商城自选';
+      var group = groups.find(function (entry) { return entry.category === category && entry.name === name; });
+      if (!group) {
+        group = {
+          id: 'legacy_project_' + item.id,
+          name: name,
+          category: category,
+          color: item.color,
+          cover: '',
+          note: '由旧商城自选商品迁移',
+          order: groups.length,
+          items: []
+        };
+        groups.push(group);
+      }
+      group.items.push(normalizeShopProjectItem(item));
+    });
+    return groups;
+  }
+
   function normalizeShop(value) {
     var source = value && typeof value === 'object' ? value : {};
+    var customItems = Array.isArray(source.customItems) ? source.customItems.map(normalizeShopItem).filter(function (item) { return item.name; }) : [];
+    var projects = Array.isArray(source.projects)
+      ? source.projects.map(normalizeShopProject).filter(function (project) { return project.name; })
+      : migrateLegacyShopProjects(customItems);
     return {
-      customItems: Array.isArray(source.customItems) ? source.customItems.map(normalizeShopItem).filter(function (item) { return item.name; }) : [],
+      projects: projects,
+      customItems: customItems,
       owned: uniqueList(source.owned),
       purchaseLog: Array.isArray(source.purchaseLog) ? source.purchaseLog.map(function (entry) {
         entry = entry && typeof entry === 'object' ? entry : {};
-        return { itemId: text(entry.itemId), price: Math.max(0, Math.floor(number(entry.price, 0))), purchasedAt: text(entry.purchasedAt) };
+        return {
+          itemId: text(entry.itemId),
+          price: Math.max(0, Math.floor(number(entry.price, 0))),
+          purchasedAt: text(entry.purchasedAt || entry.acquiredAt),
+          source: text(entry.source)
+        };
       }).filter(function (entry) { return entry.itemId; }) : [],
       reactionsSeen: uniqueList(source.reactionsSeen)
     };
@@ -1389,6 +1456,8 @@
     normalizeWork: normalizeWork,
     normalizeCommission: normalizeCommission,
     normalizeShopItem: normalizeShopItem,
+    normalizeShopProject: normalizeShopProject,
+    normalizeShopProjectItem: normalizeShopProjectItem,
     normalizeDeployment: normalizeDeployment,
     normalizeInvestigation: normalizeInvestigation,
     normalizeCaseFund: normalizeCaseFund,

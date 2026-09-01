@@ -17,7 +17,7 @@ function load(initial = {}) {
   return { CBIData: window.CBIData, localStorage };
 }
 
-test('schema five keeps legacy case records and adds the confirmed story timeline', () => {
+test('schema six keeps legacy case records and adds the confirmed story timeline', () => {
   const legacy = {
     currentCaseId: 'case_1',
     cases: [{ id: 'case_1', title: '旧案', status: 'active', body: '原线索' }],
@@ -25,7 +25,7 @@ test('schema five keeps legacy case records and adds the confirmed story timelin
   };
   const { CBIData } = load({ cbi_db: JSON.stringify(legacy) });
   const db = CBIData.load();
-  assert.equal(db.schemaVersion, 5);
+  assert.equal(db.schemaVersion, 6);
   assert.equal(db.canonVersion, 2);
   assert.equal(db.timelineVersion, 1);
   assert.equal(db.timeline.length, 7);
@@ -41,6 +41,38 @@ test('schema five keeps legacy case records and adds the confirmed story timelin
   assert.equal(db.work.salary, 0);
   assert.equal(db.work.commissionPool.length, 2);
   assert.equal(db.work.commissionPool[0].title, '带新人熟悉报销');
+});
+
+test('legacy shop items migrate into category projects without losing ownership', () => {
+  const legacy = {
+    schemaVersion: 5,
+    work: {
+      shop: {
+        customItems: [{
+          id: 'old_rollbahn',
+          name: '甜点封面 Rollbahn',
+          series: 'Rollbahn',
+          category: 'gift',
+          wearers: ['cho'],
+          price: 80,
+          color: '#5BA66B'
+        }],
+        owned: ['old_rollbahn'],
+        purchaseLog: [{ itemId: 'old_rollbahn', price: 80, purchasedAt: '2026-08-31T10:00:00.000Z' }]
+      }
+    }
+  };
+  const { CBIData, localStorage } = load({ cbi_db: JSON.stringify(legacy) });
+  const db = CBIData.load();
+  assert.equal(db.work.shop.projects.length, 1);
+  assert.equal(db.work.shop.projects[0].category, '物品类');
+  assert.equal(db.work.shop.projects[0].name, 'Rollbahn');
+  assert.equal(db.work.shop.projects[0].items[0].id, 'old_rollbahn');
+  assert.deepEqual(Array.from(db.work.shop.projects[0].items[0].targetIds), ['cho']);
+  assert.deepEqual(Array.from(db.work.shop.owned), ['old_rollbahn']);
+  assert.equal(db.work.shop.purchaseLog[0].price, 80);
+  assert.equal(JSON.parse(localStorage.getItem('cbi_db')).schemaVersion, 6);
+  assert.equal(JSON.parse(localStorage.getItem('cbi_db')).work.shop.projects[0].items[0].id, 'old_rollbahn');
 });
 
 test('filing an action runs one opening round and never rolls twice in a work day', () => {
