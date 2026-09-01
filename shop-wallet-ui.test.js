@@ -35,6 +35,13 @@ test('reality wallet merges allowance and wishes into reimbursement', () => {
   assert.match(cbiWallet, /hash === '#allowance'/);
   assert.match(cbiWallet, /appendChild\(wishBanner\)/);
   assert.match(cbiWallet, /amount < 0/);
+  assert.match(cbiWallet, /refreshWishRequests/);
+  assert.match(cbiWallet, /createElement\('details'\)/);
+  assert.match(cbiWallet, /touchstart/);
+  assert.match(cbiShop, /wallet\.html#reimbursement/);
+  assert.match(cbiShop, /bindTabSwipe/);
+  assert.doesNotMatch(cbiWallet, /案件进度已移至/);
+  assert.doesNotMatch(cbiWallet, /暂时不处理时申请会一直留在这里/);
 });
 
 test('Rewards dynamics replaces only the obsolete notebook entry', () => {
@@ -45,9 +52,9 @@ test('Rewards dynamics replaces only the obsolete notebook entry', () => {
   assert.match(dynamics, /之后会使用日课货币解锁角色使用记录与小剧情/);
 });
 
-test('every page that writes CBI data loads the wallet seven schema cache version', () => {
+test('every page that writes CBI data loads the wish-desk schema cache version', () => {
   for (const page of ['cbi.html', 'daily.html', 'schedule.html', 'wallet.html', 'shop.html', 'dynamics.html']) {
     const html = fs.readFileSync(page, 'utf8');
-    assert.match(html, /cbi-data\.js\?v=20260901-wallet7/, page);
+    assert.match(html, /cbi-data\.js\?v=20260901-wishes1/, page);
   }
 });

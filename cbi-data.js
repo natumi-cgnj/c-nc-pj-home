@@ -2,7 +2,7 @@
   'use strict';
 
   var STORAGE_KEY = 'cbi_db';
-  var SCHEMA_VERSION = 7;
+  var SCHEMA_VERSION = 8;
   var CANON_VERSION = 2;
   var TIMELINE_VERSION = 1;
   var CBI_CHARACTERS = ['jane', 'cho', 'rigsby', 'lisbon', 'vanpelt'];
@@ -232,10 +232,18 @@
     return result;
   }
 
+  function wishRefreshDateMap(value) {
+    var source = value && typeof value === 'object' ? value : {};
+    var result = {};
+    CBI_CHARACTERS.forEach(function (id) { result[id] = text(source[id]); });
+    return result;
+  }
+
   function emptyCaseFund() {
     return {
       charFunds: affinityMap(),
       investigations: [],
+      wishRefreshDates: wishRefreshDateMap(),
       logs: []
     };
   }
@@ -720,6 +728,7 @@
     return {
       charFunds: affinityMap(source.charFunds),
       investigations: Array.isArray(source.investigations) ? source.investigations.map(normalizeInvestigation) : [],
+      wishRefreshDates: wishRefreshDateMap(source.wishRefreshDates),
       logs: Array.isArray(source.logs) ? source.logs.map(normalizeCaseFundLog).filter(function (item) { return item.content; }) : []
     };
   }
@@ -1343,74 +1352,59 @@
   var WISH_REQUEST_CONFIG = {
     rigsby: {
       weight: 30,
-      min: 900,
-      max: 1800,
+      frequency: 0.32,
       requests: [
-        { title: '加班那天订一份披萨', detail: 'Rigsby把菜单折好放在桌角，显然已经选完配料', reaction: '太好了。我可以分Jane一块——如果他先答应不碰菠萝那边。' },
-        { title: '现场回来顺路买汉堡', detail: '他路过那家店三次，第三次终于把收据申请也一起带来了', reaction: 'Boss，我保证这次不会在证物袋旁边吃。' }
+        { title: '去吃一次日式烤肉', detail: 'Rigsby认真研究了菜单，把牛舌、横膈膜和“续一碗米饭”都圈了出来', amount: 4800, reaction: '这个世界对烤肉的理解很有道理。Boss，下次能试试那种自己烤的吗？' },
+        { title: '试试日本便利店的冬季关东煮', detail: '他对收银台旁边那一锅观察了很久，最后列了六样想尝的东西', amount: 1200, reaction: '萝卜比我想象得好吃。Cho没评价，但他把最后一颗蛋拿走了。' }
       ]
     },
     vanpelt: {
       weight: 25,
-      min: 900,
-      max: 2400,
+      frequency: 0.24,
       requests: [
-        { title: '添一个桌面文件架', detail: 'Van Pelt已经量好了桌角空位，申请里甚至附了尺寸', reaction: '谢谢，Boss。这样下次要找记录就不用先搬开三叠纸了。' },
-        { title: '买一条备用数据线', detail: '技术部门那条接触不良，她不想第四次借Rigsby的', reaction: '我会贴名字的。Rigsby不能再说他只是“暂时借走”。' }
+        { title: '亲手看看未来的手机', detail: 'Van Pelt想试试触屏、相机和地图，申请末尾还加了一行“不会拆开研究”', amount: 1800, reaction: '它居然没有按键。Boss，我们那个年代的取证软件突然显得更古老了。' },
+        { title: '拍一组日式大头贴', detail: '她对机器自动放大眼睛这件事半信半疑，但已经悄悄挑好了边框', amount: 1600, reaction: '照片可以留下。至于机器加的猫耳……请不要贴到办公室白板上。' }
       ]
     },
     lisbon: {
       weight: 20,
-      min: 700,
-      max: 1800,
+      frequency: 0.18,
       requests: [
-        { title: '换一本现场笔记本', detail: 'Lisbon把已经写到封底的旧本一起夹在申请后面', reaction: '我会把旧本归档。新的那本……我会写得更清楚一点。' },
-        { title: '补一罐办公室咖啡', detail: '她认真注明了不是给全组续命，只是公共柜刚好空了', reaction: '谢谢。以及这不代表Jane可以往里面兑茶。' }
+        { title: '试试自动贩卖机的罐装咖啡', detail: 'Lisbon不太相信一台放在路边的机器能在半夜交出热咖啡', amount: 900, reaction: '确实是热的。味道……能喝。Jane不许把这句话理解成推荐。' },
+        { title: '看看日本警察使用的便携手帐', detail: '她想比较内页结构和记录习惯，已经提前准备好不抄任何敏感内容', amount: 2200, reaction: '分区很清楚。我只借鉴格式——以及这个能塞进口袋的尺寸。' }
       ]
     },
     cho: {
       weight: 20,
-      min: 600,
-      max: 3200,
+      frequency: 0.16,
       requests: [
-        { title: '补一盒黑色签字笔', detail: 'Cho的申请只有品名、数量和金额，正好占一行', reaction: '收到了。Rigsby拿走的那几支不算在内。' },
-        { title: '把车里的急救包换新', detail: '旧的已经过期，他顺手列出了需要替换的全部内容', reaction: '放回后备箱了。希望用不上。' }
+        { title: '要一本甜点封面的日本小本子', detail: 'Cho的愿望仍然只有品名、规格和金额，完全没有解释为什么选了甜点封面', amount: 1200, reaction: '能写。封面不影响使用。合作警局的人也没有意见。' },
+        { title: '尝一份日式提拉米苏', detail: '他看了照片几秒，只写了“可以试一次”，没有添加其他说明', amount: 1400, reaction: '不错。Rigsby问了三次剩下那一半归不归他。' }
       ]
     },
     jane: {
       weight: 5,
-      min: 1800,
-      max: 6500,
+      frequency: 0.20,
       requests: [
-        { title: '买一罐真正能喝的散叶茶', detail: 'Jane把“真正能喝”圈了两遍，没有解释评价对象是谁', reaction: '我就知道你能分辨茶和热水里的褐色灰尘。' },
-        { title: '带回旧书店那本绝版书', detail: '他只写了书名和橱窗位置，价格藏在纸页最下面', reaction: '你同意得比我预计得快。现在它归我了——书是，Boss暂时也是。' }
+        { title: '尝尝那块“和我一模一样”的栗子派', detail: 'Jane对照片里的卷曲奶油表示异议，但仍然把店名和商品名抄得很完整', amount: 950, reaction: '我拒绝承认相似。派可以留下，照片删掉。' },
+        { title: '带回日本旧书店里的魔术史', detail: '他只写了书名、书架位置和一行“另一个世界的版本”，价格藏在最下面', amount: 3200, reaction: '内容有几处荒唐得很有意思。现在它归我了——书是，Boss暂时也是。' }
       ]
     }
   };
 
-  function createWishRequest(value, options) {
+  function createWishForCharacter(value, characterId, date, options) {
     var db = normalize(value);
     options = options && typeof options === 'object' ? options : {};
-    var date = workDayKey(options.date);
+    date = workDayKey(date);
+    db.work.caseFund.wishRefreshDates[characterId] = date;
     var existing = db.work.caseFund.investigations.find(function (item) {
-      return item.source === 'wishlist' && item.date === date;
+      return item.source === 'wishlist' && item.date === date && item.characterId === characterId;
     });
-    if (existing) return { db: db, request: existing, created: false, autoPurchased: existing.status === 'auto', reason: 'today_exists' };
-    var seedBase = date + '|wish|' + db.work.caseFund.investigations.length;
-    var allowed = uniqueList(options.availableCharacters, CBI_CHARACTERS);
-    if (!allowed.length) allowed = CBI_CHARACTERS.slice();
-    var totalWeight = allowed.reduce(function (sum, id) { return sum + WISH_REQUEST_CONFIG[id].weight; }, 0);
-    var target = stableUnit(seedBase + '|character') * totalWeight;
-    var characterId = allowed[0];
-    allowed.some(function (id) {
-      target -= WISH_REQUEST_CONFIG[id].weight;
-      if (target <= 0) { characterId = id; return true; }
-      return false;
-    });
+    if (existing) return { db: db, request: existing, created: false, autoPurchased: existing.status === 'auto', reason: 'character_today_exists' };
+    var seedBase = date + '|wish|' + characterId + '|' + db.work.caseFund.investigations.length;
     var config = WISH_REQUEST_CONFIG[characterId];
     var template = config.requests[Math.floor(stableUnit(seedBase + '|template') * config.requests.length)];
-    var amountSteps = Math.floor((config.max - config.min) / 50);
-    var amount = config.min + Math.floor(stableUnit(seedBase + '|amount') * (amountSteps + 1)) * 50;
+    var amount = Math.max(0, Math.floor(number(template.amount, 0)));
     var request = normalizeInvestigation({
       date: date,
       characterId: characterId,
@@ -1423,10 +1417,65 @@
     });
     db.work.caseFund.investigations.push(request);
     var settled = Object.prototype.hasOwnProperty.call(options, 'wallet')
-      ? settlePersonalWishes(db, characterId, options.wallet, options.date)
+      ? settlePersonalWishes(db, characterId, options.wallet, options.date || date)
       : { db: db, purchases: [] };
     request = settled.db.work.caseFund.investigations.find(function (item) { return item.id === request.id; });
     return { db: settled.db, request: request, created: true, autoPurchased: request.status === 'auto', reason: '' };
+  }
+
+  function createWishRequest(value, options) {
+    var db = normalize(value);
+    options = options && typeof options === 'object' ? options : {};
+    var date = workDayKey(options.date);
+    var allowed = uniqueList(options.availableCharacters, CBI_CHARACTERS);
+    if (!allowed.length) allowed = CBI_CHARACTERS.slice();
+    var seedBase = date + '|wish|' + db.work.caseFund.investigations.length;
+    var totalWeight = allowed.reduce(function (sum, id) { return sum + WISH_REQUEST_CONFIG[id].weight; }, 0);
+    var target = stableUnit(seedBase + '|character') * totalWeight;
+    var characterId = allowed[0];
+    allowed.some(function (id) {
+      target -= WISH_REQUEST_CONFIG[id].weight;
+      if (target <= 0) { characterId = id; return true; }
+      return false;
+    });
+    return createWishForCharacter(db, characterId, date, options);
+  }
+
+  function refreshWishRequests(value, options) {
+    var db = normalize(value);
+    options = options && typeof options === 'object' ? options : {};
+    var date = workDayKey(options.date);
+    var allowed = uniqueList(options.availableCharacters, CBI_CHARACTERS);
+    if (!allowed.length) allowed = CBI_CHARACTERS.slice();
+    var frequencies = options.frequencies && typeof options.frequencies === 'object' ? options.frequencies : {};
+    var checkedCharacters = [];
+    var requests = [];
+    var autoPurchases = [];
+    allowed.forEach(function (characterId) {
+      if (db.work.caseFund.wishRefreshDates[characterId] === date) return;
+      db.work.caseFund.wishRefreshDates[characterId] = date;
+      checkedCharacters.push(characterId);
+      var configured = Object.prototype.hasOwnProperty.call(frequencies, characterId)
+        ? number(frequencies[characterId], 0)
+        : WISH_REQUEST_CONFIG[characterId].frequency;
+      var frequency = Math.max(0, Math.min(1, configured));
+      if (stableUnit(date + '|wish-frequency|' + characterId) >= frequency) return;
+      var childOptions = { date: options.date || date };
+      if (Object.prototype.hasOwnProperty.call(options, 'wallet')) childOptions.wallet = options.wallet;
+      var created = createWishForCharacter(db, characterId, date, childOptions);
+      db = created.db;
+      if (!created.created) return;
+      requests.push(created.request);
+      if (created.autoPurchased) autoPurchases.push(created.request);
+    });
+    return {
+      db: db,
+      date: date,
+      checkedCharacters: checkedCharacters,
+      requests: requests,
+      autoPurchases: autoPurchases,
+      reason: checkedCharacters.length ? '' : 'already_refreshed'
+    };
   }
 
   function createInvestigationRequest(value, options) {
@@ -1603,6 +1652,7 @@
     allocateCaseFund: allocateCaseFund,
     settlePersonalWishes: settlePersonalWishes,
     createWishRequest: createWishRequest,
+    refreshWishRequests: refreshWishRequests,
     createInvestigationRequest: createInvestigationRequest,
     approveWishRequest: approveWishRequest,
     approveInvestigation: approveInvestigation,

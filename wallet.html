@@ -77,8 +77,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .pending-note{font-size:11px;color:#777;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pending-date{font-size:8px;color:#ccc;margin-top:3px}
 .pending-amount{font-size:12px;color:#777;white-space:nowrap;font-variant-numeric:tabular-nums}
-.pending-action{border:0;background:none;color:#a5967b;font:10px inherit;padding:5px 2px;cursor:pointer;white-space:nowrap}
-.pending-add{display:block;width:100%;padding:14px 20px;border:0;background:#fff;color:#bbb;font:10px inherit;cursor:pointer}
+.pending-action{border:0;background:none;color:#a5967b;font-family:inherit;font-size:10px;padding:5px 2px;cursor:pointer;white-space:nowrap}
+.pending-add{display:block;width:100%;padding:14px 20px;border:0;background:#fff;color:#bbb;font-family:inherit;font-size:10px;font-weight:400;cursor:pointer}
 
 /* ── Treasury ── */
 .treasury-card{background:#fff;border:1px solid #f0f0f0;border-radius:14px;margin:16px 16px 12px;padding:22px 20px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.04)}
@@ -208,7 +208,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   </div>
   <button class="record-btn" onclick="openRecordModal()">+ 记一笔</button>
   <details class="ledger-fold" id="historyFold" open>
-    <summary>账本记录 <span class="ledger-fold-count" id="historyCount"></span></summary>
+    <summary>记账 <span class="ledger-fold-count" id="historyCount"></span></summary>
     <div id="todayHistory"></div>
   </details>
   <details class="ledger-fold" id="pendingFold">
@@ -228,7 +228,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 <!-- OUTINGS TAB -->
 <div id="viewOutings" class="view">
-  <div class="period-banner" id="periodBanner"></div>
+  <summary class="period-banner" id="periodBanner"></summary>
   <div id="outingCards"></div>
 </div>
 
@@ -392,9 +392,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 <script src="world-context.js?v=20260824-cbi-work1"></script>
 <script src="cloud-sync.js?v=20260824-cbi-work1"></script>
-<script src="cbi-data.js?v=20260901-wallet7"></script>
+<script src="cbi-data.js?v=20260901-wishes1"></script>
 <script src="character-runtime.js?v=20260824-wallet-fix1"></script>
-<script src="cbi-wallet.js?v=20260901-sage1"></script>
+<script src="cbi-wallet.js?v=20260901-wishes1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 var SK='wallet_db';

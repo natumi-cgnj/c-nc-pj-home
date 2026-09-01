@@ -23,6 +23,7 @@
   var projectIconPosition = { x: 50, y: 50 };
   var itemImageDraft = '';
   var iconDrag = null;
+  var shopSwipeStart = null;
   var toastTimer = null;
 
   function esc(value) {
@@ -188,6 +189,22 @@ body[data-cbi-shop="3"] button,body[data-cbi-shop="3"] input,body[data-cbi-shop=
   function projectIconSelected(input) { if (!input.files || !input.files[0]) return; optimizedImage(input.files[0], 1200).then(function (data) { projectIconDraft = data; projectIconPosition = { x: 50, y: 50 }; setIconPreview(); }).catch(function () { showToast('图片读取失败'); }); }
   function itemImageSelected(input) { if (!input.files || !input.files[0]) return; optimizedImage(input.files[0], 1200).then(function (data) { itemImageDraft = data; var preview = document.getElementById('itemImgPreview'); preview.src = data; preview.style.display = 'block'; }).catch(function () { showToast('图片读取失败'); }); }
   function bindIconDrag() { var frame = document.getElementById('projectIconPosFrame'); frame.addEventListener('pointerdown', function (event) { if (event.target.closest('button') || !projectIconDraft) return; iconDrag = { id: event.pointerId, x: event.clientX, y: event.clientY, baseX: projectIconPosition.x, baseY: projectIconPosition.y }; try { frame.setPointerCapture(event.pointerId); } catch (error) {} }); frame.addEventListener('pointermove', function (event) { if (!iconDrag || iconDrag.id !== event.pointerId) return; var rect = frame.getBoundingClientRect(); projectIconPosition.x = clamp(iconDrag.baseX - (event.clientX - iconDrag.x) / rect.width * 100, 0, 100); projectIconPosition.y = clamp(iconDrag.baseY - (event.clientY - iconDrag.y) / rect.height * 100, 0, 100); document.getElementById('projectIconPreview').style.objectPosition = projectIconPosition.x + '% ' + projectIconPosition.y + '%'; }); frame.addEventListener('pointerup', function () { iconDrag = null; }); frame.addEventListener('pointercancel', function () { iconDrag = null; }); }
+  function bindTabSwipe() {
+    document.addEventListener('touchstart', function (event) {
+      var blocked = event.target.closest && event.target.closest('input,textarea,select,button,a,[contenteditable="true"],.modal-bg.show,.project-icon-pos-frame');
+      if ((global.innerWidth || 0) > 720 || event.touches.length !== 1 || blocked) { shopSwipeStart = null; return; }
+      shopSwipeStart = { x: event.touches[0].clientX, y: event.touches[0].clientY, at: Date.now() };
+    }, { passive: true });
+    document.addEventListener('touchend', function (event) {
+      if (!shopSwipeStart || !event.changedTouches.length) return;
+      var start = shopSwipeStart;
+      shopSwipeStart = null;
+      var dx = event.changedTouches[0].clientX - start.x;
+      var dy = event.changedTouches[0].clientY - start.y;
+      if (Date.now() - start.at <= 900 && dx >= 58 && Math.abs(dx) > Math.abs(dy) * 1.25) global.location.href = 'wallet.html#reimbursement';
+    }, { passive: true });
+    document.addEventListener('touchcancel', function () { shopSwipeStart = null; }, { passive: true });
+  }
   function exportShop() { var blob = new Blob([JSON.stringify(db.work.shop, null, 2)], { type: 'application/json' }), link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'shop_backup_' + today() + '.json'; link.click(); }
   function importShop(input) { if (!input.files || !input.files[0]) return; var reader = new FileReader(); reader.onload = function () { try { var parsed = JSON.parse(reader.result); confirmBox('导入商城备份并覆盖当前商城内容？', function () { db.work.shop = global.CBIData.normalizeShop(parsed); save(); closeModal('backupModal'); render(); showToast('商城备份已导入'); }, { yes: '导入' }); } catch (error) { showToast('备份格式不正确'); } input.value = ''; }; reader.readAsText(input.files[0]); }
 
@@ -203,7 +220,7 @@ body[data-cbi-shop="3"] button,body[data-cbi-shop="3"] input,body[data-cbi-shop=
   }
   function handleInput(event) { var field = event.target.dataset.sectionField; if (!field) return; var draft = sectionDrafts[Number(event.target.dataset.index)]; if (!draft) return; draft[field] = field === 'count' || field === 'cols' ? Math.max(0, Number(event.target.value) || 0) : event.target.value; }
   function mount() {
-    if (!global.CBIData) return false; document.body.dataset.cbiShop = '3'; injectStyles(); shell(); db = global.CBIData.load(); collapsed = loadCollapsed(); document.title = 'Shop · Crossworld Window'; document.body.addEventListener('click', handleClick); document.body.addEventListener('input', handleInput); document.querySelectorAll('.modal-bg').forEach(function (modal) { modal.addEventListener('click', function (event) { if (event.target === modal) closeModal(modal.id); }); }); document.getElementById('projectIconInput').addEventListener('change', function () { projectIconSelected(this); }); document.getElementById('itemImgInput').addEventListener('change', function () { itemImageSelected(this); }); document.getElementById('shopImportInput').addEventListener('change', function () { importShop(this); }); bindIconDrag(); render(); return true;
+    if (!global.CBIData) return false; document.body.dataset.cbiShop = '3'; injectStyles(); shell(); db = global.CBIData.load(); collapsed = loadCollapsed(); document.title = 'Shop · Crossworld Window'; document.body.addEventListener('click', handleClick); document.body.addEventListener('input', handleInput); document.querySelectorAll('.modal-bg').forEach(function (modal) { modal.addEventListener('click', function (event) { if (event.target === modal) closeModal(modal.id); }); }); document.getElementById('projectIconInput').addEventListener('change', function () { projectIconSelected(this); }); document.getElementById('itemImgInput').addEventListener('change', function () { itemImageSelected(this); }); document.getElementById('shopImportInput').addEventListener('change', function () { importShop(this); }); bindIconDrag(); bindTabSwipe(); render(); return true;
   }
   global.CBIShop = Object.freeze({ mount: mount });
 })(window);

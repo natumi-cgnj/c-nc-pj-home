@@ -63,11 +63,12 @@ test('wallet page exposes split pools, full history and pending expenses', () =>
   assert.match(html, /account-ledger-grid/);
   assert.match(html, /livingCategoryList/);
   assert.match(html, /entertainmentCategoryList/);
-  assert.match(html, /账本记录/);
+  assert.match(html, /<summary>记账 <span class="ledger-fold-count"/);
   assert.match(html, /hist-date/);
   assert.match(html, /pendingExpenses/);
   assert.match(html, /销一点挂账/);
   assert.match(html, /activeFrom/);
+  assert.match(html, /\.pending-add\{[^}]*font-size:10px/);
 });
 
 test('adding or removing a category preserves every unsaved settings-row edit', () => {

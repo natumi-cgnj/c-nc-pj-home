@@ -17,7 +17,7 @@ function load(initial = {}) {
   return { CBIData: window.CBIData, localStorage };
 }
 
-test('schema seven keeps legacy case records and adds the confirmed story timeline', () => {
+test('schema eight keeps legacy case records and adds the confirmed story timeline', () => {
   const legacy = {
     currentCaseId: 'case_1',
     cases: [{ id: 'case_1', title: '旧案', status: 'active', body: '原线索' }],
@@ -25,7 +25,7 @@ test('schema seven keeps legacy case records and adds the confirmed story timeli
   };
   const { CBIData } = load({ cbi_db: JSON.stringify(legacy) });
   const db = CBIData.load();
-  assert.equal(db.schemaVersion, 7);
+  assert.equal(db.schemaVersion, 8);
   assert.equal(db.canonVersion, 2);
   assert.equal(db.timelineVersion, 1);
   assert.equal(db.timeline.length, 7);
@@ -71,7 +71,7 @@ test('legacy shop items migrate into category projects without losing ownership'
   assert.deepEqual(Array.from(db.work.shop.projects[0].items[0].targetIds), ['cho']);
   assert.deepEqual(Array.from(db.work.shop.owned), ['old_rollbahn']);
   assert.equal(db.work.shop.purchaseLog[0].price, 80);
-  assert.equal(JSON.parse(localStorage.getItem('cbi_db')).schemaVersion, 7);
+  assert.equal(JSON.parse(localStorage.getItem('cbi_db')).schemaVersion, 8);
   assert.equal(JSON.parse(localStorage.getItem('cbi_db')).work.shop.projects[0].items[0].id, 'old_rollbahn');
 });
 
@@ -196,8 +196,41 @@ test('a new wish can wait without an active case or available money', () => {
     availableCharacters: ['cho'],
     wallet: {}
   });
-  assert.equal(sameDay.created, false);
-  assert.equal(sameDay.request.id, created.request.id);
+  assert.equal(sameDay.created, true);
+  assert.equal(sameDay.request.characterId, 'cho');
+  assert.notEqual(sameDay.request.id, created.request.id);
+  assert.equal(sameDay.db.work.caseFund.investigations.filter((item) => item.status === 'pending').length, 2);
+});
+
+test('wish desk checks every character independently and never rerolls the same day', () => {
+  const { CBIData } = load();
+  const first = CBIData.refreshWishRequests(CBIData.emptyDB(), {
+    date: '2026-09-01',
+    availableCharacters: ['rigsby', 'vanpelt'],
+    frequencies: { rigsby: 1, vanpelt: 1 }
+  });
+  assert.deepEqual(Array.from(first.checkedCharacters), ['rigsby', 'vanpelt']);
+  assert.equal(first.requests.length, 2);
+  assert.equal(first.requests.every((item) => item.status === 'pending'), true);
+  assert.match(first.requests[0].title + first.requests[1].title, /日式|日本|未来/);
+
+  const repeated = CBIData.refreshWishRequests(first.db, {
+    date: '2026-09-01',
+    availableCharacters: ['rigsby', 'vanpelt'],
+    frequencies: { rigsby: 1, vanpelt: 1 }
+  });
+  assert.equal(repeated.checkedCharacters.length, 0);
+  assert.equal(repeated.requests.length, 0);
+  assert.equal(repeated.reason, 'already_refreshed');
+
+  const quietDay = CBIData.refreshWishRequests(repeated.db, {
+    date: '2026-09-02',
+    availableCharacters: ['rigsby', 'vanpelt'],
+    frequencies: { rigsby: 0, vanpelt: 0 }
+  });
+  assert.equal(quietDay.checkedCharacters.length, 2);
+  assert.equal(quietDay.requests.length, 0);
+  assert.equal(quietDay.db.work.caseFund.investigations.filter((item) => item.status === 'pending').length, 2);
 });
 
 test('approving a wish spends allowance but never changes case progress', () => {
