@@ -82,8 +82,9 @@ api.renderRefList();
 assert.match(document.getElementById('refList').innerHTML, /object-position:25% 70%/, 'ref list applies saved cover position');
 api.openRefDetail('ref1');
 assert.match(document.getElementById('refDetailGrid').innerHTML, /2027/, 'ref renders section heading');
-assert.equal((document.getElementById('refDetailGrid').innerHTML.match(/class="cat-item collected ref-item/g) || []).length, 2, 'ref renders always-bright item cells');
-assert.match(document.getElementById('refDetailGrid').innerHTML, />图鉴<\/button>/, 'ref defaults to 图鉴 label');
+assert.match(document.getElementById('refDetailGrid').innerHTML, /class="section-divider"/, 'ref reuses the Food section divider layout');
+assert.equal((document.getElementById('refDetailGrid').innerHTML.match(/class="ref-item-cell collected/g) || []).length, 2, 'ref renders every item as an always-bright Food-style cell');
+assert.doesNotMatch(document.getElementById('refDetailGrid').innerHTML, /ref-mode-badge/, 'ref and List modes stay in the item editor instead of changing the grid format');
 
 api.toggleRefItemMode('ref1', 'ri1');
 let state = api.getDb();
@@ -125,4 +126,5 @@ assert.match(source, /pointerdown/, 'allocation pool includes pointer drag behav
 assert.match(source, /closest\('\.catalog-row\[data-catalog-id\]'\)/, 'drag behavior resolves List drop targets');
 assert.match(html, /id="refIconPosFrame"/, 'ref editor uses the Food-style draggable cover frame');
 assert.match(source, /r\.iconPositionX=iconPositionX;r\.iconPositionY=iconPositionY/, 'ref editor persists cover position');
+assert.match(html, /id="refItemModeSelect"[\s\S]*?>Ref<\/button>[\s\S]*?>List<\/button>/, 'Food-style item editor preserves Ref and List modes');
 console.log('techo ref flow: ok');

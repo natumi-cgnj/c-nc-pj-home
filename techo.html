@@ -176,6 +176,41 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 #refModal .btn-row{gap:8px;margin-top:20px}
 #refModal .btn{font-size:14px}
 
+/* Reference detail — same visual system as Food */
+#viewRefDetail{padding-bottom:64px}
+.ref-detail-header{padding:12px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #eee;background:#fff;position:sticky;top:0;z-index:50}
+.ref-detail-header h1{font-size:15px;font-weight:600;color:#333;letter-spacing:.5px;text-align:center;flex:1}
+.ref-detail-overall{padding:10px 20px;display:flex;align-items:center;gap:8px;font-size:11px;color:#bbb;background:#fff;border-bottom:1px solid #f5f5f5}
+.ref-detail-overall-bar{flex:1;height:3px;background:#f0f0f0;border-radius:2px;overflow:hidden}
+.ref-detail-overall-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,#E8B96A,#D4A24A);transition:width .3s}
+.ref-item-grid{padding:16px 0}
+#viewRefDetail .section-divider{display:flex;align-items:center;gap:10px;padding:10px 20px;background:#fafafa;border-bottom:1px solid #f0f0f0;cursor:default}
+#viewRefDetail .section-divider-line{flex:1;height:1px;background:#e0e0e0}
+#viewRefDetail .section-divider-center{display:flex;flex-direction:column;align-items:center;gap:1px;flex-shrink:0}
+#viewRefDetail .section-divider-label{font-size:11px;color:#999;font-weight:500;letter-spacing:.3px;cursor:text;border-bottom:1px dashed transparent;transition:color .15s,border-color .15s}
+#viewRefDetail .section-divider-label:hover{color:#8B6914;border-bottom-color:#D8C18B}
+.ref-section-grid{display:grid;gap:8px;padding:8px 20px 16px}
+.ref-item-cell{aspect-ratio:1;border-radius:10px;border:1.5px solid #E8B96A;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;position:relative;overflow:hidden;background:#FFFDF7}
+.ref-item-cell:active{transform:scale(.97)}
+.ref-item-cell .item-img{width:100%;height:100%;object-fit:contain;padding:5px;border-radius:9px;position:absolute;inset:0;background:#fff;filter:none}
+.ref-item-cell .item-label{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.5));color:#fff;font-size:10px;font-weight:500;padding:14px 5px 4px;border-radius:0 0 9px 9px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;z-index:1}
+.ref-item-cell:not(.has-img) .item-label{background:none;color:#ccc;position:static;font-size:9px;padding:0 4px;margin-top:2px;white-space:normal}
+.ref-add-item-btn{margin:0 20px 16px;padding:10px;border:1.5px dashed #ddd;border-radius:10px;background:#fff;font-size:12px;color:#aaa;cursor:pointer;text-align:center;font-family:inherit;width:calc(100% - 40px)}
+.ref-add-item-btn.gold{border-color:#E8B96A;color:#E8B96A}
+@media(min-width:700px){.ref-item-grid{width:100%;max-width:640px;margin-left:auto;margin-right:auto}.ref-add-item-btn{display:block;max-width:600px;margin-left:auto;margin-right:auto}}
+
+/* Reference item/section editors follow the Food modal rhythm */
+#refItemModal .ref-food-modal,#refSectionQuickModal .ref-food-modal{max-width:480px;padding:20px;animation:refEditorSlideUp .25s ease-out}
+#refItemModal .ref-food-modal h2,#refSectionQuickModal .ref-food-modal h2{font-size:15px;color:#333;margin-bottom:16px}
+#refItemModal .ref-food-modal label,#refSectionQuickModal .ref-food-modal label{font-size:12px;margin:12px 0 4px}
+#refItemModal .ref-food-modal input[type="text"],#refItemModal .ref-food-modal select,#refItemModal .ref-food-modal textarea,#refSectionQuickModal .ref-food-modal input[type="text"],#refSectionQuickModal .ref-food-modal input[type="number"],#refSectionQuickModal .ref-food-modal select{font-size:14px;padding:10px 12px;border-color:#e0e0e0;background:#fff;color:#1a1a1a}
+#refItemModal .ref-food-modal textarea{min-height:50px;height:auto;resize:vertical}
+#refItemModal .ref-food-modal .file-label{margin-top:4px;border-width:1px;color:#aaa}
+#refItemModal .ref-food-modal .img-preview{width:100%;height:auto;max-height:240px;object-fit:contain;border-radius:8px;margin-top:8px;background:#f7f7f7}
+#refItemModal .ref-food-modal .cat-select{margin-top:4px}
+#refItemModal .ref-food-modal .btn-row,#refSectionQuickModal .ref-food-modal .btn-row{gap:8px;margin-top:20px}
+#refItemModal .ref-food-modal .btn,#refSectionQuickModal .ref-food-modal .btn{font-size:14px}
+
 /* Section list in modal */
 .section-list{display:flex;flex-direction:column;gap:6px;margin-bottom:6px}
 .section-row{display:flex;gap:6px;align-items:center}
@@ -258,20 +293,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 <!-- Reference Detail View -->
 <div class="view" id="viewRefDetail">
-  <div class="detail-bar">
+  <div class="ref-detail-header">
     <a class="back" onclick="navTo('viewRef')">← Back</a>
     <h1 id="refDetailTitle"></h1>
-    <button class="btn-s" onclick="openEditRef()">Edit</button>
+    <button class="btn-s" aria-label="Edit reference" onclick="openEditRef()">⋯</button>
   </div>
-  <div class="detail-stats" id="refDetailStats"></div>
-  <div id="refDetailGrid"></div>
-  <div class="ref-comment-wrap" style="padding:16px 20px">
-    <textarea id="refComment" style="width:100%;min-height:80px;border:1px solid #e8e8e8;border-radius:10px;padding:12px;font-size:12px;font-family:inherit;background:#fafafa;resize:none;color:#666" onchange="saveRefComment()"></textarea>
-  </div>
-  <div class="detail-add-row">
-    <button class="add-btn gold" onclick="openAddRefItem()">New Title</button>
-    <button class="add-btn" onclick="openAddRefSection()">New Section</button>
-  </div>
+  <div class="ref-detail-overall" id="refDetailStats"></div>
+  <div class="ref-item-grid" id="refDetailGrid"></div>
+  <button class="ref-add-item-btn gold" onclick="openAddRefSection()">+ New Section</button>
+  <button class="ref-add-item-btn" onclick="openAddRefItem()">+ New Item</button>
 </div>
 
 <!-- Add/Edit Reference Modal -->
@@ -306,23 +336,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 <!-- Add Reference Item Modal -->
 <div class="modal-bg" id="refItemModal">
-<div class="modal">
-  <h2 id="refItemModalTitle">New Title</h2>
+<div class="modal ref-food-modal">
+  <h2 id="refItemModalTitle">New Item</h2>
   <div id="refItemSectionField" style="display:none">
     <label>Section</label>
     <select id="inputRefItemSection"></select>
   </div>
   <label>Name</label>
-  <input type="text" id="inputRefItemName">
-  <label>Cover</label>
-  <label class="file-label" id="refItemFileLabel">Select</label>
+  <input type="text" id="inputRefItemName" placeholder="Item name">
+  <label>Notes</label>
+  <textarea id="inputRefItemNote" placeholder="Optional notes"></textarea>
+  <label>Photo</label>
+  <label class="file-label" id="refItemFileLabel">Select image</label>
   <input type="file" accept="image/*" id="refItemImgInput" onchange="previewImg(this,'refItemImgPreview')" style="display:none">
   <img id="refItemImgPreview" class="img-preview" style="display:none">
-  <label>Notes</label>
-  <textarea id="inputRefItemNote"></textarea>
-  <label>Label</label>
+  <label>Mode</label>
   <div class="cat-select" id="refItemModeSelect">
-    <button type="button" class="cat-opt active" data-mode="ref" onclick="pickRefItemMode('ref')">图鉴</button>
+    <button type="button" class="cat-opt active" data-mode="ref" onclick="pickRefItemMode('ref')">Ref</button>
     <button type="button" class="cat-opt" data-mode="list" onclick="pickRefItemMode('list')">List</button>
   </div>
   <input type="hidden" id="refItemMode" value="ref">
@@ -336,7 +366,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 <!-- Reference Section Quick Edit Modal -->
 <div class="modal-bg" id="refSectionQuickModal">
-<div class="modal">
+<div class="modal ref-food-modal">
   <h2 id="refSectionQuickTitle">Edit Section</h2>
   <label>Name</label>
   <input type="text" id="inputQuickRefSectionName">
@@ -1067,28 +1097,24 @@ function openRefDetail(id){
   document.getElementById('refDetailTitle').textContent=r.name;
   const listCount=(r.items||[]).filter(item=>item.mode==='list').length;
   const queued=(r.items||[]).filter(item=>item.mode==='list'&&!item.listAssignment).length;
-  document.getElementById('refDetailStats').innerHTML=`<span>${r.items.length} 品目</span><span>${listCount} List${queued?' · '+queued+' 待分配':''}</span>`;
+  const listPct=r.items.length?Math.round(listCount/r.items.length*100):0;
+  document.getElementById('refDetailStats').innerHTML=`<span>${r.items.length} items</span><div class="ref-detail-overall-bar"><div class="ref-detail-overall-fill" style="width:${listPct}%"></div></div><span>${listCount} List${queued?' · '+queued+' queued':''}</span>`;
   let html='',offset=0;
   if(r.sections&&r.sections.length){
     r.sections.forEach((sec,sectionIdx)=>{
       const count=Math.max(0,parseInt(sec.count)||0),cols=clampCols(sec.cols);
-      html+=`<div class="cat-section-div"><div class="section-line"></div><span class="section-label section-label-editable" title="Double-click to edit section" ondblclick="event.stopPropagation();openRefSectionQuick(${sectionIdx})">${esc(sec.name||('Section '+(sectionIdx+1)))}</span><div class="section-line"></div></div>`;
-      html+=`<div class="catalog-grid" style="grid-template-columns:repeat(${cols},1fr)">${r.items.slice(offset,offset+count).map(item=>renderRefItem(r,item)).join('')}</div>`;
+      html+=`<div class="section-divider"><div class="section-divider-line"></div><div class="section-divider-center"><span class="section-divider-label" title="Double-click to edit section" ondblclick="event.stopPropagation();openRefSectionQuick(${sectionIdx})">${esc(sec.name||('Section '+(sectionIdx+1)))}</span></div><div class="section-divider-line"></div></div>`;
+      html+=`<div class="ref-section-grid" style="grid-template-columns:repeat(${cols},1fr)">${r.items.slice(offset,offset+count).map(item=>renderRefItem(r,item)).join('')}</div>`;
       offset+=count;
     });
   }
-  if(offset<r.items.length||!r.sections.length)html+=`<div class="catalog-grid" style="grid-template-columns:repeat(3,1fr)">${r.items.slice(offset).map(item=>renderRefItem(r,item)).join('')}</div>`;
+  if(offset<r.items.length||!r.sections.length)html+=`<div class="ref-section-grid" style="grid-template-columns:repeat(3,1fr)">${r.items.slice(offset).map(item=>renderRefItem(r,item)).join('')}</div>`;
   document.getElementById('refDetailGrid').innerHTML=html;
-  document.getElementById('refComment').value=r.comment||'';
   showView('viewRefDetail');
 }
 function renderRefItem(r,item){
-  const blank=isBlankRefItem(item),mode=item.mode==='list'?'list':'ref',assigned=!!item.listAssignment;
-  return`<div class="cat-item collected ref-item${item.img?'':' no-img'}" onclick="openEditRefItemById('${item.id}')">${item.img?`<img src="${item.img}" alt="" onerror="this.style.display='none'">`:''}<div class="cat-name">${esc(item.name)}</div><button class="ref-mode-badge ${mode}${assigned?' assigned':''}" onclick="event.stopPropagation();${blank?`openEditRefItemById('${item.id}')`:`toggleRefItemMode('${r.id}','${item.id}')`}">${mode==='list'?'List':'图鉴'}</button></div>`;
-}
-function saveRefComment(){
-  const r=db.refs.find(x=>x.id===curRefId);if(!r)return;
-  r.comment=document.getElementById('refComment').value;save();
+  const hasImg=!!item.img,hasCustomName=!isGenericRefItemName(item.name);
+  return`<div class="ref-item-cell collected${hasImg?' has-img':''}" onclick="openEditRefItemById('${item.id}')">${hasImg?`<img class="item-img" src="${item.img}" alt="" onerror="this.style.display='none'">`:''}${hasCustomName?`<span class="item-label">${esc(item.name)}</span>`:''}</div>`;
 }
 
 function getRefItemSectionIndex(r,itemIdx){
@@ -1150,7 +1176,7 @@ function openEditRef(){
   openModal('refModal');
 }
 function renderRefSections(){
-  document.getElementById('refSectionList').innerHTML=_refSections.map((s,i)=>`<div class="section-row"><input type="text" value="${esc(s.name||'')}" placeholder="Section" onchange="_refSections[${i}].name=this.value"><input type="number" value="${Math.max(0,parseInt(s.count)||0)}" min="0" max="999" onchange="_refSections[${i}].count=parseInt(this.value)||0"><select style="width:42px;padding:4px;border:1px solid #e8e8e8;border-radius:6px;font-size:11px" onchange="_refSections[${i}].cols=parseInt(this.value)||3">${[2,3,4,5].map(n=>`<option value="${n}"${clampCols(s.cols)===n?' selected':''}>${n}col</option>`).join('')}</select><button type="button" class="del-sec" onclick="_refSections.splice(${i},1);renderRefSections()">×</button></div>`).join('');
+  document.getElementById('refSectionList').innerHTML=_refSections.map((s,i)=>`<div class="section-row"><input type="text" value="${esc(s.name||'')}" placeholder="Section" onchange="_refSections[${i}].name=this.value"><input type="number" value="${Math.max(0,parseInt(s.count)||0)}" min="0" max="999" aria-label="Item count" onchange="_refSections[${i}].count=parseInt(this.value)||0"><select aria-label="Columns" onchange="_refSections[${i}].cols=parseInt(this.value)||3">${[2,3,4,5].map(n=>`<option value="${n}"${clampCols(s.cols)===n?' selected':''}>${n}col</option>`).join('')}</select><button type="button" class="del-sec" aria-label="Delete section" onclick="_refSections.splice(${i},1);renderRefSections()">×</button></div>`).join('');
 }
 function addRefSectionRow(){_refSections.push({name:'',count:0,cols:3});renderRefSections();}
 function saveRef(){
@@ -1202,17 +1228,19 @@ function saveRefSectionQuick(){
 }
 
 function openAddRefItem(){
-  editRefItemId=null;document.getElementById('refItemModalTitle').textContent='New Title';
+  editRefItemId=null;document.getElementById('refItemModalTitle').textContent='New Item';
   document.getElementById('inputRefItemName').value='';
   document.getElementById('inputRefItemNote').value='';
+  document.getElementById('refItemImgInput').value='';
   const preview=document.getElementById('refItemImgPreview');preview.removeAttribute('src');preview.style.display='none';
   document.getElementById('refItemDeleteBtn').style.display='none';pickRefItemMode('ref');prepareRefItemSectionSelect(-1);
   openModal('refItemModal');
 }
 function openEditRefItemById(itemId){
   const r=db.refs.find(x=>x.id===curRefId),index=r?r.items.findIndex(item=>item.id===itemId):-1;if(!r||index<0)return;
-  const item=r.items[index];editRefItemId=item.id;document.getElementById('refItemModalTitle').textContent='Edit Title';
+  const item=r.items[index];editRefItemId=item.id;document.getElementById('refItemModalTitle').textContent='Edit Item';
   document.getElementById('inputRefItemName').value=item.name||'';document.getElementById('inputRefItemNote').value=item.note||'';
+  document.getElementById('refItemImgInput').value='';
   const preview=document.getElementById('refItemImgPreview');if(item.img){preview.src=item.img;preview.style.display='block';}else{preview.removeAttribute('src');preview.style.display='none';}
   document.getElementById('refItemDeleteBtn').style.display='';pickRefItemMode(item.mode||'ref');prepareRefItemSectionSelect(getRefItemSectionIndex(r,index));openModal('refItemModal');
 }
