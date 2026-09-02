@@ -143,16 +143,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .tag-opt.selected[style*="--tag-c"]{border-color:var(--tag-c);color:var(--tag-c)}
 
 /* ── Modals ── */
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.25);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:200;display:none;align-items:flex-end;justify-content:center}
 .modal-bg.show{display:flex}
-.modal{background:#fff;border-radius:18px 18px 0 0;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;padding:22px 20px;animation:slideUp 0.25s ease-out;box-shadow:0 -8px 40px rgba(0,0,0,0.08)}
+.modal{background:#fff;border-radius:16px 16px 0 0;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;padding:20px;animation:slideUp 0.25s ease-out}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
-.modal h2{font-size:14px;font-weight:600;margin-bottom:16px;color:#333;letter-spacing:0.3px}
-.modal label{display:block;font-size:11px;color:#bbb;margin-bottom:4px;margin-top:14px;letter-spacing:0.3px}
-.modal input,.modal textarea,.modal select{width:100%;font-size:13px;padding:10px 12px;border:1px solid #e8e8e8;border-radius:8px;font-family:inherit;background:#fafafa;color:#1a1a1a;transition:border-color 0.15s}
-.modal input:focus,.modal textarea:focus,.modal select:focus{outline:none;border-color:#ccc;background:#fff}
+.modal h2{font-size:15px;font-weight:600;margin-bottom:16px;color:#333}
+.modal label{display:block;font-size:12px;color:#999;margin-bottom:4px;margin-top:12px}
+.modal input,.modal textarea,.modal select{width:100%;font-size:14px;padding:10px 12px;border:1px solid #e0e0e0;border-radius:8px;font-family:inherit;background:#fff;color:#1a1a1a}
+.modal input:focus,.modal textarea:focus,.modal select:focus{outline:none;border-color:#ccc}
 .btn-row{display:flex;gap:8px;margin-top:20px}
-.btn{flex:1;padding:11px;border:none;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;transition:opacity 0.15s;letter-spacing:0.2px}
+.btn{flex:1;padding:12px;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;transition:opacity 0.15s}
 .btn:active{opacity:0.8}
 .btn-primary{background:#1a1a1a;color:#fff}
 .btn-cancel{background:#f0f0f0;color:#888}
@@ -165,24 +165,33 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .confirm-box p{font-size:13px;color:#333;margin-bottom:16px;line-height:1.5}
 .confirm-box .btn-row{display:flex;gap:8px;justify-content:center}
 .confirm-box .btn{min-width:80px;flex:none;padding:10px 16px;font-size:12px}
-.cat-setting-row{display:flex;align-items:center;gap:6px;padding:10px 0;border-bottom:1px solid #f5f5f5}
+.cat-setting-row{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 70px 72px 26px;align-items:center;gap:6px;padding:10px 0 10px 15px;border-bottom:1px solid #f5f5f5;overflow:hidden}
 .cat-setting-row:last-child{border-bottom:none}
-.modal .cat-setting-row input.cat-setting-color{width:24px;height:24px;border:none;border-radius:50%;cursor:pointer;padding:0;flex-shrink:0}
+.cat-setting-color{position:absolute;left:0;top:0;bottom:0;width:20px;border:0;background:transparent;cursor:pointer;padding:0}
+.cat-setting-color:before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--cat-color);transition:width 0.15s}
+.cat-setting-color:active:before{width:5px}
 .modal .cat-setting-row input.cat-setting-name{flex:1;width:auto;font-size:12px;padding:6px 8px;border:1px solid #e8e8e8;border-radius:6px;min-width:0;font-family:inherit;background:#fafafa}
 .modal .cat-setting-row input.cat-setting-budget{width:66px;font-size:12px;padding:6px 8px;border:1px solid #e8e8e8;border-radius:6px;text-align:right;font-family:inherit;background:#fafafa}
 .modal .cat-setting-row select.cat-setting-account{width:64px;font-size:11px;padding:6px 5px;border:1px solid #e8e8e8;border-radius:6px;font-family:inherit;background:#fafafa;color:#777}
 .cat-setting-del{width:26px;height:26px;border:none;background:none;color:#ddd;font-size:14px;cursor:pointer;flex-shrink:0;border-radius:6px;transition:all 0.15s}
 .cat-setting-del:active{background:#fee;color:#D85A30}
+.category-color-modal{max-height:none}
+.category-color-picker{display:grid;grid-template-columns:repeat(8,28px);justify-content:center;gap:7px 8px;padding:8px 0 2px}
+.cat-color-swatch{position:relative;width:28px;height:28px;border:0;background:transparent;border-radius:50%;cursor:pointer;padding:0}
+.cat-color-swatch:before{content:'';position:absolute;width:16px;height:16px;left:6px;top:6px;border-radius:50%;background:var(--swatch-color);transition:transform 0.15s}
+.cat-color-swatch:active:before{transform:scale(1.15)}
+.cat-color-swatch.active:after{content:'';position:absolute;width:20px;height:20px;left:4px;top:4px;border:1.5px solid #333;border-radius:50%}
 @media(max-width:680px){
   .account-summary{padding:19px 14px 15px;min-height:108px}
   .account-remaining{font-size:27px}
   .category-card{padding:13px 14px}
   .cat-header{gap:6px}.cat-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.cat-budget{white-space:nowrap}
   .hist-row{gap:6px}.hist-date{font-size:8px}.hist-note{font-size:11px}
-  .modal .cat-setting-row{display:grid;grid-template-columns:24px minmax(0,1fr) 62px 24px;gap:6px}
-  .modal .cat-setting-row select.cat-setting-account{grid-column:2/3;width:100%}
-  .modal .cat-setting-row input.cat-setting-budget{grid-column:3/4;grid-row:1/3;width:62px}
-  .cat-setting-del{grid-column:4/5;grid-row:1/3}
+  .modal .cat-setting-row{grid-template-columns:minmax(0,1fr) 62px 24px;gap:6px}
+  .modal .cat-setting-row input.cat-setting-name{grid-column:1/2;grid-row:1}
+  .modal .cat-setting-row select.cat-setting-account{grid-column:1/2;grid-row:2;width:100%}
+  .modal .cat-setting-row input.cat-setting-budget{grid-column:2/3;grid-row:1/3;width:62px}
+  .cat-setting-del{grid-column:3/4;grid-row:1/3}
 }
 </style>
 </head>
@@ -342,6 +351,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <button class="btn btn-cancel" style="margin-bottom:8px;width:100%" onclick="exportWallet()">导出数据</button>
     <button class="btn btn-cancel" style="width:100%" onclick="document.getElementById('importWalletFile').click()">导入数据</button>
     <input type="file" id="importWalletFile" accept=".json" onchange="importWallet(this)" style="display:none">
+  </div>
+</div>
+
+<!-- Fixed category color palette -->
+<div class="modal-bg" id="categoryColorModal">
+  <div class="modal category-color-modal">
+    <h2 id="categoryColorTitle">选择颜色</h2>
+    <div class="category-color-picker" id="categoryColorPicker"></div>
+    <div class="btn-row" style="margin-top:16px">
+      <button class="btn btn-cancel" onclick="closeCategoryColorPicker()">取消</button>
+    </div>
   </div>
 </div>
 
@@ -587,7 +607,7 @@ var _toastTimer=null;
 function showToast(msg){var el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(_toastTimer);_toastTimer=setTimeout(function(){el.classList.remove('show');},2200);}
 function openModal(id){document.getElementById(id).classList.add('show');}
 function closeModal(id){document.getElementById(id).classList.remove('show');}
-document.querySelectorAll('.modal-bg').forEach(function(bg){bg.addEventListener('click',function(e){if(e.target===bg)closeModal(bg.id);});});
+document.querySelectorAll('.modal-bg').forEach(function(bg){bg.addEventListener('click',function(e){if(e.target!==bg)return;if(bg.id==='categoryColorModal')closeCategoryColorPicker();else closeModal(bg.id);});});
 
 /* Tabs */
 function switchTab(viewId,btn){
@@ -695,7 +715,7 @@ function renderCategoryCards(account){
     var ct=getCategoryToday(cat.id);
     var pct=cat.dailyBudget>0?Math.min(100,Math.round(ct.net/cat.dailyBudget*100)):0;
     var surplus=cat.dailyBudget-ct.net;
-    return '<div class="category-card"><div class="cat-header"><span class="cat-name" style="color:'+cat.color+'">'+esc(cat.name)+'</span><span class="cat-budget">日额 ¥'+cat.dailyBudget+'</span></div><div class="cat-bar"><div class="cat-bar-fill" style="width:'+Math.max(0,pct)+'%;background:'+cat.color+'"></div></div><div class="cat-stats"><span>支出 ¥'+ct.spent+(ct.earned?' / 收入 ¥'+ct.earned:'')+'</span><span class="'+(surplus>=0?'positive':'negative')+'">'+(surplus>=0?'+':'')+'¥'+surplus+'</span></div></div>';
+    return '<div class="category-card" style="border-left:3px solid '+cat.color+'"><div class="cat-header"><span class="cat-name">'+esc(cat.name)+'</span><span class="cat-budget">日额 ¥'+cat.dailyBudget+'</span></div><div class="cat-bar"><div class="cat-bar-fill" style="width:'+Math.max(0,pct)+'%;background:'+cat.color+'"></div></div><div class="cat-stats"><span>支出 ¥'+ct.spent+(ct.earned?' / 收入 ¥'+ct.earned:'')+'</span><span class="'+(surplus>=0?'positive':'negative')+'">'+(surplus>=0?'+':'')+'¥'+surplus+'</span></div></div>';
   }).join('')||'<div style="padding:18px 14px;color:#ccc;font-size:10px;text-align:center">还没有分类</div>';
 }
 function renderLedger(){
@@ -973,14 +993,16 @@ function renderCollection(){
 }
 
 /* ═══ SETTINGS ═══ */
+var CATEGORY_COLORS=['#9B8AE8','#6B5ACD','#D85A30','#E84A7A','#E8B96A','#C7A24C','#9B6BCC','#4AADE8','#3A8DD4','#5BA66B','#3D8B50','#6B8AFF','#4A6AE0','#888888','#B0805A','#4ECDC4'];
 var _settingsCache=[];
+var _editingCategoryColorIndex=-1;
 function renderBudgetSettings(){
   _settingsCache=db.categories.map(function(c){return{id:c.id,name:c.name,dailyBudget:c.dailyBudget,color:c.color,account:categoryAccount(c),activeFrom:c.activeFrom||todayStr()};});
   renderSettingsRows();
 }
 function renderSettingsRows(){
   document.getElementById('budgetSettings').innerHTML=_settingsCache.map(function(cat,i){
-    return '<div class="cat-setting-row"><input type="color" class="cat-setting-color" data-i="'+i+'" value="'+cat.color+'" title="颜色"><input type="text" class="cat-setting-name" data-i="'+i+'" value="'+esc(cat.name)+'" placeholder="分类名"><select class="cat-setting-account" data-i="'+i+'" aria-label="资金池"><option value="living"'+(cat.account==='living'?' selected':'')+'>生活</option><option value="entertainment"'+(cat.account==='entertainment'?' selected':'')+'>娱乐</option></select><input type="number" class="cat-setting-budget" data-i="'+i+'" value="'+cat.dailyBudget+'" min="0" step="50" placeholder="日额"><button class="cat-setting-del" data-i="'+i+'" onclick="removeSettingsRow('+i+')" title="删除">×</button></div>';
+    return '<div class="cat-setting-row" data-color="'+cat.color+'" style="--cat-color:'+cat.color+'"><button type="button" class="cat-setting-color" onclick="openCategoryColorPicker('+i+')" aria-label="选择'+esc(cat.name||'分类')+'的颜色"></button><input type="text" class="cat-setting-name" data-i="'+i+'" value="'+esc(cat.name)+'" placeholder="分类名"><select class="cat-setting-account" data-i="'+i+'" aria-label="资金池"><option value="living"'+(cat.account==='living'?' selected':'')+'>生活</option><option value="entertainment"'+(cat.account==='entertainment'?' selected':'')+'>娱乐</option></select><input type="number" class="cat-setting-budget" data-i="'+i+'" value="'+cat.dailyBudget+'" min="0" step="50" placeholder="日额"><button class="cat-setting-del" data-i="'+i+'" onclick="removeSettingsRow('+i+')" title="删除">×</button></div>';
   }).join('');
 }
 function syncSettingsCacheFromRows(){
@@ -989,10 +1011,34 @@ function syncSettingsCacheFromRows(){
     _settingsCache[i]=Object.assign({},_settingsCache[i],{
       name:row.querySelector('.cat-setting-name').value,
       dailyBudget:row.querySelector('.cat-setting-budget').value,
-      color:row.querySelector('.cat-setting-color').value,
+      color:row.getAttribute('data-color')||_settingsCache[i].color,
       account:row.querySelector('.cat-setting-account').value==='living'?'living':'entertainment'
     });
   });
+}
+function renderCategoryColorPicker(){
+  var active=_settingsCache[_editingCategoryColorIndex]&&_settingsCache[_editingCategoryColorIndex].color;
+  document.getElementById('categoryColorPicker').innerHTML=CATEGORY_COLORS.map(function(color){
+    return '<button type="button" class="cat-color-swatch'+(color.toLowerCase()===String(active||'').toLowerCase()?' active':'')+'" style="--swatch-color:'+color+'" onclick="pickCategoryColor(\''+color+'\')" aria-label="选择颜色 '+color+'" aria-pressed="'+(color.toLowerCase()===String(active||'').toLowerCase())+'"></button>';
+  }).join('');
+}
+function openCategoryColorPicker(i){
+  syncSettingsCacheFromRows();
+  if(!_settingsCache[i])return;
+  _editingCategoryColorIndex=i;
+  document.getElementById('categoryColorTitle').textContent=(_settingsCache[i].name||'未命名分类')+' · 颜色';
+  renderCategoryColorPicker();
+  openModal('categoryColorModal');
+}
+function closeCategoryColorPicker(){
+  _editingCategoryColorIndex=-1;
+  closeModal('categoryColorModal');
+}
+function pickCategoryColor(color){
+  if(_editingCategoryColorIndex<0||CATEGORY_COLORS.indexOf(color)<0)return;
+  _settingsCache[_editingCategoryColorIndex].color=color;
+  closeCategoryColorPicker();
+  renderSettingsRows();
 }
 function removeSettingsRow(i){
   syncSettingsCacheFromRows();
@@ -1004,25 +1050,22 @@ function removeSettingsRow(i){
 }
 function addCategory(){
   syncSettingsCacheFromRows();
-  var colors=['#4AADE8','#9B6BCC','#E84A7A','#5BA66B','#E8B96A','#D85A30','#6B8AFF','#888888'];
-  var c=colors[_settingsCache.length%colors.length];
+  var c=CATEGORY_COLORS[_settingsCache.length%CATEGORY_COLORS.length];
   _settingsCache.push({id:'cat_'+gid(),name:'',dailyBudget:300,color:c,account:'entertainment',activeFrom:todayStr()});
   renderSettingsRows();
   var rows=document.querySelectorAll('.cat-setting-name');
   if(rows.length)rows[rows.length-1].focus();
 }
 function saveBudgetSettings(){
-  // Read current values from inputs
-  var rows=document.querySelectorAll('.cat-setting-row');
+  syncSettingsCacheFromRows();
   var newCats=[];
-  rows.forEach(function(row,i){
-    var name=row.querySelector('.cat-setting-name').value.trim();
+  _settingsCache.forEach(function(cat){
+    var name=String(cat.name||'').trim();
     if(!name)return;
-    var color=row.querySelector('.cat-setting-color').value;
-    var budget=parseInt(row.querySelector('.cat-setting-budget').value)||0;
-    var account=row.querySelector('.cat-setting-account').value==='living'?'living':'entertainment';
-    var existing=_settingsCache[i];
-    newCats.push({id:existing?existing.id:('cat_'+gid()),name:name,dailyBudget:budget,color:color,account:account,activeFrom:existing&&existing.activeFrom?existing.activeFrom:todayStr()});
+    var color=/^#[0-9a-f]{6}$/i.test(String(cat.color||''))?cat.color:'#888888';
+    var budget=parseInt(cat.dailyBudget)||0;
+    var account=cat.account==='living'?'living':'entertainment';
+    newCats.push({id:cat.id||('cat_'+gid()),name:name,dailyBudget:budget,color:color,account:account,activeFrom:cat.activeFrom||todayStr()});
   });
   if(!newCats.some(function(category){return category.account==='living';})||!newCats.some(function(category){return category.account==='entertainment';})){showToast('生活和娱乐账户各要保留一个分类');return;}
   db.categories=newCats;

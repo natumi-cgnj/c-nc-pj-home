@@ -69,6 +69,12 @@ test('wallet page exposes split pools, full history and pending expenses', () =>
   assert.match(html, /销一点挂账/);
   assert.match(html, /activeFrom/);
   assert.match(html, /\.pending-add\{[^}]*font-size:10px/);
+  assert.match(html, /category-card" style="border-left:3px solid/);
+  assert.match(html, /var CATEGORY_COLORS=\[/);
+  assert.match(html, /id="categoryColorPicker"/);
+  assert.match(html, /\.cat-color-swatch:before\{/);
+  assert.match(html, /\.modal\{background:#fff;border-radius:16px 16px 0 0/);
+  assert.doesNotMatch(html, /<input type="color" class="cat-setting-color"/);
 });
 
 test('adding or removing a category preserves every unsaved settings-row edit', () => {
@@ -80,14 +86,16 @@ test('adding or removing a category preserves every unsaved settings-row edit', 
   const values = {
     '.cat-setting-name': '改过的名称',
     '.cat-setting-budget': '2750',
-    '.cat-setting-color': '#87977f',
     '.cat-setting-account': 'entertainment'
   };
   const context = vm.createContext({
     _settingsCache: draft,
     Object,
     document: {
-      querySelectorAll: () => [{ querySelector: selector => ({ value: values[selector] }) }]
+      querySelectorAll: () => [{
+        getAttribute: attribute => attribute === 'data-color' ? '#87977f' : null,
+        querySelector: selector => ({ value: values[selector] })
+      }]
     }
   });
   vm.runInContext(html.slice(start, end) + '\nsyncSettingsCacheFromRows();', context);
