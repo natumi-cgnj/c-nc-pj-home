@@ -39,6 +39,7 @@
       'body[data-cbi-wallet="1"] .top-bar .back-btn{justify-self:start}',
       'body[data-cbi-wallet="1"] .top-bar .btn-s{justify-self:end;border:0;padding:5px 0;color:#bbb}',
       'body[data-cbi-wallet="1"] .top-bar h1{color:#8d8579;letter-spacing:3.2px;font-size:12px;white-space:nowrap}',
+      'body[data-cbi-wallet="1"] .month-budget-status:disabled{opacity:1;color:#bbb;cursor:default}',
       'body[data-cbi-wallet="1"] .tab-bar{background:rgba(255,255,255,.94);padding:0 12px env(safe-area-inset-bottom,0)}',
       'body[data-cbi-wallet="1"] .tab-bar button{position:relative;padding:15px 0 13px;font-size:10px;letter-spacing:.25px;color:#bbb;display:block}',
       'body[data-cbi-wallet="1"] .tab-bar button.active{color:#4e4a44}',
@@ -115,6 +116,23 @@
   function closeModal(id) {
     var element = document.getElementById(id);
     if (element) element.classList.remove('show');
+  }
+
+  function renderHeader(viewId) {
+    var title = document.querySelector('.top-bar h1');
+    var subtitle = document.getElementById('monthBudgetStatus');
+    if (!title || !subtitle) return;
+    if (viewId === 'viewTreasury') {
+      title.textContent = 'WISH DESK';
+      subtitle.textContent = '累计达成愿望' + global.CBIData.wishSpend(load()) + '円';
+      subtitle.disabled = true;
+      document.title = 'Wish Desk · CBI';
+      return;
+    }
+    title.textContent = 'REALITY WALLET';
+    subtitle.disabled = false;
+    if (typeof global.renderMonthBudgetStatus === 'function') global.renderMonthBudgetStatus();
+    document.title = 'Reality Wallet · CBI';
   }
 
   function renderTreasury() {
@@ -225,6 +243,8 @@
         ? history.map(function (item) { return historyCard(db, item); }).join('')
         : '<div class="cbi-log-empty" style="padding:22px">还没有已结算记录</div>';
     }
+    var treasuryView = document.getElementById('viewTreasury');
+    if (treasuryView && treasuryView.classList.contains('active')) renderHeader('viewTreasury');
   }
 
   function generateWish() {
@@ -261,6 +281,7 @@
   function renderView(viewId) {
     if (viewId === 'viewLedger') global.renderLedger();
     else if (viewId === 'viewTreasury') renderTreasury();
+    renderHeader(viewId);
   }
 
   function switchView(viewId, button) {
@@ -320,7 +341,6 @@
     document.body.dataset.cbiWallet = '1';
     injectStyles();
     document.title = 'Reality Wallet · CBI';
-    document.querySelector('.top-bar h1').textContent = 'REALITY WALLET';
     var treasuryView = document.getElementById('viewTreasury');
     var wishBanner = document.getElementById('periodBanner');
     var wishCards = document.getElementById('outingCards');

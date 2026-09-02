@@ -24,3 +24,16 @@ test('CBI wish desk and purchase history are independent sibling folds', () => {
   assert.match(mount, /treasuryView\.appendChild\(wishDesk\);\s*treasuryView\.appendChild\(purchaseHistoryFold\)/);
   assert.doesNotMatch(mount, /wishDesk\.appendChild\(purchaseHistoryFold\)/);
 });
+
+test('CBI reimbursement tab owns its Wish Desk title and fulfilled total', () => {
+  const headerStart = cbiWallet.indexOf('function renderHeader(viewId)');
+  const headerEnd = cbiWallet.indexOf('function renderTreasury()', headerStart);
+  const header = cbiWallet.slice(headerStart, headerEnd);
+
+  assert.match(header, /title\.textContent = 'WISH DESK'/);
+  assert.match(header, /global\.CBIData\.wishSpend\(load\(\)\)/);
+  assert.match(header, /subtitle\.textContent = '累计达成愿望'/);
+  assert.match(header, /subtitle\.disabled = true/);
+  assert.match(header, /title\.textContent = 'REALITY WALLET'/);
+  assert.match(header, /subtitle\.disabled = false/);
+});

@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="Wallet">
 <title>Wallet</title>
 <style>
+html{scrollbar-gutter:stable}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;background:#FAFAFA;color:#1a1a1a;min-height:100vh;min-height:100dvh;padding-bottom:72px}
 
@@ -16,6 +17,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .top-bar h1{font-size:13px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:#999}
 .wallet-title{display:flex;min-width:0;flex-direction:column;align-items:center;gap:3px}
 .month-budget-status{border:0;background:none;padding:0;color:#bbb;font-family:inherit;font-size:9px;font-weight:400;line-height:1.2;letter-spacing:1.2px;white-space:nowrap;cursor:pointer}
+.month-budget-status:disabled{opacity:1;color:#bbb;cursor:default}
 .back-btn{font-size:13px;color:#bbb;text-decoration:none;cursor:pointer;background:none;border:none;font-family:inherit;padding:4px;transition:color 0.15s}
 .back-btn:active{color:#666}
 .btn-s{font-size:11px;color:#999;background:none;border:1px solid #ddd;border-radius:6px;padding:5px 10px;cursor:pointer;font-family:inherit;transition:all 0.15s}
@@ -65,6 +67,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .hist-amount.expense{color:#D85A30}
 .hist-amount.income{color:#5BA66B}
 .hist-note{color:#777;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}
+.hist-editable{transition:color .15s,background .15s}
+.hist-editable:not(.editing){cursor:text}
+.hist-cat.hist-editable:not(.editing){cursor:pointer}
+.hist-editable:not(.editing):hover{color:#4f4b45;background:#faf9f7}
+.hist-editable.editing{padding-top:0;padding-bottom:0;overflow:visible}
+.hist-inline-input,.hist-inline-select{display:block;min-width:0;width:100%;height:27px;padding:3px 6px;border:1px solid #ddd8cf;border-radius:5px;background:#fff;color:#555;font:inherit;line-height:1.2;outline:none}
+.hist-inline-input:focus,.hist-inline-select:focus{border-color:#b9ad99;box-shadow:0 0 0 2px rgba(185,173,153,.12)}
+.hist-date .hist-inline-input{width:112px;font-size:10px}
+.hist-cat .hist-inline-select{width:118px;font-size:10px}
+.hist-note .hist-inline-input{font-size:12px}
+.hist-amount .hist-inline-input{width:82px;font-size:12px;text-align:right}
 .hist-del{font-size:13px;color:#ddd;background:none;border:none;cursor:pointer;padding:2px 4px;border-radius:4px;transition:color 0.15s}
 .hist-del:active{color:#D85A30}
 .ledger-fold{background:#fafafa;border:0;border-bottom:1px solid #eeeeec}
@@ -454,7 +467,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <script src="cloud-sync.js?v=20260824-cbi-work1"></script>
 <script src="cbi-data.js?v=20260902-balance1"></script>
 <script src="character-runtime.js?v=20260824-wallet-fix1"></script>
-<script src="cbi-wallet.js?v=20260902-history-fold1"></script>
+<script src="cbi-wallet.js?v=20260903-wish-header1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 var SK='wallet_db';
@@ -874,7 +887,8 @@ function renderLedger(){
     var cat=db.categories.find(function(c){return c.id===r.category;});
     var catColor=cat?cat.color:'#999';
     var catName=cat?cat.name:r.category;
-    histHtml+='<div class="hist-row"><span class="hist-date">'+esc(r.date||'—')+'</span><span class="hist-cat" style="background:'+catColor+'20;color:'+catColor+'">'+esc(catName)+'</span><span class="hist-note">'+esc(r.note||'—')+'</span><span class="hist-amount '+(r.type==='expense'?'expense':'income')+'">'+(r.type==='expense'?'-':'+')+'¥'+r.amount+'</span><button class="hist-del" onclick="deleteRecord(\''+r.id+'\')">×</button></div>';
+    var recordId=esc(r.id);
+    histHtml+='<div class="hist-row"><span class="hist-date hist-editable" data-record-id="'+recordId+'" data-record-field="date" title="双击编辑日期">'+esc(r.date||'—')+'</span><span class="hist-cat hist-editable" data-record-id="'+recordId+'" data-record-field="category" title="双击调整分类" style="background:'+catColor+'20;color:'+catColor+'">'+esc(catName)+'</span><span class="hist-note hist-editable" data-record-id="'+recordId+'" data-record-field="note" title="双击编辑详情">'+esc(r.note||'—')+'</span><span class="hist-amount hist-editable '+(r.type==='expense'?'expense':'income')+'" data-record-id="'+recordId+'" data-record-field="amount" title="双击编辑金额">'+(r.type==='expense'?'-':'+')+'¥'+r.amount+'</span><button class="hist-del" onclick="deleteRecord(\''+r.id+'\')">×</button></div>';
   });
   document.getElementById('todayHistory').innerHTML=histHtml;
   renderPendingExpenses();
@@ -918,6 +932,76 @@ function deleteRecord(id){
     save();renderLedger();
   },{yes:'删除',danger:true});
 }
+function editRecordField(target,id,field){
+  if(!target||target.classList.contains('editing'))return;
+  var record=db.records.find(function(item){return item.id===id;});
+  if(!record)return;
+  var control;
+  if(field==='category'){
+    control=document.createElement('select');
+    control.className='hist-inline-select';
+    ['living','entertainment'].forEach(function(account){
+      var categories=db.categories.filter(function(category){return categoryAccount(category)===account;});
+      if(!categories.length)return;
+      var group=document.createElement('optgroup');
+      group.label=account==='living'?'生活账户':'娱乐账户';
+      categories.forEach(function(category){
+        var option=document.createElement('option');
+        option.value=category.id;
+        option.textContent=category.name;
+        option.selected=category.id===record.category;
+        group.appendChild(option);
+      });
+      control.appendChild(group);
+    });
+  }else{
+    control=document.createElement('input');
+    control.className='hist-inline-input';
+    control.type=field==='date'?'date':(field==='amount'?'number':'text');
+    control.value=field==='note'?(record.note||''):record[field];
+    if(field==='amount'){control.min='1';control.step='1';}
+    if(field==='note')control.maxLength=120;
+  }
+  control.setAttribute('aria-label',{date:'编辑日期',category:'调整分类',note:'编辑详情',amount:'编辑金额'}[field]||'编辑记录');
+  target.classList.add('editing');
+  target.textContent='';
+  target.appendChild(control);
+  var finished=false;
+  function finish(commit){
+    if(finished)return;
+    if(!commit){finished=true;renderLedger();return;}
+    var value=control.value;
+    if(field==='amount'){
+      value=Math.floor(Number(value)||0);
+      if(value<=0){showToast('请输入有效金额');control.focus();return;}
+    }else if(field==='date'){
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(value)){showToast('请选择有效日期');control.focus();return;}
+    }else if(field==='category'){
+      if(!db.categories.some(function(category){return category.id===value;})){showToast('请选择分类');control.focus();return;}
+    }else if(field==='note'){
+      value=String(value||'').trim();
+    }
+    record[field]=value;
+    finished=true;
+    save();
+    renderLedger();
+    showToast(({date:'日期',category:'分类',note:'详情',amount:'金额'}[field]||'记录')+'已更新');
+  }
+  control.addEventListener('keydown',function(event){
+    if(event.key==='Enter'){event.preventDefault();finish(true);}
+    else if(event.key==='Escape'){event.preventDefault();finish(false);}
+  });
+  if(field==='category')control.addEventListener('change',function(){finish(true);});
+  control.addEventListener('blur',function(){finish(true);});
+  control.focus();
+  if(control.select&&field!=='category'&&field!=='date')control.select();
+}
+document.getElementById('todayHistory').addEventListener('dblclick',function(event){
+  var target=event.target.closest&&event.target.closest('[data-record-field]');
+  if(!target)return;
+  event.preventDefault();
+  editRecordField(target,target.getAttribute('data-record-id'),target.getAttribute('data-record-field'));
+});
 
 /* ═══ PENDING EXPENSES ═══ */
 function renderPendingExpenses(){

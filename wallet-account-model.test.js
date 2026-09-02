@@ -62,6 +62,37 @@ test('reimbursement reads living funds without obsolete wallet-side deductions',
   assert.equal(CBIData.unassignedAllowance(db, wallet), 907);
 });
 
+test('negative living carryover is retained while spendable reimbursement floors at zero', () => {
+  const CBIData = loadData();
+  const wallet = {
+    categories: [{ id: 'living', name: '生活', dailyBudget: 100, account: 'living', activeFrom: '2026-09-01' }],
+    records: [{ date: '2026-09-01', category: 'living', type: 'expense', amount: 120 }],
+    charFunds: {}, outings: []
+  };
+  const db = CBIData.emptyDB();
+
+  assert.equal(CBIData.walletAccountSurplus(wallet, 'living'), -20);
+  assert.equal(CBIData.reimbursementFundFromWallet(wallet), 0);
+  assert.equal(CBIData.availableAllowance(db, wallet), 0);
+
+  wallet.records.push({ date: '2026-09-02', category: 'living', type: 'expense', amount: 0 });
+  assert.equal(CBIData.walletAccountSurplus(wallet, 'living'), 80);
+  assert.equal(CBIData.availableAllowance(db, wallet), 80);
+});
+
+test('fulfilled wish total includes approved reimbursements and autonomous purchases only', () => {
+  const CBIData = loadData();
+  const db = CBIData.emptyDB();
+  db.work.caseFund.investigations = [
+    { id: 'approved', source: 'wishlist', amount: 950, status: 'approved' },
+    { id: 'auto', source: 'wishlist', amount: 1200, status: 'auto' },
+    { id: 'pending', source: 'wishlist', amount: 3200, status: 'pending' },
+    { id: 'declined', source: 'wishlist', amount: 800, status: 'declined' }
+  ];
+
+  assert.equal(CBIData.wishSpend(db), 2150);
+});
+
 test('negative allocation reclaims personal allowance without going below zero', () => {
   const CBIData = loadData();
   const wallet = {
@@ -98,12 +129,18 @@ test('wallet page exposes split pools, full history and pending expenses', () =>
   assert.match(html, /\.cat-color-swatch:before\{/);
   assert.match(html, /id="monthBudgetStatus"/);
   assert.match(html, /\.month-budget-status\{[^}]*font-size:9px/);
+  assert.match(html, /html\{scrollbar-gutter:stable\}/);
   assert.match(html, /compactBudgetMonthLabel\(monthKey\)\+'预算'/);
   assert.match(html, /monthlyBudgets:\{\}/);
   assert.match(html, /schemaVersion:4/);
   assert.match(html, /class="add-category-btn"/);
   assert.match(html, /\.modal\{background:#fff;border-radius:16px 16px 0 0/);
   assert.doesNotMatch(html, /<input type="color" class="cat-setting-color"/);
+  for (const field of ['date', 'category', 'note', 'amount']) {
+    assert.match(html, new RegExp('data-record-field="' + field + '"'));
+  }
+  assert.match(html, /function editRecordField\(target,id,field\)/);
+  assert.match(html, /addEventListener\('dblclick'/);
 });
 
 test('monthly plans use the real month length and inherit the latest budget', () => {
