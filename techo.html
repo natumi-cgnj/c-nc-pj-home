@@ -171,6 +171,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .ref-cover-hint-text{font-size:10px;color:#bbb}
 .ref-cover-reset{font-size:10px;color:#aaa;background:none;border:1px solid #e0e0e0;border-radius:6px;padding:2px 8px;cursor:pointer;font-family:inherit}
 .ref-cover-reset:hover{color:#888;border-color:#ccc}
+.ref-label-row{display:flex;gap:5px;align-items:center;margin-top:6px;flex-wrap:wrap}
+#refModal .ref-label-row input{flex:1 1 160px;min-width:140px;font-size:12px;padding:6px 8px}
+.ref-color-picker{display:flex;gap:3px;align-items:center;flex-wrap:wrap}
+.ref-color-swatch{width:14px;height:14px;border-radius:50%;border:1.5px solid transparent;padding:0;cursor:pointer;transition:border-color .15s,transform .15s}
+.ref-color-swatch:active{transform:scale(1.15)}
+.ref-color-swatch.active{border-color:#333}
+.ref-project-label{font-size:9px;font-weight:500;letter-spacing:.5px;display:inline-block;padding:1px 6px;border-radius:4px;margin-left:4px}
 #refModal .section-list{margin-top:8px;gap:0}
 #refModal .section-row{gap:6px;padding:8px 0;border-bottom:1px solid #f5f5f5;flex-wrap:wrap}
 #refModal .section-row input[type="text"]{flex:1 1 90px;min-width:70px;font-size:12px;padding:6px 8px;border-color:#e8e8e8;border-radius:6px}
@@ -195,11 +202,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 #viewRefDetail .section-divider-label{font-size:11px;color:#999;font-weight:500;letter-spacing:.3px;cursor:text;border-bottom:1px dashed transparent;transition:color .15s,border-color .15s}
 #viewRefDetail .section-divider-label:hover{color:#8B6914;border-bottom-color:#D8C18B}
 .ref-section-grid{display:grid;gap:8px;padding:8px 20px 16px}
-.ref-item-cell{aspect-ratio:1;border-radius:10px;border:1.5px solid #E8B96A;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;position:relative;overflow:hidden;background:#FFFDF7}
+.ref-item-cell{aspect-ratio:1;border-radius:10px;border:1.5px solid #E8B96A;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;position:relative;overflow:hidden;background:#FFFDF7;touch-action:pan-y}
 .ref-item-cell:active{transform:scale(.97)}
 .ref-item-cell .item-img{width:100%;height:100%;object-fit:contain;padding:5px;border-radius:9px;position:absolute;inset:0;background:#fff;filter:none}
 .ref-item-cell .item-label{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.5));color:#fff;font-size:10px;font-weight:500;padding:14px 5px 4px;border-radius:0 0 9px 9px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;z-index:1}
 .ref-item-cell:not(.has-img) .item-label{background:none;color:#ccc;position:static;font-size:9px;padding:0 4px;margin-top:2px;white-space:normal}
+#viewRefDetail.ref-item-arrange-mode .ref-item-cell{cursor:grab;touch-action:none;-webkit-touch-callout:none;user-select:none}
+#viewRefDetail.ref-item-arrange-mode .section-divider-label{pointer-events:none}
+#viewRefDetail.ref-item-arrange-mode .ref-add-item-btn{pointer-events:none;opacity:.35;transition:opacity .25s}
+.ref-item-cell.drag-source{opacity:.2;transition:opacity .15s}
+.ref-item-cell.drop-target{box-shadow:0 0 0 2px rgba(232,185,106,.7);border-color:rgba(232,185,106,.6);transition:box-shadow .15s,border-color .15s}
+.ref-item-drag-ghost{position:fixed!important;margin:0!important;z-index:500;pointer-events:none;opacity:.88;transform:scale(1.04) rotate(.8deg);box-shadow:0 10px 32px rgba(0,0,0,.18);border-radius:10px}
 .ref-add-item-btn{margin:0 20px 16px;padding:10px;border:1.5px dashed #ddd;border-radius:10px;background:#fff;font-size:12px;color:#aaa;cursor:pointer;text-align:center;font-family:inherit;width:calc(100% - 40px)}
 .ref-add-item-btn.gold{border-color:#E8B96A;color:#E8B96A}
 @media(min-width:700px){.ref-item-grid{width:100%;max-width:640px;margin-left:auto;margin-right:auto}.ref-add-item-btn{display:block;max-width:600px;margin-left:auto;margin-right:auto}}
@@ -301,7 +314,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <div class="ref-detail-header">
     <a class="back" onclick="navTo('viewRef')">← Back</a>
     <h1 id="refDetailTitle"></h1>
-    <button class="btn-s" aria-label="Edit reference" onclick="openEditRef()">⋯</button>
+    <button class="btn-s" id="refDetailHeaderBtn" aria-label="Edit reference" onclick="handleRefDetailHeaderButton()">⋯</button>
   </div>
   <div class="ref-detail-overall" id="refDetailStats"></div>
   <div class="ref-item-grid" id="refDetailGrid"></div>
@@ -332,6 +345,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <button class="add-section-btn" type="button" onclick="addRefSectionRow()">+ Section</button>
   <label>Notes</label>
   <textarea id="inputRefNote" placeholder="Optional notes"></textarea>
+  <label>Label (optional)</label>
+  <div class="ref-label-row">
+    <input type="text" id="inputRefLabel" placeholder="e.g. 2027" maxlength="20">
+    <div class="ref-color-picker" id="refColorPicker"></div>
+  </div>
   <div class="btn-row">
     <button class="btn btn-cancel" onclick="closeModal('refModal')">Cancel</button>
     <button class="btn btn-primary" onclick="saveRef()">Save</button>
@@ -528,8 +546,11 @@ let db={items:[],sections:[],catalogs:[],refs:[],sectionCollapsed:{},shelfCollap
 let curCatalogId=null,curRefId=null,editItemId=null,editCatalogId=null,editRefId=null,editCatItemIdx=null,editCatSectionIdx=null;
 let editRefItemId=null,editRefSectionIdx=null,_refSections=[];
 let refIconTemp='',refIconPosTemp={x:50,y:50};
+let refLabelColor='#C4A24C';
 let refAllocationDrag=null,refAllocationClickSuppressedUntil=0;
 let refProjectArrangeMode=false,refProjectClickSuppressedUntil=0,refProjectGestureBound=false,refProjectPressState=null;
+const refDetailScrollByProject={};
+let refItemArrangeMode=false,refItemPressState=null,refItemDragState=null,refItemClickSuppressedUntil=0,refItemGestureBound=false;
 
 function load(){
   try{const d=JSON.parse(localStorage.getItem(DB_KEY));if(d){db={items:d.items||[],sections:d.sections||[],catalogs:d.catalogs||[],refs:d.refs||[],sectionCollapsed:d.sectionCollapsed||{},shelfCollapsed:d.shelfCollapsed||{},refShelfCollapsed:d.refShelfCollapsed||{}};normalizeTechoData();return;}}catch(e){}
@@ -557,6 +578,7 @@ function gid(){return Date.now().toString(36)+'_'+Math.random().toString(36).sli
 function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 function clampCols(value){return Math.max(2,Math.min(5,parseInt(value)||3));}
 function clampImagePosition(value){const n=Number(value);return Number.isFinite(n)?Math.max(0,Math.min(100,n)):50;}
+function normalizeRefColor(value){return /^#[0-9a-f]{6}$/i.test(String(value||''))?String(value):'#C4A24C';}
 function makeBlankRefItem(number){return{id:gid(),name:'Title '+number,img:'',note:'',mode:'ref',listAssignment:null};}
 function isGenericRefItemName(name){return !String(name||'').trim()||/^Title \d+$/.test(String(name||'').trim())||/^Item \d+$/.test(String(name||'').trim());}
 function isBlankRefItem(item){return!!item&&!item.img&&!String(item.note||'').trim()&&(item.mode||'ref')==='ref'&&!item.listAssignment&&isGenericRefItemName(item.name);}
@@ -572,6 +594,9 @@ function normalizeTechoData(){
     const iconPositionX=clampImagePosition(r.iconPositionX),iconPositionY=clampImagePosition(r.iconPositionY);
     if(r.iconPositionX!==iconPositionX){r.iconPositionX=iconPositionX;changed=true;}
     if(r.iconPositionY!==iconPositionY){r.iconPositionY=iconPositionY;changed=true;}
+    const labelName=r.label&&typeof r.label.name==='string'?r.label.name:'';
+    const labelColor=normalizeRefColor(r.label&&r.label.color);
+    if(!r.label||r.label.name!==labelName||r.label.color!==labelColor){r.label={name:labelName,color:labelColor};changed=true;}
     if(!Array.isArray(r.sections)){r.sections=[];changed=true;}
     r.sections.forEach(sec=>{const cols=clampCols(sec.cols);if(sec.cols!==cols){sec.cols=cols;changed=true;}if(!Number.isFinite(parseInt(sec.count))){sec.count=0;changed=true;}});
     if(!Array.isArray(r.items)){r.items=[];changed=true;}
@@ -594,9 +619,20 @@ function normalizeTechoData(){
 }
 
 /* ═══ VIEWS ═══ */
-function showView(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);}
+function currentScrollY(){return window.scrollY||document.documentElement.scrollTop||document.body.scrollTop||0;}
+function restoreRefDetailScroll(y){
+  const target=Math.max(0,Number(y)||0),restore=()=>window.scrollTo(0,target);
+  if(typeof requestAnimationFrame==='function')requestAnimationFrame(()=>requestAnimationFrame(restore));else setTimeout(restore,0);
+}
+function rememberRefDetailScroll(){if(curRefId)refDetailScrollByProject[curRefId]=currentScrollY();}
+function showView(id,options){
+  const target=document.getElementById(id),preserve=!!(options&&options.preserveScroll);
+  if(!preserve||!target.classList.contains('active')){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));target.classList.add('active');}
+  if(!preserve)window.scrollTo(0,0);
+}
 function navTo(id){
   if(id!=='viewRef'&&refProjectArrangeMode)setRefProjectArrangeMode(false);
+  if(id!=='viewRefDetail'&&refItemArrangeMode)setRefItemArrangeMode(false);
   showView(id);
   if(id==='viewItems')renderItems();else if(id==='viewCatalog')renderCatalogList();else if(id==='viewRef')renderRefList();
 }
@@ -1097,7 +1133,9 @@ function renderRefList(){
 function renderRefRow(r){
   const listCount=(r.items||[]).filter(item=>item.mode==='list').length;
   const iconPositionX=clampImagePosition(r.iconPositionX),iconPositionY=clampImagePosition(r.iconPositionY);
-  return`<div class="catalog-row ref-project-row" data-ref-id="${r.id}" onclick="handleRefRowClick('${r.id}')"><img class="catalog-icon" src="${r.icon||''}" alt="" style="object-position:${iconPositionX}% ${iconPositionY}%" onerror="this.style.background='#f0f0f0'"><div class="catalog-body"><div class="catalog-name">${esc(r.name)}</div><div class="catalog-meta">${r.items?r.items.length:0} items${listCount?' · '+listCount+' List':''}</div></div></div>`;
+  const labelName=String(r.label&&r.label.name||'').trim(),labelColor=normalizeRefColor(r.label&&r.label.color);
+  const label=labelName?`<span class="ref-project-label" style="background:${labelColor}15;color:${labelColor}">${esc(labelName)}</span>`:'';
+  return`<div class="catalog-row ref-project-row" style="border-left:3px solid ${labelColor}" data-ref-id="${r.id}" onclick="handleRefRowClick('${r.id}')"><img class="catalog-icon" src="${r.icon||''}" alt="" style="object-position:${iconPositionX}% ${iconPositionY}%" onerror="this.style.background='#f0f0f0'"><div class="catalog-body"><div class="catalog-name">${esc(r.name)}${label}</div><div class="catalog-meta">${r.items?r.items.length:0} items${listCount?' · '+listCount+' List':''}</div></div></div>`;
 }
 function toggleRefShelf(name){db.refShelfCollapsed[name]=!db.refShelfCollapsed[name];save();renderRefList();}
 function setRefProjectArrangeMode(active){
@@ -1194,8 +1232,12 @@ function initRefProjectDrag(){
     setRefProjectArrangeMode(false);
   });
 }
-function openRefDetail(id){
+function openRefDetail(id,options){
+  if(curRefId&&curRefId!==id&&refItemArrangeMode)setRefItemArrangeMode(false);
   curRefId=id;const r=db.refs.find(x=>x.id===id);if(!r)return;
+  const restoring=!!(options&&options.restoreScroll!==undefined);
+  const target=restoring?Math.max(0,Number(options.restoreScroll)||0):0;
+  refDetailScrollByProject[id]=target;
   document.getElementById('refDetailTitle').textContent=r.name;
   const listCount=(r.items||[]).filter(item=>item.mode==='list').length;
   const queued=(r.items||[]).filter(item=>item.mode==='list'&&!item.listAssignment).length;
@@ -1206,17 +1248,92 @@ function openRefDetail(id){
     r.sections.forEach((sec,sectionIdx)=>{
       const count=Math.max(0,parseInt(sec.count)||0),cols=clampCols(sec.cols);
       html+=`<div class="section-divider"><div class="section-divider-line"></div><div class="section-divider-center"><span class="section-divider-label" title="Double-click to edit section" ondblclick="event.stopPropagation();openRefSectionQuick(${sectionIdx})">${esc(sec.name||('Section '+(sectionIdx+1)))}</span></div><div class="section-divider-line"></div></div>`;
-      html+=`<div class="ref-section-grid" style="grid-template-columns:repeat(${cols},1fr)">${r.items.slice(offset,offset+count).map(item=>renderRefItem(r,item)).join('')}</div>`;
+      html+=`<div class="ref-section-grid" style="grid-template-columns:repeat(${cols},1fr)">${r.items.slice(offset,offset+count).map((item,itemOffset)=>renderRefItem(r,item,offset+itemOffset)).join('')}</div>`;
       offset+=count;
     });
   }
-  if(offset<r.items.length||!r.sections.length)html+=`<div class="ref-section-grid" style="grid-template-columns:repeat(3,1fr)">${r.items.slice(offset).map(item=>renderRefItem(r,item)).join('')}</div>`;
+  if(offset<r.items.length||!r.sections.length)html+=`<div class="ref-section-grid" style="grid-template-columns:repeat(3,1fr)">${r.items.slice(offset).map((item,itemOffset)=>renderRefItem(r,item,offset+itemOffset)).join('')}</div>`;
   document.getElementById('refDetailGrid').innerHTML=html;
-  showView('viewRefDetail');
+  showView('viewRefDetail',restoring?{preserveScroll:true}:undefined);
+  setupRefItemArrangeGestures();
+  if(restoring)restoreRefDetailScroll(target);
 }
-function renderRefItem(r,item){
+function renderRefItem(r,item,index){
   const hasImg=!!item.img,hasCustomName=!isGenericRefItemName(item.name);
-  return`<div class="ref-item-cell collected${hasImg?' has-img':''}" onclick="openEditRefItemById('${item.id}')">${hasImg?`<img class="item-img" src="${item.img}" alt="" onerror="this.style.display='none'">`:''}${hasCustomName?`<span class="item-label">${esc(item.name)}</span>`:''}</div>`;
+  return`<div class="ref-item-cell collected${hasImg?' has-img':''}" data-index="${index}" data-ref-item-id="${item.id}" onclick="handleRefItemClick('${item.id}')">${hasImg?`<img class="item-img" src="${item.img}" alt="" onerror="this.style.display='none'">`:''}${hasCustomName?`<span class="item-label">${esc(item.name)}</span>`:''}</div>`;
+}
+
+/* ═══ REFERENCE ITEM ARRANGE MODE ═══ */
+function handleRefDetailHeaderButton(){if(refItemArrangeMode)setRefItemArrangeMode(false);else openEditRef();}
+function setRefItemArrangeMode(active){
+  refItemArrangeMode=!!active;
+  const view=document.getElementById('viewRefDetail'),btn=document.getElementById('refDetailHeaderBtn');
+  if(view)view.classList.toggle('ref-item-arrange-mode',refItemArrangeMode);
+  if(btn){btn.textContent=refItemArrangeMode?'Done':'⋯';btn.setAttribute('aria-label',refItemArrangeMode?'Finish arranging':'Edit reference');}
+  if(!refItemArrangeMode)cancelRefItemArrangeGesture();
+}
+function handleRefItemClick(itemId){if(refItemArrangeMode||Date.now()<refItemClickSuppressedUntil)return;openEditRefItemById(itemId);}
+function moveRefItem(fromIdx,toIdx){
+  const r=db.refs.find(x=>x.id===curRefId);
+  if(!r||fromIdx===toIdx||fromIdx<0||toIdx<0||fromIdx>=r.items.length||toIdx>=r.items.length)return false;
+  const fromSection=getRefItemSectionIndex(r,fromIdx),toSection=getRefItemSectionIndex(r,toIdx),scroll=currentScrollY();
+  if(fromSection!==toSection){
+    if(fromSection>=0)r.sections[fromSection].count=Math.max(0,(parseInt(r.sections[fromSection].count)||0)-1);
+    if(toSection>=0)r.sections[toSection].count=(parseInt(r.sections[toSection].count)||0)+1;
+  }
+  const moved=r.items.splice(fromIdx,1)[0];r.items.splice(toIdx,0,moved);renumberBlankRefItems(r);
+  editRefItemId=null;refItemClickSuppressedUntil=Date.now()+400;save();openRefDetail(r.id,{restoreScroll:scroll});return true;
+}
+function releaseRefItemPointer(state){
+  if(!state||!state.cell||!state.cell.releasePointerCapture)return;
+  try{if(!state.cell.hasPointerCapture||state.cell.hasPointerCapture(state.pointerId))state.cell.releasePointerCapture(state.pointerId);}catch(e){}
+}
+function clearRefItemPressState(){const state=refItemPressState;if(state&&state.timer)clearTimeout(state.timer);releaseRefItemPointer(state);refItemPressState=null;}
+function beginRefItemDrag(state){
+  if(!state||refItemDragState||!state.cell||!state.cell.isConnected)return;
+  if(state.timer){clearTimeout(state.timer);state.timer=null;}
+  const rect=state.cell.getBoundingClientRect(),ghost=state.cell.cloneNode(true);
+  ghost.classList.remove('drag-source','drop-target');ghost.classList.add('ref-item-drag-ghost');ghost.removeAttribute('onclick');ghost.style.width=rect.width+'px';ghost.style.height=rect.height+'px';
+  document.body.appendChild(ghost);state.cell.classList.add('drag-source');refItemDragState={from:state.idx,target:state.idx,source:state.cell,ghost,width:rect.width,height:rect.height};updateRefItemDrag(state.lastX,state.lastY);
+}
+function updateRefItemDrag(x,y){
+  const drag=refItemDragState;if(!drag)return;
+  drag.ghost.style.left=(x-drag.width/2)+'px';drag.ghost.style.top=(y-drag.height/2)+'px';
+  document.querySelectorAll('#refDetailGrid .ref-item-cell.drop-target').forEach(cell=>cell.classList.remove('drop-target'));
+  const under=document.elementFromPoint(x,y),target=under&&under.closest?under.closest('#refDetailGrid .ref-item-cell'):null;
+  if(target){const idx=parseInt(target.dataset.index);if(Number.isInteger(idx)){drag.target=idx;if(idx!==drag.from)target.classList.add('drop-target');}}
+  const edge=72;if(y<edge&&window.scrollBy)window.scrollBy(0,-12);else if(y>window.innerHeight-edge&&window.scrollBy)window.scrollBy(0,12);
+}
+function finishRefItemDrag(commit){
+  const drag=refItemDragState;if(!drag)return;
+  drag.source&&drag.source.classList.remove('drag-source');document.querySelectorAll('#refDetailGrid .ref-item-cell.drop-target').forEach(cell=>cell.classList.remove('drop-target'));drag.ghost&&drag.ghost.remove();refItemDragState=null;refItemClickSuppressedUntil=Date.now()+700;
+  if(commit&&drag.from!==drag.target)moveRefItem(drag.from,drag.target);
+}
+function cancelRefItemArrangeGesture(){clearRefItemPressState();finishRefItemDrag(false);}
+function onRefItemPointerDown(event){
+  if(event.button!==undefined&&event.button!==0)return;
+  const cell=event.target.closest&&event.target.closest('#refDetailGrid .ref-item-cell');if(!cell)return;
+  cancelRefItemArrangeGesture();const idx=parseInt(cell.dataset.index);if(!Number.isInteger(idx))return;
+  const state={cell,idx,pointerId:event.pointerId,startX:event.clientX,startY:event.clientY,lastX:event.clientX,lastY:event.clientY,timer:null};refItemPressState=state;
+  if(cell.setPointerCapture)try{cell.setPointerCapture(event.pointerId);}catch(e){}
+  state.timer=setTimeout(()=>{if(refItemPressState!==state)return;refItemClickSuppressedUntil=Date.now()+700;setRefItemArrangeMode(true);if(typeof navigator!=='undefined'&&navigator.vibrate)navigator.vibrate(12);beginRefItemDrag(state);},refItemArrangeMode?170:520);
+}
+function onRefItemPointerMove(event){
+  const state=refItemPressState;if(!state||state.pointerId!==event.pointerId)return;
+  state.lastX=event.clientX;state.lastY=event.clientY;const distance=Math.hypot(event.clientX-state.startX,event.clientY-state.startY);
+  if(refItemDragState){event.preventDefault();updateRefItemDrag(event.clientX,event.clientY);return;}
+  if(refItemArrangeMode&&distance>6){refItemClickSuppressedUntil=Date.now()+700;beginRefItemDrag(state);event.preventDefault();}else if(!refItemArrangeMode&&distance>10)clearRefItemPressState();
+}
+function onRefItemPointerUp(event){
+  const state=refItemPressState;if(!state||state.pointerId!==event.pointerId)return;
+  if(state.timer)clearTimeout(state.timer);releaseRefItemPointer(state);const shouldCommit=!!refItemDragState;refItemPressState=null;if(shouldCommit)finishRefItemDrag(true);
+}
+function onRefItemPointerCancel(event){const state=refItemPressState;if(!state||state.pointerId!==event.pointerId)return;clearRefItemPressState();finishRefItemDrag(false);}
+function setupRefItemArrangeGestures(){
+  if(refItemGestureBound)return;const grid=document.getElementById('refDetailGrid');if(!grid)return;refItemGestureBound=true;
+  grid.addEventListener('pointerdown',onRefItemPointerDown);grid.addEventListener('pointermove',onRefItemPointerMove,{passive:false});grid.addEventListener('pointerup',onRefItemPointerUp);grid.addEventListener('pointercancel',onRefItemPointerCancel);
+  grid.addEventListener('contextmenu',event=>{if(event.target.closest&&event.target.closest('.ref-item-cell'))event.preventDefault();});grid.addEventListener('dragstart',event=>event.preventDefault());
+  document.getElementById('viewRefDetail').addEventListener('click',event=>{if(!refItemArrangeMode)return;if(event.target.closest&&event.target.closest('.ref-item-cell,.btn-s,.back,.ref-add-item-btn,.section-divider,.modal-bg.show'))return;setRefItemArrangeMode(false);});
 }
 
 function getRefItemSectionIndex(r,itemIdx){
@@ -1250,33 +1367,37 @@ function changeRefItemMode(r,item,nextMode){
 function toggleRefItemMode(refId,itemId){
   const r=db.refs.find(ref=>ref.id===refId),item=r&&(r.items||[]).find(entry=>entry.id===itemId);if(!r||!item)return;
   const next=item.mode==='list'?'ref':'list';if(!changeRefItemMode(r,item,next))return;
-  save();openRefDetail(r.id);toast(next==='list'?'已进入 List 待分配池':'已留在图鉴');
+  const scroll=currentScrollY();save();openRefDetail(r.id,{restoreScroll:scroll});toast(next==='list'?'已进入 List 待分配池':'已留在图鉴');
 }
 
 /* ── Reference CRUD ── */
 function openAddRef(){
-  editRefId=null;refIconTemp='';refIconPosTemp={x:50,y:50};
+  editRefId=null;refIconTemp='';refIconPosTemp={x:50,y:50};refLabelColor='#C4A24C';
   document.getElementById('refModalTitle').textContent='New Reference';
-  document.getElementById('inputRefName').value='';document.getElementById('inputRefShelf').value='';document.getElementById('inputRefNote').value='';
+  document.getElementById('inputRefName').value='';document.getElementById('inputRefShelf').value='';document.getElementById('inputRefNote').value='';document.getElementById('inputRefLabel').value='';
   document.getElementById('refIconInput').value='';
   const preview=document.getElementById('refIconPreview');preview.dataset.uploadToken='reset_'+Date.now();delete preview.dataset.uploading;preview.style.opacity='';preview.removeAttribute('src');preview.style.objectPosition='50% 50%';
   document.getElementById('refIconEditor').style.display='none';
-  _refSections=[{name:'',count:0,cols:3}];renderRefSections();
+  _refSections=[{name:'',count:0,cols:3}];renderRefSections();renderRefColors();
   openModal('refModal');
 }
 function openEditRef(){
   const r=db.refs.find(x=>x.id===curRefId);if(!r)return;
-  editRefId=r.id;refIconTemp=r.icon||'';refIconPosTemp={x:clampImagePosition(r.iconPositionX),y:clampImagePosition(r.iconPositionY)};
+  editRefId=r.id;refIconTemp=r.icon||'';refIconPosTemp={x:clampImagePosition(r.iconPositionX),y:clampImagePosition(r.iconPositionY)};refLabelColor=normalizeRefColor(r.label&&r.label.color);
   document.getElementById('refModalTitle').textContent='Edit Reference';
-  document.getElementById('inputRefName').value=r.name;document.getElementById('inputRefShelf').value=r.shelf||'';document.getElementById('inputRefNote').value=r.note||'';
+  document.getElementById('inputRefName').value=r.name;document.getElementById('inputRefShelf').value=r.shelf||'';document.getElementById('inputRefNote').value=r.note||'';document.getElementById('inputRefLabel').value=r.label&&r.label.name||'';
   document.getElementById('refIconInput').value='';
   const preview=document.getElementById('refIconPreview'),editor=document.getElementById('refIconEditor');
   preview.dataset.uploadToken='reset_'+Date.now();delete preview.dataset.uploading;preview.style.opacity='';
   if(r.icon){preview.src=r.icon;preview.style.objectPosition=refIconPosTemp.x+'% '+refIconPosTemp.y+'%';editor.style.display='block';}
   else{preview.removeAttribute('src');preview.style.objectPosition='50% 50%';editor.style.display='none';}
-  _refSections=(r.sections&&r.sections.length?r.sections:[{name:'',count:r.items.length,cols:3}]).map(sec=>({...sec,cols:clampCols(sec.cols)}));renderRefSections();
+  _refSections=(r.sections&&r.sections.length?r.sections:[{name:'',count:r.items.length,cols:3}]).map(sec=>({...sec,cols:clampCols(sec.cols)}));renderRefSections();renderRefColors();
   openModal('refModal');
 }
+function renderRefColors(){
+  document.getElementById('refColorPicker').innerHTML=COLORS.map(color=>`<button type="button" class="ref-color-swatch${color===refLabelColor?' active':''}" style="background:${color}" aria-label="Select ${color}" onclick="pickRefColor('${color}')"></button>`).join('');
+}
+function pickRefColor(color){refLabelColor=normalizeRefColor(color);renderRefColors();}
 function renderRefSections(){
   document.getElementById('refSectionList').innerHTML=_refSections.map((s,i)=>`<div class="section-row"><input type="text" value="${esc(s.name||'')}" placeholder="Section" onchange="_refSections[${i}].name=this.value"><input type="number" value="${Math.max(0,parseInt(s.count)||0)}" min="0" max="999" aria-label="Item count" onchange="_refSections[${i}].count=parseInt(this.value)||0"><select aria-label="Columns" onchange="_refSections[${i}].cols=parseInt(this.value)||3">${[2,3,4,5].map(n=>`<option value="${n}"${clampCols(s.cols)===n?' selected':''}>${n}col</option>`).join('')}</select><button type="button" class="del-sec" aria-label="Delete section" onclick="_refSections.splice(${i},1);renderRefSections()">×</button></div>`).join('');
 }
@@ -1286,6 +1407,7 @@ function saveRef(){
   const name=document.getElementById('inputRefName').value.trim();if(!name){toast('Name required');return;}
   const shelf=document.getElementById('inputRefShelf').value.trim();
   const note=document.getElementById('inputRefNote').value.trim();
+  const label={name:document.getElementById('inputRefLabel').value.trim(),color:normalizeRefColor(refLabelColor)};
   const icon=refIconTemp||'';
   const iconPositionX=icon?clampImagePosition(refIconPosTemp.x):50,iconPositionY=icon?clampImagePosition(refIconPosTemp.y):50;
   const sections=_refSections.filter(sec=>String(sec.name||'').trim()).map(sec=>({name:String(sec.name).trim(),count:Math.max(0,parseInt(sec.count)||0),cols:clampCols(sec.cols)}));
@@ -1296,11 +1418,11 @@ function saveRef(){
       if(totalNeeded<r.items.length&&r.items.slice(totalNeeded).some(item=>!isBlankRefItem(item))){toast('先清空要删掉的已填写品目');return;}
       while(r.items.length<totalNeeded)r.items.push(makeBlankRefItem(r.items.length+1));
       if(totalNeeded<r.items.length)r.items.splice(totalNeeded);
-      r.name=name;r.shelf=shelf;r.note=note;r.sections=sections;r.icon=icon;r.iconPositionX=iconPositionX;r.iconPositionY=iconPositionY;renumberBlankRefItems(r);
+      r.name=name;r.shelf=shelf;r.note=note;r.label=label;r.sections=sections;r.icon=icon;r.iconPositionX=iconPositionX;r.iconPositionY=iconPositionY;renumberBlankRefItems(r);
     }
   }else{
     const total=sections.reduce((sum,sec)=>sum+sec.count,0),items=[];for(let i=0;i<total;i++)items.push(makeBlankRefItem(i+1));
-    db.refs.push({id:gid(),name,shelf,icon,note,comment:'',iconPositionX,iconPositionY,sections,items,order:db.refs.length});
+    db.refs.push({id:gid(),name,shelf,icon,note,label,comment:'',iconPositionX,iconPositionY,sections,items,order:db.refs.length});
   }
   save();closeModal('refModal');if(editRefId)openRefDetail(editRefId);else renderRefList();
 }
@@ -1330,6 +1452,7 @@ function saveRefSectionQuick(){
 }
 
 function openAddRefItem(){
+  rememberRefDetailScroll();
   editRefItemId=null;document.getElementById('refItemModalTitle').textContent='New Item';
   document.getElementById('inputRefItemName').value='';
   document.getElementById('inputRefItemNote').value='';
@@ -1340,6 +1463,7 @@ function openAddRefItem(){
 }
 function openEditRefItemById(itemId){
   const r=db.refs.find(x=>x.id===curRefId),index=r?r.items.findIndex(item=>item.id===itemId):-1;if(!r||index<0)return;
+  rememberRefDetailScroll();
   const item=r.items[index];editRefItemId=item.id;document.getElementById('refItemModalTitle').textContent='Edit Item';
   document.getElementById('inputRefItemName').value=item.name||'';document.getElementById('inputRefItemNote').value=item.note||'';
   document.getElementById('refItemImgInput').value='';
@@ -1374,13 +1498,13 @@ function saveRefItem(){
     if(selectedSection>=0){const insertAt=getRefSectionEndIndex(r,selectedSection);r.items.splice(insertAt,0,item);r.sections[selectedSection].count=(parseInt(r.sections[selectedSection].count)||0)+1;}else r.items.push(item);
   }
   renumberBlankRefItems(r);
-  save();closeModal('refItemModal');openRefDetail(curRefId);
+  const returnScroll=refDetailScrollByProject[curRefId]??currentScrollY();save();closeModal('refItemModal');openRefDetail(curRefId,{restoreScroll:returnScroll});
 }
 function deleteRefItem(){
   const r=db.refs.find(x=>x.id===curRefId),index=r?r.items.findIndex(item=>item.id===editRefItemId):-1;if(!r||index<0)return;
   const item=r.items[index];if(!removeRefListAssignment(r,item))return;
   const sectionIndex=getRefItemSectionIndex(r,index);if(sectionIndex>=0)r.sections[sectionIndex].count=Math.max(0,(parseInt(r.sections[sectionIndex].count)||0)-1);
-  r.items.splice(index,1);renumberBlankRefItems(r);editRefItemId=null;save();closeModal('refItemModal');openRefDetail(r.id);toast('Deleted');
+  const returnScroll=refDetailScrollByProject[r.id]??currentScrollY();r.items.splice(index,1);renumberBlankRefItems(r);editRefItemId=null;save();closeModal('refItemModal');openRefDetail(r.id,{restoreScroll:returnScroll});toast('Deleted');
 }
 
 /* ═══ HELPERS ═══ */
