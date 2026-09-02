@@ -520,6 +520,8 @@ body[data-world-id="cbi"][data-world-location="home"] .room-natumi .natumi-box7{
 .cbi-office-window{position:absolute;left:5%;top:4%;width:9.5%;height:2.2%;border:0;background:rgba(232,185,106,.04);border-radius:2px}
 /* Desk base */
 .cbi-desk{position:absolute;width:5.2%;height:16.5%;border-radius:2px;background:rgba(232,185,106,.08);border:0}
+.cbi-status-target{-webkit-appearance:none;appearance:none;padding:0;font:inherit;color:inherit;cursor:pointer}
+.cbi-status-target:focus-visible{outline:1px solid rgba(232,185,106,.34);outline-offset:2px}
 .cbi-desk::after{content:'';position:absolute;border-radius:1px;background:rgba(232,185,106,.12)}
 /* Boss desk – upper right of the team, angled toward both the bullpen and Jane */
 .cbi-desk-boss{left:54%;top:9%;width:11%;height:8.5%;background:rgba(232,185,106,.08);transform:rotate(2deg)}
@@ -539,7 +541,7 @@ body[data-world-id="cbi"][data-world-location="home"] .room-natumi .natumi-box7{
 .cbi-desk-grace::before,.cbi-desk-grace::after{content:'';position:absolute;width:8%;height:27%;top:9%;border-radius:1px;background:rgba(232,185,106,.13)}
 .cbi-desk-grace::before{left:15%}.cbi-desk-grace::after{left:35%;background:rgba(232,185,106,.11)}
 /* Jane sofa – vertical on the right, nudged slightly down */
-.cbi-sofa{position:absolute;right:7%;top:30%;width:4.1%;height:18%;border-radius:3px;background:rgba(91,166,107,.08)}
+.cbi-sofa{position:absolute;right:7%;top:30%;width:4.1%;height:18%;border:0;padding:0;border-radius:3px;background:rgba(91,166,107,.08)}
 .cbi-sofa::after{content:'';position:absolute;left:10%;top:104%;width:78%;height:26%;border-radius:2px;background:rgba(91,166,107,.04);transform:rotate(12deg)}
 .cbi-tea-table{position:absolute;right:12%;top:33%;width:2.8%;aspect-ratio:1;border-radius:50%;background:rgba(91,166,107,.07)}
 /* Two small filing cabinets from Claude's C layout */
@@ -724,13 +726,13 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-home-trigger{display:
       <button class="cbi-location-trigger" type="button" onclick="openCbiLocationSheet(event)" aria-label="切换 CBI 地点">CBI · Serious Crimes Unit⌄</button>
       <div class="cbi-office-window"></div>
       <div class="cbi-desk cbi-desk-boss"></div><div class="cbi-boss-mug"></div>
-      <div class="cbi-desk cbi-desk-rigsby"></div>
+      <button class="cbi-desk cbi-desk-rigsby cbi-status-target" type="button" data-cbi-desk="rigsby" onclick="onCbiDeskTap('rigsby',event)" aria-label="Rigsby 的工位"></button>
       <div class="cbi-desk-divider cbi-desk-divider-upper"></div>
-      <div class="cbi-desk cbi-desk-grace"></div>
-      <div class="cbi-desk cbi-desk-lisbon"></div>
+      <button class="cbi-desk cbi-desk-grace cbi-status-target" type="button" data-cbi-desk="vanpelt" onclick="onCbiDeskTap('vanpelt',event)" aria-label="Van Pelt 的工位"></button>
+      <button class="cbi-desk cbi-desk-lisbon cbi-status-target" type="button" data-cbi-desk="lisbon" onclick="onCbiDeskTap('lisbon',event)" aria-label="Lisbon 的工位"></button>
       <div class="cbi-desk-divider cbi-desk-divider-lower"></div>
-      <div class="cbi-desk cbi-desk-cho"></div>
-      <div class="cbi-sofa"></div><div class="cbi-tea-table"></div>
+      <button class="cbi-desk cbi-desk-cho cbi-status-target" type="button" data-cbi-desk="cho" onclick="onCbiDeskTap('cho',event)" aria-label="Cho 的工位"></button>
+      <button class="cbi-sofa cbi-status-target" type="button" data-cbi-desk="jane" onclick="onCbiDeskTap('jane',event)" aria-label="Jane 的沙发"></button><div class="cbi-tea-table"></div>
       <div class="cbi-pinboard"></div>
       <div class="cbi-filing cbi-filing-upper"></div><div class="cbi-filing cbi-filing-lower"></div>
       <div class="cbi-coffee"></div><div class="cbi-printer"></div>
@@ -942,7 +944,7 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-home-trigger{display:
 
 <script src="world-context.js?v=20260824-cbi-work1"></script>
 <script src="cloud-sync.js?v=20260824-cbi-work1"></script>
-<script src="character-runtime.js?v=20260824-wallet-fix1"></script>
+<script src="character-runtime.js?v=20260902-cbi-presence1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 
@@ -984,7 +986,6 @@ function refreshBranchStacks(){
 }
 
 const CBI_STAFF_NAMES={jane:'Jane',cho:'Cho',rigsby:'Rigsby',lisbon:'Lisbon',vanpelt:'Van Pelt'};
-const CBI_DUTY_PERIOD='day';
 let currentCbiDuty=null;
 
 function positionCbiOfficeJane(){
@@ -998,20 +999,54 @@ function positionCbiOfficeJane(){
   jane.style.zIndex='20';
 }
 
-function cbiJaneIsAvailable(){
-  if(!window.CharacterRuntime)return true;
-  var duty=CharacterRuntime.getCbiDutyRoster(CharacterRuntime.calendarDateStr(new Date()),CBI_DUTY_PERIOD);
-  return duty.office.indexOf('jane')>=0;
+function cbiPresenceEta(status){
+  if(!status||!status.endAt)return'';
+  if(status.mode==='office'||status.mode==='off_duty')return'';
+  if(status.mode==='not_arrived'){
+    var diff=status.endAt-Date.now();
+    if(status.charId==='jane'&&status.shift&&status.shift.lateArrival)return'中午左右会来';
+    if(diff<=20*60000)return'快到了';
+    if(diff<=90*60000)return'应该快到了';
+    return'上午会来';
+  }
+  return estimateEta(status.endAt);
+}
+
+function cbiPresenceTip(charId,status){
+  if(!status)return CBI_STAFF_NAMES[charId]||charId;
+  var eta=cbiPresenceEta(status);
+  return CBI_STAFF_NAMES[charId]+' · '+(status.title||'状态未知')+(eta?' · '+eta:'');
+}
+
+function renderCbiHomePresence(){
+  if(getActiveWorldId()!=='cbi'||getActiveLocationId()!=='home'||!window.CharacterRuntime)return;
+  var status=CharacterRuntime.getCbiCharacterPresence('jane',new Date());
+  var jane=document.getElementById('char-jane');
+  var away=document.getElementById('away-jane');
+  var atHome=!!status&&status.location==='home';
+  if(jane){
+    jane.style.display=atHome?'':'none';
+    if(atHome)requestAnimationFrame(function(){placeChar('jane');});
+  }
+  if(away){
+    away.classList.toggle('show',!atHome);
+    away.classList.remove('break-presence');
+    var title=document.getElementById('away-title-jane');
+    var eta=document.getElementById('away-eta-jane');
+    if(title)title.textContent=status&&status.location==='office'?'在 CBI 办公室':(status&&status.title)||'不在家';
+    if(eta)eta.textContent=cbiPresenceEta(status);
+  }
 }
 
 function renderCbiDutyRoster(){
   if(getActiveWorldId()!=='cbi'||getActiveLocationId()!=='office'||!window.CharacterRuntime)return;
   var now=new Date();
-  currentCbiDuty=CharacterRuntime.getCbiDutyRoster(CharacterRuntime.calendarDateStr(now),CBI_DUTY_PERIOD);
+  currentCbiDuty=CharacterRuntime.getCbiPresenceRoster(now);
   Object.keys(CBI_STAFF_NAMES).forEach(function(id){
     var element=document.getElementById('char-'+id);
     if(!element)return;
-    var present=currentCbiDuty.office.indexOf(id)>=0;
+    var assignment=currentCbiDuty.assignments[id];
+    var present=assignment&&assignment.location==='office';
     if(id==='jane'){
       element.style.display=present?'':'none';
       if(present)positionCbiOfficeJane();
@@ -1020,7 +1055,25 @@ function renderCbiDutyRoster(){
     }
     var bubble=document.getElementById('bubble-'+id);
     if(!present&&bubble)bubble.classList.remove('show');
+    var desk=document.querySelector('[data-cbi-desk="'+id+'"]');
+    if(desk){
+      desk.classList.toggle('is-vacant',!present);
+      desk.setAttribute('aria-label',cbiPresenceTip(id,assignment));
+    }
   });
+}
+
+function renderCbiLocationPresence(){
+  if(getActiveWorldId()!=='cbi'||!window.CharacterRuntime)return;
+  if(getActiveLocationId()==='home')renderCbiHomePresence();
+  else renderCbiDutyRoster();
+}
+
+function onCbiDeskTap(charId,event){
+  if(event)event.stopPropagation();
+  if(!window.CharacterRuntime)return;
+  var status=CharacterRuntime.getCbiCharacterPresence(charId,new Date());
+  showTip(cbiPresenceTip(charId,status));
 }
 
 function onCbiStaffTap(charId,event){
@@ -1065,8 +1118,6 @@ function applyMod(){
     var awayJane=document.getElementById('away-jane');
     if(awayJane)awayJane.classList.remove('show','break-presence');
     if(isCbiHome){
-      var janeAvailable=cbiJaneIsAvailable();
-      if(jane)jane.style.display=janeAvailable?'':'none';
       ['rigsby','vanpelt','lisbon','cho'].forEach(function(id){
         var staff=document.getElementById('char-'+id);
         if(staff)staff.classList.remove('is-present');
@@ -1077,7 +1128,7 @@ function applyMod(){
       document.getElementById('roomWill').classList.remove('will-on');
       document.getElementById('aptWrap').classList.remove('has-will-room');
       refreshBranchStacks();
-      if(janeAvailable)requestAnimationFrame(function(){placeChar('jane');});
+      renderCbiHomePresence();
     }else{
       renderCbiDutyRoster();
     }
@@ -1418,6 +1469,11 @@ function onCharTap(id,e){
 function onAwayTap(id,e){
   e.stopPropagation();
   if(!window.CharacterRuntime)return;
+  if(!isLiminalWorld()&&id==='jane'){
+    var status=CharacterRuntime.getCbiCharacterPresence('jane',new Date());
+    showTip(cbiPresenceTip('jane',status));
+    return;
+  }
   var line=CharacterRuntime.getAppropriateLine(id);
   if(line)showTip(line.s+' · '+line.m);
 }
@@ -1780,7 +1836,7 @@ function updateClock(){
   document.getElementById('date').textContent=(now.getMonth()+1)+'月'+now.getDate()+'日 '+days[now.getDay()]+'曜日';
   const nextCGPeriod=getCGDisplayPeriodKey(now);
   if(currentCGPeriodKey&&nextCGPeriod!==currentCGPeriodKey)initCG();
-  if(getActiveWorldId()==='cbi'&&getActiveLocationId()==='office'&&window.CharacterRuntime)renderCbiDutyRoster();
+  if(getActiveWorldId()==='cbi'&&window.CharacterRuntime)renderCbiLocationPresence();
   if(window.__wardrobeReady){
     const nextWardrobeDay=getWardrobeDayKey(now);
     if(window.__wardrobeDayKey!==nextWardrobeDay){
@@ -2496,11 +2552,7 @@ function renderCharacterRuntime(){
   if(!isLiminalWorld()){
     var jane=document.getElementById('char-jane');
     if(jane)renderCharacterArt('jane','assets/characters/cbi/jane/jane-default.png');
-    if(getActiveLocationId()==='home'){
-      if(jane){var available=cbiJaneIsAvailable();jane.style.display=available?'':'none';if(available)placeChar('jane');}
-    }else{
-      renderCbiDutyRoster();
-    }
+    renderCbiLocationPresence();
     return;
   }
   ['neal','jane','will'].forEach(function(id){

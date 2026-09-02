@@ -37,6 +37,13 @@ test('one homepage hosts both apartment and CBI scenes', () => {
   }
   assert.match(index, /const CBI_STAFF_OFFICE_LINES =/);
   assert.match(index, /function onCbiStaffTap\(charId,event\)[\s\S]*?positionBubbleAtCharacter\(bubble,charEl,wrap\)/);
+  for (const charId of ['jane', 'cho', 'rigsby', 'lisbon', 'vanpelt']) {
+    assert.match(index, new RegExp(`data-cbi-desk="${charId}"`));
+  }
+  assert.match(index, /CharacterRuntime\.getCbiPresenceRoster\(now\)/);
+  assert.match(index, /function onCbiDeskTap\(charId,event\)/);
+  assert.match(index, /status\.location==='home'/);
+  assert.doesNotMatch(index, /getCbiDutyRoster\(CharacterRuntime\.calendarDateStr\(new Date\(\)\)/);
 });
 
 test('Jane uses first-case lines at the office and home lines at Boss home', () => {
@@ -261,10 +268,10 @@ test('mobile world files sits below the room and follows the active world archiv
   assert.match(index, /querySelectorAll\('\[data-world-files-subtitle\]'\)/);
 });
 
-test('CBI room keeps one daily roster instead of rerolling with CG time slots', () => {
-  assert.match(index, /const CBI_DUTY_PERIOD='day'/);
-  assert.equal((index.match(/,CBI_DUTY_PERIOD\)/g) || []).length, 2);
-  assert.doesNotMatch(index, /getCbiDutyRoster\([^\n]*getCGSlot/);
+test('CBI room reads a continuous live roster instead of rerolling with CG time slots', () => {
+  assert.match(index, /CharacterRuntime\.getCbiPresenceRoster\(now\)/);
+  assert.match(index, /function renderCbiLocationPresence\(\)/);
+  assert.doesNotMatch(index, /getCbi(?:Duty|Presence)Roster\([^\n]*getCGSlot/);
 });
 
 test('desktop Notes cannot resize or recenter the room column', () => {

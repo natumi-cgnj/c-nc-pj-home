@@ -179,6 +179,95 @@ test('CBI daily deployment overrides events and permits an all-team field day', 
   assert.equal(duty.deployment.approvedBudget, 2500);
 });
 
+test('CBI live presence keeps the same workday until 04:00', () => {
+  const { runtime } = loadRuntime({}, 'cbi');
+  const beforeReset = runtime.getCbiPresenceRoster(new Date(2026, 8, 3, 3, 59));
+  const afterReset = runtime.getCbiPresenceRoster(new Date(2026, 8, 3, 4, 0));
+
+  assert.equal(beforeReset.date, '2026-09-02');
+  assert.equal(afterReset.date, '2026-09-03');
+  assert.equal(beforeReset.assignments.jane.location, 'home');
+  assert.equal(beforeReset.assignments.jane.mode, 'off_duty');
+});
+
+test('CBI arrivals follow character tendencies and Jane sometimes starts near noon', () => {
+  const { runtime } = loadRuntime({}, 'cbi');
+  const totals = { cho: 0, lisbon: 0, vanpelt: 0, rigsby: 0 };
+  let lateJaneDays = 0;
+
+  for (let day = 1; day <= 28; day++) {
+    const date = '2026-09-' + String(day).padStart(2, '0');
+    Object.keys(totals).forEach(function (charId) {
+      totals[charId] += runtime._internal.getCbiShift(date, charId).arrivalMinute;
+    });
+    if (runtime._internal.getCbiShift(date, 'jane').lateArrival) lateJaneDays++;
+  }
+
+  assert.ok(totals.cho / 28 < totals.vanpelt / 28);
+  assert.ok(totals.lisbon / 28 < totals.vanpelt / 28);
+  assert.ok(totals.vanpelt / 28 < totals.rigsby / 28);
+  assert.ok(lateJaneDays > 0 && lateJaneDays < 14);
+});
+
+test('Jane is at home outside her shift and never follows the selected page', () => {
+  const { runtime } = loadRuntime({}, 'cbi');
+  const date = '2026-09-02';
+  const shift = runtime._internal.getCbiShift(date, 'jane');
+  const before = runtime.getCbiCharacterPresence('jane', new Date(shift.arrivalAt - 60000));
+  const arrived = runtime.getCbiCharacterPresence('jane', new Date(shift.arrivalAt + 60000));
+  const after = runtime.getCbiCharacterPresence('jane', new Date(shift.departureAt + 60000));
+
+  assert.equal(before.location, 'home');
+  assert.equal(before.mode, 'not_arrived');
+  assert.equal(arrived.location, 'office');
+  assert.equal(after.location, 'home');
+  assert.equal(after.mode, 'off_duty');
+});
+
+test('ordinary CBI workdays contain stable short errands inside the shift', () => {
+  const { runtime } = loadRuntime({}, 'cbi');
+  const found = [];
+  for (let day = 1; day <= 14; day++) {
+    const date = '2026-09-' + String(day).padStart(2, '0');
+    const duty = runtime.getCbiDutyRoster(date, 'day');
+    for (const charId of ['jane', 'cho', 'rigsby', 'lisbon', 'vanpelt']) {
+      const shift = runtime._internal.getCbiShift(date, charId);
+      const field = runtime._internal.getCbiAutomaticFieldBlock(date, charId, shift, duty.assignments[charId]);
+      const errands = runtime._internal.getCbiShortErrandBlocks(date, charId, shift, field);
+      errands.forEach(function (block) {
+        assert.ok(block.startAt >= shift.arrivalAt);
+        assert.ok(block.endAt <= shift.departureAt);
+        assert.ok(block.endAt > block.startAt);
+        found.push(block);
+      });
+    }
+  }
+  assert.ok(found.length > 0);
+  assert.ok(found.some(function (block) { return block.title === '去技术组了' || block.title === '给检方送资料'; }));
+});
+
+test('manual CBI field assignments stay away for the active shift', () => {
+  const cbiDb = {
+    work: {
+      deployments: {
+        '2026-08-24': {
+          date: '2026-08-24',
+          bossMode: 'office',
+          fieldAgents: ['jane']
+        }
+      }
+    }
+  };
+  const { runtime } = loadRuntime({ cbi_db: JSON.stringify(cbiDb) }, 'cbi');
+  const shift = runtime._internal.getCbiShift('2026-08-24', 'jane');
+  const status = runtime.getCbiCharacterPresence('jane', new Date(shift.arrivalAt + 60000));
+
+  assert.equal(status.baseMode, 'field');
+  assert.equal(status.mode, 'field');
+  assert.equal(status.location, 'away');
+  assert.equal(status.manual, true);
+});
+
 test('legacy automatic outing debt is waived once and new paid outings require funds', () => {
   const wallet = {
     schemaVersion: 1,

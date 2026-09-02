@@ -1,5 +1,5 @@
 /**
- * character-runtime.js — Liminal Space Character Status Engine V1
+ * character-runtime.js — Liminal Space + CBI Character Status Engine
  *
  * Persisted keys:
  *   home_character_runtime
@@ -999,6 +999,32 @@
     vanpelt: 0.14
   };
   const CBI_MAX_AUTO_OFFICE = 3;
+  const CBI_SHIFT_WINDOWS = {
+    cho: { arrival: [430, 515], departure: [1040, 1160] },
+    lisbon: { arrival: [440, 525], departure: [1020, 1140] },
+    vanpelt: { arrival: [480, 560], departure: [1035, 1155] },
+    rigsby: { arrival: [505, 605], departure: [1080, 1230] },
+    jane: {
+      arrival: [490, 590],
+      lateArrival: [645, 750],
+      lateChance: 0.28,
+      departure: [1080, 1290]
+    }
+  };
+  const CBI_SHORT_ERRANDS = [
+    { title: '去提交文件了', duration: [15, 35] },
+    { title: '去技术组了', duration: [20, 50] },
+    { title: '给检方送资料', duration: [40, 90] },
+    { title: '去证物室了', duration: [20, 45] },
+    { title: '去档案室了', duration: [25, 55] },
+    { title: '去法务组了', duration: [25, 50] }
+  ];
+  const CBI_LONG_FIELD_TITLES = [
+    '现场调查中',
+    '跨区走访中',
+    '在检方那边',
+    '送检与复核中'
+  ];
 
   function activeScheduleWorldId() {
     return window.WorldContext && WorldContext.getActiveWorldId ? WorldContext.getActiveWorldId() : 'liminal';
@@ -1214,6 +1240,106 @@
     return (hash >>> 0) / 4294967296;
   }
 
+  function stableScheduleInteger(seed, min, max) {
+    const low = Math.ceil(Number(min) || 0);
+    const high = Math.max(low, Math.floor(Number(max) || 0));
+    return low + Math.floor(stableScheduleUnit(seed) * (high - low + 1));
+  }
+
+  function cbiDateAtMinute(dateStr, minute) {
+    const parts = String(dateStr || '').split('-').map(Number);
+    if (parts.length !== 3 || parts.some(function (value) { return !Number.isFinite(value); })) return new Date(NaN);
+    return new Date(parts[0], parts[1] - 1, parts[2], 0, Number(minute) || 0, 0, 0);
+  }
+
+  function getCbiShift(dateStr, charId) {
+    const config = CBI_SHIFT_WINDOWS[charId] || CBI_SHIFT_WINDOWS.vanpelt;
+    const late = !!(config.lateArrival && stableScheduleUnit('cbi-shift-late|' + dateStr + '|' + charId) < (config.lateChance || 0));
+    const arrivalWindow = late ? config.lateArrival : config.arrival;
+    const arrivalMinute = stableScheduleInteger('cbi-shift-arrival|' + dateStr + '|' + charId, arrivalWindow[0], arrivalWindow[1]);
+    let departureMinute = stableScheduleInteger('cbi-shift-departure|' + dateStr + '|' + charId, config.departure[0], config.departure[1]);
+    departureMinute = Math.max(departureMinute, arrivalMinute + 300);
+    return {
+      arrivalMinute: arrivalMinute,
+      departureMinute: departureMinute,
+      arrivalAt: cbiDateAtMinute(dateStr, arrivalMinute).getTime(),
+      departureAt: cbiDateAtMinute(dateStr, departureMinute).getTime(),
+      lateArrival: late
+    };
+  }
+
+  function intervalsOverlap(first, second) {
+    return first.startAt < second.endAt && second.startAt < first.endAt;
+  }
+
+  function getCbiAutomaticFieldBlock(dateStr, charId, shift, assignment) {
+    if (!assignment || assignment.mode !== 'field') return null;
+    if (assignment.manual) {
+      return {
+        mode: 'field',
+        title: assignment.title || '外勤中',
+        startAt: shift.arrivalAt,
+        endAt: shift.departureAt,
+        manual: true
+      };
+    }
+
+    const variantRoll = stableScheduleUnit('cbi-field-variant|' + dateStr + '|' + charId);
+    let startMinute;
+    let endMinute;
+    if (variantRoll < 0.30) {
+      startMinute = shift.arrivalMinute + stableScheduleInteger('cbi-field-full-start|' + dateStr + '|' + charId, 10, 35);
+      endMinute = shift.departureMinute - stableScheduleInteger('cbi-field-full-end|' + dateStr + '|' + charId, 0, 25);
+    } else if (variantRoll < 0.65) {
+      startMinute = shift.arrivalMinute + stableScheduleInteger('cbi-field-am-start|' + dateStr + '|' + charId, 10, 40);
+      endMinute = stableScheduleInteger('cbi-field-am-end|' + dateStr + '|' + charId, 720, 870);
+    } else {
+      startMinute = stableScheduleInteger('cbi-field-pm-start|' + dateStr + '|' + charId, 690, 810);
+      endMinute = shift.departureMinute - stableScheduleInteger('cbi-field-pm-end|' + dateStr + '|' + charId, 0, 25);
+    }
+    startMinute = Math.max(shift.arrivalMinute + 5, Math.min(startMinute, shift.departureMinute - 60));
+    endMinute = Math.max(startMinute + 60, Math.min(endMinute, shift.departureMinute));
+    const titleIndex = stableScheduleInteger('cbi-field-title|' + dateStr + '|' + charId, 0, CBI_LONG_FIELD_TITLES.length - 1);
+    return {
+      mode: 'field',
+      title: CBI_LONG_FIELD_TITLES[titleIndex],
+      startAt: cbiDateAtMinute(dateStr, startMinute).getTime(),
+      endAt: cbiDateAtMinute(dateStr, endMinute).getTime(),
+      manual: false
+    };
+  }
+
+  function getCbiShortErrandBlocks(dateStr, charId, shift, fieldBlock) {
+    const ranges = [
+      [shift.arrivalMinute + 40, 690],
+      [690, 870],
+      [870, shift.departureMinute - 35]
+    ];
+    const chances = [0.56, 0.72, 0.60];
+    const blocks = [];
+    ranges.forEach(function (range, index) {
+      const minimum = Math.max(shift.arrivalMinute + 15, range[0]);
+      const maximum = Math.min(shift.departureMinute - 25, range[1]);
+      if (maximum <= minimum) return;
+      if (stableScheduleUnit('cbi-errand-enabled|' + dateStr + '|' + charId + '|' + index) >= chances[index]) return;
+      const taskIndex = stableScheduleInteger('cbi-errand-task|' + dateStr + '|' + charId + '|' + index, 0, CBI_SHORT_ERRANDS.length - 1);
+      const task = CBI_SHORT_ERRANDS[taskIndex];
+      const startMinute = stableScheduleInteger('cbi-errand-start|' + dateStr + '|' + charId + '|' + index, minimum, maximum);
+      const duration = stableScheduleInteger('cbi-errand-duration|' + dateStr + '|' + charId + '|' + index, task.duration[0], task.duration[1]);
+      const block = {
+        mode: 'errand',
+        title: task.title,
+        startAt: cbiDateAtMinute(dateStr, startMinute).getTime(),
+        endAt: cbiDateAtMinute(dateStr, Math.min(startMinute + duration, shift.departureMinute - 10)).getTime()
+      };
+      if (block.endAt - block.startAt < 10 * 60000) return;
+      if (fieldBlock && intervalsOverlap(block, fieldBlock)) return;
+      if (blocks.some(function (existing) { return intervalsOverlap(block, existing); })) return;
+      blocks.push(block);
+    });
+    return blocks.sort(function (a, b) { return a.startAt - b.startAt; });
+  }
+
   function getCbiManualAssignments(dateStr) {
     const assignments = {};
     getScheduleEventsForDate(dateStr, 'cbi').forEach(function (item) {
@@ -1255,7 +1381,7 @@
   }
 
   function getCbiDutyRoster(dateStr, periodKey) {
-    const date = dateStr || calendarDateStr();
+    const date = dateStr || dayKey();
     const period = periodKey || timeSlot();
     const deployment = getCbiDeployment(date);
     if (deployment) {
@@ -1340,6 +1466,79 @@
     };
   }
 
+  function getCbiPresenceRoster(nowValue) {
+    const now = nowValue === undefined ? nowDate() : new Date(nowValue);
+    const currentTime = now.getTime();
+    const date = dayKey(now);
+    const duty = getCbiDutyRoster(date, 'day');
+    const assignments = {};
+
+    SCHEDULE_CHARACTERS.cbi.forEach(function (charId) {
+      const baseAssignment = duty.assignments[charId] || { mode: 'office', title: '办公室值班', manual: false };
+      const shift = getCbiShift(date, charId);
+      let live;
+      if (currentTime < shift.arrivalAt) {
+        live = {
+          mode: 'not_arrived',
+          location: charId === 'jane' ? 'home' : 'away',
+          title: charId === 'jane' ? '还在家里' : '还没到办公室',
+          startAt: cbiDateAtMinute(date, DAY_START_HOUR * 60).getTime(),
+          endAt: shift.arrivalAt
+        };
+      } else if (currentTime >= shift.departureAt) {
+        live = {
+          mode: 'off_duty',
+          location: charId === 'jane' ? 'home' : 'away',
+          title: '已经下班',
+          startAt: shift.departureAt,
+          endAt: 0
+        };
+      } else {
+        const fieldBlock = getCbiAutomaticFieldBlock(date, charId, shift, baseAssignment);
+        const errandBlocks = getCbiShortErrandBlocks(date, charId, shift, fieldBlock);
+        const activeBlock = (fieldBlock && currentTime >= fieldBlock.startAt && currentTime < fieldBlock.endAt)
+          ? fieldBlock
+          : errandBlocks.find(function (block) { return currentTime >= block.startAt && currentTime < block.endAt; });
+        live = activeBlock ? {
+          mode: activeBlock.mode,
+          location: 'away',
+          title: activeBlock.title,
+          startAt: activeBlock.startAt,
+          endAt: activeBlock.endAt
+        } : {
+          mode: 'office',
+          location: 'office',
+          title: '在办公室',
+          startAt: shift.arrivalAt,
+          endAt: shift.departureAt
+        };
+        live.fieldBlock = fieldBlock;
+        live.errandBlocks = errandBlocks;
+      }
+      assignments[charId] = Object.assign({}, baseAssignment, live, {
+        charId: charId,
+        date: date,
+        shift: shift,
+        baseMode: baseAssignment.mode
+      });
+    });
+
+    return {
+      date: date,
+      period: timeSlot(now),
+      assignments: assignments,
+      office: SCHEDULE_CHARACTERS.cbi.filter(function (charId) { return assignments[charId].location === 'office'; }),
+      home: SCHEDULE_CHARACTERS.cbi.filter(function (charId) { return assignments[charId].location === 'home'; }),
+      away: SCHEDULE_CHARACTERS.cbi.filter(function (charId) { return assignments[charId].location === 'away'; }),
+      duty: duty
+    };
+  }
+
+  function getCbiCharacterPresence(charId, nowValue) {
+    const roster = getCbiPresenceRoster(nowValue);
+    return roster.assignments[charId] || null;
+  }
+
   window.CharacterRuntime = {
     init: function (options) {
       const opts = options || {};
@@ -1420,7 +1619,10 @@
     getUnavailableCharacters: getUnavailableCharacters,
     getCbiManualAssignments: getCbiManualAssignments,
     getCbiDutyRoster: getCbiDutyRoster,
+    getCbiPresenceRoster: getCbiPresenceRoster,
+    getCbiCharacterPresence: getCbiCharacterPresence,
     calendarDateStr: calendarDateStr,
+    workDayDateStr: dayKey,
     scheduleCharacters: SCHEDULE_CHARACTERS,
     exportSchedulePacks: function (worldId) {
       const target = worldId || activeScheduleWorldId();
@@ -1458,7 +1660,10 @@
       saveRuntime: saveRuntime,
       createDefaultCharState: createDefaultCharState,
       getCharState: getCharState,
-      todayAwayCount: todayAwayCount
+      todayAwayCount: todayAwayCount,
+      getCbiShift: getCbiShift,
+      getCbiAutomaticFieldBlock: getCbiAutomaticFieldBlock,
+      getCbiShortErrandBlocks: getCbiShortErrandBlocks
     }
   };
 })();
