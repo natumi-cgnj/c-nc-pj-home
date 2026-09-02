@@ -85,6 +85,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .catalog-row{display:flex;align-items:center;gap:12px;padding:14px 20px;background:#fff;border-bottom:1px solid #f5f5f5;cursor:pointer;transition:background .15s,box-shadow .15s}
 .catalog-row:active{background:#f9f9f9}
 .catalog-row.drop-target{background:#FFF9EA;box-shadow:inset 3px 0 #E8B96A}
+.ref-project-row{touch-action:pan-y;position:relative}
+#viewRef.ref-arrange-mode .ref-project-row{cursor:grab;touch-action:none;-webkit-touch-callout:none;user-select:none}
+#viewRef.ref-arrange-mode .catalog-add{pointer-events:none;opacity:.35;transition:opacity .25s}
+.ref-project-row.ref-dragging{opacity:.45;transform:scale(.97);background:#FFFDF7;transition:opacity .2s,transform .2s}
+.ref-project-row.ref-drag-over{box-shadow:0 -2px 0 0 #E8B96A}
 .catalog-icon{width:40px;height:40px;border-radius:8px;object-fit:cover;background:#f0f0f0}
 .catalog-body{flex:1;min-width:0}
 .catalog-name{font-size:14px;font-weight:500;color:#333}
@@ -524,6 +529,7 @@ let curCatalogId=null,curRefId=null,editItemId=null,editCatalogId=null,editRefId
 let editRefItemId=null,editRefSectionIdx=null,_refSections=[];
 let refIconTemp='',refIconPosTemp={x:50,y:50};
 let refAllocationDrag=null,refAllocationClickSuppressedUntil=0;
+let refProjectArrangeMode=false,refProjectClickSuppressedUntil=0,refProjectGestureBound=false,refProjectPressState=null;
 
 function load(){
   try{const d=JSON.parse(localStorage.getItem(DB_KEY));if(d){db={items:d.items||[],sections:d.sections||[],catalogs:d.catalogs||[],refs:d.refs||[],sectionCollapsed:d.sectionCollapsed||{},shelfCollapsed:d.shelfCollapsed||{},refShelfCollapsed:d.refShelfCollapsed||{}};normalizeTechoData();return;}}catch(e){}
@@ -590,6 +596,7 @@ function normalizeTechoData(){
 /* ═══ VIEWS ═══ */
 function showView(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);}
 function navTo(id){
+  if(id!=='viewRef'&&refProjectArrangeMode)setRefProjectArrangeMode(false);
   showView(id);
   if(id==='viewItems')renderItems();else if(id==='viewCatalog')renderCatalogList();else if(id==='viewRef')renderRefList();
 }
@@ -1073,7 +1080,7 @@ function openAddCatSection(){
 
 /* ═══ REFERENCE VIEW ═══ */
 function renderRefList(){
-  const sorted=db.refs.sort((a,b)=>(a.order||0)-(b.order||0));
+  const sorted=[...db.refs].sort((a,b)=>(a.order||0)-(b.order||0));
   const ungrouped=sorted.filter(r=>!r.shelf);
   const shelves={};const shelfOrder=[];
   sorted.forEach(r=>{if(!r.shelf)return;if(!shelves[r.shelf]){shelves[r.shelf]=[];shelfOrder.push(r.shelf);}shelves[r.shelf].push(r);});
@@ -1085,13 +1092,108 @@ function renderRefList(){
     html+=`<div class="shelf-items${coll?' collapsed':''}">`;shelves[shelf].forEach(r=>{html+=renderRefRow(r);});html+=`</div>`;
   });
   document.getElementById('refList').innerHTML=html;
+  initRefProjectDrag();
 }
 function renderRefRow(r){
   const listCount=(r.items||[]).filter(item=>item.mode==='list').length;
   const iconPositionX=clampImagePosition(r.iconPositionX),iconPositionY=clampImagePosition(r.iconPositionY);
-  return`<div class="catalog-row" onclick="openRefDetail('${r.id}')"><img class="catalog-icon" src="${r.icon||''}" alt="" style="object-position:${iconPositionX}% ${iconPositionY}%" onerror="this.style.background='#f0f0f0'"><div class="catalog-body"><div class="catalog-name">${esc(r.name)}</div><div class="catalog-meta">${r.items?r.items.length:0} items${listCount?' · '+listCount+' List':''}</div></div></div>`;
+  return`<div class="catalog-row ref-project-row" data-ref-id="${r.id}" onclick="handleRefRowClick('${r.id}')"><img class="catalog-icon" src="${r.icon||''}" alt="" style="object-position:${iconPositionX}% ${iconPositionY}%" onerror="this.style.background='#f0f0f0'"><div class="catalog-body"><div class="catalog-name">${esc(r.name)}</div><div class="catalog-meta">${r.items?r.items.length:0} items${listCount?' · '+listCount+' List':''}</div></div></div>`;
 }
 function toggleRefShelf(name){db.refShelfCollapsed[name]=!db.refShelfCollapsed[name];save();renderRefList();}
+function setRefProjectArrangeMode(active){
+  refProjectArrangeMode=!!active;
+  const view=document.getElementById('viewRef');if(view)view.classList.toggle('ref-arrange-mode',refProjectArrangeMode);
+  if(refProjectArrangeMode)refProjectClickSuppressedUntil=Date.now()+700;
+  else{refProjectClickSuppressedUntil=Date.now()+400;clearRefProjectPress();}
+}
+function handleRefRowClick(id){if(refProjectArrangeMode||Date.now()<refProjectClickSuppressedUntil)return;openRefDetail(id);}
+function releaseRefProjectPointer(state){
+  if(!state||!state.row||!state.row.releasePointerCapture)return;
+  try{if(!state.row.hasPointerCapture||state.row.hasPointerCapture(state.pointerId))state.row.releasePointerCapture(state.pointerId);}catch(e){}
+}
+function clearRefProjectPress(release=true){
+  const state=refProjectPressState;if(!state)return;
+  if(state.timer)clearTimeout(state.timer);
+  if(release)releaseRefProjectPointer(state);
+  state.row&&state.row.classList.remove('ref-dragging');
+  document.querySelectorAll('#refList .ref-project-row.ref-drag-over').forEach(row=>row.classList.remove('ref-drag-over'));
+  refProjectPressState=null;
+}
+function reorderRefProjects(dragId,insertBeforeId){
+  const moved=db.refs.find(ref=>ref.id===dragId);if(!moved)return false;
+  const others=db.refs.filter(ref=>ref.id!==dragId),next=[];
+  if(!insertBeforeId)next.push(...others,moved);
+  else{
+    let inserted=false;
+    others.forEach(ref=>{if(ref.id===insertBeforeId){next.push(moved);inserted=true;}next.push(ref);});
+    if(!inserted)next.push(moved);
+  }
+  next.forEach((ref,index)=>ref.order=index);db.refs=next;save();renderRefList();return true;
+}
+function commitRefProjectDrag(state,y){
+  if(!state||!state.row)return;
+  let insertBeforeId=null;
+  for(const row of document.querySelectorAll('#refList .ref-project-row')){
+    if(row===state.row||!row.dataset.refId)continue;
+    const rect=row.getBoundingClientRect();if(!rect.height)continue;
+    if(y<rect.top+rect.height/2){insertBeforeId=row.dataset.refId;break;}
+  }
+  reorderRefProjects(state.row.dataset.refId,insertBeforeId);
+}
+function initRefProjectDrag(){
+  if(refProjectGestureBound)return;refProjectGestureBound=true;
+  const list=document.getElementById('refList');if(!list)return;
+  list.addEventListener('pointerdown',event=>{
+    const row=event.target.closest&&event.target.closest('.ref-project-row');
+    if(!row||(event.button!==undefined&&event.button!==0))return;
+    clearRefProjectPress();
+    const state={row,pointerId:event.pointerId,startX:event.clientX,startY:event.clientY,lastY:event.clientY,activated:false,moved:false,timer:null};
+    refProjectPressState=state;
+    if(row.setPointerCapture)try{row.setPointerCapture(event.pointerId);}catch(e){}
+    state.timer=setTimeout(()=>{
+      if(refProjectPressState!==state)return;
+      state.timer=null;state.activated=true;
+      if(!refProjectArrangeMode)setRefProjectArrangeMode(true);
+      refProjectClickSuppressedUntil=Date.now()+700;
+      if(typeof navigator!=='undefined'&&navigator.vibrate)navigator.vibrate(12);
+    },refProjectArrangeMode?170:450);
+  });
+  list.addEventListener('pointermove',event=>{
+    const state=refProjectPressState;if(!state||state.pointerId!==event.pointerId)return;
+    state.lastY=event.clientY;
+    const distance=Math.hypot(event.clientX-state.startX,event.clientY-state.startY);
+    if(!state.activated){if(distance>10)clearRefProjectPress();return;}
+    if(distance<=6)return;
+    state.moved=true;state.row.classList.add('ref-dragging');event.preventDefault();
+    list.querySelectorAll('.ref-project-row').forEach(row=>row.classList.remove('ref-drag-over'));
+    for(const row of list.querySelectorAll('.ref-project-row')){
+      if(row===state.row)continue;
+      const rect=row.getBoundingClientRect();if(!rect.height)continue;
+      if(event.clientY<rect.top+rect.height/2){row.classList.add('ref-drag-over');break;}
+    }
+  },{passive:false});
+  list.addEventListener('pointerup',event=>{
+    const state=refProjectPressState;if(!state||state.pointerId!==event.pointerId)return;
+    if(state.timer){clearTimeout(state.timer);state.timer=null;}
+    releaseRefProjectPointer(state);
+    if(state.activated||state.moved)refProjectClickSuppressedUntil=Date.now()+700;
+    if(state.activated&&state.moved)commitRefProjectDrag(state,state.lastY);
+    clearRefProjectPress(false);
+  });
+  list.addEventListener('pointercancel',event=>{
+    const state=refProjectPressState;if(!state||state.pointerId!==event.pointerId)return;
+    refProjectClickSuppressedUntil=Date.now()+700;clearRefProjectPress();
+  });
+  list.addEventListener('contextmenu',event=>{if(event.target.closest&&event.target.closest('.ref-project-row'))event.preventDefault();});
+  list.addEventListener('dragstart',event=>event.preventDefault());
+  document.addEventListener('click',event=>{
+    if(!refProjectArrangeMode)return;
+    const view=document.getElementById('viewRef');if(!view||!view.classList.contains('active'))return;
+    if(event.target.closest&&event.target.closest('.modal-bg.show'))return;
+    if(event.target.closest&&event.target.closest('.ref-project-row,.shelf-header,.sub-bar'))return;
+    setRefProjectArrangeMode(false);
+  });
+}
 function openRefDetail(id){
   curRefId=id;const r=db.refs.find(x=>x.id===id);if(!r)return;
   document.getElementById('refDetailTitle').textContent=r.name;

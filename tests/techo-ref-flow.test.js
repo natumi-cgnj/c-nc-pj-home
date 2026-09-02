@@ -10,7 +10,7 @@ source = source.replace(/load\(\);renderItems\(\);\s*$/, '');
 source += `\n;globalThis.__testApi={
   getDb:()=>db,setDb:value=>{db=value;},
   normalizeTechoData,openRefDetail,toggleRefItemMode,renderCatalogList,
-  renderRefList,getQueuedRefItems,assignRefItemToCatalog,openCatalogDetail,toggleCollect
+  renderRefList,reorderRefProjects,getQueuedRefItems,assignRefItemToCatalog,openCatalogDetail,toggleCollect
 };`;
 
 function element(id = '') {
@@ -32,6 +32,7 @@ function element(id = '') {
 const elements = new Map();
 const document = {
   body: element('body'),
+  addEventListener() {}, removeEventListener() {},
   getElementById(id) { if (!elements.has(id)) elements.set(id, element(id)); return elements.get(id); },
   querySelectorAll() { return []; },
   elementFromPoint() { return null; },
@@ -122,8 +123,15 @@ assert.equal(state.catalogs[0].items.length, 0, 'returning to ref removes its un
 assert.equal(state.catalogs[0].sections[0].count, 0, 'removal repairs List section count');
 assert.equal(state.items.length, 0, 'unchecking removes the pending Items entry');
 
+state.refs.push({id: 'ref2', name: 'Second Ref', shelf: '', icon: '', note: '', comment: '', order: 1, sections: [], items: []});
+assert.equal(api.reorderRefProjects('ref1', null), true, 'ref project reorder succeeds');
+assert.deepEqual(Array.from(api.getDb().refs, ref => ref.id), ['ref2', 'ref1'], 'ref project can move to the end');
+assert.deepEqual(Array.from(api.getDb().refs, ref => ref.order), [0, 1], 'ref project reorder persists normalized order values');
+
 assert.match(source, /pointerdown/, 'allocation pool includes pointer drag behavior');
 assert.match(source, /closest\('\.catalog-row\[data-catalog-id\]'\)/, 'drag behavior resolves List drop targets');
+assert.match(source, /function initRefProjectDrag\(\)[\s\S]*?refProjectArrangeMode\?170:450/, 'ref projects support Food-style long-press sorting');
+assert.match(document.getElementById('refList').innerHTML, /data-ref-id="ref2"/, 'ref project rows expose stable drag ids');
 assert.match(html, /id="refIconPosFrame"/, 'ref editor uses the Food-style draggable cover frame');
 assert.match(source, /r\.iconPositionX=iconPositionX;r\.iconPositionY=iconPositionY/, 'ref editor persists cover position');
 assert.match(html, /id="refItemModeSelect"[\s\S]*?>Ref<\/button>[\s\S]*?>List<\/button>/, 'Food-style item editor preserves Ref and List modes');
