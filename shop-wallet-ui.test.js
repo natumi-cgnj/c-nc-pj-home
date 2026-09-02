@@ -59,9 +59,9 @@ test('Rewards dynamics replaces only the obsolete notebook entry', () => {
   assert.match(dynamics, /之后会使用日课货币解锁角色使用记录与小剧情/);
 });
 
-test('every page that writes CBI data loads the wish-desk schema cache version', () => {
+test('every page that writes CBI data loads the current schema cache version', () => {
   for (const page of ['cbi.html', 'daily.html', 'schedule.html', 'wallet.html', 'shop.html', 'dynamics.html']) {
     const html = fs.readFileSync(page, 'utf8');
-    assert.match(html, /cbi-data\.js\?v=20260901-wishes1/, page);
+    assert.match(html, /cbi-data\.js\?v=20260902-balance1/, page);
   }
 });

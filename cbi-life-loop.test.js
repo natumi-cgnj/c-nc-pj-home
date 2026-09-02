@@ -153,7 +153,7 @@ test('major-case work advances once per day without consuming the reality balanc
     cases: [{ id: 'major_1', title: '正式大案', status: 'active' }]
   });
   assert.equal(CBIData.sharedFundFromWallet(wallet), 750);
-  assert.equal(CBIData.availableAllowance(db, wallet), 750);
+  assert.equal(CBIData.availableAllowance(db, wallet), 900);
   const advanced = CBIData.advanceMajorCaseDay(db, 'major_1', {
     availableCharacters: ['lisbon'],
     date: '2026-08-24'
@@ -162,7 +162,7 @@ test('major-case work advances once per day without consuming the reality balanc
   assert.equal(advanced.scene.characterId, 'lisbon');
   assert.ok(advanced.scene.delta >= 8 && advanced.scene.delta <= 15);
   assert.equal(advanced.scene.cost, 0);
-  assert.equal(CBIData.availableAllowance(db, wallet), 750);
+  assert.equal(CBIData.availableAllowance(db, wallet), 900);
   const repeated = CBIData.advanceMajorCaseDay(db, 'major_1', { availableCharacters: ['jane'], date: '2026-08-24' });
   assert.equal(repeated.reason, 'already_advanced');
   assert.equal(repeated.scene, null);

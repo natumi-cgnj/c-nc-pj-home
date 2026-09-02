@@ -40,6 +40,28 @@ test('living and entertainment balances are calculated independently', () => {
   assert.equal(CBIData.availableShopFund(db, wallet), 65);
 });
 
+test('reimbursement reads living funds without obsolete wallet-side deductions', () => {
+  const CBIData = loadData();
+  const wallet = {
+    categories: [
+      { id: 'food', name: '饮食', dailyBudget: 2500, account: 'living', activeFrom: '2026-08-01' },
+      { id: 'daily', name: '日用', dailyBudget: 2200, account: 'living', activeFrom: '2026-08-01' }
+    ],
+    records: [
+      { date: '2026-08-24', category: 'food', type: 'expense', amount: 2593 }
+    ],
+    charFunds: { jane: 1200 },
+    outings: [{ cost: 900 }]
+  };
+  const db = CBIData.emptyDB();
+  db.work.caseFund.charFunds.jane = 1200;
+
+  assert.equal(CBIData.sharedFundFromWallet(wallet), 7);
+  assert.equal(CBIData.reimbursementFundFromWallet(wallet), 2107);
+  assert.equal(CBIData.availableAllowance(db, wallet), 2107);
+  assert.equal(CBIData.unassignedAllowance(db, wallet), 907);
+});
+
 test('negative allocation reclaims personal allowance without going below zero', () => {
   const CBIData = loadData();
   const wallet = {
@@ -75,6 +97,8 @@ test('wallet page exposes split pools, full history and pending expenses', () =>
   assert.match(html, /id="categoryColorPicker"/);
   assert.match(html, /\.cat-color-swatch:before\{/);
   assert.match(html, /id="monthBudgetStatus"/);
+  assert.match(html, /\.month-budget-status\{[^}]*font-size:9px/);
+  assert.match(html, /compactBudgetMonthLabel\(monthKey\)\+'预算'/);
   assert.match(html, /monthlyBudgets:\{\}/);
   assert.match(html, /schemaVersion:4/);
   assert.match(html, /class="add-category-btn"/);
@@ -92,6 +116,7 @@ test('monthly plans use the real month length and inherit the latest budget', ()
 
   assert.equal(context.daysInBudgetMonth('2026-02'), 28);
   assert.equal(context.daysInBudgetMonth('2028-02'), 29);
+  assert.equal(context.compactBudgetMonthLabel('2026-09'), '26年09月');
   const food = [{ name: '饮食', dailyBudget: 2000, activeFrom: '2026-01-01' }];
   assert.equal(context.monthlyCategoryAllocation(food, '2026-02'), 56000);
   assert.equal(context.monthlyCategoryAllocation(food, '2026-03'), 62000);

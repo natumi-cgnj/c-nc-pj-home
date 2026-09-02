@@ -15,8 +15,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .top-bar{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;padding-top:env(safe-area-inset-top,20px);background:#fff;position:sticky;top:0;z-index:50;border-bottom:1px solid #f0f0f0}
 .top-bar h1{font-size:13px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:#999}
 .wallet-title{display:flex;min-width:0;flex-direction:column;align-items:center;gap:3px}
-.month-budget-status{border:0;background:none;padding:0;color:#c0bab0;font:400 9px/1.2 inherit;letter-spacing:.35px;white-space:nowrap;cursor:pointer}
-.month-budget-status.over{color:#b9786c}
+.month-budget-status{border:0;background:none;padding:0;color:#bbb;font-family:inherit;font-size:9px;font-weight:400;line-height:1.2;letter-spacing:1.2px;white-space:nowrap;cursor:pointer}
 .back-btn{font-size:13px;color:#bbb;text-decoration:none;cursor:pointer;background:none;border:none;font-family:inherit;padding:4px;transition:color 0.15s}
 .back-btn:active{color:#666}
 .btn-s{font-size:11px;color:#999;background:none;border:1px solid #ddd;border-radius:6px;padding:5px 10px;cursor:pointer;font-family:inherit;transition:all 0.15s}
@@ -223,7 +222,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <a class="back-btn" href="index.html?p=2">← Home</a>
   <div class="wallet-title">
     <h1>WALLET</h1>
-    <button type="button" class="month-budget-status" id="monthBudgetStatus" onclick="openMonthlyBudgetModal()">本月预算未设置</button>
+    <button type="button" class="month-budget-status" id="monthBudgetStatus" onclick="openMonthlyBudgetModal()">26年09月预算未设置</button>
   </div>
   <button class="btn-s" onclick="openModal('settingsModal')">设置</button>
 </div>
@@ -453,7 +452,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 <script src="world-context.js?v=20260824-cbi-work1"></script>
 <script src="cloud-sync.js?v=20260824-cbi-work1"></script>
-<script src="cbi-data.js?v=20260901-wishes1"></script>
+<script src="cbi-data.js?v=20260902-balance1"></script>
 <script src="character-runtime.js?v=20260824-wallet-fix1"></script>
 <script src="cbi-wallet.js?v=20260902-budget1"></script>
 <script>
@@ -692,6 +691,10 @@ function budgetMonthLabel(monthKey){
   var parts=String(monthKey||'').split('-');
   return parts.length===2?Number(parts[0])+'年'+Number(parts[1])+'月':'本月';
 }
+function compactBudgetMonthLabel(monthKey){
+  var parts=String(monthKey||'').split('-');
+  return parts.length===2?parts[0].slice(-2)+'年'+parts[1]+'月':'本月';
+}
 function monthlyCategoryAllocation(categories,monthKey){
   var days=daysInBudgetMonth(monthKey);
   if(!days)return 0;
@@ -732,10 +735,9 @@ function periodName(p){return{morning:'清晨',day:'白天',evening:'傍晚',nig
 function renderMonthBudgetStatus(){
   var status=document.getElementById('monthBudgetStatus');
   if(!status)return;
-  var summary=monthlyBudgetSummary(db,db.categories,currentBudgetMonth());
-  status.classList.toggle('over',summary.remaining!==null&&summary.remaining<0);
-  if(summary.amount===null){status.textContent='本月预算未设置';return;}
-  status.textContent=summary.remaining<0?'本月预算超出 ¥'+formatYenAmount(summary.remaining):'本月预算剩余 ¥'+formatYenAmount(summary.remaining);
+  var monthKey=currentBudgetMonth();
+  var state=monthlyBudgetState(db,monthKey);
+  status.textContent=compactBudgetMonthLabel(monthKey)+'预算'+(state.amount===null?'未设置':state.amount+'円');
 }
 function openMonthlyBudgetModal(){
   var monthKey=currentBudgetMonth();

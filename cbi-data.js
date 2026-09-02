@@ -1182,6 +1182,10 @@
     return Math.max(0, walletAccountSurplus(value, 'entertainment'));
   }
 
+  function reimbursementFundFromWallet(value) {
+    return Math.max(0, walletAccountSurplus(value, 'living'));
+  }
+
   function shopSpend(value) {
     var db = normalize(value);
     return db.work.shop.purchaseLog.reduce(function (total, entry) {
@@ -1224,7 +1228,7 @@
   }
 
   function availableAllowance(value, walletValue) {
-    return Math.max(0, sharedFundFromWallet(walletValue) - allowanceSpend(value));
+    return Math.max(0, reimbursementFundFromWallet(walletValue) - allowanceSpend(value));
   }
 
   function availableCaseFund(value, walletValue) {
@@ -1636,6 +1640,7 @@
     sharedFundFromWallet: sharedFundFromWallet,
     walletAccountSurplus: walletAccountSurplus,
     entertainmentFundFromWallet: entertainmentFundFromWallet,
+    reimbursementFundFromWallet: reimbursementFundFromWallet,
     shopSpend: shopSpend,
     availableShopFund: availableShopFund,
     majorCaseSpend: majorCaseSpend,

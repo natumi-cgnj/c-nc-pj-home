@@ -138,7 +138,7 @@ test('funded major-case scenes consume the shared surplus and can close a full c
     cases: [{ id: 'major_1', title: '正式大案', status: 'active' }]
   });
   assert.equal(CBIData.sharedFundFromWallet(wallet), 750);
-  assert.equal(CBIData.availableCaseFund(db, wallet), 750);
+  assert.equal(CBIData.availableCaseFund(db, wallet), 900);
   const advanced = CBIData.advanceMajorCase(db, 'major_1', {
     availableCharacters: ['lisbon'],
     cost: 500,
@@ -147,7 +147,7 @@ test('funded major-case scenes consume the shared surplus and can close a full c
   db = advanced.db;
   assert.equal(advanced.scene.characterId, 'lisbon');
   assert.ok(advanced.scene.delta >= 8 && advanced.scene.delta <= 15);
-  assert.equal(CBIData.availableCaseFund(db, wallet), 250);
+  assert.equal(CBIData.availableCaseFund(db, wallet), 400);
   db.work.majorCaseProgress.major_1.progress = 99;
   db = CBIData.advanceMajorCase(db, 'major_1', {
     availableCharacters: ['jane'],
