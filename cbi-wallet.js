@@ -44,6 +44,7 @@
       'body[data-cbi-wallet="1"] .tab-bar button.active:before{content:"";position:absolute;left:36%;right:36%;top:0;height:1px;background:#9c907c}',
       'body[data-cbi-wallet="1"] .tab-icon{display:none}',
       'body[data-cbi-wallet="1"] #liminalCloudBadgeHost.liminal-cloud-floating-host{bottom:calc(66px + env(safe-area-inset-bottom,0px))}',
+      'body[data-cbi-wallet="1"] .view.active{touch-action:pan-y}',
       'body[data-cbi-wallet="1"] .account-ledger-grid{border-bottom:1px solid #eeeeec}',
       'body[data-cbi-wallet="1"] .account-pane:first-child{border-right:1px solid #e9e9e6}',
       'body[data-cbi-wallet="1"] .account-summary{background:#fff}',
@@ -268,7 +269,7 @@
   }
 
   function swipeBlocked(target) {
-    return !!(target && target.closest && target.closest('input,textarea,select,button,a,summary,[contenteditable="true"],.modal-bg.show'));
+    return !!(target && target.closest && target.closest('input,textarea,select,[contenteditable="true"],.modal-bg.show'));
   }
 
   function bindTabSwipe() {
@@ -285,6 +286,7 @@
       if (Date.now() - start.at > 900 || Math.abs(dx) < 58 || Math.abs(dx) <= Math.abs(dy) * 1.25) return;
       var active = document.querySelector('.view.active');
       if (!active) return;
+      event.preventDefault();
       if (active.id === 'viewLedger' && dx < 0) {
         switchView('viewTreasury', document.querySelector('.tab-bar [data-view="viewTreasury"]'));
       } else if (active.id === 'viewTreasury' && dx > 0) {
@@ -292,7 +294,7 @@
       } else if (active.id === 'viewTreasury' && dx < 0) {
         global.location.href = 'shop.html';
       }
-    }, { passive: true });
+    }, { passive: false });
     document.addEventListener('touchcancel', function () { swipeStart = null; }, { passive: true });
   }
 

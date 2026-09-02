@@ -7,6 +7,7 @@ const cbiShop = fs.readFileSync('cbi-shop.js', 'utf8');
 const cbiWallet = fs.readFileSync('cbi-wallet.js', 'utf8');
 const dynamics = fs.readFileSync('dynamics.html', 'utf8');
 const index = fs.readFileSync('index.html', 'utf8');
+const wallet = fs.readFileSync('wallet.html', 'utf8');
 
 test('shop reuses the Food project, section and item-grid model', () => {
   assert.match(cbiData, /projects:\s*\[\]/);
@@ -38,6 +39,12 @@ test('reality wallet merges allowance and wishes into reimbursement', () => {
   assert.match(cbiWallet, /refreshWishRequests/);
   assert.match(cbiWallet, /createElement\('details'\)/);
   assert.match(cbiWallet, /touchstart/);
+  assert.match(cbiWallet, /\.view\.active\{touch-action:pan-y\}/);
+  assert.match(cbiWallet, /closest\('input,textarea,select,\[contenteditable="true"\],\.modal-bg\.show'\)/);
+  assert.doesNotMatch(cbiWallet, /closest\('input,textarea,select,button,a,summary/);
+  assert.match(cbiWallet, /event\.preventDefault\(\)/);
+  assert.match(cbiWallet, /\}, \{ passive: false \}\);/);
+  assert.match(wallet, /cbi-wallet\.js\?v=20260902-swipe1/);
   assert.match(cbiShop, /wallet\.html#reimbursement/);
   assert.match(cbiShop, /bindTabSwipe/);
   assert.doesNotMatch(cbiWallet, /案件进度已移至/);
