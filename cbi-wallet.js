@@ -4,6 +4,7 @@
   var NAMES = { jane: 'Jane', cho: 'Cho', rigsby: 'Rigsby', lisbon: 'Lisbon', vanpelt: 'Van Pelt' };
   var COLORS = { jane: '#87977F', cho: '#68747A', rigsby: '#7E9AB0', lisbon: '#A06F62', vanpelt: '#B48A9B' };
   var WISH_FOLD_KEY = 'cbi_wish_desk_open_v1';
+  var PURCHASE_HISTORY_FOLD_KEY = 'cbi_purchase_history_open_v1';
   var swipeStart = null;
 
   function esc(value) {
@@ -89,6 +90,8 @@
       '.cbi-wish-desk>summary::-webkit-details-marker{display:none}',
       '.cbi-wish-desk>summary:after{content:"▼";position:absolute;right:20px;top:50%;transform:translateY(-50%);font-size:7px;color:#c8c8c4;transition:transform .18s}',
       '.cbi-wish-desk:not([open])>summary:after{transform:translateY(-50%) rotate(-90deg)}',
+      '.cbi-purchase-history{margin:0;background:#fafafa;border-bottom:1px solid #eeeeec}',
+      '.cbi-purchase-history>summary{border-top:0!important}',
       '.cbi-reply{width:100%;margin-top:11px;padding:9px 0;border:0;border-bottom:1px solid #ddd;border-radius:0;background:transparent;font:11px/1.4 inherit;color:#555;outline:none}',
       '.cbi-reply:focus{border-color:#d7c7a4;background:#fff}',
       '.cbi-approve{width:100%;margin-top:11px;padding:11px;border:0;border-radius:2px;background:#282828;color:#fff;font:inherit;font-size:10px;letter-spacing:.4px;line-height:1;cursor:pointer}',
@@ -99,7 +102,6 @@
       '.cbi-reaction{font-size:11px;color:#777;line-height:1.65;margin-top:8px;padding:8px 0 0;border-top:1px solid #f1f1ef;background:transparent;border-radius:0}',
       '.cbi-log-who{font-size:11px;font-weight:600;color:#777;margin-bottom:3px}',
       '.cbi-log-empty{text-align:center;color:#ccc;font-size:12px;padding:38px 20px}',
-      '.cbi-history-title{margin:20px 20px 10px;font-size:9px;color:#ccc;letter-spacing:1px;text-transform:uppercase}',
       '.cbi-day-note{text-align:center;color:#c6b894;font-size:9px;line-height:1.6;padding:7px 18px 2px}',
       '.cbi-log-actions{display:flex;border-bottom:1px solid #eeeeec;background:#fff}',
       '.cbi-log-actions button{width:100%;padding:15px 20px;border:0;background:#fff;color:#aaa;font:inherit;font-size:10px;letter-spacing:.3px;cursor:pointer}',
@@ -213,11 +215,16 @@
     document.getElementById('periodBanner').innerHTML = '<div class="period-name">CBI · WISH DESK</div><div class="period-time">' + today() + ' · 愿望、批复与角色自由花销</div>';
     var html = pending.map(function (item) { return requestCard(db, item); }).join('');
     html += '<button class="record-btn cbi-refresh-wishes" type="button" onclick="CBIWallet.generateWish()">' + (checkedToday === global.CBIData.CBI_CHARACTERS.length ? '↻ 今天已经查看过' : '＋ 看看有没有新愿望') + '</button>';
-    if (!pending.length && !history.length) html += '<div class="outing-empty">愿望桌暂时没有新纸条</div>';
-    html += '<div class="cbi-history-title">近期购买与报销</div>';
-    if (!history.length) html += '<div class="cbi-log-empty" style="padding:22px">还没有已结算记录</div>';
-    html += history.map(function (item) { return historyCard(db, item); }).join('');
+    if (!pending.length) html += '<div class="outing-empty">愿望桌暂时没有新纸条</div>';
     document.getElementById('outingCards').innerHTML = html;
+    var historyCount = document.getElementById('purchaseHistoryCount');
+    if (historyCount) historyCount.textContent = history.length ? history.length + '笔' : '';
+    var historyCards = document.getElementById('purchaseHistoryCards');
+    if (historyCards) {
+      historyCards.innerHTML = history.length
+        ? history.map(function (item) { return historyCard(db, item); }).join('')
+        : '<div class="cbi-log-empty" style="padding:22px">还没有已结算记录</div>';
+    }
   }
 
   function generateWish() {
@@ -298,8 +305,14 @@
     document.addEventListener('touchcancel', function () { swipeStart = null; }, { passive: true });
   }
 
-  function savedWishFoldOpen() {
-    try { return global.localStorage.getItem(WISH_FOLD_KEY) !== '0'; } catch (error) { return true; }
+  function savedFoldOpen(key) {
+    try { return global.localStorage.getItem(key) !== '0'; } catch (error) { return true; }
+  }
+
+  function rememberFold(details, key) {
+    details.addEventListener('toggle', function () {
+      try { global.localStorage.setItem(key, details.open ? '1' : '0'); } catch (error) {}
+    });
   }
 
   function mount() {
@@ -315,13 +328,25 @@
       var wishDesk = document.createElement('details');
       wishDesk.className = 'cbi-wish-desk';
       wishDesk.id = 'wishDesk';
-      wishDesk.open = savedWishFoldOpen();
+      wishDesk.open = savedFoldOpen(WISH_FOLD_KEY);
       wishDesk.appendChild(wishBanner);
       wishDesk.appendChild(wishCards);
-      wishDesk.addEventListener('toggle', function () {
-        try { global.localStorage.setItem(WISH_FOLD_KEY, wishDesk.open ? '1' : '0'); } catch (error) {}
-      });
+      rememberFold(wishDesk, WISH_FOLD_KEY);
+
+      var purchaseHistoryFold = document.createElement('details');
+      purchaseHistoryFold.className = 'ledger-fold cbi-purchase-history';
+      purchaseHistoryFold.id = 'purchaseHistoryFold';
+      purchaseHistoryFold.open = savedFoldOpen(PURCHASE_HISTORY_FOLD_KEY);
+      var purchaseHistorySummary = document.createElement('summary');
+      purchaseHistorySummary.innerHTML = '近期购买与报销 <span class="ledger-fold-count" id="purchaseHistoryCount"></span>';
+      var purchaseHistoryCards = document.createElement('div');
+      purchaseHistoryCards.id = 'purchaseHistoryCards';
+      purchaseHistoryFold.appendChild(purchaseHistorySummary);
+      purchaseHistoryFold.appendChild(purchaseHistoryCards);
+      rememberFold(purchaseHistoryFold, PURCHASE_HISTORY_FOLD_KEY);
+
       treasuryView.appendChild(wishDesk);
+      treasuryView.appendChild(purchaseHistoryFold);
     }
     document.querySelector('.tab-bar').innerHTML =
       '<button class="active" data-view="viewLedger" type="button" onclick="CBIWallet.switchView(\'viewLedger\',this)">记账</button>' +
