@@ -149,6 +149,33 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .btn-primary{background:#1a1a1a;color:#fff}
 .btn-del{background:none;border:1px solid #E85A5A;color:#E85A5A}
 
+/* Reference project editor — aligned with Food */
+#refModal .ref-project-modal{max-width:480px;padding:20px;animation:refEditorSlideUp .25s ease-out}
+@keyframes refEditorSlideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+#refModal .ref-project-modal h2{font-size:15px;color:#333;margin-bottom:16px}
+#refModal .ref-project-modal label{font-size:12px;margin:12px 0 4px}
+#refModal .ref-project-modal input[type="text"],#refModal .ref-project-modal input[type="number"],#refModal .ref-project-modal select,#refModal .ref-project-modal textarea{font-size:14px;padding:10px 12px;border-color:#e0e0e0;background:#fff;color:#1a1a1a}
+#refModal .ref-project-modal textarea{min-height:50px;height:auto;resize:vertical}
+#refModal .ref-project-modal .file-label{margin-top:4px;border-width:1px;color:#aaa}
+.ref-cover-editor{width:min(180px,100%);margin:8px auto 0}
+.ref-cover-frame{width:100%;aspect-ratio:1;border-radius:16px;overflow:hidden;position:relative;cursor:grab;touch-action:none;border:1px solid #eee;background:#f7f7f7}
+.ref-cover-frame:active{cursor:grabbing}
+.ref-cover-frame img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;user-select:none;-webkit-user-select:none}
+.ref-cover-clear{position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;border:none;background:rgba(0,0,0,.45);color:#fff;font-size:12px;cursor:pointer;line-height:22px;text-align:center;z-index:2}
+.ref-cover-hint{display:flex;align-items:center;justify-content:space-between;margin-top:5px}
+.ref-cover-hint-text{font-size:10px;color:#bbb}
+.ref-cover-reset{font-size:10px;color:#aaa;background:none;border:1px solid #e0e0e0;border-radius:6px;padding:2px 8px;cursor:pointer;font-family:inherit}
+.ref-cover-reset:hover{color:#888;border-color:#ccc}
+#refModal .section-list{margin-top:8px;gap:0}
+#refModal .section-row{gap:6px;padding:8px 0;border-bottom:1px solid #f5f5f5;flex-wrap:wrap}
+#refModal .section-row input[type="text"]{flex:1 1 90px;min-width:70px;font-size:12px;padding:6px 8px;border-color:#e8e8e8;border-radius:6px}
+#refModal .section-row input[type="number"]{flex:0 0 46px;width:46px;min-width:0;font-size:12px;padding:6px 5px;border-color:#e8e8e8;border-radius:6px}
+#refModal .section-row select{width:56px;font-size:11px;padding:4px;border-color:#e8e8e8;border-radius:6px}
+#refModal .section-row .del-sec{font-size:11px;padding:4px}
+#refModal .add-section-btn{font-size:11px;border-radius:6px;padding:6px 12px;margin-top:6px}
+#refModal .btn-row{gap:8px;margin-top:20px}
+#refModal .btn{font-size:14px}
+
 /* Section list in modal */
 .section-list{display:flex;flex-direction:column;gap:6px;margin-bottom:6px}
 .section-row{display:flex;gap:6px;align-items:center}
@@ -249,21 +276,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 <!-- Add/Edit Reference Modal -->
 <div class="modal-bg" id="refModal">
-<div class="modal">
+<div class="modal ref-project-modal">
   <h2 id="refModalTitle">New Reference</h2>
   <label>Cover</label>
-  <label class="file-label" id="refIconLabel">Select</label>
-  <input type="file" accept="image/*" id="refIconInput" onchange="previewImg(this,'refIconPreview')" style="display:none">
-  <img id="refIconPreview" class="img-preview" style="display:none">
+  <label class="file-label" id="refIconLabel">Select image</label>
+  <input type="file" accept="image/*" id="refIconInput" onchange="previewRefIcon(this)" style="display:none">
+  <div id="refIconEditor" class="ref-cover-editor" style="display:none">
+    <div id="refIconPosFrame" class="ref-cover-frame" onmousedown="startRefIconDrag(event)" ontouchstart="startRefIconDrag(event)">
+      <img id="refIconPreview" src="" alt="">
+      <button type="button" class="ref-cover-clear" aria-label="Clear cover" onclick="event.stopPropagation();clearRefIcon()">×</button>
+    </div>
+    <div class="ref-cover-hint"><span class="ref-cover-hint-text">Drag to adjust display area</span><button type="button" class="ref-cover-reset" onclick="resetRefIconPos()">Center</button></div>
+  </div>
   <label>Name</label>
-  <input type="text" id="inputRefName">
+  <input type="text" id="inputRefName" placeholder="e.g. Rollbahn 2027">
   <label>Shelf</label>
-  <input type="text" id="inputRefShelf">
+  <input type="text" id="inputRefShelf" placeholder="e.g. Rollbahn">
   <label>Sections</label>
   <div class="section-list" id="refSectionList"></div>
   <button class="add-section-btn" type="button" onclick="addRefSectionRow()">+ Section</button>
   <label>Notes</label>
-  <textarea id="inputRefNote"></textarea>
+  <textarea id="inputRefNote" placeholder="Optional notes"></textarea>
   <div class="btn-row">
     <button class="btn btn-cancel" onclick="closeModal('refModal')">Cancel</button>
     <button class="btn btn-primary" onclick="saveRef()">Save</button>
@@ -459,6 +492,7 @@ const COLORS=['#C4A24C','#8B6B4A','#9B8AE8','#6B5ACD','#D85A30','#E84A7A','#E8B9
 let db={items:[],sections:[],catalogs:[],refs:[],sectionCollapsed:{},shelfCollapsed:{},refShelfCollapsed:{}};
 let curCatalogId=null,curRefId=null,editItemId=null,editCatalogId=null,editRefId=null,editCatItemIdx=null,editCatSectionIdx=null;
 let editRefItemId=null,editRefSectionIdx=null,_refSections=[];
+let refIconTemp='',refIconPosTemp={x:50,y:50};
 let refAllocationDrag=null,refAllocationClickSuppressedUntil=0;
 
 function load(){
@@ -486,6 +520,7 @@ function save(){localStorage.setItem(DB_KEY,JSON.stringify(db));}
 function gid(){return Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,6);}
 function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 function clampCols(value){return Math.max(2,Math.min(5,parseInt(value)||3));}
+function clampImagePosition(value){const n=Number(value);return Number.isFinite(n)?Math.max(0,Math.min(100,n)):50;}
 function makeBlankRefItem(number){return{id:gid(),name:'Title '+number,img:'',note:'',mode:'ref',listAssignment:null};}
 function isGenericRefItemName(name){return !String(name||'').trim()||/^Title \d+$/.test(String(name||'').trim())||/^Item \d+$/.test(String(name||'').trim());}
 function isBlankRefItem(item){return!!item&&!item.img&&!String(item.note||'').trim()&&(item.mode||'ref')==='ref'&&!item.listAssignment&&isGenericRefItemName(item.name);}
@@ -498,6 +533,9 @@ function normalizeTechoData(){
     c.items.forEach(item=>{if(!item.id){item.id=gid();changed=true;}});
   });
   db.refs.forEach(r=>{
+    const iconPositionX=clampImagePosition(r.iconPositionX),iconPositionY=clampImagePosition(r.iconPositionY);
+    if(r.iconPositionX!==iconPositionX){r.iconPositionX=iconPositionX;changed=true;}
+    if(r.iconPositionY!==iconPositionY){r.iconPositionY=iconPositionY;changed=true;}
     if(!Array.isArray(r.sections)){r.sections=[];changed=true;}
     r.sections.forEach(sec=>{const cols=clampCols(sec.cols);if(sec.cols!==cols){sec.cols=cols;changed=true;}if(!Number.isFinite(parseInt(sec.count))){sec.count=0;changed=true;}});
     if(!Array.isArray(r.items)){r.items=[];changed=true;}
@@ -1020,7 +1058,8 @@ function renderRefList(){
 }
 function renderRefRow(r){
   const listCount=(r.items||[]).filter(item=>item.mode==='list').length;
-  return`<div class="catalog-row" onclick="openRefDetail('${r.id}')"><img class="catalog-icon" src="${r.icon||''}" onerror="this.style.background='#f0f0f0'"><div class="catalog-body"><div class="catalog-name">${esc(r.name)}</div><div class="catalog-meta">${r.items?r.items.length:0} items${listCount?' · '+listCount+' List':''}</div></div></div>`;
+  const iconPositionX=clampImagePosition(r.iconPositionX),iconPositionY=clampImagePosition(r.iconPositionY);
+  return`<div class="catalog-row" onclick="openRefDetail('${r.id}')"><img class="catalog-icon" src="${r.icon||''}" alt="" style="object-position:${iconPositionX}% ${iconPositionY}%" onerror="this.style.background='#f0f0f0'"><div class="catalog-body"><div class="catalog-name">${esc(r.name)}</div><div class="catalog-meta">${r.items?r.items.length:0} items${listCount?' · '+listCount+' List':''}</div></div></div>`;
 }
 function toggleRefShelf(name){db.refShelfCollapsed[name]=!db.refShelfCollapsed[name];save();renderRefList();}
 function openRefDetail(id){
@@ -1088,19 +1127,25 @@ function toggleRefItemMode(refId,itemId){
 
 /* ── Reference CRUD ── */
 function openAddRef(){
-  editRefId=null;
+  editRefId=null;refIconTemp='';refIconPosTemp={x:50,y:50};
   document.getElementById('refModalTitle').textContent='New Reference';
   document.getElementById('inputRefName').value='';document.getElementById('inputRefShelf').value='';document.getElementById('inputRefNote').value='';
-  const preview=document.getElementById('refIconPreview');preview.removeAttribute('src');preview.style.display='none';
+  document.getElementById('refIconInput').value='';
+  const preview=document.getElementById('refIconPreview');preview.dataset.uploadToken='reset_'+Date.now();delete preview.dataset.uploading;preview.style.opacity='';preview.removeAttribute('src');preview.style.objectPosition='50% 50%';
+  document.getElementById('refIconEditor').style.display='none';
   _refSections=[{name:'',count:0,cols:3}];renderRefSections();
   openModal('refModal');
 }
 function openEditRef(){
   const r=db.refs.find(x=>x.id===curRefId);if(!r)return;
-  editRefId=r.id;
+  editRefId=r.id;refIconTemp=r.icon||'';refIconPosTemp={x:clampImagePosition(r.iconPositionX),y:clampImagePosition(r.iconPositionY)};
   document.getElementById('refModalTitle').textContent='Edit Reference';
   document.getElementById('inputRefName').value=r.name;document.getElementById('inputRefShelf').value=r.shelf||'';document.getElementById('inputRefNote').value=r.note||'';
-  const preview=document.getElementById('refIconPreview');if(r.icon){preview.src=r.icon;preview.style.display='block';}else{preview.removeAttribute('src');preview.style.display='none';}
+  document.getElementById('refIconInput').value='';
+  const preview=document.getElementById('refIconPreview'),editor=document.getElementById('refIconEditor');
+  preview.dataset.uploadToken='reset_'+Date.now();delete preview.dataset.uploading;preview.style.opacity='';
+  if(r.icon){preview.src=r.icon;preview.style.objectPosition=refIconPosTemp.x+'% '+refIconPosTemp.y+'%';editor.style.display='block';}
+  else{preview.removeAttribute('src');preview.style.objectPosition='50% 50%';editor.style.display='none';}
   _refSections=(r.sections&&r.sections.length?r.sections:[{name:'',count:r.items.length,cols:3}]).map(sec=>({...sec,cols:clampCols(sec.cols)}));renderRefSections();
   openModal('refModal');
 }
@@ -1113,8 +1158,8 @@ function saveRef(){
   const name=document.getElementById('inputRefName').value.trim();if(!name){toast('Name required');return;}
   const shelf=document.getElementById('inputRefShelf').value.trim();
   const note=document.getElementById('inputRefNote').value.trim();
-  const preview=document.getElementById('refIconPreview');
-  const icon=preview.style.display!=='none'?preview.src:'';
+  const icon=refIconTemp||'';
+  const iconPositionX=icon?clampImagePosition(refIconPosTemp.x):50,iconPositionY=icon?clampImagePosition(refIconPosTemp.y):50;
   const sections=_refSections.filter(sec=>String(sec.name||'').trim()).map(sec=>({name:String(sec.name).trim(),count:Math.max(0,parseInt(sec.count)||0),cols:clampCols(sec.cols)}));
   if(editRefId){
     const r=db.refs.find(x=>x.id===editRefId);
@@ -1123,11 +1168,11 @@ function saveRef(){
       if(totalNeeded<r.items.length&&r.items.slice(totalNeeded).some(item=>!isBlankRefItem(item))){toast('先清空要删掉的已填写品目');return;}
       while(r.items.length<totalNeeded)r.items.push(makeBlankRefItem(r.items.length+1));
       if(totalNeeded<r.items.length)r.items.splice(totalNeeded);
-      r.name=name;r.shelf=shelf;r.note=note;r.sections=sections;if(icon)r.icon=icon;renumberBlankRefItems(r);
+      r.name=name;r.shelf=shelf;r.note=note;r.sections=sections;r.icon=icon;r.iconPositionX=iconPositionX;r.iconPositionY=iconPositionY;renumberBlankRefItems(r);
     }
   }else{
     const total=sections.reduce((sum,sec)=>sum+sec.count,0),items=[];for(let i=0;i<total;i++)items.push(makeBlankRefItem(i+1));
-    db.refs.push({id:gid(),name,shelf,icon:icon||'',note,comment:'',sections,items,order:db.refs.length});
+    db.refs.push({id:gid(),name,shelf,icon,note,comment:'',iconPositionX,iconPositionY,sections,items,order:db.refs.length});
   }
   save();closeModal('refModal');if(editRefId)openRefDetail(editRefId);else renderRefList();
 }
@@ -1235,6 +1280,57 @@ async function previewImg(input,previewId){
   }finally{
     if(p.dataset.uploadToken===token){delete p.dataset.uploading;p.style.opacity='';}
   }
+}
+async function previewRefIcon(input){
+  if(!input.files||!input.files[0])return;
+  const preview=document.getElementById('refIconPreview'),editor=document.getElementById('refIconEditor'),file=input.files[0];
+  const previousSrc=refIconTemp,previousPosition={...refIconPosTemp};
+  const token=Date.now()+'_'+Math.random(),localUrl=URL.createObjectURL(file);
+  preview.dataset.uploadToken=token;preview.dataset.uploading='1';preview.src=localUrl;preview.style.opacity='.45';
+  refIconPosTemp={x:50,y:50};preview.style.objectPosition='50% 50%';editor.style.display='block';toast('Uploading image…');
+  try{
+    if(!window.CloudinaryAssets)throw new Error('Image service unavailable');
+    const url=await CloudinaryAssets.uploadImage(file);
+    if(preview.dataset.uploadToken!==token)return;
+    refIconTemp=url;preview.src=url;toast('Image uploaded');
+  }catch(e){
+    if(preview.dataset.uploadToken!==token)return;
+    refIconTemp=previousSrc;refIconPosTemp=previousPosition;
+    if(previousSrc){preview.src=previousSrc;preview.style.objectPosition=previousPosition.x+'% '+previousPosition.y+'%';editor.style.display='block';}
+    else{preview.removeAttribute('src');preview.style.objectPosition='50% 50%';editor.style.display='none';}
+    input.value='';toast(e&&e.message||'Image upload failed');
+  }finally{
+    URL.revokeObjectURL(localUrl);
+    if(preview.dataset.uploadToken===token){delete preview.dataset.uploading;preview.style.opacity='';}
+  }
+}
+function clearRefIcon(){
+  refIconTemp='';refIconPosTemp={x:50,y:50};
+  const preview=document.getElementById('refIconPreview');
+  preview.dataset.uploadToken='cleared_'+Date.now();delete preview.dataset.uploading;preview.style.opacity='';preview.removeAttribute('src');preview.style.objectPosition='50% 50%';
+  document.getElementById('refIconInput').value='';document.getElementById('refIconEditor').style.display='none';
+}
+function resetRefIconPos(){refIconPosTemp={x:50,y:50};document.getElementById('refIconPreview').style.objectPosition='50% 50%';}
+function startRefIconDrag(e){
+  if(e.target.tagName==='BUTTON')return;
+  e.preventDefault();
+  const frame=document.getElementById('refIconPosFrame'),img=document.getElementById('refIconPreview');
+  if(!img.src||!img.naturalWidth)return;
+  const startX=e.touches?e.touches[0].clientX:e.clientX,startY=e.touches?e.touches[0].clientY:e.clientY;
+  const startPosX=refIconPosTemp.x,startPosY=refIconPosTemp.y,frameW=frame.offsetWidth,frameH=frame.offsetHeight;
+  const imgAspect=img.naturalWidth/img.naturalHeight,frameAspect=frameW/frameH;
+  let rangeX=0,rangeY=0;
+  if(imgAspect>frameAspect)rangeX=(img.naturalWidth*(frameH/img.naturalHeight))-frameW;
+  else if(imgAspect<frameAspect)rangeY=(img.naturalHeight*(frameW/img.naturalWidth))-frameH;
+  function onMove(ev){
+    const cx=ev.touches?ev.touches[0].clientX:ev.clientX,cy=ev.touches?ev.touches[0].clientY:ev.clientY;
+    let nx=startPosX,ny=startPosY;
+    if(rangeX>0)nx=Math.max(0,Math.min(100,startPosX-((cx-startX)/rangeX)*100));
+    if(rangeY>0)ny=Math.max(0,Math.min(100,startPosY-((cy-startY)/rangeY)*100));
+    refIconPosTemp={x:Math.round(nx*10)/10,y:Math.round(ny*10)/10};img.style.objectPosition=refIconPosTemp.x+'% '+refIconPosTemp.y+'%';
+  }
+  function onEnd(){document.removeEventListener('mousemove',onMove);document.removeEventListener('mouseup',onEnd);document.removeEventListener('touchmove',onMove);document.removeEventListener('touchend',onEnd);}
+  document.addEventListener('mousemove',onMove);document.addEventListener('mouseup',onEnd);document.addEventListener('touchmove',onMove,{passive:false});document.addEventListener('touchend',onEnd);
 }
 // Wire file labels
 document.getElementById('itemFileLabel').addEventListener('click',()=>document.getElementById('itemImgInput').click());

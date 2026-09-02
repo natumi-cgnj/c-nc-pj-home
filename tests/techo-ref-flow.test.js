@@ -10,7 +10,7 @@ source = source.replace(/load\(\);renderItems\(\);\s*$/, '');
 source += `\n;globalThis.__testApi={
   getDb:()=>db,setDb:value=>{db=value;},
   normalizeTechoData,openRefDetail,toggleRefItemMode,renderCatalogList,
-  getQueuedRefItems,assignRefItemToCatalog,openCatalogDetail,toggleCollect
+  renderRefList,getQueuedRefItems,assignRefItemToCatalog,openCatalogDetail,toggleCollect
 };`;
 
 function element(id = '') {
@@ -73,6 +73,13 @@ const fixture = {
 
 api.setDb(structuredClone(fixture));
 api.normalizeTechoData();
+assert.equal(api.getDb().refs[0].iconPositionX, 50, 'legacy ref covers default to centered X position');
+assert.equal(api.getDb().refs[0].iconPositionY, 50, 'legacy ref covers default to centered Y position');
+api.getDb().refs[0].icon = 'cover.jpg';
+api.getDb().refs[0].iconPositionX = 25;
+api.getDb().refs[0].iconPositionY = 70;
+api.renderRefList();
+assert.match(document.getElementById('refList').innerHTML, /object-position:25% 70%/, 'ref list applies saved cover position');
 api.openRefDetail('ref1');
 assert.match(document.getElementById('refDetailGrid').innerHTML, /2027/, 'ref renders section heading');
 assert.equal((document.getElementById('refDetailGrid').innerHTML.match(/class="cat-item collected ref-item/g) || []).length, 2, 'ref renders always-bright item cells');
@@ -116,4 +123,6 @@ assert.equal(state.items.length, 0, 'unchecking removes the pending Items entry'
 
 assert.match(source, /pointerdown/, 'allocation pool includes pointer drag behavior');
 assert.match(source, /closest\('\.catalog-row\[data-catalog-id\]'\)/, 'drag behavior resolves List drop targets');
+assert.match(html, /id="refIconPosFrame"/, 'ref editor uses the Food-style draggable cover frame');
+assert.match(source, /r\.iconPositionX=iconPositionX;r\.iconPositionY=iconPositionY/, 'ref editor persists cover position');
 console.log('techo ref flow: ok');
