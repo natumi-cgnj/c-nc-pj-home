@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Habits">
-<title>Habits</title>
+<meta name="apple-mobile-web-app-title" content="Goals">
+<title>Goals</title>
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="apple-touch-icon.png">
 <link rel="icon" href="favicon.ico">
@@ -81,7 +81,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 <div class="top-bar">
   <a class="back" href="index.html?p=2">&larr; 主页</a>
-  <h1>习惯养成</h1>
+  <h1>目标</h1>
   <button class="btn-s" onclick="showModal('manageModal')">管理</button>
 </div>
 
@@ -109,8 +109,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- Add/edit habit -->
 <div class="modal-bg" id="habitModal">
   <div class="modal">
-    <h2 id="habitModalTitle">添加习惯</h2>
-    <label>习惯名称</label>
+    <h2 id="habitModalTitle">添加目标</h2>
+    <label>目标名称</label>
     <input type="text" id="habitName" placeholder="如: 记10个韩语单词">
     <label>产出类型</label>
     <select id="habitCurrency">
@@ -131,7 +131,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- Manage habits -->
 <div class="modal-bg" id="manageModal">
   <div class="modal">
-    <h2>管理习惯</h2>
+    <h2>管理目标</h2>
     <div id="manageList"></div>
     <div class="btn-row" style="margin-top:16px">
       <button class="btn btn-cancel" onclick="closeModal('manageModal')">关闭</button>
@@ -224,7 +224,7 @@ function render(){
   const c=document.getElementById('content');
 
   if(!db.habits.length){
-    c.innerHTML='<div class="empty">还没有添加习惯<br>点右下角 + 开始设置</div>';
+    c.innerHTML='<div class="empty">还没有添加目标<br>点右下角 + 开始设置</div>';
     return;
   }
 
@@ -327,7 +327,7 @@ function checkHabit(id){
 // ══════════════════════════════════════
 function openAdd(){
   editingId=null;
-  document.getElementById('habitModalTitle').textContent='\u6DFB\u52A0\u4E60\u60EF';
+  document.getElementById('habitModalTitle').textContent='\u6DFB\u52A0\u76EE\u6807';
   document.getElementById('habitName').value='';
   document.getElementById('habitCurrency').value='coffee';
   document.getElementById('habitReward').value='20';
@@ -338,7 +338,7 @@ function openEdit(id){
   const h=db.habits.find(x=>x.id===id);
   if(!h)return;
   editingId=id;
-  document.getElementById('habitModalTitle').textContent='\u7F16\u8F91\u4E60\u60EF';
+  document.getElementById('habitModalTitle').textContent='\u7F16\u8F91\u76EE\u6807';
   document.getElementById('habitName').value=h.name;
   document.getElementById('habitCurrency').value=h.currency||'coffee';
   document.getElementById('habitReward').value=h.reward||20;
@@ -374,7 +374,7 @@ function saveHabit(){
 function renderManage(){
   const el=document.getElementById('manageList');
   if(!db.habits.length){
-    el.innerHTML='<div style="text-align:center;color:#ccc;padding:20px;font-size:13px">\u6CA1\u6709\u4E60\u60EF</div>';
+    el.innerHTML='<div style="text-align:center;color:#ccc;padding:20px;font-size:13px">\u6CA1\u6709\u76EE\u6807</div>';
     return;
   }
   el.innerHTML=db.habits.map(h=>{

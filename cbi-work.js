@@ -438,7 +438,7 @@
     refreshDailyState();
     lockedTab = options && ['drop', 'todo', 'habits'].indexOf(options.lockedTab) >= 0 ? options.lockedTab : '';
     activeTab = lockedTab || (options && ['drop', 'todo', 'habits'].indexOf(options.initialTab) >= 0 ? options.initialTab : 'todo');
-    var pageTitles = { drop: 'CBI · COMMISSIONS', todo: 'CBI · ACTIONS', habits: 'CBI · ROUTINE' };
+    var pageTitles = { drop: 'CBI · COMMISSIONS', todo: 'CBI · ACTIONS', habits: 'CBI · CHECK-IN' };
     document.title = lockedTab ? pageTitles[lockedTab] : 'CBI · Operations';
     document.querySelector('.top-bar h1').textContent = lockedTab ? pageTitles[lockedTab] : 'CBI · OPERATIONS';
     var utility = document.querySelector('.top-bar .btn-s');
@@ -448,7 +448,7 @@
       tabs.innerHTML = '';
       tabs.style.display = 'none';
     } else {
-      tabs.innerHTML = '<div class="tab" data-tab="drop">委托</div><div class="tab" data-tab="todo">行动</div><div class="tab" data-tab="habits">日课</div>';
+      tabs.innerHTML = '<div class="tab" data-tab="drop">委托</div><div class="tab" data-tab="todo">行动</div><div class="tab" data-tab="habits">打卡</div>';
       document.querySelectorAll('.tabs .tab').forEach(function (node) {
         node.addEventListener('click', function () { setTab(node.dataset.tab); });
       });

@@ -56,7 +56,7 @@ test('Rewards dynamics replaces only the obsolete notebook entry', () => {
   assert.match(index, /href="dynamics\.html"[^>]*>[\s\S]*?<div class="entry-label">动态<\/div>/);
   assert.match(dynamics, /暂无动态/);
   assert.match(dynamics, /不会为了填满页面而生成假的日常/);
-  assert.match(dynamics, /之后会使用日课货币解锁角色使用记录与小剧情/);
+  assert.match(dynamics, /之后会使用打卡货币解锁角色使用记录与小剧情/);
 });
 
 test('every page that writes CBI data loads the current schema cache version', () => {

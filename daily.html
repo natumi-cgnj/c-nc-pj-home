@@ -177,7 +177,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <div class="tabs">
   <div class="tab" data-tab="drop" onclick="switchTab('drop')">委托</div>
   <div class="tab active" data-tab="todo" onclick="switchTab('todo')">日程</div>
-  <div class="tab" data-tab="habits" onclick="switchTab('habits')">日课</div>
+  <div class="tab" data-tab="habits" onclick="switchTab('habits')">打卡</div>
 </div>
 <div class="content" id="content"></div>
 
@@ -215,7 +215,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 <div class="modal-bg" id="habitModal">
   <div class="modal">
-    <h2 id="habitModalTitle">添加日课</h2>
+    <h2 id="habitModalTitle">添加打卡</h2>
     <label>名称</label>
     <input type="text" id="habitName" placeholder="如: 洗澡">
     <label>说明（可选）</label>
@@ -741,7 +741,7 @@ function renderHabits(c){
   html+='<button class="sub-tab'+(habitSubTab==='count'?' active':'')+'" onclick="switchHabitSub(\'count\')">Times</button>';
   html+='</div>';
   html+=renderHabitGroup(habitSubTab,habitSubTab==='daily'?'间隔打卡':'Times');
-  html+='<button class="add-inline" onclick="openAddHabit(\''+habitSubTab+'\')">+ 添加日课</button>';
+  html+='<button class="add-inline" onclick="openAddHabit(\''+habitSubTab+'\')">+ 添加打卡</button>';
   c.innerHTML=html;
 }
 function switchHabitSub(t){habitSubTab=t;render();}
@@ -751,7 +751,7 @@ function renderHabitGroup(type,title){
   const sortId='habitSort_'+type;
   let html='<div class="habit-section">';
   if(habits.length){html+='<div id="'+sortId+'">';habits.forEach(h=>{html+=renderHabitCard(h);});html+='</div>';}
-  else html+='<div class="habit-empty">还没有'+title+'日课</div>';
+  else html+='<div class="habit-empty">还没有'+title+'项目</div>';
   html+='</div>';
   setTimeout(()=>initDragSort(sortId,'habit'),0);
   return html;
@@ -849,7 +849,7 @@ function setHabitType(type,force=false){
 }
 function openAddHabit(type='count'){
   editingHabitId=null;
-  document.getElementById('habitModalTitle').textContent='添加日课';
+  document.getElementById('habitModalTitle').textContent='添加打卡';
   document.getElementById('habitName').value='';
   document.getElementById('habitDescription').value='';
   document.getElementById('habitType').dataset.locked='false';
@@ -862,7 +862,7 @@ function openAddHabit(type='count'){
 function openEditHabit(id){
   const h=hdb.habits.find(x=>x.id===id);if(!h)return;
   editingHabitId=id;
-  document.getElementById('habitModalTitle').textContent='编辑日课';
+  document.getElementById('habitModalTitle').textContent='编辑打卡';
   document.getElementById('habitName').value=h.name||'';
   document.getElementById('habitDescription').value=h.description||'';
   const locked=getHabitTotal(id)>0;
@@ -910,7 +910,7 @@ function openHabitDetail(id){
   if(IS_CBI_HABITS&&h.salary)parts.push('工资 +$'+h.salary+'/次');
   if(!IS_CBI_HABITS&&h.coffee)parts.push('咖啡豆 +'+h.coffee+'/次');
   if(!IS_CBI_HABITS&&h.tea)parts.push('茶叶 +'+h.tea+'/次');
-  document.getElementById('detailTitle').textContent=h.name||'日课';
+  document.getElementById('detailTitle').textContent=h.name||'打卡';
   document.getElementById('detailDescription').textContent=h.description||'没有填写详细说明';
   document.getElementById('detailMeta').textContent=parts.join(' · ');showModal('detailModal');
 }

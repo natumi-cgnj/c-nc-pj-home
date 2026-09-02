@@ -61,7 +61,7 @@ if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
     });
   });
   var root=document.getElementById('dynamicRoot');
-  var html='<section class="status"><div class="kicker">Usage log</div><div class="status-line"><h2>物品动态</h2><div class="owned-count">'+ownedItems.length+' 件物品已就位</div></div><p>这里只承接商城物品的使用记录；动态刷新以后再接入日课货币。</p></section>';
+  var html='<section class="status"><div class="kicker">Usage log</div><div class="status-line"><h2>物品动态</h2><div class="owned-count">'+ownedItems.length+' 件物品已就位</div></div><p>这里只承接商城物品的使用记录；动态刷新以后再接入打卡货币。</p></section>';
   if(!ownedItems.length){
     html+='<section class="empty"><div class="empty-inner"><div class="empty-mark">◌</div><div class="empty-title">暂无动态</div><div class="empty-copy">你还没有在商城点亮物品。获得物品后，角色的使用记录会从这里开始；现在不会为了填满页面而生成假的日常。</div><a href="shop.html">前往跨世界橱窗</a></div></section>';
   }else{
@@ -69,7 +69,7 @@ if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
     ownedItems.forEach(function(entry){
       html+='<div class="waiting-row"><div class="waiting-name">'+esc(entry.item.name)+'</div><div class="waiting-meta">'+esc(entry.project.name)+' · 已获得，等待动态功能接入</div></div>';
     });
-    html+='</section><div class="locked">刷新功能暂未开放<br>之后会使用日课货币解锁角色使用记录与小剧情</div>';
+    html+='</section><div class="locked">刷新功能暂未开放<br>之后会使用打卡货币解锁角色使用记录与小剧情</div>';
   }
   root.innerHTML=html;
 })();

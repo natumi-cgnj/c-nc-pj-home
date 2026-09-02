@@ -828,9 +828,9 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-home-trigger{display:
 <div class="page-clock"><div class="time" id="clock2"></div><div class="date" id="date2"></div></div>
 <div class="page-title" onclick="toggleSection(this)">Dailies</div>
 <div class="section-collapse"><div class="entry-grid" data-section="daily">
-  <a class="entry-card" href="daily.html?tab=habits" data-world-module="daily" data-entry-id="daily-habits"><div class="entry-icon">🌿</div><div class="entry-label">日课</div></a>
-  <a class="entry-card" href="habit.html"><div class="entry-icon">✔</div><div class="entry-label">习惯</div></a>
-  <a class="entry-card" href="daily.html?tab=todo" data-world-module="daily" data-entry-id="daily-todo"><div class="entry-icon">📅</div><div class="entry-label">日程</div></a>
+  <a class="entry-card" href="daily.html?tab=habits" data-world-module="daily" data-entry-id="daily-habits"><div class="entry-icon">🌿</div><div class="entry-label">打卡</div></a>
+  <a class="entry-card" href="habit.html"><div class="entry-icon">📅</div><div class="entry-label">目标</div></a>
+  <a class="entry-card" href="daily.html?tab=todo" data-world-module="daily" data-entry-id="daily-todo"><div class="entry-icon">📋</div><div class="entry-label">日程</div></a>
   <a class="entry-card" href="wallet.html" data-world-module="wallet" data-entry-id="wallet"><div class="entry-icon">¥</div><div class="entry-label">记账</div></a>
   <a class="entry-card" href="meals.html" data-world-module="kitchen" data-entry-id="kitchen"><div class="entry-icon">🍽</div><div class="entry-label">饮食</div></a>
   <a class="entry-card draft"><div class="entry-icon">👔</div><div class="entry-label">穿搭</div></a>
@@ -3066,7 +3066,7 @@ function renderDSShortcuts(){
     var hrefParts=(s.href||'').split('?');
     if(moduleId&&window.WorldContext&&WorldContext.getActiveWorldId()!=='liminal'&&hrefParts[1]&&href.indexOf('?')<0)href+='?'+hrefParts.slice(1).join('?');
     if(moduleId==='daily'&&window.WorldContext&&WorldContext.getActiveWorldId()==='cbi'&&href.indexOf('?')<0){
-      var legacyDailyTab={'委托':'drop','行动':'todo','日程':'todo','日课':'habits'}[s.label];
+      var legacyDailyTab={'委托':'drop','行动':'todo','日程':'todo','日课':'habits','打卡':'habits'}[s.label];
       if(legacyDailyTab)href+='?tab='+legacyDailyTab;
     }
     return '<a class="'+cls+'" href="'+(href||'#')+'" data-ds-idx="'+i+'">'
@@ -3502,7 +3502,7 @@ function applyWorldRoutes(){
     link.setAttribute('href',nextHref);
   });
   var worldLabels={
-    'daily-habits':'日课',
+    'daily-habits':'打卡',
     'daily-todo':worldId==='cbi'?'行动':'日程',
     'wallet':'记账',
     'shop':'商城'
