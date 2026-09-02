@@ -68,13 +68,46 @@ test('wallet page exposes split pools, full history and pending expenses', () =>
   assert.match(html, /pendingExpenses/);
   assert.match(html, /销一点挂账/);
   assert.match(html, /activeFrom/);
-  assert.match(html, /\.pending-add\{[^}]*font-size:10px/);
-  assert.match(html, /category-card" style="border-left:3px solid/);
+  assert.match(html, /\.pending-add\{[^}]*font-size:13px/);
+  assert.match(html, /var colorSide=account==='entertainment'\?'right':'left'/);
+  assert.match(html, /\.account-pane\.entertainment \.cat-bar\{display:flex;justify-content:flex-end\}/);
   assert.match(html, /var CATEGORY_COLORS=\[/);
   assert.match(html, /id="categoryColorPicker"/);
   assert.match(html, /\.cat-color-swatch:before\{/);
+  assert.match(html, /id="monthBudgetStatus"/);
+  assert.match(html, /monthlyBudgets:\{\}/);
+  assert.match(html, /schemaVersion:4/);
+  assert.match(html, /class="add-category-btn"/);
   assert.match(html, /\.modal\{background:#fff;border-radius:16px 16px 0 0/);
   assert.doesNotMatch(html, /<input type="color" class="cat-setting-color"/);
+});
+
+test('monthly plans use the real month length and inherit the latest budget', () => {
+  const html = fs.readFileSync('wallet.html', 'utf8');
+  const start = html.indexOf('function currentBudgetMonth(');
+  const end = html.indexOf('\nfunction renderMonthBudgetStatus', start);
+  assert.ok(start >= 0 && end > start);
+  const context = vm.createContext({ Date, Math, Number, String, Array, Object });
+  vm.runInContext(html.slice(start, end), context);
+
+  assert.equal(context.daysInBudgetMonth('2026-02'), 28);
+  assert.equal(context.daysInBudgetMonth('2028-02'), 29);
+  const food = [{ name: '饮食', dailyBudget: 2000, activeFrom: '2026-01-01' }];
+  assert.equal(context.monthlyCategoryAllocation(food, '2026-02'), 56000);
+  assert.equal(context.monthlyCategoryAllocation(food, '2026-03'), 62000);
+
+  const carried = context.monthlyBudgetState({ monthlyBudgets: { '2026-08': 500000 } }, '2026-09');
+  assert.equal(carried.amount, 500000);
+  assert.equal(carried.source, '2026-08');
+  assert.equal(carried.inherited, true);
+
+  const summary = context.monthlyBudgetSummary(
+    { monthlyBudgets: { '2026-08': 500000 } },
+    food.concat([{ name: '手帐', dailyBudget: 300, activeFrom: '2026-01-01' }]),
+    '2026-09'
+  );
+  assert.equal(summary.allocated, 69000);
+  assert.equal(summary.remaining, 431000);
 });
 
 test('adding or removing a category preserves every unsaved settings-row edit', () => {
@@ -111,4 +144,5 @@ test('CBI wallet gives Jane the muted sage representative color', () => {
   const script = fs.readFileSync('cbi-wallet.js', 'utf8');
   assert.match(script, /jane: '#87977F'/);
   assert.doesNotMatch(script, /jane: '#5BA66B'/);
+  assert.match(script, /\.pending-add\{[^}]*font-size:11px[^}]*letter-spacing:\.4px/);
 });

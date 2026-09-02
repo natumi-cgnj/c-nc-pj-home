@@ -14,6 +14,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 /* ── Top bar ── */
 .top-bar{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;padding-top:env(safe-area-inset-top,20px);background:#fff;position:sticky;top:0;z-index:50;border-bottom:1px solid #f0f0f0}
 .top-bar h1{font-size:13px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:#999}
+.wallet-title{display:flex;min-width:0;flex-direction:column;align-items:center;gap:3px}
+.month-budget-status{border:0;background:none;padding:0;color:#c0bab0;font:400 9px/1.2 inherit;letter-spacing:.35px;white-space:nowrap;cursor:pointer}
+.month-budget-status.over{color:#b9786c}
 .back-btn{font-size:13px;color:#bbb;text-decoration:none;cursor:pointer;background:none;border:none;font-family:inherit;padding:4px;transition:color 0.15s}
 .back-btn:active{color:#666}
 .btn-s{font-size:11px;color:#999;background:none;border:1px solid #ddd;border-radius:6px;padding:5px 10px;cursor:pointer;font-family:inherit;transition:all 0.15s}
@@ -33,7 +36,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .account-summary{padding:22px 20px 17px;min-height:117px}
 .account-pane.entertainment .account-summary{text-align:right}
 .account-pane.entertainment .cat-header,.account-pane.entertainment .cat-stats{flex-direction:row-reverse}
-.account-pane.entertainment .cat-bar-fill{margin-left:auto}
+.account-pane.entertainment .cat-bar{display:flex;justify-content:flex-end}
+.account-pane.entertainment .cat-bar-fill{margin-left:0}
 .account-kicker{font-size:9px;color:#bbb;letter-spacing:1.2px;text-transform:uppercase}
 .account-remaining{font-size:32px;line-height:1.16;font-weight:250;color:#333;font-variant-numeric:tabular-nums;margin-top:7px}
 .account-spent{font-size:10px;color:#aaa;margin-top:6px}
@@ -78,7 +82,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .pending-date{font-size:8px;color:#ccc;margin-top:3px}
 .pending-amount{font-size:12px;color:#777;white-space:nowrap;font-variant-numeric:tabular-nums}
 .pending-action{border:0;background:none;color:#a5967b;font-family:inherit;font-size:10px;padding:5px 2px;cursor:pointer;white-space:nowrap}
-.pending-add{display:block;width:100%;padding:14px 20px;border:0;background:#fff;color:#bbb;font-family:inherit;font-size:10px;font-weight:400;cursor:pointer}
+.pending-add{display:block;width:100%;padding:14px 20px;border:0;background:#fff;color:#bbb;font-family:inherit;font-size:13px;font-weight:500;letter-spacing:.3px;cursor:pointer}
 
 /* ── Treasury ── */
 .treasury-card{background:#fff;border:1px solid #f0f0f0;border-radius:14px;margin:16px 16px 12px;padding:22px 20px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.04)}
@@ -181,6 +185,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .cat-color-swatch:before{content:'';position:absolute;width:16px;height:16px;left:6px;top:6px;border-radius:50%;background:var(--swatch-color);transition:transform 0.15s}
 .cat-color-swatch:active:before{transform:scale(1.15)}
 .cat-color-swatch.active:after{content:'';position:absolute;width:20px;height:20px;left:4px;top:4px;border:1.5px solid #333;border-radius:50%}
+#settingsModal .modal{border-radius:14px 14px 0 0;padding:21px 20px 22px}
+#settingsModal .modal h2{font-size:13px;font-weight:500;letter-spacing:.45px;color:#555;margin-bottom:13px}
+#settingsModal .cat-setting-row{padding-top:8px;padding-bottom:8px;border-bottom-color:#f3f3f1}
+#settingsModal .cat-setting-row input.cat-setting-name,#settingsModal .cat-setting-row input.cat-setting-budget,#settingsModal .cat-setting-row select.cat-setting-account{background:#fff;border-color:#e7e7e4;border-radius:5px;color:#555;font-weight:400}
+#settingsModal .cat-setting-row input.cat-setting-name{font-size:11px}
+#settingsModal .cat-setting-row input.cat-setting-budget,#settingsModal .cat-setting-row select.cat-setting-account{font-size:10px}
+.settings-budget-plan{min-height:16px;margin:-5px 0 5px;color:#b7b0a5;font-size:9px;line-height:1.6;letter-spacing:.25px;font-variant-numeric:tabular-nums}
+.settings-budget-plan.over{color:#b9786c}
+.add-category-btn{width:100%;margin-top:9px;padding:10px;border:1px dashed #deded9;border-radius:6px;background:#fff;color:#aaa;font:400 11px/1.2 inherit;letter-spacing:.2px;cursor:pointer}
+.settings-actions{margin-top:12px}
+#settingsModal .btn{padding:10px;border-radius:7px;font-size:11px;font-weight:400}
+.settings-divider{margin:17px 0 15px;border:0;border-top:1px solid #eeeeeb}
+.settings-data-btn{width:100%;background:#f6f6f5!important;color:#999!important}
+.settings-data-btn+.settings-data-btn{margin-top:7px}
+.monthly-budget-modal{max-height:none}
+.monthly-budget-note{margin-top:8px;color:#bbb;font-size:9px;line-height:1.65;letter-spacing:.15px}
+.monthly-budget-preview{min-height:17px;margin-top:10px;color:#a9a196;font-size:10px;line-height:1.6;font-variant-numeric:tabular-nums}
+.monthly-budget-preview.over{color:#b9786c}
 @media(max-width:680px){
   .account-summary{padding:19px 14px 15px;min-height:108px}
   .account-remaining{font-size:27px}
@@ -199,7 +221,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 <div class="top-bar">
   <a class="back-btn" href="index.html?p=2">← Home</a>
-  <h1>WALLET</h1>
+  <div class="wallet-title">
+    <h1>WALLET</h1>
+    <button type="button" class="month-budget-status" id="monthBudgetStatus" onclick="openMonthlyBudgetModal()">本月预算未设置</button>
+  </div>
   <button class="btn-s" onclick="openModal('settingsModal')">设置</button>
 </div>
 
@@ -340,17 +365,33 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <div class="modal-bg" id="settingsModal">
   <div class="modal">
     <h2>支出分类管理</h2>
+    <div class="settings-budget-plan" id="settingsBudgetPlan"></div>
     <div id="budgetSettings"></div>
-    <button class="btn btn-cancel" style="width:100%;margin-top:8px;border-style:dashed" onclick="addCategory()">+ 新增分类</button>
-    <div class="btn-row" style="margin-top:12px">
+    <button class="add-category-btn" onclick="addCategory()">＋ 新增分类</button>
+    <div class="btn-row settings-actions">
       <button class="btn btn-cancel" onclick="closeModal('settingsModal')">关闭</button>
       <button class="btn btn-primary" onclick="saveBudgetSettings()">保存</button>
     </div>
-    <hr style="margin:16px 0;border:none;border-top:1px solid #eee">
+    <hr class="settings-divider">
     <h2>数据管理</h2>
-    <button class="btn btn-cancel" style="margin-bottom:8px;width:100%" onclick="exportWallet()">导出数据</button>
-    <button class="btn btn-cancel" style="width:100%" onclick="document.getElementById('importWalletFile').click()">导入数据</button>
+    <button class="btn settings-data-btn" onclick="exportWallet()">导出数据</button>
+    <button class="btn settings-data-btn" onclick="document.getElementById('importWalletFile').click()">导入数据</button>
     <input type="file" id="importWalletFile" accept=".json" onchange="importWallet(this)" style="display:none">
+  </div>
+</div>
+
+<!-- Monthly budget -->
+<div class="modal-bg" id="monthlyBudgetModal">
+  <div class="modal monthly-budget-modal">
+    <h2 id="monthlyBudgetTitle">本月预算</h2>
+    <label>本月总预算（日元）</label>
+    <input type="number" id="monthlyBudgetAmount" min="0" step="1000" placeholder="如 500000" oninput="renderMonthlyBudgetPreview()">
+    <p class="monthly-budget-note" id="monthlyBudgetNote">每天的分类额度会按本月天数换算，再从这里预留。</p>
+    <div class="monthly-budget-preview" id="monthlyBudgetPreview"></div>
+    <div class="btn-row">
+      <button class="btn btn-cancel" onclick="closeModal('monthlyBudgetModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveMonthlyBudget()">保存</button>
+    </div>
   </div>
 </div>
 
@@ -414,7 +455,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <script src="cloud-sync.js?v=20260824-cbi-work1"></script>
 <script src="cbi-data.js?v=20260901-wishes1"></script>
 <script src="character-runtime.js?v=20260824-wallet-fix1"></script>
-<script src="cbi-wallet.js?v=20260902-swipe1"></script>
+<script src="cbi-wallet.js?v=20260902-budget1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 var SK='wallet_db';
@@ -423,7 +464,7 @@ try{db=walletRaw?JSON.parse(walletRaw):null;}catch(e){db=null;}
 
 function createDefaultDB(){
   return{
-    schemaVersion:3,
+    schemaVersion:4,
     categories:[
       {id:'stationery',name:'文具',dailyBudget:300,color:'#4AADE8',account:'entertainment',activeFrom:''},
       {id:'goods',name:'谷子',dailyBudget:500,color:'#9B6BCC',account:'entertainment',activeFrom:''},
@@ -433,6 +474,7 @@ function createDefaultDB(){
     ],
     records:[],
     pendingExpenses:[],
+    monthlyBudgets:{},
     charFunds:{neal:0,jane:0,will:0},
     outings:[],
     legacyDebtWaiver:0,
@@ -552,6 +594,12 @@ function normalizeWalletDB(value){
     item=item&&typeof item==='object'?item:{};
     return{id:String(item.id||gid()),amount:Math.max(0,Math.floor(Number(item.amount)||0)),note:String(item.note||''),date:String(item.date||todayStr()),createdAt:String(item.createdAt||'')};
   }).filter(function(item){return item.amount>0;});
+  result.monthlyBudgets={};
+  var savedMonthlyBudgets=value.monthlyBudgets&&typeof value.monthlyBudgets==='object'?value.monthlyBudgets:{};
+  Object.keys(savedMonthlyBudgets).forEach(function(monthKey){
+    var amount=Math.floor(Number(savedMonthlyBudgets[monthKey]));
+    if(/^\d{4}-\d{2}$/.test(monthKey)&&Number.isFinite(amount)&&amount>=0)result.monthlyBudgets[monthKey]=amount;
+  });
   result.charFunds=Object.assign({},defaults.charFunds,value.charFunds||{});
   result.outings=Array.isArray(value.outings)?value.outings:[];
   result.processedPeriods=value.processedPeriods&&typeof value.processedPeriods==='object'?value.processedPeriods:{};
@@ -564,7 +612,7 @@ function normalizeWalletDB(value){
   result.activitySets=mergeActivitySets(value.activitySets,defaults.activitySets);
   result.legacyDebtWaiver=Math.max(0,Number(value.legacyDebtWaiver)||0);
   result.legacyDebtWaiverApplied=value.legacyDebtWaiverApplied===true;
-  result.schemaVersion=3;
+  result.schemaVersion=4;
   if(!result.legacyDebtWaiverApplied){
     var rawFund=walletRawSharedFund(result);
     if(rawFund<0)result.legacyDebtWaiver+=Math.abs(rawFund);
@@ -631,6 +679,45 @@ function todayStr(value){
   d.setHours(d.getHours()-4);
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 }
+function currentBudgetMonth(value){return todayStr(value).slice(0,7);}
+function daysInBudgetMonth(monthKey){
+  var match=/^(\d{4})-(\d{2})$/.exec(String(monthKey||''));
+  if(!match)return 0;
+  var year=Number(match[1]);
+  var month=Number(match[2]);
+  if(month<1||month>12)return 0;
+  return new Date(year,month,0).getDate();
+}
+function budgetMonthLabel(monthKey){
+  var parts=String(monthKey||'').split('-');
+  return parts.length===2?Number(parts[0])+'年'+Number(parts[1])+'月':'本月';
+}
+function monthlyCategoryAllocation(categories,monthKey){
+  var days=daysInBudgetMonth(monthKey);
+  if(!days)return 0;
+  var monthEnd=monthKey+'-'+String(days).padStart(2,'0');
+  return Math.floor((Array.isArray(categories)?categories:[]).reduce(function(total,category){
+    if(!String(category&&category.name||'').trim())return total;
+    if(category.activeFrom&&String(category.activeFrom)>monthEnd)return total;
+    return total+Math.max(0,Number(category.dailyBudget)||0)*days;
+  },0));
+}
+function monthlyBudgetState(value,monthKey){
+  var budgets=value&&value.monthlyBudgets&&typeof value.monthlyBudgets==='object'?value.monthlyBudgets:{};
+  var available=Object.keys(budgets).filter(function(key){
+    var amount=Number(budgets[key]);
+    return /^\d{4}-\d{2}$/.test(key)&&key<=monthKey&&Number.isFinite(amount)&&amount>=0;
+  }).sort();
+  if(!available.length)return{amount:null,source:'',inherited:false};
+  var source=available[available.length-1];
+  return{amount:Math.floor(Number(budgets[source])),source:source,inherited:source!==monthKey};
+}
+function monthlyBudgetSummary(value,categories,monthKey){
+  var state=monthlyBudgetState(value,monthKey);
+  var allocated=monthlyCategoryAllocation(categories,monthKey);
+  return{amount:state.amount,allocated:allocated,remaining:state.amount===null?null:state.amount-allocated,source:state.source,inherited:state.inherited};
+}
+function formatYenAmount(value){return Math.abs(Math.floor(Number(value)||0)).toLocaleString('ja-JP');}
 function getCurrentPeriod(){
   var h=new Date().getHours();
   if(h>=6&&h<11)return'morning';
@@ -642,6 +729,55 @@ function periodLabel(p){return{morning:'清晨 06:00–10:59',day:'白天 11:00�
 function periodName(p){return{morning:'清晨',day:'白天',evening:'傍晚',night:'夜晚'}[p]||p;}
 
 /* ═══ BUDGET CALCULATION ═══ */
+function renderMonthBudgetStatus(){
+  var status=document.getElementById('monthBudgetStatus');
+  if(!status)return;
+  var summary=monthlyBudgetSummary(db,db.categories,currentBudgetMonth());
+  status.classList.toggle('over',summary.remaining!==null&&summary.remaining<0);
+  if(summary.amount===null){status.textContent='本月预算未设置';return;}
+  status.textContent=summary.remaining<0?'本月预算超出 ¥'+formatYenAmount(summary.remaining):'本月预算剩余 ¥'+formatYenAmount(summary.remaining);
+}
+function openMonthlyBudgetModal(){
+  var monthKey=currentBudgetMonth();
+  var state=monthlyBudgetState(db,monthKey);
+  var input=document.getElementById('monthlyBudgetAmount');
+  document.getElementById('monthlyBudgetTitle').textContent=budgetMonthLabel(monthKey)+'预算';
+  input.dataset.month=monthKey;
+  input.value=state.amount===null?'':state.amount;
+  document.getElementById('monthlyBudgetNote').textContent=state.inherited?'目前沿用'+budgetMonthLabel(state.source)+'的预算；保存后只更新本月。':'每天的分类额度会按本月天数换算，再从这里预留。';
+  renderMonthlyBudgetPreview();
+  openModal('monthlyBudgetModal');
+}
+function renderMonthlyBudgetPreview(){
+  var input=document.getElementById('monthlyBudgetAmount');
+  var preview=document.getElementById('monthlyBudgetPreview');
+  if(!input||!preview)return;
+  var monthKey=input.dataset.month||currentBudgetMonth();
+  var allocated=monthlyCategoryAllocation(db.categories,monthKey);
+  var raw=String(input.value||'').trim();
+  preview.classList.remove('over');
+  if(!raw){preview.textContent='当前分类月额度 ¥'+formatYenAmount(allocated);return;}
+  var amount=Math.max(0,Math.floor(Number(raw)||0));
+  var remaining=amount-allocated;
+  preview.classList.toggle('over',remaining<0);
+  preview.textContent='分类月额度 ¥'+formatYenAmount(allocated)+' · '+(remaining<0?'超出 ¥':'剩余 ¥')+formatYenAmount(remaining);
+}
+function saveMonthlyBudget(){
+  var input=document.getElementById('monthlyBudgetAmount');
+  var raw=String(input.value||'').trim();
+  if(!raw){showToast('请输入本月预算');return;}
+  var amount=Math.floor(Number(raw));
+  if(!Number.isFinite(amount)||amount<0){showToast('请输入有效金额');return;}
+  var monthKey=input.dataset.month||currentBudgetMonth();
+  var allocated=monthlyCategoryAllocation(db.categories,monthKey);
+  if(amount<allocated){showToast('比分类月额度少 ¥'+formatYenAmount(allocated-amount));return;}
+  db.monthlyBudgets[monthKey]=amount;
+  save();
+  closeModal('monthlyBudgetModal');
+  renderMonthBudgetStatus();
+  if(document.getElementById('settingsModal').classList.contains('show'))renderSettingsBudgetPreview();
+  showToast(budgetMonthLabel(monthKey)+'预算已更新');
+}
 function getTodayRecords(){return db.records.filter(function(r){return r.date===todayStr();});}
 function getCategoryToday(catId){
   var today=todayStr();
@@ -715,10 +851,12 @@ function renderCategoryCards(account){
     var ct=getCategoryToday(cat.id);
     var pct=cat.dailyBudget>0?Math.min(100,Math.round(ct.net/cat.dailyBudget*100)):0;
     var surplus=cat.dailyBudget-ct.net;
-    return '<div class="category-card" style="border-left:3px solid '+cat.color+'"><div class="cat-header"><span class="cat-name">'+esc(cat.name)+'</span><span class="cat-budget">日额 ¥'+cat.dailyBudget+'</span></div><div class="cat-bar"><div class="cat-bar-fill" style="width:'+Math.max(0,pct)+'%;background:'+cat.color+'"></div></div><div class="cat-stats"><span>支出 ¥'+ct.spent+(ct.earned?' / 收入 ¥'+ct.earned:'')+'</span><span class="'+(surplus>=0?'positive':'negative')+'">'+(surplus>=0?'+':'')+'¥'+surplus+'</span></div></div>';
+    var colorSide=account==='entertainment'?'right':'left';
+    return '<div class="category-card" style="border-'+colorSide+':3px solid '+cat.color+'"><div class="cat-header"><span class="cat-name">'+esc(cat.name)+'</span><span class="cat-budget">日额 ¥'+cat.dailyBudget+'</span></div><div class="cat-bar"><div class="cat-bar-fill" style="width:'+Math.max(0,pct)+'%;background:'+cat.color+'"></div></div><div class="cat-stats"><span>支出 ¥'+ct.spent+(ct.earned?' / 收入 ¥'+ct.earned:'')+'</span><span class="'+(surplus>=0?'positive':'negative')+'">'+(surplus>=0?'+':'')+'¥'+surplus+'</span></div></div>';
   }).join('')||'<div style="padding:18px 14px;color:#ccc;font-size:10px;text-align:center">还没有分类</div>';
 }
 function renderLedger(){
+  renderMonthBudgetStatus();
   document.getElementById('livingSummary').innerHTML=renderAccountSummary('living');
   document.getElementById('entertainmentSummary').innerHTML=renderAccountSummary('entertainment');
   document.getElementById('livingCategoryList').innerHTML=renderCategoryCards('living');
@@ -1002,8 +1140,9 @@ function renderBudgetSettings(){
 }
 function renderSettingsRows(){
   document.getElementById('budgetSettings').innerHTML=_settingsCache.map(function(cat,i){
-    return '<div class="cat-setting-row" data-color="'+cat.color+'" style="--cat-color:'+cat.color+'"><button type="button" class="cat-setting-color" onclick="openCategoryColorPicker('+i+')" aria-label="选择'+esc(cat.name||'分类')+'的颜色"></button><input type="text" class="cat-setting-name" data-i="'+i+'" value="'+esc(cat.name)+'" placeholder="分类名"><select class="cat-setting-account" data-i="'+i+'" aria-label="资金池"><option value="living"'+(cat.account==='living'?' selected':'')+'>生活</option><option value="entertainment"'+(cat.account==='entertainment'?' selected':'')+'>娱乐</option></select><input type="number" class="cat-setting-budget" data-i="'+i+'" value="'+cat.dailyBudget+'" min="0" step="50" placeholder="日额"><button class="cat-setting-del" data-i="'+i+'" onclick="removeSettingsRow('+i+')" title="删除">×</button></div>';
+    return '<div class="cat-setting-row" data-color="'+cat.color+'" style="--cat-color:'+cat.color+'"><button type="button" class="cat-setting-color" onclick="openCategoryColorPicker('+i+')" aria-label="选择'+esc(cat.name||'分类')+'的颜色"></button><input type="text" class="cat-setting-name" data-i="'+i+'" value="'+esc(cat.name)+'" placeholder="分类名" oninput="updateSettingsBudgetPreview()"><select class="cat-setting-account" data-i="'+i+'" aria-label="资金池" onchange="updateSettingsBudgetPreview()"><option value="living"'+(cat.account==='living'?' selected':'')+'>生活</option><option value="entertainment"'+(cat.account==='entertainment'?' selected':'')+'>娱乐</option></select><input type="number" class="cat-setting-budget" data-i="'+i+'" value="'+cat.dailyBudget+'" min="0" step="50" placeholder="日额" oninput="updateSettingsBudgetPreview()"><button class="cat-setting-del" data-i="'+i+'" onclick="removeSettingsRow('+i+')" title="删除">×</button></div>';
   }).join('');
+  renderSettingsBudgetPreview();
 }
 function syncSettingsCacheFromRows(){
   document.querySelectorAll('#budgetSettings .cat-setting-row').forEach(function(row,i){
@@ -1015,6 +1154,18 @@ function syncSettingsCacheFromRows(){
       account:row.querySelector('.cat-setting-account').value==='living'?'living':'entertainment'
     });
   });
+}
+function renderSettingsBudgetPreview(){
+  var preview=document.getElementById('settingsBudgetPlan');
+  if(!preview)return;
+  var summary=monthlyBudgetSummary(db,_settingsCache,currentBudgetMonth());
+  preview.classList.toggle('over',summary.remaining!==null&&summary.remaining<0);
+  if(summary.amount===null){preview.textContent='本月已分配 ¥'+formatYenAmount(summary.allocated)+' · 月预算未设置';return;}
+  preview.textContent='本月已分配 ¥'+formatYenAmount(summary.allocated)+' · '+(summary.remaining<0?'超出 ¥':'剩余 ¥')+formatYenAmount(summary.remaining);
+}
+function updateSettingsBudgetPreview(){
+  syncSettingsCacheFromRows();
+  renderSettingsBudgetPreview();
 }
 function renderCategoryColorPicker(){
   var active=_settingsCache[_editingCategoryColorIndex]&&_settingsCache[_editingCategoryColorIndex].color;
@@ -1068,6 +1219,14 @@ function saveBudgetSettings(){
     newCats.push({id:cat.id||('cat_'+gid()),name:name,dailyBudget:budget,color:color,account:account,activeFrom:cat.activeFrom||todayStr()});
   });
   if(!newCats.some(function(category){return category.account==='living';})||!newCats.some(function(category){return category.account==='entertainment';})){showToast('生活和娱乐账户各要保留一个分类');return;}
+  var monthKey=currentBudgetMonth();
+  var budgetState=monthlyBudgetState(db,monthKey);
+  var allocated=monthlyCategoryAllocation(newCats,monthKey);
+  if(budgetState.amount!==null&&allocated>budgetState.amount){
+    showToast('分类月额度超出预算 ¥'+formatYenAmount(allocated-budgetState.amount));
+    renderSettingsBudgetPreview();
+    return;
+  }
   db.categories=newCats;
   save();closeModal('settingsModal');renderLedger();showToast('分类已更新');
 }

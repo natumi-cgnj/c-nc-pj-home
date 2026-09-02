@@ -64,7 +64,7 @@
       'body[data-cbi-wallet="1"] .hist-row{margin:0;padding:12px 20px;border:0;border-bottom:1px solid #f1f1ef;border-radius:0;box-shadow:none;background:#fff}',
       'body[data-cbi-wallet="1"] .hist-cat{border-radius:3px;font-size:8px}',
       'body[data-cbi-wallet="1"] .ledger-fold>summary{background:#fafafa;border-top:1px solid #f3f3f1}',
-      'body[data-cbi-wallet="1"] .pending-add{border-top:1px solid #f1f1ef;font-family:inherit;font-size:10px;font-weight:400}',
+      'body[data-cbi-wallet="1"] .pending-add{border-top:1px solid #f1f1ef;font-family:inherit;font-size:11px;font-weight:400;letter-spacing:.4px}',
       'body[data-cbi-wallet="1"] .treasury-card{margin:0;padding:25px 20px 20px;text-align:left;border:0;border-bottom:1px solid #eeeeec;border-radius:0;box-shadow:none}',
       'body[data-cbi-wallet="1"] .treasury-label{font-size:9px;letter-spacing:1.1px}',
       'body[data-cbi-wallet="1"] .treasury-amount{font-size:32px;font-variant-numeric:tabular-nums}',
