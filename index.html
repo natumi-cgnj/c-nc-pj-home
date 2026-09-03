@@ -297,6 +297,12 @@ body[data-world-id="cbi"][data-world-location="home"] .boss-wardrobe-btn{display
 .page-clock{text-align:center;margin-bottom:12px}
 .page-clock .time{font-size:28px;font-weight:200;color:#ccc;letter-spacing:2px;font-variant-numeric:tabular-nums}
 .page-clock .date{font-size:11px;color:#ddd;margin-top:2px;letter-spacing:0.5px}
+.cbi-weather-strip{display:none;align-items:center;justify-content:center;white-space:nowrap;color:#aaa;font-size:10px;font-weight:400;line-height:1;letter-spacing:.4px;font-variant-numeric:tabular-nums;user-select:none;-webkit-user-select:none}
+.cbi-weather-place{font-size:9px;font-weight:500;letter-spacing:1.4px}
+.cbi-weather-icon{width:18px;margin-left:7px;text-align:center;font-family:"Apple Color Emoji","Segoe UI Emoji",sans-serif;font-size:11px;line-height:1;letter-spacing:0;filter:saturate(.72)}
+.cbi-weather-temp{min-width:25px;color:#999;letter-spacing:.2px;text-align:left}
+.cbi-weather-divider{margin:0 8px;color:#ddd;font-weight:300}
+body[data-world-id="cbi"] .cbi-weather-strip-mobile{display:flex;margin-top:9px}
 /* ── Memo page ── */
 .memo-wrap{width:100%;max-width:360px;margin:0 auto;flex:1;display:flex;flex-direction:column}
 .memo-list{flex:1;overflow-y:auto;padding:0}
@@ -343,7 +349,7 @@ body[data-world-id="cbi"][data-world-location="home"] .boss-wardrobe-btn{display
   #pageEvents{grid-column:2;grid-row:3;order:2}
   #pageCollect{grid-column:2;grid-row:4;order:3}
   #pageRewards{grid-column:2;grid-row:5;order:4}
-  #pageMemo{grid-column:2;grid-row:1;order:0;margin-top:60px;width:260px;max-width:260px;min-width:0}
+  #pageMemo{grid-column:2;grid-row:1;order:0;margin-top:60px;width:260px;max-width:260px;min-width:0;position:relative}
   #pageMemo .page-content,#pageMemo .section-collapse,#pageMemo .memo-wrap{width:100%;min-width:0}
   #pageMemo .memo-add-bar{min-width:0}
   #pageMemo .memo-input{width:0;min-width:0}
@@ -354,6 +360,9 @@ body[data-world-id="cbi"][data-world-location="home"] .boss-wardrobe-btn{display
   .entry-icon{width:46px;height:46px;font-size:18px}
   .entry-label{font-size:11px}
   #pageDaily .page-clock,#pageEvents .page-clock,#pageCollect .page-clock,#pageRewards .page-clock{display:none}
+  .cbi-weather-strip-mobile{display:none!important}
+  .cbi-weather-strip-desktop{position:absolute;top:0;left:0;width:100%}
+  body[data-world-id="cbi"] .cbi-weather-strip-desktop{display:flex}
   .memo-wrap{max-width:260px}
   .page-dots{display:none}
   .header{width:100%;margin:0;align-self:end}
@@ -594,6 +603,9 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-home-trigger{display:
 <body>
 <div class="home-pager" id="homePager">
 <div class="home-page" id="pageMemo">
+<div class="cbi-weather-strip cbi-weather-strip-desktop" aria-live="polite">
+<span class="cbi-weather-place">SACRAMENTO</span><span class="cbi-weather-icon" data-cbi-weather="sacramento-icon">·</span><span class="cbi-weather-temp" data-cbi-weather="sacramento-temp">—°</span><span class="cbi-weather-divider">｜</span><span class="cbi-weather-place">OSAKA</span><span class="cbi-weather-icon" data-cbi-weather="osaka-icon">·</span><span class="cbi-weather-temp" data-cbi-weather="osaka-temp">—°</span>
+</div>
 <div class="page-content">
 <div class="page-clock"><div class="time" id="clock3"></div><div class="date" id="date3"></div></div>
 <div class="page-title" onclick="toggleSection(this)">Notes</div>
@@ -608,7 +620,7 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-home-trigger{display:
 </div>
 </div>
 <div class="home-page" id="pageMain">
-<div class="header" id="worldHeader" role="button" tabindex="0" aria-label="切换世界" onclick="openWorldSwitcher()"><h1 id="worldHeaderTitle">Liminal Space</h1><p id="worldHeaderSubtitle">夹缝空間</p></div>
+<div class="header" id="worldHeader" role="button" tabindex="0" aria-label="切换世界" onclick="openWorldSwitcher()"><h1 id="worldHeaderTitle">Liminal Space</h1><p id="worldHeaderSubtitle">夹缝空間</p><div class="cbi-weather-strip cbi-weather-strip-mobile" aria-live="polite"><span class="cbi-weather-place">SACRAMENTO</span><span class="cbi-weather-icon" data-cbi-weather="sacramento-icon">·</span><span class="cbi-weather-temp" data-cbi-weather="sacramento-temp">—°</span><span class="cbi-weather-divider">｜</span><span class="cbi-weather-place">OSAKA</span><span class="cbi-weather-icon" data-cbi-weather="osaka-icon">·</span><span class="cbi-weather-temp" data-cbi-weather="osaka-temp">—°</span></div></div>
 <div class="cg-banner" id="cgBanner" onclick="openCgFull()"><img id="cgImg" src="" alt=""><button class="cg-close" type="button" onclick="closeCgBanner(event)">✕</button><a class="cg-time-tag" id="cgTimeTag" href="schedule.html" onclick="event.stopPropagation()"></a></div>
 <div class="cg-fullscreen" id="cgFull" onclick="closeCgFull()"><img id="cgFullImg" src="" alt=""><button class="cg-manage-full" type="button" onclick="openCGLibrary(event)">Scenes</button></div>
 <div class="cg-library-overlay" id="cgLibraryOverlay" onclick="closeCGLibrary(event)">
@@ -945,6 +957,7 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-home-trigger{display:
 <script src="world-context.js?v=20260824-cbi-work1"></script>
 <script src="cloud-sync.js?v=20260824-cbi-work1"></script>
 <script src="character-runtime.js?v=20260902-cbi-presence1"></script>
+<script src="cbi-weather.js?v=20260903-cbi-weather1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 
@@ -1834,6 +1847,7 @@ function updateClock(){
   document.getElementById('clock').textContent=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
   const days=['日','月','火','水','木','金','土'];
   document.getElementById('date').textContent=(now.getMonth()+1)+'月'+now.getDate()+'日 '+days[now.getDay()]+'曜日';
+  if(window.CBIWeather)CBIWeather.tick(now);
   const nextCGPeriod=getCGDisplayPeriodKey(now);
   if(currentCGPeriodKey&&nextCGPeriod!==currentCGPeriodKey)initCG();
   if(getActiveWorldId()==='cbi'&&window.CharacterRuntime)renderCbiLocationPresence();
@@ -3575,6 +3589,7 @@ function applyWorldView(){
   document.getElementById('worldHeaderTitle').textContent=world.title;
   document.getElementById('worldHeaderSubtitle').textContent=world.subtitle;
   document.getElementById('cgBanner').classList.toggle('world-banner-empty',world.banner==='empty');
+  if(window.CBIWeather)CBIWeather.setActive(world.id==='cbi',new Date());
   initCG();
   closeCbiLocationSheet(null);
   if(world.id==='cbi'){
