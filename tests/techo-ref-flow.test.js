@@ -11,8 +11,11 @@ source += `\n;globalThis.__testApi={
   getDb:()=>db,setDb:value=>{db=value;},
   normalizeTechoData,clampCols,openRefDetail,toggleRefItemMode,renderCatalogList,
   renderRefList,reorderRefProjects,openEditRef,saveRef,pickRefColor,
-  getQueuedRefItems,assignRefItemToCatalog,openCatalogDetail,toggleCollect,
-  moveRefItem,openEditRefItemById,saveRefItem
+  assignRefItemToCatalog,openCatalogDetail,toggleCollect,openCatRecord,saveCatRecord,
+  openCatalogItemDetail,toggleCatRecordProcess,toggleCatRecordStatus,deleteCatRecord,
+  moveRefItem,openEditRefItemById,saveRefItem,setRefSectionDraftCount,
+  moveRefSectionDraft,deleteRefGridItem,openRefSectionQuick,saveRefSectionQuick,
+  openCatalogSectionQuick,saveCatalogSectionQuick
 };`;
 
 function element(id = '') {
@@ -104,6 +107,7 @@ assert.match(document.getElementById('refDetailGrid').innerHTML, /grid-template-
 assert.match(document.getElementById('refDetailGrid').innerHTML, /class="section-divider"/, 'ref reuses the Food section divider layout');
 assert.equal((document.getElementById('refDetailGrid').innerHTML.match(/class="ref-item-cell collected/g) || []).length, 2, 'ref renders every item as an always-bright Food-style cell');
 assert.doesNotMatch(document.getElementById('refDetailGrid').innerHTML, /ref-mode-badge/, 'ref and List modes stay in the item editor instead of changing the grid format');
+windowState.scrollY = 410;
 api.openEditRef();
 assert.equal(document.getElementById('inputRefLabel').value, '2027', 'ref editor loads the current project label');
 assert.match(document.getElementById('refColorPicker').innerHTML, /ref-color-swatch active/, 'ref editor marks the current project color');
@@ -111,43 +115,97 @@ document.getElementById('inputRefLabel').value = 'M size';
 api.pickRefColor('#E84A7A');
 api.saveRef();
 assert.deepEqual(JSON.parse(JSON.stringify(api.getDb().refs[0].label)), {name: 'M size', color: '#E84A7A'}, 'ref editor saves its label and accent color together');
+assert.equal(windowState.scrollY, 410, 'saving the full reference editor restores its previous detail scroll position');
 
-api.toggleRefItemMode('ref1', 'ri1');
+const sectionFixture = structuredClone(fixture);
+sectionFixture.refs[0].sections = [{name: 'A', count: 1, cols: 3}, {name: 'B', count: 1, cols: 3}];
+api.setDb(sectionFixture);
+api.normalizeTechoData();
+api.openRefDetail('ref1');
+api.openEditRef();
+api.setRefSectionDraftCount(0, 4);
+api.saveRef();
 let state = api.getDb();
-assert.equal(state.refs[0].items[0].mode, 'list', 'ref item toggles to List');
-assert.equal(api.getQueuedRefItems().length, 1, 'List item enters allocation pool');
-api.renderCatalogList();
-assert.match(document.getElementById('refAllocationPool').innerHTML, /FROM REF · 待分配 1/, 'List page renders allocation pool');
-assert.match(document.getElementById('catalogList').innerHTML, /data-catalog-id="list1"/, 'List projects expose drop targets');
+assert.deepEqual(Array.from(state.refs[0].sections, section => section.count), [4, 1], 'project editor grows the selected section itself');
+assert.equal(state.refs[0].items[0].id, 'ri1', 'first section keeps its original item');
+assert.equal(state.refs[0].items[4].id, 'ri2', 'later section items stay below newly inserted blank slots');
+assert.ok(state.refs[0].items.slice(1, 4).every(item => /^Title \d+$/.test(item.name)), 'new slots are inserted as blanks inside the edited section');
 
-api.assignRefItemToCatalog('ref1', 'ri1', 'list1');
+api.openEditRef();
+assert.equal(api.moveRefSectionDraft(0, 1), true, 'reference sections can be reordered in the project editor');
+api.saveRef();
 state = api.getDb();
-assert.equal(state.catalogs[0].items.length, 1, 'allocation creates a List item');
+assert.deepEqual(Array.from(state.refs[0].sections, section => section.name), ['B', 'A'], 'section order is persisted');
+assert.equal(state.refs[0].items[0].id, 'ri2', 'moving a section carries its own items with it');
+api.openRefDetail('ref1');
+api.deleteRefGridItem(0);
+state = api.getDb();
+assert.equal(state.refs[0].sections[0].count, 0, 'arrange-mode deletion repairs its section count');
+assert.equal(state.refs[0].items.some(item => item.id === 'ri2'), false, 'arrange-mode deletion removes the selected reference item');
+
+api.setDb(structuredClone(fixture));
+api.normalizeTechoData();
+
+assert.match(html, /class="tab-bar"[\s\S]*?>ITEM<\/button>[\s\S]*?>LIST<\/button>[\s\S]*?>REF<\/button>/, 'Techo exposes ITEM, LIST, and REF as parallel bottom tabs');
+assert.doesNotMatch(html, /id="refAllocationPool"|FROM REF · 待分配/, 'List has no intermediate Ref allocation pool');
+api.renderCatalogList();
+assert.match(document.getElementById('fundPool').innerHTML, /Fund Pool/, 'List keeps the monetary Fund Pool summary');
+assert.match(document.getElementById('catalogList').innerHTML, /project-category-header/, 'List groups projects with the Food category layout');
+assert.match(document.getElementById('catalogList').innerHTML, /project-row-progress/, 'List projects show Food-style progress');
+
+api.openRefDetail('ref1');
+api.openEditRefItemById('ri1');
+document.getElementById('inputRefItemListTarget').value = 'list1::0';
+document.getElementById('refItemMode').value = 'list';
+api.saveRefItem();
+state = api.getDb();
+assert.equal(state.refs[0].items[0].mode, 'list', 'ref item saves in List mode');
+assert.equal(state.catalogs[0].items.length, 1, 'saving a target creates a List item directly');
 assert.deepEqual(JSON.parse(JSON.stringify(state.catalogs[0].items[0].sourceRef)), {refId: 'ref1', itemId: 'ri1'}, 'List item keeps stable ref backlink');
 assert.equal(state.refs[0].items[0].listAssignment.catalogItemId, state.catalogs[0].items[0].id, 'ref stores List assignment');
-assert.equal(state.catalogs[0].sections[0].count, 1, 'allocated item joins the last List section');
+assert.equal(state.catalogs[0].sections[0].count, 1, 'directly added item joins the chosen List series');
 
 api.openCatalogDetail('list1');
 assert.match(document.getElementById('catalogDetailGrid').innerHTML, /grid-template-columns:repeat\(6,1fr\)/, 'List renders a six-column section grid');
-api.toggleCollect(0);
+api.openCatRecord(0);
+document.getElementById('catRecordItemName').value = 'Loft M';
+document.getElementById('catRecordDate').value = '2026-09-03';
+document.getElementById('catRecordNote').value = '购入';
+document.getElementById('catRecordCost').value = '1200';
+api.saveCatRecord();
 state = api.getDb();
-assert.equal(state.catalogs[0].items[0].collected, true, 'List item checks in normally');
-assert.equal(state.items.length, 1, 'List check-in creates an Items entry');
-assert.equal(state.items[0].status, 'pending', 'new Items entry waits for assignment');
+assert.equal(state.catalogs[0].items[0].records.length, 1, 'List item stores a Food-style merchandise record');
+assert.equal(state.items.length, 1, 'acquisition creates an Items entry');
+assert.equal(state.items[0].status, 'pending', 'new acquisition waits for assignment');
+assert.equal(state.items[0].cost, 1200, 'acquisition cost flows into the monetary Item record');
+assert.equal(state.items[0].catalogRef.catalogItemId, state.catalogs[0].items[0].id, 'Items entry keeps a stable List item id');
+assert.equal(state.items[0].catalogRef.recordId, state.catalogs[0].items[0].records[0].id, 'Items entry keeps a stable acquisition record id');
+assert.match(document.getElementById('catalogItemDetailContent').innerHTML, /Acquisition records \(1\)/, 'List item detail renders acquisition history');
+api.renderCatalogList();
+assert.match(document.getElementById('fundPool').innerHTML, /¥1,200/, 'Fund Pool totals pending acquisition costs');
+api.openCatalogItemDetail(0);
+api.toggleCatRecordProcess(0);
+state = api.getDb();
+assert.equal(state.catalogs[0].items[0].records[0].processStatus, 'processed', 'merchandise record can be marked processed like Food');
+assert.equal(state.items[0].status, 'done', 'processing the List record synchronizes its Items entry');
+api.toggleCatRecordStatus(0);
+state = api.getDb();
+assert.equal(state.catalogs[0].items[0].records[0].status, 'sold', 'processed merchandise cycles through Food disposition states');
+assert.equal(state.items[0].disposition, 'sold', 'List disposition stays linked to the Items record');
 
 api.toggleRefItemMode('ref1', 'ri1');
 state = api.getDb();
-assert.equal(state.refs[0].items[0].mode, 'list', 'checked-in List item cannot be detached accidentally');
+assert.equal(state.refs[0].items[0].mode, 'list', 'recorded List item cannot be detached accidentally');
 
-api.openCatalogDetail('list1');
-api.toggleCollect(0);
+api.openCatalogItemDetail(0);
+api.deleteCatRecord(0);
 api.toggleRefItemMode('ref1', 'ri1');
 state = api.getDb();
-assert.equal(state.refs[0].items[0].mode, 'ref', 'uncollected item can return to ref');
+assert.equal(state.refs[0].items[0].mode, 'ref', 'item without acquisition records can return to ref');
 assert.equal(state.refs[0].items[0].listAssignment, null, 'returning to ref clears assignment');
 assert.equal(state.catalogs[0].items.length, 0, 'returning to ref removes its uncollected List item');
 assert.equal(state.catalogs[0].sections[0].count, 0, 'removal repairs List section count');
-assert.equal(state.items.length, 0, 'unchecking removes the pending Items entry');
+assert.equal(state.items.length, 0, 'deleting an acquisition removes its pending Items entry');
 
 state.refs.push({id: 'ref2', name: 'Second Ref', shelf: '', icon: '', note: '', comment: '', order: 1, sections: [], items: []});
 assert.equal(api.reorderRefProjects('ref1', null), true, 'ref project reorder succeeds');
@@ -164,6 +222,21 @@ state = api.getDb();
 assert.equal(state.refs.find(ref => ref.id === 'ref1').items.find(item => item.id === 'ri2').img, 'new-cover.jpg', 'empty ref item accepts an uploaded image');
 assert.equal(windowState.scrollY, 640, 'saving a ref item restores its previous detail scroll position');
 
+windowState.scrollY = 730;
+api.openRefSectionQuick(0);
+document.getElementById('inputQuickRefSectionName').value = '2027 renamed';
+api.saveRefSectionQuick();
+assert.equal(api.getDb().refs.find(ref => ref.id === 'ref1').sections[0].name, '2027 renamed', 'quick editor saves a renamed reference section');
+assert.equal(windowState.scrollY, 730, 'saving a reference section restores its previous detail scroll position');
+
+api.openCatalogDetail('list1');
+windowState.scrollY = 520;
+api.openCatalogSectionQuick(0);
+document.getElementById('inputQuickCatSectionName').value = 'M renamed';
+api.saveCatalogSectionQuick();
+assert.equal(api.getDb().catalogs[0].sections[0].name, 'M renamed', 'quick editor saves a renamed List section');
+assert.equal(windowState.scrollY, 520, 'saving a List section restores its previous detail scroll position');
+
 const reorderRef = state.refs.find(ref => ref.id === 'ref1');
 reorderRef.sections = [{name: 'A', count: 1, cols: 3}, {name: 'B', count: 1, cols: 3}];
 reorderRef.items.sort((a, b) => ['ri1', 'ri2'].indexOf(a.id) - ['ri1', 'ri2'].indexOf(b.id));
@@ -171,11 +244,12 @@ assert.equal(api.moveRefItem(0, 1), true, 'ref item reorder succeeds');
 assert.deepEqual(Array.from(reorderRef.items, item => item.id), ['ri2', 'ri1'], 'ref item can move onto another grid position');
 assert.deepEqual(Array.from(reorderRef.sections, section => section.count), [0, 2], 'cross-section reorder updates section item counts like Food');
 
-assert.match(source, /pointerdown/, 'allocation pool includes pointer drag behavior');
-assert.match(source, /closest\('\.catalog-row\[data-catalog-id\]'\)/, 'drag behavior resolves List drop targets');
+assert.doesNotMatch(source, /function initRefAllocationDrag|allocation-card/, 'obsolete allocation-pool drag logic is removed');
 assert.match(source, /function initRefProjectDrag\(\)[\s\S]*?refProjectArrangeMode\?170:450/, 'ref projects support Food-style long-press sorting');
 assert.match(source, /function setupRefItemArrangeGestures\(\)[\s\S]*?pointerdown/, 'ref items bind Food-style pointer sorting gestures');
 assert.match(source, /refItemArrangeMode\?170:520/, 'ref items enter arrange mode after the Food long-press delay');
+assert.match(document.getElementById('refDetailGrid').innerHTML, /ref-item-delete-x/, 'reference items expose Food-style delete controls in arrange mode');
+assert.match(document.getElementById('refSectionList').innerHTML, /ref-section-drag-handle/, 'reference project editor exposes a long-press section reorder handle');
 assert.match(document.getElementById('refList').innerHTML, /data-ref-id="ref2"/, 'ref project rows expose stable drag ids');
 assert.match(html, /id="refIconPosFrame"/, 'ref editor uses the Food-style draggable cover frame');
 assert.match(source, /r\.iconPositionX=iconPositionX;r\.iconPositionY=iconPositionY/, 'ref editor persists cover position');
