@@ -13,10 +13,11 @@ source += `\n;globalThis.__testApi={
   renderRefList,reorderRefProjects,openEditRef,saveRef,pickRefColor,
   assignRefItemToCatalog,openCatalogDetail,toggleCollect,openCatRecord,saveCatRecord,
   toggleCatRecordMonthOnly,formatCatRecordDate,
-  openCatalogItemDetail,toggleCatRecordProcess,toggleCatRecordStatus,deleteCatRecord,
+  openCatalogItemDetail,deleteCatRecord,moveCatalogItem,deleteCatalogGridItem,
   moveRefItem,openEditRefItemById,saveRefItem,setRefSectionDraftCount,
   moveRefSectionDraft,deleteRefGridItem,openRefSectionQuick,saveRefSectionQuick,
-  openCatalogSectionQuick,saveCatalogSectionQuick
+  openCatalogSectionQuick,saveCatalogSectionQuick,switchTechoTab,
+  openCategoryManager,saveCategoryManager,getCategoryDrafts:()=>categoryDrafts
 };`;
 
 function element(id = '') {
@@ -41,7 +42,11 @@ const document = {
   documentElement: {scrollTop: 0},
   addEventListener() {}, removeEventListener() {},
   getElementById(id) { if (!elements.has(id)) elements.set(id, element(id)); return elements.get(id); },
-  querySelectorAll() { return []; },
+  querySelectorAll(selector) {
+    if (selector === '.view') return ['viewItems','viewCatalog','viewCatalogDetail','viewCatalogItemDetail','viewRef','viewRefDetail'].map(id => this.getElementById(id));
+    if (selector === '.tab-bar button') return ['tab-items','tab-catalog','tab-ref'].map(id => this.getElementById(id));
+    return [];
+  },
   elementFromPoint() { return null; },
   createElement(tag) {
     const el = element(tag);
@@ -70,7 +75,7 @@ vm.runInContext(source, sandbox, {filename: 'techo-inline.js'});
 const api = sandbox.__testApi;
 
 const fixture = {
-  items: [], sections: [], sectionCollapsed: {}, shelfCollapsed: {}, refShelfCollapsed: {},
+  items: [], sections: [], projectCategories: [], sectionCollapsed: {}, shelfCollapsed: {}, refShelfCollapsed: {},
   catalogs: [{
     id: 'list1', name: 'Rollbahn 待买', shelf: '', icon: '', note: '', label: {name: '', color: '#C4A24C'},
     sections: [{name: 'M', count: 0, cols: 6}], items: [], order: 0
@@ -103,6 +108,7 @@ assert.match(document.getElementById('refList').innerHTML, /object-position:25% 
 assert.match(document.getElementById('refList').innerHTML, /border-left:3px solid #6B8AFF/, 'ref list applies the selected Food-style project edge');
 assert.match(document.getElementById('refList').innerHTML, /class="ref-project-label"[^>]*>2027<\/span>/, 'ref list renders the custom project label');
 api.openRefDetail('ref1');
+assert.doesNotMatch(html, /id="refDetailStats"|ref-detail-overall-bar/, 'Ref detail omits List-conversion progress because Ref is not a collection target');
 assert.match(document.getElementById('refDetailGrid').innerHTML, /2027/, 'ref renders section heading');
 assert.match(document.getElementById('refDetailGrid').innerHTML, /grid-template-columns:repeat\(6,1fr\)/, 'ref renders a six-column section grid');
 assert.match(document.getElementById('refDetailGrid').innerHTML, /class="section-divider"/, 'ref reuses the Food section divider layout');
@@ -195,17 +201,10 @@ assert.equal(state.items[0].catalogRef.catalogItemId, state.catalogs[0].items[0]
 assert.equal(state.items[0].catalogRef.recordId, state.catalogs[0].items[0].records[0].id, 'Items entry keeps a stable acquisition record id');
 assert.match(document.getElementById('catalogItemDetailContent').innerHTML, /Acquisition records \(1\)/, 'List item detail renders acquisition history');
 assert.match(document.getElementById('catalogItemDetailContent').innerHTML, /≈ 2026-09/, 'List item detail marks an approximate purchase month');
+assert.doesNotMatch(document.getElementById('catalogItemDetailContent').innerHTML, /history-process|history-status|Pending|Processed/, 'List acquisition history leaves processing and disposition to Item');
 api.renderCatalogList();
 assert.match(document.getElementById('fundPool').innerHTML, /¥1,200/, 'Fund Pool totals pending acquisition costs');
-api.openCatalogItemDetail(0);
-api.toggleCatRecordProcess(0);
-state = api.getDb();
-assert.equal(state.catalogs[0].items[0].records[0].processStatus, 'processed', 'merchandise record can be marked processed like Food');
-assert.equal(state.items[0].status, 'done', 'processing the List record synchronizes its Items entry');
-api.toggleCatRecordStatus(0);
-state = api.getDb();
-assert.equal(state.catalogs[0].items[0].records[0].status, 'sold', 'processed merchandise cycles through Food disposition states');
-assert.equal(state.items[0].disposition, 'sold', 'List disposition stays linked to the Items record');
+assert.match(document.getElementById('catalogList').innerHTML, /1 \/ 1/, 'a recorded List item counts as acquired without requiring Item-side processing');
 
 api.toggleRefItemMode('ref1', 'ri1');
 state = api.getDb();
@@ -258,10 +257,36 @@ assert.equal(api.moveRefItem(0, 1), true, 'ref item reorder succeeds');
 assert.deepEqual(Array.from(reorderRef.items, item => item.id), ['ri2', 'ri1'], 'ref item can move onto another grid position');
 assert.deepEqual(Array.from(reorderRef.sections, section => section.count), [0, 2], 'cross-section reorder updates section item counts like Food');
 
+const listMoveFixture = structuredClone(fixture);
+listMoveFixture.catalogs[0].sections = [{name: 'A', count: 1, cols: 3}, {name: 'B', count: 1, cols: 3}];
+listMoveFixture.catalogs[0].items = [
+  {id: 'ci1', name: 'One', img: '', records: []},
+  {id: 'ci2', name: 'Two', img: '', records: []}
+];
+api.setDb(listMoveFixture);api.normalizeTechoData();api.openCatalogDetail('list1');
+assert.equal(api.moveCatalogItem(0, 1), true, 'List items can be reordered by the long-press arrange flow');
+assert.deepEqual(Array.from(api.getDb().catalogs[0].items, item => item.id), ['ci2', 'ci1'], 'List item order persists');
+assert.deepEqual(Array.from(api.getDb().catalogs[0].sections, section => section.count), [0, 2], 'cross-section List moves repair section counts');
+assert.match(document.getElementById('catalogDetailGrid').innerHTML, /list-item-delete-x/, 'List arrange mode exposes item deletion controls');
+
+api.getDb().catalogs[0].shelf = 'Rollbahn';api.getDb().refs[0].shelf = 'Rollbahn';api.getDb().projectCategories = ['Rollbahn'];
+api.openCategoryManager();api.getCategoryDrafts()[0].name = 'Notebook';api.saveCategoryManager();
+assert.equal(api.getDb().catalogs[0].shelf, 'Notebook', 'Techo category rename updates List projects');
+assert.equal(api.getDb().refs[0].shelf, 'Notebook', 'Techo category rename updates Ref projects at the same time');
+
+api.openCatalogDetail('list1');windowState.scrollY = 333;api.switchTechoTab('ref');api.openRefDetail('ref1');windowState.scrollY = 444;api.switchTechoTab('catalog');
+assert.equal(document.getElementById('viewCatalogDetail').classList.contains('active'), true, 'returning to List restores its open project detail');
+assert.equal(windowState.scrollY, 333, 'returning to List restores its independent scroll position');
+api.switchTechoTab('ref');
+assert.equal(document.getElementById('viewRefDetail').classList.contains('active'), true, 'returning to Ref restores its open project detail');
+assert.equal(windowState.scrollY, 444, 'returning to Ref restores its independent scroll position');
+
 assert.doesNotMatch(source, /function initRefAllocationDrag|allocation-card/, 'obsolete allocation-pool drag logic is removed');
 assert.match(source, /function initRefProjectDrag\(\)[\s\S]*?refProjectArrangeMode\?170:450/, 'ref projects support Food-style long-press sorting');
 assert.match(source, /function setupRefItemArrangeGestures\(\)[\s\S]*?pointerdown/, 'ref items bind Food-style pointer sorting gestures');
 assert.match(source, /refItemArrangeMode\?170:520/, 'ref items enter arrange mode after the Food long-press delay');
+assert.match(source, /function setupCatalogItemArrangeGestures\(\)[\s\S]*?pointerdown/, 'List items bind the same pointer sorting gestures');
+assert.match(source, /catalogItemArrangeMode\?170:520/, 'List items use the same long-press timing as Ref and Food');
 assert.match(document.getElementById('refDetailGrid').innerHTML, /ref-item-delete-x/, 'reference items expose Food-style delete controls in arrange mode');
 assert.match(document.getElementById('refSectionList').innerHTML, /ref-section-drag-handle/, 'reference project editor exposes a long-press section reorder handle');
 assert.match(document.getElementById('refList').innerHTML, /data-ref-id="ref2"/, 'ref project rows expose stable drag ids');
@@ -272,4 +297,12 @@ assert.equal((html.match(/<option value="6">6 columns<\/option>/g) || []).length
 assert.equal((source.match(/\[2,3,4,5,6\]\.map/g) || []).length, 2, 'both full project editors offer 6col');
 assert.match(source, /r\.label=label/, 'ref editor persists its custom label accent');
 assert.match(html, /id="refItemModeSelect"[\s\S]*?>Ref<\/button>[\s\S]*?>List<\/button>/, 'Food-style item editor preserves Ref and List modes');
+assert.match(html, /onclick="openCategoryManager\(\)"[\s\S]*?>Edit<\/button>/, 'Techo exposes module-level category editing in the top bar');
+const kitchenHtml = fs.readFileSync(path.join(__dirname, '..', 'kitchen.html'), 'utf8');
+assert.match(kitchenHtml, /onclick="openProjectCategoryManager\(\)"[\s\S]*?>编辑<\/button>/, 'Food exposes module-level category editing in the top bar');
+assert.match(kitchenHtml, /id="projectCategoryManagerModal"[\s\S]*?添加分类[\s\S]*?备份/, 'Food category editor keeps backup available as a secondary action');
+assert.match(kitchenHtml, /JSON\.stringify\(\{version:2,projects,categories:readProjectCategories\(\)\}/, 'Food manual backup includes explicitly created categories');
+assert.match(kitchenHtml, /Array\.isArray\(data\)\?data:Array\.isArray\(data&&data\.projects\)/, 'Food still imports legacy array backups');
+const cloudSync = fs.readFileSync(path.join(__dirname, '..', 'cloud-sync.js'), 'utf8');
+assert.match(cloudSync, /'kitchen\.html': \['kitchen_db', 'kitchen_project_categories_v1'\]/, 'Food category registry participates in page-scoped cloud sync');
 console.log('techo ref flow: ok');

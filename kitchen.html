@@ -123,6 +123,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .btn-primary{background:#1a1a1a;color:#fff}
 .btn-cancel{background:#f0f0f0;color:#666}
 .btn-del{background:#fff;color:#D85A30;border:1px solid #f0d0c0}
+.category-manager-list{display:flex;flex-direction:column;gap:8px;margin:4px 0 12px}
+.category-manager-row{display:flex;align-items:center;gap:8px}
+.category-manager-row input{flex:1}
+.category-manager-remove{width:32px;height:32px;border:0;background:none;color:#bbb;font-size:17px;cursor:pointer;font-family:inherit}
+.category-manager-empty{font-size:11px;color:#ccc;text-align:center;padding:12px 0}
+.category-manager-actions{display:flex;gap:8px;margin-top:8px}.category-manager-actions button{flex:1}
 .file-label{display:block;padding:10px 12px;border:1px dashed #ddd;border-radius:8px;text-align:center;color:#aaa;font-size:12px;cursor:pointer;margin-top:4px}
 .img-preview{width:100%;border-radius:8px;margin-top:8px;max-height:240px;object-fit:contain;background:#f7f7f7}
 .project-icon-editor{width:min(180px,100%);margin:8px auto 0}
@@ -287,7 +293,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <div class="top-bar">
     <a class="back-btn" href="index.html?p=2">← Home</a>
     <h1>FOOD</h1>
-    <button class="btn-s" onclick="openModal('backupModal')">备份</button>
+    <button class="btn-s" onclick="openProjectCategoryManager()">编辑</button>
   </div>
   <div class="project-list" id="projectList"></div>
 </div>
@@ -498,6 +504,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   </div>
 </div>
 
+<!-- Module category manager -->
+<div class="modal-bg" id="projectCategoryManagerModal">
+  <div class="modal">
+    <h2>分类管理</h2>
+    <div class="category-manager-list" id="projectCategoryManagerList"></div>
+    <button type="button" class="add-section-btn" onclick="addProjectCategoryDraft()">+ 添加分类</button>
+    <div class="category-manager-actions"><button type="button" class="btn-s" onclick="closeModal('projectCategoryManagerModal');openModal('backupModal')">备份</button></div>
+    <div class="btn-row">
+      <button class="btn btn-cancel" onclick="closeModal('projectCategoryManagerModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveProjectCategoryManager()">保存</button>
+    </div>
+  </div>
+</div>
+
 <!-- Confirm dialog -->
 <div class="confirm-bg" id="confirmBg">
   <div class="confirm-box"></div>
@@ -527,6 +547,7 @@ if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 const SK='kitchen_db';
 const VIEW_SCROLL_SK='kitchen_view_scroll_v1';
 const PROJECT_CATEGORY_COLLAPSE_SK='kitchen_project_category_collapsed_v1';
+const PROJECT_CATEGORIES_SK='kitchen_project_categories_v1';
 const DEFAULT_PROJECT_CATEGORY='未分类';
 if('scrollRestoration' in history)history.scrollRestoration='manual';
 const SECTION_TAG_COLORS=['#9B8AE8','#6B5ACD','#D85A30','#E84A7A','#E8B96A','#C7A24C','#9B6BCC','#4AADE8','#3A8DD4','#5BA66B','#3D8B50','#6B8AFF','#4A6AE0','#888','#B0805A','#4ECDC4'];
@@ -584,6 +605,7 @@ let projectTempIcon='';
 let projectIconPosTemp={x:50,y:50};
 const detailScrollByProject={};
 let itemArrangeMode=false,itemPressState=null,itemDragState=null,itemClickSuppressedUntil=0;
+let projectCategoryDrafts=[],projectCategoryManagerOriginals=[];
 
 function save(){localStorage.setItem(SK,JSON.stringify(projects));}
 function gid(){return 'p_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);}
@@ -1647,10 +1669,28 @@ function addSectionRow(){
 }
 
 function renderProjectCategoryOptions(){
-  const categories=[...new Set(projects.map(p=>{
-    return typeof p.category==='string'?p.category.trim():'';
-  }).filter(Boolean))];
+  const categories=readProjectCategories();
   document.getElementById('projectCategoryOptions').innerHTML=categories.map(category=>`<option value="${esc(category)}"></option>`).join('');
+}
+function readProjectCategories(){
+  let saved=[];try{const value=JSON.parse(localStorage.getItem(PROJECT_CATEGORIES_SK)||'[]');if(Array.isArray(value))saved=value;}catch(e){}
+  const categories=[];[...saved,...projects.map(project=>project.category)].forEach(value=>{const name=String(value||'').trim();if(name&&name!==DEFAULT_PROJECT_CATEGORY&&!categories.includes(name))categories.push(name);});return categories;
+}
+function writeProjectCategories(categories){localStorage.setItem(PROJECT_CATEGORIES_SK,JSON.stringify(categories));}
+function registerProjectCategory(value){const name=String(value||'').trim();if(!name||name===DEFAULT_PROJECT_CATEGORY)return;const categories=readProjectCategories();if(!categories.includes(name)){categories.push(name);writeProjectCategories(categories);}}
+function openProjectCategoryManager(){projectCategoryManagerOriginals=readProjectCategories();projectCategoryDrafts=projectCategoryManagerOriginals.map(name=>({original:name,name}));renderProjectCategoryDrafts();openModal('projectCategoryManagerModal');}
+function renderProjectCategoryDrafts(){
+  const list=document.getElementById('projectCategoryManagerList');list.innerHTML=projectCategoryDrafts.length?projectCategoryDrafts.map((draft,index)=>`<div class="category-manager-row"><input type="text" value="${esc(draft.name)}" placeholder="分类名" oninput="projectCategoryDrafts[${index}].name=this.value"><button type="button" class="category-manager-remove" aria-label="删除分类" onclick="removeProjectCategoryDraft(${index})">×</button></div>`).join(''):'<div class="category-manager-empty">暂无自定义分类</div>';
+}
+function addProjectCategoryDraft(){projectCategoryDrafts.push({original:'',name:''});renderProjectCategoryDrafts();const inputs=document.querySelectorAll('#projectCategoryManagerList input');const last=inputs[inputs.length-1];if(last&&last.focus)last.focus();}
+function removeProjectCategoryDraft(index){projectCategoryDrafts.splice(index,1);renderProjectCategoryDrafts();}
+function saveProjectCategoryManager(){
+  const names=projectCategoryDrafts.map(draft=>String(draft.name||'').trim()).filter(Boolean);
+  if(new Set(names).size!==names.length){showToast('分类名不能重复');return;}
+  const mapping=new Map();projectCategoryManagerOriginals.forEach(original=>{const draft=projectCategoryDrafts.find(entry=>entry.original===original);mapping.set(original,draft?String(draft.name||'').trim():'');});
+  projects.forEach(project=>{const current=String(project.category||'').trim();if(mapping.has(current))project.category=mapping.get(current);});
+  const collapsed=new Set(readCollapsedProjectCategories()),nextCollapsed=[];collapsed.forEach(category=>{const mapped=mapping.has(category)?mapping.get(category):category;if(mapped&&!nextCollapsed.includes(mapped))nextCollapsed.push(mapped);});
+  localStorage.setItem(PROJECT_CATEGORY_COLLAPSE_SK,JSON.stringify(nextCollapsed));writeProjectCategories(names.filter(name=>name!==DEFAULT_PROJECT_CATEGORY));save();closeModal('projectCategoryManagerModal');renderProjectCategoryOptions();renderProjects();showToast('分类已更新');
 }
 
 function openAddProject(){
@@ -1691,6 +1731,7 @@ function openEditProject(){
 async function saveProject(){
   const name=document.getElementById('inputProjectName').value.trim();if(!name)return;
   const category=document.getElementById('inputProjectCategory').value.trim();
+  registerProjectCategory(category);
   const note=document.getElementById('inputProjectNote').value.trim();
   let duty={..._dutyState};
   if(duty.type==='custom'){duty.name=document.getElementById('dutyCustomName').value.trim();}
@@ -2837,7 +2878,7 @@ function closeSheet(id){document.getElementById(id).classList.remove('show');}
 
 /* ═══ BACKUP ═══ */
 function exportKitchen(){
-  const blob=new Blob([JSON.stringify(projects,null,2)],{type:'application/json'});
+  const blob=new Blob([JSON.stringify({version:2,projects,categories:readProjectCategories()},null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
   a.download='kitchen_backup_'+new Date().toISOString().slice(0,10)+'.json';a.click();
 }
@@ -2847,12 +2888,13 @@ function importKitchen(input){
   reader.onload=ev=>{
     try{
       const data=JSON.parse(ev.target.result);
-      if(!Array.isArray(data)){showToast('格式不正确');input.value='';return;}
+      const importedProjects=Array.isArray(data)?data:Array.isArray(data&&data.projects)?data.projects:null;
+      if(!importedProjects){showToast('格式不正确');input.value='';return;}
       customConfirm('导入数据？将覆盖当前记录。',()=>{
-        projects=data;
+        projects=importedProjects;
         migrateKitchenSectionModel();
         projects.forEach(project=>normalizeProjectSubtypes(project));
-        save();renderProjects();closeModal('backupModal');
+        writeProjectCategories(Array.isArray(data&&data.categories)?data.categories:projects.map(project=>String(project.category||'').trim()).filter(Boolean));save();renderProjects();closeModal('backupModal');
       });
     }catch(e){showToast('导入失败');}
     input.value='';
