@@ -361,10 +361,11 @@ body[data-world-id="cbi"] .cbi-weather-strip-mobile{display:flex;margin-top:9px}
   .entry-label{font-size:11px}
   #pageDaily .page-clock,#pageEvents .page-clock,#pageCollect .page-clock,#pageRewards .page-clock{display:none}
   .cbi-weather-strip-mobile{display:none!important}
-  .cbi-weather-strip-desktop-sacramento{position:absolute;top:8px;right:0}
+  .cbi-weather-strip-desktop{position:absolute;top:50%;transform:translateY(-50%);pointer-events:none}
+  .cbi-weather-strip-desktop-sacramento{right:0}
   .cbi-weather-strip-desktop-sacramento .cbi-weather-icon{margin-left:0}
   .cbi-weather-strip-desktop-sacramento .cbi-weather-temp{text-align:right}
-  .cbi-weather-strip-desktop-osaka{position:absolute;top:-41px;left:0;width:100%}
+  .cbi-weather-strip-desktop-osaka{left:calc(100% + clamp(36px,6vw,88px));width:260px}
   body[data-world-id="cbi"] .cbi-weather-strip-desktop{display:flex}
   .memo-wrap{max-width:260px}
   .page-dots{display:none}
@@ -606,9 +607,6 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-home-trigger{display:
 <body>
 <div class="home-pager" id="homePager">
 <div class="home-page" id="pageMemo">
-<div class="cbi-weather-strip cbi-weather-strip-desktop cbi-weather-strip-desktop-osaka" data-cbi-weather-strip="osaka" aria-live="polite">
-<span class="cbi-weather-place">OSAKA</span><span class="cbi-weather-icon" data-cbi-weather="osaka-icon">·</span><span class="cbi-weather-temp" data-cbi-weather="osaka-temp">—°</span>
-</div>
 <div class="page-content">
 <div class="page-clock"><div class="time" id="clock3"></div><div class="date" id="date3"></div></div>
 <div class="page-title" onclick="toggleSection(this)">Notes</div>
@@ -623,7 +621,12 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-home-trigger{display:
 </div>
 </div>
 <div class="home-page" id="pageMain">
-<div class="header" id="worldHeader" role="button" tabindex="0" aria-label="切换世界" onclick="openWorldSwitcher()"><h1 id="worldHeaderTitle">Liminal Space</h1><p id="worldHeaderSubtitle">夹缝空間</p><div class="cbi-weather-strip cbi-weather-strip-mobile" data-cbi-weather-strip="combined" aria-live="polite"><span class="cbi-weather-place">SACRAMENTO</span><span class="cbi-weather-icon" data-cbi-weather="sacramento-icon">·</span><span class="cbi-weather-temp" data-cbi-weather="sacramento-temp">—°</span><span class="cbi-weather-divider">｜</span><span class="cbi-weather-place">OSAKA</span><span class="cbi-weather-icon" data-cbi-weather="osaka-icon">·</span><span class="cbi-weather-temp" data-cbi-weather="osaka-temp">—°</span></div><div class="cbi-weather-strip cbi-weather-strip-desktop cbi-weather-strip-desktop-sacramento" data-cbi-weather-strip="sacramento" aria-live="polite"><span class="cbi-weather-icon" data-cbi-weather="sacramento-icon">·</span><span class="cbi-weather-temp" data-cbi-weather="sacramento-temp">—°</span></div></div>
+<div class="header" id="worldHeader" role="button" tabindex="0" aria-label="切换世界" onclick="openWorldSwitcher()">
+<h1 id="worldHeaderTitle">Liminal Space</h1><p id="worldHeaderSubtitle">夹缝空間</p>
+<div class="cbi-weather-strip cbi-weather-strip-mobile" data-cbi-weather-strip="combined" aria-live="polite"><span class="cbi-weather-place">SACRAMENTO</span><span class="cbi-weather-icon" data-cbi-weather="sacramento-icon">·</span><span class="cbi-weather-temp" data-cbi-weather="sacramento-temp">—°</span><span class="cbi-weather-divider">｜</span><span class="cbi-weather-place">OSAKA</span><span class="cbi-weather-icon" data-cbi-weather="osaka-icon">·</span><span class="cbi-weather-temp" data-cbi-weather="osaka-temp">—°</span></div>
+<div class="cbi-weather-strip cbi-weather-strip-desktop cbi-weather-strip-desktop-sacramento" data-cbi-weather-strip="sacramento" aria-live="polite"><span class="cbi-weather-icon" data-cbi-weather="sacramento-icon">·</span><span class="cbi-weather-temp" data-cbi-weather="sacramento-temp">—°</span></div>
+<div class="cbi-weather-strip cbi-weather-strip-desktop cbi-weather-strip-desktop-osaka" data-cbi-weather-strip="osaka" aria-live="polite"><span class="cbi-weather-place">OSAKA</span><span class="cbi-weather-icon" data-cbi-weather="osaka-icon">·</span><span class="cbi-weather-temp" data-cbi-weather="osaka-temp">—°</span></div>
+</div>
 <div class="cg-banner" id="cgBanner" onclick="openCgFull()"><img id="cgImg" src="" alt=""><button class="cg-close" type="button" onclick="closeCgBanner(event)">✕</button><a class="cg-time-tag" id="cgTimeTag" href="schedule.html" onclick="event.stopPropagation()"></a></div>
 <div class="cg-fullscreen" id="cgFull" onclick="closeCgFull()"><img id="cgFullImg" src="" alt=""><button class="cg-manage-full" type="button" onclick="openCGLibrary(event)">Scenes</button></div>
 <div class="cg-library-overlay" id="cgLibraryOverlay" onclick="closeCGLibrary(event)">

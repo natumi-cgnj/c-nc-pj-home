@@ -10,6 +10,7 @@ source = source.replace(/load\(\);renderItems\(\);\s*$/, '');
 source += `\n;globalThis.__testApi={
   getDb:()=>db,setDb:value=>{db=value;},
   normalizeTechoData,clampCols,openRefDetail,toggleRefItemMode,renderCatalogList,
+  catalogItemSpent,catalogSpent,totalCatalogSpent,
   renderRefList,reorderRefProjects,openEditRef,saveRef,pickRefColor,
   assignRefItemToCatalog,openCatalogDetail,toggleCollect,openCatRecord,saveCatRecord,
   toggleCatRecordMonthOnly,formatCatRecordDate,
@@ -154,11 +155,12 @@ api.setDb(structuredClone(fixture));
 api.normalizeTechoData();
 
 assert.match(html, /class="tab-bar"[\s\S]*?>ITEM<\/button>[\s\S]*?>LIST<\/button>[\s\S]*?>REF<\/button>/, 'Techo exposes ITEM, LIST, and REF as parallel bottom tabs');
+assert.match(html, /class="top-title"[\s\S]*?<h1>Techo<\/h1>[\s\S]*?id="techoCost">COST · 累计花销0円<\/div>/, 'Techo keeps the List cost total beneath the page title');
 assert.match(html, /\.tab-bar button\{[^}]*font-family:inherit;[^}]*font-size:10px;[^}]*letter-spacing:\.25px/, 'Techo bottom tabs use the same compact typography as the CBI wallet');
 assert.doesNotMatch(html, /font:10px\/1 inherit/, 'Techo does not fall back to the browser button font');
 assert.doesNotMatch(html, /id="refAllocationPool"|FROM REF · 待分配/, 'List has no intermediate Ref allocation pool');
 api.renderCatalogList();
-assert.match(document.getElementById('fundPool').innerHTML, /Fund Pool/, 'List keeps the monetary Fund Pool summary');
+assert.equal(document.getElementById('techoCost').textContent, 'COST · 累计花销0円', 'Cost starts from the List acquisition records rather than Item state');
 assert.match(document.getElementById('catalogList').innerHTML, /project-category-header/, 'List groups projects with the Food category layout');
 assert.match(document.getElementById('catalogList').innerHTML, /project-row-progress/, 'List projects show Food-style progress');
 
@@ -203,8 +205,11 @@ assert.match(document.getElementById('catalogItemDetailContent').innerHTML, /Acq
 assert.match(document.getElementById('catalogItemDetailContent').innerHTML, /≈ 2026-09/, 'List item detail marks an approximate purchase month');
 assert.doesNotMatch(document.getElementById('catalogItemDetailContent').innerHTML, /history-process|history-status|Pending|Processed/, 'List acquisition history leaves processing and disposition to Item');
 api.renderCatalogList();
-assert.match(document.getElementById('fundPool').innerHTML, /¥1,200/, 'Fund Pool totals pending acquisition costs');
+assert.equal(document.getElementById('techoCost').textContent, 'COST · 累计花销1,200円', 'Cost totals acquisition records beneath the page title');
+assert.match(document.getElementById('catalogList').innerHTML, /project-row-cost">¥1,200/, 'each List project shows its own acquisition spend');
 assert.match(document.getElementById('catalogList').innerHTML, /1 \/ 1/, 'a recorded List item counts as acquired without requiring Item-side processing');
+api.openCatalogDetail('list1');
+assert.match(document.getElementById('catalogDetailGrid').innerHTML, /list-item-cost">¥1,200/, 'each recorded List item shows its own acquisition spend');
 
 api.toggleRefItemMode('ref1', 'ri1');
 state = api.getDb();
@@ -280,6 +285,22 @@ assert.equal(windowState.scrollY, 333, 'returning to List restores its independe
 api.switchTechoTab('ref');
 assert.equal(document.getElementById('viewRefDetail').classList.contains('active'), true, 'returning to Ref restores its open project detail');
 assert.equal(windowState.scrollY, 444, 'returning to Ref restores its independent scroll position');
+
+const orphanRecordFixture = structuredClone(fixture);
+orphanRecordFixture.catalogs[0].sections[0].count = 1;
+orphanRecordFixture.catalogs[0].items = [{
+  id: 'legacy-list-item', name: '既有购入', img: '', note: '', cost: 0, collected: true, locked: true,
+  records: [{id: 'legacy-record', date: '2026-08', note: '旧记录', img: '', status: 'keeping', processStatus: 'pending', cost: 875}]
+}];
+orphanRecordFixture.items = [];
+api.setDb(orphanRecordFixture);api.normalizeTechoData();
+assert.equal(api.getDb().catalogs[0].items[0].locked, false, 'legacy List lock no longer blocks List-to-Item flow');
+assert.equal(api.getDb().items.length, 1, 'normalization repairs an Item missing from an existing List acquisition');
+assert.equal(api.getDb().items[0].cost, 875, 'the repaired Item inherits the recorded acquisition cost');
+assert.equal(api.getDb().items[0].catalogRef.recordId, 'legacy-record', 'the repaired Item links to the exact List acquisition');
+assert.equal(api.totalCatalogSpent(), 875, 'the total cost is sourced directly from List acquisition records');
+api.renderCatalogList();
+assert.equal(document.getElementById('techoCost').textContent, 'COST · 累计花销875円', 'repaired legacy acquisitions appear in the header total immediately');
 
 assert.doesNotMatch(source, /function initRefAllocationDrag|allocation-card/, 'obsolete allocation-pool drag logic is removed');
 assert.match(source, /function initRefProjectDrag\(\)[\s\S]*?refProjectArrangeMode\?170:450/, 'ref projects support Food-style long-press sorting');

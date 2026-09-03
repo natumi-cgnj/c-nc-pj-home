@@ -50,9 +50,16 @@ test('WMO codes map to the compact homepage weather glyphs', () => {
 test('homepage splits desktop weather across the world title and clock columns', () => {
   assert.match(index, /<script src="cbi-weather\.js\?v=20260903-cbi-weather2"><\/script>/);
   assert.match(index, /body\[data-world-id="cbi"\] \.cbi-weather-strip-desktop\{display:flex\}/);
-  assert.match(index, /\.cbi-weather-strip-desktop-sacramento\{position:absolute;top:8px;right:0\}/);
-  assert.match(index, /\.cbi-weather-strip-desktop-osaka\{position:absolute;top:-41px;left:0;width:100%\}/);
-  assert.ok(index.indexOf('data-cbi-weather-strip="osaka"') < index.indexOf('<div class="page-clock"><div class="time" id="clock3"'));
+  assert.match(index, /\.cbi-weather-strip-desktop\{position:absolute;top:50%;transform:translateY\(-50%\);pointer-events:none\}/);
+  assert.match(index, /\.cbi-weather-strip-desktop-sacramento\{right:0\}/);
+  assert.match(index, /\.cbi-weather-strip-desktop-osaka\{left:calc\(100% \+ clamp\(36px,6vw,88px\)\);width:260px\}/);
+  assert.doesNotMatch(index, /\.cbi-weather-strip-desktop-(?:sacramento|osaka)\{[^}]*top:/);
+  const headerStart = index.indexOf('<div class="header" id="worldHeader"');
+  const bannerStart = index.indexOf('<div class="cg-banner"', headerStart);
+  const sacramentoStart = index.indexOf('data-cbi-weather-strip="sacramento"', headerStart);
+  const osakaStart = index.indexOf('data-cbi-weather-strip="osaka"', headerStart);
+  assert.ok(sacramentoStart > headerStart && sacramentoStart < bannerStart);
+  assert.ok(osakaStart > headerStart && osakaStart < bannerStart);
   assert.match(index, /data-cbi-weather-strip="sacramento"[^>]*aria-live="polite"><span class="cbi-weather-icon" data-cbi-weather="sacramento-icon">/);
   assert.match(index, /data-cbi-weather-strip="osaka"[^>]*>[\s\S]*?<span class="cbi-weather-place">OSAKA<\/span>/);
   assert.match(index, /CBIWeather\.setActive\(world\.id==='cbi',new Date\(\)\)/);

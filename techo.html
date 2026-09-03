@@ -12,8 +12,11 @@
 html{scrollbar-gutter:stable}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;background:#FAFAFA;color:#1a1a1a;min-height:100dvh;padding-bottom:62px}
-.top-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;padding-top:max(12px,env(safe-area-inset-top,12px));border-bottom:1px solid #eee;background:#fff;position:sticky;top:0;z-index:50}
+.top-bar{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:12px;padding:12px 20px;padding-top:max(12px,env(safe-area-inset-top,12px));border-bottom:1px solid #eee;background:#fff;position:sticky;top:0;z-index:50}
 .top-bar h1{font-size:13px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:#999}
+.top-bar>:first-child{justify-self:start}.top-bar>:last-child{justify-self:end}
+.top-title{display:flex;min-width:0;flex-direction:column;align-items:center;gap:3px}
+.techo-cost-status{color:#bbb;font-size:9px;font-weight:400;line-height:1.2;letter-spacing:1.2px;white-space:nowrap}
 .back{font-size:13px;color:#bbb;text-decoration:none}
 .top-right{display:flex;gap:8px}
 .btn-s{font-size:11px;color:#999;background:none;border:1px solid #ddd;border-radius:6px;padding:4px 10px;cursor:pointer;font-family:inherit}
@@ -61,10 +64,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .add-btn.gold{border-color:#E8B96A;color:#E8B96A}
 
 /* ── Catalog view ── */
-.fund-pool{padding:12px 20px;background:#fff;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center}
-.fund-label{font-size:10px;color:#ccc}
-.fund-amount{font-size:16px;font-weight:300;color:#C4A24C;font-variant-numeric:tabular-nums}
-.fund-amount.zero{color:#5BA66B}
 
 .catalog-row{display:flex;align-items:center;gap:12px;padding:14px 20px;background:#fff;border-bottom:1px solid #f5f5f5;cursor:pointer;transition:background .15s,box-shadow .15s}
 .catalog-row:active{background:#f9f9f9}
@@ -104,6 +103,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .project-row-progress{flex:1;max-width:120px;height:3px;background:#f0f0f0;border-radius:2px;overflow:hidden}
 .project-row-fill{height:100%;border-radius:2px;transition:width .3s}
 .project-row-pct{font-size:10px;color:#ccc;font-variant-numeric:tabular-nums;min-width:28px;text-align:right}
+.project-row-cost{font-size:10px;color:#aa9262;font-variant-numeric:tabular-nums;white-space:nowrap}
 .project-complete-star{font-size:12px;color:#E8B96A;flex-shrink:0}
 .project-row-add{display:flex;align-items:center;justify-content:center;gap:6px;padding:14px 20px;background:#fff;border-bottom:1px solid #f5f5f5;cursor:pointer;font-size:13px;color:#ccc}
 .project-row-add:active{background:#f8f8f8}
@@ -157,6 +157,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .list-item-cell .item-img{width:100%;height:100%;object-fit:contain;padding:5px;border-radius:9px;position:absolute;inset:0;background:#fff;filter:grayscale(.65);opacity:.35}
 .list-item-cell.recorded .item-img{filter:none;opacity:1}
 .list-item-cell .item-label{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.5));color:#fff;font-size:10px;font-weight:500;padding:14px 5px 4px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;z-index:1}
+.list-item-cost{position:absolute;top:4px;left:4px;padding:2px 5px;border-radius:4px;background:rgba(255,255,255,.9);color:#9B7D41;font-size:8px;line-height:1.2;z-index:2;font-variant-numeric:tabular-nums}
 .list-item-cell:not(.has-img) .item-label{background:none;color:#aaa;position:static;font-size:9px;padding:0 4px;white-space:normal}
 .item-check{position:absolute;top:4px;right:4px;width:18px;height:18px;border-radius:50%;background:rgba(232,185,106,.9);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;z-index:2}
 .item-count-badge{position:absolute;top:4px;left:4px;min-width:18px;height:18px;border-radius:9px;background:rgba(232,185,106,.9);color:#fff;font-size:9px;font-weight:600;text-align:center;line-height:18px;padding:0 4px;z-index:2}
@@ -317,7 +318,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 <div class="top-bar">
   <a class="back" href="index.html?p=4">← Home</a>
-  <h1>Techo</h1>
+  <div class="top-title"><h1>Techo</h1><div class="techo-cost-status" id="techoCost">COST · 累计花销0円</div></div>
   <div class="top-right"><button class="btn-s" onclick="openCategoryManager()">Edit</button></div>
 </div>
 
@@ -333,7 +334,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 <!-- Catalog View -->
 <div class="view" id="viewCatalog">
-  <div class="fund-pool" id="fundPool"></div>
   <div class="project-list" id="catalogList"></div>
 </div>
 
@@ -591,7 +591,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <img id="catItemImgPreview" class="img-preview" style="display:none">
   <label>Planned cost</label>
   <input type="number" id="inputCatItemCost" min="0" step="1">
-  <input type="hidden" id="catItemLocked" value="0">
   <div class="btn-row">
     <button class="btn btn-cancel" onclick="closeModal('catItemModal')">Cancel</button>
     <button class="btn btn-del" id="catItemDeleteBtn" style="display:none" onclick="deleteCatItem()">Delete</button>
@@ -696,7 +695,11 @@ function load(){
   }catch(e){}
   normalizeTechoData();
 }
-function save(){localStorage.setItem(DB_KEY,JSON.stringify(db));}
+function catalogItemSpent(item){return(Array.isArray(item&&item.records)?item.records:[]).reduce((sum,record)=>sum+Math.max(0,Number(record.cost)||0),0);}
+function catalogSpent(catalog){return(Array.isArray(catalog&&catalog.items)?catalog.items:[]).reduce((sum,item)=>sum+catalogItemSpent(item),0);}
+function totalCatalogSpent(){return(Array.isArray(db.catalogs)?db.catalogs:[]).reduce((sum,catalog)=>sum+catalogSpent(catalog),0);}
+function renderTechoCost(){const node=document.getElementById('techoCost');if(node)node.textContent='COST · 累计花销'+totalCatalogSpent().toLocaleString()+'円';}
+function save(){localStorage.setItem(DB_KEY,JSON.stringify(db));renderTechoCost();}
 function gid(){return Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,6);}
 function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 function clampCols(value){return Math.max(2,Math.min(6,parseInt(value)||3));}
@@ -706,6 +709,10 @@ function makeBlankRefItem(number){return{id:gid(),name:'Title '+number,img:'',no
 function isGenericRefItemName(name){return !String(name||'').trim()||/^Title \d+$/.test(String(name||'').trim())||/^Item \d+$/.test(String(name||'').trim());}
 function isBlankRefItem(item){return!!item&&!item.img&&!String(item.note||'').trim()&&(item.mode||'ref')==='ref'&&!item.listAssignment&&isGenericRefItemName(item.name);}
 function catalogRefMatchesItem(ref,c,item,itemIdx){return!!(ref&&ref.catalogId===c.id&&(ref.catalogItemId?ref.catalogItemId===item.id:ref.itemIdx===itemIdx));}
+function makeCatalogOwnedItem(c,item,itemIdx,record){
+  const recordStatus=record.status==='sold'?'sold':record.status==='gifted'?'gift':record.processStatus==='processed'?'done':null;
+  return{id:gid(),name:item.name||'',img:record.img||item.img||'',category:'long_term',status:recordStatus?'done':'pending',assignment:null,cost:Math.max(0,Number(record.cost)||Number(item.cost)||0),note:record.note||'',source:'catalog',catalogRef:{catalogId:c.id,catalogItemId:item.id,itemIdx,recordId:record.id},disposition:recordStatus,soldPrice:0,addedAt:Date.now()};
+}
 function normalizeTechoData(){
   let changed=false;
   if(!Array.isArray(db.refs)){db.refs=[];changed=true;}
@@ -720,6 +727,7 @@ function normalizeTechoData(){
     if(!Array.isArray(c.items)){c.items=[];changed=true;}
     c.items.forEach((item,itemIdx)=>{
       if(!item.id){item.id=gid();changed=true;}
+      if(item.locked){item.locked=false;changed=true;}
       const linked=db.items.filter(entry=>catalogRefMatchesItem(entry.catalogRef,c,item,itemIdx));
       if(!Array.isArray(item.records)){item.records=[];changed=true;}
       if(item.collected&&!item.records.length){
@@ -731,12 +739,11 @@ function normalizeTechoData(){
         if(!record.id){record.id=gid();changed=true;}
         if(!record.status){record.status='keeping';changed=true;}
         if(!record.processStatus){record.processStatus='pending';changed=true;}
-        const owned=linked.find(entry=>entry.catalogRef&&entry.catalogRef.recordId===record.id)||linked[recordIdx];
-        if(owned){
-          const nextRef={catalogId:c.id,catalogItemId:item.id,itemIdx,recordId:record.id},oldRef=owned.catalogRef||{};
-          if(oldRef.catalogId!==nextRef.catalogId||oldRef.catalogItemId!==nextRef.catalogItemId||oldRef.itemIdx!==nextRef.itemIdx||oldRef.recordId!==nextRef.recordId){owned.catalogRef=nextRef;changed=true;}
-          if(record.cost===undefined){record.cost=Number(owned.cost)||Number(item.cost)||0;changed=true;}
-        }
+        let owned=linked.find(entry=>entry.catalogRef&&entry.catalogRef.recordId===record.id)||linked[recordIdx];
+        if(!owned){owned=makeCatalogOwnedItem(c,item,itemIdx,record);db.items.push(owned);linked.push(owned);changed=true;}
+        const nextRef={catalogId:c.id,catalogItemId:item.id,itemIdx,recordId:record.id},oldRef=owned.catalogRef||{};
+        if(oldRef.catalogId!==nextRef.catalogId||oldRef.catalogItemId!==nextRef.catalogItemId||oldRef.itemIdx!==nextRef.itemIdx||oldRef.recordId!==nextRef.recordId){owned.catalogRef=nextRef;changed=true;}
+        if(record.cost===undefined){record.cost=Number(owned.cost)||Number(item.cost)||0;changed=true;}
       });
       const collected=item.records.length>0;if(item.collected!==collected){item.collected=collected;changed=true;}
     });
@@ -816,6 +823,7 @@ function navTo(id,options){
 
 /* ═══ ITEMS VIEW ═══ */
 function renderItems(){
+  renderTechoCost();
   const pending=db.items.filter(i=>i.status==='pending');
   const longTerm=pending.filter(i=>i.category==='long_term');
   const consumable=pending.filter(i=>i.category==='consumable');
@@ -979,14 +987,7 @@ function catalogStats(c){
   return{total,collected};
 }
 function renderCatalogList(){
-  // Fund pool: sum of cost for items still pending (not disposed as keep/gift)
-  const pendingCost=db.items.filter(i=>i.status==='pending'||(!i.disposition&&i.status==='active')).reduce((s,i)=>s+(i.cost||0),0);
-  const soldTotal=db.items.filter(i=>i.disposition==='sold').reduce((s,i)=>s+(i.soldPrice||0),0);
-  // Also count disposed catalog items that are in 'sold' but removed from items
-  // For now just show pending cost and sold recovery
-  const pool=pendingCost-soldTotal;
-  const fp=document.getElementById('fundPool');
-  fp.innerHTML=`<span class="fund-label">Fund Pool</span><span class="fund-amount${pool<=0?' zero':''}">¥${pool.toLocaleString()}</span>`;
+  renderTechoCost();
 
   const sorted=[...db.catalogs].sort((a,b)=>(a.order||0)-(b.order||0)),groups=new Map();
   sorted.forEach(c=>{const category=String(c.shelf||'').trim()||'Uncategorized';if(!groups.has(category))groups.set(category,[]);groups.get(category).push(c);});
@@ -1004,7 +1005,7 @@ function renderCatalogRow(c){
   const color=c.label&&c.label.color||'#E8B96A',labelName=String(c.label&&c.label.name||'').trim();
   const label=labelName?`<span class="project-label" style="background:${color}15;color:${color}">${esc(labelName)}</span>`:'';
   const icon=c.icon?`<img src="${c.icon}" alt="" style="object-position:${clampImagePosition(c.iconPositionX)}% ${clampImagePosition(c.iconPositionY)}%">`:'<span class="emoji-fb">▣</span>';
-  return`<div class="project-row" style="${labelName?'border-left:3px solid '+color:''}" data-catalog-id="${c.id}" onclick="handleCatalogRowClick('${c.id}')"><div class="project-icon-wrap">${icon}</div><div class="project-row-body"><div class="project-row-top"><span class="project-row-name">${esc(c.name)}</span>${label}${done?'<span class="project-complete-star">★</span>':''}</div><div class="project-row-meta"><span>${stats.collected} / ${stats.total}</span><div class="project-row-progress"><div class="project-row-fill" style="width:${pct}%;background:linear-gradient(90deg,${color},${color}cc)"></div></div><span class="project-row-pct">${pct}%</span></div></div></div>`;
+  return`<div class="project-row" style="${labelName?'border-left:3px solid '+color:''}" data-catalog-id="${c.id}" onclick="handleCatalogRowClick('${c.id}')"><div class="project-icon-wrap">${icon}</div><div class="project-row-body"><div class="project-row-top"><span class="project-row-name">${esc(c.name)}</span>${label}${done?'<span class="project-complete-star">★</span>':''}</div><div class="project-row-meta"><span>${stats.collected} / ${stats.total}</span><div class="project-row-progress"><div class="project-row-fill" style="width:${pct}%;background:linear-gradient(90deg,${color},${color}cc)"></div></div><span class="project-row-pct">${pct}%</span><span class="project-row-cost">¥${catalogSpent(c).toLocaleString()}</span></div></div></div>`;
 }
 function handleCatalogRowClick(id){openCatalogDetail(id);}
 function toggleCatalogCategory(name){db.shelfCollapsed[name]=!db.shelfCollapsed[name];save();renderCatalogList();}
@@ -1050,8 +1051,8 @@ function openCatalogDetail(id,options){
 }
 function renderCatItem(item,idx){
   const records=Array.isArray(item.records)?item.records:[],recorded=records.length>0,completed=isCatalogItemCompleted(item),hasCustomName=!isGenericCatalogItemName(item.name);
-  const countBadge=records.length>1?`<span class="item-count-badge">×${records.length}</span>`:'';
-  return`<div class="list-item-cell${recorded?' recorded':''}${completed?' collected':''}${item.img?' has-img':''}" data-index="${idx}" onclick="handleCatalogItemClick(${idx})">${item.img?`<img class="item-img" src="${item.img}" alt="">`:''}${hasCustomName?`<span class="item-label">${esc(item.name)}</span>`:''}${completed?'<span class="item-check">✓</span>':''}${countBadge}<button class="list-item-delete-x" aria-label="Delete item" onclick="event.stopPropagation();deleteCatalogGridItem(${idx})">×</button></div>`;
+  const spent=catalogItemSpent(item),costBadge=spent?`<span class="list-item-cost">${records.length>1?'×'+records.length+' · ':''}¥${spent.toLocaleString()}</span>`:'',countBadge=!spent&&records.length>1?`<span class="item-count-badge">×${records.length}</span>`:'';
+  return`<div class="list-item-cell${recorded?' recorded':''}${completed?' collected':''}${item.img?' has-img':''}" data-index="${idx}" onclick="handleCatalogItemClick(${idx})">${item.img?`<img class="item-img" src="${item.img}" alt="">`:''}${hasCustomName?`<span class="item-label">${esc(item.name)}</span>`:''}${costBadge}${completed?'<span class="item-check">✓</span>':''}${countBadge}<button class="list-item-delete-x" aria-label="Delete item" onclick="event.stopPropagation();deleteCatalogGridItem(${idx})">×</button></div>`;
 }
 function isGenericCatalogItemName(name){return !String(name||'').trim()||/^Title \d+$/.test(String(name||'').trim());}
 function isBlankCatalogItem(item){
@@ -1069,7 +1070,7 @@ function createCatRecord(c,item,idx,data){
   if(!Array.isArray(item.records))item.records=[];
   const record={id:gid(),date:data.date||'',note:data.note||'',img:data.img||'',status:'keeping',processStatus:'pending',cost:Math.max(0,Number(data.cost)||0)};
   item.records.push(record);item.collected=true;
-  if(!item.locked)db.items.push({id:gid(),name:item.name,img:data.img||item.img||'',category:'long_term',status:'pending',assignment:null,cost:record.cost,note:data.note||'',source:'catalog',catalogRef:{catalogId:c.id,catalogItemId:item.id,itemIdx:idx,recordId:record.id},disposition:null,soldPrice:0,addedAt:Date.now()});
+  db.items.push(makeCatalogOwnedItem(c,item,idx,record));
   return record;
 }
 function toggleCollect(idx){
@@ -1253,7 +1254,6 @@ function openAddCatItem(){
   document.getElementById('catItemModalTitle').textContent='New Item';
   document.getElementById('inputCatItemName').value='';document.getElementById('inputCatItemNote').value='';document.getElementById('inputCatItemCost').value='';
   document.getElementById('catItemImgPreview').style.display='none';
-  document.getElementById('catItemLocked').value='0';
   document.getElementById('catItemDeleteBtn').style.display='none';
   const c=db.catalogs.find(x=>x.id===curCatalogId);
   const sectionField=document.getElementById('catItemSectionField');
@@ -1346,14 +1346,9 @@ function openEditCatItem(idx){
   document.getElementById('inputCatItemCost').value=item.cost||'';
   const preview=document.getElementById('catItemImgPreview');
   if(item.img){preview.src=item.img;preview.style.display='block';}else{preview.removeAttribute('src');preview.style.display='none';}
-  document.getElementById('catItemLocked').value=item.locked?'1':'0';
   document.getElementById('catItemDeleteBtn').style.display='';
   document.getElementById('catItemSectionField').style.display='none';
   openModal('catItemModal');
-}
-function toggleCatLock(){
-  const f=document.getElementById('catItemLocked');
-  f.value=f.value==='0'?'1':'0';
 }
 function saveCatItem(){
   if(!imageReady('catItemImgPreview'))return;
@@ -1361,14 +1356,13 @@ function saveCatItem(){
   const name=document.getElementById('inputCatItemName').value.trim()||'Title '+(c.items.length+1);
   const cost=parseInt(document.getElementById('inputCatItemCost').value)||0;
   const note=document.getElementById('inputCatItemNote').value.trim();
-  const locked=document.getElementById('catItemLocked').value==='1';
   const preview=document.getElementById('catItemImgPreview');
   const img=preview.style.display!=='none'?preview.src:'';
   const wasEditing=editCatItemIdx!==null,returnToItem=wasEditing&&document.getElementById('viewCatalogItemDetail').classList.contains('active');
   if(wasEditing){
-    const item=c.items[editCatItemIdx];if(item){item.name=name;item.note=note;item.cost=cost;item.locked=locked;if(img)item.img=img;}
+    const item=c.items[editCatItemIdx];if(item){item.name=name;item.note=note;item.cost=cost;item.locked=false;if(img)item.img=img;}
   }else{
-    const newItem={id:gid(),name,img,collected:false,locked,cost,note,records:[]};
+    const newItem={id:gid(),name,img,collected:false,locked:false,cost,note,records:[]};
     if(c.sections&&c.sections.length){
       const sectionIdx=Math.max(0,parseInt(document.getElementById('inputCatItemSection').value)||0);
       let insertIdx=0;for(let i=0;i<=sectionIdx;i++)insertIdx+=parseInt(c.sections[i].count)||0;
