@@ -9,7 +9,7 @@ let source = scripts.at(-1);
 source = source.replace(/load\(\);renderItems\(\);\s*$/, '');
 source += `\n;globalThis.__testApi={
   getDb:()=>db,setDb:value=>{db=value;},
-  normalizeTechoData,openRefDetail,toggleRefItemMode,renderCatalogList,
+  normalizeTechoData,clampCols,openRefDetail,toggleRefItemMode,renderCatalogList,
   renderRefList,reorderRefProjects,openEditRef,saveRef,pickRefColor,
   getQueuedRefItems,assignRefItemToCatalog,openCatalogDetail,toggleCollect,
   moveRefItem,openEditRefItemById,saveRefItem
@@ -69,11 +69,11 @@ const fixture = {
   items: [], sections: [], sectionCollapsed: {}, shelfCollapsed: {}, refShelfCollapsed: {},
   catalogs: [{
     id: 'list1', name: 'Rollbahn 待买', shelf: '', icon: '', note: '', label: {name: '', color: '#C4A24C'},
-    sections: [{name: 'M', count: 0, cols: 3}], items: [], order: 0
+    sections: [{name: 'M', count: 0, cols: 6}], items: [], order: 0
   }],
   refs: [{
     id: 'ref1', name: 'Rollbahn 图鉴', shelf: '', icon: '', note: '', comment: '', order: 0,
-    sections: [{name: '2027', count: 2, cols: 3}],
+    sections: [{name: '2027', count: 2, cols: 6}],
     items: [
       {id: 'ri1', name: 'Loft M', img: '', note: '', mode: 'ref', listAssignment: null},
       {id: 'ri2', name: '干支 M', img: '', note: '', mode: 'ref', listAssignment: null}
@@ -83,6 +83,10 @@ const fixture = {
 
 api.setDb(structuredClone(fixture));
 api.normalizeTechoData();
+assert.equal(api.clampCols(6), 6, 'six columns are accepted');
+assert.equal(api.clampCols(7), 6, 'section columns still have a safe upper bound');
+assert.equal(api.getDb().refs[0].sections[0].cols, 6, 'normalization preserves a saved six-column reference section');
+assert.equal(api.getDb().catalogs[0].sections[0].cols, 6, 'normalization preserves a saved six-column List section');
 assert.equal(api.getDb().refs[0].iconPositionX, 50, 'legacy ref covers default to centered X position');
 assert.equal(api.getDb().refs[0].iconPositionY, 50, 'legacy ref covers default to centered Y position');
 assert.deepEqual(JSON.parse(JSON.stringify(api.getDb().refs[0].label)), {name: '', color: '#C4A24C'}, 'legacy refs gain a default project accent');
@@ -96,6 +100,7 @@ assert.match(document.getElementById('refList').innerHTML, /border-left:3px soli
 assert.match(document.getElementById('refList').innerHTML, /class="ref-project-label"[^>]*>2027<\/span>/, 'ref list renders the custom project label');
 api.openRefDetail('ref1');
 assert.match(document.getElementById('refDetailGrid').innerHTML, /2027/, 'ref renders section heading');
+assert.match(document.getElementById('refDetailGrid').innerHTML, /grid-template-columns:repeat\(6,1fr\)/, 'ref renders a six-column section grid');
 assert.match(document.getElementById('refDetailGrid').innerHTML, /class="section-divider"/, 'ref reuses the Food section divider layout');
 assert.equal((document.getElementById('refDetailGrid').innerHTML.match(/class="ref-item-cell collected/g) || []).length, 2, 'ref renders every item as an always-bright Food-style cell');
 assert.doesNotMatch(document.getElementById('refDetailGrid').innerHTML, /ref-mode-badge/, 'ref and List modes stay in the item editor instead of changing the grid format');
@@ -123,6 +128,7 @@ assert.equal(state.refs[0].items[0].listAssignment.catalogItemId, state.catalogs
 assert.equal(state.catalogs[0].sections[0].count, 1, 'allocated item joins the last List section');
 
 api.openCatalogDetail('list1');
+assert.match(document.getElementById('catalogDetailGrid').innerHTML, /grid-template-columns:repeat\(6,1fr\)/, 'List renders a six-column section grid');
 api.toggleCollect(0);
 state = api.getDb();
 assert.equal(state.catalogs[0].items[0].collected, true, 'List item checks in normally');
@@ -174,6 +180,8 @@ assert.match(document.getElementById('refList').innerHTML, /data-ref-id="ref2"/,
 assert.match(html, /id="refIconPosFrame"/, 'ref editor uses the Food-style draggable cover frame');
 assert.match(source, /r\.iconPositionX=iconPositionX;r\.iconPositionY=iconPositionY/, 'ref editor persists cover position');
 assert.match(html, /id="inputRefLabel"[\s\S]*?id="refColorPicker"/, 'ref editor exposes the label and color controls directly');
+assert.equal((html.match(/<option value="6">6 columns<\/option>/g) || []).length, 2, 'both quick section editors offer six columns');
+assert.equal((source.match(/\[2,3,4,5,6\]\.map/g) || []).length, 2, 'both full project editors offer 6col');
 assert.match(source, /r\.label=label/, 'ref editor persists its custom label accent');
 assert.match(html, /id="refItemModeSelect"[\s\S]*?>Ref<\/button>[\s\S]*?>List<\/button>/, 'Food-style item editor preserves Ref and List modes');
 console.log('techo ref flow: ok');

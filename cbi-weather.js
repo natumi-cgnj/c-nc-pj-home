@@ -121,9 +121,18 @@
     const sacSource = sacramento && sacramento.sourceKey ? sacramento.sourceKey.replace('T', ' ') + ':00' : '等待历史天气';
     const stale = !sacramento || sacramento.sourceKey !== slot.key || !osaka || Date.now() - Number(osaka.fetchedAt || 0) > OSAKA_CACHE_MS;
     global.document.querySelectorAll('.cbi-weather-strip').forEach(function (strip) {
+      const stripKind = strip.dataset.cbiWeatherStrip || 'combined';
       strip.dataset.stale = stale ? 'true' : 'false';
-      strip.title = 'Sacramento：' + sacSource + '（2006 历史参考） · Osaka：当前实况 · Open-Meteo';
-      strip.setAttribute('aria-label', '萨克拉门托 ' + (sacramento ? formatTemperature(sacramento.temperature) : '天气读取中') + '，大阪 ' + (osaka ? formatTemperature(osaka.temperature) : '天气读取中'));
+      if (stripKind === 'sacramento') {
+        strip.title = 'Sacramento：' + sacSource + '（2006 历史参考） · Open-Meteo';
+        strip.setAttribute('aria-label', '萨克拉门托 ' + (sacramento ? formatTemperature(sacramento.temperature) : '天气读取中'));
+      } else if (stripKind === 'osaka') {
+        strip.title = 'Osaka：当前实况 · Open-Meteo';
+        strip.setAttribute('aria-label', '大阪 ' + (osaka ? formatTemperature(osaka.temperature) : '天气读取中'));
+      } else {
+        strip.title = 'Sacramento：' + sacSource + '（2006 历史参考） · Osaka：当前实况 · Open-Meteo';
+        strip.setAttribute('aria-label', '萨克拉门托 ' + (sacramento ? formatTemperature(sacramento.temperature) : '天气读取中') + '，大阪 ' + (osaka ? formatTemperature(osaka.temperature) : '天气读取中'));
+      }
     });
   }
 

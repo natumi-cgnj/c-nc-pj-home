@@ -23,7 +23,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .page-dots{position:fixed;bottom:env(safe-area-inset-bottom,12px);left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:60;padding:4px}
 .page-dot{width:6px;height:6px;border-radius:50%;background:rgba(0,0,0,0.12);transition:all 0.25s}
 .page-dot.active{background:rgba(0,0,0,0.35);transform:scale(1.15)}
-.header{text-align:center;margin-bottom:28px;cursor:pointer;border-radius:8px;padding:3px 10px;transition:background .15s}
+.header{position:relative;text-align:center;margin-bottom:28px;cursor:pointer;border-radius:8px;padding:3px 10px;transition:background .15s}
 .header:hover{background:rgba(0,0,0,.02)}
 .header:focus-visible{outline:1px solid #ccc;outline-offset:3px}
 .header h1{font-size:13px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:#999;margin-bottom:4px}
@@ -361,7 +361,10 @@ body[data-world-id="cbi"] .cbi-weather-strip-mobile{display:flex;margin-top:9px}
   .entry-label{font-size:11px}
   #pageDaily .page-clock,#pageEvents .page-clock,#pageCollect .page-clock,#pageRewards .page-clock{display:none}
   .cbi-weather-strip-mobile{display:none!important}
-  .cbi-weather-strip-desktop{position:absolute;top:0;left:0;width:100%}
+  .cbi-weather-strip-desktop-sacramento{position:absolute;top:8px;right:0}
+  .cbi-weather-strip-desktop-sacramento .cbi-weather-icon{margin-left:0}
+  .cbi-weather-strip-desktop-sacramento .cbi-weather-temp{text-align:right}
+  .cbi-weather-strip-desktop-osaka{position:absolute;top:-41px;left:0;width:100%}
   body[data-world-id="cbi"] .cbi-weather-strip-desktop{display:flex}
   .memo-wrap{max-width:260px}
   .page-dots{display:none}
@@ -603,8 +606,8 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-home-trigger{display:
 <body>
 <div class="home-pager" id="homePager">
 <div class="home-page" id="pageMemo">
-<div class="cbi-weather-strip cbi-weather-strip-desktop" aria-live="polite">
-<span class="cbi-weather-place">SACRAMENTO</span><span class="cbi-weather-icon" data-cbi-weather="sacramento-icon">·</span><span class="cbi-weather-temp" data-cbi-weather="sacramento-temp">—°</span><span class="cbi-weather-divider">｜</span><span class="cbi-weather-place">OSAKA</span><span class="cbi-weather-icon" data-cbi-weather="osaka-icon">·</span><span class="cbi-weather-temp" data-cbi-weather="osaka-temp">—°</span>
+<div class="cbi-weather-strip cbi-weather-strip-desktop cbi-weather-strip-desktop-osaka" data-cbi-weather-strip="osaka" aria-live="polite">
+<span class="cbi-weather-place">OSAKA</span><span class="cbi-weather-icon" data-cbi-weather="osaka-icon">·</span><span class="cbi-weather-temp" data-cbi-weather="osaka-temp">—°</span>
 </div>
 <div class="page-content">
 <div class="page-clock"><div class="time" id="clock3"></div><div class="date" id="date3"></div></div>
@@ -620,7 +623,7 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-home-trigger{display:
 </div>
 </div>
 <div class="home-page" id="pageMain">
-<div class="header" id="worldHeader" role="button" tabindex="0" aria-label="切换世界" onclick="openWorldSwitcher()"><h1 id="worldHeaderTitle">Liminal Space</h1><p id="worldHeaderSubtitle">夹缝空間</p><div class="cbi-weather-strip cbi-weather-strip-mobile" aria-live="polite"><span class="cbi-weather-place">SACRAMENTO</span><span class="cbi-weather-icon" data-cbi-weather="sacramento-icon">·</span><span class="cbi-weather-temp" data-cbi-weather="sacramento-temp">—°</span><span class="cbi-weather-divider">｜</span><span class="cbi-weather-place">OSAKA</span><span class="cbi-weather-icon" data-cbi-weather="osaka-icon">·</span><span class="cbi-weather-temp" data-cbi-weather="osaka-temp">—°</span></div></div>
+<div class="header" id="worldHeader" role="button" tabindex="0" aria-label="切换世界" onclick="openWorldSwitcher()"><h1 id="worldHeaderTitle">Liminal Space</h1><p id="worldHeaderSubtitle">夹缝空間</p><div class="cbi-weather-strip cbi-weather-strip-mobile" data-cbi-weather-strip="combined" aria-live="polite"><span class="cbi-weather-place">SACRAMENTO</span><span class="cbi-weather-icon" data-cbi-weather="sacramento-icon">·</span><span class="cbi-weather-temp" data-cbi-weather="sacramento-temp">—°</span><span class="cbi-weather-divider">｜</span><span class="cbi-weather-place">OSAKA</span><span class="cbi-weather-icon" data-cbi-weather="osaka-icon">·</span><span class="cbi-weather-temp" data-cbi-weather="osaka-temp">—°</span></div><div class="cbi-weather-strip cbi-weather-strip-desktop cbi-weather-strip-desktop-sacramento" data-cbi-weather-strip="sacramento" aria-live="polite"><span class="cbi-weather-icon" data-cbi-weather="sacramento-icon">·</span><span class="cbi-weather-temp" data-cbi-weather="sacramento-temp">—°</span></div></div>
 <div class="cg-banner" id="cgBanner" onclick="openCgFull()"><img id="cgImg" src="" alt=""><button class="cg-close" type="button" onclick="closeCgBanner(event)">✕</button><a class="cg-time-tag" id="cgTimeTag" href="schedule.html" onclick="event.stopPropagation()"></a></div>
 <div class="cg-fullscreen" id="cgFull" onclick="closeCgFull()"><img id="cgFullImg" src="" alt=""><button class="cg-manage-full" type="button" onclick="openCGLibrary(event)">Scenes</button></div>
 <div class="cg-library-overlay" id="cgLibraryOverlay" onclick="closeCGLibrary(event)">
@@ -957,7 +960,7 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-home-trigger{display:
 <script src="world-context.js?v=20260824-cbi-work1"></script>
 <script src="cloud-sync.js?v=20260824-cbi-work1"></script>
 <script src="character-runtime.js?v=20260902-cbi-presence1"></script>
-<script src="cbi-weather.js?v=20260903-cbi-weather1"></script>
+<script src="cbi-weather.js?v=20260903-cbi-weather2"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 

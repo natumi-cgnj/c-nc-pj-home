@@ -47,12 +47,15 @@ test('WMO codes map to the compact homepage weather glyphs', () => {
   assert.equal(weather.weatherGlyph(999), '·');
 });
 
-test('homepage mounts one responsive CBI-only weather line above the desktop clock', () => {
-  assert.match(index, /<script src="cbi-weather\.js\?v=20260903-cbi-weather1"><\/script>/);
+test('homepage splits desktop weather across the world title and clock columns', () => {
+  assert.match(index, /<script src="cbi-weather\.js\?v=20260903-cbi-weather2"><\/script>/);
   assert.match(index, /body\[data-world-id="cbi"\] \.cbi-weather-strip-desktop\{display:flex\}/);
-  assert.match(index, /\.cbi-weather-strip-desktop\{position:absolute;top:0;left:0;width:100%\}/);
-  assert.ok(index.indexOf('cbi-weather-strip cbi-weather-strip-desktop') < index.indexOf('<div class="page-clock"><div class="time" id="clock3"'));
+  assert.match(index, /\.cbi-weather-strip-desktop-sacramento\{position:absolute;top:8px;right:0\}/);
+  assert.match(index, /\.cbi-weather-strip-desktop-osaka\{position:absolute;top:-41px;left:0;width:100%\}/);
+  assert.ok(index.indexOf('data-cbi-weather-strip="osaka"') < index.indexOf('<div class="page-clock"><div class="time" id="clock3"'));
+  assert.match(index, /data-cbi-weather-strip="sacramento"[^>]*aria-live="polite"><span class="cbi-weather-icon" data-cbi-weather="sacramento-icon">/);
+  assert.match(index, /data-cbi-weather-strip="osaka"[^>]*>[\s\S]*?<span class="cbi-weather-place">OSAKA<\/span>/);
   assert.match(index, /CBIWeather\.setActive\(world\.id==='cbi',new Date\(\)\)/);
   assert.match(index, /CBIWeather\.tick\(now\)/);
-  assert.match(index, /SACRAMENTO[\s\S]*data-cbi-weather="sacramento-temp"[\s\S]*｜[\s\S]*OSAKA[\s\S]*data-cbi-weather="osaka-temp"/);
+  assert.match(index, /data-cbi-weather-strip="combined"[\s\S]*SACRAMENTO[\s\S]*｜[\s\S]*OSAKA/);
 });

@@ -398,7 +398,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <input type="number" id="inputQuickRefSectionCount" min="0" max="999">
   <label>Columns</label>
   <select id="inputQuickRefSectionCols">
-    <option value="2">2 columns</option><option value="3">3 columns</option><option value="4">4 columns</option><option value="5">5 columns</option>
+    <option value="2">2 columns</option><option value="3">3 columns</option><option value="4">4 columns</option><option value="5">5 columns</option><option value="6">6 columns</option>
   </select>
   <div class="btn-row">
     <button class="btn btn-cancel" onclick="closeModal('refSectionQuickModal')">Cancel</button>
@@ -526,7 +526,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <input type="number" id="inputQuickCatSectionCount" min="0" max="999">
   <label>Columns</label>
   <select id="inputQuickCatSectionCols">
-    <option value="2">2 columns</option><option value="3">3 columns</option><option value="4">4 columns</option><option value="5">5 columns</option>
+    <option value="2">2 columns</option><option value="3">3 columns</option><option value="4">4 columns</option><option value="5">5 columns</option><option value="6">6 columns</option>
   </select>
   <div class="btn-row">
     <button class="btn btn-cancel" onclick="closeModal('catSectionQuickModal')">Cancel</button>
@@ -577,7 +577,7 @@ function load(){
 function save(){localStorage.setItem(DB_KEY,JSON.stringify(db));}
 function gid(){return Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,6);}
 function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
-function clampCols(value){return Math.max(2,Math.min(5,parseInt(value)||3));}
+function clampCols(value){return Math.max(2,Math.min(6,parseInt(value)||3));}
 function clampImagePosition(value){const n=Number(value);return Number.isFinite(n)?Math.max(0,Math.min(100,n)):50;}
 function normalizeRefColor(value){return /^#[0-9a-f]{6}$/i.test(String(value||''))?String(value):'#C4A24C';}
 function makeBlankRefItem(number){return{id:gid(),name:'Title '+number,img:'',note:'',mode:'ref',listAssignment:null};}
@@ -588,6 +588,8 @@ function normalizeTechoData(){
   if(!Array.isArray(db.refs)){db.refs=[];changed=true;}
   if(!Array.isArray(db.catalogs)){db.catalogs=[];changed=true;}
   db.catalogs.forEach(c=>{
+    if(!Array.isArray(c.sections)){c.sections=[];changed=true;}
+    c.sections.forEach(sec=>{const cols=clampCols(sec.cols);if(sec.cols!==cols){sec.cols=cols;changed=true;}if(!Number.isFinite(parseInt(sec.count))){sec.count=0;changed=true;}});
     if(!Array.isArray(c.items)){c.items=[];changed=true;}
     c.items.forEach(item=>{if(!item.id){item.id=gid();changed=true;}});
   });
@@ -890,7 +892,7 @@ function openCatalogDetail(id){
   if(c.sections&&c.sections.length>1){
     let idx=0;
     c.sections.forEach((sec,sectionIdx)=>{
-      const cols=Math.max(2,Math.min(5,sec.cols||3));
+      const cols=clampCols(sec.cols);
       html+=`<div class="cat-section-div"><div class="section-line"></div><span class="section-label section-label-editable" title="Double-click to edit section" ondblclick="event.stopPropagation();openCatalogSectionQuick(${sectionIdx})">${esc(sec.name)}</span><div class="section-line"></div></div>`;
       html+=`<div class="catalog-grid" style="grid-template-columns:repeat(${cols},1fr)">`;
       for(let i=0;i<sec.count;i++){
@@ -905,7 +907,7 @@ function openCatalogDetail(id){
       html+=`</div>`;
     }
   }else{
-    const cols=c.sections&&c.sections[0]?Math.max(2,Math.min(5,c.sections[0].cols||3)):3;
+    const cols=c.sections&&c.sections[0]?clampCols(c.sections[0].cols):3;
     html+=`<div class="catalog-grid" style="grid-template-columns:repeat(${cols},1fr)">${c.items.map((item,idx)=>renderCatItem(item,idx)).join('')}</div>`;
   }
   document.getElementById('catalogDetailGrid').innerHTML=html;
@@ -943,14 +945,14 @@ function openCatalogSectionQuick(idx){
   editCatSectionIdx=idx;
   document.getElementById('inputQuickCatSectionName').value=sec.name||'';
   document.getElementById('inputQuickCatSectionCount').value=parseInt(sec.count)||0;
-  document.getElementById('inputQuickCatSectionCols').value=String(Math.max(2,Math.min(5,parseInt(sec.cols)||3)));
+  document.getElementById('inputQuickCatSectionCols').value=String(clampCols(sec.cols));
   openModal('catSectionQuickModal');
 }
 function saveCatalogSectionQuick(){
   const c=db.catalogs.find(x=>x.id===curCatalogId);const sec=c&&c.sections&&c.sections[editCatSectionIdx];if(!sec)return;
   const name=document.getElementById('inputQuickCatSectionName').value.trim();if(!name){toast('Name required');return;}
   const nextCount=Math.max(0,Math.min(999,parseInt(document.getElementById('inputQuickCatSectionCount').value)||0));
-  const nextCols=Math.max(2,Math.min(5,parseInt(document.getElementById('inputQuickCatSectionCols').value)||3));
+  const nextCols=clampCols(document.getElementById('inputQuickCatSectionCols').value);
   const oldCount=parseInt(sec.count)||0;
   let start=0;for(let i=0;i<editCatSectionIdx;i++)start+=parseInt(c.sections[i].count)||0;
   if(nextCount<oldCount){
@@ -990,7 +992,7 @@ function openEditCatalog(){
   renderCatSections();renderCatColors();openModal('catalogModal');
 }
 function renderCatSections(){
-  document.getElementById('catSectionList').innerHTML=_catSections.map((s,i)=>`<div class="section-row"><input type="text" value="${esc(s.name)}" onchange="_catSections[${i}].name=this.value"><input type="number" value="${s.count||0}" min="0" max="999" style="width:50px" onchange="_catSections[${i}].count=parseInt(this.value)||0"><select style="width:42px;padding:4px;border:1px solid #e8e8e8;border-radius:6px;font-size:11px" onchange="_catSections[${i}].cols=parseInt(this.value)||3">${[2,3,4,5].map(n=>`<option value="${n}"${(s.cols||3)===n?' selected':''}>${n}col</option>`).join('')}</select><button class="del-sec" onclick="_catSections.splice(${i},1);renderCatSections()">×</button></div>`).join('');
+  document.getElementById('catSectionList').innerHTML=_catSections.map((s,i)=>`<div class="section-row"><input type="text" value="${esc(s.name)}" onchange="_catSections[${i}].name=this.value"><input type="number" value="${s.count||0}" min="0" max="999" style="width:50px" onchange="_catSections[${i}].count=parseInt(this.value)||0"><select style="width:42px;padding:4px;border:1px solid #e8e8e8;border-radius:6px;font-size:11px" onchange="_catSections[${i}].cols=parseInt(this.value)||3">${[2,3,4,5,6].map(n=>`<option value="${n}"${clampCols(s.cols)===n?' selected':''}>${n}col</option>`).join('')}</select><button class="del-sec" onclick="_catSections.splice(${i},1);renderCatSections()">×</button></div>`).join('');
 }
 function addCatSectionRow(){_catSections.push({name:'',count:0,cols:3});renderCatSections();}
 function renderCatColors(){document.getElementById('catColorPicker').innerHTML=COLORS.map(c=>`<div class="color-swatch${c===_catLabelColor?' active':''}" style="background:${c}" onclick="_catLabelColor='${c}';renderCatColors()"></div>`).join('');}
@@ -1002,7 +1004,7 @@ function saveCatalog(){
   const labelName=document.getElementById('inputCatLabel').value.trim();
   const preview=document.getElementById('catIconPreview');
   const icon=preview.style.display!=='none'?preview.src:'';
-  const sections=_catSections.filter(s=>s.name);
+  const sections=_catSections.filter(s=>s.name).map(sec=>({...sec,count:Math.max(0,parseInt(sec.count)||0),cols:clampCols(sec.cols)}));
   const label={name:labelName,color:_catLabelColor};
   if(editCatalogId){
     const c=db.catalogs.find(x=>x.id===editCatalogId);
@@ -1400,7 +1402,7 @@ function renderRefColors(){
 }
 function pickRefColor(color){refLabelColor=normalizeRefColor(color);renderRefColors();}
 function renderRefSections(){
-  document.getElementById('refSectionList').innerHTML=_refSections.map((s,i)=>`<div class="section-row"><input type="text" value="${esc(s.name||'')}" placeholder="Section" onchange="_refSections[${i}].name=this.value"><input type="number" value="${Math.max(0,parseInt(s.count)||0)}" min="0" max="999" aria-label="Item count" onchange="_refSections[${i}].count=parseInt(this.value)||0"><select aria-label="Columns" onchange="_refSections[${i}].cols=parseInt(this.value)||3">${[2,3,4,5].map(n=>`<option value="${n}"${clampCols(s.cols)===n?' selected':''}>${n}col</option>`).join('')}</select><button type="button" class="del-sec" aria-label="Delete section" onclick="_refSections.splice(${i},1);renderRefSections()">×</button></div>`).join('');
+  document.getElementById('refSectionList').innerHTML=_refSections.map((s,i)=>`<div class="section-row"><input type="text" value="${esc(s.name||'')}" placeholder="Section" onchange="_refSections[${i}].name=this.value"><input type="number" value="${Math.max(0,parseInt(s.count)||0)}" min="0" max="999" aria-label="Item count" onchange="_refSections[${i}].count=parseInt(this.value)||0"><select aria-label="Columns" onchange="_refSections[${i}].cols=parseInt(this.value)||3">${[2,3,4,5,6].map(n=>`<option value="${n}"${clampCols(s.cols)===n?' selected':''}>${n}col</option>`).join('')}</select><button type="button" class="del-sec" aria-label="Delete section" onclick="_refSections.splice(${i},1);renderRefSections()">×</button></div>`).join('');
 }
 function addRefSectionRow(){_refSections.push({name:'',count:0,cols:3});renderRefSections();}
 function saveRef(){
