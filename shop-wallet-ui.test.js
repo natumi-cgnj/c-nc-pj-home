@@ -25,12 +25,13 @@ test('shop keeps the item-grid model inside a three-tier Reward House', () => {
   assert.match(cbiShop, /长期计划/);
   assert.match(cbiShop, /class="shop-tier"/);
   assert.match(cbiShop, /id="inputProjectTier"/);
+  assert.match(cbiShop, /class="tier-picker"/);
   assert.match(cbiShop, /\? category : 'daily'/);
   assert.doesNotMatch(cbiShop, /project-category-header/);
   assert.match(cbiShop, /shop-inline-detail/);
   assert.match(cbiShop, /section-grid/);
   assert.match(cbiShop, /projectIconInput/);
-  assert.match(cbiShop, /项目细分/);
+  assert.match(cbiShop, />栏目</);
   assert.doesNotMatch(projectEditor, /适合谁/);
   assert.match(itemEditor, /适合谁/);
   assert.match(cbiShop, /PERSON_PRESETS/);
@@ -41,10 +42,20 @@ test('shop keeps the item-grid model inside a three-tier Reward House', () => {
   assert.match(cbiShop, /projectCollapseKey/);
   assert.match(cbiShop, /saveCollapsed\(\)/);
   assert.match(cbiShop, /add-item/);
+  assert.match(cbiShop, /function openItem\(projectId, itemId\)/);
+  assert.match(cbiShop, /if \(!itemHasContent\(item\)\) \{ openItemForm\(projectId, itemId\); return; \}/);
+  assert.match(cbiShop, /function isPlaceholderItemName\(name\)/);
+  assert.match(cbiShop, /name: '', price: 0, order: number - 1/);
+  assert.match(cbiShop, /name: document\.getElementById\('inputItemName'\)\.value\.trim\(\), note:/);
+  assert.match(cbiShop, /\(name \? '<span class="item-label">'/);
+  assert.doesNotMatch(cbiShop, /item\.name \|\| \('品目'/);
+  assert.doesNotMatch(cbiShop, /inputItemName'\)\.value\.trim\(\) \|\| \('品目'/);
+  assert.doesNotMatch(cbiShop, /品目已更新|品目已添加|项目已更新|项目已添加|品目已点亮/);
+  assert.doesNotMatch(cbiShop, /当前商城资金|点亮后从娱乐差额中结算|颜色、尺寸或想买它的理由/);
   assert.match(cbiShop, /source:\s*'entertainment_balance'/);
   assert.doesNotMatch(cbiShop, /currentProjectId/);
   assert.doesNotMatch(cbiShop, /work\.salary\s*[-+]=/);
-  assert.match(shop, /cbi-shop\.js\?v=20260903-item-owners1/);
+  assert.match(shop, /cbi-shop\.js\?v=20260903-quiet-editor1/);
 });
 
 test('reality wallet merges allowance and wishes into reimbursement', () => {
