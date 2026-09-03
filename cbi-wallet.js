@@ -3,6 +3,7 @@
 
   var NAMES = { jane: 'Jane', cho: 'Cho', rigsby: 'Rigsby', lisbon: 'Lisbon', vanpelt: 'Van Pelt' };
   var COLORS = { jane: '#87977F', cho: '#68747A', rigsby: '#7E9AB0', lisbon: '#A06F62', vanpelt: '#B48A9B' };
+  var ALLOCATION_FOLD_KEY = 'cbi_allocation_history_open_v1';
   var WISH_FOLD_KEY = 'cbi_wish_desk_open_v1';
   var PURCHASE_HISTORY_FOLD_KEY = 'cbi_purchase_history_open_v1';
   var swipeStart = null;
@@ -75,7 +76,7 @@
       'body[data-cbi-wallet="1"] .char-fund-card:last-child{border-right:0!important}',
       'body[data-cbi-wallet="1"] .char-fund-name{font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
       'body[data-cbi-wallet="1"] .char-fund-amount{font-size:13px}',
-      'body[data-cbi-wallet="1"] .transfer-btn{margin:0;width:100%;padding:16px;border:0;border-bottom:1px solid #eeeeec;border-radius:0;background:#fff;color:#aaa}',
+      'body[data-cbi-wallet="1"] .transfer-btn{margin:0;width:100%;padding:15px 20px;border:0;border-bottom:1px solid #eeeeec;border-radius:0;background:#fff;color:#aaa}',
       'body[data-cbi-wallet="1"] .period-banner{margin:0;padding:18px 44px 18px 20px;text-align:left;border:0;border-bottom:1px solid #eeeeec;border-radius:0;box-shadow:none}',
       'body[data-cbi-wallet="1"] #periodBanner .period-name{color:#B08A5A}',
       'body[data-cbi-wallet="1"] .outing-card{margin:0;padding:16px 20px;border:0;border-bottom:1px solid #eeeeec;border-radius:0;box-shadow:none;background:#fff}',
@@ -87,11 +88,15 @@
       '.cbi-wish-source{font-size:9px;color:#b09a6c;letter-spacing:.5px;margin-bottom:4px}',
       '.cbi-wish-amount{font-size:17px;font-weight:350;color:#8a7448;white-space:nowrap}',
       '.cbi-wish-detail{font-size:11px;color:#999;line-height:1.65;margin-top:5px}',
-      '.cbi-wish-desk{margin:12px 0 0;border:0;border-top:1px solid #eeeeec;border-bottom:1px solid #eeeeec;background:#fff}',
+      '.cbi-wish-desk{margin:0;border:0;border-bottom:1px solid #eeeeec;background:#fff}',
       '.cbi-wish-desk>summary{display:block;position:relative;list-style:none;cursor:pointer;user-select:none}',
       '.cbi-wish-desk>summary::-webkit-details-marker{display:none}',
       '.cbi-wish-desk>summary:after{content:"▼";position:absolute;right:20px;top:50%;transform:translateY(-50%);font-size:7px;color:#c8c8c4;transition:transform .18s}',
       '.cbi-wish-desk:not([open])>summary:after{transform:translateY(-50%) rotate(-90deg)}',
+      '.cbi-allocation-fold{margin:0;background:#fafafa;border-bottom:1px solid #eeeeec}',
+      '.cbi-allocation-fold>summary{border-top:0!important}',
+      '.cbi-allocation-content{background:#fff}',
+      '.cbi-allocation-log{padding:0}',
       '.cbi-purchase-history{margin:0;background:#fafafa;border-bottom:1px solid #eeeeec}',
       '.cbi-purchase-history>summary{border-top:0!important}',
       '.cbi-reply{width:100%;margin-top:11px;padding:9px 0;border:0;border-bottom:1px solid #ddd;border-radius:0;background:transparent;font:11px/1.4 inherit;color:#555;outline:none}',
@@ -107,7 +112,6 @@
       '.cbi-day-note{text-align:center;color:#c6b894;font-size:9px;line-height:1.6;padding:7px 18px 2px}',
       '.cbi-log-actions{display:flex;border-bottom:1px solid #eeeeec;background:#fff}',
       '.cbi-log-actions button{width:100%;padding:15px 20px;border:0;background:#fff;color:#aaa;font:inherit;font-size:10px;letter-spacing:.3px;cursor:pointer}',
-      '.cbi-reimbursement-divider{height:12px;background:#fafafa;border-top:1px solid #f0f0ee;border-bottom:1px solid #f0f0ee}',
       '@media(max-width:680px){body[data-cbi-wallet="1"] .account-summary{padding:19px 13px 15px}body[data-cbi-wallet="1"] .category-card{padding:13px 12px 12px}body[data-cbi-wallet="1"] .cat-stats{font-size:9px}body[data-cbi-wallet="1"] .hist-row{padding:11px 12px;gap:5px}body[data-cbi-wallet="1"] .hist-note{min-width:0}}',
       '@media(min-width:720px){body[data-cbi-wallet="1"] .view{max-width:none}.cbi-fund-note{max-width:720px}}'
     ].join('');
@@ -136,6 +140,19 @@
     document.title = 'Reality Wallet · CBI';
   }
 
+  function renderAllocationHistory(cbi) {
+    var logs = cbi.work.caseFund.logs.filter(function (entry) { return entry.type === 'allocation'; }).slice().reverse();
+    var count = document.getElementById('allocationHistoryCount');
+    if (count) count.textContent = logs.length ? logs.length + '笔' : '';
+    var target = document.getElementById('treasuryLog');
+    if (!target) return;
+    target.innerHTML = logs.length ? logs.map(function (entry) {
+      var characterId = entry.characterId;
+      var color = COLORS[characterId] || '#aaa';
+      return '<div class="outing-card" style="border-left:3px solid ' + color + '"><div class="outing-char" style="color:' + color + '">' + esc(NAMES[characterId] || 'CBI') + '</div><div class="outing-activity">' + esc(entry.content) + '</div><div class="outing-cost">' + esc(entry.date) + '</div></div>';
+    }).join('') : '<div class="cbi-log-empty" style="padding:22px">还没有划拨记录</div>';
+  }
+
   function renderTreasury() {
     var cbi = load();
     var wallet = walletDb();
@@ -152,8 +169,8 @@
     }).join('');
     var transfer = document.querySelector('#viewTreasury .transfer-btn');
     transfer.style.display = '';
-    transfer.textContent = '划拨自由额度';
-    document.getElementById('treasuryLog').innerHTML = '<div class="cbi-reimbursement-divider"></div>';
+    transfer.textContent = '＋ 划拨／收回';
+    renderAllocationHistory(cbi);
     renderWishes();
   }
 
@@ -342,9 +359,30 @@
     injectStyles();
     document.title = 'Reality Wallet · CBI';
     var treasuryView = document.getElementById('viewTreasury');
+    var charFunds = document.getElementById('charFunds');
+    var transferButton = treasuryView && treasuryView.querySelector('.transfer-btn');
+    var treasuryLog = document.getElementById('treasuryLog');
     var wishBanner = document.getElementById('periodBanner');
     var wishCards = document.getElementById('outingCards');
     if (treasuryView && wishBanner && wishCards) {
+      if (charFunds && transferButton && treasuryLog) {
+        var allocationFold = document.createElement('details');
+        allocationFold.className = 'ledger-fold cbi-allocation-fold';
+        allocationFold.id = 'allocationHistoryFold';
+        allocationFold.open = savedFoldOpen(ALLOCATION_FOLD_KEY);
+        var allocationSummary = document.createElement('summary');
+        allocationSummary.innerHTML = '划拨自由额度 <span class="ledger-fold-count" id="allocationHistoryCount"></span>';
+        var allocationContent = document.createElement('div');
+        allocationContent.className = 'cbi-allocation-content';
+        treasuryLog.className = 'cbi-allocation-log';
+        allocationContent.appendChild(transferButton);
+        allocationContent.appendChild(treasuryLog);
+        allocationFold.appendChild(allocationSummary);
+        allocationFold.appendChild(allocationContent);
+        rememberFold(allocationFold, ALLOCATION_FOLD_KEY);
+        treasuryView.appendChild(allocationFold);
+      }
+
       var wishDesk = document.createElement('details');
       wishDesk.className = 'cbi-wish-desk';
       wishDesk.id = 'wishDesk';

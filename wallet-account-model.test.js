@@ -109,6 +109,10 @@ test('negative allocation reclaims personal allowance without going below zero',
   assert.equal(result.allocation.amount, -60);
   assert.equal(result.clamped, true);
   assert.equal(result.db.work.caseFund.charFunds.jane, 0);
+  assert.equal(result.db.work.caseFund.logs.length, 2);
+  assert.equal(result.db.work.caseFund.logs[0].type, 'allocation');
+  assert.equal(result.db.work.caseFund.logs[0].characterId, 'jane');
+  assert.equal(result.db.work.caseFund.logs[1].content, '收回自由额度 ¥60');
 });
 
 test('wallet page exposes split pools, full history and pending expenses', () => {

@@ -7,15 +7,24 @@ const cbiShop = fs.readFileSync('cbi-shop.js', 'utf8');
 const cbiWallet = fs.readFileSync('cbi-wallet.js', 'utf8');
 const dynamics = fs.readFileSync('dynamics.html', 'utf8');
 const index = fs.readFileSync('index.html', 'utf8');
+const shop = fs.readFileSync('shop.html', 'utf8');
 const wallet = fs.readFileSync('wallet.html', 'utf8');
 
-test('shop reuses the Food project, section and item-grid model', () => {
+test('shop keeps the item-grid model inside a three-tier Reward House', () => {
   assert.match(cbiData, /projects:\s*\[\]/);
   assert.match(cbiData, /function normalizeShopProject\(/);
   assert.match(cbiData, /function normalizeShopProjectItem\(/);
   assert.match(cbiData, /function normalizeShopSection\(/);
-  assert.match(cbiShop, /toggle-category/);
-  assert.match(cbiShop, /project-category-header/);
+  assert.match(cbiShop, /REWARD HOUSE/);
+  assert.match(cbiShop, /累计花销/);
+  assert.match(cbiShop, /当前剩余资金 · REALITY BALANCE/);
+  assert.match(cbiShop, /日常购入/);
+  assert.match(cbiShop, /特别安排/);
+  assert.match(cbiShop, /长期计划/);
+  assert.match(cbiShop, /class="shop-tier"/);
+  assert.match(cbiShop, /id="inputProjectTier"/);
+  assert.match(cbiShop, /\? category : 'daily'/);
+  assert.doesNotMatch(cbiShop, /project-category-header/);
   assert.match(cbiShop, /shop-inline-detail/);
   assert.match(cbiShop, /section-grid/);
   assert.match(cbiShop, /projectIconInput/);
@@ -25,6 +34,7 @@ test('shop reuses the Food project, section and item-grid model', () => {
   assert.match(cbiShop, /source:\s*'entertainment_balance'/);
   assert.doesNotMatch(cbiShop, /currentProjectId/);
   assert.doesNotMatch(cbiShop, /work\.salary\s*[-+]=/);
+  assert.match(shop, /cbi-shop\.js\?v=20260903-reward-house1/);
 });
 
 test('reality wallet merges allowance and wishes into reimbursement', () => {
@@ -44,7 +54,7 @@ test('reality wallet merges allowance and wishes into reimbursement', () => {
   assert.doesNotMatch(cbiWallet, /closest\('input,textarea,select,button,a,summary/);
   assert.match(cbiWallet, /event\.preventDefault\(\)/);
   assert.match(cbiWallet, /\}, \{ passive: false \}\);/);
-  assert.match(wallet, /cbi-wallet\.js\?v=20260903-reimbursement-copy1/);
+  assert.match(wallet, /cbi-wallet\.js\?v=20260903-shop-structure1/);
   assert.match(cbiShop, /wallet\.html#reimbursement/);
   assert.match(cbiShop, /bindTabSwipe/);
   assert.doesNotMatch(cbiWallet, /案件进度已移至/);
@@ -52,7 +62,12 @@ test('reality wallet merges allowance and wishes into reimbursement', () => {
   assert.match(cbiWallet, /当前剩余资金 · REALITY BALANCE/);
   assert.match(cbiWallet, /剩余报销额度 ¥/);
   assert.match(cbiWallet, /已划自由额度 ¥/);
-  assert.match(cbiWallet, /transfer\.textContent = '划拨自由额度'/);
+  assert.match(cbiWallet, /ALLOCATION_FOLD_KEY/);
+  assert.match(cbiWallet, /allocationHistoryFold/);
+  assert.match(cbiWallet, /entry\.type === 'allocation'/);
+  assert.doesNotMatch(cbiWallet, /allocationContent\.appendChild\(charFunds\)/);
+  assert.match(cbiWallet, /transfer\.textContent = '＋ 划拨／收回'/);
+  assert.doesNotMatch(cbiWallet, /cbi-reimbursement-divider/);
   assert.doesNotMatch(cbiWallet, /公共额度需要由你同意报销/);
   assert.match(cbiWallet, /#periodBanner \.period-name\{color:#B08A5A\}/);
   assert.match(cbiWallet, /愿望、批复与花销/);
