@@ -207,14 +207,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .category-manager-actions{display:flex;gap:8px;margin-top:8px}
 .category-manager-actions button{flex:1}
 
-/* Reference project editor — aligned with Food */
-#refModal .ref-project-modal{max-width:480px;padding:20px;animation:refEditorSlideUp .25s ease-out}
+/* Reference and List project editors — aligned with Food */
+:is(#refModal,#catalogModal) .ref-project-modal{max-width:480px;padding:20px;animation:refEditorSlideUp .25s ease-out}
 @keyframes refEditorSlideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
-#refModal .ref-project-modal h2{font-size:15px;color:#333;margin-bottom:16px}
-#refModal .ref-project-modal label{font-size:12px;margin:12px 0 4px}
-#refModal .ref-project-modal input[type="text"],#refModal .ref-project-modal input[type="number"],#refModal .ref-project-modal select,#refModal .ref-project-modal textarea{font-size:14px;padding:10px 12px;border-color:#e0e0e0;background:#fff;color:#1a1a1a}
-#refModal .ref-project-modal textarea{min-height:50px;height:auto;resize:vertical}
-#refModal .ref-project-modal .file-label{margin-top:4px;border-width:1px;color:#aaa}
+:is(#refModal,#catalogModal) .ref-project-modal h2{font-size:15px;color:#333;margin-bottom:16px}
+:is(#refModal,#catalogModal) .ref-project-modal label{font-size:12px;margin:12px 0 4px}
+:is(#refModal,#catalogModal) .ref-project-modal input[type="text"],:is(#refModal,#catalogModal) .ref-project-modal input[type="number"],:is(#refModal,#catalogModal) .ref-project-modal select,:is(#refModal,#catalogModal) .ref-project-modal textarea{font-size:14px;padding:10px 12px;border-color:#e0e0e0;background:#fff;color:#1a1a1a}
+:is(#refModal,#catalogModal) .ref-project-modal textarea{min-height:50px;height:auto;resize:vertical}
+:is(#refModal,#catalogModal) .ref-project-modal .file-label{margin-top:4px;border-width:1px;color:#aaa}
 .ref-cover-editor{width:min(180px,100%);margin:8px auto 0}
 .ref-cover-frame{width:100%;aspect-ratio:1;border-radius:16px;overflow:hidden;position:relative;cursor:grab;touch-action:none;border:1px solid #eee;background:#f7f7f7}
 .ref-cover-frame:active{cursor:grabbing}
@@ -231,18 +231,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .ref-color-swatch:active{transform:scale(1.15)}
 .ref-color-swatch.active{border-color:#333}
 .ref-project-label{font-size:9px;font-weight:500;letter-spacing:.5px;display:inline-block;padding:1px 6px;border-radius:4px;margin-left:4px}
-#refModal .section-list{margin-top:8px;gap:0}
-#refModal .section-row{gap:6px;padding:8px 0;border-bottom:1px solid #f5f5f5;flex-wrap:wrap}
-#refModal .section-row input[type="text"]{flex:1 1 90px;min-width:70px;font-size:12px;padding:6px 8px;border-color:#e8e8e8;border-radius:6px}
-#refModal .section-row input[type="number"]{flex:0 0 46px;width:46px;min-width:0;font-size:12px;padding:6px 5px;border-color:#e8e8e8;border-radius:6px}
-#refModal .section-row select{width:56px;font-size:11px;padding:4px;border-color:#e8e8e8;border-radius:6px}
-#refModal .section-row .del-sec{font-size:11px;padding:4px}
-#refModal .section-row .ref-section-drag-handle{flex:0 0 14px;color:#d1d1d1;font-size:13px;line-height:1;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;text-align:center}
-#refModal .section-row.ref-sec-dragging{opacity:.42;background:#f8f8f8}
-#refModal .section-row.ref-sec-drag-over{box-shadow:0 -2px 0 0 #E8B96A}
-#refModal .add-section-btn{font-size:11px;border-radius:6px;padding:6px 12px;margin-top:6px}
-#refModal .btn-row{gap:8px;margin-top:20px}
-#refModal .btn{font-size:14px}
+:is(#refModal,#catalogModal) .section-list{margin-top:8px;gap:0}
+:is(#refModal,#catalogModal) .section-row{gap:6px;padding:8px 0;border-bottom:1px solid #f5f5f5;flex-wrap:wrap}
+:is(#refModal,#catalogModal) .section-row input[type="text"]{flex:1 1 90px;min-width:70px;font-size:12px;padding:6px 8px;border-color:#e8e8e8;border-radius:6px}
+:is(#refModal,#catalogModal) .section-row input[type="number"]{flex:0 0 46px;width:46px;min-width:0;font-size:12px;padding:6px 5px;border-color:#e8e8e8;border-radius:6px}
+:is(#refModal,#catalogModal) .section-row select{width:56px;font-size:11px;padding:4px;border-color:#e8e8e8;border-radius:6px}
+:is(#refModal,#catalogModal) .section-row .del-sec{font-size:11px;padding:4px}
+:is(#refModal,#catalogModal) .section-row .ref-section-drag-handle{flex:0 0 14px;color:#d1d1d1;font-size:13px;line-height:1;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;text-align:center}
+:is(#refModal,#catalogModal) .section-row.ref-sec-dragging{opacity:.42;background:#f8f8f8}
+:is(#refModal,#catalogModal) .section-row.ref-sec-drag-over{box-shadow:0 -2px 0 0 #E8B96A}
+:is(#refModal,#catalogModal) .add-section-btn{font-size:11px;border-radius:6px;padding:6px 12px;margin-top:6px}
+:is(#refModal,#catalogModal) .btn-row{gap:8px;margin-top:20px}
+:is(#refModal,#catalogModal) .btn{font-size:14px}
 
 /* Reference detail — same visual system as Food */
 #viewRefDetail{padding-bottom:64px}
@@ -538,32 +538,32 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 <!-- Add/Edit Catalog Modal -->
 <div class="modal-bg" id="catalogModal">
-<div class="modal">
+<div class="modal ref-project-modal">
   <h2 id="catalogModalTitle">New List</h2>
   <label>Cover</label>
   <label class="file-label" id="catIconLabel">Select image</label>
   <input type="file" accept="image/*" id="catIconInput" onchange="previewCatIcon(this)" style="display:none">
-  <div id="catIconEditor" class="project-icon-editor" style="display:none">
-    <div id="catIconPosFrame" class="project-icon-pos-frame" onmousedown="startCatIconDrag(event)" ontouchstart="startCatIconDrag(event)">
+  <div id="catIconEditor" class="ref-cover-editor" style="display:none">
+    <div id="catIconPosFrame" class="ref-cover-frame" onmousedown="startCatIconDrag(event)" ontouchstart="startCatIconDrag(event)">
       <img id="catIconPreview" src="" alt="">
-      <button type="button" class="project-icon-clear" aria-label="Clear cover" onclick="event.stopPropagation();clearCatIcon()">×</button>
+      <button type="button" class="ref-cover-clear" aria-label="Clear cover" onclick="event.stopPropagation();clearCatIcon()">×</button>
     </div>
-    <div class="project-icon-hint"><span>Drag to adjust display area</span><button type="button" onclick="resetCatIconPos()">Center</button></div>
+    <div class="ref-cover-hint"><span class="ref-cover-hint-text">Drag to adjust display area</span><button type="button" class="ref-cover-reset" onclick="resetCatIconPos()">Center</button></div>
   </div>
   <label>Name</label>
-  <input type="text" id="inputCatName">
-  <label>Category (optional)</label>
+  <input type="text" id="inputCatName" placeholder="e.g. Rollbahn 2027">
+  <label>Shelf</label>
   <input type="text" id="inputCatShelf" list="catCategoryOptions" placeholder="e.g. Rollbahn">
   <datalist id="catCategoryOptions"></datalist>
   <label>Sections</label>
   <div class="section-list" id="catSectionList"></div>
-  <button class="add-section-btn" onclick="addCatSectionRow()">+ Section</button>
+  <button class="add-section-btn" type="button" onclick="addCatSectionRow()">+ Section</button>
   <label>Notes</label>
-  <textarea id="inputCatNote"></textarea>
-  <label>Label</label>
-  <div class="label-row">
-    <input type="text" id="inputCatLabel">
-    <div class="color-picker" id="catColorPicker"></div>
+  <textarea id="inputCatNote" placeholder="Optional notes"></textarea>
+  <label>Label (optional)</label>
+  <div class="ref-label-row">
+    <input type="text" id="inputCatLabel" placeholder="e.g. 2027" maxlength="20">
+    <div class="ref-color-picker" id="catColorPicker"></div>
   </div>
   <div class="btn-row">
     <button class="btn btn-cancel" onclick="closeModal('catalogModal')">Cancel</button>
@@ -706,6 +706,7 @@ function clampCols(value){return Math.max(2,Math.min(6,parseInt(value)||3));}
 function clampImagePosition(value){const n=Number(value);return Number.isFinite(n)?Math.max(0,Math.min(100,n)):50;}
 function normalizeRefColor(value){return /^#[0-9a-f]{6}$/i.test(String(value||''))?String(value):'#C4A24C';}
 function makeBlankRefItem(number){return{id:gid(),name:'Title '+number,img:'',note:'',mode:'ref',listAssignment:null};}
+function makeBlankCatalogItem(number){return{id:gid(),name:'Title '+number,img:'',collected:false,locked:false,cost:0,note:'',records:[]};}
 function isGenericRefItemName(name){return !String(name||'').trim()||/^Title \d+$/.test(String(name||'').trim())||/^Item \d+$/.test(String(name||'').trim());}
 function isBlankRefItem(item){return!!item&&!item.img&&!String(item.note||'').trim()&&(item.mode||'ref')==='ref'&&!item.listAssignment&&isGenericRefItemName(item.name);}
 function catalogRefMatchesItem(ref,c,item,itemIdx){return!!(ref&&ref.catalogId===c.id&&(ref.catalogItemId?ref.catalogItemId===item.id:ref.itemIdx===itemIdx));}
@@ -1161,7 +1162,7 @@ function saveCatalogSectionQuick(){
 }
 
 /* ── Catalog CRUD ── */
-let _catSections=[],_catLabelColor='#C4A24C';
+let _catSections=[],_catLabelColor='#C4A24C',catSectionDragBound=false,catSectionPressState=null;
 function getProjectCategories(){
   const values=[];[...(db.projectCategories||[]),...db.catalogs.map(c=>c.shelf),...db.refs.map(r=>r.shelf)].forEach(value=>{const name=String(value||'').trim();if(name&&name!=='Uncategorized'&&!values.includes(name))values.push(name);});return values;
 }
@@ -1192,7 +1193,7 @@ function openAddCatalog(){
   document.getElementById('catalogDeleteBtn').style.display='none';
   document.getElementById('inputCatName').value='';document.getElementById('inputCatShelf').value='';document.getElementById('inputCatNote').value='';document.getElementById('inputCatLabel').value='';
   document.getElementById('catIconInput').value='';document.getElementById('catIconPreview').removeAttribute('src');document.getElementById('catIconPreview').style.objectPosition='50% 50%';document.getElementById('catIconEditor').style.display='none';renderCatalogCategoryOptions();
-  _catSections=[{name:'',count:0,cols:3}];_catLabelColor='#C4A24C';
+  _catSections=[{name:'',count:0,cols:3,_items:[]}];_catLabelColor='#C4A24C';
   renderCatSections();renderCatColors();openModal('catalogModal');
 }
 function openEditCatalog(){
@@ -1203,15 +1204,77 @@ function openEditCatalog(){
   document.getElementById('catalogDeleteBtn').style.display='';
   document.getElementById('inputCatName').value=c.name;document.getElementById('inputCatShelf').value=c.shelf||'';document.getElementById('inputCatNote').value=c.note||'';document.getElementById('inputCatLabel').value=c.label?.name||'';
   document.getElementById('catIconInput').value='';const preview=document.getElementById('catIconPreview');if(catIconTemp){preview.src=catIconTemp;preview.style.objectPosition=catIconPosTemp.x+'% '+catIconPosTemp.y+'%';document.getElementById('catIconEditor').style.display='block';}else{preview.removeAttribute('src');document.getElementById('catIconEditor').style.display='none';}renderCatalogCategoryOptions();
-  _catSections=c.sections?c.sections.map(s=>({...s})):[{name:'',count:0}];
-  _catLabelColor=c.label?.color||'#C4A24C';
+  _catSections=buildCatSectionDrafts(c);
+  _catLabelColor=normalizeRefColor(c.label?.color);
   renderCatSections();renderCatColors();openModal('catalogModal');
 }
-function renderCatSections(){
-  document.getElementById('catSectionList').innerHTML=_catSections.map((s,i)=>`<div class="section-row"><input type="text" value="${esc(s.name)}" onchange="_catSections[${i}].name=this.value"><input type="number" value="${s.count||0}" min="0" max="999" style="width:50px" onchange="_catSections[${i}].count=parseInt(this.value)||0"><select style="width:42px;padding:4px;border:1px solid #e8e8e8;border-radius:6px;font-size:11px" onchange="_catSections[${i}].cols=parseInt(this.value)||3">${[2,3,4,5,6].map(n=>`<option value="${n}"${clampCols(s.cols)===n?' selected':''}>${n}col</option>`).join('')}</select><button class="del-sec" onclick="_catSections.splice(${i},1);renderCatSections()">×</button></div>`).join('');
+function buildCatSectionDrafts(c){
+  const sections=c.sections&&c.sections.length?c.sections:[{name:'',count:c.items.length,cols:3}],drafts=[];let offset=0;
+  sections.forEach((sec,index)=>{
+    const count=Math.max(0,parseInt(sec.count)||0),items=c.items.slice(offset,offset+count);offset+=count;
+    if(index===sections.length-1&&offset<c.items.length)items.push(...c.items.slice(offset));
+    drafts.push({name:sec.name||'',count:index===sections.length-1&&items.length>count?items.length:count,cols:clampCols(sec.cols),_items:items});
+  });
+  return drafts;
 }
-function addCatSectionRow(){_catSections.push({name:'',count:0,cols:3});renderCatSections();}
-function renderCatColors(){document.getElementById('catColorPicker').innerHTML=COLORS.map(c=>`<div class="color-swatch${c===_catLabelColor?' active':''}" style="background:${c}" onclick="_catLabelColor='${c}';renderCatColors()"></div>`).join('');}
+function catDraftHasSavedItems(sec){return!!(sec&&Array.isArray(sec._items)&&sec._items.some(item=>!isBlankCatalogItem(item)));}
+function setCatSectionDraftCount(index,value){const sec=_catSections[index];if(sec)sec.count=Math.max(0,parseInt(value)||0);}
+function removeCatSectionDraft(index){
+  const sec=_catSections[index];if(!sec)return;
+  const remove=()=>{_catSections.splice(index,1);renderCatSections();};
+  if(catDraftHasSavedItems(sec)&&typeof window.confirm==='function'){if(window.confirm(`Delete "${sec.name||'Section'}" and its items?`))remove();}else remove();
+}
+function moveCatSectionDraft(fromIndex,toIndex){
+  if(fromIndex===toIndex||fromIndex<0||toIndex<0||fromIndex>=_catSections.length||toIndex>=_catSections.length)return false;
+  const moved=_catSections.splice(fromIndex,1)[0];_catSections.splice(toIndex,0,moved);renderCatSections();return true;
+}
+function renderCatSections(){
+  document.getElementById('catSectionList').innerHTML=_catSections.map((s,i)=>`<div class="section-row" data-cat-sec-idx="${i}"><span class="ref-section-drag-handle" aria-label="Long press to reorder">⠿</span><input type="text" value="${esc(s.name||'')}" placeholder="Section" onchange="_catSections[${i}].name=this.value"><input type="number" value="${Math.max(0,parseInt(s.count)||0)}" min="0" max="999" aria-label="Item count" onchange="setCatSectionDraftCount(${i},this.value)"><select aria-label="Columns" onchange="_catSections[${i}].cols=parseInt(this.value)||3">${[2,3,4,5,6].map(n=>`<option value="${n}"${clampCols(s.cols)===n?' selected':''}>${n}col</option>`).join('')}</select><button type="button" class="del-sec" aria-label="Delete section" onclick="removeCatSectionDraft(${i})">×</button></div>`).join('');
+  initCatSectionDrag();
+}
+function addCatSectionRow(){_catSections.push({name:'',count:0,cols:3,_items:[]});renderCatSections();}
+function initCatSectionDrag(){
+  if(catSectionDragBound)return;const list=document.getElementById('catSectionList');if(!list)return;catSectionDragBound=true;
+  list.addEventListener('pointerdown',event=>{
+    if(event.target.closest&&event.target.closest('input,select,button'))return;
+    const row=event.target.closest&&event.target.closest('.section-row');if(!row||(event.button!==undefined&&event.button!==0))return;
+    clearCatSectionPress();const state={row,index:parseInt(row.dataset.catSecIdx),pointerId:event.pointerId,startY:event.clientY,lastY:event.clientY,activated:false,moved:false,timer:null};catSectionPressState=state;
+    if(row.setPointerCapture)try{row.setPointerCapture(event.pointerId);}catch(e){}
+    state.timer=setTimeout(()=>{if(catSectionPressState!==state)return;state.timer=null;state.activated=true;row.classList.add('ref-sec-dragging');if(typeof navigator!=='undefined'&&navigator.vibrate)navigator.vibrate(12);},350);
+  });
+  list.addEventListener('pointermove',event=>{
+    const state=catSectionPressState;if(!state||state.pointerId!==event.pointerId)return;state.lastY=event.clientY;const distance=Math.abs(event.clientY-state.startY);
+    if(!state.activated){if(distance>10)clearCatSectionPress();return;}if(distance<=6)return;state.moved=true;event.preventDefault();
+    list.querySelectorAll('.section-row').forEach(row=>row.classList.remove('ref-sec-drag-over'));
+    for(const row of list.querySelectorAll('.section-row')){const index=parseInt(row.dataset.catSecIdx);if(index===state.index)continue;const rect=row.getBoundingClientRect();if(event.clientY<rect.top+rect.height/2){row.classList.add('ref-sec-drag-over');break;}}
+  },{passive:false});
+  const finish=event=>{const state=catSectionPressState;if(!state||state.pointerId!==event.pointerId)return;if(state.timer){clearTimeout(state.timer);state.timer=null;}if(state.activated&&state.moved)commitCatSectionDrag(state);clearCatSectionPress();};
+  list.addEventListener('pointerup',finish);list.addEventListener('pointercancel',event=>{if(catSectionPressState&&catSectionPressState.pointerId===event.pointerId)clearCatSectionPress();});list.addEventListener('contextmenu',event=>{if(event.target.closest&&event.target.closest('.section-row'))event.preventDefault();});
+}
+function commitCatSectionDrag(state){
+  const rows=document.querySelectorAll('#catSectionList .section-row');let toIndex=_catSections.length;
+  for(const row of rows){const index=parseInt(row.dataset.catSecIdx);if(index===state.index)continue;const rect=row.getBoundingClientRect();if(state.lastY<rect.top+rect.height/2){toIndex=index;break;}}
+  const insertAt=toIndex>state.index?toIndex-1:toIndex;if(insertAt!==state.index){const moved=_catSections.splice(state.index,1)[0];_catSections.splice(insertAt,0,moved);}renderCatSections();
+}
+function clearCatSectionPress(){
+  const state=catSectionPressState;if(!state)return;if(state.timer)clearTimeout(state.timer);
+  try{if(state.row&&state.row.releasePointerCapture&&(!state.row.hasPointerCapture||state.row.hasPointerCapture(state.pointerId)))state.row.releasePointerCapture(state.pointerId);}catch(e){}
+  state.row&&state.row.classList.remove('ref-sec-dragging');document.querySelectorAll('#catSectionList .section-row.ref-sec-drag-over').forEach(row=>row.classList.remove('ref-sec-drag-over'));catSectionPressState=null;
+}
+function finalizeCatSectionDrafts(){
+  const sections=[],items=[];let preserved=0;
+  _catSections.forEach((draft,index)=>{
+    const name=String(draft.name||'').trim(),requested=Math.max(0,parseInt(draft.count)||0),source=Array.isArray(draft._items)?draft._items.slice():[];
+    if(!name&&!requested&&!source.length)return;
+    const bucket=source.slice(0,requested);
+    for(let i=requested;i<source.length;i++){if(!isBlankCatalogItem(source[i])){bucket.push(source[i]);preserved++;}}
+    while(bucket.length<requested)bucket.push(makeBlankCatalogItem(items.length+bucket.length+1));
+    sections.push({name:name||('Section '+(index+1)),count:bucket.length,cols:clampCols(draft.cols)});items.push(...bucket);
+  });
+  items.forEach((item,index)=>{if(isBlankCatalogItem(item))item.name='Title '+(index+1);});
+  return{sections,items,preserved};
+}
+function renderCatColors(){document.getElementById('catColorPicker').innerHTML=COLORS.map(color=>`<button type="button" class="ref-color-swatch${color===_catLabelColor?' active':''}" style="background:${color}" aria-label="Select ${color}" onclick="_catLabelColor='${color}';renderCatColors()"></button>`).join('');}
 function saveCatalog(){
   if(!imageReady('catIconPreview'))return;
   const returnScroll=editCatalogId?(catalogDetailScrollByProject[editCatalogId]??currentScrollY()):0;
@@ -1220,22 +1283,24 @@ function saveCatalog(){
   const note=document.getElementById('inputCatNote').value.trim();
   const labelName=document.getElementById('inputCatLabel').value.trim();
   const icon=catIconTemp||'',iconPositionX=icon?clampImagePosition(catIconPosTemp.x):50,iconPositionY=icon?clampImagePosition(catIconPosTemp.y):50;
-  const sections=_catSections.filter(s=>s.name).map(sec=>({...sec,count:Math.max(0,parseInt(sec.count)||0),cols:clampCols(sec.cols)}));
-  const label={name:labelName,color:_catLabelColor};
+  const finalized=finalizeCatSectionDrafts(),sections=finalized.sections;
+  const label={name:labelName,color:normalizeRefColor(_catLabelColor)};
   registerProjectCategory(shelf);
   if(editCatalogId){
     const c=db.catalogs.find(x=>x.id===editCatalogId);
-    if(c){c.name=name;c.shelf=shelf;c.note=note;c.label=label;c.icon=icon;c.iconPositionX=iconPositionX;c.iconPositionY=iconPositionY;
-      const totalNeeded=sections.reduce((s,sec)=>s+sec.count,0);
-      while(c.items.length<totalNeeded)c.items.push({id:gid(),name:'',img:'',collected:false,locked:false,cost:0,note:'',records:[]});
-      c.sections=sections;
+    if(c){
+      const previous=Array.isArray(c.items)?c.items:[],keptIds=new Set(finalized.items.map(item=>item.id));
+      const omitted=previous.map((item,index)=>({item,index})).filter(entry=>!keptIds.has(entry.item.id));
+      omitted.forEach(entry=>unlinkCatalogSourceRef(entry.item));
+      db.items=db.items.filter(owned=>!omitted.some(entry=>catalogRefMatchesItem(owned.catalogRef,c,entry.item,entry.index)));
+      c.name=name;c.shelf=shelf;c.note=note;c.label=label;c.icon=icon;c.iconPositionX=iconPositionX;c.iconPositionY=iconPositionY;c.sections=sections;c.items=finalized.items;
+      reindexCatalogOwnedItems(c);
     }
   }else{
-    const totalItems=sections.reduce((s,sec)=>s+sec.count,0)||0;
-    const items=[];for(let i=0;i<totalItems;i++)items.push({id:gid(),name:'Title '+(i+1),img:'',collected:false,locked:false,cost:0,note:'',records:[]});
-    db.catalogs.push({id:gid(),name,shelf,icon,note,label,iconPositionX,iconPositionY,sections,items,order:db.catalogs.length});
+    db.catalogs.push({id:gid(),name,shelf,icon,note,label,iconPositionX,iconPositionY,sections,items:finalized.items,order:db.catalogs.length});
   }
   save();closeModal('catalogModal');
+  if(finalized.preserved)toast(`Kept ${finalized.preserved} filled item${finalized.preserved===1?'':'s'}`);
   if(editCatalogId)openCatalogDetail(editCatalogId,{restoreScroll:returnScroll});else renderCatalogList();
 }
 function deleteCatalog(){

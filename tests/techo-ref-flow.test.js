@@ -17,6 +17,7 @@ source += `\n;globalThis.__testApi={
   openCatalogItemDetail,deleteCatRecord,moveCatalogItem,deleteCatalogGridItem,
   moveRefItem,openEditRefItemById,saveRefItem,setRefSectionDraftCount,
   moveRefSectionDraft,deleteRefGridItem,openRefSectionQuick,saveRefSectionQuick,
+  openEditCatalog,saveCatalog,setCatSectionDraftCount,moveCatSectionDraft,
   openCatalogSectionQuick,saveCatalogSectionQuick,switchTechoTab,
   openCategoryManager,saveCategoryManager,getCategoryDrafts:()=>categoryDrafts
 };`;
@@ -150,6 +151,38 @@ api.deleteRefGridItem(0);
 state = api.getDb();
 assert.equal(state.refs[0].sections[0].count, 0, 'arrange-mode deletion repairs its section count');
 assert.equal(state.refs[0].items.some(item => item.id === 'ri2'), false, 'arrange-mode deletion removes the selected reference item');
+
+const catalogSectionFixture = structuredClone(fixture);
+catalogSectionFixture.catalogs[0].sections = [{name: 'A', count: 1, cols: 3}, {name: 'B', count: 1, cols: 3}];
+catalogSectionFixture.catalogs[0].items = [
+  {id: 'ci1', name: 'A item', img: '', note: '', cost: 0, collected: false, locked: false, records: []},
+  {id: 'ci2', name: 'B item', img: '', note: '', cost: 0, collected: true, locked: false, records: [{id: 'record-b', date: '2026-09', note: '', img: '', status: 'keeping', processStatus: 'pending', cost: 600}]}
+];
+catalogSectionFixture.items = [{
+  id: 'owned-b', name: 'B item', img: '', category: 'long_term', status: 'pending', assignment: null, cost: 600, note: '', source: 'catalog',
+  catalogRef: {catalogId: 'list1', catalogItemId: 'ci2', itemIdx: 1, recordId: 'record-b'}, disposition: null, soldPrice: 0, addedAt: 1
+}];
+api.setDb(catalogSectionFixture);
+api.normalizeTechoData();
+api.openCatalogDetail('list1');
+api.openEditCatalog();
+assert.match(document.getElementById('catSectionList').innerHTML, /ref-section-drag-handle/, 'List project editor exposes the same long-press section handle as Ref');
+api.setCatSectionDraftCount(0, 4);
+api.saveCatalog();
+state = api.getDb();
+assert.deepEqual(Array.from(state.catalogs[0].sections, section => section.count), [4, 1], 'List project editor grows the selected section itself');
+assert.equal(state.catalogs[0].items[0].id, 'ci1', 'the edited List section keeps its original item');
+assert.equal(state.catalogs[0].items[4].id, 'ci2', 'later List section items stay below newly inserted blank slots');
+assert.ok(state.catalogs[0].items.slice(1, 4).every(item => /^Title \d+$/.test(item.name)), 'new List slots are inserted inside the edited section');
+assert.equal(state.items[0].catalogRef.itemIdx, 4, 'List-to-Item backlinks are reindexed after inserting section slots');
+
+api.openEditCatalog();
+assert.equal(api.moveCatSectionDraft(0, 1), true, 'List sections can be reordered in the project editor');
+api.saveCatalog();
+state = api.getDb();
+assert.deepEqual(Array.from(state.catalogs[0].sections, section => section.name), ['B', 'A'], 'List section order is persisted');
+assert.equal(state.catalogs[0].items[0].id, 'ci2', 'moving a List section carries its own items with it');
+assert.equal(state.items[0].catalogRef.itemIdx, 0, 'List-to-Item backlinks follow the reordered section');
 
 api.setDb(structuredClone(fixture));
 api.normalizeTechoData();
@@ -308,10 +341,13 @@ assert.match(source, /function setupRefItemArrangeGestures\(\)[\s\S]*?pointerdow
 assert.match(source, /refItemArrangeMode\?170:520/, 'ref items enter arrange mode after the Food long-press delay');
 assert.match(source, /function setupCatalogItemArrangeGestures\(\)[\s\S]*?pointerdown/, 'List items bind the same pointer sorting gestures');
 assert.match(source, /catalogItemArrangeMode\?170:520/, 'List items use the same long-press timing as Ref and Food');
+assert.match(source, /function initCatSectionDrag\(\)[\s\S]*?pointerdown[\s\S]*?350/, 'List project sections use the same long-press sorting interaction as Ref');
 assert.match(document.getElementById('refDetailGrid').innerHTML, /ref-item-delete-x/, 'reference items expose Food-style delete controls in arrange mode');
 assert.match(document.getElementById('refSectionList').innerHTML, /ref-section-drag-handle/, 'reference project editor exposes a long-press section reorder handle');
 assert.match(document.getElementById('refList').innerHTML, /data-ref-id="ref2"/, 'ref project rows expose stable drag ids');
 assert.match(html, /id="refIconPosFrame"/, 'ref editor uses the Food-style draggable cover frame');
+assert.match(html, /id="catalogModal">\s*<div class="modal ref-project-modal"/, 'List project editor uses the same Food-style modal shell as Ref');
+assert.match(html, /id="catIconPosFrame" class="ref-cover-frame"/, 'List project editor uses the same draggable cover frame as Ref');
 assert.match(source, /r\.iconPositionX=iconPositionX;r\.iconPositionY=iconPositionY/, 'ref editor persists cover position');
 assert.match(html, /id="inputRefLabel"[\s\S]*?id="refColorPicker"/, 'ref editor exposes the label and color controls directly');
 assert.equal((html.match(/<option value="6">6 columns<\/option>/g) || []).length, 2, 'both quick section editors offer six columns');
