@@ -8,7 +8,8 @@
 <meta name="apple-mobile-web-app-title" content="Wallet">
 <title>Wallet</title>
 <style>
-html{scrollbar-gutter:stable}
+html{scrollbar-width:none}
+html::-webkit-scrollbar{display:none}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;background:#FAFAFA;color:#1a1a1a;min-height:100vh;min-height:100dvh;padding-bottom:72px}
 
@@ -192,7 +193,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .cat-setting-del{width:26px;height:26px;border:none;background:none;color:#ddd;font-size:14px;cursor:pointer;flex-shrink:0;border-radius:6px;transition:all 0.15s}
 .cat-setting-del:active{background:#fee;color:#D85A30}
 .category-color-modal{max-height:none}
-.category-color-picker{display:grid;grid-template-columns:repeat(8,28px);justify-content:center;gap:7px 8px;padding:8px 0 2px}
+.category-color-picker{display:grid;grid-template-columns:repeat(6,28px);justify-content:center;column-gap:18px;row-gap:0;padding:8px 0 2px}
 .cat-color-swatch{position:relative;width:28px;height:28px;border:0;background:transparent;border-radius:50%;cursor:pointer;padding:0}
 .cat-color-swatch:before{content:'';position:absolute;width:16px;height:16px;left:6px;top:6px;border-radius:50%;background:var(--swatch-color);transition:transform 0.15s}
 .cat-color-swatch:active:before{transform:scale(1.15)}
@@ -467,7 +468,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <script src="cloud-sync.js?v=20260824-cbi-work1"></script>
 <script src="cbi-data.js?v=20260902-balance1"></script>
 <script src="character-runtime.js?v=20260824-wallet-fix1"></script>
-<script src="cbi-wallet.js?v=20260903-wish-header1"></script>
+<script src="cbi-wallet.js?v=20260903-reimbursement-copy1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 var SK='wallet_db';
@@ -1217,7 +1218,7 @@ function renderCollection(){
 }
 
 /* ═══ SETTINGS ═══ */
-var CATEGORY_COLORS=['#9B8AE8','#6B5ACD','#D85A30','#E84A7A','#E8B96A','#C7A24C','#9B6BCC','#4AADE8','#3A8DD4','#5BA66B','#3D8B50','#6B8AFF','#4A6AE0','#888888','#B0805A','#4ECDC4'];
+var CATEGORY_COLORS=['#B08A5A','#87977F','#68747A','#7E9AB0','#A06F62','#B48A9B'];
 var _settingsCache=[];
 var _editingCategoryColorIndex=-1;
 function renderBudgetSettings(){

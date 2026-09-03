@@ -44,11 +44,20 @@ test('reality wallet merges allowance and wishes into reimbursement', () => {
   assert.doesNotMatch(cbiWallet, /closest\('input,textarea,select,button,a,summary/);
   assert.match(cbiWallet, /event\.preventDefault\(\)/);
   assert.match(cbiWallet, /\}, \{ passive: false \}\);/);
-  assert.match(wallet, /cbi-wallet\.js\?v=20260903-wish-header1/);
+  assert.match(wallet, /cbi-wallet\.js\?v=20260903-reimbursement-copy1/);
   assert.match(cbiShop, /wallet\.html#reimbursement/);
   assert.match(cbiShop, /bindTabSwipe/);
   assert.doesNotMatch(cbiWallet, /案件进度已移至/);
   assert.doesNotMatch(cbiWallet, /暂时不处理时申请会一直留在这里/);
+  assert.match(cbiWallet, /当前剩余资金 · REALITY BALANCE/);
+  assert.match(cbiWallet, /剩余报销额度 ¥/);
+  assert.match(cbiWallet, /已划自由额度 ¥/);
+  assert.match(cbiWallet, /transfer\.textContent = '划拨自由额度'/);
+  assert.doesNotMatch(cbiWallet, /公共额度需要由你同意报销/);
+  assert.match(cbiWallet, /#periodBanner \.period-name\{color:#B08A5A\}/);
+  assert.match(cbiWallet, /愿望、批复与花销/);
+  assert.doesNotMatch(cbiWallet, /愿望、批复与角色自由花销/);
+  assert.match(cbiWallet, /class="cbi-wish-amount" style="color:' \+ COLORS\[request\.characterId\] \+ '"/);
 });
 
 test('Rewards dynamics replaces only the obsolete notebook entry', () => {

@@ -124,12 +124,15 @@ test('wallet page exposes split pools, full history and pending expenses', () =>
   assert.match(html, /\.pending-add\{[^}]*font-size:13px/);
   assert.match(html, /var colorSide=account==='entertainment'\?'right':'left'/);
   assert.match(html, /\.account-pane\.entertainment \.cat-bar\{display:flex;justify-content:flex-end\}/);
-  assert.match(html, /var CATEGORY_COLORS=\[/);
+  assert.match(html, /var CATEGORY_COLORS=\['#B08A5A','#87977F','#68747A','#7E9AB0','#A06F62','#B48A9B'\]/);
   assert.match(html, /id="categoryColorPicker"/);
+  assert.match(html, /\.category-color-picker\{[^}]*grid-template-columns:repeat\(6,28px\)[^}]*column-gap:18px/);
   assert.match(html, /\.cat-color-swatch:before\{/);
   assert.match(html, /id="monthBudgetStatus"/);
   assert.match(html, /\.month-budget-status\{[^}]*font-size:9px/);
-  assert.match(html, /html\{scrollbar-gutter:stable\}/);
+  assert.match(html, /html\{scrollbar-width:none\}/);
+  assert.match(html, /html::\-webkit-scrollbar\{display:none\}/);
+  assert.doesNotMatch(html, /scrollbar-gutter:stable/);
   assert.match(html, /compactBudgetMonthLabel\(monthKey\)\+'预算'/);
   assert.match(html, /monthlyBudgets:\{\}/);
   assert.match(html, /schemaVersion:4/);

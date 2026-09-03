@@ -77,6 +77,7 @@
       'body[data-cbi-wallet="1"] .char-fund-amount{font-size:13px}',
       'body[data-cbi-wallet="1"] .transfer-btn{margin:0;width:100%;padding:16px;border:0;border-bottom:1px solid #eeeeec;border-radius:0;background:#fff;color:#aaa}',
       'body[data-cbi-wallet="1"] .period-banner{margin:0;padding:18px 44px 18px 20px;text-align:left;border:0;border-bottom:1px solid #eeeeec;border-radius:0;box-shadow:none}',
+      'body[data-cbi-wallet="1"] #periodBanner .period-name{color:#B08A5A}',
       'body[data-cbi-wallet="1"] .outing-card{margin:0;padding:16px 20px;border:0;border-bottom:1px solid #eeeeec;border-radius:0;box-shadow:none;background:#fff}',
       'body[data-cbi-wallet="1"] .outing-dialogue{padding:8px 0;margin-top:8px;border-radius:0;background:transparent;border-top:1px solid #f1f1ef}',
       'body[data-cbi-wallet="1"] .diary-entry{margin:0;padding:14px 20px;border:0;border-bottom:1px solid #f1f1ef;border-radius:0;box-shadow:none;background:#fff}',
@@ -142,17 +143,16 @@
     var open = global.CBIData.unassignedAllowance(cbi, wallet);
     var allocated = global.CBIData.allocatedAllowance(cbi);
     document.getElementById('treasuryCard').innerHTML =
-      '<div class="treasury-label">可报销额度 · REALITY BALANCE</div>' +
+      '<div class="treasury-label">当前剩余资金 · REALITY BALANCE</div>' +
       '<div class="treasury-amount positive">¥' + total + '</div>' +
-      '<div class="cbi-fund-split"><span>公共额度 ¥' + open + '</span><span>自由额度 ¥' + allocated + '</span></div>' +
-      '<div class="cbi-fund-note">公共额度需要由你同意报销；划给个人的自由额度由角色自行决定，遇到付得起的愿望会直接购买。</div>';
+      '<div class="cbi-fund-split"><span>剩余报销额度 ¥' + open + '</span><span>已划自由额度 ¥' + allocated + '</span></div>';
     document.getElementById('charFunds').innerHTML = global.CBIData.CBI_CHARACTERS.map(function (id) {
       var amount = cbi.work.caseFund.charFunds[id] || 0;
       return '<div class="char-fund-card" style="border-color:' + COLORS[id] + '30"><div class="char-fund-name" style="color:' + COLORS[id] + '">' + esc(NAMES[id]) + '</div><div class="char-fund-amount" style="color:' + (amount ? COLORS[id] : '#ccc') + '">¥' + amount + '</div></div>';
     }).join('');
     var transfer = document.querySelector('#viewTreasury .transfer-btn');
     transfer.style.display = '';
-    transfer.textContent = '划拨角色自由额度';
+    transfer.textContent = '划拨自由额度';
     document.getElementById('treasuryLog').innerHTML = '<div class="cbi-reimbursement-divider"></div>';
     renderWishes();
   }
@@ -203,7 +203,7 @@
       ? '旧制申请 · ' + caseTitle(db, request.caseId)
       : 'WISH LIST · 愿望申请';
     return '<div class="outing-card" style="border-left:3px solid ' + COLORS[request.characterId] + '">' +
-      '<div class="cbi-wish-head"><div><div class="cbi-wish-source">' + esc(source) + '</div><div class="outing-char" style="color:' + COLORS[request.characterId] + '">' + esc(NAMES[request.characterId]) + ' · 报销申请</div><div class="outing-activity">' + esc(request.title) + '</div></div><div class="cbi-wish-amount">¥' + request.amount + '</div></div>' +
+      '<div class="cbi-wish-head"><div><div class="cbi-wish-source">' + esc(source) + '</div><div class="outing-char" style="color:' + COLORS[request.characterId] + '">' + esc(NAMES[request.characterId]) + ' · 报销申请</div><div class="outing-activity">' + esc(request.title) + '</div></div><div class="cbi-wish-amount" style="color:' + COLORS[request.characterId] + '">¥' + request.amount + '</div></div>' +
       '<div class="cbi-wish-detail">' + esc(request.detail) + '<br>个人自由额度 ¥' + personal + ' · 公共额度 ¥' + open + '</div>' +
       '<input class="cbi-reply" id="cbiReply_' + request.id + '" type="text" maxlength="120" placeholder="回复一句（选填）">' +
       '<button class="cbi-approve" type="button" onclick="CBIWallet.approveWish(\'' + request.id + '\')"' + (affordable ? '' : ' disabled') + '>' + (affordable ? '同意报销' : '余额不足 · 申请保留中') + '</button></div>';
@@ -230,7 +230,7 @@
     var checkedToday = global.CBIData.CBI_CHARACTERS.filter(function (id) {
       return db.work.caseFund.wishRefreshDates[id] === today();
     }).length;
-    document.getElementById('periodBanner').innerHTML = '<div class="period-name">CBI · WISH DESK</div><div class="period-time">' + today() + ' · 愿望、批复与角色自由花销</div>';
+    document.getElementById('periodBanner').innerHTML = '<div class="period-name">CBI · WISH DESK</div><div class="period-time">' + today() + ' · 愿望、批复与花销</div>';
     var html = pending.map(function (item) { return requestCard(db, item); }).join('');
     html += '<button class="record-btn cbi-refresh-wishes" type="button" onclick="CBIWallet.generateWish()">' + (checkedToday === global.CBIData.CBI_CHARACTERS.length ? '↻ 今天已经查看过' : '＋ 看看有没有新愿望') + '</button>';
     if (!pending.length) html += '<div class="outing-empty">愿望桌暂时没有新纸条</div>';
