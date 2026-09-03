@@ -366,6 +366,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     </div>
     <label>金额（日元）</label>
     <input type="number" id="transferAmount" placeholder="金额" min="0" step="1">
+    <div id="cbiTransferReasonField" hidden>
+      <label>原因（选填）</label>
+      <input type="text" id="transferReason" maxlength="80" placeholder="如：Boss非常偏心">
+    </div>
     <p style="font-size:11px;color:#bbb;margin-top:8px">从共享金库划入角色专属零花钱，总额不变</p>
     <div class="btn-row">
       <button class="btn btn-cancel" onclick="closeModal('transferModal')">取消</button>
@@ -466,9 +470,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 <script src="world-context.js?v=20260824-cbi-work1"></script>
 <script src="cloud-sync.js?v=20260824-cbi-work1"></script>
-<script src="cbi-data.js?v=20260902-balance1"></script>
+<script src="cbi-data.js?v=20260903-allocation-reason1"></script>
 <script src="character-runtime.js?v=20260824-wallet-fix1"></script>
-<script src="cbi-wallet.js?v=20260903-shop-structure1"></script>
+<script src="cbi-wallet.js?v=20260903-allocation-record1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 var SK='wallet_db';

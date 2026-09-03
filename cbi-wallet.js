@@ -169,7 +169,7 @@
     }).join('');
     var transfer = document.querySelector('#viewTreasury .transfer-btn');
     transfer.style.display = '';
-    transfer.textContent = '＋ 划拨／收回';
+    transfer.textContent = '划拨自由额度';
     renderAllocationHistory(cbi);
     renderWishes();
   }
@@ -186,14 +186,17 @@
     document.getElementById('transferAmount').removeAttribute('min');
     document.getElementById('transferAmount').placeholder = '正数划拨，负数收回';
     document.getElementById('transferAmount').value = '';
+    document.getElementById('cbiTransferReasonField').hidden = false;
+    document.getElementById('transferReason').value = '';
     global.openModal('transferModal');
   }
 
   function saveTransfer() {
     var characterId = global.getTagValue('transferToGroup');
     var amount = parseInt(document.getElementById('transferAmount').value, 10) || 0;
+    var reason = document.getElementById('transferReason').value.trim();
     if (!amount) { global.showToast('请输入金额'); return; }
-    var result = global.CBIData.allocateAllowance(load(), characterId, amount, walletDb(), new Date());
+    var result = global.CBIData.allocateAllowance(load(), characterId, amount, walletDb(), new Date(), reason);
     if (!result.allocation) {
       global.showToast(result.reason === 'insufficient_fund' ? '公共额度余额不足' : (result.reason === 'insufficient_personal_fund' ? '这个角色目前没有可收回的额度' : '调整失败'));
       return;
@@ -371,11 +374,10 @@
         allocationFold.id = 'allocationHistoryFold';
         allocationFold.open = savedFoldOpen(ALLOCATION_FOLD_KEY);
         var allocationSummary = document.createElement('summary');
-        allocationSummary.innerHTML = '划拨自由额度 <span class="ledger-fold-count" id="allocationHistoryCount"></span>';
+        allocationSummary.innerHTML = '额度划拨记录 <span class="ledger-fold-count" id="allocationHistoryCount"></span>';
         var allocationContent = document.createElement('div');
         allocationContent.className = 'cbi-allocation-content';
         treasuryLog.className = 'cbi-allocation-log';
-        allocationContent.appendChild(transferButton);
         allocationContent.appendChild(treasuryLog);
         allocationFold.appendChild(allocationSummary);
         allocationFold.appendChild(allocationContent);

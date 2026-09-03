@@ -54,7 +54,7 @@ test('reality wallet merges allowance and wishes into reimbursement', () => {
   assert.doesNotMatch(cbiWallet, /closest\('input,textarea,select,button,a,summary/);
   assert.match(cbiWallet, /event\.preventDefault\(\)/);
   assert.match(cbiWallet, /\}, \{ passive: false \}\);/);
-  assert.match(wallet, /cbi-wallet\.js\?v=20260903-shop-structure1/);
+  assert.match(wallet, /cbi-wallet\.js\?v=20260903-allocation-record1/);
   assert.match(cbiShop, /wallet\.html#reimbursement/);
   assert.match(cbiShop, /bindTabSwipe/);
   assert.doesNotMatch(cbiWallet, /案件进度已移至/);
@@ -64,9 +64,13 @@ test('reality wallet merges allowance and wishes into reimbursement', () => {
   assert.match(cbiWallet, /已划自由额度 ¥/);
   assert.match(cbiWallet, /ALLOCATION_FOLD_KEY/);
   assert.match(cbiWallet, /allocationHistoryFold/);
+  assert.match(cbiWallet, /额度划拨记录/);
   assert.match(cbiWallet, /entry\.type === 'allocation'/);
   assert.doesNotMatch(cbiWallet, /allocationContent\.appendChild\(charFunds\)/);
-  assert.match(cbiWallet, /transfer\.textContent = '＋ 划拨／收回'/);
+  assert.doesNotMatch(cbiWallet, /allocationContent\.appendChild\(transferButton\)/);
+  assert.match(cbiWallet, /transfer\.textContent = '划拨自由额度'/);
+  assert.match(wallet, /id="transferReason"/);
+  assert.match(cbiWallet, /allocateAllowance\(load\(\), characterId, amount, walletDb\(\), new Date\(\), reason\)/);
   assert.doesNotMatch(cbiWallet, /cbi-reimbursement-divider/);
   assert.doesNotMatch(cbiWallet, /公共额度需要由你同意报销/);
   assert.match(cbiWallet, /#periodBanner \.period-name\{color:#B08A5A\}/);
@@ -86,6 +90,6 @@ test('Rewards dynamics replaces only the obsolete notebook entry', () => {
 test('every page that writes CBI data loads the current schema cache version', () => {
   for (const page of ['cbi.html', 'daily.html', 'schedule.html', 'wallet.html', 'shop.html', 'dynamics.html']) {
     const html = fs.readFileSync(page, 'utf8');
-    assert.match(html, /cbi-data\.js\?v=20260902-balance1/, page);
+    assert.match(html, /cbi-data\.js\?v=20260903-allocation-reason1/, page);
   }
 });

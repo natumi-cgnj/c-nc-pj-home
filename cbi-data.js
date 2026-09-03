@@ -2,7 +2,7 @@
   'use strict';
 
   var STORAGE_KEY = 'cbi_db';
-  var SCHEMA_VERSION = 8;
+  var SCHEMA_VERSION = 9;
   var CANON_VERSION = 2;
   var TIMELINE_VERSION = 1;
   var CBI_CHARACTERS = ['jane', 'cho', 'rigsby', 'lisbon', 'vanpelt'];
@@ -712,13 +712,23 @@
 
   function normalizeCaseFundLog(item) {
     item = item && typeof item === 'object' ? item : {};
+    var date = text(item.date) || workDayKey();
+    var type = ['allocation', 'investigation', 'wish', 'autonomous', 'manual'].indexOf(item.type) >= 0 ? item.type : 'manual';
+    var characterId = CBI_CHARACTERS.indexOf(item.characterId) >= 0 ? item.characterId : '';
+    var reason = text(item.reason).trim();
+    var content = text(item.content);
+    if (type === 'allocation' && characterId === 'jane' && date === '2026-08-24' && /^指定调查经费\s*[¥￥]1200$/.test(content)) {
+      reason = 'Boss非常偏心';
+      content = '因Boss非常偏心，划拨额度￥1200';
+    }
     return {
       id: text(item.id) || createId('fund_log'),
-      date: text(item.date) || workDayKey(),
-      type: ['allocation', 'investigation', 'wish', 'autonomous', 'manual'].indexOf(item.type) >= 0 ? item.type : 'manual',
-      characterId: CBI_CHARACTERS.indexOf(item.characterId) >= 0 ? item.characterId : '',
+      date: date,
+      type: type,
+      characterId: characterId,
       caseId: text(item.caseId),
-      content: text(item.content),
+      reason: reason,
+      content: content,
       createdAt: text(item.createdAt) || new Date().toISOString()
     };
   }
@@ -1263,6 +1273,7 @@
       type: options.type || 'manual',
       characterId: options.characterId,
       caseId: options.caseId,
+      reason: options.reason,
       content: options.content,
       createdAt: options.createdAt
     });
@@ -1296,9 +1307,10 @@
     return { db: db, purchases: purchases };
   }
 
-  function allocateAllowance(value, characterId, amount, walletValue, dateValue) {
+  function allocateAllowance(value, characterId, amount, walletValue, dateValue, reasonValue) {
     var db = normalize(value);
     var normalizedAmount = Math.floor(number(amount, 0));
+    var allocationReason = text(reasonValue).trim();
     if (CBI_CHARACTERS.indexOf(characterId) < 0 || !normalizedAmount) {
       return { db: db, allocation: null, reason: 'invalid_allocation' };
     }
@@ -1311,7 +1323,8 @@
         date: workDayKey(dateValue),
         type: 'allocation',
         characterId: characterId,
-        content: '收回自由额度 ¥' + reclaimed
+        reason: allocationReason,
+        content: allocationReason ? '因' + allocationReason + '，收回额度￥' + reclaimed : '收回自由额度 ¥' + reclaimed
       });
       return {
         db: reclaimedLog.db,
@@ -1329,7 +1342,8 @@
       date: workDayKey(dateValue),
       type: 'allocation',
       characterId: characterId,
-      content: '划拨自由额度 ¥' + normalizedAmount
+      reason: allocationReason,
+      content: allocationReason ? '因' + allocationReason + '，划拨额度￥' + normalizedAmount : '划拨自由额度 ¥' + normalizedAmount
     });
     var settled = settlePersonalWishes(logged.db, characterId, walletValue, dateValue);
     return {
@@ -1340,8 +1354,8 @@
     };
   }
 
-  function allocateCaseFund(value, characterId, amount, walletValue, dateValue) {
-    return allocateAllowance(value, characterId, amount, walletValue, dateValue);
+  function allocateCaseFund(value, characterId, amount, walletValue, dateValue, reasonValue) {
+    return allocateAllowance(value, characterId, amount, walletValue, dateValue, reasonValue);
   }
 
   var MAJOR_CASE_CONFIG = {

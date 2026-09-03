@@ -17,7 +17,7 @@ function load(initial = {}) {
   return { CBIData: window.CBIData, localStorage };
 }
 
-test('schema eight keeps legacy case records and adds the confirmed story timeline', () => {
+test('schema nine keeps legacy case records and adds the confirmed story timeline', () => {
   const legacy = {
     currentCaseId: 'case_1',
     cases: [{ id: 'case_1', title: '旧案', status: 'active', body: '原线索' }],
@@ -25,7 +25,7 @@ test('schema eight keeps legacy case records and adds the confirmed story timeli
   };
   const { CBIData } = load({ cbi_db: JSON.stringify(legacy) });
   const db = CBIData.load();
-  assert.equal(db.schemaVersion, 8);
+  assert.equal(db.schemaVersion, 9);
   assert.equal(db.canonVersion, 2);
   assert.equal(db.timelineVersion, 1);
   assert.equal(db.timeline.length, 7);
@@ -71,7 +71,7 @@ test('legacy shop items migrate into category projects without losing ownership'
   assert.deepEqual(Array.from(db.work.shop.projects[0].items[0].targetIds), ['cho']);
   assert.deepEqual(Array.from(db.work.shop.owned), ['old_rollbahn']);
   assert.equal(db.work.shop.purchaseLog[0].price, 80);
-  assert.equal(JSON.parse(localStorage.getItem('cbi_db')).schemaVersion, 8);
+  assert.equal(JSON.parse(localStorage.getItem('cbi_db')).schemaVersion, 9);
   assert.equal(JSON.parse(localStorage.getItem('cbi_db')).work.shop.projects[0].items[0].id, 'old_rollbahn');
 });
 

@@ -115,6 +115,32 @@ test('negative allocation reclaims personal allowance without going below zero',
   assert.equal(result.db.work.caseFund.logs[1].content, '收回自由额度 ¥60');
 });
 
+test('allocation reasons are recorded and Jane legacy funding gets the requested copy', () => {
+  const CBIData = loadData();
+  const wallet = {
+    categories: [{ id: 'living', name: '生活', dailyBudget: 2000, account: 'living', activeFrom: '2026-09-03' }],
+    records: [{ date: '2026-09-03', category: 'living', type: 'income', amount: 1 }],
+    charFunds: {}, outings: []
+  };
+  let db = CBIData.emptyDB();
+  let result = CBIData.allocateAllowance(db, 'jane', 1200, wallet, '2026-09-03', 'Boss非常偏心');
+  assert.equal(result.allocation.amount, 1200);
+  assert.equal(result.db.work.caseFund.logs[0].reason, 'Boss非常偏心');
+  assert.equal(result.db.work.caseFund.logs[0].content, '因Boss非常偏心，划拨额度￥1200');
+
+  db = CBIData.emptyDB();
+  db.work.caseFund.logs.push({
+    id: 'legacy_jane_allocation',
+    date: '2026-08-24',
+    type: 'allocation',
+    characterId: 'jane',
+    content: '指定调查经费 ¥1200'
+  });
+  const normalized = CBIData.normalize(db);
+  assert.equal(normalized.work.caseFund.logs[0].reason, 'Boss非常偏心');
+  assert.equal(normalized.work.caseFund.logs[0].content, '因Boss非常偏心，划拨额度￥1200');
+});
+
 test('wallet page exposes split pools, full history and pending expenses', () => {
   const html = fs.readFileSync('wallet.html', 'utf8');
   assert.match(html, /account-ledger-grid/);
