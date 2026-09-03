@@ -12,6 +12,7 @@ source += `\n;globalThis.__testApi={
   normalizeTechoData,clampCols,openRefDetail,toggleRefItemMode,renderCatalogList,
   renderRefList,reorderRefProjects,openEditRef,saveRef,pickRefColor,
   assignRefItemToCatalog,openCatalogDetail,toggleCollect,openCatRecord,saveCatRecord,
+  toggleCatRecordMonthOnly,formatCatRecordDate,
   openCatalogItemDetail,toggleCatRecordProcess,toggleCatRecordStatus,deleteCatRecord,
   moveRefItem,openEditRefItemById,saveRefItem,setRefSectionDraftCount,
   moveRefSectionDraft,deleteRefGridItem,openRefSectionQuick,saveRefSectionQuick,
@@ -147,6 +148,8 @@ api.setDb(structuredClone(fixture));
 api.normalizeTechoData();
 
 assert.match(html, /class="tab-bar"[\s\S]*?>ITEM<\/button>[\s\S]*?>LIST<\/button>[\s\S]*?>REF<\/button>/, 'Techo exposes ITEM, LIST, and REF as parallel bottom tabs');
+assert.match(html, /\.tab-bar button\{[^}]*font-family:inherit;[^}]*font-size:10px;[^}]*letter-spacing:\.25px/, 'Techo bottom tabs use the same compact typography as the CBI wallet');
+assert.doesNotMatch(html, /font:10px\/1 inherit/, 'Techo does not fall back to the browser button font');
 assert.doesNotMatch(html, /id="refAllocationPool"|FROM REF · 待分配/, 'List has no intermediate Ref allocation pool');
 api.renderCatalogList();
 assert.match(document.getElementById('fundPool').innerHTML, /Fund Pool/, 'List keeps the monetary Fund Pool summary');
@@ -167,20 +170,31 @@ assert.equal(state.catalogs[0].sections[0].count, 1, 'directly added item joins 
 
 api.openCatalogDetail('list1');
 assert.match(document.getElementById('catalogDetailGrid').innerHTML, /grid-template-columns:repeat\(6,1fr\)/, 'List renders a six-column section grid');
+assert.match(html, /\.list-section-line\{[^}]*transform:translateY\(-6px\)/, 'List section rules align with the section title rather than the progress row');
+assert.match(document.getElementById('catalogDetailGrid').innerHTML, /Loft M/, 'List renders a name written by the user');
+state.catalogs[0].items[0].name = 'Title 1';
+api.openCatalogDetail('list1');
+assert.doesNotMatch(document.getElementById('catalogDetailGrid').innerHTML, /Title 1/, 'List hides generated placeholder names');
+state.catalogs[0].items[0].name = 'Loft M';
+api.openCatalogDetail('list1');
 api.openCatRecord(0);
 document.getElementById('catRecordItemName').value = 'Loft M';
 document.getElementById('catRecordDate').value = '2026-09-03';
+api.toggleCatRecordMonthOnly();
+assert.equal(document.getElementById('catRecordMonthOnlyFlag').value, '1', 'List acquisition can switch to approximate-month mode');
 document.getElementById('catRecordNote').value = '购入';
 document.getElementById('catRecordCost').value = '1200';
 api.saveCatRecord();
 state = api.getDb();
 assert.equal(state.catalogs[0].items[0].records.length, 1, 'List item stores a Food-style merchandise record');
+assert.equal(state.catalogs[0].items[0].records[0].date, '2026-09', 'approximate-month mode stores year and month without inventing a day');
 assert.equal(state.items.length, 1, 'acquisition creates an Items entry');
 assert.equal(state.items[0].status, 'pending', 'new acquisition waits for assignment');
 assert.equal(state.items[0].cost, 1200, 'acquisition cost flows into the monetary Item record');
 assert.equal(state.items[0].catalogRef.catalogItemId, state.catalogs[0].items[0].id, 'Items entry keeps a stable List item id');
 assert.equal(state.items[0].catalogRef.recordId, state.catalogs[0].items[0].records[0].id, 'Items entry keeps a stable acquisition record id');
 assert.match(document.getElementById('catalogItemDetailContent').innerHTML, /Acquisition records \(1\)/, 'List item detail renders acquisition history');
+assert.match(document.getElementById('catalogItemDetailContent').innerHTML, /≈ 2026-09/, 'List item detail marks an approximate purchase month');
 api.renderCatalogList();
 assert.match(document.getElementById('fundPool').innerHTML, /¥1,200/, 'Fund Pool totals pending acquisition costs');
 api.openCatalogItemDetail(0);

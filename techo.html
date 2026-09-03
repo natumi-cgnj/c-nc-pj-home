@@ -21,7 +21,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 /* Views */
 .view{display:none}.view.active{display:block}
 .tab-bar{position:fixed;bottom:0;left:0;right:0;display:flex;background:rgba(255,255,255,.94);border-top:1px solid rgba(0,0,0,.06);z-index:80;padding:0 12px env(safe-area-inset-bottom,0);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
-.tab-bar button{position:relative;flex:1;padding:15px 0 13px;background:none;border:0;color:#bbb;font:10px/1 inherit;letter-spacing:.65px;cursor:pointer}
+.tab-bar button{position:relative;flex:1;padding:15px 0 13px;background:none;border:0;font-family:inherit;font-size:10px;line-height:1;letter-spacing:.25px;color:#bbb;cursor:pointer}
 .tab-bar button.active{color:#4e4a44}
 .tab-bar button.active::before{content:"";position:absolute;left:36%;right:36%;top:0;height:1px;background:#9c907c}
 
@@ -145,7 +145,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .cat-section-div .section-label-editable:hover{color:#888;border-bottom-color:#bbb}
 .detail-add-row{display:flex;gap:8px;padding:12px 20px;margin-top:8px}
 .list-section-divider{display:flex;align-items:center;gap:10px;padding:10px 20px;background:#fafafa;border-bottom:1px solid #f0f0f0}
-.list-section-line{flex:1;height:1px;background:#e0e0e0}
+.list-section-line{flex:1;height:1px;background:#e0e0e0;transform:translateY(-6px)}
 .list-section-center{display:flex;flex-direction:column;align-items:center;gap:1px;flex-shrink:0}
 .list-section-label{font-size:11px;color:#999;font-weight:500;letter-spacing:.3px;cursor:text;border-bottom:1px dashed transparent}
 .list-section-label:hover{color:#8B6914;border-bottom-color:#D8C18B}
@@ -580,7 +580,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <label>Item name</label>
   <input type="text" id="catRecordItemName">
   <label>Date</label>
-  <input type="date" id="catRecordDate">
+  <div style="display:flex;gap:6px;align-items:center">
+    <input type="date" id="catRecordDate" style="flex:1">
+    <button class="btn-s" type="button" id="catRecordMonthOnlyBtn" onclick="toggleCatRecordMonthOnly()" title="Month only" style="white-space:nowrap;font-size:10px">≈ Month</button>
+  </div>
+  <input type="hidden" id="catRecordMonthOnlyFlag" value="0">
   <label>Notes (optional)</label>
   <input type="text" id="catRecordNote" maxlength="120">
   <label>Cost</label>
@@ -995,10 +999,10 @@ function openCatalogDetail(id,options){
   if(restoring)restoreDetailScroll(target);
 }
 function renderCatItem(item,idx){
-  const records=Array.isArray(item.records)?item.records:[],recorded=records.length>0,completed=isCatalogItemCompleted(item),hasKeeping=records.some(record=>!record.status||record.status==='keeping'),hasGone=records.some(record=>record.status==='sold'||record.status==='gifted');
+  const records=Array.isArray(item.records)?item.records:[],recorded=records.length>0,completed=isCatalogItemCompleted(item),hasKeeping=records.some(record=>!record.status||record.status==='keeping'),hasGone=records.some(record=>record.status==='sold'||record.status==='gifted'),hasCustomName=!isGenericCatalogItemName(item.name);
   const countBadge=records.length>1?`<span class="item-count-badge">×${records.length}</span>`:'';
   const statusDot=recorded?`<span class="item-status-dot ${hasKeeping&&hasGone?'mixed':hasGone?'sold':'keeping'}"></span>`:'';
-  return`<div class="list-item-cell${recorded?' recorded':''}${completed?' collected':''}${item.img?' has-img':''}" data-index="${idx}" onclick="handleCatalogItemClick(${idx})">${item.img?`<img class="item-img" src="${item.img}" alt="">`:''}<span class="item-label">${esc(item.name||('Item '+(idx+1)))}</span>${completed?'<span class="item-check">✓</span>':''}${countBadge}${statusDot}</div>`;
+  return`<div class="list-item-cell${recorded?' recorded':''}${completed?' collected':''}${item.img?' has-img':''}" data-index="${idx}" onclick="handleCatalogItemClick(${idx})">${item.img?`<img class="item-img" src="${item.img}" alt="">`:''}${hasCustomName?`<span class="item-label">${esc(item.name)}</span>`:''}${completed?'<span class="item-check">✓</span>':''}${countBadge}${statusDot}</div>`;
 }
 function isGenericCatalogItemName(name){return !String(name||'').trim()||/^Title \d+$/.test(String(name||'').trim());}
 function isBlankCatalogItem(item){
@@ -1031,15 +1035,23 @@ function openCatRecord(idx){
   const c=db.catalogs.find(x=>x.id===curCatalogId),item=c&&c.items[idx];if(!item)return;curCatItemIdx=idx;
   document.getElementById('catRecordItemName').value=isGenericCatalogItemName(item.name)?'':item.name||'';
   document.getElementById('catRecordDate').value=new Date().toISOString().slice(0,10);
+  setCatRecordMonthOnly(false);
   document.getElementById('catRecordNote').value='';document.getElementById('catRecordCost').value=item.cost||'';
   document.getElementById('catRecordImgInput').value='';const preview=document.getElementById('catRecordImgPreview');preview.removeAttribute('src');preview.style.display='none';openModal('catRecordModal');
 }
+function setCatRecordMonthOnly(active){
+  const flag=document.getElementById('catRecordMonthOnlyFlag'),btn=document.getElementById('catRecordMonthOnlyBtn');
+  flag.value=active?'1':'0';btn.style.borderColor=active?'#E8B96A':'#ddd';btn.style.color=active?'#B9872F':'#999';
+}
+function toggleCatRecordMonthOnly(){setCatRecordMonthOnly(document.getElementById('catRecordMonthOnlyFlag').value!=='1');}
+function formatCatRecordDate(date){const value=String(date||'');return /^\d{4}-\d{2}$/.test(value)?'≈ '+value:value;}
 function saveCatRecord(){
   if(!imageReady('catRecordImgPreview'))return;
   const c=db.catalogs.find(x=>x.id===curCatalogId),item=c&&c.items[curCatItemIdx];if(!item)return;
   const name=document.getElementById('catRecordItemName').value.trim();if(name)item.name=name;
   const preview=document.getElementById('catRecordImgPreview'),img=preview.style.display!=='none'?preview.src:'';
-  createCatRecord(c,item,curCatItemIdx,{date:document.getElementById('catRecordDate').value,note:document.getElementById('catRecordNote').value.trim(),cost:document.getElementById('catRecordCost').value,img});
+  let date=document.getElementById('catRecordDate').value||new Date().toISOString().slice(0,10);if(document.getElementById('catRecordMonthOnlyFlag').value==='1')date=date.slice(0,7);
+  createCatRecord(c,item,curCatItemIdx,{date,note:document.getElementById('catRecordNote').value.trim(),cost:document.getElementById('catRecordCost').value,img});
   save();closeModal('catRecordModal');openCatalogItemDetail(curCatItemIdx);
 }
 function openCatalogItemDetail(idx){
@@ -1047,7 +1059,7 @@ function openCatalogItemDetail(idx){
   document.getElementById('catalogItemDetailTitle').textContent=item.name||('Item '+(idx+1));
   let html='<div class="list-item-card">';if(item.img)html+=`<div class="list-item-media"><img src="${item.img}" alt=""></div>`;html+='<div class="list-item-body"><div class="list-item-name">'+esc(item.name||('Item '+(idx+1)))+'</div>';if(item.note)html+=`<div class="list-item-note">${esc(item.note)}</div>`;html+='</div></div>';
   const records=Array.isArray(item.records)?item.records:[];
-  if(records.length){html+=`<div class="history-list"><div class="history-title">Acquisition records (${records.length})</div>`;records.forEach((record,recordIdx)=>{const statusClass=record.status==='sold'?'sold':record.status==='gifted'?'gifted':'keeping',statusLabel=record.status==='sold'?'Sold':record.status==='gifted'?'Gifted':'Keeping',processClass=(record.processStatus||'pending')==='processed'?'processed':'pending',processLabel=processClass==='processed'?'Processed':'Pending';html+=`<div class="history-item">${record.img?`<img class="history-thumb" src="${record.img}" alt="">`:''}<span class="history-date">${esc(record.date||'')}</span><span class="history-note${record.note?'':' is-empty'}">${record.note?esc(record.note):'No notes'}</span><button class="history-process ${processClass}" onclick="toggleCatRecordProcess(${recordIdx})">${processLabel}</button>${processClass==='processed'?`<button class="history-status ${statusClass}" onclick="toggleCatRecordStatus(${recordIdx})">${statusLabel}</button>`:''}${record.cost?`<span class="cost-tag">¥${Number(record.cost).toLocaleString()}</span>`:''}<button class="history-delete" onclick="deleteCatRecord(${recordIdx})">×</button></div>`;});html+='</div>';const total=records.reduce((sum,record)=>sum+(Number(record.cost)||0),0);if(total)html+=`<div class="cost-summary">Total spent: ¥${total.toLocaleString()}</div>`;}
+  if(records.length){html+=`<div class="history-list"><div class="history-title">Acquisition records (${records.length})</div>`;records.forEach((record,recordIdx)=>{const statusClass=record.status==='sold'?'sold':record.status==='gifted'?'gifted':'keeping',statusLabel=record.status==='sold'?'Sold':record.status==='gifted'?'Gifted':'Keeping',processClass=(record.processStatus||'pending')==='processed'?'processed':'pending',processLabel=processClass==='processed'?'Processed':'Pending';html+=`<div class="history-item">${record.img?`<img class="history-thumb" src="${record.img}" alt="">`:''}<span class="history-date">${esc(formatCatRecordDate(record.date))}</span><span class="history-note${record.note?'':' is-empty'}">${record.note?esc(record.note):'No notes'}</span><button class="history-process ${processClass}" onclick="toggleCatRecordProcess(${recordIdx})">${processLabel}</button>${processClass==='processed'?`<button class="history-status ${statusClass}" onclick="toggleCatRecordStatus(${recordIdx})">${statusLabel}</button>`:''}${record.cost?`<span class="cost-tag">¥${Number(record.cost).toLocaleString()}</span>`:''}<button class="history-delete" onclick="deleteCatRecord(${recordIdx})">×</button></div>`;});html+='</div>';const total=records.reduce((sum,record)=>sum+(Number(record.cost)||0),0);if(total)html+=`<div class="cost-summary">Total spent: ¥${total.toLocaleString()}</div>`;}
   html+=`<button class="history-add-btn" onclick="openCatRecord(${idx})">+ ${records.length?'Record another':'Record acquisition'}</button>`;
   document.getElementById('catalogItemDetailContent').innerHTML=html;showView('viewCatalogItemDetail');
 }
