@@ -11,6 +11,8 @@ const shop = fs.readFileSync('shop.html', 'utf8');
 const wallet = fs.readFileSync('wallet.html', 'utf8');
 
 test('shop keeps the item-grid model inside a three-tier Reward House', () => {
+  const projectEditor = cbiShop.slice(cbiShop.indexOf('function projectModalMarkup'), cbiShop.indexOf('function itemModalMarkup'));
+  const itemEditor = cbiShop.slice(cbiShop.indexOf('function itemModalMarkup'), cbiShop.indexOf('function detailModalMarkup'));
   assert.match(cbiData, /projects:\s*\[\]/);
   assert.match(cbiData, /function normalizeShopProject\(/);
   assert.match(cbiData, /function normalizeShopProjectItem\(/);
@@ -29,12 +31,20 @@ test('shop keeps the item-grid model inside a three-tier Reward House', () => {
   assert.match(cbiShop, /section-grid/);
   assert.match(cbiShop, /projectIconInput/);
   assert.match(cbiShop, /项目细分/);
-  assert.match(cbiShop, /适合谁/);
+  assert.doesNotMatch(projectEditor, /适合谁/);
+  assert.match(itemEditor, /适合谁/);
+  assert.match(cbiShop, /PERSON_PRESETS/);
+  assert.match(cbiShop, /targetIds: itemTargetDraft \? \[itemTargetDraft\] : \[\]/);
+  assert.match(cbiShop, /--item-owner-color/);
+  assert.match(cbiShop, /item-cell\.collected[^}]*border-color:var\(--item-owner-color/);
+  assert.match(cbiShop, /data-action="toggle-project"/);
+  assert.match(cbiShop, /projectCollapseKey/);
+  assert.match(cbiShop, /saveCollapsed\(\)/);
   assert.match(cbiShop, /add-item/);
   assert.match(cbiShop, /source:\s*'entertainment_balance'/);
   assert.doesNotMatch(cbiShop, /currentProjectId/);
   assert.doesNotMatch(cbiShop, /work\.salary\s*[-+]=/);
-  assert.match(shop, /cbi-shop\.js\?v=20260903-reward-house1/);
+  assert.match(shop, /cbi-shop\.js\?v=20260903-item-owners1/);
 });
 
 test('reality wallet merges allowance and wishes into reimbursement', () => {
