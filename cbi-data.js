@@ -1170,9 +1170,11 @@
     Object.keys(byDate).forEach(function (dateKey) {
       categories.forEach(function (category, index) {
         if (walletCategoryAccount(category, index, categories.length) !== account) return;
-        if (text(category.activeFrom) && dateKey < text(category.activeFrom)) return;
         var current = byDate[dateKey][category.id] || { spent: 0, earned: 0 };
-        total += Math.max(0, number(category.dailyBudget, 0)) - current.spent + current.earned;
+        var budget = text(category.activeFrom) && dateKey < text(category.activeFrom)
+          ? 0
+          : Math.max(0, number(category.dailyBudget, 0));
+        total += budget - current.spent + current.earned;
       });
     });
     return Math.floor(total);

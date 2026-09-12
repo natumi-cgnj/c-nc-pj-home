@@ -336,6 +336,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <div class="modal-bg" id="recordModal">
   <div class="modal">
     <h2>记一笔</h2>
+    <label>日期</label>
+    <input type="date" id="recordDate">
     <label>类型</label>
     <div class="tag-group" id="recordTypeGroup">
       <button class="tag-opt selected" data-type="expense" data-value="expense" onclick="pickTag(this)">支出</button>
@@ -427,6 +429,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <div class="modal-bg" id="pendingModal">
   <div class="modal">
     <h2>先挂在这里</h2>
+    <label>日期</label>
+    <input type="date" id="pendingDate">
     <label>金额（日元）</label>
     <input type="number" id="pendingAmount" placeholder="只记录，不影响余额" min="1" step="1">
     <label>备注（选填）</label>
@@ -470,8 +474,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 <script src="world-context.js?v=20260824-cbi-work1"></script>
 <script src="cloud-sync.js?v=20260824-cbi-work1"></script>
-<script src="cbi-data.js?v=20260903-allocation-reason1"></script>
-<script src="character-runtime.js?v=20260824-wallet-fix1"></script>
+<script src="cbi-data.js?v=20260912-backdated-record1"></script>
+<script src="character-runtime.js?v=20260912-backdated-record1"></script>
 <script src="cbi-wallet.js?v=20260903-allocation-record1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
@@ -825,11 +829,12 @@ function walletAccountSurplus(value,account){
   var dates=Object.keys(byDate).sort();
   dates.forEach(function(date){
     (Array.isArray(wallet.categories)?wallet.categories:[]).forEach(function(cat){
-      if(categoryAccount(cat)!==account||!categoryActiveOn(cat,date))return;
+      if(categoryAccount(cat)!==account)return;
       var rec=byDate[date]&&byDate[date][cat.id];
       var spent=rec?rec.spent:0;
       var earned=rec?rec.earned:0;
-      total+=(Math.max(0,Number(cat.dailyBudget)||0)-spent+earned);
+      var budget=categoryActiveOn(cat,date)?Math.max(0,Number(cat.dailyBudget)||0):0;
+      total+=(budget-spent+earned);
     });
   });
   return total;
@@ -911,6 +916,9 @@ function openRecordModal(){
     }).join('');
     return buttons?'<span style="width:100%;font-size:9px;color:#bbb;margin-top:4px">'+(account==='living'?'生活账户':'娱乐账户')+'</span>'+buttons:'';
   }).join('');
+  var recordDate=document.getElementById('recordDate');
+  recordDate.value=todayStr();
+  recordDate.max=todayStr();
   document.getElementById('recordAmount').value='';
   document.getElementById('recordNote').value='';
   openModal('recordModal');
@@ -918,12 +926,14 @@ function openRecordModal(){
 function saveRecord(){
   var amount=parseInt(document.getElementById('recordAmount').value)||0;
   if(amount<=0){showToast('请输入金额');return;}
+  var date=document.getElementById('recordDate').value;
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||date>todayStr()){showToast('请选择有效日期');return;}
   var type=getTagValue('recordTypeGroup');
   var category=getTagValue('recordCategoryGroup');
   if(!category){showToast('请选择分类');return;}
   db.records.push({
     id:gid(),
-    date:todayStr(),
+    date:date,
     type:type,
     category:category,
     amount:amount,
@@ -1018,6 +1028,9 @@ function renderPendingExpenses(){
   }).join(''):'<div style="text-align:center;color:#ccc;font-size:11px;padding:22px">这里现在是空的</div>';
 }
 function openPendingModal(){
+  var pendingDate=document.getElementById('pendingDate');
+  pendingDate.value=todayStr();
+  pendingDate.max=todayStr();
   document.getElementById('pendingAmount').value='';
   document.getElementById('pendingNote').value='';
   openModal('pendingModal');
@@ -1025,7 +1038,9 @@ function openPendingModal(){
 function savePendingExpense(){
   var amount=Math.floor(Number(document.getElementById('pendingAmount').value)||0);
   if(amount<=0){showToast('请输入金额');return;}
-  db.pendingExpenses.push({id:gid(),amount:amount,note:document.getElementById('pendingNote').value.trim(),date:todayStr(),createdAt:new Date().toISOString()});
+  var date=document.getElementById('pendingDate').value;
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||date>todayStr()){showToast('请选择有效日期');return;}
+  db.pendingExpenses.push({id:gid(),amount:amount,note:document.getElementById('pendingNote').value.trim(),date:date,createdAt:new Date().toISOString()});
   save();closeModal('pendingModal');renderLedger();showToast('已挂账，不影响余额');
 }
 function openSettlePendingModal(id){

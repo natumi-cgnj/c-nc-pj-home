@@ -111,6 +111,13 @@ test('Rewards dynamics replaces only the obsolete notebook entry', () => {
 test('every page that writes CBI data loads the current schema cache version', () => {
   for (const page of ['cbi.html', 'daily.html', 'schedule.html', 'wallet.html', 'shop.html', 'dynamics.html']) {
     const html = fs.readFileSync(page, 'utf8');
-    assert.match(html, /cbi-data\.js\?v=20260903-allocation-reason1/, page);
+    assert.match(html, /cbi-data\.js\?v=20260912-backdated-record1/, page);
+  }
+});
+
+test('every page that loads the wallet runtime uses the backdated-record cache version', () => {
+  for (const page of ['index.html', 'cbi.html', 'schedule.html', 'wallet.html']) {
+    const html = fs.readFileSync(page, 'utf8');
+    assert.match(html, /character-runtime\.js\?v=20260912-backdated-record1/, page);
   }
 });

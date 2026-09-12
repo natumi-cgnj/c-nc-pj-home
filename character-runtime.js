@@ -100,7 +100,10 @@
     Object.keys(byDate).forEach(function (date) {
       categories.forEach(function (category) {
         const current = byDate[date][category.id] || { spent: 0, earned: 0 };
-        total += Math.max(0, walletNumber(category.dailyBudget)) - current.spent + current.earned;
+        const budget = category.activeFrom && date < String(category.activeFrom)
+          ? 0
+          : Math.max(0, walletNumber(category.dailyBudget));
+        total += budget - current.spent + current.earned;
       });
     });
     return total;

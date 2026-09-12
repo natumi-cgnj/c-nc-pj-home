@@ -176,6 +176,68 @@ test('wallet page exposes split pools, full history and pending expenses', () =>
   assert.match(html, /addEventListener\('dblclick'/);
 });
 
+test('new ledger records can be backdated without entering today totals', () => {
+  const CBIData = loadData();
+  const html = fs.readFileSync('wallet.html', 'utf8');
+  const openStart = html.indexOf('function openRecordModal(){');
+  const saveStart = html.indexOf('function saveRecord(){', openStart);
+  const saveEnd = html.indexOf('\nfunction deleteRecord', saveStart);
+  const openRecord = html.slice(openStart, saveStart);
+  const saveRecord = html.slice(saveStart, saveEnd);
+
+  assert.match(html, /<input type="date" id="recordDate">/);
+  assert.match(openRecord, /recordDate\.value=todayStr\(\)/);
+  assert.match(openRecord, /recordDate\.max=todayStr\(\)/);
+  assert.match(saveRecord, /var date=document\.getElementById\('recordDate'\)\.value/);
+  assert.match(saveRecord, /date:date/);
+  assert.doesNotMatch(saveRecord, /date:todayStr\(\)/);
+
+  const wallet = {
+    categories: [{ id: 'living', dailyBudget: 1000, account: 'living', activeFrom: '2026-09-12' }],
+    records: [{ date: '2026-09-12', category: 'living', type: 'expense', amount: 200 }]
+  };
+  const beforeBackfill = CBIData.walletAccountSurplus(wallet, 'living');
+  wallet.records.push({ date: '2026-09-11', category: 'living', type: 'expense', amount: 400 });
+  assert.equal(CBIData.walletAccountSurplus(wallet, 'living'), beforeBackfill - 400);
+
+  const todayStart = html.indexOf('function getCategoryToday(catId){');
+  const todayEnd = html.indexOf('\nfunction categoryAccount', todayStart);
+  const surplusStart = todayEnd + 1;
+  const surplusEnd = html.indexOf('\nfunction walletTotalSurplus', surplusStart);
+  const walletContext = vm.createContext({ db: wallet, todayStr: () => '2026-09-12', Array, Object, String, Number, Math });
+  vm.runInContext(html.slice(todayStart, todayEnd), walletContext);
+  vm.runInContext(html.slice(surplusStart, surplusEnd), walletContext);
+
+  assert.equal(walletContext.getCategoryToday('living').spent, 200);
+  assert.equal(walletContext.walletAccountSurplus(wallet, 'living'), beforeBackfill - 400);
+});
+
+test('pending expenses keep a selectable date without affecting either balance', () => {
+  const CBIData = loadData();
+  const html = fs.readFileSync('wallet.html', 'utf8');
+  const openStart = html.indexOf('function openPendingModal(){');
+  const saveStart = html.indexOf('function savePendingExpense(){', openStart);
+  const saveEnd = html.indexOf('\nfunction openSettlePendingModal', saveStart);
+  const openPending = html.slice(openStart, saveStart);
+  const savePending = html.slice(saveStart, saveEnd);
+
+  assert.match(html, /<input type="date" id="pendingDate">/);
+  assert.match(openPending, /pendingDate\.value=todayStr\(\)/);
+  assert.match(openPending, /pendingDate\.max=todayStr\(\)/);
+  assert.match(savePending, /var date=document\.getElementById\('pendingDate'\)\.value/);
+  assert.match(savePending, /date:date/);
+  assert.doesNotMatch(savePending, /date:todayStr\(\)/);
+
+  const wallet = {
+    categories: [{ id: 'living', dailyBudget: 1000, account: 'living', activeFrom: '2026-09-12' }],
+    records: [{ date: '2026-09-12', category: 'living', type: 'expense', amount: 200 }],
+    pendingExpenses: []
+  };
+  const balanceBefore = CBIData.walletAccountSurplus(wallet, 'living');
+  wallet.pendingExpenses.push({ date: '2026-09-11', amount: 400, note: '之后再挪' });
+  assert.equal(CBIData.walletAccountSurplus(wallet, 'living'), balanceBefore);
+});
+
 test('monthly plans use the real month length and inherit the latest budget', () => {
   const html = fs.readFileSync('wallet.html', 'utf8');
   const start = html.indexOf('function currentBudgetMonth(');
