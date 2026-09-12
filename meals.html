@@ -18,6 +18,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .top-bar h1{font-size:15px;font-weight:600;letter-spacing:2px;color:#8B6914}
 .back-btn{font-size:13px;color:#999;text-decoration:none;cursor:pointer;background:none;border:none;font-family:inherit;padding:4px}
 .world-label{min-width:72px;text-align:right;font-size:9px;color:#bbb;letter-spacing:.5px}
+.view{display:none}
+.view.active{display:block}
+.tab-bar{position:fixed;bottom:0;left:0;right:0;display:flex;background:rgba(255,255,255,.94);border-top:1px solid rgba(0,0,0,.06);z-index:80;padding:0 12px env(safe-area-inset-bottom,0);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
+.tab-bar button{position:relative;flex:1;padding:15px 0 13px;background:none;border:0;font-family:inherit;font-size:10px;line-height:1;letter-spacing:.25px;color:#bbb;cursor:pointer}
+.tab-bar button.active{color:#8B6914}
+.tab-bar button.active::before{content:"";position:absolute;left:36%;right:36%;top:0;height:1px;background:#C69A42}
 .mini-cal{padding:12px 16px 8px;background:#fff;border-bottom:1px solid #f0f0f0}
 .mini-cal-row{display:flex;gap:6px}
 .mini-cal-day{flex:1;min-width:0;text-align:center;padding:6px 2px 8px;border-radius:10px;cursor:pointer;transition:background .15s}
@@ -72,6 +78,41 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .project-row-progress{flex:1;max-width:120px;height:3px;background:#f0f0f0;border-radius:2px;overflow:hidden}
 .project-row-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,#E8B96A,#D4A24A);transition:width .3s}
 .project-row-pct{font-size:10px;color:#ccc;font-variant-numeric:tabular-nums;min-width:28px;text-align:right}
+.calorie-summary{padding:24px 20px 20px;background:#fff;border-bottom:1px solid #eee;text-align:center}
+.calorie-summary-label{font-size:10px;color:#bbb;letter-spacing:.8px;margin-bottom:5px}
+.calorie-net{font-size:34px;line-height:1.15;font-weight:250;color:#333;font-variant-numeric:tabular-nums}
+.calorie-net small{font-size:11px;font-weight:400;color:#bbb;margin-left:4px}
+.calorie-flow{display:flex;justify-content:center;gap:22px;margin-top:8px;font-size:11px;color:#999;font-variant-numeric:tabular-nums}
+.calorie-flow b{font-weight:500;color:#555}
+.calorie-add{display:block;width:calc(100% - 40px);max-width:520px;margin:14px auto;padding:11px;border:1px dashed #d9d4ca;border-radius:9px;background:#fff;color:#9B7D41;font:500 12px/1 inherit;cursor:pointer}
+.calorie-fold{background:#fafafa;border:0;border-top:1px solid #eeeeec;border-bottom:1px solid #eeeeec}
+.calorie-fold summary{list-style:none;padding:11px 20px;font-size:10px;color:#999;letter-spacing:.45px;cursor:pointer}
+.calorie-fold summary::-webkit-details-marker{display:none}
+.calorie-count{color:#ccc;font-variant-numeric:tabular-nums}
+.calorie-row{display:flex;align-items:center;gap:8px;padding:10px 20px;background:#fff;border-top:1px solid #f1f1ef;font-size:12px}
+.calorie-date{font-size:9px;color:#bbb;flex-shrink:0;font-variant-numeric:tabular-nums}
+.calorie-kind{font-size:9px;padding:2px 5px;border-radius:4px;flex-shrink:0}
+.calorie-kind.intake{background:#E8B96A18;color:#A77A23}
+.calorie-kind.burn{background:#6B8FAF16;color:#66839D}
+.calorie-detail{flex:1;min-width:0;color:#555;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.calorie-amount{font-size:11px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.calorie-amount.intake{color:#A77A23}
+.calorie-amount.burn{color:#66839D}
+.calorie-delete{border:0;background:none;color:#d5d5d5;font-size:14px;padding:3px;cursor:pointer}
+.calorie-empty{padding:28px 20px;text-align:center;color:#ccc;font-size:11px;background:#fff}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.3);display:none;align-items:flex-end;justify-content:center;z-index:200}
+.modal-bg.show{display:flex}
+.modal{background:#fff;border-radius:16px 16px 0 0;width:100%;max-width:420px;max-height:85vh;overflow-y:auto;padding:20px;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+.modal h2{font-size:15px;font-weight:600;color:#333;margin-bottom:16px}
+.modal label{display:block;font-size:12px;color:#999;margin:12px 0 4px}
+.modal input{width:100%;padding:10px 12px;border:1px solid #e4e4e4;border-radius:8px;background:#fff;color:#333;font:14px/1.2 inherit;outline:none}
+.calorie-types{display:flex;gap:8px}
+.calorie-types button{flex:1;padding:9px;border:1px solid #e4e4e4;border-radius:8px;background:#fff;color:#999;font:12px/1 inherit;cursor:pointer}
+.calorie-types button.active{border-color:#D2B16F;background:#FFF9EC;color:#8B6914}
+.modal-actions{display:flex;gap:8px;margin-top:20px}
+.modal-actions button{flex:1;padding:10px;border:0;border-radius:8px;font:12px/1 inherit;cursor:pointer}
+.modal-cancel{background:#f5f5f5;color:#999}
+.modal-save{background:#C69A42;color:#fff}
 .world-empty{margin:8px 16px 0;padding:14px 16px;background:#fff;border:1px dashed #e5e0d5;border-radius:10px;color:#bbb;font-size:11px;line-height:1.65}
 .world-empty strong{display:block;color:#888;font-size:12px;font-weight:500;margin-bottom:2px}
 .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.7);color:#fff;font-size:11px;padding:8px 16px;border-radius:8px;display:none;z-index:300;white-space:nowrap}
@@ -79,19 +120,63 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 </head>
 <body>
 <div class="top-bar"><a class="back-btn" href="index.html?p=2">← Home</a><h1>KITCHEN</h1><span class="world-label" id="worldLabel"></span></div>
-<div id="miniCalArea"></div>
-<div id="diningInviteArea"></div>
-<div id="worldEmptyArea"></div>
-<div id="recipeShelf"></div>
+<div id="viewMeals" class="view active">
+  <div id="miniCalArea"></div>
+  <div id="diningInviteArea"></div>
+  <div id="worldEmptyArea"></div>
+  <div id="recipeShelf"></div>
+</div>
+<div id="viewBlank" class="view" aria-label="预留"></div>
+<div id="viewCalories" class="view">
+  <section class="calorie-summary">
+    <div class="calorie-summary-label">今日净摄入</div>
+    <div class="calorie-net"><span id="calorieNet">0</span><small>kcal</small></div>
+    <div class="calorie-flow"><span>摄入 <b id="calorieIntake">0</b></span><span>消耗 <b id="calorieBurn">0</b></span></div>
+  </section>
+  <button class="calorie-add" type="button" onclick="openCalorieModal()">＋ 记一笔</button>
+  <details class="calorie-fold" open>
+    <summary>热量记录 <span class="calorie-count" id="calorieCount"></span></summary>
+    <div id="calorieHistory"></div>
+  </details>
+</div>
+
+<div class="modal-bg" id="calorieModal" onclick="if(event.target===this)closeMealModal('calorieModal')">
+  <div class="modal">
+    <h2>记录热量</h2>
+    <label>日期</label>
+    <input type="date" id="calorieDate">
+    <label>类型</label>
+    <input type="hidden" id="calorieType" value="intake">
+    <div class="calorie-types" id="calorieTypeGroup">
+      <button type="button" class="active" data-value="intake" onclick="pickCalorieType(this)">吃了</button>
+      <button type="button" data-value="burn" onclick="pickCalorieType(this)">运动</button>
+    </div>
+    <label id="calorieDetailLabel">吃了什么</label>
+    <input type="text" id="calorieDetail">
+    <label>卡路里（kcal）</label>
+    <input type="number" id="calorieAmount" min="1" step="1">
+    <div class="modal-actions">
+      <button class="modal-cancel" type="button" onclick="closeMealModal('calorieModal')">取消</button>
+      <button class="modal-save" type="button" onclick="saveCalorieRecord()">保存</button>
+    </div>
+  </div>
+</div>
+
+<nav class="tab-bar" aria-label="饮食页面">
+  <button type="button" class="active" onclick="switchMealTab('viewMeals',this)">饮食</button>
+  <button type="button" aria-label="预留页面" onclick="switchMealTab('viewBlank',this)">···</button>
+  <button type="button" onclick="switchMealTab('viewCalories',this)">热量</button>
+</nav>
 <div class="toast" id="toast"></div>
 <script src="world-context.js?v=20260822-world2"></script>
-<script src="cloud-sync.js?v=20260822-meals2"></script>
+<script src="cloud-sync.js?v=20260912-calorie-log1"></script>
 <script>
 'use strict';
 if(window.__LIMINAL_REDIRECTING)throw new Error('Redirecting to cloud login');
 const WORLD_ID=window.WorldContext?WorldContext.getActiveWorldId():'liminal';
 const LOG_KEY='meal_log_db';
 const COMPANION_KEY='meal_companion_db';
+const CALORIE_KEY='calorie_log_db';
 const FOOD_SLOTS=['morning','day','evening','night'];
 const FOOD_SLOT_LABELS={morning:'朝',day:'昼',evening:'夕',night:'夜'};
 const WORLDS={
@@ -127,6 +212,16 @@ function renderCalDetail(day,log,world){const worldDay=world.days[day]||{},myDay
 function selectCalDay(day){calSelectedDate=day;renderMiniCal();}
 function saveMyFood(day,slot,value){const text=String(value||'').trim();if(!text)return;const log=getMealLog();log.days[day]=log.days[day]||{};log.days[day][slot]=log.days[day][slot]||[];log.days[day][slot].push({id:gid('meal'),text,createdAt:Date.now()});writeJson(LOG_KEY,log);renderMiniCal();}
 function removeMyFood(day,slot,itemId){const log=getMealLog(),items=log.days[day]&&log.days[day][slot];if(!items)return;log.days[day][slot]=items.filter(item=>item.id!==itemId);writeJson(LOG_KEY,log);renderMiniCal();}
+function workdayKey(value){const date=value?new Date(value):new Date();date.setHours(date.getHours()-4);return dateKey(date);}
+function getCalorieLog(){const data=readJson(CALORIE_KEY,{version:1,records:[]});data.version=1;data.records=Array.isArray(data.records)?data.records:[];return data;}
+function calorieStatsForDay(day){return getCalorieLog().records.reduce((total,record)=>{if(record.date!==day)return total;const kcal=Math.max(0,Math.round(Number(record.kcal)||0));if(record.type==='burn')total.burn+=kcal;else total.intake+=kcal;total.net=total.intake-total.burn;return total;},{intake:0,burn:0,net:0});}
+function renderCalorieLedger(){const today=workdayKey(),stats=calorieStatsForDay(today),log=getCalorieLog();document.getElementById('calorieNet').textContent=(stats.net<0?'−':'')+Math.abs(stats.net);document.getElementById('calorieIntake').textContent=stats.intake+' kcal';document.getElementById('calorieBurn').textContent=stats.burn+' kcal';const records=log.records.slice().sort((left,right)=>String(right.date||'').localeCompare(String(left.date||''))||(Number(right.createdAt)||0)-(Number(left.createdAt)||0));document.getElementById('calorieCount').textContent=records.length?'· '+records.length+' 笔':'';document.getElementById('calorieHistory').innerHTML=records.length?records.map(record=>{const burn=record.type==='burn',kcal=Math.max(0,Math.round(Number(record.kcal)||0));return'<div class="calorie-row"><span class="calorie-date">'+esc(record.date||'—')+'</span><span class="calorie-kind '+(burn?'burn':'intake')+'">'+(burn?'运动':'吃')+'</span><span class="calorie-detail">'+esc(record.detail||'—')+'</span><span class="calorie-amount '+(burn?'burn':'intake')+'">'+(burn?'−':'+')+kcal+' kcal</span><button class="calorie-delete" type="button" aria-label="删除" onclick="deleteCalorieRecord(\''+record.id+'\')">×</button></div>';}).join(''):'<div class="calorie-empty">还没有记录</div>';}
+function switchMealTab(viewId,button){document.querySelectorAll('.view').forEach(view=>view.classList.toggle('active',view.id===viewId));document.querySelectorAll('.tab-bar button').forEach(item=>item.classList.remove('active'));if(button)button.classList.add('active');document.getElementById('worldLabel').textContent=viewId==='viewMeals'?CFG.label:viewId==='viewCalories'?'REALITY':'';if(viewId==='viewCalories')renderCalorieLedger();}
+function openCalorieModal(){const today=workdayKey(),first=document.querySelector('#calorieTypeGroup button[data-value="intake"]');document.getElementById('calorieDate').value=today;document.getElementById('calorieDate').max=today;document.getElementById('calorieDetail').value='';document.getElementById('calorieAmount').value='';pickCalorieType(first);document.getElementById('calorieModal').classList.add('show');}
+function closeMealModal(id){document.getElementById(id).classList.remove('show');}
+function pickCalorieType(button){if(!button)return;document.querySelectorAll('#calorieTypeGroup button').forEach(item=>item.classList.toggle('active',item===button));const type=button.dataset.value==='burn'?'burn':'intake';document.getElementById('calorieType').value=type;document.getElementById('calorieDetailLabel').textContent=type==='burn'?'做了什么运动':'吃了什么';}
+function saveCalorieRecord(){const date=document.getElementById('calorieDate').value,type=document.getElementById('calorieType').value==='burn'?'burn':'intake',detail=document.getElementById('calorieDetail').value.trim(),kcal=Math.round(Number(document.getElementById('calorieAmount').value)||0);if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||date>workdayKey()){showToast('请选择有效日期');return;}if(!detail){showToast(type==='burn'?'请填写运动':'请填写吃了什么');return;}if(kcal<=0){showToast('请输入卡路里');return;}const log=getCalorieLog();log.records.push({id:gid('kcal'),date,type,detail,kcal,createdAt:Date.now()});writeJson(CALORIE_KEY,log);closeMealModal('calorieModal');renderCalorieLedger();}
+function deleteCalorieRecord(id){const log=getCalorieLog();log.records=log.records.filter(record=>record.id!==id);writeJson(CALORIE_KEY,log);renderCalorieLedger();}
 function currentPeriodKey(){const now=new Date();return dateKey(now)+':'+getSlot(now.getHours());}
 function checkDiningInvite(){if(!CFG.places.length)return null;const holder=getWorldCompanion(),data=holder.data,period=currentPeriodKey();if(data.currentInvite&&data.currentInvite.period===period)return data.currentInvite;if(data.dismissedPeriod===period)return null;const rng=seedRand('dining:'+WORLD_ID+':'+period),candidates=[];Object.keys(CFG.characters).forEach(charId=>{if(rng()>=(CFG.inviteChance[charId]||0))return;const places=CFG.places.filter(place=>place.char===charId);if(places.length)candidates.push(places[Math.floor(rng()*places.length)]);});if(!candidates.length){data.dismissedPeriod=period;saveWorldCompanion(holder);return null;}const pick=candidates[0];data.currentInvite={char:pick.char,place:pick.name,genre:pick.genre,msg:pick.msg,period};saveWorldCompanion(holder);return data.currentInvite;}
 function renderDiningInvite(){const element=document.getElementById('diningInviteArea'),invite=checkDiningInvite();if(!invite){element.innerHTML='';return;}const meta=CFG.characters[invite.char];element.innerHTML='<div class="dining-invite"><button class="dining-invite-dismiss" onclick="dismissDining()">×</button><div class="dining-invite-char"><div class="dining-invite-avatar" style="background:'+meta.color+'">'+meta.initial+'</div><div class="dining-invite-name" style="color:'+meta.color+'">'+meta.name+'</div></div><div class="dining-invite-msg">「'+esc(invite.msg)+'」</div><div class="dining-invite-place">📍 '+esc(invite.place)+' <span style="font-size:10px;color:#bbb">'+esc(invite.genre)+'</span></div><div class="dining-invite-actions"><button onclick="dismissDining()">下次吧</button><button class="accept" onclick="acceptDining()">好呀！</button></div></div>';}
@@ -138,7 +233,7 @@ function renderRecipeShelf(){let name='沙拉盲盒',meta='',done=0,total=18;if(
 function showToast(message){const toast=document.getElementById('toast');toast.textContent=message;toast.style.display='block';clearTimeout(toast._timer);toast._timer=setTimeout(()=>toast.style.display='none',1800);}
 document.getElementById('worldLabel').textContent=CFG.label;
 document.getElementById('worldEmptyArea').innerHTML=Object.keys(CFG.characters).length?'':'<div class="world-empty"><strong>CBI 饮食陪伴尚未建立</strong>你的餐食记录仍然延续；这里以后只显示CBI角色的饮食、邀请与约饭。</div>';
-renderMiniCal();renderDiningInvite();renderRecipeShelf();
+renderMiniCal();renderDiningInvite();renderRecipeShelf();renderCalorieLedger();
 </script>
 </body>
 </html>

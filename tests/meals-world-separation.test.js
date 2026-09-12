@@ -20,7 +20,28 @@ function loadMeals(worldId, localStorage = new MemoryStorage()) {
   const elements = new Map();
   const document = {
     getElementById(id) {
-      if (!elements.has(id)) elements.set(id, { innerHTML: '', textContent: '', style: {} });
+      if (!elements.has(id)) {
+        const classes = new Set();
+        elements.set(id, {
+          id,
+          innerHTML: '',
+          textContent: '',
+          value: '',
+          max: '',
+          dataset: {},
+          style: {},
+          classList: {
+            add(...names) { names.forEach(name => classes.add(name)); },
+            remove(...names) { names.forEach(name => classes.delete(name)); },
+            toggle(name, force) {
+              const enabled = force === undefined ? !classes.has(name) : !!force;
+              if (enabled) classes.add(name); else classes.delete(name);
+              return enabled;
+            },
+            contains(name) { return classes.has(name); }
+          }
+        });
+      }
       return elements.get(id);
     }
   };
@@ -44,7 +65,7 @@ function loadMeals(worldId, localStorage = new MemoryStorage()) {
     clearTimeout
   });
   vm.runInContext(inlineScript(), context, { filename: 'meals.html:inline' });
-  return { context, elements, localStorage };
+  return { context, document, elements, localStorage };
 }
 
 test('actual meals survive a world switch while companion layers remain separate', () => {
@@ -77,4 +98,47 @@ test('CBI starts without a copied character roster or generated companion meals'
   const store = JSON.parse(localStorage.getItem('meal_companion_db'));
   const generatedSlots = Object.values(store.worlds.cbi.days).flatMap(day => Object.values(day));
   assert.equal(generatedSlots.every(slot => Object.keys(slot).length === 0), true);
+});
+
+test('three meal tabs add a global calorie ledger without deciding a body-weight goal', () => {
+  const html = fs.readFileSync('meals.html', 'utf8');
+  const cloudSync = fs.readFileSync('cloud-sync.js', 'utf8');
+  const backup = fs.readFileSync('backup.html', 'utf8');
+  assert.match(html, /id="viewMeals" class="view active"/);
+  assert.match(html, /<div id="viewBlank" class="view" aria-label="预留"><\/div>/);
+  assert.match(html, /id="viewCalories" class="view"/);
+  assert.match(html, /switchMealTab\('viewMeals'/);
+  assert.match(html, /switchMealTab\('viewBlank'/);
+  assert.match(html, /switchMealTab\('viewCalories'/);
+  assert.doesNotMatch(html, /减脂目标|增重目标|每日限额/);
+  assert.match(cloudSync, /'meals\.html': \['meal_log_db', 'calorie_log_db'/);
+  assert.match(backup, /key:'calorie_log_db'/);
+
+  const storage = new MemoryStorage();
+  const cbi = loadMeals('cbi', storage);
+  const add = (type, detail, kcal) => {
+    cbi.document.getElementById('calorieDate').value = '2026-09-11';
+    cbi.document.getElementById('calorieType').value = type;
+    cbi.document.getElementById('calorieDetail').value = detail;
+    cbi.document.getElementById('calorieAmount').value = String(kcal);
+    cbi.context.saveCalorieRecord();
+  };
+  add('intake', '汉堡', 400);
+  add('burn', '散步', 150);
+
+  const saved = JSON.parse(storage.getItem('calorie_log_db'));
+  assert.equal(saved.records.length, 2);
+  assert.deepEqual(saved.records.map(record => [record.type, record.detail, record.kcal]), [
+    ['intake', '汉堡', 400],
+    ['burn', '散步', 150]
+  ]);
+  const stats = cbi.context.calorieStatsForDay('2026-09-11');
+  assert.equal(stats.intake, 400);
+  assert.equal(stats.burn, 150);
+  assert.equal(stats.net, 250);
+  assert.match(cbi.elements.get('calorieHistory').innerHTML, /汉堡/);
+  assert.match(cbi.elements.get('calorieHistory').innerHTML, /散步/);
+
+  const liminal = loadMeals('liminal', storage);
+  assert.equal(liminal.context.getCalorieLog().records.length, 2);
 });
