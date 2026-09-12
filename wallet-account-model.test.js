@@ -174,6 +174,11 @@ test('wallet page exposes split pools, full history and pending expenses', () =>
   }
   assert.match(html, /function editRecordField\(target,id,field\)/);
   assert.match(html, /addEventListener\('dblclick'/);
+  assert.match(html, /LEDGER_HISTORY_FOLD_KEY='wallet_history_open_v1'/);
+  assert.match(html, /LEDGER_PENDING_FOLD_KEY='wallet_pending_open_v1'/);
+  assert.match(html, /rememberLedgerFold\('historyFold',LEDGER_HISTORY_FOLD_KEY,true\)/);
+  assert.match(html, /rememberLedgerFold\('pendingFold',LEDGER_PENDING_FOLD_KEY,false\)/);
+  assert.match(html, /localStorage\.setItem\(key,details\.open\?'1':'0'\)/);
 });
 
 test('new ledger records can be backdated without entering today totals', () => {

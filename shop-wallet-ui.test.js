@@ -30,6 +30,10 @@ test('shop keeps the item-grid model inside a three-tier Reward House', () => {
   assert.doesNotMatch(cbiShop, /project-category-header/);
   assert.match(cbiShop, /shop-inline-detail/);
   assert.match(cbiShop, /section-grid/);
+  assert.match(cbiShop, /class="item-slot"/);
+  assert.match(cbiShop, /<div class="item-price">¥/);
+  assert.doesNotMatch(cbiShop, /<span class="item-price">/);
+  assert.doesNotMatch(cbiShop, /\.item-price\{position:absolute/);
   assert.match(cbiShop, /projectIconInput/);
   assert.match(cbiShop, />栏目</);
   assert.doesNotMatch(projectEditor, /适合谁/);
@@ -55,7 +59,7 @@ test('shop keeps the item-grid model inside a three-tier Reward House', () => {
   assert.match(cbiShop, /source:\s*'entertainment_balance'/);
   assert.doesNotMatch(cbiShop, /currentProjectId/);
   assert.doesNotMatch(cbiShop, /work\.salary\s*[-+]=/);
-  assert.match(shop, /cbi-shop\.js\?v=20260903-quiet-editor1/);
+  assert.match(shop, /cbi-shop\.js\?v=20260912-price-below1/);
 });
 
 test('reality wallet merges allowance and wishes into reimbursement', () => {
@@ -75,7 +79,7 @@ test('reality wallet merges allowance and wishes into reimbursement', () => {
   assert.doesNotMatch(cbiWallet, /closest\('input,textarea,select,button,a,summary/);
   assert.match(cbiWallet, /event\.preventDefault\(\)/);
   assert.match(cbiWallet, /\}, \{ passive: false \}\);/);
-  assert.match(wallet, /cbi-wallet\.js\?v=20260903-allocation-record1/);
+  assert.match(wallet, /cbi-wallet\.js\?v=20260912-fold-story1/);
   assert.match(cbiShop, /wallet\.html#reimbursement/);
   assert.match(cbiShop, /bindTabSwipe/);
   assert.doesNotMatch(cbiWallet, /案件进度已移至/);

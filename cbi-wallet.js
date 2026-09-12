@@ -99,8 +99,6 @@
       '.cbi-allocation-log{padding:0}',
       '.cbi-purchase-history{margin:0;background:#fafafa;border-bottom:1px solid #eeeeec}',
       '.cbi-purchase-history>summary{border-top:0!important}',
-      '.cbi-reply{width:100%;margin-top:11px;padding:9px 0;border:0;border-bottom:1px solid #ddd;border-radius:0;background:transparent;font:11px/1.4 inherit;color:#555;outline:none}',
-      '.cbi-reply:focus{border-color:#d7c7a4;background:#fff}',
       '.cbi-approve{width:100%;margin-top:11px;padding:11px;border:0;border-radius:2px;background:#282828;color:#fff;font:inherit;font-size:10px;letter-spacing:.4px;line-height:1;cursor:pointer}',
       '.cbi-approve:disabled{background:#eee;color:#aaa}',
       '.cbi-request-status{display:inline-flex;padding:2px 7px;border-radius:5px;background:#edf5ef;color:#5B8D66;font-size:8px;margin-left:5px}',
@@ -225,7 +223,6 @@
     return '<div class="outing-card" style="border-left:3px solid ' + COLORS[request.characterId] + '">' +
       '<div class="cbi-wish-head"><div><div class="cbi-wish-source">' + esc(source) + '</div><div class="outing-char" style="color:' + COLORS[request.characterId] + '">' + esc(NAMES[request.characterId]) + ' · 报销申请</div><div class="outing-activity">' + esc(request.title) + '</div></div><div class="cbi-wish-amount" style="color:' + COLORS[request.characterId] + '">¥' + request.amount + '</div></div>' +
       '<div class="cbi-wish-detail">' + esc(request.detail) + '<br>个人自由额度 ¥' + personal + ' · 公共额度 ¥' + open + '</div>' +
-      '<input class="cbi-reply" id="cbiReply_' + request.id + '" type="text" maxlength="120" placeholder="回复一句（选填）">' +
       '<button class="cbi-approve" type="button" onclick="CBIWallet.approveWish(\'' + request.id + '\')"' + (affordable ? '' : ' disabled') + '>' + (affordable ? '同意报销' : '余额不足 · 申请保留中') + '</button></div>';
   }
 
@@ -233,7 +230,7 @@
     var status = request.status === 'auto' ? '自由购买' : (request.status === 'approved' ? '已同意' : '旧制未批准');
     var statusClass = request.status === 'auto' ? ' auto' : '';
     var html = '<div class="outing-card" style="border-left:3px solid ' + COLORS[request.characterId] + '"><div class="outing-char" style="color:' + COLORS[request.characterId] + '">' + esc(NAMES[request.characterId]) + '<span class="cbi-request-status' + statusClass + '">' + status + '</span></div><div class="outing-activity">' + esc(request.title) + ' · ¥' + request.amount + '</div>';
-    if (request.reply) html += '<div class="outing-dialogue">Boss：「' + esc(request.reply) + '」</div>';
+    if (request.detail) html += '<div class="cbi-wish-detail">' + esc(request.detail) + '</div>';
     if (request.reaction && ['approved', 'auto'].indexOf(request.status) >= 0) html += '<div class="cbi-reaction">' + esc(NAMES[request.characterId]) + '：「' + esc(request.reaction) + '」</div>';
     if (request.progressLine) {
       html += '<div class="cbi-legacy">旧制案件进展已原样保留</div><div class="cbi-wish-detail">' + esc(request.progressLine) + (request.progressDelta ? '　+' + request.progressDelta : '') + '</div>';
@@ -287,8 +284,7 @@
   }
 
   function approveWish(id) {
-    var input = document.getElementById('cbiReply_' + id);
-    var result = global.CBIData.approveWishRequest(load(), id, walletDb(), { reply: input ? input.value : '' });
+    var result = global.CBIData.approveWishRequest(load(), id, walletDb());
     if (result.reason) {
       global.showToast(result.reason === 'insufficient_fund' ? '余额不足，申请会继续保留' : '这条申请现在无法结算');
       return;

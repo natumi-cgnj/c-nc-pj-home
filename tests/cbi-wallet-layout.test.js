@@ -37,3 +37,21 @@ test('CBI reimbursement tab owns its Wish Desk title and fulfilled total', () =>
   assert.match(header, /title\.textContent = 'REALITY WALLET'/);
   assert.match(header, /subtitle\.disabled = false/);
 });
+
+test('settled reimbursements keep their story line without asking Boss for a reply', () => {
+  const historyStart = cbiWallet.indexOf('function historyCard(db, request)');
+  const historyEnd = cbiWallet.indexOf('function renderWishes()', historyStart);
+  const historyCard = cbiWallet.slice(historyStart, historyEnd);
+  const requestStart = cbiWallet.indexOf('function requestCard(db, request)');
+  const requestEnd = cbiWallet.indexOf('function historyCard(db, request)', requestStart);
+  const requestCard = cbiWallet.slice(requestStart, requestEnd);
+  const approveStart = cbiWallet.indexOf('function approveWish(id)');
+  const approveEnd = cbiWallet.indexOf('function renderView(viewId)', approveStart);
+  const approveWish = cbiWallet.slice(approveStart, approveEnd);
+
+  assert.match(historyCard, /if \(request\.detail\) html \+= '<div class="cbi-wish-detail">'/);
+  assert.match(historyCard, /\['approved', 'auto'\]\.indexOf\(request\.status\)/);
+  assert.doesNotMatch(requestCard, /cbi-reply|回复一句|cbiReply_/);
+  assert.doesNotMatch(historyCard, /Boss：/);
+  assert.doesNotMatch(approveWish, /reply|cbiReply_/);
+});
