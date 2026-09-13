@@ -224,6 +224,46 @@ test('Jane is at home outside her shift and never follows the selected page', ()
   assert.equal(after.mode, 'off_duty');
 });
 
+test('Jane sleeps at home on a stable nightly timeline instead of drawing awake dialogue', () => {
+  const { runtime } = loadRuntime({}, 'cbi');
+  const now = new Date(2026, 8, 13, 1, 30);
+  const first = runtime.getCbiCharacterPresence('jane', now);
+  const repeated = runtime.getCbiCharacterPresence('jane', now);
+
+  assert.equal(first.location, 'home');
+  assert.equal(first.sleeping, true);
+  assert.equal(first.title, first.sleep.status);
+  assert.ok(['刚刚睡着', '浅眠中', '深睡中', '梦境中', '做噩梦', '快醒了'].includes(first.sleep.status));
+  assert.ok(first.sleep.detail.startsWith('Jane') || first.sleep.detail.startsWith('你') || first.sleep.detail.startsWith('房间') || first.sleep.detail.startsWith('天'));
+  assert.equal(first.sleep.placeId, repeated.sleep.placeId);
+  assert.equal(first.sleep.phase, repeated.sleep.phase);
+  assert.equal(first.sleep.detail, repeated.sleep.detail);
+  assert.equal(first.sleep.bossPresent, repeated.sleep.bossPresent);
+});
+
+test('Jane rotates between both bedroom sleep spots and the living-room sofa bed', () => {
+  const { runtime } = loadRuntime({}, 'cbi');
+  const places = new Set();
+  const bossPresence = new Set();
+  const phases = new Set();
+
+  for (let day = 1; day <= 60; day++) {
+    const sleep = runtime.getCbiJaneSleepStatus(new Date(2026, 7, day, 1, 30));
+    assert.equal(sleep.sleeping, true);
+    places.add(sleep.placeId);
+    bossPresence.add(sleep.bossPresent);
+    for (let at = sleep.startAt + 5 * 60000; at < sleep.endAt; at += 15 * 60000) {
+      phases.add(runtime.getCbiJaneSleepStatus(new Date(at)).phase);
+    }
+  }
+
+  assert.deepEqual([...places].sort(), ['bedroom_bed', 'bedroom_sofa', 'living_sofa_bed']);
+  assert.deepEqual([...bossPresence].sort(), [false, true]);
+  for (const phase of ['settling', 'light', 'deep', 'dreaming', 'nightmare', 'waking']) {
+    assert.equal(phases.has(phase), true, phase + ' should appear across the sampled nights');
+  }
+});
+
 test('ordinary CBI workdays contain stable short errands inside the shift', () => {
   const { runtime } = loadRuntime({}, 'cbi');
   const found = [];

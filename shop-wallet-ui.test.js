@@ -130,9 +130,9 @@ test('every page that writes CBI data loads the current schema cache version', (
   }
 });
 
-test('every page that loads the wallet runtime uses the backdated-record cache version', () => {
+test('every page that loads the wallet runtime uses the current character cache version', () => {
   for (const page of ['index.html', 'cbi.html', 'schedule.html', 'wallet.html']) {
     const html = fs.readFileSync(page, 'utf8');
-    assert.match(html, /character-runtime\.js\?v=20260912-backdated-record1/, page);
+    assert.match(html, /character-runtime\.js\?v=20260913-cbi-sleep1/, page);
   }
 });

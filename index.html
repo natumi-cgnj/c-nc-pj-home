@@ -480,7 +480,7 @@ body[data-world-id="cbi"] .cbi-weather-strip-mobile{display:flex;margin-top:9px}
 /* CBI-only decorative furniture: hidden outside CBI world */
 .furniture.cbi-home-only{display:none}
 body[data-world-id="cbi"] .furniture.cbi-home-only{display:block}
-/* Boss room (natumi) – extra CBI-world clutter */
+/* Living room (natumi) – extra CBI-world clutter */
 .natumi-homedesk{width:28px;height:16px;background:#E8B96A;bottom:14%;right:18%;border-radius:2px;opacity:.08}
 .natumi-homescreen{width:10px;height:4px;background:#E8B96A;bottom:calc(14% + 4px);right:calc(18% + 4px);border-radius:1px;opacity:.12}
 .natumi-laundry{width:18px;height:12px;background:#E8B96A;bottom:25%;left:11%;border-radius:4px;opacity:.08;transform:rotate(-8deg)}
@@ -496,7 +496,8 @@ body[data-world-id="cbi"] .furniture.cbi-home-only{display:block}
 .natumi-living-rug{width:52%;height:36%;background:#E8B96A;left:50%;top:57%;transform:translate(-50%,-50%) rotate(-1deg);border-radius:3px;opacity:.035}
 .natumi-living-sofa{width:38%;height:12%;background:#E8B96A;left:31%;top:43%;border-radius:4px;opacity:.08;transform:rotate(-1deg)}
 .natumi-living-table{width:16%;height:11%;background:#E8B96A;left:42%;top:62%;border-radius:3px;opacity:.06;transform:rotate(2deg)}
-/* Jane guest room – extra CBI-world items */
+/* Bedroom – extra CBI-world items */
+.cbi-bedroom-bed{width:38%;height:18%;background:#E8B96A;right:10%;bottom:12%;border-radius:4px;opacity:.07}
 .cbi-guest-shelf{width:5px;height:22px;background:#5BA66B;top:12%;left:13%;opacity:.1;border-radius:1px}
 .cbi-guest-teacup{width:5px;height:5px;background:#5BA66B;top:34%;left:calc(18% + 50px);border-radius:50%;opacity:.15}
 .cbi-guest-bossbox1{width:14px;height:10px;background:#E8B96A;bottom:16%;left:14%;border-radius:1px;opacity:.08;transform:rotate(6deg)}
@@ -510,7 +511,7 @@ body[data-world-id="cbi"][data-world-location="home"] .room-jane .jane-teatable{
 body[data-world-id="cbi"][data-world-location="home"] .room-jane .jane-blanket{left:calc(18% + 4px);top:calc(36% + 1px)}
 body[data-world-id="cbi"][data-world-location="home"] .room-jane .jane-lamp{right:24%;top:18%}
 body[data-world-id="cbi"][data-world-location="home"] .room-jane .jane-painting{right:calc(24% + 12px);top:14%}
-body[data-world-id="cbi"][data-world-location="home"] .room-natumi .natumi-bed{top:12%;right:10%}
+body[data-world-id="cbi"][data-world-location="home"] .room-natumi .natumi-bed{display:none}
 body[data-world-id="cbi"][data-world-location="home"] .room-natumi .natumi-box1{top:16%;left:12%}
 body[data-world-id="cbi"][data-world-location="home"] .room-natumi .natumi-box2{top:27%;left:18%}
 body[data-world-id="cbi"][data-world-location="home"] .room-natumi .natumi-box3{bottom:14%;right:11%}
@@ -518,6 +519,8 @@ body[data-world-id="cbi"][data-world-location="home"] .room-natumi .natumi-box4{
 body[data-world-id="cbi"][data-world-location="home"] .room-natumi .natumi-box5{top:29%;right:16%}
 body[data-world-id="cbi"][data-world-location="home"] .room-natumi .natumi-box6{bottom:29%;right:20%}
 body[data-world-id="cbi"][data-world-location="home"] .room-natumi .natumi-box7{top:19%;right:23%}
+body[data-world-id="cbi"][data-world-location="home"] #char-jane.cbi-jane-sleeping{opacity:.88;filter:drop-shadow(0 2px 8px rgba(0,0,0,.045))}
+body[data-world-id="cbi"][data-world-location="home"] #char-jane.cbi-jane-sleeping img{transform:rotate(4deg);transform-origin:50% 88%}
 
 /* ── World shell / CBI office ── */
 [hidden]{display:none!important}
@@ -679,6 +682,7 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-home-trigger{display:
         <div class="furniture jane-couch"></div><div class="furniture jane-teatable"></div>
         <div class="furniture jane-lamp"></div><div class="furniture jane-painting"></div>
         <div class="furniture jane-blanket"></div>
+        <div class="furniture cbi-home-only cbi-bedroom-bed"></div>
         <div class="furniture cbi-home-only cbi-guest-shelf"></div><div class="furniture cbi-home-only cbi-guest-teacup"></div>
         <div class="furniture cbi-home-only cbi-guest-bossbox1"></div><div class="furniture cbi-home-only cbi-guest-bossbox2"></div>
         <div class="furniture cbi-home-only cbi-guest-bossjacket"></div><div class="furniture cbi-home-only cbi-guest-rug"></div>
@@ -696,7 +700,7 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-home-trigger{display:
     <!-- Natumi -->
     <div class="room-box room-natumi" id="roomNatumi">
       <div class="room-inner">
-        <button class="cbi-location-trigger cbi-home-trigger" type="button" onclick="openCbiLocationSheet(event)" aria-label="切换 CBI 地点">Boss's Home⌄</button>
+        <button class="cbi-location-trigger cbi-home-trigger" type="button" onclick="openCbiLocationSheet(event)" aria-label="切换 CBI 地点">客厅⌄</button>
         <div class="furniture natumi-bed"></div><div class="furniture natumi-box1"></div><div class="furniture natumi-box2"></div>
         <div class="furniture natumi-box3"></div><div class="furniture natumi-box4"></div><div class="furniture natumi-box5"></div>
         <div class="furniture natumi-box6"></div><div class="furniture natumi-box7"></div>
@@ -962,7 +966,7 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-home-trigger{display:
 
 <script src="world-context.js?v=20260824-cbi-work1"></script>
 <script src="cloud-sync.js?v=20260824-cbi-work1"></script>
-<script src="character-runtime.js?v=20260912-backdated-record1"></script>
+<script src="character-runtime.js?v=20260913-cbi-sleep1"></script>
 <script src="cbi-weather.js?v=20260903-cbi-weather2"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
@@ -1043,8 +1047,17 @@ function renderCbiHomePresence(){
   var jane=document.getElementById('char-jane');
   var away=document.getElementById('away-jane');
   var atHome=!!status&&status.location==='home';
+  var sleeping=atHome&&!!status.sleeping;
   if(jane){
     jane.style.display=atHome?'':'none';
+    jane.classList.toggle('cbi-jane-sleeping',sleeping);
+    if(sleeping&&status.sleep){
+      jane.dataset.sleepPlace=status.sleep.placeId;
+      jane.setAttribute('aria-label','Jane · '+status.sleep.status+' · '+status.sleep.placeLabel);
+    }else{
+      delete jane.dataset.sleepPlace;
+      jane.setAttribute('aria-label','Jane');
+    }
     if(atHome)requestAnimationFrame(function(){placeChar('jane');});
   }
   if(away){
@@ -1067,6 +1080,8 @@ function renderCbiDutyRoster(){
     var assignment=currentCbiDuty.assignments[id];
     var present=assignment&&assignment.location==='office';
     if(id==='jane'){
+      element.classList.remove('cbi-jane-sleeping');
+      delete element.dataset.sleepPlace;
       element.style.display=present?'':'none';
       if(present)positionCbiOfficeJane();
     }else{
@@ -1214,7 +1229,7 @@ function applyMod(){
 /* ═══ CHARACTER PLACEMENT ═══ */
 const charZone={}; // tracks which room each char is currently in
 const CHAR_PLACEMENT_KEY='home_character_placement';
-const CHAR_PLACEMENT_VERSION=2;
+const CHAR_PLACEMENT_VERSION=3;
 let charPlacementState={version:CHAR_PLACEMENT_VERSION,periodKey:'',placements:{}};
 
 function getCharacterPlacementState(){
@@ -1265,7 +1280,22 @@ function stablePlacementUnit(seed){
 }
 
 function getRuntimePlacementContext(charId,availableRooms){
-  if(!isLiminalWorld()||!window.CharacterRuntime)return null;
+  if(!window.CharacterRuntime)return null;
+  if(!isLiminalWorld()){
+    if(charId==='jane'&&getActiveLocationId()==='home'){
+      const presence=CharacterRuntime.getCbiCharacterPresence('jane',new Date());
+      const sleep=presence&&presence.sleep;
+      if(sleep&&sleep.sleeping&&availableRooms.includes(sleep.roomId)){
+        return {
+          zone:sleep.roomId,
+          contextKey:'cbi-sleep:'+sleep.nightKey+':'+sleep.placeId,
+          x:sleep.x,
+          y:sleep.y
+        };
+      }
+    }
+    return null;
+  }
   const status=CharacterRuntime.getCharacterStatus(charId);
   const activity=status&&status.worldActivity;
 
@@ -1283,15 +1313,15 @@ function getRuntimePlacementContext(charId,availableRooms){
   return null;
 }
 
-function createStablePlacement(charId,availableRooms,contextKey,requiredZone){
+function createStablePlacement(charId,availableRooms,contextKey,requiredZone,fixedX,fixedY){
   const zone=requiredZone||availableRooms[Math.min(
     availableRooms.length-1,
     Math.floor(stablePlacementUnit(contextKey+'|'+charId+'|zone')*availableRooms.length)
   )];
   return {
     zone,
-    x:stablePlacementUnit(contextKey+'|'+charId+'|x'),
-    y:stablePlacementUnit(contextKey+'|'+charId+'|y'),
+    x:Number.isFinite(fixedX)?fixedX:stablePlacementUnit(contextKey+'|'+charId+'|x'),
+    y:Number.isFinite(fixedY)?fixedY:stablePlacementUnit(contextKey+'|'+charId+'|y'),
     contextKey
   };
 }
@@ -1324,7 +1354,14 @@ function placeChar(id){
     :'period:'+state.periodKey+':'+avail.join(',');
   let placement=state.placements[id];
   if(!validCharacterPlacement(placement,avail,contextKey,requiredZone)){
-    placement=createStablePlacement(id,avail,contextKey,requiredZone);
+    placement=createStablePlacement(
+      id,
+      avail,
+      contextKey,
+      requiredZone,
+      runtimeContext&&runtimeContext.x,
+      runtimeContext&&runtimeContext.y
+    );
     state.placements[id]=placement;
     saveCharacterPlacementState();
   }
@@ -1463,8 +1500,28 @@ function showBubble(id){
   bubble.classList.add('show');
   bubbleTimers[id]=setTimeout(()=>bubble.classList.remove('show'),4500);
 }
+function showCbiJaneSleepBubble(status){
+  const sleep=status&&status.sleep;
+  const charEl=document.getElementById('char-jane');
+  const bubble=document.getElementById('bubble-jane');
+  const wrap=getActiveMapWrap();
+  if(!sleep||!sleep.sleeping||!charEl||!bubble||!wrap)return false;
+  if(bubble.parentElement!==wrap)wrap.appendChild(bubble);
+  document.getElementById('status-jane').textContent=sleep.status||'';
+  document.getElementById('msg-jane').textContent=sleep.detail||'';
+  positionBubbleAtCharacter(bubble,charEl,wrap);
+  if(bubbleTimers.jane)clearTimeout(bubbleTimers.jane);
+  bubble.style.zIndex=++bubbleZCounter;
+  bubble.classList.add('show');
+  bubbleTimers.jane=setTimeout(function(){bubble.classList.remove('show');},4500);
+  return true;
+}
 function onCharTap(id,e){
   e.stopPropagation();
+  if(!isLiminalWorld()&&id==='jane'&&getActiveLocationId()==='home'&&window.CharacterRuntime){
+    var presence=CharacterRuntime.getCbiCharacterPresence('jane',new Date());
+    if(showCbiJaneSleepBubble(presence))return;
+  }
   // If runtime has a status line for this character, use it
   if(isLiminalWorld()&&window.CharacterRuntime){
     var line=CharacterRuntime.getAppropriateLine(id);
@@ -1550,10 +1607,10 @@ const CBI_CG_SLOT_META={
     night:{label:'夜间',range:'22:00–次日 05:59',builtins:[{id:'cbi-office-night',name:'CBI办公室 · 深夜',src:'assets/cg/cbi/office-night.webp',tag:'',weight:1}]}
   },
   home:{
-    morning:{label:'清晨',range:'06:00–10:59',builtins:[{id:'cbi-home-day',name:'Boss家 · 晨光',src:'assets/cg/cbi/home-day.webp',tag:'おはよう',weight:1}]},
-    day:{label:'白天',range:'11:00–16:59',builtins:[{id:'cbi-home-day',name:'Boss家 · 晨光',src:'assets/cg/cbi/home-day.webp',tag:'',weight:1}]},
-    evening:{label:'傍晚',range:'17:00–21:59',builtins:[{id:'cbi-home-night',name:'Boss家 · 夜景',src:'assets/cg/cbi/home-night.webp',tag:'',weight:1}]},
-    night:{label:'夜间',range:'22:00–次日 05:59',builtins:[{id:'cbi-home-night',name:'Boss家 · 夜景',src:'assets/cg/cbi/home-night.webp',tag:'おやすみ',weight:1}]}
+    morning:{label:'清晨',range:'06:00–10:59',builtins:[{id:'cbi-home-day',name:'客厅 · 晨光',src:'assets/cg/cbi/home-day.webp',tag:'おはよう',weight:1}]},
+    day:{label:'白天',range:'11:00–16:59',builtins:[{id:'cbi-home-day',name:'客厅 · 晨光',src:'assets/cg/cbi/home-day.webp',tag:'',weight:1}]},
+    evening:{label:'傍晚',range:'17:00–21:59',builtins:[{id:'cbi-home-night',name:'客厅 · 夜景',src:'assets/cg/cbi/home-night.webp',tag:'',weight:1}]},
+    night:{label:'夜间',range:'22:00–次日 05:59',builtins:[{id:'cbi-home-night',name:'客厅 · 夜景',src:'assets/cg/cbi/home-night.webp',tag:'おやすみ',weight:1}]}
   }
 };
 let currentCGPeriodKey='';
@@ -3433,7 +3490,7 @@ const JANE_CBI_OFFICE_LINES = {
 const JANE_CBI_HOME_LINES = {
   jane:[
     {s:'泡茶中',m:'茶叶补过了。看来终于有人承认立顿不算储备。'},
-    {s:'占着沙发',m:'这是我的位置。你可以买一张新的沙发给自己。'},
+    {s:'占着沙发',m:'卧室里有床也有沙发。我睡哪一个，应该都不影响你睡客厅。'},
     {s:'翻案卷',m:'回家还看案卷当然不好。先把第二份口供递给我。'},
     {s:'等饭',m:'我不是饿，只是在判断厨房什么时候会出现可以吃的东西。'},
     {s:'整理茶杯',m:'这个柜子里一半是我的杯子。统计学上，这已经不能算借住。'},
@@ -3441,20 +3498,21 @@ const JANE_CBI_HOME_LINES = {
     {s:'翻冰箱',m:'我确认过了。昨天的布丁确实不存在了。凶手很专业。'},
     {s:'听雨',m:'今天不用出门也很好。案子可以晚一点找到我们。'},
     {s:'看着外套',m:'这件外套又在椅背上。我决定把它当室内装饰。'},
-    {s:'半躺着',m:'办公室有我的沙发，这里也有。安排得很合理。'},
+    {s:'半躺着',m:'办公室有我的沙发，卧室也有。安排得很合理。'},
     {s:'研究案卷',m:'回家不谈案子。除非你也觉得第二份证词有问题。'},
-    {s:'环顾房间',m:'“客房”这个叫法已经过期很久了。'},
+    {s:'看向门外',m:'你把卧室让给我，自己睡客厅。这听起来不像临时安排。'},
     {s:'嘴角微扬',m:'我当然可以回自己的地方。理论上。'},
-    {s:'随口说',m:'办公室那张沙发太短。这张也不够长，但至少没人经过。'},
+    {s:'随口说',m:'办公室那张沙发太短。卧室这张也不够长，但至少没人经过。'},
     {s:'陈述证据',m:'你不看这边的时候，水也会烧开，我也会吃掉最后一块点心。都验证过了。',meta:true},
     {s:'看着茶杯',m:'你那边的时间和这里不太一样。没关系，茶凉得一样快。',meta:true}
   ],
   natumi:[
     {s:'来找案卷',m:'那本案卷在你这边。至少昨天还在。'},
-    {s:'坐在床边',m:'我只坐一会儿。客房的沙发被我占着，不冲突。'},
+    {s:'坐在沙发床边',m:'我只坐一会儿。你睡这里，不代表我不能来。'},
     {s:'翻外套口袋',m:'找硬币。它又和摩托钥匙放在一起了。'},
     {s:'看着桌面',m:'这不是乱，是某种只有你能解释的分类方式。'},
-    {s:'抱走毯子',m:'客房那条不够暖。这条暂时归我。'},
+    {s:'抱走毯子',m:'客厅这条不够暖。卧室那条也归我。'},
+    {s:'挪开枕头',m:'你的沙发床只够一个人睡。理论上。'},
     {s:'等在门边',m:'不用招待我。我已经住得比客人久了。'},
     {s:'找到书了',m:'原来在这里。夹在两份案卷和一本完全无关的书中间。'},
     {s:'若有所思',m:'同一个人，换了世界条件，还是会把外套留在椅背上。非常稳定的逻辑。',meta:true}
@@ -3475,8 +3533,8 @@ const ROOM_PACKAGES = {
     },
     'cbi-boss': {
       id: 'cbi-boss',
-      label: "Boss's Guest Room",
-      description: 'CBI x Boss AU',
+      label: '卧室',
+      description: 'Jane 留下后的卧室',
       roomClass: 'room-pkg-cbi-boss',
       roomLabelColor: '#E8B96A',
       lines: JANE_CBI_HOME_LINES,

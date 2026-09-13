@@ -1014,6 +1014,73 @@
       departure: [1080, 1290]
     }
   };
+  const CBI_JANE_SLEEP_PLACES = [
+    { id: 'bedroom_bed', roomId: 'jane', label: '卧室的床', x: 0.72, y: 0.46 },
+    { id: 'bedroom_sofa', roomId: 'jane', label: '卧室的沙发', x: 0.10, y: 0.55 },
+    { id: 'living_sofa_bed', roomId: 'natumi', label: '客厅的沙发床', x: 0.18, y: 0.58 }
+  ];
+  const CBI_JANE_SLEEP_DETAILS = {
+    settling: {
+      present: [
+        'Jane在{place}刚刚睡着，一只手还搭在你的袖口上。',
+        'Jane的呼吸才慢下来，像是确认你还在旁边以后才肯睡。'
+      ],
+      away: [
+        'Jane在{place}刚刚睡着，旁边给你留着的位置还是空的。',
+        '房间安静下来没多久，Jane还保持着面朝门口的姿势。'
+      ]
+    },
+    light: {
+      present: [
+        'Jane似乎睡得不太踏实，手指偶尔会确认你的衣角还在。',
+        '你稍微动一下，Jane就会皱眉，但没有真正醒来。'
+      ],
+      away: [
+        'Jane似乎睡得不太踏实，走廊里一点动静都会让他皱眉。',
+        'Jane在{place}睡得很浅，仍旧下意识留意着门外的声音。'
+      ]
+    },
+    deep: {
+      present: [
+        'Jane抓着你的衣服在睡觉，呼吸已经完全慢了下来。',
+        'Jane睡得很沉，额头抵着你，手上却还没有松开。'
+      ],
+      away: [
+        'Jane抱着你留在旁边的外套，已经睡得很沉。',
+        'Jane陷在{place}里，毯子随着呼吸很轻地起伏。'
+      ]
+    },
+    dreaming: {
+      present: [
+        'Jane像是梦见了什么，靠近你一点，又慢慢安静下来。',
+        'Jane的手指无意识地收紧了一下，仍旧没有醒。'
+      ],
+      away: [
+        'Jane在{place}翻了个身，像是在追逐一段快要散掉的梦。',
+        'Jane的神情短暂柔和下来，梦里似乎没有案子。'
+      ]
+    },
+    nightmare: {
+      present: [
+        'Jane在梦里攥紧了你的手，呼吸乱了一阵，还没有醒。',
+        'Jane皱着眉往你这边靠，像是在确认梦里的门已经关上。'
+      ],
+      away: [
+        'Jane把你的外套压在胸口，眉头一直没有松开。',
+        'Jane在{place}睡得很不安稳，手指紧紧攥着毯子。'
+      ]
+    },
+    waking: {
+      present: [
+        'Jane还闭着眼，却已经认出了你靠近的脚步声。',
+        'Jane快醒了，仍旧抓着你，像是打算把清晨再推迟一会儿。'
+      ],
+      away: [
+        '天快亮了，Jane在{place}翻了个身，仍旧没有睁眼。',
+        'Jane的呼吸已经变浅，手却还压着你留下的那件外套。'
+      ]
+    }
+  };
   const CBI_SHORT_ERRANDS = [
     { title: '去提交文件了', duration: [15, 35] },
     { title: '去技术组了', duration: [20, 50] },
@@ -1271,6 +1338,87 @@
     };
   }
 
+  function addCalendarDays(dateStr, amount) {
+    const parts = String(dateStr || '').split('-').map(Number);
+    if (parts.length !== 3 || parts.some(function (value) { return !Number.isFinite(value); })) return '';
+    const date = new Date(parts[0], parts[1] - 1, parts[2] + Number(amount || 0), 12, 0, 0, 0);
+    return calendarDateStr(date);
+  }
+
+  function cbiJaneSleepNightKey(nowValue) {
+    const now = nowValue === undefined ? nowDate() : new Date(nowValue);
+    const night = new Date(now.getTime());
+    if (night.getHours() < 12) night.setDate(night.getDate() - 1);
+    return calendarDateStr(night);
+  }
+
+  function getCbiJaneSleepStatus(nowValue) {
+    const now = nowValue === undefined ? nowDate() : new Date(nowValue);
+    const currentTime = now.getTime();
+    const nightKey = cbiJaneSleepNightKey(now);
+    const wakeDate = addCalendarDays(nightKey, 1);
+    const bedtimeMinute = stableScheduleInteger('cbi-jane-sleep-start|' + nightKey, 1365, 1475);
+    const wakeLead = stableScheduleInteger('cbi-jane-sleep-wake|' + nightKey, 55, 100);
+    const nextShift = getCbiShift(wakeDate, 'jane');
+    const startAt = cbiDateAtMinute(nightKey, bedtimeMinute).getTime();
+    const endAt = nextShift.arrivalAt - wakeLead * 60000;
+    const placeRoll = stableScheduleUnit('cbi-jane-sleep-place|' + nightKey);
+    const place = CBI_JANE_SLEEP_PLACES[placeRoll < 0.45 ? 0 : (placeRoll < 0.73 ? 1 : 2)];
+    const bossPresent = stableScheduleUnit('cbi-jane-sleep-boss|' + nightKey) < 0.64;
+    const sleeping = currentTime >= startAt && currentTime < endAt;
+    const base = {
+      sleeping: sleeping,
+      nightKey: nightKey,
+      startAt: startAt,
+      endAt: endAt,
+      placeId: place.id,
+      placeLabel: place.label,
+      roomId: place.roomId,
+      x: place.x,
+      y: place.y,
+      bossPresent: bossPresent,
+      status: '',
+      detail: ''
+    };
+    if (!sleeping) return base;
+
+    const elapsedMinutes = (currentTime - startAt) / 60000;
+    const remainingMinutes = (endAt - currentTime) / 60000;
+    const cycleMinutes = Math.max(0, elapsedMinutes - 18);
+    const cycleIndex = Math.floor(cycleMinutes / 90);
+    const minuteInCycle = cycleMinutes % 90;
+    const totalCycles = Math.max(1, Math.floor((endAt - startAt) / 5400000));
+    const nightmareCycle = stableScheduleInteger('cbi-jane-nightmare-cycle|' + nightKey, 0, totalCycles - 1);
+    const nightmareNight = stableScheduleUnit('cbi-jane-nightmare-night|' + nightKey) < 0.24;
+    let phase;
+    if (elapsedMinutes < 18) phase = 'settling';
+    else if (remainingMinutes <= 35) phase = 'waking';
+    else if (nightmareNight && cycleIndex === nightmareCycle && minuteInCycle >= 52 && minuteInCycle < 82) phase = 'nightmare';
+    else if (minuteInCycle < 18) phase = 'light';
+    else if (minuteInCycle < 56) phase = 'deep';
+    else phase = 'dreaming';
+
+    const statusByPhase = {
+      settling: '刚刚睡着',
+      light: '浅眠中',
+      deep: '深睡中',
+      dreaming: '梦境中',
+      nightmare: '做噩梦',
+      waking: '快醒了'
+    };
+    const presenceKey = bossPresent ? 'present' : 'away';
+    const details = CBI_JANE_SLEEP_DETAILS[phase][presenceKey];
+    const detailIndex = stableScheduleInteger(
+      'cbi-jane-sleep-detail|' + nightKey + '|' + phase + '|' + Math.floor(elapsedMinutes / 30),
+      0,
+      details.length - 1
+    );
+    base.phase = phase;
+    base.status = statusByPhase[phase];
+    base.detail = details[detailIndex].replace(/\{place\}/g, place.label);
+    return base;
+  }
+
   function intervalsOverlap(first, second) {
     return first.startAt < second.endAt && second.startAt < first.endAt;
   }
@@ -1518,6 +1666,15 @@
         live.fieldBlock = fieldBlock;
         live.errandBlocks = errandBlocks;
       }
+      if (charId === 'jane' && live.location === 'home') {
+        const sleep = getCbiJaneSleepStatus(now);
+        live.sleep = sleep;
+        live.sleeping = sleep.sleeping;
+        if (sleep.sleeping) {
+          live.awakeTitle = live.title;
+          live.title = sleep.status;
+        }
+      }
       assignments[charId] = Object.assign({}, baseAssignment, live, {
         charId: charId,
         date: date,
@@ -1624,6 +1781,7 @@
     getCbiDutyRoster: getCbiDutyRoster,
     getCbiPresenceRoster: getCbiPresenceRoster,
     getCbiCharacterPresence: getCbiCharacterPresence,
+    getCbiJaneSleepStatus: getCbiJaneSleepStatus,
     calendarDateStr: calendarDateStr,
     workDayDateStr: dayKey,
     scheduleCharacters: SCHEDULE_CHARACTERS,
@@ -1665,6 +1823,7 @@
       getCharState: getCharState,
       todayAwayCount: todayAwayCount,
       getCbiShift: getCbiShift,
+      getCbiJaneSleepStatus: getCbiJaneSleepStatus,
       getCbiAutomaticFieldBlock: getCbiAutomaticFieldBlock,
       getCbiShortErrandBlocks: getCbiShortErrandBlocks
     }

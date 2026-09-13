@@ -46,7 +46,7 @@ test('one homepage hosts both apartment and CBI scenes', () => {
   assert.doesNotMatch(index, /getCbiDutyRoster\(CharacterRuntime\.calendarDateStr\(new Date\(\)\)/);
 });
 
-test('Jane uses first-case lines at the office and home lines at Boss home', () => {
+test('Jane uses first-case lines at the office and awake home lines in the bedroom and living room', () => {
   const staffStart = index.indexOf('const CBI_STAFF_OFFICE_LINES');
   const officeStart = index.indexOf('const JANE_CBI_OFFICE_LINES');
   const homeStart = index.indexOf('const JANE_CBI_HOME_LINES');
@@ -54,31 +54,37 @@ test('Jane uses first-case lines at the office and home lines at Boss home', () 
   const staffLines = index.slice(staffStart, officeStart);
   const officeLines = index.slice(officeStart, homeStart);
   const homeLines = index.slice(homeStart, roomPackagesStart);
-  assert.match(officeLines, /休假中/);
-  assert.match(officeLines, /看向 Cho/);
+  assert.match(officeLines, /观察 Cho/);
   assert.match(officeLines, /观察 Rigsby/);
   assert.match(officeLines, /观察 Van Pelt/);
   assert.match(officeLines, /观察 Lisbon/);
   assert.equal(count(officeLines, /Lisbon/g), 1, 'Lisbon may be observed, but must not dominate Jane office lines');
-  assert.match(officeLines, /听他们争论/);
-  assert.match(officeLines, /他最后会选哪一条/);
   assert.doesNotMatch(officeLines, /忍住不纠正 Boss|确认 Boss 到底知不知道/);
   assert.ok(count(staffLines, /Boss/g) <= 4, 'staff chatter should imply authority naturally instead of repeating Boss');
   assert.doesNotMatch(staffLines, /交给 Boss 决定|由他决定|Boss 让我|马上向 Boss 汇报/);
-  assert.doesNotMatch(officeLines, /Boss 厨房|这间客房/);
-  assert.match(homeLines, /Boss 厨房/);
-  assert.match(homeLines, /这间客房/);
+  assert.doesNotMatch(officeLines, /卧室|客厅/);
+  assert.match(homeLines, /卧室/);
+  assert.match(homeLines, /客厅/);
+  assert.doesNotMatch(homeLines, /客房/);
   assert.doesNotMatch(homeLines, /Lisbon/);
   assert.match(index, /JANE_BY_ZONE=JANE_CBI_HOME_LINES/);
   assert.match(index, /JANE_BY_ZONE=JANE_CBI_OFFICE_LINES/);
+  assert.match(index, /label: '卧室'/);
+  assert.match(index, />客厅⌄<\/button>/);
+  assert.match(index, /cbi-bedroom-bed/);
+  assert.match(index, /\.room-natumi \.natumi-bed\{display:none\}/);
+  assert.match(worldContext, /home: \{ id: 'home', label: '客厅', description: 'Boss家 · 卧室与沙发床' \}/);
+  assert.match(index, /function showCbiJaneSleepBubble\(status\)/);
+  assert.match(index, /sleep\.status/);
+  assert.match(index, /sleep\.detail/);
 });
 
-test('Lisbon does not assign the whole team on her first day', () => {
+test('CBI office lines keep Lisbon inside the team instead of assigning the whole group', () => {
   assert.doesNotMatch(index, /Rigsby 跑现场，Van Pelt 查资料，Cho 跟我过证词/);
   assert.doesNotMatch(index, /\{s:'分配工作'/);
   assert.doesNotMatch(index, /现场人员名单给我一份|\{s:'核对流程'/);
-  assert.match(index, /Boss，我有个疑问。那位顾问不是在休假吗？/);
-  assert.match(index, /死者的恋人交给我。我会把完整口供带回来/);
+  assert.match(index, /她现在不需要把紧张藏起来了/);
+  assert.match(index, /第二轮口供对完了/);
 });
 
 test('CBI locations have separate day and night banner scenes', () => {
