@@ -257,6 +257,25 @@ test('every wish template is one-time and an exhausted character pool stays quie
   assert.equal(third.db.work.caseFund.wishRefreshDates.jane, '2026-09-03');
 });
 
+test('Cho wish pool keeps only the tiramisu request', () => {
+  const { CBIData } = load();
+  const first = CBIData.createWishRequest(CBIData.emptyDB(), {
+    date: '2026-09-01',
+    availableCharacters: ['cho']
+  });
+  assert.equal(first.created, true);
+  assert.equal(first.request.title, '尝一份日式提拉米苏');
+  assert.equal(first.request.amount, 1400);
+
+  const second = CBIData.createWishRequest(first.db, {
+    date: '2026-09-02',
+    availableCharacters: ['cho']
+  });
+  assert.equal(second.created, false);
+  assert.equal(second.reason, 'pool_exhausted');
+  assert.equal(second.db.work.caseFund.investigations.length, 1);
+});
+
 test('schema ten removes legacy auto-purchased wish duplicates and restores personal allowance', () => {
   const title = '尝尝那块“和我一模一样”的栗子派';
   const detail = 'Jane对照片里的卷曲奶油表示异议，但仍然把店名和商品名抄得很完整';

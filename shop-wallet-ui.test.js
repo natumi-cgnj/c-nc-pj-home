@@ -122,7 +122,7 @@ test('Rewards dynamics replaces only the obsolete notebook entry', () => {
 test('every page that writes CBI data loads the current schema cache version', () => {
   for (const page of ['cbi.html', 'daily.html', 'schedule.html', 'wallet.html', 'shop.html', 'dynamics.html']) {
     const html = fs.readFileSync(page, 'utf8');
-    assert.match(html, /cbi-data\.js\?v=20260913-one-time-wish1/, page);
+    assert.match(html, /cbi-data\.js\?v=20260913-trim-cho-wish1/, page);
   }
 });
 
