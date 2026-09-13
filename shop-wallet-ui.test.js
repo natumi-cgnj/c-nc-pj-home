@@ -42,6 +42,7 @@ test('shop keeps the item-grid model inside a three-tier Reward House', () => {
   assert.match(cbiShop, /targetIds: itemTargetDraft \? \[itemTargetDraft\] : \[\]/);
   assert.match(cbiShop, /--item-owner-color/);
   assert.match(cbiShop, /item-cell\.collected[^}]*border-color:var\(--item-owner-color/);
+  assert.doesNotMatch(cbiShop, /item-check|✓/);
   assert.match(cbiShop, /data-action="toggle-project"/);
   assert.match(cbiShop, /projectCollapseKey/);
   assert.match(cbiShop, /saveCollapsed\(\)/);
@@ -59,7 +60,7 @@ test('shop keeps the item-grid model inside a three-tier Reward House', () => {
   assert.match(cbiShop, /source:\s*'entertainment_balance'/);
   assert.doesNotMatch(cbiShop, /currentProjectId/);
   assert.doesNotMatch(cbiShop, /work\.salary\s*[-+]=/);
-  assert.match(shop, /cbi-shop\.js\?v=20260912-price-below1/);
+  assert.match(shop, /cbi-shop\.js\?v=20260913-border-only1/);
 });
 
 test('reality wallet merges allowance and wishes into reimbursement', () => {
