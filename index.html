@@ -700,7 +700,7 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-home-trigger{display:
     <!-- Natumi -->
     <div class="room-box room-natumi" id="roomNatumi">
       <div class="room-inner">
-        <button class="cbi-location-trigger cbi-home-trigger" type="button" onclick="openCbiLocationSheet(event)" aria-label="切换 CBI 地点">客厅⌄</button>
+        <button class="cbi-location-trigger cbi-home-trigger" type="button" onclick="openCbiLocationSheet(event)" aria-label="切换 CBI 地点">Living Room⌄</button>
         <div class="furniture natumi-bed"></div><div class="furniture natumi-box1"></div><div class="furniture natumi-box2"></div>
         <div class="furniture natumi-box3"></div><div class="furniture natumi-box4"></div><div class="furniture natumi-box5"></div>
         <div class="furniture natumi-box6"></div><div class="furniture natumi-box7"></div>
@@ -964,7 +964,7 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-home-trigger{display:
   </div>
 </div>
 
-<script src="world-context.js?v=20260824-cbi-work1"></script>
+<script src="world-context.js?v=20260913-cbi-room-label1"></script>
 <script src="cloud-sync.js?v=20260824-cbi-work1"></script>
 <script src="character-runtime.js?v=20260913-cbi-sleep1"></script>
 <script src="cbi-weather.js?v=20260903-cbi-weather2"></script>
@@ -1611,10 +1611,10 @@ const CBI_CG_SLOT_META={
     night:{label:'夜间',range:'22:00–次日 05:59',builtins:[{id:'cbi-office-night',name:'CBI办公室 · 深夜',src:'assets/cg/cbi/office-night.webp',tag:'',weight:1}]}
   },
   home:{
-    morning:{label:'清晨',range:'06:00–10:59',builtins:[{id:'cbi-home-day',name:'客厅 · 晨光',src:'assets/cg/cbi/home-day.webp',tag:'おはよう',weight:1}]},
-    day:{label:'白天',range:'11:00–16:59',builtins:[{id:'cbi-home-day',name:'客厅 · 晨光',src:'assets/cg/cbi/home-day.webp',tag:'',weight:1}]},
-    evening:{label:'傍晚',range:'17:00–21:59',builtins:[{id:'cbi-home-night',name:'客厅 · 夜景',src:'assets/cg/cbi/home-night.webp',tag:'',weight:1}]},
-    night:{label:'夜间',range:'22:00–次日 05:59',builtins:[{id:'cbi-home-night',name:'客厅 · 夜景',src:'assets/cg/cbi/home-night.webp',tag:'おやすみ',weight:1}]}
+    morning:{label:'清晨',range:'06:00–10:59',builtins:[{id:'cbi-home-day',name:'Living Room · 晨光',src:'assets/cg/cbi/home-day.webp',tag:'おはよう',weight:1}]},
+    day:{label:'白天',range:'11:00–16:59',builtins:[{id:'cbi-home-day',name:'Living Room · 晨光',src:'assets/cg/cbi/home-day.webp',tag:'',weight:1}]},
+    evening:{label:'傍晚',range:'17:00–21:59',builtins:[{id:'cbi-home-night',name:'Living Room · 夜景',src:'assets/cg/cbi/home-night.webp',tag:'',weight:1}]},
+    night:{label:'夜间',range:'22:00–次日 05:59',builtins:[{id:'cbi-home-night',name:'Living Room · 夜景',src:'assets/cg/cbi/home-night.webp',tag:'おやすみ',weight:1}]}
   }
 };
 let currentCGPeriodKey='';
@@ -3546,7 +3546,7 @@ const ROOM_PACKAGES = {
     },
     'cbi-boss': {
       id: 'cbi-boss',
-      label: '卧室',
+      label: 'Bedroom',
       description: 'Jane 留下后的卧室',
       roomClass: 'room-pkg-cbi-boss',
       roomLabelColor: '#E8B96A',

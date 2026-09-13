@@ -38,7 +38,7 @@
       defaultLocationId: 'office',
       locations: {
         office: { id: 'office', label: 'CBI办公室', description: 'Serious Crimes Unit' },
-        home: { id: 'home', label: '客厅', description: 'Boss家 · 卧室与沙发床' }
+        home: { id: 'home', label: 'Living Room', description: "Boss's Home · Bedroom & Sofa Bed" }
       },
       characters: ['jane', 'cho', 'rigsby', 'lisbon', 'vanpelt'],
       banner: 'location',

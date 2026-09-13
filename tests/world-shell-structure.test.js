@@ -69,11 +69,11 @@ test('Jane uses first-case lines at the office and awake home lines in the bedro
   assert.doesNotMatch(homeLines, /Lisbon/);
   assert.match(index, /JANE_BY_ZONE=JANE_CBI_HOME_LINES/);
   assert.match(index, /JANE_BY_ZONE=JANE_CBI_OFFICE_LINES/);
-  assert.match(index, /label: '卧室'/);
-  assert.match(index, />客厅⌄<\/button>/);
+  assert.match(index, /label: 'Bedroom'/);
+  assert.match(index, />Living Room⌄<\/button>/);
   assert.match(index, /cbi-bedroom-bed/);
   assert.match(index, /\.room-natumi \.natumi-bed\{display:none\}/);
-  assert.match(worldContext, /home: \{ id: 'home', label: '客厅', description: 'Boss家 · 卧室与沙发床' \}/);
+  assert.match(worldContext, /home: \{ id: 'home', label: 'Living Room', description: "Boss's Home · Bedroom & Sofa Bed" \}/);
   assert.match(index, /function showCbiJaneSleepBubble\(status\)/);
   assert.match(index, /sleep\.status/);
   assert.match(index, /sleep\.detail/);
