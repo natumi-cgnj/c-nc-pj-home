@@ -77,6 +77,10 @@ test('Jane uses first-case lines at the office and awake home lines in the bedro
   assert.match(index, /function showCbiJaneSleepBubble\(status\)/);
   assert.match(index, /sleep\.status/);
   assert.match(index, /sleep\.detail/);
+  assert.match(index, /#char-jane\.cbi-jane-sleeping\{pointer-events:none\}/);
+  assert.match(index, /#char-jane\.cbi-jane-sleeping img\{visibility:hidden\}/);
+  assert.match(index, /id="cgBanner" onclick="onCgBannerTap\(event\)"/);
+  assert.match(index, /function onCgBannerTap\(event\)[\s\S]*?showCbiJaneSleepBubble\(presence\)/);
 });
 
 test('CBI office lines keep Lisbon inside the team instead of assigning the whole group', () => {

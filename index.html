@@ -519,8 +519,8 @@ body[data-world-id="cbi"][data-world-location="home"] .room-natumi .natumi-box4{
 body[data-world-id="cbi"][data-world-location="home"] .room-natumi .natumi-box5{top:29%;right:16%}
 body[data-world-id="cbi"][data-world-location="home"] .room-natumi .natumi-box6{bottom:29%;right:20%}
 body[data-world-id="cbi"][data-world-location="home"] .room-natumi .natumi-box7{top:19%;right:23%}
-body[data-world-id="cbi"][data-world-location="home"] #char-jane.cbi-jane-sleeping{opacity:.88;filter:drop-shadow(0 2px 8px rgba(0,0,0,.045))}
-body[data-world-id="cbi"][data-world-location="home"] #char-jane.cbi-jane-sleeping img{transform:rotate(4deg);transform-origin:50% 88%}
+body[data-world-id="cbi"][data-world-location="home"] #char-jane.cbi-jane-sleeping{pointer-events:none}
+body[data-world-id="cbi"][data-world-location="home"] #char-jane.cbi-jane-sleeping img{visibility:hidden}
 
 /* ── World shell / CBI office ── */
 [hidden]{display:none!important}
@@ -630,7 +630,7 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-home-trigger{display:
 <div class="cbi-weather-strip cbi-weather-strip-desktop cbi-weather-strip-desktop-sacramento" data-cbi-weather-strip="sacramento" aria-live="polite"><span class="cbi-weather-icon" data-cbi-weather="sacramento-icon">·</span><span class="cbi-weather-temp" data-cbi-weather="sacramento-temp">—°</span></div>
 <div class="cbi-weather-strip cbi-weather-strip-desktop cbi-weather-strip-desktop-osaka" data-cbi-weather-strip="osaka" aria-live="polite"><span class="cbi-weather-place">OSAKA</span><span class="cbi-weather-icon" data-cbi-weather="osaka-icon">·</span><span class="cbi-weather-temp" data-cbi-weather="osaka-temp">—°</span></div>
 </div>
-<div class="cg-banner" id="cgBanner" onclick="openCgFull()"><img id="cgImg" src="" alt=""><button class="cg-close" type="button" onclick="closeCgBanner(event)">✕</button><a class="cg-time-tag" id="cgTimeTag" href="schedule.html" onclick="event.stopPropagation()"></a></div>
+<div class="cg-banner" id="cgBanner" onclick="onCgBannerTap(event)"><img id="cgImg" src="" alt=""><button class="cg-close" type="button" onclick="closeCgBanner(event)">✕</button><a class="cg-time-tag" id="cgTimeTag" href="schedule.html" onclick="event.stopPropagation()"></a></div>
 <div class="cg-fullscreen" id="cgFull" onclick="closeCgFull()"><img id="cgFullImg" src="" alt=""><button class="cg-manage-full" type="button" onclick="openCGLibrary(event)">Scenes</button></div>
 <div class="cg-library-overlay" id="cgLibraryOverlay" onclick="closeCGLibrary(event)">
   <div class="cg-library-panel" onclick="event.stopPropagation()">
@@ -1048,6 +1048,8 @@ function renderCbiHomePresence(){
   var away=document.getElementById('away-jane');
   var atHome=!!status&&status.location==='home';
   var sleeping=atHome&&!!status.sleeping;
+  var banner=document.getElementById('cgBanner');
+  if(banner)banner.setAttribute('aria-label',sleeping?'查看 Jane 睡眠状态':'查看当前场景');
   if(jane){
     jane.style.display=atHome?'':'none';
     jane.classList.toggle('cbi-jane-sleeping',sleeping);
@@ -1073,6 +1075,8 @@ function renderCbiHomePresence(){
 function renderCbiDutyRoster(){
   if(getActiveWorldId()!=='cbi'||getActiveLocationId()!=='office'||!window.CharacterRuntime)return;
   var now=new Date();
+  var banner=document.getElementById('cgBanner');
+  if(banner)banner.setAttribute('aria-label','查看当前场景');
   currentCbiDuty=CharacterRuntime.getCbiPresenceRoster(now);
   Object.keys(CBI_STAFF_NAMES).forEach(function(id){
     var element=document.getElementById('char-'+id);
@@ -1727,6 +1731,7 @@ function initCG(){
   const current=getCurrentCG(new Date());
   currentCGPeriodKey=current.periodKey;
   const banner=document.getElementById('cgBanner');
+  banner.setAttribute('aria-label','查看当前场景');
   const dismissed=localStorage.getItem(getCGDismissedStorageKey(current.contextId))===currentCGPeriodKey;
   banner.style.display=dismissed?'none':'';
   if(!current.item){banner.style.display='none';return;}
@@ -1748,6 +1753,14 @@ function closeCgBanner(event){
   const contextId=getCGContextId();
   localStorage.setItem(getCGDismissedStorageKey(contextId),currentCGPeriodKey||getCGDisplayPeriodKey(new Date(),contextId));
   document.getElementById('cgBanner').style.display='none';
+}
+function onCgBannerTap(event){
+  if(event)event.stopPropagation();
+  if(getActiveWorldId()==='cbi'&&getActiveLocationId()==='home'&&window.CharacterRuntime){
+    const presence=CharacterRuntime.getCbiCharacterPresence('jane',new Date());
+    if(showCbiJaneSleepBubble(presence))return;
+  }
+  openCgFull();
 }
 function openCgFull(){document.getElementById('cgFull').classList.add('show');}
 function closeCgFull(){document.getElementById('cgFull').classList.remove('show');}
