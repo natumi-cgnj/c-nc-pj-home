@@ -16,7 +16,7 @@ test('shop keeps the item-grid model inside a three-tier Reward House', () => {
   assert.match(cbiData, /projects:\s*\[\]/);
   assert.match(cbiData, /function normalizeShopProject\(/);
   assert.match(cbiData, /function normalizeShopProjectItem\(/);
-  assert.match(cbiData, /function normalizeShopSection\(/);
+  assert.doesNotMatch(cbiData, /function normalizeShopSection\(/);
   assert.match(cbiShop, /REWARD HOUSE/);
   assert.match(cbiShop, /累计花销/);
   assert.match(cbiShop, /当前剩余资金 · REALITY BALANCE/);
@@ -29,14 +29,16 @@ test('shop keeps the item-grid model inside a three-tier Reward House', () => {
   assert.match(cbiShop, /\? category : 'daily'/);
   assert.doesNotMatch(cbiShop, /project-category-header/);
   assert.match(cbiShop, /shop-inline-detail/);
-  assert.match(cbiShop, /section-grid/);
+  assert.match(cbiShop, /\.item-grid\{[^}]*grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/);
+  assert.doesNotMatch(cbiShop, /section-grid|section-divider|sectionDrafts|inputItemSection/);
   assert.match(cbiShop, /class="item-slot"/);
   assert.match(cbiShop, /<div class="item-price">¥/);
   assert.doesNotMatch(cbiShop, /<span class="item-price">/);
   assert.doesNotMatch(cbiShop, /\.item-price\{position:absolute/);
   assert.match(cbiShop, /projectIconInput/);
-  assert.match(cbiShop, />栏目</);
+  assert.doesNotMatch(projectEditor, /栏目|section/i);
   assert.doesNotMatch(projectEditor, /适合谁/);
+  assert.doesNotMatch(itemEditor, /所属栏目|inputItemSection/);
   assert.match(itemEditor, /适合谁/);
   assert.match(cbiShop, /PERSON_PRESETS/);
   assert.match(cbiShop, /targetIds: itemTargetDraft \? \[itemTargetDraft\] : \[\]/);
@@ -50,7 +52,7 @@ test('shop keeps the item-grid model inside a three-tier Reward House', () => {
   assert.match(cbiShop, /function openItem\(projectId, itemId\)/);
   assert.match(cbiShop, /if \(!itemHasContent\(item\)\) \{ openItemForm\(projectId, itemId\); return; \}/);
   assert.match(cbiShop, /function isPlaceholderItemName\(name\)/);
-  assert.match(cbiShop, /name: '', price: 0, order: number - 1/);
+  assert.match(cbiShop, /project\.items\.push\(normalized\)/);
   assert.match(cbiShop, /name: document\.getElementById\('inputItemName'\)\.value\.trim\(\), note:/);
   assert.match(cbiShop, /\(name \? '<span class="item-label">'/);
   assert.doesNotMatch(cbiShop, /item\.name \|\| \('品目'/);
@@ -60,7 +62,7 @@ test('shop keeps the item-grid model inside a three-tier Reward House', () => {
   assert.match(cbiShop, /source:\s*'entertainment_balance'/);
   assert.doesNotMatch(cbiShop, /currentProjectId/);
   assert.doesNotMatch(cbiShop, /work\.salary\s*[-+]=/);
-  assert.match(shop, /cbi-shop\.js\?v=20260913-border-only1/);
+  assert.match(shop, /cbi-shop\.js\?v=20260913-flat-project1/);
 });
 
 test('reality wallet merges allowance and wishes into reimbursement', () => {
@@ -122,7 +124,7 @@ test('Rewards dynamics replaces only the obsolete notebook entry', () => {
 test('every page that writes CBI data loads the current schema cache version', () => {
   for (const page of ['cbi.html', 'daily.html', 'schedule.html', 'wallet.html', 'shop.html', 'dynamics.html']) {
     const html = fs.readFileSync(page, 'utf8');
-    assert.match(html, /cbi-data\.js\?v=20260913-trim-cho-wish1/, page);
+    assert.match(html, /cbi-data\.js\?v=20260913-flat-shop1/, page);
   }
 });
 

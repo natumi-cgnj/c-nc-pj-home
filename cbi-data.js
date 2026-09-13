@@ -573,20 +573,6 @@
     };
   }
 
-  function normalizeShopSection(section, index) {
-    section = section && typeof section === 'object' ? section : {};
-    var tagColor = text(section.tagColor);
-    return {
-      id: text(section.id) || createId('shop_section'),
-      name: text(section.name),
-      count: Math.max(0, Math.floor(number(section.count, 0))),
-      cols: Math.max(1, Math.min(5, Math.floor(number(section.cols, 3)))),
-      tagText: text(section.tagText),
-      tagColor: /^#[0-9a-f]{6}$/i.test(tagColor) ? tagColor : '#E8B96A',
-      order: Math.max(0, Math.floor(number(section.order, index || 0)))
-    };
-  }
-
   function normalizeShopDuty(value, colorValue, fallbackTarget) {
     value = value && typeof value === 'object' ? value : {};
     var allowed = ['boss'].concat(CBI_CHARACTERS);
@@ -606,13 +592,6 @@
     var items = Array.isArray(project.items) ? project.items.map(normalizeShopProjectItem) : [];
     var firstTarget = items.reduce(function (found, item) { return found || (item.targetIds && item.targetIds[0]) || ''; }, '');
     var duty = normalizeShopDuty(project.duty, color, firstTarget);
-    var sections = Array.isArray(project.sections) ? project.sections.map(normalizeShopSection) : [];
-    if (!sections.length && items.length) sections = [normalizeShopSection({ name: '', count: items.length, cols: 3, tagColor: duty.color }, 0)];
-    var sectionCount = sections.reduce(function (total, section) { return total + section.count; }, 0);
-    if (sectionCount < items.length) {
-      if (!sections.length) sections.push(normalizeShopSection({ name: '', count: items.length, cols: 3, tagColor: duty.color }, 0));
-      else sections[sections.length - 1].count += items.length - sectionCount;
-    }
     return {
       id: text(project.id) || createId('shop_project'),
       name: text(project.name).trim(),
@@ -624,7 +603,6 @@
       iconPositionY: Math.max(0, Math.min(100, number(project.iconPositionY, 50))),
       note: text(project.note || project.description),
       duty: duty,
-      sections: sections,
       order: Math.max(0, Math.floor(number(project.order, index || 0))),
       items: items
     };
@@ -1698,7 +1676,6 @@
     normalizeShop: normalizeShop,
     normalizeShopProject: normalizeShopProject,
     normalizeShopProjectItem: normalizeShopProjectItem,
-    normalizeShopSection: normalizeShopSection,
     normalizeDeployment: normalizeDeployment,
     normalizeInvestigation: normalizeInvestigation,
     normalizeCaseFund: normalizeCaseFund,

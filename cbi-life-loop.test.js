@@ -75,6 +75,27 @@ test('legacy shop items migrate into category projects without losing ownership'
   assert.equal(JSON.parse(localStorage.getItem('cbi_db')).work.shop.projects[0].items[0].id, 'old_rollbahn');
 });
 
+test('shop projects discard legacy sections without losing or reordering items', () => {
+  const { CBIData } = load();
+  const project = CBIData.normalizeShopProject({
+    id: 'rollbahn_project',
+    name: 'Rollbahnシリーズ',
+    sections: [
+      { id: 'mini', name: '2027甜品mini款', count: 2, cols: 5 },
+      { id: 'other', name: '其他', count: 1, cols: 3 }
+    ],
+    items: [
+      { id: 'dessert_1', name: '圣代', price: 605, acquiredAt: '2026-09-13T04:00:00.000Z' },
+      { id: 'dessert_2', name: '冰淇淋', price: 605 },
+      { id: 'dessert_3', name: '松饼', price: 605 }
+    ]
+  }, 0);
+  assert.equal(Object.prototype.hasOwnProperty.call(project, 'sections'), false);
+  assert.deepEqual(Array.from(project.items, (item) => item.id), ['dessert_1', 'dessert_2', 'dessert_3']);
+  assert.equal(project.items[0].price, 605);
+  assert.equal(project.items[0].collected, true);
+});
+
 test('filing an action runs one opening round and never rolls twice in a work day', () => {
   const { CBIData } = load();
   let db = CBIData.addAction(CBIData.emptyDB(), { title: '整理书柜' }).db;
