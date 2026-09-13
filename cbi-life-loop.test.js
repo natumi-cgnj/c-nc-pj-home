@@ -233,7 +233,7 @@ test('wish desk checks every character independently and never rerolls the same 
   assert.equal(quietDay.db.work.caseFund.investigations.filter((item) => item.status === 'pending').length, 2);
 });
 
-test('a character sees every wish template before one can repeat', () => {
+test('every wish template is one-time and an exhausted character pool stays quiet', () => {
   const { CBIData } = load();
   const first = CBIData.createWishRequest(CBIData.emptyDB(), {
     date: '2026-09-01',
@@ -250,11 +250,11 @@ test('a character sees every wish template before one can repeat', () => {
     date: '2026-09-03',
     availableCharacters: ['jane']
   });
-  const counts = third.db.work.caseFund.investigations.reduce((result, item) => {
-    result[item.wishKey] = (result[item.wishKey] || 0) + 1;
-    return result;
-  }, {});
-  assert.deepEqual(Object.values(counts).sort(), [1, 2]);
+  assert.equal(third.created, false);
+  assert.equal(third.request, null);
+  assert.equal(third.reason, 'pool_exhausted');
+  assert.equal(third.db.work.caseFund.investigations.length, 2);
+  assert.equal(third.db.work.caseFund.wishRefreshDates.jane, '2026-09-03');
 });
 
 test('schema ten removes legacy auto-purchased wish duplicates and restores personal allowance', () => {

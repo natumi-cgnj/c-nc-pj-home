@@ -51,6 +51,10 @@ test('settled reimbursements keep their story line without asking Boss for a rep
 
   assert.match(historyCard, /if \(request\.detail\) html \+= '<div class="cbi-wish-detail">'/);
   assert.match(historyCard, /\['approved', 'auto'\]\.indexOf\(request\.status\)/);
+  assert.match(historyCard, /request\.status === 'approved' \? '同意报销'/);
+  assert.doesNotMatch(historyCard, /已同意/);
+  assert.match(historyCard, /request\.status === 'approved' \? BOSS_COLOR/);
+  assert.match(historyCard, /request\.status === 'auto' \? \(COLORS\[request\.characterId\]/);
   assert.ok(historyCard.indexOf('createdFooter') < historyCard.indexOf('cbi-reaction'));
   assert.ok(historyCard.indexOf('cbi-reaction') < historyCard.indexOf('resolvedDate(request)'));
   assert.match(requestCard, /cbi-wish-detail[\s\S]*request\.date[\s\S]*cbi-wish-balance/);

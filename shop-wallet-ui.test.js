@@ -82,7 +82,7 @@ test('reality wallet merges allowance and wishes into reimbursement', () => {
   assert.doesNotMatch(cbiWallet, /closest\('input,textarea,select,button,a,summary/);
   assert.match(cbiWallet, /event\.preventDefault\(\)/);
   assert.match(cbiWallet, /\}, \{ passive: false \}\);/);
-  assert.match(wallet, /cbi-wallet\.js\?v=20260913-auto-wish1/);
+  assert.match(wallet, /cbi-wallet\.js\?v=20260913-one-time-wish1/);
   assert.match(cbiShop, /wallet\.html#reimbursement/);
   assert.match(cbiShop, /bindTabSwipe/);
   assert.doesNotMatch(cbiWallet, /案件进度已移至/);
@@ -106,6 +106,9 @@ test('reality wallet merges allowance and wishes into reimbursement', () => {
   assert.doesNotMatch(cbiWallet, /愿望、批复与角色自由花销/);
   assert.match(cbiWallet, /class="cbi-wish-amount" style="color:' \+ COLORS\[request\.characterId\] \+ '"/);
   assert.match(cbiWallet, /createdFooter[\s\S]*cbi-reaction[\s\S]*resolvedDate\(request\)/);
+  assert.match(cbiWallet, /request\.status === 'approved' \? '同意报销'/);
+  assert.match(cbiWallet, /BOSS_COLOR = '#B08A5A'/);
+  assert.match(cbiWallet, /request\.status === 'auto' \? \(COLORS\[request\.characterId\]/);
 });
 
 test('Rewards dynamics replaces only the obsolete notebook entry', () => {
@@ -119,7 +122,7 @@ test('Rewards dynamics replaces only the obsolete notebook entry', () => {
 test('every page that writes CBI data loads the current schema cache version', () => {
   for (const page of ['cbi.html', 'daily.html', 'schedule.html', 'wallet.html', 'shop.html', 'dynamics.html']) {
     const html = fs.readFileSync(page, 'utf8');
-    assert.match(html, /cbi-data\.js\?v=20260913-auto-wish1/, page);
+    assert.match(html, /cbi-data\.js\?v=20260913-one-time-wish1/, page);
   }
 });
 

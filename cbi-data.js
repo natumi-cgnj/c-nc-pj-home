@@ -1478,17 +1478,18 @@
     if (existing) return { db: db, request: existing, created: false, autoPurchased: existing.status === 'auto', reason: 'character_today_exists' };
     var seedBase = date + '|wish|' + characterId + '|' + db.work.caseFund.investigations.length;
     var config = WISH_REQUEST_CONFIG[characterId];
-    var useCounts = {};
-    config.requests.forEach(function (item) { useCounts[wishTemplateKey(characterId, item)] = 0; });
+    var usedTemplates = {};
     db.work.caseFund.investigations.forEach(function (item) {
       if (item.source !== 'wishlist' || item.characterId !== characterId) return;
       var key = item.wishKey || wishTemplateKey(characterId, item);
-      if (Object.prototype.hasOwnProperty.call(useCounts, key)) useCounts[key] += 1;
+      usedTemplates[key] = true;
     });
-    var minimumUseCount = Math.min.apply(null, Object.keys(useCounts).map(function (key) { return useCounts[key]; }));
     var availableTemplates = config.requests.filter(function (item) {
-      return useCounts[wishTemplateKey(characterId, item)] === minimumUseCount;
+      return !usedTemplates[wishTemplateKey(characterId, item)];
     });
+    if (!availableTemplates.length) {
+      return { db: db, request: null, created: false, autoPurchased: false, reason: 'pool_exhausted' };
+    }
     var template = availableTemplates[Math.floor(stableUnit(seedBase + '|template') * availableTemplates.length)];
     var amount = Math.max(0, Math.floor(number(template.amount, 0)));
     var request = normalizeInvestigation({

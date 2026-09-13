@@ -3,6 +3,7 @@
 
   var NAMES = { jane: 'Jane', cho: 'Cho', rigsby: 'Rigsby', lisbon: 'Lisbon', vanpelt: 'Van Pelt' };
   var COLORS = { jane: '#87977F', cho: '#68747A', rigsby: '#7E9AB0', lisbon: '#A06F62', vanpelt: '#B48A9B' };
+  var BOSS_COLOR = '#B08A5A';
   var ALLOCATION_FOLD_KEY = 'cbi_allocation_history_open_v1';
   var WISH_FOLD_KEY = 'cbi_wish_desk_open_v1';
   var PURCHASE_HISTORY_FOLD_KEY = 'cbi_purchase_history_open_v1';
@@ -102,8 +103,7 @@
       '.cbi-purchase-history>summary{border-top:0!important}',
       '.cbi-approve{width:100%;margin-top:11px;padding:11px;border:0;border-radius:2px;background:#282828;color:#fff;font:inherit;font-size:10px;letter-spacing:.4px;line-height:1;cursor:pointer}',
       '.cbi-approve:disabled{background:#eee;color:#aaa}',
-      '.cbi-request-status{display:inline-flex;padding:2px 7px;border-radius:5px;background:#edf5ef;color:#5B8D66;font-size:8px;margin-left:5px}',
-      '.cbi-request-status.auto{background:#f7f1e3;color:#9a7733}',
+      '.cbi-request-status{display:inline-flex;padding:2px 7px;border-radius:5px;background:#f1f1ef;color:#999;font-size:8px;margin-left:5px}',
       '.cbi-legacy{display:inline-flex;margin-top:7px;padding:3px 7px;border-radius:5px;background:#f1f1f1;color:#999;font-size:8px}',
       '.cbi-reaction{font-size:11px;color:#777;line-height:1.65;margin-top:8px;padding:8px 0 0;border-top:1px solid #f1f1ef;background:transparent;border-radius:0}',
       '.cbi-log-who{font-size:11px;font-weight:600;color:#777;margin-bottom:3px}',
@@ -237,9 +237,10 @@
   }
 
   function historyCard(db, request) {
-    var status = request.status === 'auto' ? '自由购买' : (request.status === 'approved' ? '已同意' : '旧制未批准');
+    var status = request.status === 'auto' ? '自由购买' : (request.status === 'approved' ? '同意报销' : '旧制未批准');
     var statusClass = request.status === 'auto' ? ' auto' : '';
-    var html = '<div class="outing-card" style="border-left:3px solid ' + COLORS[request.characterId] + '"><div class="outing-char" style="color:' + COLORS[request.characterId] + '">' + esc(NAMES[request.characterId]) + '<span class="cbi-request-status' + statusClass + '">' + status + '</span></div><div class="outing-activity">' + esc(request.title) + ' · ¥' + request.amount + '</div>';
+    var statusColor = request.status === 'auto' ? (COLORS[request.characterId] || '#999') : (request.status === 'approved' ? BOSS_COLOR : '#999');
+    var html = '<div class="outing-card" style="border-left:3px solid ' + COLORS[request.characterId] + '"><div class="outing-char" style="color:' + COLORS[request.characterId] + '">' + esc(NAMES[request.characterId]) + '<span class="cbi-request-status' + statusClass + '" style="color:' + statusColor + ';background:' + statusColor + '18">' + status + '</span></div><div class="outing-activity">' + esc(request.title) + ' · ¥' + request.amount + '</div>';
     if (request.detail) html += '<div class="cbi-wish-detail">' + esc(request.detail) + '</div>';
     var createdFooter = request.source === 'legacy_case' ? caseTitle(db, request.caseId) + ' · ' + request.date : request.date;
     html += '<div class="outing-cost">' + esc(createdFooter) + '</div>';
