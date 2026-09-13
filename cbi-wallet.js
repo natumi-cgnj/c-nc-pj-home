@@ -88,6 +88,7 @@
       '.cbi-wish-source{font-size:9px;color:#b09a6c;letter-spacing:.5px;margin-bottom:4px}',
       '.cbi-wish-amount{font-size:17px;font-weight:350;color:#8a7448;white-space:nowrap}',
       '.cbi-wish-detail{font-size:11px;color:#999;line-height:1.65;margin-top:5px}',
+      '.cbi-wish-balance{font-size:10px;color:#aaa;line-height:1.65;margin-top:4px}',
       '.cbi-wish-desk{margin:0;border:0;border-bottom:1px solid #eeeeec;background:#fff}',
       '.cbi-wish-desk>summary{display:block;position:relative;list-style:none;cursor:pointer;user-select:none}',
       '.cbi-wish-desk>summary::-webkit-details-marker{display:none}',
@@ -152,6 +153,7 @@
   }
 
   function renderTreasury() {
+    refreshDailyWishes();
     var cbi = load();
     var wallet = walletDb();
     var total = global.CBIData.availableAllowance(cbi, wallet);
@@ -222,8 +224,16 @@
       : 'WISH LIST · 愿望申请';
     return '<div class="outing-card" style="border-left:3px solid ' + COLORS[request.characterId] + '">' +
       '<div class="cbi-wish-head"><div><div class="cbi-wish-source">' + esc(source) + '</div><div class="outing-char" style="color:' + COLORS[request.characterId] + '">' + esc(NAMES[request.characterId]) + ' · 报销申请</div><div class="outing-activity">' + esc(request.title) + '</div></div><div class="cbi-wish-amount" style="color:' + COLORS[request.characterId] + '">¥' + request.amount + '</div></div>' +
-      '<div class="cbi-wish-detail">' + esc(request.detail) + '<br>个人自由额度 ¥' + personal + ' · 公共额度 ¥' + open + '</div>' +
+      (request.detail ? '<div class="cbi-wish-detail">' + esc(request.detail) + '</div>' : '') +
+      '<div class="outing-cost">' + esc(request.date) + '</div>' +
+      '<div class="cbi-wish-balance">个人自由额度 ¥' + personal + ' · 公共额度 ¥' + open + '</div>' +
       '<button class="cbi-approve" type="button" onclick="CBIWallet.approveWish(\'' + request.id + '\')"' + (affordable ? '' : ' disabled') + '>' + (affordable ? '同意报销' : '余额不足 · 申请保留中') + '</button></div>';
+  }
+
+  function resolvedDate(request) {
+    if (!request.resolvedAt) return request.date;
+    var value = new Date(request.resolvedAt);
+    return Number.isNaN(value.getTime()) ? request.date : global.CBIData.workDayKey(value);
   }
 
   function historyCard(db, request) {
@@ -231,12 +241,16 @@
     var statusClass = request.status === 'auto' ? ' auto' : '';
     var html = '<div class="outing-card" style="border-left:3px solid ' + COLORS[request.characterId] + '"><div class="outing-char" style="color:' + COLORS[request.characterId] + '">' + esc(NAMES[request.characterId]) + '<span class="cbi-request-status' + statusClass + '">' + status + '</span></div><div class="outing-activity">' + esc(request.title) + ' · ¥' + request.amount + '</div>';
     if (request.detail) html += '<div class="cbi-wish-detail">' + esc(request.detail) + '</div>';
-    if (request.reaction && ['approved', 'auto'].indexOf(request.status) >= 0) html += '<div class="cbi-reaction">' + esc(NAMES[request.characterId]) + '：「' + esc(request.reaction) + '」</div>';
+    var createdFooter = request.source === 'legacy_case' ? caseTitle(db, request.caseId) + ' · ' + request.date : request.date;
+    html += '<div class="outing-cost">' + esc(createdFooter) + '</div>';
+    if (request.reaction && ['approved', 'auto'].indexOf(request.status) >= 0) {
+      html += '<div class="cbi-reaction">' + esc(NAMES[request.characterId]) + '：「' + esc(request.reaction) + '」</div>';
+      html += '<div class="outing-cost">' + esc(resolvedDate(request)) + '</div>';
+    }
     if (request.progressLine) {
       html += '<div class="cbi-legacy">旧制案件进展已原样保留</div><div class="cbi-wish-detail">' + esc(request.progressLine) + (request.progressDelta ? '　+' + request.progressDelta : '') + '</div>';
     }
-    var footer = request.source === 'legacy_case' ? caseTitle(db, request.caseId) + ' · ' + request.date : request.date;
-    return html + '<div class="outing-cost">' + esc(footer) + '</div></div>';
+    return html + '</div>';
   }
 
   function renderWishes() {
@@ -244,12 +258,8 @@
     var requests = db.work.caseFund.investigations;
     var pending = requests.filter(function (item) { return item.status === 'pending'; });
     var history = requests.filter(function (item) { return item.status !== 'pending'; }).slice().reverse().slice(0, 12);
-    var checkedToday = global.CBIData.CBI_CHARACTERS.filter(function (id) {
-      return db.work.caseFund.wishRefreshDates[id] === today();
-    }).length;
     document.getElementById('periodBanner').innerHTML = '<div class="period-name">CBI · WISH DESK</div><div class="period-time">' + today() + ' · 愿望、批复与花销</div>';
     var html = pending.map(function (item) { return requestCard(db, item); }).join('');
-    html += '<button class="record-btn cbi-refresh-wishes" type="button" onclick="CBIWallet.generateWish()">' + (checkedToday === global.CBIData.CBI_CHARACTERS.length ? '↻ 今天已经查看过' : '＋ 看看有没有新愿望') + '</button>';
     if (!pending.length) html += '<div class="outing-empty">愿望桌暂时没有新纸条</div>';
     document.getElementById('outingCards').innerHTML = html;
     var historyCount = document.getElementById('purchaseHistoryCount');
@@ -264,23 +274,10 @@
     if (treasuryView && treasuryView.classList.contains('active')) renderHeader('viewTreasury');
   }
 
-  function generateWish() {
+  function refreshDailyWishes() {
     var result = global.CBIData.refreshWishRequests(load(), { date: new Date(), wallet: walletDb() });
     if (result.checkedCharacters.length) save(result.db);
-    renderWishes();
-    if (!result.checkedCharacters.length) {
-      global.showToast('今天已经看过愿望桌了');
-      return;
-    }
-    if (!result.requests.length) {
-      global.showToast('今天没有新的愿望纸条');
-      return;
-    }
-    var waiting = result.requests.filter(function (item) { return item.status === 'pending'; });
-    var names = waiting.map(function (item) { return NAMES[item.characterId]; }).join('、');
-    if (waiting.length && result.autoPurchases.length) global.showToast(names + ' 留下了新愿望，另有愿望已自由购买');
-    else if (waiting.length) global.showToast(names + ' 留下了新愿望');
-    else global.showToast('新的愿望已用自由额度直接买下');
+    return result;
   }
 
   function approveWish(id) {
@@ -412,7 +409,9 @@
     global.saveTransfer = saveTransfer;
     global.renderCurrentTab = renderView;
     bindTabSwipe();
+    refreshDailyWishes();
     if (global.CharacterRuntime) global.CharacterRuntime.init({ onTick: function () {
+      refreshDailyWishes();
       var active = document.querySelector('.view.active');
       if (active) renderView(active.id);
     } });
@@ -428,8 +427,6 @@
   global.CBIWallet = Object.freeze({
     mount: mount,
     switchView: switchView,
-    generateWish: generateWish,
-    generateInvestigation: generateWish,
     approveWish: approveWish,
     approveInvestigation: approveWish,
     closeModal: closeModal

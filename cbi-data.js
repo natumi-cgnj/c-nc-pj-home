@@ -2,7 +2,7 @@
   'use strict';
 
   var STORAGE_KEY = 'cbi_db';
-  var SCHEMA_VERSION = 9;
+  var SCHEMA_VERSION = 10;
   var CANON_VERSION = 2;
   var TIMELINE_VERSION = 1;
   var CBI_CHARACTERS = ['jane', 'cho', 'rigsby', 'lisbon', 'vanpelt'];
@@ -687,12 +687,14 @@
     var source = ['wishlist', 'legacy_case'].indexOf(item.source) >= 0
       ? item.source
       : (text(item.caseId) ? 'legacy_case' : 'wishlist');
+    var characterId = CBI_CHARACTERS.indexOf(item.characterId) >= 0 ? item.characterId : 'rigsby';
     return {
       id: text(item.id) || createId('investigation'),
       date: text(item.date) || workDayKey(),
-      characterId: CBI_CHARACTERS.indexOf(item.characterId) >= 0 ? item.characterId : 'rigsby',
+      characterId: characterId,
       caseId: text(item.caseId),
       source: source,
+      wishKey: source === 'wishlist' ? (text(item.wishKey) || wishTemplateKey(characterId, item)) : '',
       title: text(item.title),
       detail: text(item.detail),
       amount: Math.max(0, Math.floor(number(item.amount, 0))),
@@ -741,6 +743,57 @@
       wishRefreshDates: wishRefreshDateMap(source.wishRefreshDates),
       logs: Array.isArray(source.logs) ? source.logs.map(normalizeCaseFundLog).filter(function (item) { return item.content; }) : []
     };
+  }
+
+  function wishTemplateKey(characterId, item) {
+    item = item && typeof item === 'object' ? item : {};
+    return [
+      text(characterId),
+      text(item.title).trim(),
+      Math.max(0, Math.floor(number(item.amount, 0))),
+      text(item.detail).trim(),
+      text(item.reaction).trim()
+    ].join('|');
+  }
+
+  function removeSettledWishLog(logs, request) {
+    var expectedType = request.status === 'auto' ? 'autonomous' : (request.status === 'approved' ? 'wish' : '');
+    if (!expectedType) return;
+    for (var index = logs.length - 1; index >= 0; index -= 1) {
+      var log = logs[index];
+      if (log.type !== expectedType || log.characterId !== request.characterId || log.date !== request.date) continue;
+      if (text(log.content).indexOf(request.title + ' · ') !== 0) continue;
+      logs.splice(index, 1);
+      return;
+    }
+  }
+
+  function repairLegacyDuplicateWishes(caseFund) {
+    var seen = {};
+    var repaired = [];
+    caseFund.investigations.forEach(function (request) {
+      if (request.source !== 'wishlist' || !request.wishKey) {
+        repaired.push(request);
+        return;
+      }
+      if (!seen[request.wishKey]) {
+        seen[request.wishKey] = true;
+        repaired.push(request);
+        return;
+      }
+      var removable = ['pending', 'declined', 'auto'].indexOf(request.status) >= 0
+        || (request.status === 'approved' && ['personal', 'public'].indexOf(request.spentFrom) >= 0);
+      if (!removable) {
+        repaired.push(request);
+        return;
+      }
+      if (request.status === 'auto' || (request.status === 'approved' && request.spentFrom === 'personal')) {
+        caseFund.charFunds[request.characterId] += request.amount;
+      }
+      removeSettledWishLog(caseFund.logs, request);
+    });
+    caseFund.investigations = repaired;
+    return caseFund;
   }
 
   function normalizeMajorCaseScene(item) {
@@ -838,6 +891,7 @@
 
   function normalize(value) {
     var source = value && typeof value === 'object' ? value : {};
+    var needsWishDuplicateRepair = Math.floor(number(source.schemaVersion, 0)) < SCHEMA_VERSION;
     var needsCanonRestore = Math.floor(number(source.canonVersion, 0)) < CANON_VERSION;
     var needsTimelineRestore = Math.floor(number(source.timelineVersion, 0)) < TIMELINE_VERSION;
     var hadCurrentCase = Object.prototype.hasOwnProperty.call(source, 'currentCaseId');
@@ -851,6 +905,7 @@
     result.canonVersion = CANON_VERSION;
     result.currentCaseId = text(source.currentCaseId) || null;
     result.work = normalizeWork(source.work);
+    if (needsWishDuplicateRepair) result.work.caseFund = repairLegacyDuplicateWishes(result.work.caseFund);
     if (needsCanonRestore) result.work = restoreCanonWork(result.work);
     if (!result.cases.some(function (item) { return item.id === result.currentCaseId && item.status === 'active'; })) result.currentCaseId = null;
     var active = result.cases.find(function (item) { return item.status === 'active'; });
@@ -1423,12 +1478,24 @@
     if (existing) return { db: db, request: existing, created: false, autoPurchased: existing.status === 'auto', reason: 'character_today_exists' };
     var seedBase = date + '|wish|' + characterId + '|' + db.work.caseFund.investigations.length;
     var config = WISH_REQUEST_CONFIG[characterId];
-    var template = config.requests[Math.floor(stableUnit(seedBase + '|template') * config.requests.length)];
+    var useCounts = {};
+    config.requests.forEach(function (item) { useCounts[wishTemplateKey(characterId, item)] = 0; });
+    db.work.caseFund.investigations.forEach(function (item) {
+      if (item.source !== 'wishlist' || item.characterId !== characterId) return;
+      var key = item.wishKey || wishTemplateKey(characterId, item);
+      if (Object.prototype.hasOwnProperty.call(useCounts, key)) useCounts[key] += 1;
+    });
+    var minimumUseCount = Math.min.apply(null, Object.keys(useCounts).map(function (key) { return useCounts[key]; }));
+    var availableTemplates = config.requests.filter(function (item) {
+      return useCounts[wishTemplateKey(characterId, item)] === minimumUseCount;
+    });
+    var template = availableTemplates[Math.floor(stableUnit(seedBase + '|template') * availableTemplates.length)];
     var amount = Math.max(0, Math.floor(number(template.amount, 0)));
     var request = normalizeInvestigation({
       date: date,
       characterId: characterId,
       source: 'wishlist',
+      wishKey: wishTemplateKey(characterId, template),
       title: template.title,
       detail: template.detail,
       reaction: template.reaction,

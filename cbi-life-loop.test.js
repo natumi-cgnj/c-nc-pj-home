@@ -17,7 +17,7 @@ function load(initial = {}) {
   return { CBIData: window.CBIData, localStorage };
 }
 
-test('schema nine keeps legacy case records and adds the confirmed story timeline', () => {
+test('schema ten keeps legacy case records and adds the confirmed story timeline', () => {
   const legacy = {
     currentCaseId: 'case_1',
     cases: [{ id: 'case_1', title: '旧案', status: 'active', body: '原线索' }],
@@ -25,7 +25,7 @@ test('schema nine keeps legacy case records and adds the confirmed story timelin
   };
   const { CBIData } = load({ cbi_db: JSON.stringify(legacy) });
   const db = CBIData.load();
-  assert.equal(db.schemaVersion, 9);
+  assert.equal(db.schemaVersion, 10);
   assert.equal(db.canonVersion, 2);
   assert.equal(db.timelineVersion, 1);
   assert.equal(db.timeline.length, 7);
@@ -71,7 +71,7 @@ test('legacy shop items migrate into category projects without losing ownership'
   assert.deepEqual(Array.from(db.work.shop.projects[0].items[0].targetIds), ['cho']);
   assert.deepEqual(Array.from(db.work.shop.owned), ['old_rollbahn']);
   assert.equal(db.work.shop.purchaseLog[0].price, 80);
-  assert.equal(JSON.parse(localStorage.getItem('cbi_db')).schemaVersion, 9);
+  assert.equal(JSON.parse(localStorage.getItem('cbi_db')).schemaVersion, 10);
   assert.equal(JSON.parse(localStorage.getItem('cbi_db')).work.shop.projects[0].items[0].id, 'old_rollbahn');
 });
 
@@ -231,6 +231,73 @@ test('wish desk checks every character independently and never rerolls the same 
   assert.equal(quietDay.checkedCharacters.length, 2);
   assert.equal(quietDay.requests.length, 0);
   assert.equal(quietDay.db.work.caseFund.investigations.filter((item) => item.status === 'pending').length, 2);
+});
+
+test('a character sees every wish template before one can repeat', () => {
+  const { CBIData } = load();
+  const first = CBIData.createWishRequest(CBIData.emptyDB(), {
+    date: '2026-09-01',
+    availableCharacters: ['jane']
+  });
+  const second = CBIData.createWishRequest(first.db, {
+    date: '2026-09-02',
+    availableCharacters: ['jane']
+  });
+  assert.notEqual(second.request.wishKey, first.request.wishKey);
+  assert.notEqual(second.request.title, first.request.title);
+
+  const third = CBIData.createWishRequest(second.db, {
+    date: '2026-09-03',
+    availableCharacters: ['jane']
+  });
+  const counts = third.db.work.caseFund.investigations.reduce((result, item) => {
+    result[item.wishKey] = (result[item.wishKey] || 0) + 1;
+    return result;
+  }, {});
+  assert.deepEqual(Object.values(counts).sort(), [1, 2]);
+});
+
+test('schema ten removes legacy auto-purchased wish duplicates and restores personal allowance', () => {
+  const title = '尝尝那块“和我一模一样”的栗子派';
+  const detail = 'Jane对照片里的卷曲奶油表示异议，但仍然把店名和商品名抄得很完整';
+  const reaction = '我拒绝承认相似。派可以留下，照片删掉。';
+  const request = (id, date) => ({
+    id,
+    date,
+    characterId: 'jane',
+    source: 'wishlist',
+    title,
+    detail,
+    reaction,
+    amount: 950,
+    status: 'auto',
+    spentFrom: 'personal',
+    resolvedAt: date + 'T06:00:00.000Z'
+  });
+  const legacy = {
+    schemaVersion: 9,
+    canonVersion: 2,
+    timelineVersion: 1,
+    work: {
+      caseFund: {
+        charFunds: { jane: 500 },
+        investigations: [request('pie_old', '2026-09-02'), request('pie_duplicate', '2026-09-13')],
+        logs: [
+          { id: 'old_log', date: '2026-09-02', type: 'autonomous', characterId: 'jane', content: title + ' · 自由额度支出 ¥950' },
+          { id: 'duplicate_log', date: '2026-09-13', type: 'autonomous', characterId: 'jane', content: title + ' · 自由额度支出 ¥950' }
+        ]
+      }
+    }
+  };
+  const { CBIData, localStorage } = load({ cbi_db: JSON.stringify(legacy) });
+  const db = CBIData.load();
+  assert.equal(db.work.caseFund.investigations.length, 1);
+  assert.equal(db.work.caseFund.investigations[0].id, 'pie_old');
+  assert.equal(db.work.caseFund.logs.length, 1);
+  assert.equal(db.work.caseFund.logs[0].date, '2026-09-02');
+  assert.equal(db.work.caseFund.charFunds.jane, 1450);
+  assert.equal(CBIData.wishSpend(db), 950);
+  assert.equal(JSON.parse(localStorage.getItem('cbi_db')).schemaVersion, 10);
 });
 
 test('approving a wish spends allowance but never changes case progress', () => {

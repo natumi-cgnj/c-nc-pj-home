@@ -73,6 +73,8 @@ test('reality wallet merges allowance and wishes into reimbursement', () => {
   assert.match(cbiWallet, /appendChild\(wishBanner\)/);
   assert.match(cbiWallet, /amount < 0/);
   assert.match(cbiWallet, /refreshWishRequests/);
+  assert.match(cbiWallet, /function refreshDailyWishes/);
+  assert.doesNotMatch(cbiWallet, /看看有没有新愿望|今天已经查看过|generateWish/);
   assert.match(cbiWallet, /createElement\('details'\)/);
   assert.match(cbiWallet, /touchstart/);
   assert.match(cbiWallet, /\.view\.active\{touch-action:pan-y\}/);
@@ -80,7 +82,7 @@ test('reality wallet merges allowance and wishes into reimbursement', () => {
   assert.doesNotMatch(cbiWallet, /closest\('input,textarea,select,button,a,summary/);
   assert.match(cbiWallet, /event\.preventDefault\(\)/);
   assert.match(cbiWallet, /\}, \{ passive: false \}\);/);
-  assert.match(wallet, /cbi-wallet\.js\?v=20260912-fold-story1/);
+  assert.match(wallet, /cbi-wallet\.js\?v=20260913-auto-wish1/);
   assert.match(cbiShop, /wallet\.html#reimbursement/);
   assert.match(cbiShop, /bindTabSwipe/);
   assert.doesNotMatch(cbiWallet, /案件进度已移至/);
@@ -103,6 +105,7 @@ test('reality wallet merges allowance and wishes into reimbursement', () => {
   assert.match(cbiWallet, /愿望、批复与花销/);
   assert.doesNotMatch(cbiWallet, /愿望、批复与角色自由花销/);
   assert.match(cbiWallet, /class="cbi-wish-amount" style="color:' \+ COLORS\[request\.characterId\] \+ '"/);
+  assert.match(cbiWallet, /createdFooter[\s\S]*cbi-reaction[\s\S]*resolvedDate\(request\)/);
 });
 
 test('Rewards dynamics replaces only the obsolete notebook entry', () => {
@@ -116,7 +119,7 @@ test('Rewards dynamics replaces only the obsolete notebook entry', () => {
 test('every page that writes CBI data loads the current schema cache version', () => {
   for (const page of ['cbi.html', 'daily.html', 'schedule.html', 'wallet.html', 'shop.html', 'dynamics.html']) {
     const html = fs.readFileSync(page, 'utf8');
-    assert.match(html, /cbi-data\.js\?v=20260912-backdated-record1/, page);
+    assert.match(html, /cbi-data\.js\?v=20260913-auto-wish1/, page);
   }
 });
 

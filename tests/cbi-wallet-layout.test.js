@@ -6,7 +6,7 @@ const cbiWallet = fs.readFileSync('cbi-wallet.js', 'utf8');
 
 test('CBI wish desk and purchase history are independent sibling folds', () => {
   const renderStart = cbiWallet.indexOf('function renderWishes()');
-  const renderEnd = cbiWallet.indexOf('function generateWish()', renderStart);
+  const renderEnd = cbiWallet.indexOf('function refreshDailyWishes()', renderStart);
   const renderWishes = cbiWallet.slice(renderStart, renderEnd);
   const mountStart = cbiWallet.indexOf('function mount()');
   const mountEnd = cbiWallet.indexOf('global.CBIWallet', mountStart);
@@ -51,7 +51,21 @@ test('settled reimbursements keep their story line without asking Boss for a rep
 
   assert.match(historyCard, /if \(request\.detail\) html \+= '<div class="cbi-wish-detail">'/);
   assert.match(historyCard, /\['approved', 'auto'\]\.indexOf\(request\.status\)/);
+  assert.ok(historyCard.indexOf('createdFooter') < historyCard.indexOf('cbi-reaction'));
+  assert.ok(historyCard.indexOf('cbi-reaction') < historyCard.indexOf('resolvedDate(request)'));
+  assert.match(requestCard, /cbi-wish-detail[\s\S]*request\.date[\s\S]*cbi-wish-balance/);
   assert.doesNotMatch(requestCard, /cbi-reply|回复一句|cbiReply_/);
   assert.doesNotMatch(historyCard, /Boss：/);
   assert.doesNotMatch(approveWish, /reply|cbiReply_/);
+});
+
+test('Wish Desk refreshes silently on the current work day without a manual button', () => {
+  const mountStart = cbiWallet.indexOf('function mount()');
+  const mountEnd = cbiWallet.indexOf('global.CBIWallet', mountStart);
+  const mount = cbiWallet.slice(mountStart, mountEnd);
+
+  assert.match(cbiWallet, /function refreshDailyWishes\(\)[\s\S]*refreshWishRequests\(load\(\), \{ date: new Date\(\), wallet: walletDb\(\) \}\)/);
+  assert.match(mount, /bindTabSwipe\(\);\s*refreshDailyWishes\(\);/);
+  assert.match(mount, /onTick: function \(\) \{\s*refreshDailyWishes\(\);/);
+  assert.doesNotMatch(cbiWallet, /看看有没有新愿望|今天已经查看过|cbi-refresh-wishes|generateWish/);
 });

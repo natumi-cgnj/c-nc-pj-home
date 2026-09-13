@@ -17,7 +17,7 @@ function load(initial = {}) {
   return { CBIData: window.CBIData, localStorage };
 }
 
-test('schema four keeps legacy case records and adds the confirmed story timeline', () => {
+test('schema ten keeps legacy case records and adds the confirmed story timeline', () => {
   const legacy = {
     currentCaseId: 'case_1',
     cases: [{ id: 'case_1', title: '旧案', status: 'active', body: '原线索' }],
@@ -25,7 +25,7 @@ test('schema four keeps legacy case records and adds the confirmed story timelin
   };
   const { CBIData } = load({ cbi_db: JSON.stringify(legacy) });
   const db = CBIData.load();
-  assert.equal(db.schemaVersion, 4);
+  assert.equal(db.schemaVersion, 10);
   assert.equal(db.canonVersion, 2);
   assert.equal(db.timelineVersion, 1);
   assert.equal(db.timeline.length, 7);
