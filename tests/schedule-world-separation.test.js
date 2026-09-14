@@ -259,9 +259,30 @@ test('Jane rotates between both bedroom sleep spots and the living-room sofa bed
 
   assert.deepEqual([...places].sort(), ['bedroom_bed', 'bedroom_sofa', 'living_sofa_bed']);
   assert.deepEqual([...bossPresence].sort(), [false, true]);
-  for (const phase of ['settling', 'light', 'deep', 'dreaming', 'nightmare', 'waking']) {
+  for (const phase of ['settling', 'light', 'deep', 'dreaming', 'waking']) {
     assert.equal(phases.has(phase), true, phase + ' should appear across the sampled nights');
   }
+});
+
+test('Jane nightmare phase remains possible but rare in the second-loop timeline', () => {
+  const { runtime } = loadRuntime({}, 'cbi');
+  assert.equal(runtime._internal.CBI_JANE_NIGHTMARE_CHANCE, 0.05);
+  let nightmareNights = 0;
+
+  for (let day = 0; day < 365; day++) {
+    const probe = runtime.getCbiJaneSleepStatus(new Date(2026, 0, day + 2, 1, 30));
+    let found = false;
+    for (let at = probe.startAt; at < probe.endAt; at += 15 * 60000) {
+      if (runtime.getCbiJaneSleepStatus(new Date(at)).phase === 'nightmare') {
+        found = true;
+        break;
+      }
+    }
+    if (found) nightmareNights++;
+  }
+
+  assert.ok(nightmareNights > 0, 'nightmares should remain reachable');
+  assert.ok(nightmareNights <= Math.ceil(365 * 0.08), 'nightmares should remain uncommon');
 });
 
 test('ordinary CBI workdays contain stable short errands inside the shift', () => {
