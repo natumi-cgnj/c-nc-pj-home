@@ -5,6 +5,7 @@ const test = require('node:test');
 const cbiData = fs.readFileSync('cbi-data.js', 'utf8');
 const cbiShop = fs.readFileSync('cbi-shop.js', 'utf8');
 const cbiWallet = fs.readFileSync('cbi-wallet.js', 'utf8');
+const cloudSync = fs.readFileSync('cloud-sync.js', 'utf8');
 const dynamics = fs.readFileSync('dynamics.html', 'utf8');
 const index = fs.readFileSync('index.html', 'utf8');
 const shop = fs.readFileSync('shop.html', 'utf8');
@@ -86,7 +87,7 @@ test('reality wallet merges allowance and wishes into reimbursement', () => {
   assert.doesNotMatch(cbiWallet, /closest\('input,textarea,select,button,a,summary/);
   assert.match(cbiWallet, /event\.preventDefault\(\)/);
   assert.match(cbiWallet, /\}, \{ passive: false \}\);/);
-  assert.match(wallet, /cbi-wallet\.js\?v=20260913-one-time-wish1/);
+  assert.match(wallet, /cbi-wallet\.js\?v=20260914-resolved-history1/);
   assert.match(cbiShop, /wallet\.html#reimbursement/);
   assert.match(cbiShop, /bindTabSwipe/);
   assert.doesNotMatch(cbiWallet, /案件进度已移至/);
@@ -135,4 +136,16 @@ test('every page that loads the wallet runtime uses the current character cache 
     const html = fs.readFileSync(page, 'utf8');
     assert.match(html, /character-runtime\.js\?v=20260913-cbi-sleep1/, page);
   }
+});
+
+test('cloud sync keeps running everywhere while its status badge stays on Home', () => {
+  const pages = [
+    'artist.html', 'backup.html', 'cbi.html', 'cinema.html', 'daily.html', 'dungeon.html',
+    'dynamics.html', 'event.html', 'gacha.html', 'habit.html', 'index.html', 'kitchen.html',
+    'meals.html', 'music.html', 'organize.html', 'reading.html', 'recipe.html', 'schedule.html',
+    'shop.html', 'story.html', 'study.html', 'wallet.html', 'world-empty.html'
+  ];
+  pages.forEach(page => assert.match(fs.readFileSync(page, 'utf8'), /cloud-sync\.js\?v=20260914-home-badge1/, page));
+  assert.match(cloudSync, /function showsCloudBadge\(\)[\s\S]*?=== 'index\.html'/);
+  assert.match(cloudSync, /if \(!showsCloudBadge\(\)\) \{[\s\S]*?return;/);
 });

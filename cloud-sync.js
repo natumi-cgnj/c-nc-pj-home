@@ -987,6 +987,10 @@
     return keys.some(key => relevant.includes(key));
   }
 
+  function showsCloudBadge() {
+    return (location.pathname.split('/').pop() || 'index.html').toLowerCase() === 'index.html';
+  }
+
   function redirectToLogin() {
     const file = location.pathname.split('/').pop() || 'index.html';
     const next = encodeURIComponent(file + location.search + location.hash);
@@ -1010,6 +1014,13 @@
 
   function setBadge(text, kind, handler) {
     let host = document.getElementById('liminalCloudBadgeHost');
+    if (!showsCloudBadge()) {
+      if (host) {
+        host.style.display = 'none';
+        host.setAttribute('aria-hidden', 'true');
+      }
+      return;
+    }
     if (!host) {
       host = document.createElement('div');
       host.id = 'liminalCloudBadgeHost';
@@ -1017,6 +1028,8 @@
       host.setAttribute('aria-live', 'polite');
       (document.body || document.documentElement).appendChild(host);
     }
+    host.style.display = '';
+    host.setAttribute('aria-hidden', 'false');
     let badge = document.getElementById('liminalCloudBadge');
     if (!badge) {
       badge = document.createElement('div');

@@ -220,7 +220,7 @@ class FakeSupabase {
   }
 }
 
-function makeEnvironment({ remoteValue, localValue }) {
+function makeEnvironment({ remoteValue, localValue, pathname = '/daily.html' }) {
   const authKey = 'sb-lbxjshaiffklmalcxiif-auth-token';
   const meta = {};
   const localStorage = new MemoryStorage({
@@ -240,7 +240,7 @@ function makeEnvironment({ remoteValue, localValue }) {
   const intervals = [];
   const storageListeners = [];
   const location = {
-    pathname: '/daily.html',
+    pathname,
     search: '',
     hash: '',
     reloads: 0,
@@ -324,6 +324,19 @@ async function testNormalWriteCreatesHistory() {
   assert.equal(archiveRows(env, '__snapshot__:').length, 1, 'first write of the day needs a full snapshot');
   assert.equal(archiveRows(env, '__history__:daily_db:').length, 1, 'old module value needs a history row');
   assert.deepEqual(archiveRows(env, '__history__:daily_db:')[0].state_data.value, original);
+}
+
+async function testStatusBadgeOnlyAppearsOnHomepage() {
+  const original = { todos: [{ id: 1, name: 'A' }], completed: [] };
+  const moduleEnv = makeEnvironment({ remoteValue: original, localValue: original, pathname: '/wallet.html' });
+  await moduleEnv.window.CloudSync.whenReady();
+  assert.equal(moduleEnv.document.body.children.some(child => String(child.className).includes('liminal-cloud-floating-host')), false,
+    'module pages should sync without mounting the floating status badge');
+
+  const homeEnv = makeEnvironment({ remoteValue: original, localValue: original, pathname: '/index.html' });
+  await homeEnv.window.CloudSync.whenReady();
+  assert.equal(homeEnv.document.body.children.some(child => String(child.className).includes('liminal-cloud-floating-host')), true,
+    'homepage should keep the floating cloud status badge');
 }
 
 async function testStartupShrinkIsBlocked() {
@@ -414,6 +427,7 @@ async function testFullSnapshotCanBeRestoredSafely() {
 }
 
 async function main() {
+  await testStatusBadgeOnlyAppearsOnHomepage();
   await testNormalWriteCreatesHistory();
   await testStartupShrinkIsBlocked();
   await testUnrelatedPageDataIsNotPushed();

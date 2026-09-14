@@ -236,6 +236,21 @@
     return Number.isNaN(value.getTime()) ? request.date : global.CBIData.workDayKey(value);
   }
 
+  function historySortTime(request) {
+    var resolved = new Date(request && request.resolvedAt || '').getTime();
+    if (Number.isFinite(resolved)) return resolved;
+    var fallback = new Date((request && request.date || '') + 'T00:00:00').getTime();
+    return Number.isFinite(fallback) ? fallback : 0;
+  }
+
+  function settledHistory(requests) {
+    return requests.filter(function (item) { return item.status !== 'pending'; }).slice().sort(function (left, right) {
+      var byResolved = historySortTime(right) - historySortTime(left);
+      if (byResolved) return byResolved;
+      return String(right.createdAt || right.date || '').localeCompare(String(left.createdAt || left.date || ''));
+    }).slice(0, 12);
+  }
+
   function historyCard(db, request) {
     var status = request.status === 'auto' ? '自由购买' : (request.status === 'approved' ? '同意报销' : '旧制未批准');
     var statusClass = request.status === 'auto' ? ' auto' : '';
@@ -258,7 +273,7 @@
     var db = load();
     var requests = db.work.caseFund.investigations;
     var pending = requests.filter(function (item) { return item.status === 'pending'; });
-    var history = requests.filter(function (item) { return item.status !== 'pending'; }).slice().reverse().slice(0, 12);
+    var history = settledHistory(requests);
     document.getElementById('periodBanner').innerHTML = '<div class="period-name">CBI · WISH DESK</div><div class="period-time">' + today() + ' · 愿望、批复与花销</div>';
     var html = pending.map(function (item) { return requestCard(db, item); }).join('');
     if (!pending.length) html += '<div class="outing-empty">愿望桌暂时没有新纸条</div>';

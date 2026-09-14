@@ -63,6 +63,20 @@ test('settled reimbursements keep their story line without asking Boss for a rep
   assert.doesNotMatch(approveWish, /reply|cbiReply_/);
 });
 
+test('purchase history follows realization time instead of wish creation order', () => {
+  const helperStart = cbiWallet.indexOf('function historySortTime(request)');
+  const helperEnd = cbiWallet.indexOf('function historyCard(db, request)', helperStart);
+  const helpers = new Function(cbiWallet.slice(helperStart, helperEnd) + '; return { settledHistory };')();
+  const history = helpers.settledHistory([
+    { id: 'cho-pen', status: 'approved', date: '2026-09-01', createdAt: '2026-09-01T08:00:00Z', resolvedAt: '2026-09-12T08:00:00Z' },
+    { id: 'jane-pie', status: 'auto', date: '2026-09-02', createdAt: '2026-09-02T08:00:00Z', resolvedAt: '2026-09-02T09:00:00Z' },
+    { id: 'cho-dessert', status: 'approved', date: '2026-09-02', createdAt: '2026-09-02T10:00:00Z', resolvedAt: '2026-09-13T08:00:00Z' },
+    { id: 'waiting', status: 'pending', date: '2026-09-14', createdAt: '2026-09-14T08:00:00Z' }
+  ]);
+
+  assert.deepEqual(history.map(item => item.id), ['cho-dessert', 'cho-pen', 'jane-pie']);
+});
+
 test('Wish Desk refreshes silently on the current work day without a manual button', () => {
   const mountStart = cbiWallet.indexOf('function mount()');
   const mountEnd = cbiWallet.indexOf('global.CBIWallet', mountStart);
