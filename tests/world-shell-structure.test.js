@@ -166,6 +166,30 @@ test('room portraits stay behind the fullscreen CG', () => {
   assert.match(index, /\.cg-fullscreen\.show~\.cbi-office-wrap \.char-sprite/);
 });
 
+test('CBI mobile heading stays light and shortcuts span the room width', () => {
+  assert.match(index, /body\[data-world-id="cbi"\] \.header h1\{font-weight:400;color:#aaa;/);
+  assert.match(index, /body\[data-world-id="cbi"\] \.header p\{font-size:10px;color:#d2d2d2;/);
+  assert.match(index, /body\[data-world-id="cbi"\] \.cbi-weather-strip\{color:#bdbdbd;font-size:9px;font-weight:300\}/);
+  assert.match(index, /\.mobile-shortcuts-wrap\{[^}]*display:grid;grid-template-columns:repeat\(5,44px\);justify-content:space-between;/);
+});
+
+test('opening a module from a Home shortcut returns to the main Home page', () => {
+  const helperStart = index.indexOf("var HOME_SHORTCUT_RETURN_KEY=");
+  const helperEnd = index.indexOf("['mobileShortcutsWrap'", helperStart);
+  const storage = new Map();
+  const sessionStorage = {
+    getItem(key) { return storage.has(key) ? storage.get(key) : null; },
+    setItem(key, value) { storage.set(key, String(value)); },
+    removeItem(key) { storage.delete(key); }
+  };
+  const helpers = new Function('sessionStorage', index.slice(helperStart, helperEnd) + '; return { markHomeShortcutReturn, consumeHomeShortcutReturn };')(sessionStorage);
+  helpers.markHomeShortcutReturn({ target: { closest: () => ({ getAttribute: () => 'wallet.html' }) } });
+  assert.equal(helpers.consumeHomeShortcutReturn(), true);
+  assert.equal(helpers.consumeHomeShortcutReturn(), false, 'the return marker should be consumed only once');
+  assert.match(index, /var defaultPage=returnToMain\?1:\(urlP!==null\?\+urlP:1\)/);
+  assert.match(index, /cleanUrl\.searchParams\.delete\('p'\)/);
+});
+
 test('schedule page is world-aware and never auto-imports sample events', () => {
   assert.match(schedule, /WorldContext\.getActiveWorldId\(\)/);
   assert.match(schedule, /getScheduleEventsForDate\(ds, WORLD_ID\)/);
