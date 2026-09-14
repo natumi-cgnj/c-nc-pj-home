@@ -1,6 +1,7 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const test = require('node:test');
+const vm = require('node:vm');
 
 const index = fs.readFileSync('index.html', 'utf8');
 const cbi = fs.readFileSync('cbi.html', 'utf8');
@@ -79,8 +80,67 @@ test('Jane uses first-case lines at the office and awake home lines in the bedro
   assert.match(index, /sleep\.detail/);
   assert.match(index, /#char-jane\.cbi-jane-sleeping\{pointer-events:none\}/);
   assert.match(index, /#char-jane\.cbi-jane-sleeping img\{visibility:hidden\}/);
+  for (const placeId of ['bedroom_bed', 'bedroom_sofa', 'living_sofa_bed']) {
+    assert.match(index, new RegExp(`data-cbi-sleep-place="${placeId}"`));
+    assert.match(index, new RegExp(`onCbiSleepPlaceTap\\('${placeId}',event\\)`));
+  }
+  assert.match(index, /function syncCbiJaneSleepTargets\(status\)[\s\S]*?target\.hidden=!active/);
+  assert.match(index, /function onCbiSleepPlaceTap\(placeId,event\)[\s\S]*?showCbiJaneSleepBubble\(status\)/);
+  assert.match(index, /function renderCbiHomePresence\(\)[\s\S]*?syncCbiJaneSleepTargets\(status\)/);
   assert.match(index, /id="cgBanner" onclick="onCgBannerTap\(event\)"/);
   assert.match(index, /function onCgBannerTap\(event\)[\s\S]*?showCbiJaneSleepBubble\(presence\)/);
+});
+
+test('only Jane current sleep furniture opens the sleep status', () => {
+  const start = index.indexOf('function syncCbiJaneSleepTargets');
+  const end = index.indexOf('function positionCbiOfficeJane', start);
+  assert.ok(start >= 0 && end > start, 'sleep target handlers should be extractable');
+
+  function makeTarget(placeId) {
+    const classes = new Set();
+    return {
+      dataset: { cbiSleepPlace: placeId },
+      hidden: true,
+      attributes: {},
+      classList: {
+        toggle(name, active) {
+          if (active) classes.add(name);
+          else classes.delete(name);
+        },
+        contains(name) { return classes.has(name); }
+      },
+      setAttribute(name, value) { this.attributes[name] = value; }
+    };
+  }
+
+  const targets = ['bedroom_bed', 'bedroom_sofa', 'living_sofa_bed'].map(makeTarget);
+  const status = {
+    sleeping: true,
+    sleep: { placeId: 'bedroom_sofa', placeLabel: '卧室的沙发' }
+  };
+  let shownStatus = null;
+  const context = {
+    document: { querySelectorAll: () => targets },
+    window: { CharacterRuntime: {} },
+    CharacterRuntime: { getCbiCharacterPresence: () => status },
+    getActiveWorldId: () => 'cbi',
+    getActiveLocationId: () => 'home',
+    showCbiJaneSleepBubble(value) { shownStatus = value; return true; },
+    Date
+  };
+  vm.runInNewContext(index.slice(start, end), context);
+
+  context.syncCbiJaneSleepTargets(status);
+  assert.equal(targets[0].hidden, true);
+  assert.equal(targets[1].hidden, false);
+  assert.equal(targets[1].classList.contains('is-active'), true);
+  assert.equal(targets[2].hidden, true);
+  assert.match(targets[1].attributes['aria-label'], /卧室的沙发/);
+
+  assert.equal(context.onCbiSleepPlaceTap('bedroom_bed', { stopPropagation() {} }), false);
+  assert.equal(shownStatus, null);
+  assert.equal(context.onCbiSleepPlaceTap('bedroom_sofa', { stopPropagation() {} }), true);
+  assert.equal(shownStatus, status);
 });
 
 test('CBI office lines keep Lisbon inside the team instead of assigning the whole group', () => {

@@ -527,6 +527,12 @@ body[data-world-id="cbi"][data-world-location="home"] .room-natumi .natumi-box6{
 body[data-world-id="cbi"][data-world-location="home"] .room-natumi .natumi-box7{top:19%;right:23%}
 body[data-world-id="cbi"][data-world-location="home"] #char-jane.cbi-jane-sleeping{pointer-events:none}
 body[data-world-id="cbi"][data-world-location="home"] #char-jane.cbi-jane-sleeping img{visibility:hidden}
+.cbi-sleep-status-target{display:none;position:absolute;z-index:14;height:44px;padding:0;border:0;border-radius:8px;background:transparent;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+body[data-world-id="cbi"][data-world-location="home"] .cbi-sleep-status-target.is-active{display:block}
+.cbi-sleep-bedroom-sofa{left:calc(18% - 8px);top:calc(36% - 17px);width:52px}
+.cbi-sleep-bedroom-bed{right:calc(10% - 6px);bottom:calc(12% - 11px);width:calc(38% + 12px)}
+.cbi-sleep-living-sofa{left:calc(31% - 6px);top:calc(43% - 16px);width:calc(38% + 12px)}
+.cbi-sleep-status-target:focus-visible{outline:1px solid rgba(91,166,107,.42);outline-offset:1px}
 
 /* ── World shell / CBI office ── */
 [hidden]{display:none!important}
@@ -689,6 +695,8 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-home-trigger{display:
         <div class="furniture jane-lamp"></div><div class="furniture jane-painting"></div>
         <div class="furniture jane-blanket"></div>
         <div class="furniture cbi-home-only cbi-bedroom-bed"></div>
+        <button class="cbi-sleep-status-target cbi-sleep-bedroom-sofa" type="button" data-cbi-sleep-place="bedroom_sofa" onclick="onCbiSleepPlaceTap('bedroom_sofa',event)" aria-label="查看卧室沙发上的 Jane 睡眠状态" hidden></button>
+        <button class="cbi-sleep-status-target cbi-sleep-bedroom-bed" type="button" data-cbi-sleep-place="bedroom_bed" onclick="onCbiSleepPlaceTap('bedroom_bed',event)" aria-label="查看卧室床上的 Jane 睡眠状态" hidden></button>
         <div class="furniture cbi-home-only cbi-guest-shelf"></div><div class="furniture cbi-home-only cbi-guest-teacup"></div>
         <div class="furniture cbi-home-only cbi-guest-bossbox1"></div><div class="furniture cbi-home-only cbi-guest-bossbox2"></div>
         <div class="furniture cbi-home-only cbi-guest-bossjacket"></div><div class="furniture cbi-home-only cbi-guest-rug"></div>
@@ -712,6 +720,7 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-home-trigger{display:
         <div class="furniture natumi-box6"></div><div class="furniture natumi-box7"></div>
         <div class="furniture cbi-home-only natumi-living-rug"></div><div class="furniture cbi-home-only natumi-living-sofa"></div>
         <div class="furniture cbi-home-only natumi-living-table"></div>
+        <button class="cbi-sleep-status-target cbi-sleep-living-sofa" type="button" data-cbi-sleep-place="living_sofa_bed" onclick="onCbiSleepPlaceTap('living_sofa_bed',event)" aria-label="查看客厅沙发床上的 Jane 睡眠状态" hidden></button>
         <div class="furniture cbi-home-only natumi-homedesk"></div><div class="furniture cbi-home-only natumi-homescreen"></div>
         <div class="furniture cbi-home-only natumi-laundry"></div><div class="furniture cbi-home-only natumi-sneaker1"></div>
         <div class="furniture cbi-home-only natumi-sneaker2"></div><div class="furniture cbi-home-only natumi-guitar"></div>
@@ -1017,6 +1026,25 @@ function refreshBranchStacks(){
 const CBI_STAFF_NAMES={jane:'Jane',cho:'Cho',rigsby:'Rigsby',lisbon:'Lisbon',vanpelt:'Van Pelt'};
 let currentCbiDuty=null;
 
+function syncCbiJaneSleepTargets(status){
+  var sleep=status&&status.sleeping&&status.sleep;
+  document.querySelectorAll('[data-cbi-sleep-place]').forEach(function(target){
+    var active=!!sleep&&target.dataset.cbiSleepPlace===sleep.placeId;
+    target.hidden=!active;
+    target.classList.toggle('is-active',active);
+    target.setAttribute('aria-label',active?'查看 Jane 睡眠状态 · '+sleep.placeLabel:'Jane 睡眠位置');
+  });
+}
+
+function onCbiSleepPlaceTap(placeId,event){
+  if(event)event.stopPropagation();
+  if(getActiveWorldId()!=='cbi'||getActiveLocationId()!=='home'||!window.CharacterRuntime)return false;
+  var status=CharacterRuntime.getCbiCharacterPresence('jane',new Date());
+  syncCbiJaneSleepTargets(status);
+  if(!status||!status.sleeping||!status.sleep||status.sleep.placeId!==placeId)return false;
+  return showCbiJaneSleepBubble(status);
+}
+
 function positionCbiOfficeJane(){
   var jane=document.getElementById('char-jane');
   var room=document.getElementById('roomCbiOffice');
@@ -1055,6 +1083,7 @@ function renderCbiHomePresence(){
   var atHome=!!status&&status.location==='home';
   var sleeping=atHome&&!!status.sleeping;
   var banner=document.getElementById('cgBanner');
+  syncCbiJaneSleepTargets(status);
   if(banner)banner.setAttribute('aria-label',sleeping?'查看 Jane 睡眠状态':'查看当前场景');
   if(jane){
     jane.style.display=atHome?'':'none';
@@ -1081,6 +1110,7 @@ function renderCbiHomePresence(){
 function renderCbiDutyRoster(){
   if(getActiveWorldId()!=='cbi'||getActiveLocationId()!=='office'||!window.CharacterRuntime)return;
   var now=new Date();
+  syncCbiJaneSleepTargets(null);
   var banner=document.getElementById('cgBanner');
   if(banner)banner.setAttribute('aria-label','查看当前场景');
   currentCbiDuty=CharacterRuntime.getCbiPresenceRoster(now);
