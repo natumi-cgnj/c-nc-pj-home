@@ -84,10 +84,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <div class="top-bar">
   <a class="back" href="index.html?p=2">&larr; Home</a>
   <h1>GOALS</h1>
-  <button class="btn-s" onclick="showModal('manageModal')">管理</button>
+  <button class="btn-s" id="goalManageButton" onclick="showModal('manageModal')">管理</button>
 </div>
 
-<div class="status-bar">
+<div class="status-bar" id="goalStatusBar">
   <div class="status-item">
     <div class="status-label">咖啡豆</div>
     <div class="status-value" style="color:#8B6914" id="beanCoffee">0</div>
@@ -104,7 +104,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 <div class="content" id="content"></div>
 
-<button class="add-btn" onclick="openAdd()">+</button>
+<button class="add-btn" id="goalAddButton" onclick="openAdd()">+</button>
+
+<nav class="task-bottom-tabs" id="goalBottomTabs" aria-label="Goal pages">
+  <button type="button" data-goal-view="reward">REWARD</button>
+  <button type="button" data-goal-view="aim">AIM</button>
+</nav>
 
 <div class="reward-toast" id="toast"></div>
 
@@ -175,6 +180,7 @@ if(!db.log)db.log={};
 
 let editingId=null;
 let deletingId=null;
+let activeGoalView=new URLSearchParams(location.search).get('view')==='reward'?'reward':'aim';
 
 function save(){try{localStorage.setItem('habit_db',JSON.stringify(db));}catch(e){}}
 
@@ -213,6 +219,11 @@ function getStreakBonus(streak){
 // RENDER
 // ══════════════════════════════════════
 function render(){
+  const c=document.getElementById('content');
+  if(activeGoalView==='reward'){
+    c.innerHTML='';
+    return;
+  }
   const beans=getBeans();
   document.getElementById('beanCoffee').textContent=beans.coffee||0;
   document.getElementById('beanTea').textContent=beans.tea||0;
@@ -222,8 +233,6 @@ function render(){
   const totalHabits=db.habits.length;
   const doneCount=db.habits.filter(h=>todayLog.includes(h.id)).length;
   document.getElementById('todayCount').textContent=doneCount+'/'+totalHabits;
-
-  const c=document.getElementById('content');
 
   if(!db.habits.length){
     c.innerHTML='<div class="empty">还没有添加目标<br>点右下角 + 开始设置</div>';
@@ -448,11 +457,36 @@ function showToast(msg){
   toastTimer=setTimeout(()=>el.classList.remove('show'),2500);
 }
 
+function setGoalView(view,skipUrl){
+  activeGoalView=view==='reward'?'reward':'aim';
+  document.body.dataset.goalView=activeGoalView;
+  document.querySelectorAll('#goalBottomTabs [data-goal-view]').forEach(button=>{
+    const isActive=button.dataset.goalView===activeGoalView;
+    button.classList.toggle('active',isActive);
+    button.setAttribute('aria-current',isActive?'page':'false');
+  });
+  const rewardOnly=activeGoalView==='reward';
+  document.getElementById('goalStatusBar').style.display=rewardOnly?'none':'';
+  document.getElementById('goalManageButton').style.visibility=rewardOnly?'hidden':'';
+  document.getElementById('goalAddButton').style.display=rewardOnly?'none':'';
+  if(!skipUrl){
+    const url=new URL(location.href);
+    if(rewardOnly)url.searchParams.set('view','reward');
+    else url.searchParams.delete('view');
+    history.replaceState(null,'',url.pathname+url.search+url.hash);
+  }
+  render();
+  if(typeof window.scrollTo==='function')window.scrollTo(0,0);
+}
+
 // ══════════════════════════════════════
 // INIT
 // ══════════════════════════════════════
+document.querySelectorAll('#goalBottomTabs [data-goal-view]').forEach(button=>{
+  button.addEventListener('click',()=>setGoalView(button.dataset.goalView));
+});
 cleanOldLogs();
-render();
+setGoalView(activeGoalView,true);
 </script>
 </body>
 </html>

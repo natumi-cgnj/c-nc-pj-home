@@ -20,12 +20,27 @@ test('task pages share the wallet-era visual shell', () => {
 });
 
 test('CBI actions keep their mechanics while using the lighter shared visual language', () => {
-  assert.match(daily, /cbi-work\.js\?v=20260916-visual1/);
+  assert.match(daily, /cbi-work\.js\?v=20260916-task-tabs1/);
   assert.match(cbiWork, /Wallet-era visual sync/);
   assert.match(cbiWork, /\.cbi-case-file,.cbi-case-file\.planned,.cbi-case-file\.closed/);
   assert.match(cbiWork, /\.cbi-commission-card:after\{display:none\}/);
   assert.match(cbiWork, /startAction\(id\)/);
   assert.match(cbiWork, /completeAction\(id\)/);
+});
+
+test('actions and goals expose reward-first bottom tabs without adding reward mechanics yet', () => {
+  const actionReward = cbiWork.indexOf('data-action-view="reward">REWARD');
+  const actionTodo = cbiWork.indexOf('data-action-view="todo">TODO');
+  const goalReward = goals.indexOf('data-goal-view="reward">REWARD');
+  const goalAim = goals.indexOf('data-goal-view="aim">AIM');
+
+  assert.ok(actionReward >= 0 && actionTodo > actionReward);
+  assert.ok(goalReward >= 0 && goalAim > goalReward);
+  assert.match(cbiWork, /var activeActionView = 'todo'/);
+  assert.match(cbiWork, /lockedTab === 'todo' \? actionNavMarkup\(\) : ''/);
+  assert.match(cbiWork, /rewardOnly = lockedTab === 'todo' && activeActionView === 'reward'/);
+  assert.match(goals, /let activeGoalView=new URLSearchParams\(location\.search\)\.get\('view'\)==='reward'\?'reward':'aim'/);
+  assert.match(goals, /setGoalView\(activeGoalView,true\)/);
 });
 
 test('record modal has labels but no amount or note placeholder copy', () => {

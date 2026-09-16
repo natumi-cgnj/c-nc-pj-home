@@ -23,6 +23,7 @@
     hard: { label: '棘手', threshold: 60 }
   };
   var activeTab = 'todo';
+  var activeActionView = 'todo';
   var lockedTab = '';
   var db = null;
   var toastTimer = null;
@@ -208,6 +209,36 @@
     }).join('');
   }
 
+  function actionNavMarkup() {
+    return '<nav class="task-bottom-tabs" id="actionBottomTabs" aria-label="Action pages">'
+      + '<button type="button" data-action-view="reward">REWARD</button>'
+      + '<button type="button" data-action-view="todo">TODO</button>'
+      + '</nav>';
+  }
+
+  function updateActionNav() {
+    document.querySelectorAll('#actionBottomTabs [data-action-view]').forEach(function (button) {
+      var isActive = button.dataset.actionView === activeActionView;
+      button.classList.toggle('active', isActive);
+      button.setAttribute('aria-current', isActive ? 'page' : 'false');
+    });
+  }
+
+  function setActionView(view, skipUrl) {
+    activeActionView = view === 'reward' ? 'reward' : 'todo';
+    document.body.dataset.actionView = activeActionView;
+    updateActionNav();
+    if (!skipUrl) {
+      var url = new URL(global.location.href);
+      url.searchParams.set('tab', 'todo');
+      if (activeActionView === 'reward') url.searchParams.set('view', 'reward');
+      else url.searchParams.delete('view');
+      global.history.replaceState(null, '', url.pathname + url.search + url.hash);
+    }
+    render();
+    if (typeof global.scrollTo === 'function') global.scrollTo(0, 0);
+  }
+
   function setTab(tab) {
     if (tab === 'habits') {
       global.location.href = 'daily.html?tab=habits';
@@ -219,12 +250,22 @@
     });
     var url = new URL(global.location.href);
     url.searchParams.set('tab', activeTab);
+    if (lockedTab === 'todo') {
+      if (activeActionView === 'reward') url.searchParams.set('view', 'reward');
+      else url.searchParams.delete('view');
+    }
     global.history.replaceState(null, '', url.pathname + url.search + url.hash);
     render();
   }
 
   function render() {
     document.body.dataset.cbiWorkTab = activeTab;
+    var rewardOnly = lockedTab === 'todo' && activeActionView === 'reward';
+    document.getElementById('statusBar').style.display = rewardOnly ? 'none' : '';
+    if (rewardOnly) {
+      document.getElementById('content').innerHTML = '';
+      return;
+    }
     statusBar();
     if (activeTab === 'drop') renderCommissions();
     else renderActions();
@@ -483,6 +524,7 @@
     refreshDailyState();
     lockedTab = options && ['drop', 'todo', 'habits'].indexOf(options.lockedTab) >= 0 ? options.lockedTab : '';
     activeTab = lockedTab || (options && ['drop', 'todo', 'habits'].indexOf(options.initialTab) >= 0 ? options.initialTab : 'todo');
+    activeActionView = lockedTab === 'todo' && new URLSearchParams(global.location.search).get('view') === 'reward' ? 'reward' : 'todo';
     var pageTitles = { drop: 'CBI · COMMISSIONS', todo: 'CBI · ACTIONS', habits: 'CBI · CHECK-IN' };
     document.title = lockedTab ? pageTitles[lockedTab] : 'CBI · Operations';
     document.querySelector('.top-bar h1').textContent = lockedTab ? pageTitles[lockedTab] : 'CBI · OPERATIONS';
@@ -498,7 +540,14 @@
         node.addEventListener('click', function () { setTab(node.dataset.tab); });
       });
     }
-    document.body.insertAdjacentHTML('beforeend', '<div class="modal-bg" id="cbiWorkModal"><div class="modal"><h2 id="cbiWorkModalTitle"></h2><div id="cbiWorkModalBody"></div><div class="btn-row"><button class="btn btn-cancel" id="cbiWorkModalCancel">取消</button><button class="btn btn-primary" id="cbiWorkModalPrimary">保存</button></div></div></div><div class="cbi-toast" id="cbiToast"></div>');
+    document.body.insertAdjacentHTML('beforeend', '<div class="modal-bg" id="cbiWorkModal"><div class="modal"><h2 id="cbiWorkModalTitle"></h2><div id="cbiWorkModalBody"></div><div class="btn-row"><button class="btn btn-cancel" id="cbiWorkModalCancel">取消</button><button class="btn btn-primary" id="cbiWorkModalPrimary">保存</button></div></div></div><div class="cbi-toast" id="cbiToast"></div>' + (lockedTab === 'todo' ? actionNavMarkup() : ''));
+    if (lockedTab === 'todo') {
+      document.querySelectorAll('#actionBottomTabs [data-action-view]').forEach(function (button) {
+        button.addEventListener('click', function () { setActionView(button.dataset.actionView); });
+      });
+      document.body.dataset.actionView = activeActionView;
+      updateActionNav();
+    }
     document.getElementById('cbiWorkModalCancel').addEventListener('click', closeModal);
     modal().addEventListener('click', function (event) { if (event.target === modal()) closeModal(); });
     document.getElementById('content').addEventListener('click', handleClick);
