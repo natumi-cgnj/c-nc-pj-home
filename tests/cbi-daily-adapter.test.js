@@ -96,15 +96,15 @@ function createHarness() {
   return { context, localStorage, nodes, tabs, utility, salaryLabel, teaWrap };
 }
 
-test('CBI habits render through the liminal cards and pay salary on direct check-in', () => {
+test('CBI habits render through the liminal cards and award points on direct check-in', () => {
   const { context, localStorage, nodes, tabs, utility, salaryLabel, teaWrap } = createHarness();
   assert.equal(context.document.body.dataset.cbiHabits, '1');
   assert.equal(tabs.style.display, 'none');
   assert.equal(utility.removed, true);
-  assert.equal(salaryLabel.textContent, '工资');
+  assert.equal(salaryLabel.textContent, '点数');
   assert.equal(teaWrap.style.display, 'none');
-  assert.match(nodes.statusBar.innerHTML, /工资/);
-  assert.match(nodes.statusBar.innerHTML, /\$120/);
+  assert.match(nodes.statusBar.innerHTML, /打卡点/);
+  assert.match(nodes.statusBar.innerHTML, />120</);
   assert.match(nodes.content.innerHTML, /class="todo-check" onclick="recordHabitProgress\('interval_1',1\)"/);
 
   context.__daily.recordHabitProgress('interval_1', 1);

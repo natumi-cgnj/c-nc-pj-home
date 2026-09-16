@@ -116,18 +116,17 @@ test('reality wallet merges allowance and wishes into reimbursement', () => {
   assert.match(cbiWallet, /request\.status === 'auto' \? \(COLORS\[request\.characterId\]/);
 });
 
-test('Rewards dynamics replaces only the obsolete notebook entry', () => {
+test('Rewards dynamics preserves its shared entry and hands CBI to check-in rewards', () => {
   assert.match(index, /href="techo\.html"[^>]*>[\s\S]*?<div class="entry-label">Techo<\/div>/);
   assert.match(index, /href="dynamics\.html"[^>]*>[\s\S]*?<div class="entry-label">动态<\/div>/);
-  assert.match(dynamics, /暂无动态/);
-  assert.match(dynamics, /不会为了填满页面而生成假的日常/);
-  assert.match(dynamics, /之后会使用打卡货币解锁角色使用记录与小剧情/);
+  assert.match(dynamics, /WorldContext\.getActiveWorldId\(\)==='cbi'[\s\S]*?daily\.html\?tab=habits&view=reward/);
+  assert.match(fs.readFileSync('cbi-checkin-rewards.js', 'utf8'), /data-checkin-view="reward">REWARD/);
 });
 
 test('every page that writes CBI data loads the current schema cache version', () => {
   for (const page of ['cbi.html', 'daily.html', 'schedule.html', 'wallet.html', 'shop.html', 'dynamics.html']) {
     const html = fs.readFileSync(page, 'utf8');
-    assert.match(html, /cbi-data\.js\?v=20260913-flat-shop1/, page);
+    assert.match(html, /cbi-data\.js\?v=20260916-checkin-reward1/, page);
   }
 });
 

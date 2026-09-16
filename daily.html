@@ -167,7 +167,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .aff-row{display:flex;gap:8px}
 .aff-row>div{flex:1}
 </style>
-<link rel="stylesheet" href="task-modules.css?v=20260916-visual1">
+<link rel="stylesheet" href="task-modules.css?v=20260916-checkin-reward1">
 </head>
 <body class="task-module">
 <div class="top-bar">
@@ -277,7 +277,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 <script src="world-context.js?v=20260913-cbi-room-label1"></script>
 <script src="cloud-sync.js?v=20260914-home-badge1"></script>
-<script src="cbi-data.js?v=20260913-flat-shop1"></script>
+<script src="cbi-data.js?v=20260916-checkin-reward1"></script>
+<script src="cbi-checkin-rewards.js?v=20260916-checkin-reward1"></script>
 <script src="cbi-work.js?v=20260916-visual1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
@@ -604,7 +605,7 @@ function switchTab(t){currentTab=t;render();}
 function renderStatusBar(){
   const bar=document.getElementById('statusBar');
   let labelA,valueA,classA,labelB,valueB,classB;
-  if(IS_CBI_HABITS){const records=hdb.records[today()]||{};const todayCount=Object.keys(records).reduce((sum,id)=>sum+(Number(records[id].value)||0),0);labelA='工资';valueA='$'+(cbiDailyDb.work.salary||0);classA='coffee-color';labelB='今日登记';valueB=todayCount+' 次';classB='tea-color';}
+  if(IS_CBI_HABITS){const records=hdb.records[today()]||{};const todayCount=Object.keys(records).reduce((sum,id)=>sum+(Number(records[id].value)||0),0);labelA='打卡点';valueA=cbiDailyDb.work.salary||0;classA='coffee-color';labelB='今日登记';valueB=todayCount+' 次';classB='tea-color';}
   else if(currentTab==='drop'){const gems=getGems();labelA='蓝宝石';valueA=gems.sapphire||0;classA='sapphire-color';labelB='祖母绿';valueB=gems.emerald||0;classB='emerald-color';}
   else if(currentTab==='habits'){const beans=getBeans();labelA='咖啡豆';valueA=beans.coffee||0;classA='coffee-color';labelB='茶叶';valueB=beans.tea||0;classB='tea-color';}
   else{labelA='画作碎片';valueA=db.affinity.neal||0;classA='neal-color';labelB='档案碎片';valueB=db.affinity.jane||0;classB='jane-color';}
@@ -766,7 +767,7 @@ function renderHabitCard(h){
   const streak=getHabitStreak(h.id);
   const streakBonus=getHabitStreakBonus(streak);
   const rewardParts=[];
-  if(IS_CBI_HABITS){if(h.salary)rewardParts.push('工资 +$'+h.salary);}
+  if(IS_CBI_HABITS){if(h.salary)rewardParts.push('点数 +'+h.salary);}
   else{if(h.coffee)rewardParts.push('☕豆+'+h.coffee);if(h.tea)rewardParts.push('🍃叶+'+h.tea);}
   const record=getHabitRecord(today(),h.id,false);
   const canUndo=!!(record&&record.events&&record.events.length);
@@ -817,7 +818,7 @@ function undoHabitProgress(id){
   const event=record.events.pop();
   if(IS_CBI_HABITS){
     const salary=Math.max(0,Number(event.salary)||0);
-    if((cbiDailyDb.work.salary||0)<salary){record.events.push(event);showHabitNotice('这笔工资已经花掉了，不能撤回本次登记');return;}
+    if((cbiDailyDb.work.salary||0)<salary){record.events.push(event);showHabitNotice('这笔点数已经花掉了，不能撤回本次登记');return;}
     record.value=Math.max(0,(Number(record.value)||0)-(Number(event.value)||0));
     cbiDailyDb.work.salary=Math.max(0,(cbiDailyDb.work.salary||0)-salary);
     if(record.value===0&&record.events.length===0)delete hdb.records[today()][id];
@@ -880,7 +881,7 @@ function updateHabitTypeHint(){
   const locked=document.getElementById('habitType').dataset.locked==='true';
   const hints={daily:'设置间隔天数，到期提醒打卡',count:'适合贴纸、收纳等一次一次累积的事'};
   document.getElementById('habitTypeNote').textContent=locked?'已有统计记录，类型不再更改':(hints[type]||'');
-  document.getElementById('habitRewardLabel').textContent=IS_CBI_HABITS?'每次记录工资':'每次记录产出';
+  document.getElementById('habitRewardLabel').textContent=IS_CBI_HABITS?'每次记录点数':'每次记录产出';
   document.getElementById('habitRewardHint').textContent='只按实际记录累计';
 }
 function saveHabit(){
@@ -909,7 +910,7 @@ function openHabitDetail(id){
   const type=h.type||'count';const streak=getHabitStreak(id);const streakBonus=getHabitStreakBonus(streak);
   const parts=[type==='daily'?'间隔打卡 (每'+(h.interval||1)+'天)':'Times','今日：'+(getHabitToday(id)>0?'已完成':'未完成'),'累计：'+getHabitTotal(id)+(type==='daily'?'日':'次')];
   if(streak)parts.push('连续：'+streak+'天'+(streakBonus?'（奖励 +'+Math.round(streakBonus*100)+'%）':''));
-  if(IS_CBI_HABITS&&h.salary)parts.push('工资 +$'+h.salary+'/次');
+  if(IS_CBI_HABITS&&h.salary)parts.push('点数 +'+h.salary+'/次');
   if(!IS_CBI_HABITS&&h.coffee)parts.push('咖啡豆 +'+h.coffee+'/次');
   if(!IS_CBI_HABITS&&h.tea)parts.push('茶叶 +'+h.tea+'/次');
   document.getElementById('detailTitle').textContent=h.name||'打卡';
@@ -952,6 +953,9 @@ function initDragSort(containerId,dataType){
 function prepareCbiHabitPage(){
   document.body.dataset.cbiHabits='1';
   currentTab='habits';
+  document.title='Check-in · CBI';
+  const title=document.querySelector('.top-bar h1');
+  if(title)title.textContent='CHECK-IN';
   const tabs=document.querySelector('.tabs');
   if(tabs)tabs.style.display='none';
   const utility=document.querySelector('.top-bar .btn-s');
@@ -960,7 +964,7 @@ function prepareCbiHabitPage(){
   if(salaryInput){
     salaryInput.removeAttribute('max');
     const label=salaryInput.parentElement&&salaryInput.parentElement.querySelector('label');
-    if(label)label.textContent='工资';
+    if(label)label.textContent='点数';
   }
   const teaInput=document.getElementById('habitTea');
   if(teaInput&&teaInput.parentElement)teaInput.parentElement.style.display='none';
@@ -971,7 +975,12 @@ function prepareCbiHabitPage(){
 var urlTab = DAILY_URL_TAB;
 if (IS_CBI_HABITS) {
   prepareCbiHabitPage();
-  render();
+  if(window.CBICheckinRewards){
+    CBICheckinRewards.mount({
+      renderCheck:render,
+      onDbChange:function(nextDb){cbiDailyDb=nextDb;}
+    });
+  }else render();
 } else if (IS_CBI_DAILY && window.CBIWork) {
   CBIWork.mount({initialTab:urlTab,lockedTab:['drop','todo','habits'].indexOf(urlTab)>=0?urlTab:''});
 } else {

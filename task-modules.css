@@ -306,8 +306,179 @@ body.task-module{
 .task-module .detail-description{background:#fafafa;color:#666;font-size:12px}
 .task-module .detail-meta{color:#aaa;font-size:10px}
 
+.task-module .task-bottom-tabs{
+  position:fixed;
+  right:0;
+  bottom:0;
+  left:0;
+  z-index:80;
+  display:flex;
+  padding:0 12px env(safe-area-inset-bottom,0px);
+  border-top:1px solid rgba(0,0,0,.06);
+  background:rgba(255,255,255,.94);
+  -webkit-backdrop-filter:blur(16px);
+  backdrop-filter:blur(16px);
+}
+.task-module .task-bottom-tabs button{
+  position:relative;
+  flex:1;
+  padding:15px 0 13px;
+  border:0;
+  background:none;
+  color:#bbb;
+  font-family:inherit;
+  font-size:10px;
+  font-weight:400;
+  letter-spacing:.7px;
+  cursor:pointer;
+}
+.task-module .task-bottom-tabs button.active{color:#4e4a44}
+.task-module .task-bottom-tabs button.active:before{
+  content:"";
+  position:absolute;
+  top:0;
+  right:36%;
+  left:36%;
+  height:1px;
+  background:#9c907c;
+}
+
+.task-module .checkin-reward-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin:2px 1px 8px;
+  color:#aaa;
+  font-size:9px;
+  letter-spacing:.7px;
+}
+.task-module .checkin-latest{
+  position:relative;
+  margin-bottom:17px;
+  padding:15px 16px 15px 18px;
+  overflow:hidden;
+  border:1px solid #efefed;
+  border-radius:11px;
+  background:#fff;
+  box-shadow:0 1px 4px rgba(0,0,0,.025);
+}
+.task-module .checkin-latest:before{
+  content:"";
+  position:absolute;
+  top:0;
+  bottom:0;
+  left:0;
+  width:2px;
+  background:var(--person-color,#B08A5A);
+}
+.task-module .checkin-latest-meta{
+  color:var(--person-color,#B08A5A);
+  font-size:8px;
+  letter-spacing:.7px;
+  text-transform:uppercase;
+}
+.task-module .checkin-latest-item{margin-top:6px;color:#555;font-size:11px}
+.task-module .checkin-latest-line{margin-top:8px;color:#777;font-size:11px;line-height:1.75}
+.task-module .checkin-cabinets{
+  overflow:hidden;
+  border:1px solid #eeeeec;
+  border-radius:11px;
+  background:#fff;
+}
+.task-module .checkin-cabinet{border-bottom:1px solid #f0f0ee}
+.task-module .checkin-cabinet:last-child{border-bottom:0}
+.task-module .checkin-cabinet>summary{
+  display:flex;
+  align-items:center;
+  min-height:45px;
+  padding:0 14px;
+  list-style:none;
+  cursor:pointer;
+}
+.task-module .checkin-cabinet>summary::-webkit-details-marker{display:none}
+.task-module .checkin-cabinet>summary:after{
+  content:"▼";
+  margin-left:11px;
+  color:#ccc;
+  font-size:7px;
+  transition:transform .18s;
+}
+.task-module .checkin-cabinet:not([open])>summary:after{transform:rotate(-90deg)}
+.task-module .checkin-cabinet-dot{width:6px;height:6px;border-radius:50%;margin-right:9px}
+.task-module .checkin-cabinet-name{flex:1;color:#555;font-size:11px}
+.task-module .checkin-cabinet-count{color:#bbb;font-size:9px;font-variant-numeric:tabular-nums}
+.task-module .checkin-cabinet-items{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:7px;
+  padding:2px 12px 13px;
+}
+.task-module .checkin-reward-item{
+  display:grid;
+  grid-template-columns:34px minmax(0,1fr) auto;
+  align-items:center;
+  gap:8px;
+  min-width:0;
+  padding:8px;
+  border:1px solid #f0f0ee;
+  border-radius:9px;
+  background:#fdfdfc;
+  text-align:left;
+  cursor:pointer;
+}
+.task-module .checkin-reward-item:active{background:#f7f7f5}
+.task-module .checkin-reward-thumb{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:34px;
+  height:34px;
+  overflow:hidden;
+  border-radius:7px;
+  background:#f3f2ef;
+  color:#aaa;
+  font-size:12px;
+}
+.task-module .checkin-reward-thumb img{width:100%;height:100%;object-fit:cover}
+.task-module .checkin-reward-copy{min-width:0}
+.task-module .checkin-reward-name,
+.task-module .checkin-reward-project{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.task-module .checkin-reward-name{color:#555;font-size:10px}
+.task-module .checkin-reward-project{margin-top:3px;color:#bbb;font-size:8px}
+.task-module .checkin-reward-cost{color:#a59272;font-size:9px;font-variant-numeric:tabular-nums}
+.task-module .checkin-cabinet-empty{padding:2px 14px 14px;color:#ccc;font-size:9px}
+.task-module .checkin-reward-shop-link{
+  display:block;
+  width:max-content;
+  margin:18px auto 0;
+  padding:6px 1px;
+  border-bottom:1px solid #bbb;
+  color:#999;
+  font-size:10px;
+  text-decoration:none;
+}
+.task-module .checkin-reward-modal{text-align:center}
+.task-module .checkin-reward-modal h2{text-align:center}
+.task-module .checkin-reward-preview{
+  width:110px;
+  height:110px;
+  margin:0 auto 12px;
+  overflow:hidden;
+  border:1px solid #efede8;
+  border-radius:12px;
+  background:#faf9f7;
+}
+.task-module .checkin-reward-preview img{width:100%;height:100%;object-fit:contain}
+.task-module .checkin-reward-modal-meta{font-size:9px;letter-spacing:.35px}
+.task-module .checkin-reward-balance{margin-top:8px;color:#aaa;font-size:10px}
+.task-module .checkin-reward-error{min-height:17px;margin-top:9px;color:#b5796b;font-size:10px}
+.task-module .checkin-reward-result-person{font-size:9px;letter-spacing:.7px;text-transform:uppercase}
+.task-module .checkin-reward-result-line{margin-top:12px;color:#555;font-size:12px;line-height:1.8;text-align:left}
+.task-module #checkinRewardPrimary:disabled{background:#eee;color:#aaa;cursor:default}
+
 @media(max-width:480px){
   .task-module .top-bar{padding-left:16px;padding-right:16px}
   .task-module .content{padding-left:14px;padding-right:14px}
   .task-module>.add-btn{width:calc(100% - 28px);margin-left:14px;margin-right:14px}
+  .task-module .checkin-cabinet-items{grid-template-columns:1fr}
 }

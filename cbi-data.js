@@ -2,11 +2,50 @@
   'use strict';
 
   var STORAGE_KEY = 'cbi_db';
-  var SCHEMA_VERSION = 10;
+  var SCHEMA_VERSION = 11;
   var CANON_VERSION = 2;
   var TIMELINE_VERSION = 1;
   var CBI_CHARACTERS = ['jane', 'cho', 'rigsby', 'lisbon', 'vanpelt'];
   var SCORE_IDS = ['boss'].concat(CBI_CHARACTERS);
+  var CHECKIN_REWARD_COST = 10;
+  var CHECKIN_REWARD_TEMPLATES = {
+    boss: [
+      'Milo今天把「{item}」带进了办公室，暂时放在自己伸手就能拿到的位置。',
+      '「{item}」在Milo手边待了一整天，最后和案卷一起被带回了家。',
+      'Milo重新整理东西时把「{item}」单独留了出来——显然还在使用。',
+      'Rigsby问「{item}」是不是新买的，Milo只应了一声，没打算展开。'
+    ],
+    jane: [
+      'Jane拿走了「{item}」，现在它在窗边沙发上。',
+      '「{item}」今天被Jane带去了厨房，回来时又顺手放到了Milo桌边。',
+      'Jane研究了一会儿「{item}」，没有评价，也没有放回原处。',
+      'Milo找到「{item}」时，Jane正若无其事地继续使用。'
+    ],
+    cho: [
+      'Cho用过「{item}」后把它放回了原位，方向都和之前一样。',
+      '「{item}」今天跟着Cho出了外勤，傍晚完好地回到了柜子里。',
+      'Rigsby问Cho觉得「{item}」怎么样。Cho说：“能用。”',
+      'Cho第二次拿起了「{item}」。这已经足够算一句好评。'
+    ],
+    rigsby: [
+      'Rigsby很快发现了「{item}」，并认真问过一次是不是大家都可以用。',
+      '「{item}」今天被Rigsby带走了半天，回来时旁边多了一张写着谢谢的便签。',
+      'Rigsby向Cho介绍「{item}」的时候，说得像是自己参与了挑选。',
+      '「{item}」在Rigsby桌上停留得比预计更久。他显然很喜欢。'
+    ],
+    lisbon: [
+      'Lisbon先确认了「{item}」是不是公用物品，得到答案后才把它拿走。',
+      '「{item}」在Lisbon桌上待到了下班，她最后还是一起带走了。',
+      'Lisbon说「{item}」很实用。Jane指出她已经用了三次。',
+      'Lisbon把「{item}」收进了自己的柜子，位置安排得很整齐。'
+    ],
+    vanpelt: [
+      'Van Pelt认真看了一会儿「{item}」，然后把它摆在了最顺手的位置。',
+      '「{item}」今天跟着Van Pelt在办公室和资料室之间来回了一趟。',
+      'Van Pelt使用「{item}」前先问了Boss，得到允许后明显开心了一点。',
+      '下班前，Van Pelt又检查了一次「{item}」有没有好好收好。'
+    ]
+  };
   var CANON_PERSONNEL = [
     {
       id: 'boss',
@@ -259,6 +298,7 @@
       affinity: affinityMap(),
       habits: [],
       habitRecords: {},
+      checkinRewardLog: [],
       actions: [],
       anonymousCases: [],
       culpritScores: scoreMap(),
@@ -826,6 +866,91 @@
     return result;
   }
 
+  function normalizeCheckinRewardLogItem(item) {
+    item = item && typeof item === 'object' ? item : {};
+    var allowed = ['boss'].concat(CBI_CHARACTERS);
+    return {
+      id: text(item.id) || createId('checkin_dynamic'),
+      itemId: text(item.itemId),
+      projectId: text(item.projectId),
+      characterId: allowed.indexOf(item.characterId) >= 0 ? item.characterId : 'boss',
+      itemName: text(item.itemName),
+      projectName: text(item.projectName),
+      image: text(item.image),
+      line: text(item.line),
+      cost: Math.max(0, Math.floor(number(item.cost, CHECKIN_REWARD_COST))),
+      createdAt: text(item.createdAt) || new Date().toISOString()
+    };
+  }
+
+  function dailyRewardItemsFromDb(db) {
+    var shop = db && db.work && db.work.shop ? db.work.shop : normalizeShop({});
+    var owned = {};
+    var allowed = ['boss'].concat(CBI_CHARACTERS);
+    (shop.owned || []).forEach(function (id) { owned[id] = true; });
+    var result = [];
+    (shop.projects || []).forEach(function (project) {
+      // Reward House displays legacy or untiered projects under 日常购入.
+      // Mirror that effective tier here so old purchases do not disappear.
+      var category = text(project.category).trim();
+      if (category === 'special' || category === 'major') return;
+      (project.items || []).forEach(function (item, index) {
+        if (!owned[item.id]) return;
+        var target = Array.isArray(item.targetIds) && allowed.indexOf(item.targetIds[0]) >= 0 ? item.targetIds[0] : 'boss';
+        result.push({
+          itemId: item.id,
+          projectId: project.id,
+          characterId: target,
+          itemName: text(item.name).trim() || (text(project.name).trim() + ' ' + (index + 1)),
+          projectName: text(project.name).trim(),
+          image: text(item.img || item.image),
+          reaction: text(item.reaction),
+          acquiredAt: text(item.acquiredAt)
+        });
+      });
+    });
+    return result;
+  }
+
+  function dailyRewardItems(value) {
+    return dailyRewardItemsFromDb(normalize(value));
+  }
+
+  function spendCheckinReward(value, itemId, nowValue) {
+    var db = normalize(value);
+    var cost = CHECKIN_REWARD_COST;
+    var item = dailyRewardItemsFromDb(db).find(function (entry) { return entry.itemId === text(itemId); });
+    if (!item) return { ok: false, reason: 'item_unavailable', cost: cost, db: db };
+    if (db.work.salary < cost) return { ok: false, reason: 'insufficient_points', cost: cost, db: db };
+    var previous = db.work.checkinRewardLog.filter(function (entry) { return entry.itemId === item.itemId; });
+    var line = '';
+    if (item.reaction && previous.length === 0) {
+      line = item.reaction;
+    } else {
+      var templates = CHECKIN_REWARD_TEMPLATES[item.characterId] || CHECKIN_REWARD_TEMPLATES.boss;
+      var offset = item.reaction ? previous.length - 1 : previous.length;
+      line = templates[Math.max(0, offset) % templates.length].replace('{item}', item.itemName);
+    }
+    var now = nowValue instanceof Date ? nowValue : new Date(nowValue || Date.now());
+    if (isNaN(now.getTime())) now = new Date();
+    var logItem = normalizeCheckinRewardLogItem({
+      id: createId('checkin_dynamic'),
+      itemId: item.itemId,
+      projectId: item.projectId,
+      characterId: item.characterId,
+      itemName: item.itemName,
+      projectName: item.projectName,
+      image: item.image,
+      line: line,
+      cost: cost,
+      createdAt: now.toISOString()
+    });
+    db.work.salary -= cost;
+    db.work.checkinRewardLog.push(logItem);
+    db = save(db) || db;
+    return { ok: true, cost: cost, entry: logItem, db: db };
+  }
+
   function normalizeWork(value) {
     var source = value && typeof value === 'object' ? value : {};
     var defaults = emptyWork();
@@ -852,6 +977,7 @@
       affinity: affinityMap(source.affinity),
       habits: Array.isArray(source.habits) ? source.habits.map(normalizeHabit).filter(function (item) { return item.name; }) : [],
       habitRecords: normalizeHabitRecords(source.habitRecords),
+      checkinRewardLog: Array.isArray(source.checkinRewardLog) ? source.checkinRewardLog.map(normalizeCheckinRewardLogItem).filter(function (item) { return item.itemId && item.line; }) : [],
       actions: Array.isArray(source.actions) ? source.actions.map(normalizeAction).filter(function (item) { return item.title; }) : [],
       anonymousCases: Array.isArray(source.anonymousCases) ? source.anonymousCases.map(normalizeAnonymousCase) : [],
       culpritScores: scoreMap(source.culpritScores),
@@ -869,7 +995,9 @@
 
   function normalize(value) {
     var source = value && typeof value === 'object' ? value : {};
-    var needsWishDuplicateRepair = Math.floor(number(source.schemaVersion, 0)) < SCHEMA_VERSION;
+    // The duplicate-wish repair belongs to the schema-10 migration only.  Newer
+    // schema bumps must not replay it against already-migrated saved data.
+    var needsWishDuplicateRepair = Math.floor(number(source.schemaVersion, 0)) < 10;
     var needsCanonRestore = Math.floor(number(source.canonVersion, 0)) < CANON_VERSION;
     var needsTimelineRestore = Math.floor(number(source.timelineVersion, 0)) < TIMELINE_VERSION;
     var hadCurrentCase = Object.prototype.hasOwnProperty.call(source, 'currentCaseId');
@@ -1660,6 +1788,7 @@
   global.CBIData = Object.freeze({
     STORAGE_KEY: STORAGE_KEY,
     SCHEMA_VERSION: SCHEMA_VERSION,
+    CHECKIN_REWARD_COST: CHECKIN_REWARD_COST,
     CBI_CHARACTERS: CBI_CHARACTERS.slice(),
     ACTION_DIFFICULTIES: ACTION_DIFFICULTIES,
     INVESTIGATOR_CONFIG: INVESTIGATOR_CONFIG,
@@ -1676,12 +1805,15 @@
     normalizeShop: normalizeShop,
     normalizeShopProject: normalizeShopProject,
     normalizeShopProjectItem: normalizeShopProjectItem,
+    normalizeCheckinRewardLogItem: normalizeCheckinRewardLogItem,
     normalizeDeployment: normalizeDeployment,
     normalizeInvestigation: normalizeInvestigation,
     normalizeCaseFund: normalizeCaseFund,
     stringList: stringList,
     load: load,
     save: save,
+    dailyRewardItems: dailyRewardItems,
+    spendCheckinReward: spendCheckinReward,
     createId: createId,
     compareCases: compareCases,
     sortedCases: sortedCases,

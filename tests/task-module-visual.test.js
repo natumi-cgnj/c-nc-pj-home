@@ -10,7 +10,7 @@ const sharedCss = fs.readFileSync('task-modules.css', 'utf8');
 
 test('task pages share the wallet-era visual shell', () => {
   for (const page of [daily, goals]) {
-    assert.match(page, /task-modules\.css\?v=20260916-visual1/);
+    assert.match(page, /task-modules\.css\?v=20260916-checkin-reward1/);
     assert.match(page, /<body class="task-module">/);
   }
   assert.match(sharedCss, /\.task-module \.top-bar h1/);

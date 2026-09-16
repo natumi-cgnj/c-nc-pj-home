@@ -301,7 +301,7 @@ test('CBI habits reuse the liminal daily design while commissions and actions ke
   assert.match(daily, /const IS_CBI_HABITS = IS_CBI_DAILY && DAILY_URL_TAB === 'habits'/);
   assert.match(daily, /habits:cbiDailyDb\.work\.habits\.map/);
   assert.match(daily, /type:h\.type==='interval'\?'daily':'count'/);
-  assert.match(daily, /if\(IS_CBI_HABITS\)\{if\(h\.salary\)rewardParts\.push\('工资 \+\$'/);
+  assert.match(daily, /if\(IS_CBI_HABITS\)\{if\(h\.salary\)rewardParts\.push\('点数 \+'/);
   assert.match(daily, /cbiDailyDb\.work\.salary=\(cbiDailyDb\.work\.salary\|\|0\)\+salary/);
   assert.match(daily, /if\(utility\)utility\.remove\(\)/);
   assert.doesNotMatch(cbiWork, /utility\.textContent = '卷宗'|backup\.html/);
