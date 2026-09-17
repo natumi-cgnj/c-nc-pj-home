@@ -544,9 +544,6 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-sleep-status-target.i
 .cbi-location-trigger{position:absolute;left:0;top:0;z-index:24;border:0;background:transparent;color:#E8B96A;border-radius:0;padding:6px 8px;font-family:inherit;font-size:8px;font-weight:500;line-height:1;letter-spacing:1.2px;text-transform:uppercase;cursor:pointer;opacity:.18}
 .cbi-location-trigger:hover,.cbi-location-trigger:active{background:transparent;opacity:.32}
 .cbi-home-trigger{display:none}
-.cbi-contact-trigger{display:none;position:absolute;right:31px;top:4px;z-index:24;padding:3px 4px;color:#a88e54;font-size:7px;line-height:1;letter-spacing:1.1px;text-decoration:none;opacity:.2}
-.cbi-contact-trigger:hover,.cbi-contact-trigger:active{opacity:.42}
-body[data-world-id="cbi"] .cbi-contact-trigger{display:block}
 /* Sacramento window – top left */
 .cbi-office-window{position:absolute;left:5%;top:4%;width:9.5%;height:2.2%;border:0;background:rgba(232,185,106,.04);border-radius:2px}
 /* Desk base */
@@ -718,7 +715,6 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-home-trigger{display:
     <div class="room-box room-natumi" id="roomNatumi">
       <div class="room-inner">
         <button class="cbi-location-trigger cbi-home-trigger" type="button" onclick="openCbiLocationSheet(event)" aria-label="切换 CBI 地点">Living Room⌄</button>
-        <a class="cbi-contact-trigger" href="contact.html" aria-label="打开 CBI 状态与通讯">STATUS</a>
         <div class="furniture natumi-bed"></div><div class="furniture natumi-box1"></div><div class="furniture natumi-box2"></div>
         <div class="furniture natumi-box3"></div><div class="furniture natumi-box4"></div><div class="furniture natumi-box5"></div>
         <div class="furniture natumi-box6"></div><div class="furniture natumi-box7"></div>
@@ -765,9 +761,8 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-home-trigger{display:
   <div class="room-box cbi-office" id="roomCbiOffice" data-room-id="cbi" data-character-id="jane">
     <div class="room-inner">
       <button class="cbi-location-trigger" type="button" onclick="openCbiLocationSheet(event)" aria-label="切换 CBI 地点">CBI · Serious Crimes Unit⌄</button>
-      <a class="cbi-contact-trigger" href="contact.html" aria-label="打开 CBI 状态与通讯">STATUS</a>
       <div class="cbi-office-window"></div>
-      <div class="cbi-desk cbi-desk-boss"></div><div class="cbi-boss-mug"></div>
+      <a class="cbi-desk cbi-desk-boss cbi-status-target" href="contact.html" aria-label="设置 Boss 状态"></a><div class="cbi-boss-mug"></div>
       <button class="cbi-desk cbi-desk-rigsby cbi-status-target" type="button" data-cbi-desk="rigsby" onclick="onCbiDeskTap('rigsby',event)" aria-label="Rigsby 的工位"></button>
       <div class="cbi-desk-divider cbi-desk-divider-upper"></div>
       <button class="cbi-desk cbi-desk-grace cbi-status-target" type="button" data-cbi-desk="vanpelt" onclick="onCbiDeskTap('vanpelt',event)" aria-label="Van Pelt 的工位"></button>
