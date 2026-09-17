@@ -35,7 +35,7 @@
     'home_modules', 'home_lines', 'home_skins', 'home_skin_custom', 'home_wardrobe_tabs',
     'home_skin_daily', 'home_cg_library', 'home_cg_period', 'shortcut-order',
     'home_character_runtime', 'home_character_action_packs', 'shared_diary_db',
-    'omniverse_world_context', 'cbi_db',
+    'omniverse_world_context', 'cbi_db', 'cbi_contact_db',
     'memo_db', 'study_db', 'organize_db', 'artist_db', 'music_db', 'reading_db',
     'schedule_packs', 'schedule_user_events'
   ];
@@ -48,6 +48,7 @@
     'shop.html': ['shop_db', 'bean_st', 'daily_db', 'cbi_db', 'home_skins', 'home_skin_custom', 'home_skin_daily', 'omniverse_world_context'],
     'story.html': ['story_db', 'gacha_st', 'daily_db'],
     'cbi.html': ['cbi_db', 'wallet_db', 'schedule_packs', 'schedule_user_events', 'home_character_runtime', 'omniverse_world_context'],
+    'contact.html': ['cbi_contact_db', 'home_character_runtime', 'schedule_packs', 'schedule_user_events', 'omniverse_world_context', 'cbi_db'],
     'world-empty.html': ['omniverse_world_context'],
     'bjd.html': ['doll_db2'],
     'merch.html': ['merch_db'],
@@ -546,7 +547,7 @@
   function stateLabel(key) {
     const labels = {
       daily_db: '日常', daily_presets: '日常委托模板', gacha_st: '抽卡', bean_st: '豆叶',
-      habit_db: '间隔打卡', story_db: '剧情', bjd_db3: 'BJD', techo_db2: '手账',
+      habit_db: '间隔打卡', story_db: '剧情', cbi_contact_db: 'CBI 状态与通讯', bjd_db3: 'BJD', techo_db2: '手账',
       shop_db: '商城', event_db: '旧活动存档', event_presets: '旧活动模板',
       dungeon_db: '副本库存', kitchen_db: '饮食收集', kitchen_project_categories_v1: '饮食项目分类', meal_log_db: '现实餐食', calorie_log_db: '卡路里记录', meal_companion_db: '世界饮食陪伴',
       recipe_salad_db: '夹缝空间菜谱', recipe_salad_db__world__cbi: 'CBI 菜谱', activity_db: '活动收集',
