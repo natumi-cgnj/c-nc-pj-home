@@ -594,20 +594,29 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-sleep-status-target.i
 #char-vanpelt{left:35%;top:27%;z-index:19}
 #char-lisbon{left:27%;top:59%;z-index:21}
 #char-cho{left:35%;top:59%;z-index:22}
-body[data-world-id="cbi"][data-world-location="home"] .apt-wrap{display:flex;flex-direction:column;aspect-ratio:auto}
+body[data-world-id="cbi"][data-world-location="home"] .apt-wrap{display:flex;flex-direction:column;aspect-ratio:18/11}
 body[data-world-id="cbi"][data-world-location="home"] .apt-wrap>.branch-top,
 body[data-world-id="cbi"][data-world-location="home"] .apt-wrap>.branch-adaptive{display:none!important}
-body[data-world-id="cbi"][data-world-location="home"] .apt-wrap>.mid-row{margin-top:0;width:100%}
+body[data-world-id="cbi"][data-world-location="home"] .apt-wrap>.mid-row{margin-top:0;width:100%;height:68.181818%;flex:0 0 68.181818%;min-height:0}
 body[data-world-id="cbi"][data-world-location="home"] .apt-wrap .branch-left,
-body[data-world-id="cbi"][data-world-location="home"] .apt-wrap .room-natumi{flex:0 0 50%;width:50%}
-body[data-world-id="cbi"][data-world-location="home"] .apt-wrap .branch-left .room-jane{border-bottom-right-radius:0}
-body[data-world-id="cbi"][data-world-location="home"] .apt-wrap .room-natumi{border-left:0;border-bottom-left-radius:0}
+body[data-world-id="cbi"][data-world-location="home"] .apt-wrap .room-natumi{flex:0 0 50%;width:50%;height:100%;aspect-ratio:auto}
+body[data-world-id="cbi"][data-world-location="home"] .apt-wrap .branch-left .room-jane{height:100%;aspect-ratio:auto;border-radius:4px 0 0 0}
+body[data-world-id="cbi"][data-world-location="home"] .apt-wrap .room-natumi{border-left:0;border-radius:0 4px 0 0}
 body[data-world-id="cbi"] .apt-wrap .conn-btn{display:none!important}
 body[data-world-id="cbi"][data-world-location="home"] .cbi-home-trigger{display:block}
-.cbi-osaka-room{display:none;position:relative;align-self:center;width:50%;flex:0 0 auto;aspect-ratio:1.2/1;margin-top:-1px;border-radius:0 0 4px 4px}
-body[data-world-id="cbi"][data-world-location="home"] .cbi-osaka-room{display:block}
-.cbi-osaka-room .room-inner{overflow:hidden;border-radius:inherit;background:#fff;cursor:default}
-.cbi-osaka-room .room-label{color:#E8B96A;opacity:.24}
+.cbi-home-lower-row{display:none;width:100%;height:31.818182%;flex:0 0 31.818182%;min-height:0}
+body[data-world-id="cbi"][data-world-location="home"] .cbi-home-lower-row{display:flex}
+.cbi-home-lower-row>.room-box{position:relative;width:50%;height:100%;flex:0 0 50%;border-top:0;aspect-ratio:auto}
+.cbi-home-lower-row .room-inner{overflow:hidden;border-radius:inherit;background:#fff;cursor:default}
+.cbi-kitchen-room{border-radius:0 0 0 4px}
+.cbi-osaka-room{border-left:0;border-radius:0 0 4px 0}
+.cbi-kitchen-room .room-label,.cbi-osaka-room .room-label{color:#E8B96A;opacity:.24}
+.cbi-kitchen-counter{left:10%;bottom:17%;width:43%;height:17%;background:#E8B96A;border-radius:3px}
+.cbi-kitchen-shelf{left:11%;top:22%;width:30%;height:8%;background:#E8B96A}
+.cbi-kitchen-fridge{right:10%;top:18%;width:14%;height:49%;background:#E8B96A;border-radius:2px}
+.cbi-kitchen-island{left:48%;top:43%;width:23%;height:20%;background:#E8B96A;border-radius:3px}
+.cbi-kitchen-sink{left:17%;bottom:22%;width:8%;height:6%;background:#5BA66B;opacity:.13}
+.cbi-kitchen-stove{left:35%;bottom:21%;width:10%;height:7%;background:#E8B96A;opacity:.12}
 @media(max-width:400px){.cbi-office-wrap{max-width:320px}}
 @media(min-width:700px){.cbi-office-wrap{width:min(460px,calc((100dvh - 103px)*.6),calc(100vw - 390px));max-width:none;align-self:start}.cbi-office{aspect-ratio:18/11}}
 @media(min-width:900px) and (orientation:landscape){.cbi-office-wrap{width:var(--desktop-map-width)}}
@@ -743,12 +752,22 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-osaka-room{display:bl
     </div>
   </div>
 
-  <div class="room-box cbi-osaka-room" id="cbiOsakaRoom">
-    <div class="room-inner">
-      <div class="room-label">Osaka Room</div>
-      <div class="furniture natumi-bed"></div><div class="furniture natumi-box1"></div><div class="furniture natumi-box2"></div>
-      <div class="furniture natumi-box3"></div><div class="furniture natumi-box4"></div><div class="furniture natumi-box5"></div>
-      <div class="furniture natumi-box6"></div><div class="furniture natumi-box7"></div>
+  <div class="cbi-home-lower-row">
+    <div class="room-box cbi-kitchen-room" id="cbiKitchenRoom">
+      <div class="room-inner">
+        <div class="room-label">厨房</div>
+        <div class="furniture cbi-kitchen-counter"></div><div class="furniture cbi-kitchen-shelf"></div>
+        <div class="furniture cbi-kitchen-fridge"></div><div class="furniture cbi-kitchen-island"></div>
+        <div class="furniture cbi-kitchen-sink"></div><div class="furniture cbi-kitchen-stove"></div>
+      </div>
+    </div>
+    <div class="room-box cbi-osaka-room" id="cbiOsakaRoom">
+      <div class="room-inner">
+        <div class="room-label">Osaka Room</div>
+        <div class="furniture natumi-bed"></div><div class="furniture natumi-box1"></div><div class="furniture natumi-box2"></div>
+        <div class="furniture natumi-box3"></div><div class="furniture natumi-box4"></div><div class="furniture natumi-box5"></div>
+        <div class="furniture natumi-box6"></div><div class="furniture natumi-box7"></div>
+      </div>
     </div>
   </div>
 
