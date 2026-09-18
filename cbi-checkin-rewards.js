@@ -87,7 +87,7 @@
 
   function rewardStatus() {
     var log = db.work.checkinRewardLog || [];
-    document.getElementById('statusBar').innerHTML = '<div class="status-item"><div class="status-label">打卡点</div><div class="status-value">' + db.work.salary + '</div></div>'
+    document.getElementById('statusBar').innerHTML = '<div class="status-item"><div class="status-label">Point</div><div class="status-value">' + db.work.salary + '</div></div>'
       + '<div class="status-item"><div class="status-label">已刷动态</div><div class="status-value">' + log.length + '</div></div>';
   }
 

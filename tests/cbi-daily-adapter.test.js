@@ -103,7 +103,8 @@ test('CBI habits render through the liminal cards and award points on direct che
   assert.equal(utility.removed, true);
   assert.equal(salaryLabel.textContent, '点数');
   assert.equal(teaWrap.style.display, 'none');
-  assert.match(nodes.statusBar.innerHTML, /打卡点/);
+  assert.match(nodes.statusBar.innerHTML, /Point/);
+  assert.match(nodes.statusBar.innerHTML, /Today/);
   assert.match(nodes.statusBar.innerHTML, />120</);
   assert.match(nodes.content.innerHTML, /class="todo-check" onclick="recordHabitProgress\('interval_1',1\)"/);
 

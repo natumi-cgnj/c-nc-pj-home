@@ -168,6 +168,59 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .aff-row>div{flex:1}
 </style>
 <link rel="stylesheet" href="task-modules.css?v=20260916-checkin-reward1">
+<style>
+/* CBI check-in: keep the wallet visual rhythm without changing other task pages. */
+.task-module[data-cbi-habits="1"] .status-bar{
+  padding:10px 16px 9px;
+}
+.task-module[data-cbi-habits="1"] .status-item{
+  padding:0 10px;
+}
+.task-module[data-cbi-habits="1"] .status-label{
+  margin-bottom:3px;
+  color:#bbb;
+  font-size:9px;
+  font-weight:400;
+  line-height:1.15;
+  letter-spacing:1.2px;
+}
+.task-module[data-cbi-habits="1"] .status-value{
+  color:#333;
+  font-size:19px;
+  font-weight:250;
+  line-height:1.1;
+  letter-spacing:-.2px;
+}
+.task-module[data-cbi-habits="1"] .habit-card{
+  margin-bottom:8px;
+  padding:14px 16px;
+  border-radius:12px;
+  box-shadow:0 1px 4px rgba(0,0,0,.03);
+}
+.task-module[data-cbi-habits="1"] .habit-name{
+  color:#333;
+  font-size:13px;
+  font-weight:600;
+}
+.task-module[data-cbi-habits="1"] .habit-meta{
+  color:#aaa;
+  font-size:10px;
+  line-height:1.5;
+}
+.task-module[data-cbi-habits="1"] .habit-stat-tag{
+  font-size:9px;
+}
+.task-module[data-cbi-habits="1"] .sub-tab{
+  letter-spacing:.45px;
+}
+.task-module[data-cbi-habits="1"] .add-inline{
+  margin-top:8px;
+  padding:10px;
+  border:1.5px dashed #e0e0e0;
+  border-radius:10px;
+  color:#bbb;
+}
+</style>
 </head>
 <body class="task-module">
 <div class="top-bar">
@@ -605,7 +658,7 @@ function switchTab(t){currentTab=t;render();}
 function renderStatusBar(){
   const bar=document.getElementById('statusBar');
   let labelA,valueA,classA,labelB,valueB,classB;
-  if(IS_CBI_HABITS){const records=hdb.records[today()]||{};const todayCount=Object.keys(records).reduce((sum,id)=>sum+(Number(records[id].value)||0),0);labelA='打卡点';valueA=cbiDailyDb.work.salary||0;classA='coffee-color';labelB='今日登记';valueB=todayCount+' 次';classB='tea-color';}
+  if(IS_CBI_HABITS){const records=hdb.records[today()]||{};const todayCount=Object.keys(records).reduce((sum,id)=>sum+(Number(records[id].value)||0),0);labelA='Point';valueA=cbiDailyDb.work.salary||0;classA='coffee-color';labelB='Today';valueB=todayCount+' 次';classB='tea-color';}
   else if(currentTab==='drop'){const gems=getGems();labelA='蓝宝石';valueA=gems.sapphire||0;classA='sapphire-color';labelB='祖母绿';valueB=gems.emerald||0;classB='emerald-color';}
   else if(currentTab==='habits'){const beans=getBeans();labelA='咖啡豆';valueA=beans.coffee||0;classA='coffee-color';labelB='茶叶';valueB=beans.tea||0;classB='tea-color';}
   else{labelA='画作碎片';valueA=db.affinity.neal||0;classA='neal-color';labelB='档案碎片';valueB=db.affinity.jane||0;classB='jane-color';}
