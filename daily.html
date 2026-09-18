@@ -97,7 +97,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .section-header .section-title{margin-bottom:0}
 .clickable-body{cursor:pointer}
 /* Habits */
-.habit-card{background:#fff;border:1px solid #eee;border-radius:11px;padding:14px 16px;margin-bottom:9px}
+.habit-card{background:#fff;border:1px solid #eee;border-radius:11px;padding:14px 16px;margin-bottom:9px;-webkit-touch-callout:none}
 .habit-top{display:flex;align-items:flex-start;gap:12px}
 .habit-add-btn{width:24px;height:24px;border-radius:50%;border:2px solid #ddd;background:#fff;color:#aaa;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px;line-height:1;transition:all .2s;margin-top:2px}
 .habit-add-btn:active{background:#1a1a1a;border-color:#1a1a1a;color:#fff}
@@ -225,7 +225,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <label>类型</label>
     <input type="hidden" id="habitType" value="count" data-locked="false">
     <div class="type-toggle" id="habitTypeToggle">
-      <button type="button" class="active" data-type="daily" onclick="setHabitType('daily')">间隔打卡</button>
+      <button type="button" class="active" data-type="daily" onclick="setHabitType('daily')">Routine</button>
       <button type="button" data-type="count" onclick="setHabitType('count')">Times</button>
     </div>
     <div id="habitTypeNote" style="font-size:10px;color:#bbb;margin-top:5px"></div>
@@ -740,21 +740,21 @@ function getIntervalStatus(h){
 
 function renderHabits(c){
   let html='<div class="task-reward-toast" id="habitToast"></div><div class="sub-tabs">';
-  html+='<button class="sub-tab'+(habitSubTab==='daily'?' active':'')+'" onclick="switchHabitSub(\'daily\')">间隔打卡</button>';
+  html+='<button class="sub-tab'+(habitSubTab==='daily'?' active':'')+'" onclick="switchHabitSub(\'daily\')">Routine</button>';
   html+='<button class="sub-tab'+(habitSubTab==='count'?' active':'')+'" onclick="switchHabitSub(\'count\')">Times</button>';
   html+='</div>';
-  html+=renderHabitGroup(habitSubTab,habitSubTab==='daily'?'间隔打卡':'Times');
+  html+=renderHabitGroup(habitSubTab);
   html+='<button class="add-inline" onclick="openAddHabit(\''+habitSubTab+'\')">+ 添加打卡</button>';
   c.innerHTML=html;
 }
 function switchHabitSub(t){habitSubTab=t;render();}
 
-function renderHabitGroup(type,title){
+function renderHabitGroup(type){
   const habits=hdb.habits.filter(h=>(h.type||'count')===type);
   const sortId='habitSort_'+type;
   let html='<div class="habit-section">';
   if(habits.length){html+='<div id="'+sortId+'">';habits.forEach(h=>{html+=renderHabitCard(h);});html+='</div>';}
-  else html+='<div class="habit-empty">还没有'+title+'项目</div>';
+  else html+='<div class="habit-empty">还没有项目</div>';
   html+='</div>';
   setTimeout(()=>initDragSort(sortId,'habit'),0);
   return html;
@@ -778,12 +778,12 @@ function renderHabitCard(h){
     const intervalStatus=getIntervalStatus(h);
     const streakHtml=streak>0?' <span class="habit-streak">★'+streak+'天'+(streakBonus?' +'+Math.round(streakBonus*100)+'%':'')+'</span>':'';
     const intervalLabel=h.interval>1?'每'+h.interval+'天':'每天';
-    return '<div class="habit-card'+(isDone?' has-progress':'')+'" data-id="'+h.id+'"><div class="habit-top"><div class="drag-handle" data-id="'+h.id+'">⠿</div><div class="todo-check'+(isDone?' checked':'')+'" onclick="'+(isDone?'':'recordHabitProgress(\''+h.id+'\',1)')+'">'+(isDone?'✓':'')+'</div><div class="habit-body clickable-body" onclick="openHabitDetail(\''+h.id+'\')"><div class="habit-name">'+escHtml(h.name)+' <span style="font-size:10px;color:#bbb">'+intervalLabel+'</span></div><div class="habit-meta">'+(rewardParts.length?rewardParts.join(' '):'无基础产出')+streakHtml+'</div><div class="interval-info '+intervalStatus.cls+'">'+intervalStatus.text+'</div><div class="habit-stat-tags"><span class="habit-stat-tag">累计 '+total+' 日</span></div></div><div class="habit-actions">'+undoLink+'<button class="habit-edit" onclick="openEditHabit(\''+h.id+'\')">✎</button><button class="todo-del" onclick="deleteHabit(\''+h.id+'\')">×</button></div></div></div>';
+    return '<div class="habit-card'+(isDone?' has-progress':'')+'" data-id="'+h.id+'"><div class="habit-top"><div class="todo-check'+(isDone?' checked':'')+'" onclick="'+(isDone?'':'recordHabitProgress(\''+h.id+'\',1)')+'">'+(isDone?'✓':'')+'</div><div class="habit-body clickable-body" onclick="openHabitDetail(\''+h.id+'\')"><div class="habit-name">'+escHtml(h.name)+' <span style="font-size:10px;color:#bbb">'+intervalLabel+'</span></div><div class="habit-meta">'+(rewardParts.length?rewardParts.join(' '):'无基础产出')+streakHtml+'</div><div class="interval-info '+intervalStatus.cls+'">'+intervalStatus.text+'</div><div class="habit-stat-tags"><span class="habit-stat-tag">累计 '+total+' 日</span></div></div><div class="habit-actions">'+undoLink+'<button class="habit-edit" onclick="openEditHabit(\''+h.id+'\')">✎</button><button class="todo-del" onclick="deleteHabit(\''+h.id+'\')">×</button></div></div></div>';
   }
 
   // count type
   const addAction="recordHabitProgress('"+h.id+"',1)";
-  return '<div class="habit-card count-card'+(todayValue>0?' has-progress':'')+'" data-id="'+h.id+'"><div class="habit-top"><div class="drag-handle" data-id="'+h.id+'">⠿</div><button class="habit-add-btn" onclick="'+addAction+'">＋</button><div class="habit-body clickable-body" onclick="openHabitDetail(\''+h.id+'\')"><div class="habit-name">'+escHtml(h.name)+'</div><div class="habit-meta">'+(rewardParts.length?rewardParts.join(' '):'无基础产出')+'</div><div class="habit-stat-tags"><span class="habit-stat-tag today">今日 '+Math.round(todayValue)+'次</span><span class="habit-stat-tag">累计 '+Math.round(total)+'次</span></div></div><div class="habit-actions">'+undoLink+'<button class="habit-edit" onclick="openEditHabit(\''+h.id+'\')">✎</button><button class="todo-del" onclick="deleteHabit(\''+h.id+'\')">×</button></div></div></div>';
+  return '<div class="habit-card count-card'+(todayValue>0?' has-progress':'')+'" data-id="'+h.id+'"><div class="habit-top"><button class="habit-add-btn" onclick="'+addAction+'">＋</button><div class="habit-body clickable-body" onclick="openHabitDetail(\''+h.id+'\')"><div class="habit-name">'+escHtml(h.name)+'</div><div class="habit-meta">'+(rewardParts.length?rewardParts.join(' '):'无基础产出')+'</div><div class="habit-stat-tags"><span class="habit-stat-tag today">今日 '+Math.round(todayValue)+'次</span><span class="habit-stat-tag">累计 '+Math.round(total)+'次</span></div></div><div class="habit-actions">'+undoLink+'<button class="habit-edit" onclick="openEditHabit(\''+h.id+'\')">✎</button><button class="todo-del" onclick="deleteHabit(\''+h.id+'\')">×</button></div></div></div>';
 }
 
 function recordHabitProgress(id,value){
@@ -908,7 +908,7 @@ function saveHabit(){
 function openHabitDetail(id){
   const h=hdb.habits.find(x=>x.id===id);if(!h)return;
   const type=h.type||'count';const streak=getHabitStreak(id);const streakBonus=getHabitStreakBonus(streak);
-  const parts=[type==='daily'?'间隔打卡 (每'+(h.interval||1)+'天)':'Times','今日：'+(getHabitToday(id)>0?'已完成':'未完成'),'累计：'+getHabitTotal(id)+(type==='daily'?'日':'次')];
+  const parts=[type==='daily'?'Routine (每'+(h.interval||1)+'天)':'Times','今日：'+(getHabitToday(id)>0?'已完成':'未完成'),'累计：'+getHabitTotal(id)+(type==='daily'?'日':'次')];
   if(streak)parts.push('连续：'+streak+'天'+(streakBonus?'（奖励 +'+Math.round(streakBonus*100)+'%）':''));
   if(IS_CBI_HABITS&&h.salary)parts.push('点数 +'+h.salary+'/次');
   if(!IS_CBI_HABITS&&h.coffee)parts.push('咖啡豆 +'+h.coffee+'/次');
@@ -938,13 +938,93 @@ document.querySelectorAll('.modal-bg').forEach(bg=>{bg.addEventListener('click',
 function initDragSort(containerId,dataType){
   const container=document.getElementById(containerId);if(!container)return;let dragEl=null;
   const getCards=()=>Array.from(container.children).filter(card=>card.dataset.id);
-  container.querySelectorAll('.drag-handle').forEach(handle=>{handle.addEventListener('touchstart',onStart,{passive:false});handle.addEventListener('mousedown',onStart);});
-  function onStart(e){e.preventDefault();dragEl=e.target.closest('.todo-card, .habit-card');if(!dragEl)return;dragEl.classList.add('dragging');document.addEventListener('touchmove',onMove,{passive:false});document.addEventListener('touchend',onEnd);document.addEventListener('mousemove',onMove);document.addEventListener('mouseup',onEnd);}
-  function onMove(e){if(!dragEl)return;e.preventDefault();const y=e.touches?e.touches[0].clientY:e.clientY;const cards=getCards();cards.forEach(c=>c.classList.remove('drag-over'));for(const card of cards){if(card===dragEl)continue;const rect=card.getBoundingClientRect();if(y<rect.top+rect.height/2){card.classList.add('drag-over');break;}}}
-  function onEnd(e){if(!dragEl)return;document.removeEventListener('touchmove',onMove);document.removeEventListener('touchend',onEnd);document.removeEventListener('mousemove',onMove);document.removeEventListener('mouseup',onEnd);const y=e.changedTouches?e.changedTouches[0].clientY:e.clientY;const dragId=dragEl.dataset.id;dragEl.classList.remove('dragging');const cards=getCards();cards.forEach(c=>c.classList.remove('drag-over'));let insertBefore=null;for(const card of cards){if(card===dragEl)continue;const rect=card.getBoundingClientRect();if(y<rect.top+rect.height/2){insertBefore=card.dataset.id;break;}}
-    if(dataType==='todo'){const undated=db.todos.filter(t=>!t.completed&&!t.date);const item=undated.find(t=>t.id===dragId);if(!item){dragEl=null;return;}const others=undated.filter(t=>t.id!==dragId);const newOrder=[];if(!insertBefore){others.forEach(t=>newOrder.push(t));newOrder.push(item);}else{others.forEach(t=>{if(t.id===insertBefore)newOrder.push(item);newOrder.push(t);});}db.todos=[...db.todos.filter(t=>t.completed||t.date),...newOrder];save();render();}
-    else if(dataType==='habit'){const item=hdb.habits.find(h=>h.id===dragId);if(!item){dragEl=null;return;}const sameType=hdb.habits.filter(h=>(h.type||'count')===item.type);const others=sameType.filter(h=>h.id!==dragId);const newOrder=[];if(!insertBefore){others.forEach(h=>newOrder.push(h));newOrder.push(item);}else{others.forEach(h=>{if(h.id===insertBefore)newOrder.push(item);newOrder.push(h);});}hdb.habits=[...hdb.habits.filter(h=>(h.type||'count')!==item.type),...newOrder];saveHabits();render();}
-    dragEl=null;}
+  function showDropTarget(y){const cards=getCards();cards.forEach(c=>c.classList.remove('drag-over'));for(const card of cards){if(card===dragEl)continue;const rect=card.getBoundingClientRect();if(y<rect.top+rect.height/2){card.classList.add('drag-over');break;}}}
+  function clearDragVisual(){if(dragEl)dragEl.classList.remove('dragging');getCards().forEach(c=>c.classList.remove('drag-over'));}
+  function commitOrder(y){
+    if(!dragEl)return;
+    const dragId=dragEl.dataset.id;
+    const cards=getCards();
+    let insertBefore=null;
+    for(const card of cards){if(card===dragEl)continue;const rect=card.getBoundingClientRect();if(y<rect.top+rect.height/2){insertBefore=card.dataset.id;break;}}
+    clearDragVisual();
+    if(dataType==='todo'){
+      const undated=db.todos.filter(t=>!t.completed&&!t.date);const item=undated.find(t=>t.id===dragId);if(!item){dragEl=null;return;}const others=undated.filter(t=>t.id!==dragId);const newOrder=[];if(!insertBefore){others.forEach(t=>newOrder.push(t));newOrder.push(item);}else{others.forEach(t=>{if(t.id===insertBefore)newOrder.push(item);newOrder.push(t);});}db.todos=[...db.todos.filter(t=>t.completed||t.date),...newOrder];save();
+    }else{
+      const item=hdb.habits.find(h=>h.id===dragId);if(!item){dragEl=null;return;}const sameType=hdb.habits.filter(h=>(h.type||'count')===item.type);const others=sameType.filter(h=>h.id!==dragId);const newOrder=[];if(!insertBefore){others.forEach(h=>newOrder.push(h));newOrder.push(item);}else{others.forEach(h=>{if(h.id===insertBefore)newOrder.push(item);newOrder.push(h);});}hdb.habits=[...hdb.habits.filter(h=>(h.type||'count')!==item.type),...newOrder];saveHabits();
+    }
+    dragEl=null;render();
+  }
+
+  if(dataType==='todo'){
+    container.querySelectorAll('.drag-handle').forEach(handle=>{handle.addEventListener('touchstart',onStart,{passive:false});handle.addEventListener('mousedown',onStart);});
+    function onStart(e){e.preventDefault();dragEl=e.target.closest('.todo-card');if(!dragEl)return;dragEl.classList.add('dragging');document.addEventListener('touchmove',onMove,{passive:false});document.addEventListener('touchend',onEnd);document.addEventListener('mousemove',onMove);document.addEventListener('mouseup',onEnd);}
+    function onMove(e){if(!dragEl)return;e.preventDefault();showDropTarget(e.touches?e.touches[0].clientY:e.clientY);}
+    function onEnd(e){if(!dragEl)return;document.removeEventListener('touchmove',onMove);document.removeEventListener('touchend',onEnd);document.removeEventListener('mousemove',onMove);document.removeEventListener('mouseup',onEnd);commitOrder(e.changedTouches?e.changedTouches[0].clientY:e.clientY);}
+    return;
+  }
+
+  // Habit cards use a long press instead of a visible drag handle.
+  let pendingEl=null;
+  let startY=0;
+  let lastY=0;
+  let holdTimer=null;
+  let dragMoved=false;
+  const isActionTarget=target=>!!target.closest('button,a,input,textarea,select,label');
+  const suppressNextClick=()=>{
+    const stop=e=>{e.preventDefault();e.stopPropagation();document.removeEventListener('click',stop,true);};
+    document.addEventListener('click',stop,true);
+    setTimeout(()=>document.removeEventListener('click',stop,true),700);
+  };
+  const beginHabitDrag=()=>{if(!pendingEl)return;dragEl=pendingEl;dragMoved=false;dragEl.classList.add('dragging');suppressNextClick();};
+  const clearTouchListeners=()=>{document.removeEventListener('touchmove',onTouchMove);document.removeEventListener('touchend',onTouchEnd);document.removeEventListener('touchcancel',onTouchCancel);};
+  const cancelPending=()=>{clearTimeout(holdTimer);holdTimer=null;pendingEl=null;};
+
+  container.querySelectorAll('.habit-card').forEach(card=>{
+    card.addEventListener('touchstart',onTouchStart,{passive:true});
+    card.addEventListener('mousedown',onMouseDown);
+    card.addEventListener('contextmenu',e=>{if(dragEl||holdTimer)e.preventDefault();});
+  });
+
+  function onTouchStart(e){
+    if(e.touches.length!==1||isActionTarget(e.target))return;
+    pendingEl=e.currentTarget;startY=lastY=e.touches[0].clientY;
+    clearTimeout(holdTimer);holdTimer=setTimeout(beginHabitDrag,320);
+    document.addEventListener('touchmove',onTouchMove,{passive:false});
+    document.addEventListener('touchend',onTouchEnd);
+    document.addEventListener('touchcancel',onTouchCancel);
+  }
+  function onTouchMove(e){
+    if(!pendingEl&&!dragEl)return;
+    const y=e.touches[0].clientY;lastY=y;
+    if(!dragEl){if(Math.abs(y-startY)>8){cancelPending();clearTouchListeners();}return;}
+    e.preventDefault();
+    if(Math.abs(y-startY)>3)dragMoved=true;
+    showDropTarget(y);
+  }
+  function onTouchEnd(e){
+    clearTimeout(holdTimer);holdTimer=null;
+    const y=e.changedTouches&&e.changedTouches[0]?e.changedTouches[0].clientY:lastY;
+    if(dragEl){e.preventDefault();if(dragMoved)commitOrder(y);else{clearDragVisual();dragEl=null;}}
+    pendingEl=null;clearTouchListeners();
+  }
+  function onTouchCancel(){clearTimeout(holdTimer);holdTimer=null;clearDragVisual();dragEl=null;pendingEl=null;clearTouchListeners();}
+
+  function onMouseDown(e){
+    if(e.button!==0||isActionTarget(e.target))return;
+    pendingEl=e.currentTarget;startY=lastY=e.clientY;dragMoved=false;
+    document.addEventListener('mousemove',onMouseMove);
+    document.addEventListener('mouseup',onMouseUp);
+  }
+  function onMouseMove(e){
+    if(!pendingEl&&!dragEl)return;lastY=e.clientY;
+    if(!dragEl&&Math.abs(lastY-startY)>4)beginHabitDrag();
+    if(dragEl){e.preventDefault();dragMoved=true;showDropTarget(lastY);}
+  }
+  function onMouseUp(e){
+    document.removeEventListener('mousemove',onMouseMove);document.removeEventListener('mouseup',onMouseUp);
+    if(dragEl&&dragMoved)commitOrder(e.clientY);else if(dragEl){clearDragVisual();dragEl=null;}
+    pendingEl=null;
+  }
 }
 
 // ══════════════════════════════════════
