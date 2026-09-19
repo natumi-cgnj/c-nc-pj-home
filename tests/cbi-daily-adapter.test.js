@@ -29,10 +29,11 @@ function element(extra = {}) {
 }
 
 function createHarness() {
-  const interval = { id: 'interval_1', name: '整理十分钟', description: '整理眼前的一小块', type: 'interval', interval: 1, salary: 10 };
-  const count = { id: 'count_1', name: '上架一件闲置', description: '完成一件登记一次', type: 'count', interval: 1, salary: 25 };
+  const interval = { id: 'interval_1', name: '整理十分钟', section: '整理', description: '整理眼前的一小块', type: 'interval', interval: 1, salary: 10 };
+  const count = { id: 'count_1', name: '上架一件闲置', section: '消耗', description: '完成一件登记一次', type: 'count', interval: 1, salary: 25 };
+  const ungrouped = { id: 'count_2', name: '临时记录', description: '', type: 'count', interval: 1, salary: 5 };
   const localStorage = new MemoryStorage({
-    cbi_db: JSON.stringify({ work: { salary: 120, habits: [interval, count], habitRecords: {} } })
+    cbi_db: JSON.stringify({ work: { salary: 120, habits: [interval, count, ungrouped], habitRecords: {} } })
   });
 
   const salaryLabel = element({ textContent: '咖啡豆' });
@@ -41,6 +42,12 @@ function createHarness() {
   const nodes = {
     statusBar: element(),
     content: element(),
+    habitModalTitle: element(),
+    habitName: element(),
+    habitSectionRow: element(),
+    habitSection: element(),
+    habitSectionOptions: element(),
+    habitDescription: element(),
     habitType: element({ value: 'count', dataset: { locked: 'false' } }),
     habitTypeToggle: element(),
     intervalRow: element(),
@@ -92,7 +99,7 @@ function createHarness() {
     .map((match) => match[1])
     .find((block) => block.includes('const IS_CBI_DAILY'));
   assert.ok(inline, 'daily inline script should be extractable');
-  vm.runInContext(inline + '\nglobalThis.__daily={recordHabitProgress,undoHabitProgress,switchHabitSub};', context, { filename: 'daily-inline.js' });
+  vm.runInContext(inline + '\nglobalThis.__daily={recordHabitProgress,undoHabitProgress,switchHabitSub,toggleHabitSection,openEditHabit,saveHabit};', context, { filename: 'daily-inline.js' });
   return { context, localStorage, nodes, tabs, utility, salaryLabel, teaWrap };
 }
 
@@ -103,13 +110,17 @@ test('CBI habits render through the liminal cards and award points on direct che
   assert.equal(utility.removed, true);
   assert.equal(salaryLabel.textContent, '点数');
   assert.equal(teaWrap.style.display, 'none');
+  assert.equal(nodes.habitSectionRow.style.display, 'block');
   assert.match(nodes.statusBar.innerHTML, /Point/);
   assert.match(nodes.statusBar.innerHTML, /Today/);
   assert.match(nodes.statusBar.innerHTML, />120</);
+  assert.match(nodes.content.innerHTML, /class="habit-group-label">整理</);
   assert.match(nodes.content.innerHTML, /class="todo-check" onclick="recordHabitProgress\('interval_1',1\)"/);
 
   context.__daily.recordHabitProgress('interval_1', 1);
   context.__daily.switchHabitSub('count');
+  assert.match(nodes.content.innerHTML, /class="habit-group-label">消耗</);
+  assert.match(nodes.content.innerHTML, /class="habit-group-label">未分栏</);
   assert.match(nodes.content.innerHTML, /class="habit-add-btn" onclick="recordHabitProgress\('count_1',1\)"/);
   context.__daily.recordHabitProgress('count_1', 1);
 
@@ -119,6 +130,24 @@ test('CBI habits render through the liminal cards and award points on direct che
   assert.equal(records.reduce((sum, day) => sum + (day.interval_1 && day.interval_1.value || 0), 0), 1);
   assert.equal(records.reduce((sum, day) => sum + (day.count_1 && day.count_1.value || 0), 0), 1);
   assert.equal(localStorage.getItem('habit_db'), null);
+});
+
+test('CBI check-ins keep editable sections and remember local collapse state', () => {
+  const { context, localStorage, nodes } = createHarness();
+  context.__daily.switchHabitSub('count');
+  context.__daily.toggleHabitSection('count', '消耗');
+  assert.match(nodes.content.innerHTML, /class="habit-group collapsed"/);
+  assert.match(nodes.content.innerHTML, /class="habit-group-items collapsed"/);
+  const collapsed = JSON.parse(localStorage.getItem('cbi_habit_section_collapsed_v1'));
+  assert.equal(collapsed['count\u0000消耗'], true);
+
+  context.__daily.openEditHabit('count_1');
+  assert.equal(nodes.habitSection.value, '消耗');
+  nodes.habitSection.value = '出清';
+  context.__daily.saveHabit();
+  const saved = JSON.parse(localStorage.getItem('cbi_db'));
+  assert.equal(saved.work.habits.find((habit) => habit.id === 'count_1').section, '出清');
+  assert.match(nodes.content.innerHTML, /class="habit-group-label">出清</);
 });
 
 test('CBI direct check-in can be withdrawn without touching liminal currencies', () => {

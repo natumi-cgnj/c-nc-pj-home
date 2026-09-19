@@ -113,6 +113,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .habit-undo-link{border:none;background:none;color:#bbb;font-size:9px;font-family:inherit;cursor:pointer;padding:2px 3px;margin-left:auto}
 .habit-undo-link:active{color:#777}
 .habit-section{margin-bottom:25px}
+.habit-group{margin-bottom:13px}
+.habit-group:last-child{margin-bottom:0}
+.habit-group-header{display:flex;align-items:center;gap:8px;width:100%;padding:7px 2px 10px;border:0;background:transparent;color:#aaa;cursor:pointer;font-family:inherit;user-select:none}
+.habit-group-header:active{opacity:.7}
+.habit-group-line{height:1px;flex:1;background:#e8e8e6}
+.habit-group-label{max-width:52%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;font-weight:400;letter-spacing:.55px}
+.habit-group-count{font-size:9px;color:#c4c4c0;font-variant-numeric:tabular-nums}
+.habit-group-arrow{display:inline-block;color:#c8c8c4;font-size:8px;transition:transform .18s}
+.habit-group.collapsed .habit-group-arrow{transform:rotate(-90deg)}
+.habit-group-items.collapsed{display:none}
 .habit-empty{font-size:11px;color:#ccc;padding:14px;text-align:center;background:#fff;border:1px dashed #e6e6e6;border-radius:9px}
 .add-inline{width:100%;padding:12px;border:1px dashed #ddd;border-radius:10px;background:#fff;font-size:13px;color:#aaa;cursor:pointer;text-align:center;margin-top:8px;font-family:inherit}
 .add-inline:active{background:#f8f8f8}
@@ -210,6 +220,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .task-module[data-cbi-habits="1"] .habit-stat-tag{
   font-size:9px;
 }
+.task-module[data-cbi-habits="1"] .habit-group-header{
+  padding-top:5px;
+}
+.task-module[data-cbi-habits="1"] .habit-group-label{
+  color:#aaa;
+  font-size:9px;
+  letter-spacing:.75px;
+}
 .task-module[data-cbi-habits="1"] .sub-tab{
   letter-spacing:.45px;
 }
@@ -273,6 +291,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <h2 id="habitModalTitle">添加打卡</h2>
     <label>名称</label>
     <input type="text" id="habitName" placeholder="如: 洗澡">
+    <div id="habitSectionRow" style="display:none">
+      <label>分栏</label>
+      <input type="text" id="habitSection" list="habitSectionOptions" maxlength="40" placeholder="未分栏">
+      <datalist id="habitSectionOptions"></datalist>
+    </div>
     <label>说明（可选）</label>
     <textarea id="habitDescription" rows="4" placeholder="详细记录放在这里"></textarea>
     <label>类型</label>
@@ -330,7 +353,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 <script src="world-context.js?v=20260913-cbi-room-label1"></script>
 <script src="cloud-sync.js?v=20260914-home-badge1"></script>
-<script src="cbi-data.js?v=20260916-checkin-reward1"></script>
+<script src="cbi-data.js?v=20260919-checkin-sections1"></script>
 <script src="cbi-checkin-rewards.js?v=20260916-checkin-reward1"></script>
 <script src="cbi-work.js?v=20260916-task-tabs1"></script>
 <script>
@@ -516,6 +539,7 @@ function saveHabits(){
     cbiDailyDb.work.habits=hdb.habits.map(h=>({
       id:h.id,
       name:h.name,
+      section:String(h.section||'').trim(),
       description:h.description||'',
       type:(h.type||'count')==='daily'?'interval':'count',
       interval:Math.max(1,Math.min(365,Number(h.interval)||1)),
@@ -802,14 +826,42 @@ function renderHabits(c){
 }
 function switchHabitSub(t){habitSubTab=t;render();}
 
+const HABIT_DEFAULT_SECTION='未分栏';
+const HABIT_SECTION_COLLAPSE_KEY='cbi_habit_section_collapsed_v1';
+function habitSectionName(h){return String(h&&h.section||'').trim()||HABIT_DEFAULT_SECTION;}
+function habitSectionStateKey(type,section){return type+'\u0000'+section;}
+function loadHabitSectionCollapsed(){try{const value=JSON.parse(localStorage.getItem(HABIT_SECTION_COLLAPSE_KEY));return value&&typeof value==='object'?value:{};}catch(e){return{};}}
+function toggleHabitSection(type,section){
+  const state=loadHabitSectionCollapsed();
+  const key=habitSectionStateKey(type,section);
+  if(state[key])delete state[key];else state[key]=true;
+  try{localStorage.setItem(HABIT_SECTION_COLLAPSE_KEY,JSON.stringify(state));}catch(e){}
+  render();
+}
+
 function renderHabitGroup(type){
   const habits=hdb.habits.filter(h=>(h.type||'count')===type);
-  const sortId='habitSort_'+type;
   let html='<div class="habit-section">';
-  if(habits.length){html+='<div id="'+sortId+'">';habits.forEach(h=>{html+=renderHabitCard(h);});html+='</div>';}
-  else html+='<div class="habit-empty">还没有项目</div>';
+  if(!habits.length)html+='<div class="habit-empty">还没有项目</div>';
+  else if(!IS_CBI_HABITS){
+    const sortId='habitSort_'+type;
+    html+='<div id="'+sortId+'">';habits.forEach(h=>{html+=renderHabitCard(h);});html+='</div>';
+    setTimeout(()=>initDragSort(sortId,'habit'),0);
+  }else{
+    const groups=[];
+    const byName=new Map();
+    habits.forEach(h=>{const name=habitSectionName(h);let group=byName.get(name);if(!group){group={name,items:[]};byName.set(name,group);groups.push(group);}group.items.push(h);});
+    const collapsedState=loadHabitSectionCollapsed();
+    groups.forEach((group,index)=>{
+      const sortId='habitSort_'+type+'_'+index;
+      const collapsed=!!collapsedState[habitSectionStateKey(type,group.name)];
+      html+='<div class="habit-group'+(collapsed?' collapsed':'')+'"><button type="button" class="habit-group-header" data-habit-type="'+escHtml(type)+'" data-habit-section="'+escHtml(group.name)+'" aria-expanded="'+(!collapsed)+'" onclick="toggleHabitSection(this.dataset.habitType,this.dataset.habitSection)"><span class="habit-group-line"></span><span class="habit-group-label">'+escHtml(group.name)+'</span><span class="habit-group-count">'+group.items.length+'</span><span class="habit-group-arrow">▼</span><span class="habit-group-line"></span></button><div class="habit-group-items'+(collapsed?' collapsed':'')+'" id="'+sortId+'">';
+      group.items.forEach(h=>{html+=renderHabitCard(h);});
+      html+='</div></div>';
+      setTimeout(()=>initDragSort(sortId,'habit',group.name),0);
+    });
+  }
   html+='</div>';
-  setTimeout(()=>initDragSort(sortId,'habit'),0);
   return html;
 }
 
@@ -903,10 +955,18 @@ function setHabitType(type,force=false){
   document.getElementById('intervalRow').style.display=type==='daily'?'block':'none';
   updateHabitTypeHint();
 }
+function updateHabitSectionOptions(){
+  const list=document.getElementById('habitSectionOptions');if(!list)return;
+  const names=[];
+  hdb.habits.forEach(h=>{const name=String(h.section||'').trim();if(name&&!names.includes(name))names.push(name);});
+  list.innerHTML=names.map(name=>'<option value="'+escHtml(name)+'"></option>').join('');
+}
 function openAddHabit(type='count'){
   editingHabitId=null;
   document.getElementById('habitModalTitle').textContent='添加打卡';
   document.getElementById('habitName').value='';
+  document.getElementById('habitSection').value='';
+  updateHabitSectionOptions();
   document.getElementById('habitDescription').value='';
   document.getElementById('habitType').dataset.locked='false';
   document.getElementById('habitTypeToggle').classList.remove('locked');
@@ -920,6 +980,8 @@ function openEditHabit(id){
   editingHabitId=id;
   document.getElementById('habitModalTitle').textContent='编辑打卡';
   document.getElementById('habitName').value=h.name||'';
+  document.getElementById('habitSection').value=h.section||'';
+  updateHabitSectionOptions();
   document.getElementById('habitDescription').value=h.description||'';
   const locked=getHabitTotal(id)>0;
   document.getElementById('habitType').dataset.locked=String(locked);
@@ -939,6 +1001,7 @@ function updateHabitTypeHint(){
 }
 function saveHabit(){
   const name=document.getElementById('habitName').value.trim();if(!name)return;
+  const section=IS_CBI_HABITS?document.getElementById('habitSection').value.trim():'';
   const description=document.getElementById('habitDescription').value.trim();
   const type=document.getElementById('habitType').value;
   const salary=Math.max(0,Math.floor(Number(document.getElementById('habitCoffee').value)||0));
@@ -947,10 +1010,10 @@ function saveHabit(){
   const interval=Math.max(1,Math.min(IS_CBI_HABITS?365:30,parseInt(document.getElementById('habitInterval').value)||1));
   if(editingHabitId){
     const h=hdb.habits.find(x=>x.id===editingHabitId);
-    if(h){h.name=name;h.description=description;if(getHabitTotal(h.id)===0)h.type=type;if(IS_CBI_HABITS)h.salary=salary;else{h.coffee=coffee;h.tea=tea;}h.interval=interval;}
+    if(h){h.name=name;h.description=description;if(getHabitTotal(h.id)===0)h.type=type;if(IS_CBI_HABITS){h.salary=salary;h.section=section;}else{h.coffee=coffee;h.tea=tea;}h.interval=interval;}
   }else{
     const habit={id:'hb_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),name,description,type,interval};
-    if(IS_CBI_HABITS){habit.salary=salary;habit.createdAt=new Date().toISOString();}else{habit.coffee=coffee;habit.tea=tea;}
+    if(IS_CBI_HABITS){habit.salary=salary;habit.section=section;habit.createdAt=new Date().toISOString();}else{habit.coffee=coffee;habit.tea=tea;}
     hdb.habits.push(habit);
   }
   editingHabitId=null;
@@ -963,6 +1026,7 @@ function openHabitDetail(id){
   const type=h.type||'count';const streak=getHabitStreak(id);const streakBonus=getHabitStreakBonus(streak);
   const parts=[type==='daily'?'Routine (每'+(h.interval||1)+'天)':'Times','今日：'+(getHabitToday(id)>0?'已完成':'未完成'),'累计：'+getHabitTotal(id)+(type==='daily'?'日':'次')];
   if(streak)parts.push('连续：'+streak+'天'+(streakBonus?'（奖励 +'+Math.round(streakBonus*100)+'%）':''));
+  if(IS_CBI_HABITS&&h.section)parts.push('分栏：'+h.section);
   if(IS_CBI_HABITS&&h.salary)parts.push('点数 +'+h.salary+'/次');
   if(!IS_CBI_HABITS&&h.coffee)parts.push('咖啡豆 +'+h.coffee+'/次');
   if(!IS_CBI_HABITS&&h.tea)parts.push('茶叶 +'+h.tea+'/次');
@@ -988,7 +1052,7 @@ document.querySelectorAll('.modal-bg').forEach(bg=>{bg.addEventListener('click',
 // ══════════════════════════════════════
 // DRAG SORT
 // ══════════════════════════════════════
-function initDragSort(containerId,dataType){
+function initDragSort(containerId,dataType,habitSection){
   const container=document.getElementById(containerId);if(!container)return;let dragEl=null;
   const getCards=()=>Array.from(container.children).filter(card=>card.dataset.id);
   function showDropTarget(y){const cards=getCards();cards.forEach(c=>c.classList.remove('drag-over'));for(const card of cards){if(card===dragEl)continue;const rect=card.getBoundingClientRect();if(y<rect.top+rect.height/2){card.classList.add('drag-over');break;}}}
@@ -1003,7 +1067,7 @@ function initDragSort(containerId,dataType){
     if(dataType==='todo'){
       const undated=db.todos.filter(t=>!t.completed&&!t.date);const item=undated.find(t=>t.id===dragId);if(!item){dragEl=null;return;}const others=undated.filter(t=>t.id!==dragId);const newOrder=[];if(!insertBefore){others.forEach(t=>newOrder.push(t));newOrder.push(item);}else{others.forEach(t=>{if(t.id===insertBefore)newOrder.push(item);newOrder.push(t);});}db.todos=[...db.todos.filter(t=>t.completed||t.date),...newOrder];save();
     }else{
-      const item=hdb.habits.find(h=>h.id===dragId);if(!item){dragEl=null;return;}const sameType=hdb.habits.filter(h=>(h.type||'count')===item.type);const others=sameType.filter(h=>h.id!==dragId);const newOrder=[];if(!insertBefore){others.forEach(h=>newOrder.push(h));newOrder.push(item);}else{others.forEach(h=>{if(h.id===insertBefore)newOrder.push(item);newOrder.push(h);});}hdb.habits=[...hdb.habits.filter(h=>(h.type||'count')!==item.type),...newOrder];saveHabits();
+      const item=hdb.habits.find(h=>h.id===dragId);if(!item){dragEl=null;return;}const inGroup=h=>(h.type||'count')===(item.type||'count')&&(habitSection===undefined||habitSectionName(h)===habitSection);const sameGroup=hdb.habits.filter(inGroup);const others=sameGroup.filter(h=>h.id!==dragId);const newOrder=[];if(!insertBefore){others.forEach(h=>newOrder.push(h));newOrder.push(item);}else{others.forEach(h=>{if(h.id===insertBefore)newOrder.push(item);newOrder.push(h);});}let orderIndex=0;hdb.habits=hdb.habits.map(h=>inGroup(h)?newOrder[orderIndex++]:h);saveHabits();
     }
     dragEl=null;render();
   }
@@ -1101,6 +1165,8 @@ function prepareCbiHabitPage(){
   }
   const teaInput=document.getElementById('habitTea');
   if(teaInput&&teaInput.parentElement)teaInput.parentElement.style.display='none';
+  const sectionRow=document.getElementById('habitSectionRow');
+  if(sectionRow)sectionRow.style.display='block';
   document.getElementById('habitInterval').max='365';
   updateHabitTypeHint();
 }

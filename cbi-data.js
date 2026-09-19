@@ -454,6 +454,7 @@
     return {
       id: text(item.id) || createId('habit'),
       name: text(item.name).trim(),
+      section: text(item.section).trim(),
       description: text(item.description),
       type: item.type === 'interval' ? 'interval' : 'count',
       interval: Math.max(1, Math.min(365, Math.floor(number(item.interval, 1)))),
