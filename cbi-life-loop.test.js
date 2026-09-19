@@ -9,10 +9,19 @@ class MemoryStorage {
   setItem(key, value) { this.data.set(String(key), String(value)); }
 }
 
-function load(initial = {}) {
+function fixedDate(now) {
+  const timestamp = new Date(now).getTime();
+  return class FixedDate extends Date {
+    constructor(...args) { super(...(args.length ? args : [timestamp])); }
+    static now() { return timestamp; }
+  };
+}
+
+function load(initial = {}, now) {
   const localStorage = new MemoryStorage(initial);
   const window = { localStorage };
-  const context = vm.createContext({ window, Date, JSON, Math, Object, Array, String, Number });
+  const ContextDate = now ? fixedDate(now) : Date;
+  const context = vm.createContext({ window, Date: ContextDate, JSON, Math, Object, Array, String, Number });
   vm.runInContext(fs.readFileSync('cbi-data.js', 'utf8'), context, { filename: 'cbi-data.js' });
   return { CBIData: window.CBIData, localStorage };
 }
@@ -162,7 +171,7 @@ test('commission offer, acceptance and rewards stay inside CBI work state', () =
 });
 
 test('major-case work advances once per day without consuming the reality balance', () => {
-  const { CBIData } = load();
+  const { CBIData } = load({}, '2026-08-24T12:00:00Z');
   const wallet = {
     categories: [{ id: 'food', dailyBudget: 1000 }],
     records: [{ date: '2026-08-24', category: 'food', type: 'expense', amount: 100 }],
@@ -341,7 +350,7 @@ test('schema eleven preserves the schema-ten wish repair for older saves', () =>
 });
 
 test('approving a wish spends allowance but never changes case progress', () => {
-  const { CBIData } = load();
+  const { CBIData } = load({}, '2026-09-01T12:00:00Z');
   const wallet = {
     categories: [{ id: 'daily', dailyBudget: 10000 }],
     records: [{ date: '2026-09-01', category: 'daily', type: 'expense', amount: 0 }]
@@ -367,7 +376,7 @@ test('approving a wish spends allowance but never changes case progress', () => 
 });
 
 test('personal free allowance automatically settles a waiting wish', () => {
-  const { CBIData } = load();
+  const { CBIData } = load({}, '2026-09-01T12:00:00Z');
   const emptyWallet = {};
   const fundedWallet = {
     categories: [{ id: 'daily', dailyBudget: 10000 }],
@@ -388,7 +397,7 @@ test('personal free allowance automatically settles a waiting wish', () => {
 });
 
 test('legacy paid case requests keep their old balance effect without double counting', () => {
-  const { CBIData } = load();
+  const { CBIData } = load({}, '2026-09-01T12:00:00Z');
   const wallet = {
     categories: [{ id: 'daily', dailyBudget: 1000 }],
     records: [{ date: '2026-09-01', category: 'daily', type: 'expense', amount: 0 }]

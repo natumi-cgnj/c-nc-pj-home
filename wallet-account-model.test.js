@@ -9,15 +9,24 @@ class MemoryStorage {
   setItem(key, value) { this.data.set(String(key), String(value)); }
 }
 
-function loadData() {
+function fixedDate(now) {
+  const timestamp = new Date(now).getTime();
+  return class FixedDate extends Date {
+    constructor(...args) { super(...(args.length ? args : [timestamp])); }
+    static now() { return timestamp; }
+  };
+}
+
+function loadData(now) {
   const window = { localStorage: new MemoryStorage() };
-  const context = vm.createContext({ window, Date, JSON, Math, Object, Array, String, Number });
+  const ContextDate = now ? fixedDate(now) : Date;
+  const context = vm.createContext({ window, Date: ContextDate, JSON, Math, Object, Array, String, Number });
   vm.runInContext(fs.readFileSync('cbi-data.js', 'utf8'), context, { filename: 'cbi-data.js' });
   return window.CBIData;
 }
 
 test('living and entertainment balances are calculated independently', () => {
-  const CBIData = loadData();
+  const CBIData = loadData('2026-08-02T12:00:00Z');
   const wallet = {
     categories: [
       { id: 'living', name: '日用+饮食', dailyBudget: 100, account: 'living', activeFrom: '2026-08-01' },
@@ -40,12 +49,45 @@ test('living and entertainment balances are calculated independently', () => {
   assert.equal(CBIData.availableShopFund(db, wallet), 65);
 });
 
-test('reimbursement reads living funds without obsolete wallet-side deductions', () => {
-  const CBIData = loadData();
+test('blank ledger days accrue their full budget before backfilled spending is deducted', () => {
+  const CBIData = loadData('2026-09-18T12:00:00Z');
   const wallet = {
     categories: [
-      { id: 'food', name: '饮食', dailyBudget: 2500, account: 'living', activeFrom: '2026-08-01' },
-      { id: 'daily', name: '日用', dailyBudget: 2200, account: 'living', activeFrom: '2026-08-01' }
+      { id: 'living', dailyBudget: 3500, account: 'living', activeFrom: '2026-09-14' },
+      { id: 'fun', dailyBudget: 2000, account: 'entertainment', activeFrom: '2026-09-14' }
+    ],
+    records: [
+      { date: '2026-09-14', category: 'living', type: 'expense', amount: 100 },
+      { date: '2026-09-14', category: 'fun', type: 'expense', amount: 200 }
+    ]
+  };
+
+  assert.equal(CBIData.walletAccountSurplus(wallet, 'living'), 17400);
+  assert.equal(CBIData.walletAccountSurplus(wallet, 'entertainment'), 9800);
+
+  const html = fs.readFileSync('wallet.html', 'utf8');
+  const start = html.indexOf('function categoryAccount(category)');
+  const end = html.indexOf('\nfunction walletTotalSurplus', start);
+  const walletContext = vm.createContext({ todayStr: () => '2026-09-18', Date, Array, Object, String, Number, Math });
+  vm.runInContext(html.slice(start, end), walletContext);
+  assert.equal(walletContext.walletAccountSurplus(wallet, 'living'), 17400);
+  assert.equal(walletContext.walletAccountSurplus(wallet, 'entertainment'), 9800);
+
+  wallet.records.push({ date: '2026-09-16', category: 'living', type: 'expense', amount: 500 });
+  assert.equal(CBIData.walletAccountSurplus(wallet, 'living'), 16900);
+  assert.equal(walletContext.walletAccountSurplus(wallet, 'living'), 16900);
+  assert.equal(CBIData.walletAccountSurplus({
+    categories: [{ id: 'fresh', dailyBudget: 2000, account: 'entertainment', activeFrom: '2026-09-18' }],
+    records: []
+  }, 'entertainment'), 2000);
+});
+
+test('reimbursement reads living funds without obsolete wallet-side deductions', () => {
+  const CBIData = loadData('2026-08-24T12:00:00Z');
+  const wallet = {
+    categories: [
+      { id: 'food', name: '饮食', dailyBudget: 2500, account: 'living', activeFrom: '2026-08-24' },
+      { id: 'daily', name: '日用', dailyBudget: 2200, account: 'living', activeFrom: '2026-08-24' }
     ],
     records: [
       { date: '2026-08-24', category: 'food', type: 'expense', amount: 2593 }
@@ -63,7 +105,7 @@ test('reimbursement reads living funds without obsolete wallet-side deductions',
 });
 
 test('negative living carryover is retained while spendable reimbursement floors at zero', () => {
-  const CBIData = loadData();
+  const CBIData = loadData('2026-09-01T12:00:00Z');
   const wallet = {
     categories: [{ id: 'living', name: '生活', dailyBudget: 100, account: 'living', activeFrom: '2026-09-01' }],
     records: [{ date: '2026-09-01', category: 'living', type: 'expense', amount: 120 }],
@@ -76,8 +118,9 @@ test('negative living carryover is retained while spendable reimbursement floors
   assert.equal(CBIData.availableAllowance(db, wallet), 0);
 
   wallet.records.push({ date: '2026-09-02', category: 'living', type: 'expense', amount: 0 });
-  assert.equal(CBIData.walletAccountSurplus(wallet, 'living'), 80);
-  assert.equal(CBIData.availableAllowance(db, wallet), 80);
+  const NextDayCBIData = loadData('2026-09-02T12:00:00Z');
+  assert.equal(NextDayCBIData.walletAccountSurplus(wallet, 'living'), 80);
+  assert.equal(NextDayCBIData.availableAllowance(db, wallet), 80);
 });
 
 test('fulfilled wish total includes approved reimbursements and autonomous purchases only', () => {
@@ -182,7 +225,7 @@ test('wallet page exposes split pools, full history and pending expenses', () =>
 });
 
 test('new ledger records can be backdated without entering today totals', () => {
-  const CBIData = loadData();
+  const CBIData = loadData('2026-09-12T12:00:00Z');
   const html = fs.readFileSync('wallet.html', 'utf8');
   const openStart = html.indexOf('function openRecordModal(){');
   const saveStart = html.indexOf('function saveRecord(){', openStart);
@@ -209,7 +252,7 @@ test('new ledger records can be backdated without entering today totals', () => 
   const todayEnd = html.indexOf('\nfunction categoryAccount', todayStart);
   const surplusStart = todayEnd + 1;
   const surplusEnd = html.indexOf('\nfunction walletTotalSurplus', surplusStart);
-  const walletContext = vm.createContext({ db: wallet, todayStr: () => '2026-09-12', Array, Object, String, Number, Math });
+  const walletContext = vm.createContext({ db: wallet, todayStr: () => '2026-09-12', Date, Array, Object, String, Number, Math });
   vm.runInContext(html.slice(todayStart, todayEnd), walletContext);
   vm.runInContext(html.slice(surplusStart, surplusEnd), walletContext);
 
@@ -218,7 +261,7 @@ test('new ledger records can be backdated without entering today totals', () => 
 });
 
 test('pending expenses keep a selectable date without affecting either balance', () => {
-  const CBIData = loadData();
+  const CBIData = loadData('2026-09-12T12:00:00Z');
   const html = fs.readFileSync('wallet.html', 'utf8');
   const openStart = html.indexOf('function openPendingModal(){');
   const saveStart = html.indexOf('function savePendingExpense(){', openStart);

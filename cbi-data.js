@@ -1315,28 +1315,47 @@
     return index === 0 ? 'living' : 'entertainment';
   }
 
+  function walletDayOrdinal(value) {
+    var match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(text(value));
+    if (!match) return null;
+    var year = Number(match[1]);
+    var month = Number(match[2]);
+    var day = Number(match[3]);
+    var stamp = Date.UTC(year, month - 1, day);
+    var parsed = new Date(stamp);
+    if (parsed.getUTCFullYear() !== year || parsed.getUTCMonth() !== month - 1 || parsed.getUTCDate() !== day) return null;
+    return Math.floor(stamp / 86400000);
+  }
+
   function walletAccountSurplus(value, account) {
     var wallet = value && typeof value === 'object' ? value : {};
     var categories = Array.isArray(wallet.categories) ? wallet.categories : [];
     var records = Array.isArray(wallet.records) ? wallet.records : [];
-    var byDate = {};
-    records.forEach(function (record) {
-      if (!record || !record.date || !record.category) return;
-      if (!byDate[record.date]) byDate[record.date] = {};
-      if (!byDate[record.date][record.category]) byDate[record.date][record.category] = { spent: 0, earned: 0 };
-      if (record.type === 'expense') byDate[record.date][record.category].spent += Math.max(0, number(record.amount, 0));
-      else byDate[record.date][record.category].earned += Math.max(0, number(record.amount, 0));
-    });
+    var today = workDayKey();
+    var todayOrdinal = walletDayOrdinal(today);
+    var recordDates = records.map(function (record) { return text(record && record.date); }).filter(function (dateKey) {
+      var ordinal = walletDayOrdinal(dateKey);
+      return ordinal !== null && ordinal <= todayOrdinal;
+    }).sort();
+    var fallbackStart = recordDates[0] || today;
     var total = 0;
-    Object.keys(byDate).forEach(function (dateKey) {
-      categories.forEach(function (category, index) {
-        if (walletCategoryAccount(category, index, categories.length) !== account) return;
-        var current = byDate[dateKey][category.id] || { spent: 0, earned: 0 };
-        var budget = text(category.activeFrom) && dateKey < text(category.activeFrom)
-          ? 0
-          : Math.max(0, number(category.dailyBudget, 0));
-        total += budget - current.spent + current.earned;
-      });
+    var categoryById = {};
+    categories.forEach(function (category, index) {
+      categoryById[category.id] = { category: category, index: index };
+      if (walletCategoryAccount(category, index, categories.length) !== account) return;
+      var activeFrom = walletDayOrdinal(category.activeFrom) !== null ? text(category.activeFrom) : fallbackStart;
+      var startOrdinal = walletDayOrdinal(activeFrom);
+      if (startOrdinal !== null && startOrdinal <= todayOrdinal) {
+        total += (todayOrdinal - startOrdinal + 1) * Math.max(0, number(category.dailyBudget, 0));
+      }
+    });
+    records.forEach(function (record) {
+      var entry = categoryById[record && record.category];
+      var recordOrdinal = walletDayOrdinal(record && record.date);
+      if (!entry || walletCategoryAccount(entry.category, entry.index, categories.length) !== account
+        || recordOrdinal === null || recordOrdinal > todayOrdinal) return;
+      var amount = Math.max(0, number(record.amount, 0));
+      total += record.type === 'expense' ? -amount : amount;
     });
     return Math.floor(total);
   }
