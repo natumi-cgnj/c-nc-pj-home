@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Suitcase">
+<title>Suitcase</title>
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="favicon.ico">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+button,input{font:inherit}button{color:inherit}
+body{min-height:100vh;min-height:100dvh;padding-bottom:36px;background:#fafafa;color:#333;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif}
+.top-bar{position:sticky;top:0;z-index:30;display:grid;grid-template-columns:62px 1fr 62px;align-items:center;min-height:54px;padding:env(safe-area-inset-top,0) 16px 0;border-bottom:1px solid #eeeeec;background:rgba(255,255,255,.96);backdrop-filter:blur(12px)}
+.top-bar h1{text-align:center;color:#8f8d89;font-size:13px;font-weight:500;letter-spacing:3px}
+.top-link,.top-action{border:0;background:none;color:#aaa;font-size:11px;text-decoration:none;cursor:pointer}.top-link{justify-self:start}.top-action{justify-self:end;letter-spacing:.5px}
+.view{width:min(100%,560px);margin:0 auto}
+.intro{padding:24px 20px 5px}.route{color:#b6aa94;font-size:9px;letter-spacing:2.2px}.intro-copy{margin-top:7px;color:#c1c1bd;font-size:9px;line-height:1.55;letter-spacing:.25px}
+.section-label{display:flex;align-items:center;justify-content:space-between;padding:20px 20px 9px;color:#aaa;font-size:9px;letter-spacing:1.4px}.section-count{color:#c6c6c2;font-variant-numeric:tabular-nums;letter-spacing:0}
+.collection,.history{margin:0 14px}.history{margin-bottom:28px}
+.series-group,.history-group{margin-bottom:9px;overflow:hidden;border:1px solid #eaeae7;border-radius:11px;background:#fff}
+.series-head{display:flex;width:100%;align-items:center;gap:9px;padding:12px 13px;border:0;background:#fff;text-align:left;cursor:pointer}.series-mark{width:5px;height:5px;flex:0 0 5px;border-radius:50%;background:#b5a17c}.series-name{min-width:0;flex:1;overflow:hidden;color:#68645d;font-size:11px;letter-spacing:.4px;text-overflow:ellipsis;white-space:nowrap}.series-total,.history-total{color:#c2c2be;font-size:9px;font-variant-numeric:tabular-nums}.caret,.history-caret{color:#ccc;font-size:9px;transition:transform .18s}.series-head[aria-expanded="true"] .caret,.history-group[open] .history-caret{transform:rotate(180deg)}
+.series-body[hidden]{display:none}.item-row{display:grid;width:100%;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:12px 13px;border:0;border-top:1px solid #f1f1ef;background:#fff;text-align:left;cursor:pointer}.item-copy{min-width:0}.item-name{display:block;overflow:hidden;color:#444;font-size:12px;line-height:1.4;text-overflow:ellipsis;white-space:nowrap}.item-note{display:block;margin-top:4px;overflow:hidden;color:#aaa;font-size:9px;line-height:1.4;text-overflow:ellipsis;white-space:nowrap}.item-day{color:#bebeb9;font-size:9px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.history-group summary{display:flex;align-items:center;gap:8px;padding:10px 12px;list-style:none;cursor:pointer}.history-group summary::-webkit-details-marker{display:none}.history-date{flex:1;color:#999;font-size:10px}.history-entry{display:grid;width:100%;grid-template-columns:minmax(0,1fr) auto;gap:9px;align-items:center;padding:11px 12px;border:0;border-top:1px solid #f3f3f1;background:#fff;text-align:left;cursor:pointer}.history-entry>span:first-child{min-width:0}.history-name{display:block;overflow:hidden;color:#555;font-size:11px;line-height:1.45;text-overflow:ellipsis;white-space:nowrap}.history-meta{display:block;margin-top:3px;overflow:hidden;color:#bbb;font-size:8px;line-height:1.4;text-overflow:ellipsis;white-space:nowrap}.history-series{max-width:110px;overflow:hidden;color:#b4a58b;font-size:11px;letter-spacing:.35px;text-overflow:ellipsis;white-space:nowrap}
+.empty{padding:28px 18px;border:1px dashed #deded9;border-radius:11px;color:#bbb;font-size:10px;line-height:1.7;text-align:center}.empty-add{display:block;margin:12px auto 0;padding:7px 11px;border:1px solid #ddd8cf;border-radius:8px;background:#fff;color:#94866e;font-size:9px;cursor:pointer}
+.sheet-overlay{position:fixed;inset:0;z-index:80;display:none;align-items:flex-end;justify-content:center;background:rgba(35,33,29,.22)}.sheet-overlay.show{display:flex}.sheet{width:min(100%,560px);max-height:88dvh;overflow:auto;padding:16px 18px calc(20px + env(safe-area-inset-bottom,0));border-radius:16px 16px 0 0;background:#fff;box-shadow:0 -10px 30px rgba(0,0,0,.08)}.sheet-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:17px}.sheet-title{color:#999;font-size:10px;letter-spacing:1.5px}.sheet-close{padding:3px;border:0;background:none;color:#bbb;font-size:18px;cursor:pointer}.field{margin-bottom:12px}.field label{display:block;margin:0 0 6px 2px;color:#aaa;font-size:9px;letter-spacing:.6px}.field input{width:100%;height:42px;padding:0 11px;border:1px solid #e7e7e3;border-radius:9px;outline:none;background:#fff;color:#444;font-size:12px}.field input:focus{border-color:#cfc6b5}.field input::placeholder{color:#cececa}.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.sheet-actions{display:flex;align-items:center;justify-content:flex-end;gap:9px;margin-top:17px}.sheet-btn{min-width:66px;padding:9px 13px;border:1px solid #ddd9d1;border-radius:8px;background:#fff;color:#888;font-size:10px;cursor:pointer}.sheet-btn.primary{border-color:#4f4b45;background:#4f4b45;color:#fff}.sheet-btn.danger{margin-right:auto;border-color:#eadfdc;color:#b98579}.sheet-btn[hidden]{display:none}
+@media(min-width:700px){.view{margin-top:18px;border:1px solid #eeeeec;border-radius:12px;background:#fff;overflow:hidden}.top-bar{padding-top:0}.collection,.history{margin-right:18px;margin-left:18px}.intro{padding-top:27px}}
+</style>
+</head>
+<body>
+<header class="top-bar">
+  <a class="top-link" href="index.html">Home</a>
+  <h1>SUITCASE</h1>
+  <button class="top-action" id="addItem" type="button">＋ ADD</button>
+</header>
+
+<main class="view">
+  <div class="intro">
+    <div class="route">OSAKA → SACRAMENTO</div>
+    <div class="intro-copy">从大阪带来的东西，会留在这里。</div>
+  </div>
+  <div class="section-label"><span>COLLECTION</span><span class="section-count" id="collectionCount"></span></div>
+  <div class="collection" id="collectionList"></div>
+  <div class="section-label"><span>HISTORY</span><span class="section-count" id="historyCount"></span></div>
+  <div class="history" id="historyList"></div>
+</main>
+
+<div class="sheet-overlay" id="itemSheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <form class="sheet" id="itemForm" onclick="event.stopPropagation()">
+    <div class="sheet-head"><span class="sheet-title" id="sheetTitle">NEW ITEM</span><button class="sheet-close" id="closeSheet" type="button" aria-label="关闭">×</button></div>
+    <div class="field"><label for="itemName">物品</label><input id="itemName" maxlength="120" autocomplete="off" required></div>
+    <div class="field-grid">
+      <div class="field"><label for="itemSeries">系列 / 分栏</label><input id="itemSeries" maxlength="80" list="seriesOptions" autocomplete="off" placeholder="例如 文具"></div>
+      <div class="field"><label for="itemDate">带来日期</label><input id="itemDate" type="date" required></div>
+    </div>
+    <div class="field"><label for="itemNote">备注</label><input id="itemNote" maxlength="160" autocomplete="off" placeholder="留在家里 / 送给谁"></div>
+    <datalist id="seriesOptions"></datalist>
+    <div class="sheet-actions"><button class="sheet-btn danger" id="deleteItem" type="button" hidden>删除</button><button class="sheet-btn" id="cancelItem" type="button">取消</button><button class="sheet-btn primary" type="submit">保存</button></div>
+  </form>
+</div>
+
+<script src="world-context.js?v=20260920-suitcase1"></script>
+<script src="cloud-sync.js?v=20260920-suitcase1"></script>
+<script src="cbi-data.js?v=20260920-suitcase1"></script>
+<script>
+(function(){
+  'use strict';
+
+  var COLLAPSED_KEY='cbi_suitcase_collapsed_v1';
+  var editingId='';
+
+  function el(id){return document.getElementById(id)}
+  function escapeHtml(value){return String(value==null?'':value).replace(/[&<>"']/g,function(char){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]})}
+  function pad(value){return String(value).padStart(2,'0')}
+  function localDateKey(value){var date=value instanceof Date?value:new Date(value||Date.now());return date.getFullYear()+'-'+pad(date.getMonth()+1)+'-'+pad(date.getDate())}
+  function displayDay(key){var parts=String(key).split('-');if(parts.length!==3)return key;var label=Number(parts[1])+' / '+Number(parts[2]);if(key===localDateKey(new Date()))return'TODAY · '+label;if(Number(parts[0])!==new Date().getFullYear())return parts[0]+' · '+label;return label}
+  function itemDay(key){var parts=String(key).split('-');return parts.length===3?Number(parts[1])+'/'+Number(parts[2]):key}
+  function readCollapsed(){try{var value=JSON.parse(localStorage.getItem(COLLAPSED_KEY)||'[]');return new Set(Array.isArray(value)?value:[])}catch(error){return new Set()}}
+  function writeCollapsed(value){try{localStorage.setItem(COLLAPSED_KEY,JSON.stringify(Array.from(value)))}catch(error){}}
+  function load(){return CBIData.load()}
+  function itemsOf(db){if(!db.work.suitcase)db.work.suitcase={items:[]};if(!Array.isArray(db.work.suitcase.items))db.work.suitcase.items=[];return db.work.suitcase.items}
+  function sortItems(items){return items.slice().sort(function(left,right){if(left.broughtOn!==right.broughtOn)return right.broughtOn.localeCompare(left.broughtOn);return String(right.createdAt).localeCompare(String(left.createdAt))})}
+
+  function seriesGroups(items){
+    var groups=[];var index={};
+    items.forEach(function(item){
+      var name=item.series||'未分栏';
+      if(index[name]===undefined){index[name]=groups.length;groups.push({name:name,items:[]})}
+      groups[index[name]].items.push(item);
+    });
+    groups.forEach(function(group){group.items=sortItems(group.items)});
+    return groups;
+  }
+
+  function renderCollection(items){
+    el('collectionCount').textContent=items.length?items.length+' 件':'';
+    if(!items.length){el('collectionList').innerHTML='<div class="empty">还没有从大阪带来的东西<button class="empty-add" type="button" data-add-item>＋ 添加第一件</button></div>';return}
+    var collapsed=readCollapsed();
+    el('collectionList').innerHTML=seriesGroups(items).map(function(group){
+      var closed=collapsed.has(group.name);
+      var rows=group.items.map(function(item){
+        var meta=[itemDay(item.broughtOn),item.note].filter(Boolean).join(' · ');
+        return '<button class="item-row" type="button" data-item="'+escapeHtml(item.id)+'"><span class="item-copy"><span class="item-name">'+escapeHtml(item.name)+'</span>'+(meta?'<span class="item-note">'+escapeHtml(meta)+'</span>':'')+'</span><span class="item-day">›</span></button>';
+      }).join('');
+      return '<section class="series-group"><button class="series-head" type="button" data-series="'+escapeHtml(group.name)+'" aria-expanded="'+(!closed)+'"><span class="series-mark"></span><span class="series-name">'+escapeHtml(group.name)+'</span><span class="series-total">'+group.items.length+'</span><span class="caret">⌄</span></button><div class="series-body" '+(closed?'hidden':'')+'>'+rows+'</div></section>';
+    }).join('');
+  }
+
+  function renderHistory(items){
+    el('historyCount').textContent=items.length?items.length+' 条':'';
+    if(!items.length){el('historyList').innerHTML='<div class="empty">—</div>';return}
+    var groups={};
+    sortItems(items).forEach(function(item){(groups[item.broughtOn]||(groups[item.broughtOn]=[])).push(item)});
+    var keys=Object.keys(groups).sort().reverse();
+    el('historyList').innerHTML=keys.map(function(key,index){
+      var rows=groups[key].map(function(item){
+        var meta=[item.series||'未分栏',item.note].filter(Boolean).join(' · ');
+        return '<button class="history-entry" type="button" data-item="'+escapeHtml(item.id)+'"><span><span class="history-name">'+escapeHtml(item.name)+'</span>'+(meta?'<span class="history-meta">'+escapeHtml(meta)+'</span>':'')+'</span><span class="history-series">›</span></button>';
+      }).join('');
+      return '<details class="history-group" '+(index===0?'open':'')+'><summary><span class="history-date">'+displayDay(key)+'</span><span class="history-total">'+groups[key].length+'</span><span class="history-caret">⌄</span></summary>'+rows+'</details>';
+    }).join('');
+  }
+
+  function render(){
+    var items=itemsOf(load());
+    renderCollection(items);
+    renderHistory(items);
+    var seen={};
+    el('seriesOptions').innerHTML=items.map(function(item){return item.series}).filter(function(name){if(!name||seen[name])return false;seen[name]=true;return true}).map(function(name){return '<option value="'+escapeHtml(name)+'"></option>'}).join('');
+  }
+
+  function openEditor(id){
+    editingId=id||'';
+    var item=editingId?itemsOf(load()).find(function(entry){return entry.id===editingId}):null;
+    if(editingId&&!item)return;
+    el('sheetTitle').textContent=item?'EDIT ITEM':'NEW ITEM';
+    el('itemName').value=item?item.name:'';
+    el('itemSeries').value=item?item.series:'';
+    el('itemDate').value=item?item.broughtOn:localDateKey(new Date());
+    el('itemNote').value=item?item.note:'';
+    el('deleteItem').hidden=!item;
+    el('itemSheet').classList.add('show');
+    setTimeout(function(){el('itemName').focus()},80);
+  }
+
+  function closeEditor(){editingId='';el('itemSheet').classList.remove('show')}
+
+  function saveItem(event){
+    event.preventDefault();
+    var name=el('itemName').value.trim();
+    if(!name){el('itemName').focus();return}
+    var db=load();var items=itemsOf(db);var now=new Date().toISOString();
+    var value={name:name,series:el('itemSeries').value.trim(),note:el('itemNote').value.trim(),broughtOn:el('itemDate').value||localDateKey(new Date()),updatedAt:now};
+    if(editingId){
+      var item=items.find(function(entry){return entry.id===editingId});
+      if(!item)return;
+      Object.assign(item,value);
+    }else{
+      items.push(Object.assign({id:CBIData.createId('suitcase'),createdAt:now},value));
+    }
+    if(!CBIData.save(db))return;
+    closeEditor();render();
+  }
+
+  function deleteItem(){
+    if(!editingId||!window.confirm('删除这件物品？'))return;
+    var db=load();var items=itemsOf(db);var index=items.findIndex(function(item){return item.id===editingId});
+    if(index<0)return;
+    items.splice(index,1);
+    if(!CBIData.save(db))return;
+    closeEditor();render();
+  }
+
+  el('addItem').addEventListener('click',function(){openEditor('')});
+  el('collectionList').addEventListener('click',function(event){
+    var add=event.target.closest('[data-add-item]');if(add){openEditor('');return}
+    var item=event.target.closest('[data-item]');if(item){openEditor(item.dataset.item);return}
+    var head=event.target.closest('[data-series]');if(!head)return;
+    var collapsed=readCollapsed();var name=head.dataset.series;var closing=head.getAttribute('aria-expanded')==='true';
+    if(closing)collapsed.add(name);else collapsed.delete(name);writeCollapsed(collapsed);renderCollection(itemsOf(load()));
+  });
+  el('historyList').addEventListener('click',function(event){var item=event.target.closest('[data-item]');if(item)openEditor(item.dataset.item)});
+  el('itemForm').addEventListener('submit',saveItem);
+  el('deleteItem').addEventListener('click',deleteItem);
+  el('closeSheet').addEventListener('click',closeEditor);
+  el('cancelItem').addEventListener('click',closeEditor);
+  el('itemSheet').addEventListener('click',function(event){if(event.target===el('itemSheet'))closeEditor()});
+  document.addEventListener('keydown',function(event){if(event.key==='Escape')closeEditor()});
+  window.addEventListener('storage',function(event){if(event.key===CBIData.STORAGE_KEY)render()});
+
+  render();
+  if(window.CloudSync&&typeof CloudSync.whenReady==='function')CloudSync.whenReady().then(render).catch(function(){});
+})();
+</script>
+</body>
+</html>

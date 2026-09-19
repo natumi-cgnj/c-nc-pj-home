@@ -310,6 +310,9 @@
       activeCommissions: [],
       commissionHistory: [],
       deployments: {},
+      suitcase: {
+        items: []
+      },
       shop: {
         projects: [],
         customItems: [],
@@ -460,6 +463,30 @@
       interval: Math.max(1, Math.min(365, Math.floor(number(item.interval, 1)))),
       salary: Math.max(0, Math.floor(number(item.salary, 10))),
       createdAt: text(item.createdAt) || new Date().toISOString()
+    };
+  }
+
+  function normalizeSuitcaseItem(item) {
+    item = item && typeof item === 'object' ? item : {};
+    var broughtOn = text(item.broughtOn).trim();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(broughtOn)) broughtOn = workDayKey(new Date());
+    return {
+      id: text(item.id) || createId('suitcase'),
+      name: text(item.name).trim(),
+      series: text(item.series || item.section).trim(),
+      note: text(item.note).trim(),
+      broughtOn: broughtOn,
+      createdAt: text(item.createdAt) || new Date().toISOString(),
+      updatedAt: text(item.updatedAt) || text(item.createdAt) || new Date().toISOString()
+    };
+  }
+
+  function normalizeSuitcase(value) {
+    var source = value && typeof value === 'object' ? value : {};
+    return {
+      items: Array.isArray(source.items)
+        ? source.items.map(normalizeSuitcaseItem).filter(function (item) { return item.name; })
+        : []
     };
   }
 
@@ -990,6 +1017,7 @@
       activeCommissions: Array.isArray(source.activeCommissions) ? source.activeCommissions.map(normalizeActiveCommission) : [],
       commissionHistory: Array.isArray(source.commissionHistory) ? source.commissionHistory.map(normalizeCommissionHistory) : [],
       deployments: deployments,
+      suitcase: normalizeSuitcase(source.suitcase),
       shop: normalizeShop(source.shop)
     };
   }
@@ -1820,6 +1848,8 @@
     normalizePerson: normalizePerson,
     normalizeTimelineItem: normalizeTimelineItem,
     normalizeWork: normalizeWork,
+    normalizeSuitcase: normalizeSuitcase,
+    normalizeSuitcaseItem: normalizeSuitcaseItem,
     normalizeCommission: normalizeCommission,
     normalizeShopItem: normalizeShopItem,
     normalizeShop: normalizeShop,

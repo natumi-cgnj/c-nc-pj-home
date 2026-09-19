@@ -394,13 +394,17 @@ body[data-world-id="cbi"] .cbi-weather-divider{color:#e1e1e1}
 }
 
 /* ── Desktop sidebar: blocks, shortcuts, popup (hidden on mobile) ── */
-.mobile-world-files{width:100%;max-width:360px;min-height:54px;margin-top:14px;padding:11px 14px;display:flex;align-items:center;gap:12px;border:1px solid #e8e8e8;border-radius:10px;background:#fff;color:inherit;text-align:left;font-family:inherit;cursor:pointer;transition:border-color .2s,background .15s}
+.mobile-file-row{width:100%;max-width:360px;margin-top:14px;display:grid;grid-template-columns:1fr;gap:10px}
+body[data-world-id="cbi"] .mobile-file-row{grid-template-columns:repeat(2,minmax(0,1fr))}
+.mobile-world-files{width:100%;min-width:0;min-height:58px;padding:11px 13px;display:flex;align-items:center;gap:10px;border:1px solid #e8e8e8;border-radius:10px;background:#fff;color:inherit;text-align:left;font-family:inherit;cursor:pointer;transition:border-color .2s,background .15s}
 .mobile-world-files:active{border-color:#d5d5d5;background:#f7f7f7}
 .mobile-world-files-icon{font-size:20px;flex:0 0 auto}
 .mobile-world-files-copy{min-width:0;display:flex;flex-direction:column;align-items:flex-start}
 .mobile-world-files-label{font-size:10px;color:#777;letter-spacing:1.2px}
 .mobile-world-files-sub{font-size:8px;color:#bbb;letter-spacing:.45px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-@media(max-width:400px){.mobile-world-files{max-width:320px}}
+.mobile-suitcase{display:none}
+body[data-world-id="cbi"] .mobile-suitcase{display:flex}
+@media(max-width:400px){.mobile-file-row{max-width:320px}.mobile-world-files{padding-inline:11px}.mobile-world-files-icon{font-size:18px}.mobile-world-files-label{font-size:9px}}
 .mobile-shortcuts-wrap{width:100%;max-width:360px;margin-top:18px;padding:2px 2px max(56px,calc(env(safe-area-inset-bottom,0px) + 44px));display:grid;grid-template-columns:repeat(5,44px);justify-content:space-between;align-items:start;row-gap:14px}
 .mobile-shortcuts{display:contents}
 .mobile-shortcuts-wrap .ds-item{display:flex;flex-direction:column;align-items:center;gap:5px;text-decoration:none;cursor:pointer;position:relative;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
@@ -431,7 +435,7 @@ body[data-world-id="cbi"] .cbi-weather-divider{color:#e1e1e1}
 .sp-label{font-size:9px;color:#bbb;text-align:center}
 .sp-item.draft .sp-icon{border-style:dashed}
 @media(min-width:700px){
-  .mobile-world-files,.mobile-shortcuts-wrap{display:none}
+  .mobile-file-row,.mobile-shortcuts-wrap{display:none}
   #pageDaily,#pageEvents,#pageCollect,#pageRewards{display:none}
   .desktop-shortcuts-wrap{display:block;grid-column:2;grid-row:2;max-width:260px;padding:4px 0}
   .desktop-shortcuts{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start;min-height:0}
@@ -453,11 +457,15 @@ body[data-world-id="cbi"] .cbi-weather-divider{color:#e1e1e1}
   .db-block:active{background:#f0f0f0}
   .db-icon{font-size:20px}
   .db-label{font-size:10px;color:#999;letter-spacing:0.5px}
-  .db-world-files{grid-column:1/-1;min-height:60px;flex-direction:row;justify-content:flex-start;text-align:left;padding:13px 16px;gap:12px}
-  .db-world-files .db-icon{font-size:22px;flex:0 0 auto}
+  .db-world-files{grid-column:1/-1}
+  .db-file-card{min-width:0;min-height:60px;flex-direction:row;justify-content:flex-start;text-align:left;padding:11px 10px;gap:8px}
+  .db-file-card .db-icon{font-size:18px;flex:0 0 auto}
   .db-world-copy{min-width:0}
-  .db-world-files .db-label{font-size:11px;color:#777;letter-spacing:1.2px}
+  .db-file-card .db-label{font-size:9px;color:#777;letter-spacing:.9px;white-space:nowrap}
   .db-world-sub{font-size:8px;color:#bbb;letter-spacing:.45px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .db-suitcase{display:none}
+  body[data-world-id="cbi"] .db-world-files{grid-column:auto}
+  body[data-world-id="cbi"] .db-suitcase{display:flex}
   .cat-popup-overlay.show{display:flex}
   .shortcut-picker-overlay.show{display:flex}
 }
@@ -822,10 +830,16 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-home-lower-row{displa
   </div>
 </div>
 
-<button class="mobile-world-files" id="mobileWorldFilesBlock" type="button" onclick="openWorldFiles()">
-  <span class="mobile-world-files-icon" aria-hidden="true">🗃️</span>
-  <span class="mobile-world-files-copy"><span class="mobile-world-files-label">WORLD FILES</span><span class="mobile-world-files-sub" data-world-files-subtitle>夹缝空间 · ARCHIVE</span></span>
-</button>
+<div class="mobile-file-row" id="mobileFileRow">
+  <button class="mobile-world-files" id="mobileWorldFilesBlock" type="button" onclick="openWorldFiles()">
+    <span class="mobile-world-files-icon" aria-hidden="true">🗃️</span>
+    <span class="mobile-world-files-copy"><span class="mobile-world-files-label">WORLD FILES</span><span class="mobile-world-files-sub" data-world-files-subtitle>夹缝空间 · ARCHIVE</span></span>
+  </button>
+  <button class="mobile-world-files mobile-suitcase" id="mobileSuitcaseBlock" type="button" onclick="openSuitcase()">
+    <span class="mobile-world-files-icon" aria-hidden="true">🧳</span>
+    <span class="mobile-world-files-copy"><span class="mobile-world-files-label">SUITCASE</span><span class="mobile-world-files-sub">FROM OSAKA</span></span>
+  </button>
+</div>
 
 <nav class="mobile-shortcuts-wrap" id="mobileShortcutsWrap" aria-label="快捷入口">
   <div class="mobile-shortcuts" id="mobileShortcuts"></div>
@@ -978,7 +992,8 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-home-lower-row{displa
 <div class="db-block" onclick="openCategoryPopup('events')"><div class="db-icon">🎫</div><div class="db-label">Events</div></div>
 <div class="db-block" onclick="openCategoryPopup('collect')"><div class="db-icon">📂</div><div class="db-label">Archive</div></div>
 <div class="db-block" onclick="openCategoryPopup('rewards')"><div class="db-icon">⭐</div><div class="db-label">Rewards</div></div>
-<div class="db-block db-world-files" id="worldFilesBlock" onclick="openWorldFiles()"><div class="db-icon">🗃️</div><div class="db-world-copy"><div class="db-label">WORLD FILES</div><div class="db-world-sub" id="worldFilesSubtitle" data-world-files-subtitle>夹缝空间 · ARCHIVE</div></div></div>
+<div class="db-block db-file-card db-world-files" id="worldFilesBlock" onclick="openWorldFiles()"><div class="db-icon">🗃️</div><div class="db-world-copy"><div class="db-label">WORLD FILES</div><div class="db-world-sub" id="worldFilesSubtitle" data-world-files-subtitle>夹缝空间 · ARCHIVE</div></div></div>
+<div class="db-block db-file-card db-suitcase" id="suitcaseBlock" onclick="openSuitcase()"><div class="db-icon">🧳</div><div class="db-world-copy"><div class="db-label">SUITCASE</div><div class="db-world-sub">FROM OSAKA</div></div></div>
 </div>
 
 <div class="cat-popup-overlay" id="catPopupOverlay" onclick="closeCategoryPopup(event)">
@@ -3722,6 +3737,10 @@ function selectCbiLocation(locationId) {
 function openWorldFiles(){
   var href=window.WorldContext?WorldContext.getRoute('story','story.html'): 'story.html';
   window.location.href=href;
+}
+
+function openSuitcase(){
+  window.location.href='suitcase.html';
 }
 
 function updateWorldFilesBlock(){

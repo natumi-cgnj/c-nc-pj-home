@@ -347,19 +347,25 @@ test('recent liminal outing costs live in the outing tab rather than treasury', 
   assert.doesNotMatch(wallet.slice(treasuryStart, treasuryEnd), /近期外出花费/);
 });
 
-test('desktop world files opens the active world archive beneath the existing four blocks', () => {
+test('desktop CBI splits the archive row between world files and suitcase', () => {
   assert.match(index, /id="worldFilesBlock"/);
   assert.match(index, /class="db-label">WORLD FILES</);
   assert.match(index, /WorldContext\.getRoute\('story','story\.html'\)/);
   assert.match(index, /\.db-world-files\{grid-column:1\/-1/);
+  assert.match(index, /id="suitcaseBlock" onclick="openSuitcase\(\)"/);
+  assert.match(index, /body\[data-world-id="cbi"\] \.db-world-files\{grid-column:auto\}/);
+  assert.match(index, /body\[data-world-id="cbi"\] \.db-suitcase\{display:flex\}/);
 });
 
-test('mobile world files sits below the room and follows the active world archive', () => {
+test('mobile CBI splits the file row between world files and suitcase', () => {
   assert.ok(index.indexOf('id="cbiOfficeWrap"') < index.indexOf('id="mobileWorldFilesBlock"'));
   assert.match(index, /class="mobile-world-files" id="mobileWorldFilesBlock"/);
-  assert.match(index, /\.mobile-world-files\{width:100%;max-width:360px/);
-  assert.match(index, /@media\(min-width:700px\)\{[\s\S]*?\.mobile-world-files\{display:none\}/);
+  assert.match(index, /class="mobile-world-files mobile-suitcase" id="mobileSuitcaseBlock"/);
+  assert.match(index, /\.mobile-file-row\{width:100%;max-width:360px/);
+  assert.match(index, /body\[data-world-id="cbi"\] \.mobile-file-row\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)\}/);
+  assert.match(index, /@media\(min-width:700px\)\{[\s\S]*?\.mobile-file-row,\.mobile-shortcuts-wrap\{display:none\}/);
   assert.match(index, /querySelectorAll\('\[data-world-files-subtitle\]'\)/);
+  assert.match(index, /function openSuitcase\(\)\{[\s\S]*?suitcase\.html/);
 });
 
 test('CBI room reads a continuous live roster instead of rerolling with CG time slots', () => {

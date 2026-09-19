@@ -49,6 +49,7 @@
     'story.html': ['story_db', 'gacha_st', 'daily_db'],
     'cbi.html': ['cbi_db', 'wallet_db', 'schedule_packs', 'schedule_user_events', 'home_character_runtime', 'omniverse_world_context'],
     'contact.html': ['cbi_contact_db', 'home_character_runtime', 'schedule_packs', 'schedule_user_events', 'omniverse_world_context', 'cbi_db'],
+    'suitcase.html': ['cbi_db', 'omniverse_world_context'],
     'world-empty.html': ['omniverse_world_context'],
     'bjd.html': ['doll_db2'],
     'merch.html': ['merch_db'],

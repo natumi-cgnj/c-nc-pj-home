@@ -181,11 +181,15 @@ test('CBI reality loop reuses the mature pages without crossing its currencies',
   assert.match(cloud, /'shop\.html': \[[^\]]*'home_skin_custom'/);
 });
 
-test('desktop world files opens the active world archive beneath the existing four blocks', () => {
+test('desktop CBI splits the archive row between world files and suitcase', () => {
   assert.match(index, /id="worldFilesBlock"/);
   assert.match(index, /class="db-label">WORLD FILES</);
   assert.match(index, /WorldContext\.getRoute\('story','story\.html'\)/);
   assert.match(index, /\.db-world-files\{grid-column:1\/-1/);
+  assert.match(index, /id="suitcaseBlock" onclick="openSuitcase\(\)"/);
+  assert.match(index, /body\[data-world-id="cbi"\] \.db-world-files\{grid-column:auto\}/);
+  assert.match(index, /body\[data-world-id="cbi"\] \.db-suitcase\{display:flex\}/);
+  assert.match(index, /function openSuitcase\(\)\{[\s\S]*?suitcase\.html/);
 });
 
 test('desktop Notes cannot resize or recenter the room column', () => {
