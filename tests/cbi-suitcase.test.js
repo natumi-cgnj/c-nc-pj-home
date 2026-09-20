@@ -88,6 +88,11 @@ test('homepage exposes a CBI-only half-width suitcase card', () => {
 });
 
 test('suitcase page exposes four direct size taps, inventory redemption, collection and history', () => {
+  const collection = suitcase.indexOf('id="collectionList"');
+  const inventory = suitcase.indexOf('id="inventoryList"');
+  const pointPanel = suitcase.indexOf('id="pointBalance"');
+  const history = suitcase.indexOf('id="historyList"');
+  assert.ok(collection >= 0 && collection < inventory && inventory < pointPanel && pointPanel < history, 'mobile order must be Sacramento, Osaka, check-in, history');
   const extraLarge = suitcase.indexOf('data-cleanup="xlarge"');
   const large = suitcase.indexOf('data-cleanup="large"');
   const medium = suitcase.indexOf('data-cleanup="medium"');
