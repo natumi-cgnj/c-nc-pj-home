@@ -116,12 +116,16 @@ test('CBI habits render through the liminal cards and award points on direct che
   assert.match(nodes.statusBar.innerHTML, />120</);
   assert.match(nodes.content.innerHTML, /class="habit-group-label">整理</);
   assert.match(nodes.content.innerHTML, /class="todo-check" onclick="recordHabitProgress\('interval_1',1\)"/);
+  assert.ok(nodes.content.innerHTML.indexOf('class="habit-actions"') < nodes.content.innerHTML.indexOf('class="habit-body clickable-body"'));
+  assert.ok(nodes.content.innerHTML.indexOf('class="habit-body clickable-body"') < nodes.content.innerHTML.indexOf('class="todo-check"'));
 
   context.__daily.recordHabitProgress('interval_1', 1);
   context.__daily.switchHabitSub('count');
   assert.match(nodes.content.innerHTML, /class="habit-group-label">消耗</);
   assert.match(nodes.content.innerHTML, /class="habit-group-label">未分栏</);
   assert.match(nodes.content.innerHTML, /class="habit-add-btn" onclick="recordHabitProgress\('count_1',1\)"/);
+  assert.ok(nodes.content.innerHTML.indexOf('class="habit-actions"') < nodes.content.innerHTML.indexOf('class="habit-body clickable-body"'));
+  assert.ok(nodes.content.innerHTML.indexOf('class="habit-body clickable-body"') < nodes.content.innerHTML.indexOf('class="habit-add-btn"'));
   context.__daily.recordHabitProgress('count_1', 1);
 
   const saved = JSON.parse(localStorage.getItem('cbi_db'));

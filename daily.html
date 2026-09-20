@@ -112,6 +112,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .habit-stat-tag.today{background:#f5efe4;color:#b48a3e}
 .habit-undo-link{border:none;background:none;color:#bbb;font-size:9px;font-family:inherit;cursor:pointer;padding:2px 3px;margin-left:auto}
 .habit-undo-link:active{color:#777}
+.habit-actions{display:flex;align-items:center;flex:0 0 auto}.habit-actions .habit-undo-link{margin-left:0;margin-right:2px}
 .habit-section{margin-bottom:25px}
 .habit-group{margin-bottom:13px}
 .habit-group:last-child{margin-bottom:0}
@@ -883,12 +884,20 @@ function renderHabitCard(h){
     const intervalStatus=getIntervalStatus(h);
     const streakHtml=streak>0?' <span class="habit-streak">★'+streak+'天'+(streakBonus?' +'+Math.round(streakBonus*100)+'%':'')+'</span>':'';
     const intervalLabel=h.interval>1?'每'+h.interval+'天':'每天';
-    return '<div class="habit-card'+(isDone?' has-progress':'')+'" data-id="'+h.id+'"><div class="habit-top"><div class="todo-check'+(isDone?' checked':'')+'" onclick="'+(isDone?'':'recordHabitProgress(\''+h.id+'\',1)')+'">'+(isDone?'✓':'')+'</div><div class="habit-body clickable-body" onclick="openHabitDetail(\''+h.id+'\')"><div class="habit-name">'+escHtml(h.name)+' <span style="font-size:10px;color:#bbb">'+intervalLabel+'</span></div><div class="habit-meta">'+(rewardParts.length?rewardParts.join(' '):'无基础产出')+streakHtml+'</div><div class="interval-info '+intervalStatus.cls+'">'+intervalStatus.text+'</div><div class="habit-stat-tags"><span class="habit-stat-tag">累计 '+total+' 日</span></div></div><div class="habit-actions">'+undoLink+'<button class="habit-edit" onclick="openEditHabit(\''+h.id+'\')">✎</button><button class="todo-del" onclick="deleteHabit(\''+h.id+'\')">×</button></div></div></div>';
+    const dailyPrimary='<div class="todo-check'+(isDone?' checked':'')+'" onclick="'+(isDone?'':'recordHabitProgress(\''+h.id+'\',1)')+'">'+(isDone?'✓':'')+'</div>';
+    const dailyBody='<div class="habit-body clickable-body" onclick="openHabitDetail(\''+h.id+'\')"><div class="habit-name">'+escHtml(h.name)+' <span style="font-size:10px;color:#bbb">'+intervalLabel+'</span></div><div class="habit-meta">'+(rewardParts.length?rewardParts.join(' '):'无基础产出')+streakHtml+'</div><div class="interval-info '+intervalStatus.cls+'">'+intervalStatus.text+'</div><div class="habit-stat-tags"><span class="habit-stat-tag">累计 '+total+' 日</span></div></div>';
+    const dailyActions='<div class="habit-actions">'+undoLink+'<button class="habit-edit" onclick="openEditHabit(\''+h.id+'\')">✎</button><button class="todo-del" onclick="deleteHabit(\''+h.id+'\')">×</button></div>';
+    const dailyRow=IS_CBI_HABITS?dailyActions+dailyBody+dailyPrimary:dailyPrimary+dailyBody+dailyActions;
+    return '<div class="habit-card'+(isDone?' has-progress':'')+'" data-id="'+h.id+'"><div class="habit-top">'+dailyRow+'</div></div>';
   }
 
   // count type
   const addAction="recordHabitProgress('"+h.id+"',1)";
-  return '<div class="habit-card count-card'+(todayValue>0?' has-progress':'')+'" data-id="'+h.id+'"><div class="habit-top"><button class="habit-add-btn" onclick="'+addAction+'">＋</button><div class="habit-body clickable-body" onclick="openHabitDetail(\''+h.id+'\')"><div class="habit-name">'+escHtml(h.name)+'</div><div class="habit-meta">'+(rewardParts.length?rewardParts.join(' '):'无基础产出')+'</div><div class="habit-stat-tags"><span class="habit-stat-tag today">今日 '+Math.round(todayValue)+'次</span><span class="habit-stat-tag">累计 '+Math.round(total)+'次</span></div></div><div class="habit-actions">'+undoLink+'<button class="habit-edit" onclick="openEditHabit(\''+h.id+'\')">✎</button><button class="todo-del" onclick="deleteHabit(\''+h.id+'\')">×</button></div></div></div>';
+  const countPrimary='<button class="habit-add-btn" onclick="'+addAction+'">＋</button>';
+  const countBody='<div class="habit-body clickable-body" onclick="openHabitDetail(\''+h.id+'\')"><div class="habit-name">'+escHtml(h.name)+'</div><div class="habit-meta">'+(rewardParts.length?rewardParts.join(' '):'无基础产出')+'</div><div class="habit-stat-tags"><span class="habit-stat-tag today">今日 '+Math.round(todayValue)+'次</span><span class="habit-stat-tag">累计 '+Math.round(total)+'次</span></div></div>';
+  const countActions='<div class="habit-actions">'+undoLink+'<button class="habit-edit" onclick="openEditHabit(\''+h.id+'\')">✎</button><button class="todo-del" onclick="deleteHabit(\''+h.id+'\')">×</button></div>';
+  const countRow=IS_CBI_HABITS?countActions+countBody+countPrimary:countPrimary+countBody+countActions;
+  return '<div class="habit-card count-card'+(todayValue>0?' has-progress':'')+'" data-id="'+h.id+'"><div class="habit-top">'+countRow+'</div></div>';
 }
 
 function recordHabitProgress(id,value){
