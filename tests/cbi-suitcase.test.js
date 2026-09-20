@@ -93,6 +93,8 @@ test('suitcase page exposes four direct size taps, inventory redemption, collect
   const medium = suitcase.indexOf('data-cleanup="medium"');
   const small = suitcase.indexOf('data-cleanup="small"');
   assert.ok(extraLarge >= 0 && extraLarge < large && large < medium && medium < small, 'small must stay on the far right');
+  assert.match(suitcase, /\.size-button\.xlarge\{width:47px;height:47px\}/);
+  assert.match(suitcase, /\.size-button\.small\{width:62px;height:62px\}/);
   assert.match(suitcase, /data-cleanup="xlarge"[\s\S]*?\+20[\s\S]*?极大/);
   assert.match(suitcase, /data-cleanup="large"[\s\S]*?\+8[\s\S]*?大/);
   assert.match(suitcase, /data-cleanup="medium"[\s\S]*?\+5[\s\S]*?中/);
