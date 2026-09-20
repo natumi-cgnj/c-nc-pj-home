@@ -42,16 +42,21 @@ test('CBI data normalizes and persists suitcase collection entries', () => {
     broughtOn: '2026-09-19',
     createdAt: '2026-09-19T05:00:00.000Z'
   });
+  db.work.suitcase.items.push({ id: 'image_only', name: '', image: 'cloud://test/suitcase/image_only.jpg', status: 'inventory', cost: 8 });
+  db.work.suitcase.items.push({ id: 'empty_item', name: '', image: '', status: 'inventory', cost: 2 });
   const saved = data.save(db);
+  assert.equal(saved.work.suitcase.items.length, 2, 'image-only items survive while fully blank items are discarded');
   assert.equal(saved.work.suitcase.items[0].series, '纸品');
   assert.equal(saved.work.suitcase.items[0].note, '留在家里');
   assert.equal(saved.work.suitcase.items[0].image, 'cloud://test/suitcase/from_osaka_1.jpg');
   assert.equal(saved.work.suitcase.items[0].broughtOn, '2026-09-19');
   assert.equal(saved.work.suitcase.items[0].status, 'collected');
   assert.equal(saved.work.suitcase.items[0].redeemedCost, 0, 'legacy collected items must not invent a point charge');
+  assert.equal(saved.work.suitcase.items[1].name, '');
+  assert.equal(saved.work.suitcase.items[1].image, 'cloud://test/suitcase/image_only.jpg');
 
   const loaded = data.load();
-  assert.equal(loaded.work.suitcase.items.length, 1);
+  assert.equal(loaded.work.suitcase.items.length, 2);
   assert.equal(loaded.work.suitcase.items[0].name, '旧手帐本');
 });
 
@@ -113,6 +118,9 @@ test('suitcase page exposes four direct size taps, inventory redemption, collect
   assert.match(suitcase, /id="itemSeries"/);
   assert.match(suitcase, /id="itemCost" type="number"/);
   assert.match(suitcase, /id="itemNote"/);
+  assert.match(suitcase, /<label for="itemName">物品（选填）<\/label>/);
+  assert.doesNotMatch(suitcase, /id="itemName"[^>]*required/);
+  assert.match(suitcase, /if\(!name&&!itemImageDraft\)\{el\('itemImage'\)\.click\(\);return\}/);
   assert.match(suitcase, /id="itemImage" type="file" accept="image\/\*"/);
   assert.match(suitcase, /id="itemImagePreview"/);
   assert.match(suitcase, /id="removeItemImage"/);
@@ -133,6 +141,6 @@ test('suitcase page exposes four direct size taps, inventory redemption, collect
 test('every page that can save CBI data loads the suitcase-aware data model', () => {
   for (const page of cbiDataPages) {
     const html = fs.readFileSync(page, 'utf8');
-    assert.match(html, /cbi-data\.js\?v=20260920-suitcase3/, page);
+    assert.match(html, /cbi-data\.js\?v=20260920-suitcase4/, page);
   }
 });

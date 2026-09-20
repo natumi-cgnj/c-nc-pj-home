@@ -515,7 +515,7 @@
       points: Math.max(0, Math.floor(number(source.points, 0))),
       cleanupLog: Array.isArray(source.cleanupLog) ? source.cleanupLog.map(normalizeSuitcaseCleanup) : [],
       items: Array.isArray(source.items)
-        ? source.items.map(normalizeSuitcaseItem).filter(function (item) { return item.name; })
+        ? source.items.map(normalizeSuitcaseItem).filter(function (item) { return item.name || item.image; })
         : []
     };
   }
