@@ -3744,7 +3744,7 @@ function openSuitcase(){
 }
 
 function updateWorldFilesBlock(){
-  var text=getActiveWorldId()==='cbi'?'CBI · CASE BOARD & PERSONNEL':'夹缝空间 · ARCHIVE';
+  var text=getActiveWorldId()==='cbi'?'FROM SACRAMENTO':'夹缝空间 · ARCHIVE';
   document.querySelectorAll('[data-world-files-subtitle]').forEach(function(subtitle){subtitle.textContent=text;});
 }
 
