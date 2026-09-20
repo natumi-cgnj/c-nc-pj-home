@@ -485,6 +485,7 @@
       name: text(item.name).trim(),
       series: text(item.series || item.section).trim(),
       note: text(item.note).trim(),
+      image: text(item.image || item.img).trim(),
       status: status,
       cost: cost,
       broughtOn: broughtOn,

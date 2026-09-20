@@ -38,12 +38,14 @@ test('CBI data normalizes and persists suitcase collection entries', () => {
     name: '旧手帐本',
     section: '纸品',
     note: '留在家里',
+    img: 'cloud://test/suitcase/from_osaka_1.jpg',
     broughtOn: '2026-09-19',
     createdAt: '2026-09-19T05:00:00.000Z'
   });
   const saved = data.save(db);
   assert.equal(saved.work.suitcase.items[0].series, '纸品');
   assert.equal(saved.work.suitcase.items[0].note, '留在家里');
+  assert.equal(saved.work.suitcase.items[0].image, 'cloud://test/suitcase/from_osaka_1.jpg');
   assert.equal(saved.work.suitcase.items[0].broughtOn, '2026-09-19');
   assert.equal(saved.work.suitcase.items[0].status, 'collected');
   assert.equal(saved.work.suitcase.items[0].redeemedCost, 0, 'legacy collected items must not invent a point charge');
@@ -111,6 +113,13 @@ test('suitcase page exposes four direct size taps, inventory redemption, collect
   assert.match(suitcase, /id="itemSeries"/);
   assert.match(suitcase, /id="itemCost" type="number"/);
   assert.match(suitcase, /id="itemNote"/);
+  assert.match(suitcase, /id="itemImage" type="file" accept="image\/\*"/);
+  assert.match(suitcase, /id="itemImagePreview"/);
+  assert.match(suitcase, /id="removeItemImage"/);
+  assert.match(suitcase, /function itemImageSelected\(input\)/);
+  assert.match(suitcase, /CloudSync\.uploadDataUrl\(image,'suitcase\/'\+stableId\+'\.jpg'\)/);
+  assert.match(suitcase, /class="item-thumb"/);
+  assert.match(suitcase, /class="history-thumb"/);
   assert.match(suitcase, /cbi_suitcase_collapsed_v2/);
   assert.match(suitcase, /function recordCleanup\(size\)/);
   assert.match(suitcase, /function redeemItem\(id\)/);
@@ -124,6 +133,6 @@ test('suitcase page exposes four direct size taps, inventory redemption, collect
 test('every page that can save CBI data loads the suitcase-aware data model', () => {
   for (const page of cbiDataPages) {
     const html = fs.readFileSync(page, 'utf8');
-    assert.match(html, /cbi-data\.js\?v=20260920-suitcase2/, page);
+    assert.match(html, /cbi-data\.js\?v=20260920-suitcase3/, page);
   }
 });
