@@ -8,6 +8,7 @@
   var CBI_CHARACTERS = ['jane', 'cho', 'rigsby', 'lisbon', 'vanpelt'];
   var SCORE_IDS = ['boss'].concat(CBI_CHARACTERS);
   var CHECKIN_REWARD_COST = 10;
+  var SUITCASE_SIZE_POINTS = { xlarge: 20, large: 8, medium: 5, small: 2 };
   var CHECKIN_REWARD_TEMPLATES = {
     boss: [
       'Milo今天把「{item}」带进了办公室，暂时放在自己伸手就能拿到的位置。',
@@ -311,6 +312,8 @@
       commissionHistory: [],
       deployments: {},
       suitcase: {
+        points: 0,
+        cleanupLog: [],
         items: []
       },
       shop: {
@@ -468,26 +471,85 @@
 
   function normalizeSuitcaseItem(item) {
     item = item && typeof item === 'object' ? item : {};
+    var hasStatus = item.status === 'inventory' || item.status === 'collected';
+    var status = item.status === 'inventory' ? 'inventory' : 'collected';
+    var cost = Math.max(1, Math.floor(number(item.cost, 2)));
+    var createdAt = text(item.createdAt) || new Date().toISOString();
+    var redeemedAt = text(item.redeemedAt);
     var broughtOn = text(item.broughtOn).trim();
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(broughtOn)) broughtOn = workDayKey(new Date());
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(broughtOn)) {
+      broughtOn = status === 'collected' ? workDayKey(redeemedAt || createdAt) : '';
+    }
     return {
       id: text(item.id) || createId('suitcase'),
       name: text(item.name).trim(),
       series: text(item.series || item.section).trim(),
       note: text(item.note).trim(),
+      status: status,
+      cost: cost,
       broughtOn: broughtOn,
-      createdAt: text(item.createdAt) || new Date().toISOString(),
-      updatedAt: text(item.updatedAt) || text(item.createdAt) || new Date().toISOString()
+      redeemedAt: redeemedAt,
+      redeemedCost: status === 'collected'
+        ? Math.max(0, Math.floor(number(item.redeemedCost, hasStatus ? cost : 0)))
+        : 0,
+      createdAt: createdAt,
+      updatedAt: text(item.updatedAt) || createdAt
+    };
+  }
+
+  function normalizeSuitcaseCleanup(item) {
+    item = item && typeof item === 'object' ? item : {};
+    var size = Object.prototype.hasOwnProperty.call(SUITCASE_SIZE_POINTS, item.size) ? item.size : 'small';
+    return {
+      id: text(item.id) || createId('suitcase_cleanup'),
+      size: size,
+      points: SUITCASE_SIZE_POINTS[size],
+      at: text(item.at) || new Date().toISOString()
     };
   }
 
   function normalizeSuitcase(value) {
     var source = value && typeof value === 'object' ? value : {};
     return {
+      points: Math.max(0, Math.floor(number(source.points, 0))),
+      cleanupLog: Array.isArray(source.cleanupLog) ? source.cleanupLog.map(normalizeSuitcaseCleanup) : [],
       items: Array.isArray(source.items)
         ? source.items.map(normalizeSuitcaseItem).filter(function (item) { return item.name; })
         : []
     };
+  }
+
+  function recordSuitcaseCleanup(value, size, nowValue) {
+    var db = normalize(value);
+    if (!Object.prototype.hasOwnProperty.call(SUITCASE_SIZE_POINTS, size)) {
+      return { ok: false, reason: 'invalid_size', db: db, entry: null };
+    }
+    var now = nowValue instanceof Date ? nowValue : new Date(nowValue || Date.now());
+    if (isNaN(now.getTime())) now = new Date();
+    var entry = normalizeSuitcaseCleanup({
+      id: createId('suitcase_cleanup'),
+      size: size,
+      at: now.toISOString()
+    });
+    db.work.suitcase.points += entry.points;
+    db.work.suitcase.cleanupLog.push(entry);
+    return { ok: true, reason: '', db: db, entry: entry };
+  }
+
+  function redeemSuitcaseItem(value, itemId, nowValue) {
+    var db = normalize(value);
+    var item = db.work.suitcase.items.find(function (entry) { return entry.id === itemId; });
+    if (!item || item.status !== 'inventory') return { ok: false, reason: 'item_unavailable', db: db, item: item || null };
+    if (db.work.suitcase.points < item.cost) return { ok: false, reason: 'insufficient_points', db: db, item: item };
+    var now = nowValue instanceof Date ? nowValue : new Date(nowValue || Date.now());
+    if (isNaN(now.getTime())) now = new Date();
+    db.work.suitcase.points -= item.cost;
+    item.status = 'collected';
+    item.redeemedAt = now.toISOString();
+    item.broughtOn = workDayKey(now);
+    item.redeemedCost = item.cost;
+    item.updatedAt = item.redeemedAt;
+    return { ok: true, reason: '', db: db, item: item };
   }
 
   function normalizeAction(item) {
@@ -1837,6 +1899,7 @@
     STORAGE_KEY: STORAGE_KEY,
     SCHEMA_VERSION: SCHEMA_VERSION,
     CHECKIN_REWARD_COST: CHECKIN_REWARD_COST,
+    SUITCASE_SIZE_POINTS: Object.freeze(Object.assign({}, SUITCASE_SIZE_POINTS)),
     CBI_CHARACTERS: CBI_CHARACTERS.slice(),
     ACTION_DIFFICULTIES: ACTION_DIFFICULTIES,
     INVESTIGATOR_CONFIG: INVESTIGATOR_CONFIG,
@@ -1850,6 +1913,9 @@
     normalizeWork: normalizeWork,
     normalizeSuitcase: normalizeSuitcase,
     normalizeSuitcaseItem: normalizeSuitcaseItem,
+    normalizeSuitcaseCleanup: normalizeSuitcaseCleanup,
+    recordSuitcaseCleanup: recordSuitcaseCleanup,
+    redeemSuitcaseItem: redeemSuitcaseItem,
     normalizeCommission: normalizeCommission,
     normalizeShopItem: normalizeShopItem,
     normalizeShop: normalizeShop,
