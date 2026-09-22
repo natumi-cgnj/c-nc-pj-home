@@ -392,3 +392,14 @@ test('desktop shortcut deletion requires a long press and wrapped add stays sepa
   assert.match(index, /\.ds-add\{[^}]*margin-top:8px/);
   assert.match(index, /function armLongPress\(\)[\s\S]*?revealDeleteButton\(press\.item\)/);
 });
+
+test('desktop shortcut long-press drag survives early mouse movement and pointer exit', () => {
+  const match = index.match(/\(function initDSShortcutReorder\(\)\{[\s\S]*?\n\}\)\(\);/);
+  assert.ok(match);
+  const reorder = match[0];
+  assert.match(reorder, /item\.setPointerCapture\(e\.pointerId\)/);
+  assert.match(reorder, /if\(distance>DRAG_START_PX\)press\.moved=true/);
+  assert.match(reorder, /if\(press\.moved\)\{beginDrag\(\);updateDrag\(press\.x,press\.y\);\}/);
+  assert.match(reorder, /function releasePointerCapture\(\)/);
+  assert.doesNotMatch(reorder, /MOVE_CANCEL_PX/);
+});
