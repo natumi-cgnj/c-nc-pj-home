@@ -118,6 +118,9 @@ test('world and CBI data participate in cloud sync and full backup', () => {
     assert.match(backup, new RegExp(`key:'${key}'`));
   }
   assert.match(cloud, /'cbi\.html': \['cbi_db', 'wallet_db',[^\]]*'omniverse_world_context'\]/);
+  assert.match(cloud, /'home_custom_shortcuts'/);
+  assert.match(cloud, /'index\.html': \[[^\]]*'home_custom_shortcuts'/);
+  assert.match(backup, /key:'home_custom_shortcuts'/);
 });
 
 test('food archive stays global while meals and recipes switch world layers', () => {

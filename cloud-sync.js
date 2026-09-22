@@ -33,14 +33,14 @@
     'recipe_salad_db', 'recipe_project_config', 'recipe_salad_db__world__cbi', 'recipe_project_config__world__cbi',
     'activity_db', 'cinema_db', 'stationery_db', 'doll_db2', 'merch_db', 'wallet_db',
     'home_modules', 'home_lines', 'home_skins', 'home_skin_custom', 'home_wardrobe_tabs',
-    'home_skin_daily', 'home_cg_library', 'home_cg_period', 'shortcut-order',
+    'home_skin_daily', 'home_cg_library', 'home_cg_period', 'shortcut-order', 'home_custom_shortcuts',
     'home_character_runtime', 'home_character_action_packs', 'shared_diary_db',
     'omniverse_world_context', 'cbi_db', 'cbi_contact_db',
     'memo_db', 'study_db', 'organize_db', 'artist_db', 'music_db', 'reading_db',
     'schedule_packs', 'schedule_user_events'
   ];
   const PAGE_KEYS = {
-    'index.html': ['habit_db', 'wallet_db', 'memo_db', 'home_modules', 'home_lines', 'home_skins', 'home_skin_custom', 'home_wardrobe_tabs', 'home_skin_daily', 'home_cg_library', 'home_cg_period', 'shortcut-order', 'home_character_runtime', 'home_character_action_packs', 'shared_diary_db', 'schedule_packs', 'schedule_user_events', 'omniverse_world_context', 'cbi_db'],
+    'index.html': ['habit_db', 'wallet_db', 'memo_db', 'home_modules', 'home_lines', 'home_skins', 'home_skin_custom', 'home_wardrobe_tabs', 'home_skin_daily', 'home_cg_library', 'home_cg_period', 'shortcut-order', 'home_custom_shortcuts', 'home_character_runtime', 'home_character_action_packs', 'shared_diary_db', 'schedule_packs', 'schedule_user_events', 'omniverse_world_context', 'cbi_db'],
     'schedule.html': ['schedule_packs', 'schedule_user_events', 'home_character_runtime', 'home_character_action_packs', 'omniverse_world_context', 'cbi_db'],
     'daily.html': ['daily_db', 'daily_presets', 'gacha_st', 'bean_st', 'habit_db', 'cbi_db', 'omniverse_world_context'],
     'gacha.html': ['gacha_st'],
@@ -552,7 +552,7 @@
       shop_db: '商城', event_db: '旧活动存档', event_presets: '旧活动模板',
       dungeon_db: '副本库存', kitchen_db: '饮食收集', kitchen_project_categories_v1: '饮食项目分类', meal_log_db: '现实餐食', calorie_log_db: '卡路里记录', meal_companion_db: '世界饮食陪伴',
       recipe_salad_db: '夹缝空间菜谱', recipe_salad_db__world__cbi: 'CBI 菜谱', activity_db: '活动收集',
-      cinema_db: '影视', stationery_db: '文具', 'shortcut-order': '首页快捷入口排序',
+      cinema_db: '影视', stationery_db: '文具', 'shortcut-order': '首页快捷入口排序', home_custom_shortcuts: '首页快捷入口',
       wallet_db: '记账', home_modules: '房间连接', home_lines: '首页台词',
       home_skins: '衣柜候选', home_skin_custom: '衣柜衣装', home_wardrobe_tabs: '衣柜分类', home_skin_daily: '今日衣装',
       home_cg_library: '首页 CG 库', home_cg_period: '当前时段 CG',

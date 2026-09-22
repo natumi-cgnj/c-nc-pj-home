@@ -78,7 +78,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <div class="confirm-title">确认恢复数据？</div><div class="confirm-msg" id="confirmMsg"></div>
 <div class="confirm-btns"><button class="cbtn-cancel" onclick="hideConfirm()">取消</button><button class="cbtn-danger" onclick="runConfirmedRestore()">覆盖恢复</button></div>
 </div></div>
-<script src="cloud-sync.js?v=20260914-home-badge1"></script>
+<script src="cloud-sync.js?v=20260922-shortcuts1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 function collectionItemType(owner,item,index){
@@ -121,6 +121,7 @@ const SYS=[
 {key:'cinema_db',name:'\u5F71\u89C6',color:'#8F78C6',desc:d=>{if(!Array.isArray(d))return'-';const total=d.reduce((n,p)=>n+(p.items||[]).length,0),done=d.reduce((n,p)=>n+(p.items||[]).filter(i=>i.collected).length,0);return d.length+'\u4E2A\u9879\u76EE '+done+'/'+total;}},
 {key:'stationery_db',name:'\u6587\u5177',color:'#D4A030',desc:stationeryDesc},
 {key:'shortcut-order',name:'\u9996\u9875\u5FEB\u6377\u5165\u53E3\u6392\u5E8F',color:'#8396A8',desc:d=>Array.isArray(d)?d.length+'\u4E2A\u5165\u53E3':'\u9ED8\u8BA4'},
+{key:'home_custom_shortcuts',name:'\u9996\u9875\u5FEB\u6377\u5165\u53E3',color:'#8396A8',desc:d=>Array.isArray(d)?d.length+'\u4E2A\u5165\u53E3':'\u9ED8\u8BA4'},
 {key:'wallet_db',name:'\u8BB0\u8D26',color:'#D85A30',desc:d=>{if(!d)return'-';return(d.records||[]).length+'\u7B14\u8BB0\u5F55 '+(d.outings||[]).length+'\u6B21\u5916\u51FA';}},
 {key:'event_db',name:'\u65E7\u6D3B\u52A8\u5B58\u6863\uFF08\u4FDD\u7559\uFF09',color:'#D6C09A',desc:d=>{if(!d)return'-';const c=d.currency||{};return'\u5956\u52B1 '+(c.a||0)+' / '+(c.b||0)+' / '+(c.c||0);}},
 {key:'event_presets',name:'\u65E7\u6D3B\u52A8\u6A21\u677F\uFF08\u4FDD\u7559\uFF09',color:'#D8C8AC',desc:d=>{if(!d)return'-';return'\u59D4'+(d.commissions||[]).length+' \u5361'+(d.cards||[]).length+' \u5468'+(d.goods||[]).length+' \u6C60'+((d.identities||[]).length+(d.tags||[]).length);}},

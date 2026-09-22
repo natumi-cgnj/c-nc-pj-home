@@ -190,6 +190,9 @@ test('world and CBI data participate in cloud sync and full backup', () => {
     assert.match(backup, new RegExp(`key:'${key}'`));
   }
   assert.match(cloud, /'cbi\.html': \['cbi_db', 'wallet_db',[^\]]*'omniverse_world_context'\]/);
+  assert.match(cloud, /'home_custom_shortcuts'/);
+  assert.match(cloud, /'index\.html': \[[^\]]*'home_custom_shortcuts'/);
+  assert.match(backup, /key:'home_custom_shortcuts'/);
 });
 
 test('food archive stays global while meals and recipes switch world layers', () => {
@@ -292,7 +295,7 @@ test('CBI reality loop reuses the mature pages without crossing its currencies',
   assert.match(cloud, /'shop\.html': \[[^\]]*'home_skin_custom'/);
 });
 
-test('CBI habits reuse the liminal daily design while commissions and actions keep their own systems', () => {
+test('CBI check-ins use one repeatable grouped list while commissions and actions keep their own systems', () => {
   const cbiWork = fs.readFileSync('cbi-work.js', 'utf8');
   assert.match(cbiWork, /cbi-commission-card/);
   assert.match(cbiWork, /cbi-case-file/);
@@ -300,7 +303,10 @@ test('CBI habits reuse the liminal daily design while commissions and actions ke
   assert.match(cbiWork, /if \(tab === 'habits'\) \{\s*global\.location\.href = 'daily\.html\?tab=habits'/);
   assert.match(daily, /const IS_CBI_HABITS = IS_CBI_DAILY && DAILY_URL_TAB === 'habits'/);
   assert.match(daily, /habits:cbiDailyDb\.work\.habits\.map/);
-  assert.match(daily, /type:h\.type==='interval'\?'daily':'count'/);
+  assert.match(daily, /Object\.assign\(\{\},h,\{type:'count',interval:1\}\)/);
+  assert.match(daily, /if\(IS_CBI_HABITS\)\{\s*html\+=renderHabitGroup\('all'\)/);
+  assert.match(daily, /if\(typeFields\)typeFields\.style\.display='none'/);
+  assert.match(daily, /type:'count',\s*interval:1/);
   assert.match(daily, /if\(IS_CBI_HABITS\)\{if\(h\.salary\)rewardParts\.push\('点数 \+'/);
   assert.match(daily, /cbiDailyDb\.work\.salary=\(cbiDailyDb\.work\.salary\|\|0\)\+salary/);
   assert.match(daily, /if\(utility\)utility\.remove\(\)/);

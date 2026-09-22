@@ -48,6 +48,7 @@ function createHarness() {
     habitSection: element(),
     habitSectionOptions: element(),
     habitDescription: element(),
+    habitTypeFields: element(),
     habitType: element({ value: 'count', dataset: { locked: 'false' } }),
     habitTypeToggle: element(),
     intervalRow: element(),
@@ -103,7 +104,7 @@ function createHarness() {
   return { context, localStorage, nodes, tabs, utility, salaryLabel, teaWrap };
 }
 
-test('CBI habits render through the liminal cards and award points on direct check-in', () => {
+test('CBI check-ins use one repeatable list and award points on every tap', () => {
   const { context, localStorage, nodes, tabs, utility, salaryLabel, teaWrap } = createHarness();
   assert.equal(context.document.body.dataset.cbiHabits, '1');
   assert.equal(tabs.style.display, 'none');
@@ -111,39 +112,39 @@ test('CBI habits render through the liminal cards and award points on direct che
   assert.equal(salaryLabel.textContent, '点数');
   assert.equal(teaWrap.style.display, 'none');
   assert.equal(nodes.habitSectionRow.style.display, 'block');
+  assert.equal(nodes.habitTypeFields.style.display, 'none');
   assert.match(nodes.statusBar.innerHTML, /Point/);
   assert.match(nodes.statusBar.innerHTML, /Today/);
   assert.match(nodes.statusBar.innerHTML, />120</);
   assert.match(nodes.content.innerHTML, /class="habit-group-label">整理</);
-  assert.match(nodes.content.innerHTML, /class="todo-check" onclick="recordHabitProgress\('interval_1',1\)"/);
-  assert.ok(nodes.content.innerHTML.indexOf('class="habit-actions"') < nodes.content.innerHTML.indexOf('class="habit-body clickable-body"'));
-  assert.ok(nodes.content.innerHTML.indexOf('class="habit-body clickable-body"') < nodes.content.innerHTML.indexOf('class="todo-check"'));
-
-  context.__daily.recordHabitProgress('interval_1', 1);
-  context.__daily.switchHabitSub('count');
   assert.match(nodes.content.innerHTML, /class="habit-group-label">消耗</);
   assert.match(nodes.content.innerHTML, /class="habit-group-label">未分栏</);
-  assert.match(nodes.content.innerHTML, /class="habit-add-btn" onclick="recordHabitProgress\('count_1',1\)"/);
+  assert.doesNotMatch(nodes.content.innerHTML, /Routine|Times|距下次打卡|间隔天数/);
+  assert.match(nodes.content.innerHTML, /class="habit-add-btn" onclick="recordHabitProgress\('interval_1',1\)"/);
   assert.ok(nodes.content.innerHTML.indexOf('class="habit-actions"') < nodes.content.innerHTML.indexOf('class="habit-body clickable-body"'));
   assert.ok(nodes.content.innerHTML.indexOf('class="habit-body clickable-body"') < nodes.content.innerHTML.indexOf('class="habit-add-btn"'));
+
+  context.__daily.recordHabitProgress('interval_1', 1);
+  context.__daily.recordHabitProgress('interval_1', 1);
+  assert.match(nodes.content.innerHTML, /class="habit-add-btn" onclick="recordHabitProgress\('count_1',1\)"/);
   context.__daily.recordHabitProgress('count_1', 1);
 
   const saved = JSON.parse(localStorage.getItem('cbi_db'));
   const records = Object.values(saved.work.habitRecords);
-  assert.equal(saved.work.salary, 155);
-  assert.equal(records.reduce((sum, day) => sum + (day.interval_1 && day.interval_1.value || 0), 0), 1);
+  assert.equal(saved.work.salary, 165);
+  assert.equal(records.reduce((sum, day) => sum + (day.interval_1 && day.interval_1.value || 0), 0), 2);
   assert.equal(records.reduce((sum, day) => sum + (day.count_1 && day.count_1.value || 0), 0), 1);
+  assert.ok(saved.work.habits.every((habit) => habit.type === 'count' && habit.interval === 1));
   assert.equal(localStorage.getItem('habit_db'), null);
 });
 
 test('CBI check-ins keep editable sections and remember local collapse state', () => {
   const { context, localStorage, nodes } = createHarness();
-  context.__daily.switchHabitSub('count');
-  context.__daily.toggleHabitSection('count', '消耗');
+  context.__daily.toggleHabitSection('all', '消耗');
   assert.match(nodes.content.innerHTML, /class="habit-group collapsed"/);
   assert.match(nodes.content.innerHTML, /class="habit-group-items collapsed"/);
   const collapsed = JSON.parse(localStorage.getItem('cbi_habit_section_collapsed_v1'));
-  assert.equal(collapsed['count\u0000消耗'], true);
+  assert.equal(collapsed['all\u0000消耗'], true);
 
   context.__daily.openEditHabit('count_1');
   assert.equal(nodes.habitSection.value, '消耗');
@@ -152,6 +153,12 @@ test('CBI check-ins keep editable sections and remember local collapse state', (
   const saved = JSON.parse(localStorage.getItem('cbi_db'));
   assert.equal(saved.work.habits.find((habit) => habit.id === 'count_1').section, '出清');
   assert.match(nodes.content.innerHTML, /class="habit-group-label">出清</);
+});
+
+test('CBI mobile check-in actions stack in one left-hand column', () => {
+  const html = fs.readFileSync('daily.html', 'utf8');
+  assert.match(html, /@media\(max-width:699px\)\{body\[data-cbi-habits="1"\] \.habit-actions\{[^}]*flex-direction:column/);
+  assert.match(html, /const countRow=IS_CBI_HABITS\?countActions\+countBody\+countPrimary/);
 });
 
 test('CBI direct check-in can be withdrawn without touching liminal currencies', () => {

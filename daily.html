@@ -113,6 +113,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .habit-undo-link{border:none;background:none;color:#bbb;font-size:9px;font-family:inherit;cursor:pointer;padding:2px 3px;margin-left:auto}
 .habit-undo-link:active{color:#777}
 .habit-actions{display:flex;align-items:center;flex:0 0 auto}.habit-actions .habit-undo-link{margin-left:0;margin-right:2px}
+@media(max-width:699px){body[data-cbi-habits="1"] .habit-actions{width:24px;flex-direction:column;justify-content:flex-start;gap:0}body[data-cbi-habits="1"] .habit-actions .habit-undo-link{margin:0;padding:3px 0;font-size:8px}body[data-cbi-habits="1"] .habit-actions .habit-edit,body[data-cbi-habits="1"] .habit-actions .todo-del{width:24px;height:22px;margin:0;padding:2px;text-align:center}}
 .habit-section{margin-bottom:25px}
 .habit-group{margin-bottom:13px}
 .habit-group:last-child{margin-bottom:0}
@@ -299,16 +300,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     </div>
     <label>说明（可选）</label>
     <textarea id="habitDescription" rows="4" placeholder="详细记录放在这里"></textarea>
-    <label>类型</label>
-    <input type="hidden" id="habitType" value="count" data-locked="false">
-    <div class="type-toggle" id="habitTypeToggle">
-      <button type="button" class="active" data-type="daily" onclick="setHabitType('daily')">Routine</button>
-      <button type="button" data-type="count" onclick="setHabitType('count')">Times</button>
-    </div>
-    <div id="habitTypeNote" style="font-size:10px;color:#bbb;margin-top:5px"></div>
-    <div id="intervalRow" style="display:none">
-      <label>间隔天数</label>
-      <input type="number" id="habitInterval" value="1" min="1" max="30" placeholder="每 X 天打卡一次">
+    <div id="habitTypeFields">
+      <label>类型</label>
+      <input type="hidden" id="habitType" value="count" data-locked="false">
+      <div class="type-toggle" id="habitTypeToggle">
+        <button type="button" class="active" data-type="daily" onclick="setHabitType('daily')">Routine</button>
+        <button type="button" data-type="count" onclick="setHabitType('count')">Times</button>
+      </div>
+      <div id="habitTypeNote" style="font-size:10px;color:#bbb;margin-top:5px"></div>
+      <div id="intervalRow" style="display:none">
+        <label>间隔天数</label>
+        <input type="number" id="habitInterval" value="1" min="1" max="30" placeholder="每 X 天打卡一次">
+      </div>
     </div>
     <label id="habitRewardLabel">每次记录产出</label>
     <div class="aff-row">
@@ -505,7 +508,7 @@ let hdb;
 if(IS_CBI_HABITS&&window.CBIData){
   cbiDailyDb=CBIData.load();
   hdb={
-    habits:cbiDailyDb.work.habits.map(h=>Object.assign({},h,{type:h.type==='interval'?'daily':'count'})),
+    habits:cbiDailyDb.work.habits.map(h=>Object.assign({},h,{type:'count',interval:1})),
     log:{},
     records:cbiDailyDb.work.habitRecords||{}
   };
@@ -542,8 +545,8 @@ function saveHabits(){
       name:h.name,
       section:String(h.section||'').trim(),
       description:h.description||'',
-      type:(h.type||'count')==='daily'?'interval':'count',
-      interval:Math.max(1,Math.min(365,Number(h.interval)||1)),
+      type:'count',
+      interval:1,
       salary:Math.max(0,Math.floor(Number(h.salary)||0)),
       createdAt:h.createdAt||new Date().toISOString()
     }));
@@ -817,12 +820,18 @@ function getIntervalStatus(h){
 }
 
 function renderHabits(c){
-  let html='<div class="task-reward-toast" id="habitToast"></div><div class="sub-tabs">';
-  html+='<button class="sub-tab'+(habitSubTab==='daily'?' active':'')+'" onclick="switchHabitSub(\'daily\')">Routine</button>';
-  html+='<button class="sub-tab'+(habitSubTab==='count'?' active':'')+'" onclick="switchHabitSub(\'count\')">Times</button>';
-  html+='</div>';
-  html+=renderHabitGroup(habitSubTab);
-  html+='<button class="add-inline" onclick="openAddHabit(\''+habitSubTab+'\')">+ 添加打卡</button>';
+  let html='<div class="task-reward-toast" id="habitToast"></div>';
+  if(IS_CBI_HABITS){
+    html+=renderHabitGroup('all');
+    html+='<button class="add-inline" onclick="openAddHabit()">+ 添加打卡</button>';
+  }else{
+    html+='<div class="sub-tabs">';
+    html+='<button class="sub-tab'+(habitSubTab==='daily'?' active':'')+'" onclick="switchHabitSub(\'daily\')">Routine</button>';
+    html+='<button class="sub-tab'+(habitSubTab==='count'?' active':'')+'" onclick="switchHabitSub(\'count\')">Times</button>';
+    html+='</div>';
+    html+=renderHabitGroup(habitSubTab);
+    html+='<button class="add-inline" onclick="openAddHabit(\''+habitSubTab+'\')">+ 添加打卡</button>';
+  }
   c.innerHTML=html;
 }
 function switchHabitSub(t){habitSubTab=t;render();}
@@ -841,7 +850,7 @@ function toggleHabitSection(type,section){
 }
 
 function renderHabitGroup(type){
-  const habits=hdb.habits.filter(h=>(h.type||'count')===type);
+  const habits=IS_CBI_HABITS?hdb.habits:hdb.habits.filter(h=>(h.type||'count')===type);
   let html='<div class="habit-section">';
   if(!habits.length)html+='<div class="habit-empty">还没有项目</div>';
   else if(!IS_CBI_HABITS){
@@ -982,7 +991,7 @@ function openAddHabit(type='count'){
   document.getElementById('habitCoffee').value='10';
   document.getElementById('habitTea').value=IS_CBI_HABITS?'0':'10';
   document.getElementById('habitInterval').value='1';
-  setHabitType(type,true);showModal('habitModal');
+  setHabitType(IS_CBI_HABITS?'count':type,true);showModal('habitModal');
 }
 function openEditHabit(id){
   const h=hdb.habits.find(x=>x.id===id);if(!h)return;
@@ -997,11 +1006,11 @@ function openEditHabit(id){
   document.getElementById('habitTypeToggle').classList.toggle('locked',locked);
   document.getElementById('habitCoffee').value=IS_CBI_HABITS?(h.salary||0):(h.coffee||0);
   document.getElementById('habitTea').value=IS_CBI_HABITS?0:(h.tea||0);
-  document.getElementById('habitInterval').value=h.interval||1;
-  setHabitType(h.type||'count',true);showModal('habitModal');
+  document.getElementById('habitInterval').value=IS_CBI_HABITS?1:(h.interval||1);
+  setHabitType(IS_CBI_HABITS?'count':(h.type||'count'),true);showModal('habitModal');
 }
 function updateHabitTypeHint(){
-  const type=document.getElementById('habitType').value;
+  const type=IS_CBI_HABITS?'count':document.getElementById('habitType').value;
   const locked=document.getElementById('habitType').dataset.locked==='true';
   const hints={daily:'设置间隔天数，到期提醒打卡',count:'适合贴纸、收纳等一次一次累积的事'};
   document.getElementById('habitTypeNote').textContent=locked?'已有统计记录，类型不再更改':(hints[type]||'');
@@ -1012,14 +1021,14 @@ function saveHabit(){
   const name=document.getElementById('habitName').value.trim();if(!name)return;
   const section=IS_CBI_HABITS?document.getElementById('habitSection').value.trim():'';
   const description=document.getElementById('habitDescription').value.trim();
-  const type=document.getElementById('habitType').value;
+  const type=IS_CBI_HABITS?'count':document.getElementById('habitType').value;
   const salary=Math.max(0,Math.floor(Number(document.getElementById('habitCoffee').value)||0));
   const coffee=IS_CBI_HABITS?0:Math.max(0,Math.min(100,salary));
   const tea=IS_CBI_HABITS?0:Math.max(0,Math.min(100,parseInt(document.getElementById('habitTea').value)||0));
-  const interval=Math.max(1,Math.min(IS_CBI_HABITS?365:30,parseInt(document.getElementById('habitInterval').value)||1));
+  const interval=IS_CBI_HABITS?1:Math.max(1,Math.min(30,parseInt(document.getElementById('habitInterval').value)||1));
   if(editingHabitId){
     const h=hdb.habits.find(x=>x.id===editingHabitId);
-    if(h){h.name=name;h.description=description;if(getHabitTotal(h.id)===0)h.type=type;if(IS_CBI_HABITS){h.salary=salary;h.section=section;}else{h.coffee=coffee;h.tea=tea;}h.interval=interval;}
+    if(h){h.name=name;h.description=description;if(IS_CBI_HABITS||getHabitTotal(h.id)===0)h.type=type;if(IS_CBI_HABITS){h.salary=salary;h.section=section;}else{h.coffee=coffee;h.tea=tea;}h.interval=interval;}
   }else{
     const habit={id:'hb_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),name,description,type,interval};
     if(IS_CBI_HABITS){habit.salary=salary;habit.section=section;habit.createdAt=new Date().toISOString();}else{habit.coffee=coffee;habit.tea=tea;}
@@ -1033,8 +1042,8 @@ function saveHabit(){
 function openHabitDetail(id){
   const h=hdb.habits.find(x=>x.id===id);if(!h)return;
   const type=h.type||'count';const streak=getHabitStreak(id);const streakBonus=getHabitStreakBonus(streak);
-  const parts=[type==='daily'?'Routine (每'+(h.interval||1)+'天)':'Times','今日：'+(getHabitToday(id)>0?'已完成':'未完成'),'累计：'+getHabitTotal(id)+(type==='daily'?'日':'次')];
-  if(streak)parts.push('连续：'+streak+'天'+(streakBonus?'（奖励 +'+Math.round(streakBonus*100)+'%）':''));
+  const parts=IS_CBI_HABITS?['今日：'+getHabitToday(id)+'次','累计：'+getHabitTotal(id)+'次']:[type==='daily'?'Routine (每'+(h.interval||1)+'天)':'Times','今日：'+(getHabitToday(id)>0?'已完成':'未完成'),'累计：'+getHabitTotal(id)+(type==='daily'?'日':'次')];
+  if(!IS_CBI_HABITS&&streak)parts.push('连续：'+streak+'天'+(streakBonus?'（奖励 +'+Math.round(streakBonus*100)+'%）':''));
   if(IS_CBI_HABITS&&h.section)parts.push('分栏：'+h.section);
   if(IS_CBI_HABITS&&h.salary)parts.push('点数 +'+h.salary+'/次');
   if(!IS_CBI_HABITS&&h.coffee)parts.push('咖啡豆 +'+h.coffee+'/次');
@@ -1176,7 +1185,10 @@ function prepareCbiHabitPage(){
   if(teaInput&&teaInput.parentElement)teaInput.parentElement.style.display='none';
   const sectionRow=document.getElementById('habitSectionRow');
   if(sectionRow)sectionRow.style.display='block';
-  document.getElementById('habitInterval').max='365';
+  const typeFields=document.getElementById('habitTypeFields');
+  if(typeFields)typeFields.style.display='none';
+  document.getElementById('habitType').value='count';
+  document.getElementById('habitInterval').value='1';
   updateHabitTypeHint();
 }
 // Deep link: ?tab=drop|todo|habits
