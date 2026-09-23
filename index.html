@@ -3539,6 +3539,54 @@ renderDSShortcuts();
 })();
 
 /* ═══ CBI LOCATIONS / REUSED HOME ROOM ═══ */
+const CBI_AUTO_LOCATION_PHASE_KEY = 'cbi_auto_location_phase_v1';
+let cbiAutoLocationTimer = 0;
+let cbiAutoLocationStarted = false;
+
+function getCbiAutoLocationPhase(nowValue) {
+  if (!window.CharacterRuntime || typeof CharacterRuntime.getCbiCharacterPresence !== 'function') return null;
+  var now = nowValue instanceof Date ? nowValue : new Date(nowValue || Date.now());
+  var status = CharacterRuntime.getCbiCharacterPresence('jane', now);
+  if (!status || !status.date) return null;
+  var phase = status.mode === 'not_arrived' ? 'before' : (status.mode === 'off_duty' ? 'after' : 'work');
+  return {
+    key: status.date + ':' + phase,
+    phase: phase,
+    locationId: phase === 'work' ? 'office' : 'home'
+  };
+}
+
+function resetCbiLocationViewState() {
+  charPlacementState = {version:CHAR_PLACEMENT_VERSION,periodKey:'',worldId:'cbi',placements:{}};
+  Object.keys(bubbleTimers).forEach(function(id){clearTimeout(bubbleTimers[id]);});
+  document.querySelectorAll('.speech-bubble').forEach(function(bubble){bubble.classList.remove('show');});
+}
+
+function syncCbiLocationToJaneShift(nowValue) {
+  if (!window.WorldContext) return false;
+  var phase = getCbiAutoLocationPhase(nowValue);
+  if (!phase) return false;
+  var previousPhase = '';
+  try { previousPhase = localStorage.getItem(CBI_AUTO_LOCATION_PHASE_KEY) || ''; } catch (error) {}
+  if (previousPhase === phase.key) return false;
+  if (WorldContext.getActiveLocationId('cbi') !== phase.locationId) {
+    resetCbiLocationViewState();
+    if (!WorldContext.setActiveLocationId('cbi', phase.locationId)) return false;
+  }
+  try { localStorage.setItem(CBI_AUTO_LOCATION_PHASE_KEY, phase.key); } catch (error) {}
+  return true;
+}
+
+function startCbiAutoLocation() {
+  if (cbiAutoLocationStarted) return;
+  cbiAutoLocationStarted = true;
+  syncCbiLocationToJaneShift(new Date());
+  cbiAutoLocationTimer = setInterval(function(){syncCbiLocationToJaneShift(new Date());}, 30000);
+  document.addEventListener('visibilitychange', function(){
+    if (document.visibilityState === 'visible') syncCbiLocationToJaneShift(new Date());
+  });
+}
+
 const CBI_META_LINE_CHANCE = 0.08;
 
 function pickCbiLine(pool) {
@@ -3739,11 +3787,7 @@ function selectCbiLocation(locationId) {
   var previous=WorldContext.getActiveLocationId('cbi');
   if(!WorldContext.setActiveLocationId('cbi',locationId)){showTip('地点切换失败');return;}
   closeCbiLocationSheet(null);
-  if(previous!==locationId){
-    charPlacementState={version:CHAR_PLACEMENT_VERSION,periodKey:'',worldId:'cbi',placements:{}};
-    Object.keys(bubbleTimers).forEach(function(id){clearTimeout(bubbleTimers[id]);});
-    document.querySelectorAll('.speech-bubble').forEach(function(bubble){bubble.classList.remove('show');});
-  }
+  if(previous!==locationId)resetCbiLocationViewState();
   applyWorldView();
   showTip(WorldContext.getLocation(locationId,'cbi').label);
 }
@@ -3857,7 +3901,11 @@ window.addEventListener('omniverse:worldchange',function(){applyWorldView();});
 window.addEventListener('omniverse:locationchange',function(){applyWorldView();});
 
 applyWorldView();
-if(window.CloudSync&&typeof CloudSync.whenReady==='function')CloudSync.whenReady().then(applyWorldView).catch(function(){});
+if(window.CloudSync&&typeof CloudSync.whenReady==='function'){
+  CloudSync.whenReady().then(function(){startCbiAutoLocation();applyWorldView();}).catch(function(){startCbiAutoLocation();});
+}else{
+  startCbiAutoLocation();
+}
 
 </script>
 </body></html>

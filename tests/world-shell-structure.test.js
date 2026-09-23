@@ -380,6 +380,69 @@ test('CBI room reads a continuous live roster instead of rerolling with CG time 
   assert.doesNotMatch(index, /getCbi(?:Duty|Presence)Roster\([^\n]*getCGSlot/);
 });
 
+test('CBI room follows Jane shift boundaries once per phase and keeps manual overrides', () => {
+  const start = index.indexOf("const CBI_AUTO_LOCATION_PHASE_KEY = 'cbi_auto_location_phase_v1';");
+  const end = index.indexOf('const CBI_META_LINE_CHANCE', start);
+  assert.ok(start >= 0 && end > start, 'automatic CBI location helpers should be extractable');
+
+  let status = { date: '2026-09-23', mode: 'not_arrived' };
+  let activeLocation = 'office';
+  let resets = 0;
+  const values = new Map();
+  const context = {
+    window: {},
+    CharacterRuntime: { getCbiCharacterPresence: () => status },
+    WorldContext: {
+      getActiveLocationId: () => activeLocation,
+      setActiveLocationId(worldId, locationId) {
+        assert.equal(worldId, 'cbi');
+        activeLocation = locationId;
+        return true;
+      }
+    },
+    localStorage: {
+      getItem: key => values.has(key) ? values.get(key) : null,
+      setItem: (key, value) => values.set(key, value)
+    },
+    document: {
+      querySelectorAll: () => [],
+      addEventListener() {},
+      visibilityState: 'visible'
+    },
+    charPlacementState: {},
+    CHAR_PLACEMENT_VERSION: 1,
+    bubbleTimers: {},
+    clearTimeout() {},
+    setInterval() { return 1; },
+    Date
+  };
+  context.window.CharacterRuntime = context.CharacterRuntime;
+  context.window.WorldContext = context.WorldContext;
+  vm.runInNewContext(index.slice(start, end), context);
+  const originalReset = context.resetCbiLocationViewState;
+  context.resetCbiLocationViewState = function () { resets++; originalReset(); };
+
+  assert.equal(context.syncCbiLocationToJaneShift(new Date(2026, 8, 23, 7, 0)), true);
+  assert.equal(activeLocation, 'home', 'before work should open at home');
+  assert.equal(values.get('cbi_auto_location_phase_v1'), '2026-09-23:before');
+
+  activeLocation = 'office';
+  assert.equal(context.syncCbiLocationToJaneShift(new Date(2026, 8, 23, 7, 10)), false);
+  assert.equal(activeLocation, 'office', 'manual choice should survive within the same phase');
+
+  activeLocation = 'home';
+  status = { date: '2026-09-23', mode: 'office' };
+  assert.equal(context.syncCbiLocationToJaneShift(new Date(2026, 8, 23, 10, 0)), true);
+  assert.equal(activeLocation, 'office', 'the work phase should return to the office');
+
+  status = { date: '2026-09-23', mode: 'off_duty' };
+  assert.equal(context.syncCbiLocationToJaneShift(new Date(2026, 8, 23, 21, 0)), true);
+  assert.equal(activeLocation, 'home', 'after work should return home');
+  assert.equal(resets, 3);
+  assert.match(index, /setInterval\(function\(\)\{syncCbiLocationToJaneShift\(new Date\(\)\);\}, 30000\)/);
+  assert.match(index, /CloudSync\.whenReady\(\)\.then\(function\(\)\{startCbiAutoLocation\(\);applyWorldView\(\);\}\)/);
+});
+
 test('desktop Notes cannot resize or recenter the room column', () => {
   assert.match(index, /html\{scrollbar-gutter:stable\}/);
   assert.match(index, /#pageMemo\{[^}]*width:260px;[^}]*min-width:0/);
