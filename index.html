@@ -497,6 +497,9 @@ body[data-world-id="cbi"] .furniture.cbi-home-only{display:block}
 /* Living room (natumi) – extra CBI-world clutter */
 .natumi-homedesk{width:28px;height:16px;background:#E8B96A;bottom:14%;right:18%;border-radius:2px;opacity:.08}
 .natumi-homescreen{width:10px;height:4px;background:#E8B96A;bottom:calc(14% + 4px);right:calc(18% + 4px);border-radius:1px;opacity:.12}
+.cbi-home-status-target{display:none;position:absolute;z-index:14;width:52px;height:44px;right:calc(18% - 12px);bottom:calc(14% - 14px);border:0;border-radius:9px;background:transparent;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+body[data-world-id="cbi"][data-world-location="home"] .cbi-home-status-target{display:block}
+.cbi-home-status-target:focus-visible{outline:1px solid rgba(232,185,106,.42);outline-offset:1px}
 .natumi-laundry{width:18px;height:12px;background:#E8B96A;bottom:25%;left:11%;border-radius:4px;opacity:.08;transform:rotate(-8deg)}
 .natumi-sneaker1{width:8px;height:5px;background:#E8B96A;bottom:10%;left:23%;border-radius:1px;opacity:.1;transform:rotate(25deg)}
 .natumi-sneaker2{width:8px;height:5px;background:#E8B96A;bottom:13%;left:28%;border-radius:1px;opacity:.08;transform:rotate(42deg)}
@@ -744,6 +747,7 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-home-lower-row{displa
         <div class="furniture cbi-home-only natumi-living-table"></div>
         <button class="cbi-sleep-status-target cbi-sleep-living-sofa" type="button" data-cbi-sleep-place="living_sofa_bed" onclick="onCbiSleepPlaceTap('living_sofa_bed',event)" aria-label="查看客厅沙发床上的 Jane 睡眠状态" hidden></button>
         <div class="furniture cbi-home-only natumi-homedesk"></div><div class="furniture cbi-home-only natumi-homescreen"></div>
+        <a class="cbi-home-status-target" href="contact.html" aria-label="设置 Boss 状态" title="状态"></a>
         <div class="furniture cbi-home-only natumi-laundry"></div><div class="furniture cbi-home-only natumi-sneaker1"></div>
         <div class="furniture cbi-home-only natumi-sneaker2"></div><div class="furniture cbi-home-only natumi-guitar"></div>
         <div class="furniture cbi-home-only natumi-gamepad"></div><div class="furniture cbi-home-only natumi-cans"></div>

@@ -47,6 +47,12 @@ test('one homepage hosts both apartment and CBI scenes', () => {
   assert.doesNotMatch(index, /getCbiDutyRoster\(CharacterRuntime\.calendarDateStr\(new Date\(\)\)/);
 });
 
+test('Boss status is reachable from both the CBI office and home desk', () => {
+  assert.match(index, /class="cbi-desk cbi-desk-boss cbi-status-target" href="contact\.html" aria-label="设置 Boss 状态"/);
+  assert.match(index, /class="cbi-home-status-target" href="contact\.html" aria-label="设置 Boss 状态"/);
+  assert.match(index, /body\[data-world-id="cbi"\]\[data-world-location="home"\] \.cbi-home-status-target\{display:block\}/);
+});
+
 test('Jane uses first-case lines at the office and awake home lines in the bedroom and living room', () => {
   const staffStart = index.indexOf('const CBI_STAFF_OFFICE_LINES');
   const officeStart = index.indexOf('const JANE_CBI_OFFICE_LINES');

@@ -138,14 +138,15 @@ test('status history uses the shared 04:00 workday boundary', () => {
   assert.equal(CBIContact.workDayKey(new Date(2026, 8, 16, 4, 0)), '2026-09-16');
 });
 
-test('the Boss desk opens status and contact data is synced and backed up', () => {
+test('the Boss desks at the office and home open status and contact data is synced and backed up', () => {
   const page = fs.readFileSync('contact.html', 'utf8');
   const index = fs.readFileSync('index.html', 'utf8');
   const cloud = fs.readFileSync('cloud-sync.js', 'utf8');
   const backup = fs.readFileSync('backup.html', 'utf8');
 
-  assert.equal((index.match(/href="contact\.html"/g) || []).length, 1);
+  assert.equal((index.match(/href="contact\.html"/g) || []).length, 2);
   assert.match(index, /class="cbi-desk cbi-desk-boss cbi-status-target" href="contact\.html" aria-label="设置 Boss 状态"/);
+  assert.match(index, /class="cbi-home-status-target" href="contact\.html" aria-label="设置 Boss 状态"/);
   assert.doesNotMatch(index, />STATUS<\/a>/);
   assert.match(page, /data-tab="status"><span>STATUS<\/span>/);
   assert.match(page, /data-tab="chat"><span>CHAT<\/span>/);
