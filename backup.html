@@ -113,7 +113,7 @@ const SYS=[
 {key:'habit_db',name:'\u4E60\u60EF',color:'#5A7247',desc:d=>{if(!d)return'-';return(d.habits||[]).length+'\u4E2A';}},
 {key:'story_db',name:'\u5267\u60C5',color:'#9C6ADE',desc:d=>{if(!d)return'-';return(d.completedEps||[]).length+'\u6BB5';}},
 {key:'cbi_db',name:'CBI\u6848\u5377',color:'#B49A61',desc:d=>{if(!d)return'-';return(d.cases||[]).length+'\u4EFD\u6848\u5B97 '+(d.personnel||[]).length+'\u4EFD\u4EBA\u7269\u6863\u6848';}},
-{key:'cbi_contact_db',name:'CBI\u72B6\u6001\u4E0E\u901A\u8BAF',color:'#A88E54',desc:d=>{if(!d)return'-';return(d.statusHistory||[]).length+'\u6761\u72B6\u6001 '+Object.values(d.threads||{}).reduce((n,list)=>n+(Array.isArray(list)?list.length:0),0)+'\u6761\u901A\u8BAF';}},
+{key:'cbi_contact_db',name:'CBI\u72B6\u6001\u4E0E\u804A\u5929\u5165\u53E3',color:'#A88E54',desc:d=>{if(!d)return'-';return(d.statusHistory||[]).length+'\u6761\u72B6\u6001 '+Object.values(d.chatLinks||{}).filter(Boolean).length+'\u4E2A\u4F1A\u8BDD\u5165\u53E3';}},
 {key:'bjd_db3',name:'BJD',color:'#6B8AFF',desc:d=>{if(!d)return'-';return(d.entries||[]).length+'\u6761';}},
 {key:'techo_db2',name:'\u624B\u8D26',color:'#5BA66B',desc:d=>{if(!d)return'-';return(d.entries||[]).length+'\u6761';}},
 {key:'shop_db',name:'\u5546\u57CE',color:'#D85A30',desc:d=>{if(!d)return'-';return(d.owned||[]).length+'\u4EF6';}},

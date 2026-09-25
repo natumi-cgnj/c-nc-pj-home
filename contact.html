@@ -11,35 +11,29 @@
 <style>
 html{scrollbar-gutter:stable}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-button,input,select{font:inherit}
-button{color:inherit}
+button,input{font:inherit}button{color:inherit}button,a{-webkit-touch-callout:none}
 body{min-height:100vh;min-height:100dvh;padding-bottom:74px;background:#fafafa;color:#333;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif}
 .top-bar{position:sticky;top:0;z-index:30;display:grid;grid-template-columns:62px 1fr 62px;align-items:center;min-height:54px;padding:env(safe-area-inset-top,0) 16px 0;background:rgba(255,255,255,.96);border-bottom:1px solid #eeeeec}
-.top-bar h1{text-align:center;color:#999;font-size:13px;font-weight:500;letter-spacing:3px}
-.top-link,.top-action{border:0;background:none;color:#aaa;font-size:11px;text-decoration:none;cursor:pointer}
-.top-link{justify-self:start}.top-action{justify-self:end;letter-spacing:.4px}.top-action[hidden]{display:none}
+.top-bar h1{text-align:center;color:#999;font-size:13px;font-weight:500;letter-spacing:3px}.top-link,.top-action{border:0;background:none;color:#aaa;font-size:11px;text-decoration:none;cursor:pointer}.top-link{justify-self:start}.top-action{justify-self:end;letter-spacing:.8px}.top-action[hidden]{display:none}
 .view{width:min(100%,560px);margin:0 auto}.view[hidden]{display:none}
 .status-self{display:flex;width:100%;align-items:center;gap:13px;padding:22px 19px 18px;border:0;border-bottom:1px solid #eeeeec;background:#fff;text-align:left;cursor:pointer}
-.avatar{display:flex;width:38px;height:38px;flex:0 0 38px;align-items:center;justify-content:center;overflow:hidden;border-radius:50%;background:#f2eee6;color:#a88e54;font-size:12px;font-weight:500;letter-spacing:.5px}
-.avatar img{width:100%;height:100%;object-fit:cover}.avatar.team{background:#f0f0ee;color:#999}.avatar.milo{background:#f7f0e2;color:#b38a42}
+.avatar{display:flex;width:38px;height:38px;flex:0 0 38px;align-items:center;justify-content:center;overflow:hidden;border-radius:50%;background:#f2eee6;color:#a88e54;font-size:12px;font-weight:500;letter-spacing:.5px}.avatar img{width:100%;height:100%;object-fit:cover}.avatar.team{background:#f0f0ee;color:#999}.avatar.milo{background:#f7f0e2;color:#b38a42}
 .row-main{min-width:0;flex:1}.row-name{margin-bottom:4px;color:#777;font-size:10px;letter-spacing:1.1px;text-transform:uppercase}.row-text{overflow:hidden;color:#444;font-size:13px;line-height:1.5;text-overflow:ellipsis;white-space:nowrap}.row-text.empty{color:#ccc}.row-meta{margin-top:3px;color:#bbb;font-size:9px;font-variant-numeric:tabular-nums}.row-arrow{color:#d2d2ce;font-size:15px;font-weight:300}
 .presence{padding:9px 19px 11px;background:#fff;border-bottom:1px solid #eeeeec}.presence-row{display:flex;align-items:center;gap:12px;padding:8px 0}.presence-row+.presence-row{border-top:1px solid #f5f5f3}.presence-row .avatar{width:30px;height:30px;flex-basis:30px}.presence-name{min-width:66px;color:#888;font-size:11px}.presence-state{flex:1;text-align:right;color:#aaa;font-size:10px;line-height:1.35}
 .section-label{display:flex;align-items:center;justify-content:space-between;padding:21px 20px 9px;color:#aaa;font-size:9px;letter-spacing:1.4px}.section-count{color:#ccc;font-variant-numeric:tabular-nums;letter-spacing:0}
 .history{margin:0 14px 24px}.history-group{margin-bottom:8px;overflow:hidden;border:1px solid #eeeeec;border-radius:10px;background:#fff}.history-group summary{display:flex;align-items:center;gap:8px;padding:10px 12px;list-style:none;cursor:pointer}.history-group summary::-webkit-details-marker{display:none}.history-date{flex:1;color:#999;font-size:10px}.history-total{color:#c2c2be;font-size:9px;font-variant-numeric:tabular-nums}.history-caret{color:#ccc;font-size:9px;transition:transform .18s}.history-group[open] .history-caret{transform:rotate(180deg)}
 .history-entry{display:grid;width:100%;grid-template-columns:48px 1fr;gap:9px;padding:10px 12px;border:0;border-top:1px solid #f3f3f1;background:#fff;text-align:left;cursor:pointer}.history-time{color:#bbb;font-size:10px;font-variant-numeric:tabular-nums}.history-text{color:#555;font-size:11px;line-height:1.45}.empty-line{padding:24px 20px;color:#ccc;font-size:11px;text-align:center}
-.contact-list{background:#fff}.contact-row{display:flex;width:100%;align-items:center;gap:12px;padding:13px 20px;border:0;border-bottom:1px solid #f1f1ef;background:#fff;text-align:left;cursor:pointer}.contact-row .avatar{width:36px;height:36px;flex-basis:36px}.contact-copy{min-width:0;flex:1}.contact-name{margin-bottom:4px;color:#555;font-size:12px}.contact-preview{overflow:hidden;color:#aaa;font-size:10px;text-overflow:ellipsis;white-space:nowrap}.contact-side{display:flex;flex-direction:column;align-items:flex-end;gap:5px}.contact-time{color:#c3c3bf;font-size:8px;font-variant-numeric:tabular-nums}.unread{display:flex;min-width:16px;height:16px;align-items:center;justify-content:center;border-radius:8px;background:#a88e54;color:#fff;font-size:8px;padding:0 4px}
-.thread{min-height:calc(100dvh - 128px);background:#f8f8f6}.thread-head{position:sticky;top:54px;z-index:10;display:grid;grid-template-columns:52px 1fr 52px;align-items:center;padding:9px 14px;border-bottom:1px solid #eeeeec;background:rgba(255,255,255,.96)}.thread-back{border:0;background:none;color:#aaa;font-size:18px;text-align:left;cursor:pointer}.thread-person{text-align:center;color:#777;font-size:11px;letter-spacing:.5px}.messages{display:flex;flex-direction:column;gap:11px;padding:18px 17px 24px}.message{display:flex;max-width:82%;flex-direction:column;align-self:flex-start}.message.boss{align-self:flex-end;align-items:flex-end}.message.system{max-width:100%;align-self:center;align-items:center}.bubble{padding:9px 11px;border:1px solid #eaeae6;border-radius:12px 12px 12px 3px;background:#fff;color:#4c4c49;font-size:12px;line-height:1.55;white-space:pre-wrap}.message.boss .bubble{border-color:#eadfc9;border-radius:12px 12px 3px 12px;background:#f8f3e9}.message.system .bubble{padding:3px 0;border:0;background:transparent;color:#bbb;font-size:9px}.message-time{margin-top:3px;color:#c5c5c1;font-size:8px;font-variant-numeric:tabular-nums}.reply-options{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:7px;padding:0 17px 22px}.reply-option{padding:8px 11px;border:1px solid #ded8ca;border-radius:10px;background:#fff;color:#887653;font-size:10px;cursor:pointer}
-.bottom-tabs{position:fixed;right:0;bottom:0;left:0;z-index:25;display:flex;padding-bottom:env(safe-area-inset-bottom,0);border-top:1px solid #e8e8e6;background:rgba(255,255,255,.97)}.bottom-tab{flex:1;padding:15px 8px 14px;border:0;background:none;color:#bbb;font-size:10px;letter-spacing:1.3px;cursor:pointer}.bottom-tab.active{color:#655d50}.bottom-tab span{display:inline-block;padding-bottom:4px;border-bottom:1px solid transparent}.bottom-tab.active span{border-color:#a89a82}.tab-dot{display:inline-block;width:4px;height:4px;margin-left:5px;border-radius:50%;background:#a88e54;vertical-align:2px}.tab-dot[hidden]{display:none}
-.sheet-overlay{position:fixed;inset:0;z-index:80;display:none;align-items:flex-end;justify-content:center;background:rgba(35,33,29,.22)}.sheet-overlay.show{display:flex}.sheet{width:min(100%,560px);max-height:88dvh;overflow:auto;padding:16px 18px calc(20px + env(safe-area-inset-bottom,0));border-radius:16px 16px 0 0;background:#fff;box-shadow:0 -10px 30px rgba(0,0,0,.08)}.sheet-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:17px}.sheet-title{color:#999;font-size:10px;letter-spacing:1.5px}.sheet-close{padding:3px;border:0;background:none;color:#bbb;font-size:18px;cursor:pointer}.field{margin-bottom:12px}.field label{display:block;margin:0 0 6px 2px;color:#aaa;font-size:9px;letter-spacing:.5px}.field input,.field select{width:100%;height:42px;padding:0 11px;border:1px solid #e7e7e3;border-radius:9px;outline:none;background:#fff;color:#444;font-size:12px}.field input:focus,.field select:focus{border-color:#cfc6b5}.sheet-actions{display:flex;align-items:center;justify-content:flex-end;gap:9px;margin-top:17px}.sheet-btn{min-width:66px;padding:9px 13px;border:1px solid #ddd9d1;border-radius:8px;background:#fff;color:#888;font-size:10px;cursor:pointer}.sheet-btn.primary{border-color:#4f4b45;background:#4f4b45;color:#fff}.sheet-btn.danger{margin-right:auto;border-color:#eadfdc;color:#b98579}
-.manager-tools{display:flex;justify-content:flex-end;margin:-4px 0 12px}.manager-add{padding:6px 10px;border:1px solid #e2ded6;border-radius:7px;background:#fff;color:#8c806b;font-size:9px;cursor:pointer}.story-row{display:flex;align-items:center;gap:8px;padding:11px 0;border-top:1px solid #f0f0ed}.story-copy{min-width:0;flex:1}.story-name{overflow:hidden;color:#555;font-size:11px;text-overflow:ellipsis;white-space:nowrap}.story-meta{margin-top:4px;color:#bbb;font-size:8px}.story-action{padding:5px 7px;border:1px solid #e4e1da;border-radius:6px;background:#fff;color:#999;font-size:8px;cursor:pointer}.story-action:disabled{border-color:#eeeeeb;color:#c9c9c5;cursor:default}.story-action.delete{color:#bc8f86}.manager-empty{padding:18px 0;color:#ccc;font-size:10px;text-align:center}.story-editor[hidden],.story-index[hidden]{display:none}.editor-message{display:grid;grid-template-columns:92px 1fr 28px;gap:6px;margin-bottom:7px}.editor-message select,.editor-message input{min-width:0;height:38px;padding:0 8px;border:1px solid #e7e7e3;border-radius:8px;background:#fff;color:#555;font-size:10px}.editor-message button{border:0;background:none;color:#ccc;cursor:pointer}.add-message{width:100%;padding:8px;border:1px dashed #ddd9d1;border-radius:8px;background:#fff;color:#aaa;font-size:9px;cursor:pointer}.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.trigger-value[hidden]{display:none}
-@media(min-width:700px){.view{margin-top:18px;border:1px solid #eeeeec;border-radius:12px;background:#fff;overflow:hidden}.history{margin-bottom:28px}.bottom-tabs{right:auto;left:50%;width:560px;transform:translateX(-50%);border-right:1px solid #e8e8e6;border-left:1px solid #e8e8e6}.top-bar{padding-top:0}.thread-head{top:54px}}
+.chat-intro{padding:26px 20px 19px;background:#fff;border-bottom:1px solid #eeeeec}.chat-intro-title{color:#666;font-size:13px;font-weight:400;letter-spacing:.5px}.chat-intro-copy{margin-top:7px;color:#b1b1ad;font-size:9px;line-height:1.7}.chat-list{margin:0 14px}.chat-row{display:flex;width:100%;min-height:70px;align-items:center;gap:12px;margin-bottom:9px;padding:14px 15px;border:1px solid #e9e9e6;border-radius:12px;background:#fff;text-align:left;text-decoration:none;cursor:pointer}.chat-row .avatar{width:40px;height:40px;flex-basis:40px}.chat-name{display:block;margin-bottom:5px;color:#555;font-size:12px;letter-spacing:.3px}.chat-preview{display:block;overflow:hidden;color:#aaa;font-size:9px;text-overflow:ellipsis;white-space:nowrap}.chat-side{display:flex;align-items:center;gap:9px}.chat-state{color:#b7b7b2;font-size:8px;letter-spacing:.8px}.chat-row.unset{border-style:dashed}.chat-row.unset .chat-preview,.chat-row.unset .chat-state{color:#c9c9c5}.chat-note{padding:4px 20px 24px;color:#c1c1bd;font-size:8px;line-height:1.65}
+.bottom-tabs{position:fixed;right:0;bottom:0;left:0;z-index:25;display:flex;padding-bottom:env(safe-area-inset-bottom,0);border-top:1px solid #e8e8e6;background:rgba(255,255,255,.97)}.bottom-tab{flex:1;padding:15px 8px 14px;border:0;background:none;color:#bbb;font-size:10px;letter-spacing:1.3px;cursor:pointer}.bottom-tab.active{color:#655d50}.bottom-tab span{display:inline-block;padding-bottom:4px;border-bottom:1px solid transparent}.bottom-tab.active span{border-color:#a89a82}
+.sheet-overlay{position:fixed;inset:0;z-index:80;display:none;align-items:flex-end;justify-content:center;background:rgba(35,33,29,.22)}.sheet-overlay.show{display:flex}.sheet{width:min(100%,560px);max-height:88dvh;overflow:auto;padding:16px 18px calc(20px + env(safe-area-inset-bottom,0));border-radius:16px 16px 0 0;background:#fff;box-shadow:0 -10px 30px rgba(0,0,0,.08)}.sheet-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:17px}.sheet-title{color:#999;font-size:10px;letter-spacing:1.5px}.sheet-close{padding:3px;border:0;background:none;color:#bbb;font-size:18px;cursor:pointer}.field{margin-bottom:12px}.field label{display:block;margin:0 0 6px 2px;color:#aaa;font-size:9px;letter-spacing:.5px}.field input{width:100%;height:42px;padding:0 11px;border:1px solid #e7e7e3;border-radius:9px;outline:none;background:#fff;color:#444;font-size:12px}.field input:focus{border-color:#cfc6b5}.field input.invalid{border-color:#d9aaa1;background:#fffafa}.field-help{margin:-3px 2px 0;color:#bdbdb9;font-size:8px;line-height:1.6}.field-error{margin:10px 2px 0;color:#b6796d;font-size:9px;line-height:1.55}.field-error[hidden]{display:none}.sheet-actions{display:flex;align-items:center;justify-content:flex-end;gap:9px;margin-top:17px}.sheet-btn{min-width:66px;padding:9px 13px;border:1px solid #ddd9d1;border-radius:8px;background:#fff;color:#888;font-size:10px;cursor:pointer}.sheet-btn.primary{border-color:#4f4b45;background:#4f4b45;color:#fff}.sheet-btn.danger{margin-right:auto;border-color:#eadfdc;color:#b98579}
+@media(min-width:700px){.view{margin-top:18px;border:1px solid #eeeeec;border-radius:12px;background:#fff;overflow:hidden}.history{margin-bottom:28px}.bottom-tabs{right:auto;left:50%;width:560px;transform:translateX(-50%);border-right:1px solid #e8e8e6;border-left:1px solid #e8e8e6}.top-bar{padding-top:0}}
 </style>
 </head>
 <body>
 <header class="top-bar">
   <a class="top-link" href="index.html">Home</a>
   <h1>CONTACT</h1>
-  <button class="top-action" id="manageButton" type="button" hidden>MANAGE</button>
+  <button class="top-action" id="editChats" type="button" hidden>EDIT</button>
 </header>
 
 <main class="view" id="statusView">
@@ -54,21 +48,18 @@ body{min-height:100vh;min-height:100dvh;padding-bottom:74px;background:#fafafa;c
 </main>
 
 <main class="view" id="chatView" hidden>
-  <div class="contact-list" id="contactList"></div>
-  <section class="thread" id="threadView" hidden>
-    <div class="thread-head">
-      <button class="thread-back" id="threadBack" type="button" aria-label="返回联系人">‹</button>
-      <div class="thread-person" id="threadName"></div>
-      <span></span>
-    </div>
-    <div class="messages" id="messageList"></div>
-    <div class="reply-options" id="replyOptions"></div>
-  </section>
+  <div class="chat-intro">
+    <div class="chat-intro-title">ChatGPT 会话</div>
+    <div class="chat-intro-copy">角色设定与对话保存在各自的窗口中。</div>
+  </div>
+  <div class="section-label"><span>CONVERSATIONS</span><span class="section-count">2</span></div>
+  <div class="chat-list" id="chatList"></div>
+  <div class="chat-note">点击后将离开 C-NC，并在 ChatGPT App 或浏览器中打开对应会话。</div>
 </main>
 
 <nav class="bottom-tabs" aria-label="Contact pages">
   <button class="bottom-tab active" type="button" data-tab="status"><span>STATUS</span></button>
-  <button class="bottom-tab" type="button" data-tab="chat"><span>CHAT</span><i class="tab-dot" id="chatDot" hidden></i></button>
+  <button class="bottom-tab" type="button" data-tab="chat"><span>CHAT</span></button>
 </nav>
 
 <div class="sheet-overlay" id="statusSheet" role="dialog" aria-modal="true" aria-labelledby="statusSheetTitle">
@@ -88,54 +79,40 @@ body{min-height:100vh;min-height:100dvh;padding-bottom:74px;background:#fafafa;c
   </div>
 </div>
 
-<div class="sheet-overlay" id="managerSheet" role="dialog" aria-modal="true" aria-labelledby="managerTitle">
+<div class="sheet-overlay" id="chatSheet" role="dialog" aria-modal="true" aria-labelledby="chatSheetTitle">
   <div class="sheet" onclick="event.stopPropagation()">
-    <div class="sheet-head"><span class="sheet-title" id="managerTitle">STORIES</span><button class="sheet-close" type="button" data-close="managerSheet">×</button></div>
-    <div class="story-index" id="storyIndex">
-      <div class="manager-tools"><button class="manager-add" id="addStory" type="button">＋ NEW</button></div>
-      <div id="storyList"></div>
-    </div>
-    <form class="story-editor" id="storyEditor" hidden>
-      <div class="field"><label for="storyTitle">TITLE</label><input id="storyTitle" maxlength="100" required></div>
-      <div class="field-grid">
-        <div class="field"><label for="storyThread">THREAD</label><select id="storyThread"></select></div>
-        <div class="field"><label for="storyTrigger">TRIGGER</label><select id="storyTrigger"><option value="manual">手动</option><option value="status_any">任意新状态</option><option value="status_contains">包含关键词</option><option value="status_all">同时包含</option></select></div>
-      </div>
-      <div class="field trigger-value" id="triggerValueField" hidden><label for="storyTriggerValue">KEYWORDS</label><input id="storyTriggerValue" maxlength="240"></div>
-      <div class="field-grid">
-        <div class="field"><label for="storyDelay">DELAY · MIN</label><input id="storyDelay" type="number" min="0" step="1" value="0"></div>
-        <div class="field"><label for="storyRepeat">REPEAT</label><select id="storyRepeat"><option value="once">仅一次</option><option value="repeat">可重复</option></select></div>
-      </div>
-      <div class="field" id="cooldownField" hidden><label for="storyCooldown">COOLDOWN · DAY</label><input id="storyCooldown" type="number" min="0" step="1" value="0"></div>
-      <div class="field"><label>MESSAGES</label><div id="storyMessages"></div><button class="add-message" id="addMessage" type="button">＋ MESSAGE</button></div>
-      <div class="sheet-actions"><button class="sheet-btn" id="cancelStory" type="button">取消</button><button class="sheet-btn primary" type="submit">保存</button></div>
-    </form>
+    <div class="sheet-head"><span class="sheet-title" id="chatSheetTitle">CHAT LINKS</span><button class="sheet-close" type="button" data-close="chatSheet">×</button></div>
+    <div class="field"><label for="teamChatLink">世界C群聊</label><input id="teamChatLink" type="url" inputmode="url" autocomplete="off" placeholder="https://chatgpt.com/c/…"></div>
+    <div class="field"><label for="janeChatLink">Jane 私聊</label><input id="janeChatLink" type="url" inputmode="url" autocomplete="off" placeholder="https://chatgpt.com/c/…"></div>
+    <div class="field-help">请粘贴会话窗口本身的 /c/ 地址；/share/ 是共享快照，无法继续原对话。</div>
+    <div class="field-error" id="chatLinkError" hidden>请检查会话地址。</div>
+    <div class="sheet-actions"><button class="sheet-btn" type="button" data-close="chatSheet">取消</button><button class="sheet-btn primary" id="saveChatLinks" type="button">保存</button></div>
   </div>
 </div>
 
-<script src="world-context.js?v=20260916-contact1"></script>
-<script src="cloud-sync.js?v=20260916-contact1"></script>
-<script src="character-runtime.js?v=20260916-contact1"></script>
-<script src="cbi-chat-stories.js?v=20260916-contact1"></script>
-<script src="cbi-contact.js?v=20260916-contact1"></script>
+<script src="world-context.js?v=20260926-chatlinks1"></script>
+<script src="cloud-sync.js?v=20260926-chatlinks1"></script>
+<script src="character-runtime.js?v=20260926-chatlinks1"></script>
+<script src="cbi-contact.js?v=20260926-chatlinks1"></script>
 <script>
 (function(){
   'use strict';
 
   var PEOPLE={
-    team:{name:'TEAM',initial:'T',image:''},
-    jane:{name:'Jane',initial:'J',image:'assets/characters/cbi/jane/jane-default.png'},
+    team:{name:'世界C群聊',initial:'T',image:''},
+    jane:{name:'Jane 私聊',initial:'J',image:'assets/characters/cbi/jane/jane-default.png'},
     cho:{name:'Cho',initial:'C',image:'assets/characters/cbi/cho/cho-default.png'},
     rigsby:{name:'Rigsby',initial:'R',image:'assets/characters/cbi/rigsby/rigsby-default.png'},
     vanpelt:{name:'Van Pelt',initial:'V',image:'assets/characters/cbi/vanpelt/vanpelt-default.png'},
     lisbon:{name:'Lisbon',initial:'L',image:'assets/characters/cbi/lisbon/lisbon-default.png'}
   };
-  var ORDER=['team','jane','cho','rigsby','vanpelt','lisbon'];
-  var activeTab='status';
-  var activeThread='';
+  var PRESENCE_ORDER=['jane','cho','rigsby','vanpelt','lisbon'];
+  var CHAT_CONFIG=[
+    {id:'team',preview:'Cho · Lisbon · Rigsby · Van Pelt · Jane'},
+    {id:'jane',preview:'Patrick Jane'}
+  ];
+  var activeTab=location.hash==='#chat'?'chat':'status';
   var editingHistoryId='';
-  var editingStoryId='';
-  var pendingTimer=0;
 
   function el(id){return document.getElementById(id)}
   function escapeHtml(value){return String(value==null?'':value).replace(/[&<>"']/g,function(char){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]})}
@@ -143,8 +120,7 @@ body{min-height:100vh;min-height:100dvh;padding-bottom:74px;background:#fafafa;c
   function pad(value){return String(value).padStart(2,'0')}
   function timeText(value){var date=new Date(value);return Number.isFinite(date.getTime())?pad(date.getHours())+':'+pad(date.getMinutes()):''}
   function dateTimeLocal(value){var date=new Date(value);if(!Number.isFinite(date.getTime()))date=new Date();return date.getFullYear()+'-'+pad(date.getMonth()+1)+'-'+pad(date.getDate())+'T'+pad(date.getHours())+':'+pad(date.getMinutes())}
-  function compactTime(value){var date=new Date(value);if(!Number.isFinite(date.getTime()))return'';var now=new Date();if(date.toDateString()===now.toDateString())return timeText(date);return (date.getMonth()+1)+'/'+date.getDate()}
-  function relativeStatusTime(value){if(!value)return'';var date=new Date(value);if(!Number.isFinite(date.getTime()))return'';return (date.getMonth()+1)+'/'+date.getDate()+' '+timeText(date)}
+  function relativeStatusTime(value){if(!value)return'';var date=new Date(value);if(!Number.isFinite(date.getTime()))return'';return(date.getMonth()+1)+'/'+date.getDate()+' '+timeText(date)}
   function displayDay(key){var parts=String(key).split('-');if(parts.length!==3)return key;var today=CBIContact.workDayKey(new Date());if(key===today)return'TODAY';return Number(parts[1])+' / '+Number(parts[2])}
   function closeSheet(id){el(id).classList.remove('show')}
   function openSheet(id){el(id).classList.add('show')}
@@ -157,13 +133,12 @@ body{min-height:100vh;min-height:100dvh;padding-bottom:74px;background:#fafafa;c
     text.classList.toggle('empty',!current);
     el('selfStatusTime').textContent=current?relativeStatusTime(current.at):'';
     renderHistory(db);
-    renderUnread(db);
   }
 
   function renderPresence(){
     if(!window.CharacterRuntime||typeof CharacterRuntime.getCbiPresenceRoster!=='function')return;
     var roster=CharacterRuntime.getCbiPresenceRoster(new Date());
-    el('presenceList').innerHTML=ORDER.slice(1).map(function(id){
+    el('presenceList').innerHTML=PRESENCE_ORDER.map(function(id){
       var state=roster.assignments[id];
       return '<div class="presence-row">'+avatarHtml(id)+'<span class="presence-name">'+PEOPLE[id].name+'</span><span class="presence-state">'+escapeHtml(state&&state.title||'—')+'</span></div>';
     }).join('');
@@ -182,65 +157,25 @@ body{min-height:100vh;min-height:100dvh;padding-bottom:74px;background:#fafafa;c
     }).join('');
   }
 
-  function renderUnread(db){
-    var total=ORDER.reduce(function(sum,id){return sum+(db.unread[id]||0)},0);
-    el('chatDot').hidden=!total;
-  }
-
-  function renderContacts(){
-    var db=CBIContact.load();
-    el('contactList').innerHTML=ORDER.map(function(id){
-      var messages=db.threads[id]||[];
-      var last=messages[messages.length-1];
-      var unread=db.unread[id]||0;
-      return '<button class="contact-row" type="button" data-thread="'+id+'">'+avatarHtml(id)+'<span class="contact-copy"><span class="contact-name">'+PEOPLE[id].name+'</span><span class="contact-preview">'+escapeHtml(last?last.text:'—')+'</span></span><span class="contact-side"><span class="contact-time">'+(last?compactTime(last.at):'')+'</span>'+(unread?'<span class="unread">'+unread+'</span>':'')+'</span></button>';
+  function renderChatLinks(){
+    var links=CBIContact.load().chatLinks;
+    el('chatList').innerHTML=CHAT_CONFIG.map(function(chat){
+      var url=links[chat.id];
+      var copy='<span class="row-main"><span class="chat-name">'+PEOPLE[chat.id].name+'</span><span class="chat-preview">'+(url?chat.preview:'尚未设置链接 · 点此填写')+'</span></span>';
+      var side='<span class="chat-side"><span class="chat-state">'+(url?'OPEN':'SET')+'</span><span class="row-arrow">›</span></span>';
+      if(url)return '<a class="chat-row" href="'+escapeHtml(url)+'" target="_blank" rel="noopener noreferrer">'+avatarHtml(chat.id)+copy+side+'</a>';
+      return '<button class="chat-row unset" type="button" data-chat-setup="'+chat.id+'">'+avatarHtml(chat.id)+copy+side+'</button>';
     }).join('');
-    renderUnread(db);
   }
 
-  function renderThread(){
-    if(!activeThread)return;
-    var db=CBIContact.load();
-    var messages=db.threads[activeThread]||[];
-    el('threadName').textContent=PEOPLE[activeThread].name;
-    el('messageList').innerHTML=messages.length?messages.map(function(message){
-      var kind=message.sender==='boss'?'boss':message.sender==='system'?'system':'character';
-      return '<div class="message '+kind+'"><div class="bubble">'+escapeHtml(message.text)+'</div><span class="message-time">'+timeText(message.at)+'</span></div>';
-    }).join(''):'<div class="empty-line">—</div>';
-    var prompt=db.replyPrompts[activeThread];
-    el('replyOptions').innerHTML=prompt?prompt.options.map(function(option){return '<button class="reply-option" type="button" data-reply="'+escapeHtml(option.id)+'">'+escapeHtml(option.text)+'</button>'}).join(''):'';
-    requestAnimationFrame(function(){window.scrollTo(0,document.body.scrollHeight)});
-  }
-
-  function openThread(threadId){
-    activeThread=threadId;
-    CBIContact.markThreadRead(threadId);
-    el('contactList').hidden=true;
-    el('threadView').hidden=false;
-    el('manageButton').hidden=true;
-    renderThread();
-  }
-
-  function closeThread(){
-    activeThread='';
-    el('threadView').hidden=true;
-    el('contactList').hidden=false;
-    el('manageButton').hidden=false;
-    renderContacts();
-    window.scrollTo(0,0);
-  }
-
-  function switchTab(tab){
+  function switchTab(tab,updateHash){
     activeTab=tab;
     document.querySelectorAll('.bottom-tab').forEach(function(button){button.classList.toggle('active',button.dataset.tab===tab)});
     el('statusView').hidden=tab!=='status';
     el('chatView').hidden=tab!=='chat';
-    if(tab==='status'){
-      el('manageButton').hidden=true;
-      renderStatus();renderPresence();
-    }else{
-      if(activeThread){el('manageButton').hidden=true;renderThread()}else{el('manageButton').hidden=false;renderContacts()}
-    }
+    el('editChats').hidden=tab!=='chat';
+    if(tab==='status'){renderStatus();renderPresence()}else renderChatLinks();
+    if(updateHash&&history.replaceState)history.replaceState(null,'',location.pathname+location.search+(tab==='chat'?'#chat':''));
     window.scrollTo(0,0);
   }
 
@@ -257,8 +192,7 @@ body{min-height:100vh;min-height:100dvh;padding-bottom:74px;background:#fafafa;c
     var current=CBIContact.load().currentStatus;
     if(!value)return;
     if(!current||value!==current.text)CBIContact.setStatus(value,new Date());
-    closeSheet('statusSheet');
-    renderStatus();schedulePending();
+    closeSheet('statusSheet');renderStatus();
   }
 
   function openHistoryEditor(entryId){
@@ -278,83 +212,25 @@ body{min-height:100vh;min-height:100dvh;padding-bottom:74px;background:#fafafa;c
     closeSheet('historySheet');renderStatus();
   }
 
-  function processPending(){
-    var result=CBIContact.processPending(new Date());
-    if(result.delivered.length){renderContacts();if(activeThread)renderThread()}
-    schedulePending(result.db);
+  function openChatEditor(focusId){
+    var links=CBIContact.load().chatLinks;
+    el('teamChatLink').value=links.team||'';
+    el('janeChatLink').value=links.jane||'';
+    el('teamChatLink').classList.remove('invalid');el('janeChatLink').classList.remove('invalid');
+    el('chatLinkError').hidden=true;
+    openSheet('chatSheet');
+    if(focusId)setTimeout(function(){el(focusId==='team'?'teamChatLink':'janeChatLink').focus()},80);
   }
 
-  function schedulePending(db){
-    if(pendingTimer)clearTimeout(pendingTimer);
-    var due=CBIContact.nextPendingAt(db);
-    if(!due)return;
-    pendingTimer=setTimeout(processPending,Math.max(0,Math.min(2147483647,due-Date.now()+80)));
+  function saveChatLinks(){
+    var result=CBIContact.setChatLinks({team:el('teamChatLink').value,jane:el('janeChatLink').value});
+    el('teamChatLink').classList.toggle('invalid',result.invalid.indexOf('team')>=0);
+    el('janeChatLink').classList.toggle('invalid',result.invalid.indexOf('jane')>=0);
+    if(result.invalid.length){el('chatLinkError').hidden=false;return}
+    closeSheet('chatSheet');renderChatLinks();
   }
 
-  function triggerLabel(story){
-    var trigger=story.trigger||{type:'manual'};
-    if(trigger.type==='manual')return'MANUAL';
-    if(trigger.type==='status_any')return'ANY STATUS';
-    if(trigger.type==='status_contains')return'STATUS · '+trigger.value;
-    return'STATUS · '+trigger.values.join(' + ');
-  }
-
-  function renderStories(){
-    var db=CBIContact.load();
-    var stories=CBIContact.allStories(db);
-    el('storyList').innerHTML=stories.length?stories.map(function(story){
-      var delivered=story.once&&db.storyProgress[story.id]&&db.storyProgress[story.id].count>0;
-      return '<div class="story-row"><div class="story-copy"><div class="story-name">'+escapeHtml(story.title)+'</div><div class="story-meta">'+escapeHtml(PEOPLE[story.threadId].name)+' · '+escapeHtml(triggerLabel(story))+(story.custom?' · CUSTOM':'')+'</div></div><button class="story-action" type="button" data-deliver="'+escapeHtml(story.id)+'" '+(delivered?'disabled':'')+'>'+(delivered?'已投递':'投递')+'</button>'+(story.custom?'<button class="story-action" type="button" data-edit-story="'+escapeHtml(story.id)+'">编辑</button><button class="story-action delete" type="button" data-delete-story="'+escapeHtml(story.id)+'">删除</button>':'')+'</div>';
-    }).join(''):'<div class="manager-empty">—</div>';
-  }
-
-  function messageRow(message){
-    var senders=['system','boss','jane','cho','rigsby','vanpelt','lisbon'];
-    var labels={system:'SYSTEM',boss:'Milo',jane:'Jane',cho:'Cho',rigsby:'Rigsby',vanpelt:'Van Pelt',lisbon:'Lisbon'};
-    return '<div class="editor-message"><select class="message-sender">'+senders.map(function(id){return '<option value="'+id+'" '+(message&&message.sender===id?'selected':'')+'>'+labels[id]+'</option>'}).join('')+'</select><input class="message-text" maxlength="1200" value="'+escapeHtml(message&&message.text||'')+'"><button class="remove-message" type="button">×</button></div>';
-  }
-
-  function showStoryEditor(storyId){
-    var story=storyId?CBIContact.load().customStories.find(function(item){return item.id===storyId}):null;
-    editingStoryId=story?story.id:'';
-    el('storyIndex').hidden=true;el('storyEditor').hidden=false;
-    el('storyTitle').value=story?story.title:'';
-    el('storyThread').value=story?story.threadId:'team';
-    el('storyTrigger').value=story?story.trigger.type:'manual';
-    el('storyTriggerValue').value=story?(story.trigger.type==='status_all'?story.trigger.values.join(' | '):story.trigger.value||''):'';
-    el('storyDelay').value=story?(Array.isArray(story.delayMinutes)?story.delayMinutes[0]:story.delayMinutes):0;
-    el('storyRepeat').value=story&&!story.once?'repeat':'once';
-    el('storyCooldown').value=story?Math.round((story.cooldownHours||0)/24):0;
-    el('storyMessages').innerHTML=(story&&story.messages.length?story.messages:[{sender:'jane',text:''}]).map(messageRow).join('');
-    updateStoryFields();
-  }
-
-  function hideStoryEditor(){editingStoryId='';el('storyEditor').hidden=true;el('storyIndex').hidden=false;renderStories()}
-  function updateStoryFields(){
-    var trigger=el('storyTrigger').value;
-    el('triggerValueField').hidden=trigger!=='status_contains'&&trigger!=='status_all';
-    el('cooldownField').hidden=el('storyRepeat').value!=='repeat';
-  }
-
-  function saveStory(event){
-    event.preventDefault();
-    var triggerType=el('storyTrigger').value;
-    var trigger={type:triggerType};
-    var keywords=el('storyTriggerValue').value.split('|').map(function(value){return value.trim()}).filter(Boolean);
-    if(triggerType==='status_contains')trigger.value=keywords[0]||'';
-    if(triggerType==='status_all')trigger.values=keywords;
-    var messages=Array.from(document.querySelectorAll('#storyMessages .editor-message')).map(function(row){return{sender:row.querySelector('.message-sender').value,text:row.querySelector('.message-text').value.trim()}}).filter(function(message){return message.text});
-    if(!messages.length)return;
-    var value={
-      title:el('storyTitle').value.trim(),threadId:el('storyThread').value,trigger:trigger,
-      delayMinutes:Math.max(0,Number(el('storyDelay').value)||0),once:el('storyRepeat').value==='once',
-      cooldownHours:Math.max(0,Number(el('storyCooldown').value)||0)*24,messages:messages,replies:[]
-    };
-    if(editingStoryId)CBIContact.updateCustomStory(editingStoryId,value);else CBIContact.addCustomStory(value);
-    hideStoryEditor();schedulePending();
-  }
-
-  document.querySelectorAll('.bottom-tab').forEach(function(button){button.addEventListener('click',function(){switchTab(button.dataset.tab)})});
+  document.querySelectorAll('.bottom-tab').forEach(function(button){button.addEventListener('click',function(){switchTab(button.dataset.tab,true)})});
   document.querySelectorAll('.sheet-overlay').forEach(function(sheet){sheet.addEventListener('click',function(event){if(event.target===sheet)closeSheet(sheet.id)})});
   document.querySelectorAll('[data-close]').forEach(function(button){button.addEventListener('click',function(){closeSheet(button.dataset.close)})});
   el('selfStatus').addEventListener('click',editCurrentStatus);
@@ -364,34 +240,19 @@ body{min-height:100vh;min-height:100dvh;padding-bottom:74px;background:#fafafa;c
   el('historyList').addEventListener('click',function(event){var button=event.target.closest('[data-history]');if(button)openHistoryEditor(button.dataset.history)});
   el('saveHistory').addEventListener('click',saveHistoryEntry);
   el('deleteHistory').addEventListener('click',function(){if(editingHistoryId)CBIContact.deleteHistoryEntry(editingHistoryId);closeSheet('historySheet');renderStatus()});
-  el('contactList').addEventListener('click',function(event){var row=event.target.closest('[data-thread]');if(row)openThread(row.dataset.thread)});
-  el('threadBack').addEventListener('click',closeThread);
-  el('replyOptions').addEventListener('click',function(event){var button=event.target.closest('[data-reply]');if(!button||!activeThread)return;CBIContact.reply(activeThread,button.dataset.reply,new Date());renderThread()});
-  el('manageButton').addEventListener('click',function(){hideStoryEditor();openSheet('managerSheet')});
-  el('addStory').addEventListener('click',function(){showStoryEditor('')});
-  el('cancelStory').addEventListener('click',hideStoryEditor);
-  el('storyTrigger').addEventListener('change',updateStoryFields);
-  el('storyRepeat').addEventListener('change',updateStoryFields);
-  el('addMessage').addEventListener('click',function(){el('storyMessages').insertAdjacentHTML('beforeend',messageRow({sender:'jane',text:''}))});
-  el('storyMessages').addEventListener('click',function(event){if(!event.target.classList.contains('remove-message'))return;var rows=el('storyMessages').querySelectorAll('.editor-message');if(rows.length>1)event.target.closest('.editor-message').remove();else event.target.closest('.editor-message').querySelector('.message-text').value=''});
-  el('storyEditor').addEventListener('submit',saveStory);
-  el('storyList').addEventListener('click',function(event){
-    var deliver=event.target.closest('[data-deliver]');var edit=event.target.closest('[data-edit-story]');var remove=event.target.closest('[data-delete-story]');
-    if(deliver){CBIContact.deliverStory(deliver.dataset.deliver,new Date());renderStories();renderUnread(CBIContact.load());return}
-    if(edit){showStoryEditor(edit.dataset.editStory);return}
-    if(remove){CBIContact.deleteCustomStory(remove.dataset.deleteStory);renderStories();schedulePending()}
-  });
+  el('editChats').addEventListener('click',function(){openChatEditor('')});
+  el('chatList').addEventListener('click',function(event){var row=event.target.closest('[data-chat-setup]');if(row)openChatEditor(row.dataset.chatSetup)});
+  el('saveChatLinks').addEventListener('click',saveChatLinks);
+  ['teamChatLink','janeChatLink'].forEach(function(id){el(id).addEventListener('input',function(){el(id).classList.remove('invalid');el('chatLinkError').hidden=true})});
 
-  window.addEventListener('cbi:contactchange',function(){renderUnread(CBIContact.load());if(activeTab==='status')renderStatus();else if(activeThread)renderThread();else renderContacts()});
-  window.addEventListener('storage',function(event){if(event.key===CBIContact.STORAGE_KEY){renderStatus();if(activeThread)renderThread();else renderContacts();schedulePending()}});
-  document.addEventListener('visibilitychange',function(){if(!document.hidden){processPending();renderPresence()}});
+  window.addEventListener('cbi:contactchange',function(){if(activeTab==='status')renderStatus();else renderChatLinks()});
+  window.addEventListener('storage',function(event){if(event.key===CBIContact.STORAGE_KEY){renderStatus();renderChatLinks()}});
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)renderPresence()});
 
-  ORDER.forEach(function(id){var option=document.createElement('option');option.value=id;option.textContent=PEOPLE[id].name;el('storyThread').appendChild(option)});
   CBIContact.ensure();
-  processPending();
-  renderStatus();renderPresence();
+  switchTab(activeTab,false);
   try{CharacterRuntime.init({onTick:function(){renderPresence()}})}catch(error){console.warn('CBI presence unavailable',error)}
-  if(window.CloudSync&&typeof CloudSync.whenReady==='function')CloudSync.whenReady().then(function(){processPending();renderStatus();renderPresence()}).catch(function(){});
+  if(window.CloudSync&&typeof CloudSync.whenReady==='function')CloudSync.whenReady().then(function(){CBIContact.ensure();renderStatus();renderPresence();renderChatLinks()}).catch(function(){});
 })();
 </script>
 </body>
