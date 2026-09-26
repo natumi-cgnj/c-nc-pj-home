@@ -630,8 +630,7 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-home-trigger{display:
 .cbi-home-lower-row>.room-box{position:relative;width:100%;height:100%;aspect-ratio:auto}
 .cbi-home-lower-row .room-inner{overflow:hidden;border-radius:inherit;background:#fff;cursor:default}
 .cbi-bathroom-room{grid-area:2/1;border-top:0;border-radius:0 0 0 4px}
-.cbi-laundry-room{grid-area:2/2;border-left:0;border-top:0;border-radius:0}
-.cbi-kitchen-room{grid-area:2/3;border-left:0;border-top-color:transparent;border-radius:0 0 4px 0}
+.cbi-kitchen-room{grid-area:2/2/3/4;border-left:0;border-top-color:transparent;border-radius:0 0 4px 0}
 .cbi-bathroom-room .room-label,.cbi-kitchen-room .room-label{color:#E8B96A;opacity:.24}
 /* Bathroom, matching the long tub / sink / toilet grouping in the reference plan */
 .cbi-bath-window{left:17%;top:4%;width:56%;height:5%;opacity:.055}
@@ -641,18 +640,16 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-home-trigger{display:
 .cbi-bath-sink::after{content:'';position:absolute;left:24%;top:20%;width:52%;height:48%;border-radius:50%;background:rgba(255,255,255,.5)}
 .cbi-bath-toilet{right:7%;bottom:9%;width:17%;height:30%;background:#E8B96A;border-radius:45% 45% 35% 35%;opacity:.09}
 .cbi-bath-mat{left:37%;top:21%;width:28%;height:22%;background:#E8B96A;border-radius:3px;opacity:.035}
-/* Stacked washer and dryer sit in the narrow niche outside the bathroom. */
-.cbi-laundry-stack{left:12%;top:13%;width:76%;height:62%;background:#E8B96A;border-radius:2px;opacity:.09}
-.cbi-laundry-stack::before,.cbi-laundry-stack::after{content:'';position:absolute;left:19%;width:62%;aspect-ratio:1;border-radius:50%;background:rgba(255,255,255,.58)}
-.cbi-laundry-stack::before{top:9%}
-.cbi-laundry-stack::after{bottom:9%}
+/* A stacked washer/dryer still has one compact square footprint from above. */
+.cbi-laundry-stack{left:1.5%;bottom:8%;width:7%;height:auto;aspect-ratio:1;background:#E8B96A;border-radius:2px;opacity:.09}
+.cbi-laundry-stack::before{content:'';position:absolute;left:15%;right:15%;top:14%;height:14%;border-radius:1px;background:rgba(255,255,255,.58)}
 /* Open kitchen below the living room; the shared border stays invisible */
-.cbi-kitchen-window{left:18%;top:2%;width:54%;height:5%;opacity:.05}
-.cbi-kitchen-counter{right:4%;top:8%;width:14%;height:70%;background:#E8B96A;border-radius:3px;opacity:.09}
-.cbi-kitchen-shelf{left:27%;top:8%;width:44%;height:22%;background:#E8B96A;border-radius:4px;opacity:.075}
-.cbi-kitchen-fridge{right:4%;top:7%;width:14%;height:32%;background:#E8B96A;border-radius:2px;opacity:.12}
-.cbi-kitchen-sink{left:43%;top:15%;width:12%;height:9%;background:#E8B96A;opacity:.14;border-radius:2px}
-.cbi-kitchen-stove{right:8%;bottom:23%;width:7%;height:16%;background:#E8B96A;opacity:.14}
+.cbi-kitchen-window{left:25%;top:2%;width:49%;height:5%;opacity:.05}
+.cbi-kitchen-counter{right:4%;top:8%;width:13%;height:70%;background:#E8B96A;border-radius:3px;opacity:.09}
+.cbi-kitchen-shelf{left:33%;top:8%;width:40%;height:22%;background:#E8B96A;border-radius:4px;opacity:.075}
+.cbi-kitchen-fridge{right:4%;top:7%;width:13%;height:32%;background:#E8B96A;border-radius:2px;opacity:.12}
+.cbi-kitchen-sink{left:48%;top:15%;width:11%;height:9%;background:#E8B96A;opacity:.14;border-radius:2px}
+.cbi-kitchen-stove{right:7%;bottom:23%;width:6.5%;height:16%;background:#E8B96A;opacity:.14}
 /* Keep the denser reference layout readable at the home's small map size. */
 body[data-world-id="cbi"][data-world-location="home"] .apt-wrap .furniture{background:#E8B96A;opacity:.055}
 body[data-world-id="cbi"][data-world-location="home"] .apt-wrap .natumi-living-rug,
@@ -815,14 +812,10 @@ body[data-world-id="cbi"][data-world-location="home"] .room-jane .cbi-guest-teap
         <div class="furniture cbi-bath-mat"></div>
       </div>
     </div>
-    <div class="room-box cbi-laundry-room" id="cbiLaundryRoom">
-      <div class="room-inner">
-        <div class="furniture cbi-laundry-stack"></div>
-      </div>
-    </div>
     <div class="room-box cbi-kitchen-room" id="cbiKitchenRoom">
       <div class="room-inner">
         <div class="room-label">厨房</div>
+        <div class="furniture cbi-laundry-stack"></div>
         <div class="furniture cbi-kitchen-window"></div><div class="furniture cbi-kitchen-counter"></div>
         <div class="furniture cbi-kitchen-shelf"></div><div class="furniture cbi-kitchen-fridge"></div>
         <div class="furniture cbi-kitchen-sink"></div><div class="furniture cbi-kitchen-stove"></div>
