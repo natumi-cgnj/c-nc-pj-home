@@ -495,10 +495,6 @@ body[data-world-id="cbi"] .mobile-suitcase{display:flex}
 .furniture.cbi-home-only{display:none}
 body[data-world-id="cbi"] .furniture.cbi-home-only{display:block}
 /* CBI home floor plan: warm gold throughout, with Jane's tea things in green */
-body[data-world-id="cbi"][data-world-location="home"] .apt-wrap .furniture{background:#E8B96A}
-body[data-world-id="cbi"][data-world-location="home"] .room-jane .jane-lamp,
-body[data-world-id="cbi"][data-world-location="home"] .room-jane .cbi-guest-teacup,
-body[data-world-id="cbi"][data-world-location="home"] .room-jane .cbi-guest-teapot{background:#5BA66B}
 /* Living room (natumi) */
 .natumi-living-window{left:14%;top:4%;width:70%;height:5%;border-radius:2px;opacity:.055}
 .natumi-living-rug{width:43%;height:58%;background:#E8B96A;right:15%;top:28%;border-radius:3px;opacity:.035}
@@ -634,7 +630,8 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-home-trigger{display:
 .cbi-home-lower-row>.room-box{position:relative;width:100%;height:100%;aspect-ratio:auto}
 .cbi-home-lower-row .room-inner{overflow:hidden;border-radius:inherit;background:#fff;cursor:default}
 .cbi-bathroom-room{grid-area:2/1;border-top:0;border-radius:0 0 0 4px}
-.cbi-kitchen-room{grid-area:2/2/3/4;border-left:0;border-top-color:transparent;border-radius:0 0 4px 0}
+.cbi-laundry-room{grid-area:2/2;border-left:0;border-top:0;border-radius:0}
+.cbi-kitchen-room{grid-area:2/3;border-left:0;border-top-color:transparent;border-radius:0 0 4px 0}
 .cbi-bathroom-room .room-label,.cbi-kitchen-room .room-label{color:#E8B96A;opacity:.24}
 /* Bathroom, matching the long tub / sink / toilet grouping in the reference plan */
 .cbi-bath-window{left:17%;top:4%;width:56%;height:5%;opacity:.055}
@@ -643,18 +640,32 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-home-trigger{display:
 .cbi-bath-sink{left:39%;bottom:10%;width:27%;height:24%;background:#E8B96A;border-radius:4px;opacity:.09}
 .cbi-bath-sink::after{content:'';position:absolute;left:24%;top:20%;width:52%;height:48%;border-radius:50%;background:rgba(255,255,255,.5)}
 .cbi-bath-toilet{right:7%;bottom:9%;width:17%;height:30%;background:#E8B96A;border-radius:45% 45% 35% 35%;opacity:.09}
-.cbi-bath-washer{right:7%;top:15%;width:19%;height:28%;background:#E8B96A;border-radius:3px;opacity:.09}
-.cbi-bath-washer::after{content:'';position:absolute;left:20%;top:18%;width:60%;aspect-ratio:1;border-radius:50%;background:rgba(255,255,255,.5)}
 .cbi-bath-mat{left:37%;top:21%;width:28%;height:22%;background:#E8B96A;border-radius:3px;opacity:.035}
+/* Stacked washer and dryer sit in the narrow niche outside the bathroom. */
+.cbi-laundry-stack{left:12%;top:13%;width:76%;height:62%;background:#E8B96A;border-radius:2px;opacity:.09}
+.cbi-laundry-stack::before,.cbi-laundry-stack::after{content:'';position:absolute;left:19%;width:62%;aspect-ratio:1;border-radius:50%;background:rgba(255,255,255,.58)}
+.cbi-laundry-stack::before{top:9%}
+.cbi-laundry-stack::after{bottom:9%}
 /* Open kitchen below the living room; the shared border stays invisible */
 .cbi-kitchen-window{left:18%;top:2%;width:54%;height:5%;opacity:.05}
-.cbi-kitchen-counter{right:4%;top:8%;width:14%;height:78%;background:#E8B96A;border-radius:3px;opacity:.09}
-.cbi-kitchen-shelf{right:18%;top:8%;width:52%;height:22%;background:#E8B96A;border-radius:4px;opacity:.075}
+.cbi-kitchen-counter{right:4%;top:8%;width:14%;height:70%;background:#E8B96A;border-radius:3px;opacity:.09}
+.cbi-kitchen-shelf{left:27%;top:8%;width:44%;height:22%;background:#E8B96A;border-radius:4px;opacity:.075}
 .cbi-kitchen-fridge{right:4%;top:7%;width:14%;height:32%;background:#E8B96A;border-radius:2px;opacity:.12}
-.cbi-kitchen-island{left:14%;top:8%;width:46%;height:26%;background:#E8B96A;border-radius:4px;opacity:.09}
-.cbi-kitchen-sink{left:26%;top:15%;width:12%;height:9%;background:#E8B96A;opacity:.14;border-radius:2px}
+.cbi-kitchen-sink{left:43%;top:15%;width:12%;height:9%;background:#E8B96A;opacity:.14;border-radius:2px}
 .cbi-kitchen-stove{right:8%;bottom:23%;width:7%;height:16%;background:#E8B96A;opacity:.14}
-.cbi-kitchen-entry{left:5%;bottom:5%;width:16%;height:8%;background:#E8B96A;border-radius:1px;opacity:.08;transform:rotate(-18deg)}
+/* Keep the denser reference layout readable at the home's small map size. */
+body[data-world-id="cbi"][data-world-location="home"] .apt-wrap .furniture{background:#E8B96A;opacity:.055}
+body[data-world-id="cbi"][data-world-location="home"] .apt-wrap .natumi-living-rug,
+body[data-world-id="cbi"][data-world-location="home"] .apt-wrap .cbi-guest-rug,
+body[data-world-id="cbi"][data-world-location="home"] .apt-wrap .cbi-bath-mat{opacity:.025}
+body[data-world-id="cbi"][data-world-location="home"] .apt-wrap .natumi-tv,
+body[data-world-id="cbi"][data-world-location="home"] .apt-wrap .natumi-homescreen,
+body[data-world-id="cbi"][data-world-location="home"] .apt-wrap .cbi-laundry-stack,
+body[data-world-id="cbi"][data-world-location="home"] .apt-wrap .cbi-kitchen-sink,
+body[data-world-id="cbi"][data-world-location="home"] .apt-wrap .cbi-kitchen-stove{opacity:.075}
+body[data-world-id="cbi"][data-world-location="home"] .room-jane .jane-lamp,
+body[data-world-id="cbi"][data-world-location="home"] .room-jane .cbi-guest-teacup,
+body[data-world-id="cbi"][data-world-location="home"] .room-jane .cbi-guest-teapot{background:#5BA66B;opacity:.09}
 @media(max-width:400px){.cbi-office-wrap{max-width:320px}}
 @media(min-width:700px){.cbi-office-wrap{width:min(460px,calc((100dvh - 103px)*.6),calc(100vw - 390px));max-width:none;align-self:start}.cbi-office{aspect-ratio:18/11}}
 @media(min-width:900px) and (orientation:landscape){.cbi-office-wrap{width:var(--desktop-map-width)}}
@@ -801,7 +812,12 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-home-trigger{display:
         <div class="room-label">Bathroom</div>
         <div class="furniture cbi-bath-window"></div><div class="furniture cbi-bath-tub"></div>
         <div class="furniture cbi-bath-sink"></div><div class="furniture cbi-bath-toilet"></div>
-        <div class="furniture cbi-bath-washer"></div><div class="furniture cbi-bath-mat"></div>
+        <div class="furniture cbi-bath-mat"></div>
+      </div>
+    </div>
+    <div class="room-box cbi-laundry-room" id="cbiLaundryRoom">
+      <div class="room-inner">
+        <div class="furniture cbi-laundry-stack"></div>
       </div>
     </div>
     <div class="room-box cbi-kitchen-room" id="cbiKitchenRoom">
@@ -809,8 +825,7 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-home-trigger{display:
         <div class="room-label">厨房</div>
         <div class="furniture cbi-kitchen-window"></div><div class="furniture cbi-kitchen-counter"></div>
         <div class="furniture cbi-kitchen-shelf"></div><div class="furniture cbi-kitchen-fridge"></div>
-        <div class="furniture cbi-kitchen-island"></div><div class="furniture cbi-kitchen-sink"></div>
-        <div class="furniture cbi-kitchen-stove"></div><div class="furniture cbi-kitchen-entry"></div>
+        <div class="furniture cbi-kitchen-sink"></div><div class="furniture cbi-kitchen-stove"></div>
       </div>
     </div>
   </div>
