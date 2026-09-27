@@ -329,6 +329,7 @@ body[data-world-id="cbi"] .cbi-weather-divider{color:#e1e1e1}
 
 /* ── Entry drag-reorder ── */
 .entry-grid[data-section] .entry-card{-webkit-touch-callout:none;-webkit-user-drag:none;user-select:none;-webkit-user-select:none}
+@media(max-width:699px){.entry-grid[data-section] .entry-card{touch-action:none}}
 .entry-grid.drag-active .entry-card{transition:transform 0.2s,opacity 0.15s}
 .entry-card.dragging{opacity:0.3;transform:scale(0.9)}
 .entry-card.drag-over-before .entry-icon,.entry-card.drag-over-after .entry-icon{border-color:#9eb1ff;background:#f7f8ff}
@@ -3006,8 +3007,8 @@ window.addEventListener('resize',function(){
 // ENTRY DRAG-REORDER (mobile long-press + desktop drag)
 // ══════════════════════════════════════
 (function(){
-  var LONG_PRESS_MS = 500;
-  var MOVE_CANCEL_PX = 10;
+  var LONG_PRESS_MS = 420;
+  var MOVE_CANCEL_PX = 14;
   var grids = document.querySelectorAll('.entry-grid[data-section]');
   var canonicalOrders = {};
   var ghost = null;
@@ -3213,7 +3214,7 @@ window.addEventListener('resize',function(){
       var t = e.touches[0];
       if(!isDragging){
         // if moved too far before long-press fires, cancel
-        if(Math.abs(t.clientX - startX) > 10 || Math.abs(t.clientY - startY) > 10){
+        if(Math.abs(t.clientX - startX) > MOVE_CANCEL_PX || Math.abs(t.clientY - startY) > MOVE_CANCEL_PX){
           clearTimeout(longTimer);
           longTimer=null;
         }
@@ -3239,7 +3240,7 @@ window.addEventListener('resize',function(){
     });
 
     grid.addEventListener('contextmenu',function(e){
-      if(isDragging&&e.target.closest('.entry-card'))e.preventDefault();
+      if((isDragging||longTimer!==null)&&e.target.closest('.entry-card'))e.preventDefault();
     });
   });
 

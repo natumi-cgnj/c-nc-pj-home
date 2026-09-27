@@ -472,3 +472,11 @@ test('desktop shortcut long-press drag survives early mouse movement and pointer
   assert.match(reorder, /function releasePointerCapture\(\)/);
   assert.doesNotMatch(reorder, /MOVE_CANCEL_PX/);
 });
+
+test('mobile entry icons keep long-press reorder ahead of browser gestures', () => {
+  assert.match(index, /@media\(max-width:699px\)\{\.entry-grid\[data-section\] \.entry-card\{touch-action:none\}\}/);
+  assert.match(index, /var LONG_PRESS_MS = 420;/);
+  assert.match(index, /var MOVE_CANCEL_PX = 14;/);
+  assert.match(index, /Math\.abs\(t\.clientX - startX\) > MOVE_CANCEL_PX/);
+  assert.match(index, /\(isDragging\|\|longTimer!==null\).*?contextmenu|contextmenu[\s\S]*?\(isDragging\|\|longTimer!==null\)/);
+});
