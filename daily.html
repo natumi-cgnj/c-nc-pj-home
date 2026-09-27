@@ -179,7 +179,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .aff-row{display:flex;gap:8px}
 .aff-row>div{flex:1}
 </style>
-<link rel="stylesheet" href="task-modules.css?v=20260916-checkin-reward1">
+<link rel="stylesheet" href="task-modules.css?v=20260927-checkin-history1">
 <style>
 /* CBI check-in: keep the wallet visual rhythm without changing other task pages. */
 .task-module[data-cbi-habits="1"] .status-bar{
@@ -240,6 +240,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   border-radius:10px;
   color:#bbb;
 }
+.category-manager-list{display:flex;flex-direction:column;gap:8px;margin:4px 0 12px}
+.category-manager-row{display:flex;align-items:center;gap:7px}
+.category-manager-row input{flex:1;min-width:0}
+.category-manager-order{display:flex;gap:2px;flex-shrink:0}
+.category-manager-order button,.category-manager-remove{width:28px;height:32px;border:0;background:none;color:#aaa;font-size:14px;cursor:pointer;font-family:inherit}
+.category-manager-order button:disabled{color:#ddd;cursor:default}
+.category-manager-remove{font-size:17px;color:#bbb}
+.category-manager-empty{font-size:11px;color:#ccc;text-align:center;padding:12px 0}
+.category-manager-actions{display:flex;gap:8px;margin-top:8px}.category-manager-actions button{flex:1}
 </style>
 </head>
 <body class="task-module">
@@ -326,6 +335,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   </div>
 </div>
 
+<div class="modal-bg" id="habitSectionManagerModal">
+  <div class="modal">
+    <h2>分类管理</h2>
+    <div class="category-manager-list" id="habitSectionManagerList"></div>
+    <button type="button" class="add-inline" onclick="addHabitSectionDraft()">+ 添加分类</button>
+    <div class="category-manager-actions"><button type="button" class="btn-s" onclick="closeModal('habitSectionManagerModal');showModal('exportModal')">备份</button></div>
+    <div class="btn-row">
+      <button class="btn btn-cancel" type="button" onclick="closeModal('habitSectionManagerModal')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="saveHabitSectionManager()">保存</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="detailModal">
   <div class="modal">
     <h2 id="detailTitle"></h2>
@@ -357,8 +379,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 <script src="world-context.js?v=20260913-cbi-room-label1"></script>
 <script src="cloud-sync.js?v=20260914-home-badge1"></script>
-<script src="cbi-data.js?v=20260920-suitcase4"></script>
-<script src="cbi-checkin-rewards.js?v=20260916-checkin-reward1"></script>
+<script src="cbi-data.js?v=20260927-checkin-categories1"></script>
+<script src="cbi-checkin-rewards.js?v=20260927-checkin-history1"></script>
 <script src="cbi-work.js?v=20260916-task-tabs1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
@@ -509,14 +531,22 @@ if(IS_CBI_HABITS&&window.CBIData){
   cbiDailyDb=CBIData.load();
   hdb={
     habits:cbiDailyDb.work.habits.map(h=>Object.assign({},h,{type:'count',interval:1})),
+    sections:Array.isArray(cbiDailyDb.work.habitSections)?cbiDailyDb.work.habitSections.slice():[],
     log:{},
     records:cbiDailyDb.work.habitRecords||{}
   };
 }else if(!IS_CBI_DAILY){try{hdb=JSON.parse(localStorage.getItem('habit_db'));}catch(e){hdb=null;}}
-if(!hdb)hdb={habits:[],log:{},records:{}};
+if(!hdb)hdb={habits:[],sections:[],log:{},records:{}};
 if(!Array.isArray(hdb.habits))hdb.habits=[];
+if(!Array.isArray(hdb.sections))hdb.sections=[];
 if(!hdb.log)hdb.log={};
 if(!hdb.records)hdb.records={};
+function collectHabitSections(){
+  const names=[];
+  [...hdb.sections,...hdb.habits.map(h=>h.section)].forEach(value=>{const name=String(value||'').trim();if(name&&!names.includes(name))names.push(name);});
+  return names;
+}
+hdb.sections=collectHabitSections();
 // Migrate old types
 hdb.habits.forEach(h=>{
   if(h.type==='timer'||h.type==='time'){
@@ -540,6 +570,7 @@ hdb.habits.forEach(h=>{
 Object.keys(hdb.log).forEach(date=>{const ids=Array.isArray(hdb.log[date])?hdb.log[date]:[];if(!hdb.records[date])hdb.records[date]={};ids.forEach(id=>{if(!hdb.records[date][id])hdb.records[date][id]={value:1,events:[]};});});
 function saveHabits(){
   if(IS_CBI_HABITS&&cbiDailyDb){
+    hdb.sections=collectHabitSections();
     cbiDailyDb.work.habits=hdb.habits.map(h=>({
       id:h.id,
       name:h.name,
@@ -550,6 +581,7 @@ function saveHabits(){
       salary:Math.max(0,Math.floor(Number(h.salary)||0)),
       createdAt:h.createdAt||new Date().toISOString()
     }));
+    cbiDailyDb.work.habitSections=hdb.sections.slice();
     cbiDailyDb.work.habitRecords=hdb.records;
     cbiDailyDb=CBIData.save(cbiDailyDb)||cbiDailyDb;
     return;
@@ -849,6 +881,41 @@ function toggleHabitSection(type,section){
   render();
 }
 
+let habitSectionDrafts=[],habitSectionManagerOriginals=[];
+function openHabitSectionManager(){
+  habitSectionManagerOriginals=collectHabitSections();
+  habitSectionDrafts=habitSectionManagerOriginals.map(name=>({original:name,name}));
+  renderHabitSectionDrafts();
+  showModal('habitSectionManagerModal');
+}
+function renderHabitSectionDrafts(){
+  const list=document.getElementById('habitSectionManagerList');
+  list.innerHTML=habitSectionDrafts.length?habitSectionDrafts.map((draft,index)=>'<div class="category-manager-row"><div class="category-manager-order"><button type="button" aria-label="上移分类" '+(index===0?'disabled':'')+' onclick="moveHabitSectionDraft('+index+',-1)">↑</button><button type="button" aria-label="下移分类" '+(index===habitSectionDrafts.length-1?'disabled':'')+' onclick="moveHabitSectionDraft('+index+',1)">↓</button></div><input type="text" value="'+escHtml(draft.name)+'" placeholder="分类名" oninput="habitSectionDrafts['+index+'].name=this.value"><button type="button" class="category-manager-remove" aria-label="删除分类" onclick="removeHabitSectionDraft('+index+')">×</button></div>').join(''):'<div class="category-manager-empty">暂无自定义分类</div>';
+}
+function moveHabitSectionDraft(index,delta){
+  const target=index+delta;if(target<0||target>=habitSectionDrafts.length)return;
+  const moved=habitSectionDrafts.splice(index,1)[0];habitSectionDrafts.splice(target,0,moved);renderHabitSectionDrafts();
+}
+function addHabitSectionDraft(){
+  habitSectionDrafts.push({original:'',name:''});renderHabitSectionDrafts();
+  const inputs=document.querySelectorAll('#habitSectionManagerList input');const last=inputs[inputs.length-1];if(last&&last.focus)last.focus();
+}
+function removeHabitSectionDraft(index){habitSectionDrafts.splice(index,1);renderHabitSectionDrafts();}
+function registerHabitSection(value){
+  const name=String(value||'').trim();if(!name)return;
+  hdb.sections=collectHabitSections();if(!hdb.sections.includes(name))hdb.sections.push(name);
+}
+function saveHabitSectionManager(){
+  const names=habitSectionDrafts.map(draft=>String(draft.name||'').trim()).filter(Boolean);
+  if(new Set(names).size!==names.length){showHabitNotice('分类名不能重复');return;}
+  const mapping=new Map();habitSectionManagerOriginals.forEach(original=>{const draft=habitSectionDrafts.find(entry=>entry.original===original);mapping.set(original,draft?String(draft.name||'').trim():'');});
+  hdb.habits.forEach(habit=>{const current=String(habit.section||'').trim();if(mapping.has(current))habit.section=mapping.get(current);});
+  const collapsed=loadHabitSectionCollapsed(),nextCollapsed={};
+  Object.keys(collapsed).forEach(key=>{const split=key.indexOf('\u0000');const type=split>=0?key.slice(0,split):'all';const section=split>=0?key.slice(split+1):key;const mapped=mapping.has(section)?mapping.get(section):section;if(mapped)nextCollapsed[habitSectionStateKey(type,mapped)]=true;});
+  try{localStorage.setItem(HABIT_SECTION_COLLAPSE_KEY,JSON.stringify(nextCollapsed));}catch(e){}
+  hdb.sections=names;saveHabits();closeModal('habitSectionManagerModal');render();showHabitNotice('分类已更新');
+}
+
 function renderHabitGroup(type){
   const habits=IS_CBI_HABITS?hdb.habits:hdb.habits.filter(h=>(h.type||'count')===type);
   let html='<div class="habit-section">';
@@ -862,7 +929,10 @@ function renderHabitGroup(type){
     const byName=new Map();
     habits.forEach(h=>{const name=habitSectionName(h);let group=byName.get(name);if(!group){group={name,items:[]};byName.set(name,group);groups.push(group);}group.items.push(h);});
     const collapsedState=loadHabitSectionCollapsed();
-    groups.forEach((group,index)=>{
+    const orderedGroups=[];
+    collectHabitSections().forEach(name=>{const group=byName.get(name);if(group&&!orderedGroups.includes(group))orderedGroups.push(group);});
+    groups.forEach(group=>{if(!orderedGroups.includes(group))orderedGroups.push(group);});
+    orderedGroups.forEach((group,index)=>{
       const sortId='habitSort_'+type+'_'+index;
       const collapsed=!!collapsedState[habitSectionStateKey(type,group.name)];
       html+='<div class="habit-group'+(collapsed?' collapsed':'')+'"><button type="button" class="habit-group-header" data-habit-type="'+escHtml(type)+'" data-habit-section="'+escHtml(group.name)+'" aria-expanded="'+(!collapsed)+'" onclick="toggleHabitSection(this.dataset.habitType,this.dataset.habitSection)"><span class="habit-group-line"></span><span class="habit-group-label">'+escHtml(group.name)+'</span><span class="habit-group-count">'+group.items.length+'</span><span class="habit-group-arrow">▼</span><span class="habit-group-line"></span></button><div class="habit-group-items'+(collapsed?' collapsed':'')+'" id="'+sortId+'">';
@@ -975,8 +1045,7 @@ function setHabitType(type,force=false){
 }
 function updateHabitSectionOptions(){
   const list=document.getElementById('habitSectionOptions');if(!list)return;
-  const names=[];
-  hdb.habits.forEach(h=>{const name=String(h.section||'').trim();if(name&&!names.includes(name))names.push(name);});
+  const names=collectHabitSections();
   list.innerHTML=names.map(name=>'<option value="'+escHtml(name)+'"></option>').join('');
 }
 function openAddHabit(type='count'){
@@ -1026,6 +1095,7 @@ function saveHabit(){
   const coffee=IS_CBI_HABITS?0:Math.max(0,Math.min(100,salary));
   const tea=IS_CBI_HABITS?0:Math.max(0,Math.min(100,parseInt(document.getElementById('habitTea').value)||0));
   const interval=IS_CBI_HABITS?1:Math.max(1,Math.min(30,parseInt(document.getElementById('habitInterval').value)||1));
+  if(IS_CBI_HABITS)registerHabitSection(section);
   if(editingHabitId){
     const h=hdb.habits.find(x=>x.id===editingHabitId);
     if(h){h.name=name;h.description=description;if(IS_CBI_HABITS||getHabitTotal(h.id)===0)h.type=type;if(IS_CBI_HABITS){h.salary=salary;h.section=section;}else{h.coffee=coffee;h.tea=tea;}h.interval=interval;}
@@ -1170,11 +1240,11 @@ function prepareCbiHabitPage(){
   currentTab='habits';
   document.title='Check-in · CBI';
   const title=document.querySelector('.top-bar h1');
-  if(title)title.textContent='CHECK-IN';
+  if(title)title.remove();
   const tabs=document.querySelector('.tabs');
   if(tabs)tabs.style.display='none';
   const utility=document.querySelector('.top-bar .btn-s');
-  if(utility)utility.remove();
+  if(utility){utility.textContent='编辑';utility.onclick=openHabitSectionManager;}
   const salaryInput=document.getElementById('habitCoffee');
   if(salaryInput){
     salaryInput.removeAttribute('max');

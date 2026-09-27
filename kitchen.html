@@ -124,8 +124,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .btn-cancel{background:#f0f0f0;color:#666}
 .btn-del{background:#fff;color:#D85A30;border:1px solid #f0d0c0}
 .category-manager-list{display:flex;flex-direction:column;gap:8px;margin:4px 0 12px}
-.category-manager-row{display:flex;align-items:center;gap:8px}
-.category-manager-row input{flex:1}
+.category-manager-row{display:flex;align-items:center;gap:7px}
+.category-manager-row input{flex:1;min-width:0}
+.category-manager-order{display:flex;gap:2px;flex-shrink:0}
+.category-manager-order button{width:28px;height:32px;border:0;background:none;color:#aaa;font-size:14px;cursor:pointer;font-family:inherit}
+.category-manager-order button:disabled{color:#ddd;cursor:default}
 .category-manager-remove{width:32px;height:32px;border:0;background:none;color:#bbb;font-size:17px;cursor:pointer;font-family:inherit}
 .category-manager-empty{font-size:11px;color:#ccc;text-align:center;padding:12px 0}
 .category-manager-actions{display:flex;gap:8px;margin-top:8px}.category-manager-actions button{flex:1}
@@ -1002,8 +1005,11 @@ function renderProjects(){
     categoryGroups.get(category).push(p);
   });
   const collapsed=new Set(readCollapsedProjectCategories());
+  const orderedCategories=readProjectCategories();
+  categoryGroups.forEach((group,category)=>{if(!orderedCategories.includes(category))orderedCategories.push(category);});
   let html='';
-  categoryGroups.forEach((group,category)=>{
+  orderedCategories.forEach(category=>{
+    const group=categoryGroups.get(category);if(!group)return;
     const isCollapsed=collapsed.has(category);
     html+=`<button type="button" class="project-category-header${isCollapsed?' collapsed':''}" data-category="${esc(category)}" aria-expanded="${isCollapsed?'false':'true'}" onclick="toggleProjectCategory(this.dataset.category)">
       <span class="project-category-line"></span>
@@ -1680,8 +1686,9 @@ function writeProjectCategories(categories){localStorage.setItem(PROJECT_CATEGOR
 function registerProjectCategory(value){const name=String(value||'').trim();if(!name||name===DEFAULT_PROJECT_CATEGORY)return;const categories=readProjectCategories();if(!categories.includes(name)){categories.push(name);writeProjectCategories(categories);}}
 function openProjectCategoryManager(){projectCategoryManagerOriginals=readProjectCategories();projectCategoryDrafts=projectCategoryManagerOriginals.map(name=>({original:name,name}));renderProjectCategoryDrafts();openModal('projectCategoryManagerModal');}
 function renderProjectCategoryDrafts(){
-  const list=document.getElementById('projectCategoryManagerList');list.innerHTML=projectCategoryDrafts.length?projectCategoryDrafts.map((draft,index)=>`<div class="category-manager-row"><input type="text" value="${esc(draft.name)}" placeholder="分类名" oninput="projectCategoryDrafts[${index}].name=this.value"><button type="button" class="category-manager-remove" aria-label="删除分类" onclick="removeProjectCategoryDraft(${index})">×</button></div>`).join(''):'<div class="category-manager-empty">暂无自定义分类</div>';
+  const list=document.getElementById('projectCategoryManagerList');list.innerHTML=projectCategoryDrafts.length?projectCategoryDrafts.map((draft,index)=>`<div class="category-manager-row"><div class="category-manager-order"><button type="button" aria-label="上移分类" ${index===0?'disabled':''} onclick="moveProjectCategoryDraft(${index},-1)">↑</button><button type="button" aria-label="下移分类" ${index===projectCategoryDrafts.length-1?'disabled':''} onclick="moveProjectCategoryDraft(${index},1)">↓</button></div><input type="text" value="${esc(draft.name)}" placeholder="分类名" oninput="projectCategoryDrafts[${index}].name=this.value"><button type="button" class="category-manager-remove" aria-label="删除分类" onclick="removeProjectCategoryDraft(${index})">×</button></div>`).join(''):'<div class="category-manager-empty">暂无自定义分类</div>';
 }
+function moveProjectCategoryDraft(index,delta){const target=index+delta;if(target<0||target>=projectCategoryDrafts.length)return;const moved=projectCategoryDrafts.splice(index,1)[0];projectCategoryDrafts.splice(target,0,moved);renderProjectCategoryDrafts();}
 function addProjectCategoryDraft(){projectCategoryDrafts.push({original:'',name:''});renderProjectCategoryDrafts();const inputs=document.querySelectorAll('#projectCategoryManagerList input');const last=inputs[inputs.length-1];if(last&&last.focus)last.focus();}
 function removeProjectCategoryDraft(index){projectCategoryDrafts.splice(index,1);renderProjectCategoryDrafts();}
 function saveProjectCategoryManager(){

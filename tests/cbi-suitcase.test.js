@@ -141,6 +141,6 @@ test('suitcase page exposes four direct size taps, inventory redemption, collect
 test('every page that can save CBI data loads the suitcase-aware data model', () => {
   for (const page of cbiDataPages) {
     const html = fs.readFileSync(page, 'utf8');
-    assert.match(html, /cbi-data\.js\?v=20260920-suitcase4/, page);
+    assert.match(html, /cbi-data\.js\?v=20260927-checkin-categories1/, page);
   }
 });

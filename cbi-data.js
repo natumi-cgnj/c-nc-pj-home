@@ -298,6 +298,7 @@
       commissionGems: 0,
       affinity: affinityMap(),
       habits: [],
+      habitSections: [],
       habitRecords: {},
       checkinRewardLog: [],
       actions: [],
@@ -1045,6 +1046,11 @@
   function normalizeWork(value) {
     var source = value && typeof value === 'object' ? value : {};
     var defaults = emptyWork();
+    var habits = Array.isArray(source.habits) ? source.habits.map(normalizeHabit).filter(function (item) { return item.name; }) : [];
+    var habitSections = uniqueList(source.habitSections);
+    habits.forEach(function (habit) {
+      if (habit.section && habitSections.indexOf(habit.section) < 0) habitSections.push(habit.section);
+    });
     var deployments = {};
     if (source.deployments && typeof source.deployments === 'object') {
       Object.keys(source.deployments).forEach(function (dateKey) {
@@ -1066,7 +1072,8 @@
       salary: Math.max(0, Math.floor(number(source.salary, 0))),
       commissionGems: Math.max(0, Math.floor(number(source.commissionGems, 0))),
       affinity: affinityMap(source.affinity),
-      habits: Array.isArray(source.habits) ? source.habits.map(normalizeHabit).filter(function (item) { return item.name; }) : [],
+      habits: habits,
+      habitSections: habitSections,
       habitRecords: normalizeHabitRecords(source.habitRecords),
       checkinRewardLog: Array.isArray(source.checkinRewardLog) ? source.checkinRewardLog.map(normalizeCheckinRewardLogItem).filter(function (item) { return item.itemId && item.line; }) : [],
       actions: Array.isArray(source.actions) ? source.actions.map(normalizeAction).filter(function (item) { return item.title; }) : [],

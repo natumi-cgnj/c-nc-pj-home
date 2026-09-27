@@ -83,6 +83,8 @@ test('refreshing an item spends ten check-in points and saves its dynamic', () =
   assert.equal(second.ok, true);
   assert.equal(second.db.work.salary, 5);
   assert.match(second.entry.line, /Rollbahn/);
+  assert.equal(second.db.work.checkinRewardLog[0].line, 'Boss把本子翻到了新的一页。');
+  assert.equal(second.db.work.checkinRewardLog[1].line, second.entry.line);
 
   const blocked = CBIData.spendCheckinReward(second.db, 'boss_item', new Date('2026-09-16T14:00:00Z'));
   assert.equal(blocked.ok, false);
@@ -97,13 +99,17 @@ test('check-in module exposes REWARD then CHECK in a fixed bottom tab bar', () =
   const sharedCss = fs.readFileSync('task-modules.css', 'utf8');
   const rewardIndex = rewardUi.indexOf('data-checkin-view="reward">REWARD');
   const checkIndex = rewardUi.indexOf('data-checkin-view="check">CHECK');
-  assert.match(daily, /cbi-checkin-rewards\.js\?v=20260916-checkin-reward1/);
+  assert.match(daily, /cbi-checkin-rewards\.js\?v=20260927-checkin-history1/);
   assert.ok(rewardIndex >= 0 && checkIndex > rewardIndex);
   assert.match(rewardUi, /var PEOPLE = \[/);
   for (const id of ['boss', 'jane', 'cho', 'rigsby', 'lisbon', 'vanpelt']) {
     assert.match(rewardUi, new RegExp("id: '" + id + "'"));
   }
   assert.match(rewardUi, /global\.CBIData\.dailyRewardItems\(db\)/);
+  assert.match(rewardUi, /function historyMarkup\(\)/);
+  assert.match(rewardUi, /checkinRewardLog \|\| \[\]\)\.slice\(0, -1\)\.reverse\(\)/);
+  assert.match(rewardUi, /latestMarkup\(\)\s*\+ historyMarkup\(\)/);
+  assert.match(sharedCss, /\.task-module \.checkin-history\{/);
   assert.match(sharedCss, /\.task-module \.task-bottom-tabs\{/);
   assert.match(sharedCss, /\.task-module \.checkin-cabinet\{/);
 });

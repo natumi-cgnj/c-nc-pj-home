@@ -105,6 +105,29 @@
       + '</section>';
   }
 
+  function historyStamp(value) {
+    var date = new Date(value);
+    if (isNaN(date.getTime())) return '';
+    return String(date.getMonth() + 1).padStart(2, '0') + '.' + String(date.getDate()).padStart(2, '0')
+      + ' ' + String(date.getHours()).padStart(2, '0') + ':' + String(date.getMinutes()).padStart(2, '0');
+  }
+
+  function historyMarkup() {
+    var entries = (db.work.checkinRewardLog || []).slice(0, -1).reverse();
+    if (!entries.length) return '';
+    var rows = entries.map(function (entry) {
+      var person = personById(entry.characterId);
+      var stamp = historyStamp(entry.createdAt);
+      return '<article class="checkin-history-item" style="--person-color:' + person.color + '">'
+        + '<div class="checkin-history-meta">' + esc(person.name) + (stamp ? ' · ' + stamp : '') + '</div>'
+        + '<div class="checkin-history-name">' + esc(entry.itemName) + '</div>'
+        + '<div class="checkin-history-line">' + esc(entry.line) + '</div>'
+        + '</article>';
+    }).join('');
+    return '<details class="checkin-history"><summary><span>动态历史</span><span>' + entries.length + ' 条</span></summary>'
+      + '<div class="checkin-history-list">' + rows + '</div></details>';
+  }
+
   function itemMarkup(item, counts) {
     var image = item.image
       ? '<img src="' + esc(item.image) + '" alt="">'
@@ -140,6 +163,7 @@
     }).join('');
     var content = document.getElementById('content');
     content.innerHTML = latestMarkup()
+      + historyMarkup()
       + '<div class="checkin-reward-head"><span>日常购入</span><span>' + items.length + ' 件</span></div>'
       + '<div class="checkin-cabinets">' + cabinets + '</div>'
       + (!items.length ? '<a class="checkin-reward-shop-link" href="shop.html">前往商城</a>' : '');

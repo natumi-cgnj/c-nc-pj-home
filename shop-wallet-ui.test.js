@@ -126,7 +126,7 @@ test('Rewards dynamics preserves its shared entry and hands CBI to check-in rewa
 test('every page that writes CBI data loads the current schema cache version', () => {
   for (const page of ['cbi.html', 'daily.html', 'schedule.html', 'wallet.html', 'shop.html', 'dynamics.html']) {
     const html = fs.readFileSync(page, 'utf8');
-    assert.match(html, /cbi-data\.js\?v=20260916-checkin-reward1/, page);
+    assert.match(html, /cbi-data\.js\?v=20260927-checkin-categories1/, page);
   }
 });
 

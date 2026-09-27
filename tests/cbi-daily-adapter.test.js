@@ -33,7 +33,7 @@ function createHarness() {
   const count = { id: 'count_1', name: '上架一件闲置', section: '消耗', description: '完成一件登记一次', type: 'count', interval: 1, salary: 25 };
   const ungrouped = { id: 'count_2', name: '临时记录', description: '', type: 'count', interval: 1, salary: 5 };
   const localStorage = new MemoryStorage({
-    cbi_db: JSON.stringify({ work: { salary: 120, habits: [interval, count, ungrouped], habitRecords: {} } })
+    cbi_db: JSON.stringify({ work: { salary: 120, habits: [interval, count, ungrouped], habitSections: ['消耗', '整理'], habitRecords: {} } })
   });
 
   const salaryLabel = element({ textContent: '咖啡豆' });
@@ -57,16 +57,21 @@ function createHarness() {
     habitRewardHint: element(),
     habitCoffee: element({ parentElement: salaryWrap }),
     habitTea: element({ parentElement: teaWrap }),
-    habitInterval: element()
+    habitInterval: element(),
+    habitSectionManagerList: element(),
+    habitSectionManagerModal: element(),
+    exportModal: element()
   };
   const tabs = element();
   const utility = element();
+  const title = element();
   const document = {
     body: element(),
     getElementById(id) { return nodes[id] || element(); },
     querySelector(selector) {
       if (selector === '.tabs') return tabs;
       if (selector === '.top-bar .btn-s') return utility;
+      if (selector === '.top-bar h1') return title;
       return null;
     },
     querySelectorAll() { return []; }
@@ -100,15 +105,17 @@ function createHarness() {
     .map((match) => match[1])
     .find((block) => block.includes('const IS_CBI_DAILY'));
   assert.ok(inline, 'daily inline script should be extractable');
-  vm.runInContext(inline + '\nglobalThis.__daily={recordHabitProgress,undoHabitProgress,switchHabitSub,toggleHabitSection,openEditHabit,saveHabit};', context, { filename: 'daily-inline.js' });
-  return { context, localStorage, nodes, tabs, utility, salaryLabel, teaWrap };
+  vm.runInContext(inline + '\nglobalThis.__daily={recordHabitProgress,undoHabitProgress,switchHabitSub,toggleHabitSection,openEditHabit,saveHabit,openHabitSectionManager,moveHabitSectionDraft,saveHabitSectionManager};', context, { filename: 'daily-inline.js' });
+  return { context, localStorage, nodes, tabs, utility, title, salaryLabel, teaWrap };
 }
 
 test('CBI check-ins use one repeatable list and award points on every tap', () => {
-  const { context, localStorage, nodes, tabs, utility, salaryLabel, teaWrap } = createHarness();
+  const { context, localStorage, nodes, tabs, utility, title, salaryLabel, teaWrap } = createHarness();
   assert.equal(context.document.body.dataset.cbiHabits, '1');
   assert.equal(tabs.style.display, 'none');
-  assert.equal(utility.removed, true);
+  assert.equal(title.removed, true);
+  assert.equal(utility.textContent, '编辑');
+  assert.equal(typeof utility.onclick, 'function');
   assert.equal(salaryLabel.textContent, '点数');
   assert.equal(teaWrap.style.display, 'none');
   assert.equal(nodes.habitSectionRow.style.display, 'block');
@@ -119,6 +126,7 @@ test('CBI check-ins use one repeatable list and award points on every tap', () =
   assert.match(nodes.content.innerHTML, /class="habit-group-label">整理</);
   assert.match(nodes.content.innerHTML, /class="habit-group-label">消耗</);
   assert.match(nodes.content.innerHTML, /class="habit-group-label">未分栏</);
+  assert.ok(nodes.content.innerHTML.indexOf('class="habit-group-label">消耗') < nodes.content.innerHTML.indexOf('class="habit-group-label">整理'));
   assert.doesNotMatch(nodes.content.innerHTML, /Routine|Times|距下次打卡|间隔天数/);
   assert.match(nodes.content.innerHTML, /class="habit-add-btn" onclick="recordHabitProgress\('interval_1',1\)"/);
   assert.ok(nodes.content.innerHTML.indexOf('class="habit-actions"') < nodes.content.innerHTML.indexOf('class="habit-body clickable-body"'));
@@ -136,6 +144,18 @@ test('CBI check-ins use one repeatable list and award points on every tap', () =
   assert.equal(records.reduce((sum, day) => sum + (day.count_1 && day.count_1.value || 0), 0), 1);
   assert.ok(saved.work.habits.every((habit) => habit.type === 'count' && habit.interval === 1));
   assert.equal(localStorage.getItem('habit_db'), null);
+});
+
+test('CBI category manager reorders sections and saves the order with CBI data', () => {
+  const { context, localStorage, nodes } = createHarness();
+  context.__daily.openHabitSectionManager();
+  assert.match(nodes.habitSectionManagerList.innerHTML, /上移分类/);
+  assert.ok(nodes.habitSectionManagerList.innerHTML.indexOf('消耗') < nodes.habitSectionManagerList.innerHTML.indexOf('整理'));
+  context.__daily.moveHabitSectionDraft(0, 1);
+  context.__daily.saveHabitSectionManager();
+  const saved = JSON.parse(localStorage.getItem('cbi_db'));
+  assert.deepEqual(saved.work.habitSections, ['整理', '消耗']);
+  assert.ok(nodes.content.innerHTML.indexOf('class="habit-group-label">整理') < nodes.content.innerHTML.indexOf('class="habit-group-label">消耗'));
 });
 
 test('CBI check-ins keep editable sections and remember local collapse state', () => {
