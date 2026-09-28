@@ -103,12 +103,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 #refModal .section-list{margin-top:8px;gap:0}
 #refModal .section-row{gap:6px;padding:8px 0;border-bottom:1px solid #f5f5f5;flex-wrap:wrap}
 #refModal .section-row input[type="text"]{flex:1 1 90px;min-width:70px;font-size:12px;padding:6px 8px;border-color:#e8e8e8;border-radius:6px}
-#refModal .section-row input[type="number"]{flex:0 0 46px;width:46px;min-width:0;font-size:12px;padding:6px 5px;border-color:#e8e8e8;border-radius:6px}
-#refModal .section-row select{width:56px;font-size:11px;padding:4px;border-color:#e8e8e8;border-radius:6px}
 #refModal .section-row .del-sec{font-size:11px;padding:4px}
 #refModal .section-row .ref-section-drag-handle{flex:0 0 14px;color:#d1d1d1;font-size:13px;line-height:1;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;text-align:center}
 #refModal .section-row.ref-sec-dragging{opacity:.42;background:#f8f8f8}
 #refModal .section-row.ref-sec-drag-over{box-shadow:0 -2px 0 0 #E8B96A}
+#refModal .ref-section-editor{padding:7px 0;border-bottom:1px solid #f1f1f1}
+#refModal .ref-section-editor:last-child{border-bottom:0}
+#refModal .ref-section-total{flex:0 0 auto;color:#bbb;font-size:10px;white-space:nowrap}
 #refModal .add-section-btn{font-size:11px;border-radius:6px;padding:6px 12px;margin-top:6px}
 #refModal .btn-row{gap:8px;margin-top:20px}
 #refModal .btn{font-size:14px}
@@ -124,10 +125,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 #viewRefDetail .section-divider-center,#viewItems .section-divider-center{display:flex;align-items:center;gap:6px;flex-shrink:0}
 #viewRefDetail .section-divider-arrow,#viewItems .section-divider-arrow{font-size:7px;color:#ccc;transition:transform .18s}
 #viewRefDetail .section-fold.collapsed .section-divider-arrow,#viewItems .section-fold.collapsed .section-divider-arrow{transform:rotate(-90deg)}
-#viewRefDetail .section-fold.collapsed>.ref-section-grid,#viewItems .section-fold.collapsed>.ref-section-grid{display:none}
+#viewRefDetail .section-fold.collapsed>.ref-section-rows,#viewItems .section-fold.collapsed>.ref-section-rows{display:none}
 #viewRefDetail .section-divider-label,#viewItems .section-divider-label{font-size:11px;color:#999;font-weight:500;letter-spacing:.3px;cursor:text;border-bottom:1px dashed transparent;transition:color .15s,border-color .15s}
 #viewRefDetail .section-divider-label:hover,#viewItems .section-divider-label:hover{color:#8B6914;border-bottom-color:#D8C18B}
-.ref-section-grid{display:grid;gap:8px;padding:8px 20px 16px}
+.ref-section-rows{display:flex;flex-direction:column;gap:8px;padding:8px 0 16px}
+.ref-section-rows:empty{display:none}
+.ref-section-grid{display:grid;gap:8px;padding:0 20px}
+.ref-item-grid>.ref-section-grid{padding-top:8px;padding-bottom:16px}
 .ref-section-grid:empty{display:none}
 .ref-item-slot{min-width:0;display:flex;flex-direction:column;align-self:start;gap:6px;cursor:pointer}
 .ref-item-cell{aspect-ratio:1;border-radius:10px;border:1.5px solid #e8e8e8;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;position:relative;overflow:hidden;background:#f5f5f5}
@@ -173,6 +177,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 #refItemModal .ref-food-modal .img-preview{width:100%;height:auto;max-height:240px;object-fit:contain;border-radius:8px;margin-top:8px;background:#f7f7f7}
 #refItemModal .ref-food-modal .btn-row,#refSectionQuickModal .ref-food-modal .btn-row{gap:8px;margin-top:20px}
 #refItemModal .ref-food-modal .btn,#refSectionQuickModal .ref-food-modal .btn{font-size:14px}
+#refSectionQuickModal .add-section-btn{margin-top:8px}
+
+.ref-row-editor{display:flex;flex-direction:column;gap:6px;margin-top:4px}
+.ref-layout-row{display:flex;align-items:center;gap:8px;padding:7px 9px;border:1px solid #eee;border-radius:8px;background:#fafafa}
+.ref-layout-row span{flex:1;color:#999;font-size:11px}
+.ref-layout-row select{width:92px!important;padding:6px 8px!important;font-size:12px!important;border-color:#e5e5e5!important;border-radius:7px}
+.ref-layout-row .del-sec{flex:0 0 auto}
+#refModal .ref-row-editor{margin:7px 0 0 20px}
+#refModal .ref-layout-row{padding:5px 7px}
+#refModal .ref-layout-row select{width:78px!important;padding:4px 6px!important;font-size:11px!important}
+#refModal .ref-add-row-btn{width:calc(100% - 20px);margin:6px 0 0 20px;padding:5px;border:1px dashed #e2e2e2;border-radius:7px;background:none;color:#bbb;font:11px inherit;cursor:pointer}
 
 /* Section list in modal */
 .section-list{display:flex;flex-direction:column;gap:6px;margin-bottom:6px}
@@ -319,12 +334,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <h2 id="refSectionQuickTitle">Edit Section</h2>
   <label>Name</label>
   <input type="text" id="inputQuickRefSectionName">
-  <label>Count</label>
-  <input type="number" id="inputQuickRefSectionCount" min="0" max="999">
-  <label>Columns</label>
-  <select id="inputQuickRefSectionCols">
-    <option value="2">2 columns</option><option value="3">3 columns</option><option value="4">4 columns</option><option value="5">5 columns</option><option value="6">6 columns</option>
-  </select>
+  <label>Rows</label>
+  <div class="ref-row-editor" id="quickRefSectionRows"></div>
+  <button class="add-section-btn" type="button" onclick="addQuickRefSectionRow()">+ Row</button>
   <div class="btn-row">
     <button class="btn btn-cancel" onclick="closeModal('refSectionQuickModal')">Cancel</button>
     <button class="btn btn-primary" onclick="saveGridSectionQuick()">Save</button>
@@ -349,6 +361,7 @@ let db={version:4,items:[],sections:[],lists:[],projectCategories:[],sectionColl
 let curRefId=null,curRefItemId=null,editRefId=null;
 let curGridItemScope='items',editGridScope='list',editGridSectionScope='list';
 let editRefItemId=null,editRefSectionIdx=null,_refSections=[];
+let quickRefSectionRows=[];
 let refSectionDragBound=false,refSectionPressState=null;
 let refIconTemp='',refIconPosTemp={x:50,y:50};
 let refLabelColor='#C4A24C';
@@ -415,6 +428,57 @@ function save(){localStorage.setItem(DB_KEY,JSON.stringify(db));}
 function gid(){return Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,6);}
 function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 function clampCols(value){return Math.max(2,Math.min(6,parseInt(value)||3));}
+function legacySectionRows(countValue,colsValue){
+  const rows=[],cols=clampCols(colsValue);let remaining=Math.max(0,parseInt(countValue)||0);
+  while(remaining>0){const count=Math.min(cols,remaining);rows.push({cols,count});remaining-=count;}
+  return rows;
+}
+function getSectionRows(section){
+  if(!section)return[];
+  const target=Math.max(0,parseInt(section.count)||0),fallback=clampCols(section.cols);
+  let rows=Array.isArray(section.rows)?section.rows.map(row=>{
+    const cols=clampCols(row&&typeof row==='object'?row.cols:row);
+    const raw=row&&typeof row==='object'?row.count:cols;
+    return{cols,count:Math.max(0,Math.min(cols,parseInt(raw)||0))};
+  }).filter(row=>row.count>0):[];
+  if(!rows.length)return legacySectionRows(target,fallback);
+  let total=rows.reduce((sum,row)=>sum+row.count,0);
+  if(total>target){
+    let remove=total-target;
+    for(let i=rows.length-1;i>=0&&remove>0;i--){const take=Math.min(rows[i].count,remove);rows[i].count-=take;remove-=take;}
+    rows=rows.filter(row=>row.count>0);
+  }else if(total<target){
+    let missing=target-total;
+    if(rows.length&&rows[rows.length-1].count<rows[rows.length-1].cols){const row=rows[rows.length-1],add=Math.min(missing,row.cols-row.count);row.count+=add;missing-=add;}
+    while(missing>0){const count=Math.min(fallback,missing);rows.push({cols:fallback,count});missing-=count;}
+  }
+  return rows;
+}
+function setSectionRows(section,rows){
+  const normalized=(Array.isArray(rows)?rows:[]).map(row=>{const cols=clampCols(row&&row.cols);return{cols,count:Math.max(0,Math.min(cols,parseInt(row&&row.count)||0))};}).filter(row=>row.count>0);
+  section.rows=normalized;section.count=normalized.reduce((sum,row)=>sum+row.count,0);section.cols=normalized.length?normalized[0].cols:clampCols(section.cols);return normalized;
+}
+function buildSectionRowDrafts(section,items){
+  const source=Array.isArray(items)?items:[],rows=getSectionRows(section),drafts=[];let offset=0;
+  rows.forEach(row=>{
+    const bucket=source.slice(offset,offset+row.count);offset+=row.count;
+    while(bucket.length<row.count)bucket.push(makeBlankRefItem(offset+bucket.length+1));
+    drafts.push({cols:row.cols,_items:bucket});
+  });
+  if(offset<source.length){
+    const extra=source.slice(offset),cols=clampCols(section&&section.cols);let extraOffset=0;
+    while(extraOffset<extra.length){const bucket=extra.slice(extraOffset,extraOffset+cols);drafts.push({cols,_items:bucket});extraOffset+=bucket.length;}
+  }
+  return drafts;
+}
+function flattenSectionRowDrafts(rows){return(Array.isArray(rows)?rows:[]).flatMap(row=>Array.isArray(row&&row._items)?row._items:[]);}
+function sectionRowsFromDrafts(rows){return(Array.isArray(rows)?rows:[]).map(row=>({cols:clampCols(row&&row.cols),count:Array.isArray(row&&row._items)?row._items.length:0})).filter(row=>row.count>0);}
+function makeSectionRowDraft(colsValue){const cols=clampCols(colsValue),items=[];for(let i=0;i<cols;i++)items.push(makeBlankRefItem(i+1));return{cols,_items:items};}
+function resizeSectionRowDraft(row,value){
+  if(!row)return false;const cols=clampCols(value),items=Array.isArray(row._items)?row._items.slice():[];
+  if(cols<items.length&&items.slice(cols).some(item=>!isBlankRefItem(item))){toast('先清空这一排末尾的已填写品目');return false;}
+  row.cols=cols;row._items=items.slice(0,cols);while(row._items.length<cols)row._items.push(makeBlankRefItem(row._items.length+1));return true;
+}
 function clampImagePosition(value){const n=Number(value);return Number.isFinite(n)?Math.max(0,Math.min(100,n)):50;}
 function normalizeRefColor(value){return /^#[0-9a-f]{6}$/i.test(String(value||''))?String(value):'#C4A24C';}
 function makeBlankRefItem(number){return{id:gid(),name:'Title '+number,img:'',usage:'',note:'',checked:false};}
@@ -435,9 +499,10 @@ function normalizeTechoData(){
   db.sections.forEach((sec,index)=>{
     if(!sec.id){sec.id=gid();changed=true;}
     if(!sec.name){sec.name='Section '+(index+1);changed=true;}
-    const count=Math.max(0,parseInt(sec.count)||0),cols=clampCols(sec.cols);
+    const count=Math.max(0,parseInt(sec.count)||0),cols=clampCols(sec.cols),rows=getSectionRows(sec);
     if(sec.count!==count){sec.count=count;changed=true;}
     if(sec.cols!==cols){sec.cols=cols;changed=true;}
+    if(JSON.stringify(sec.rows||[])!==JSON.stringify(rows)){sec.rows=rows;changed=true;}
     if(sec.order!==index){sec.order=index;changed=true;}
   });
   db.items.forEach((item,index)=>{
@@ -455,7 +520,7 @@ function normalizeTechoData(){
     const labelColor=normalizeRefColor(r.label&&r.label.color);
     if(!r.label||r.label.name!==labelName||r.label.color!==labelColor){r.label={name:labelName,color:labelColor};changed=true;}
     if(!Array.isArray(r.sections)){r.sections=[];changed=true;}
-    r.sections.forEach(sec=>{const cols=clampCols(sec.cols);if(sec.cols!==cols){sec.cols=cols;changed=true;}if(!Number.isFinite(parseInt(sec.count))){sec.count=0;changed=true;}});
+    r.sections.forEach(sec=>{const cols=clampCols(sec.cols),count=Math.max(0,parseInt(sec.count)||0),rows=getSectionRows(sec);if(sec.cols!==cols){sec.cols=cols;changed=true;}if(sec.count!==count){sec.count=count;changed=true;}if(JSON.stringify(sec.rows||[])!==JSON.stringify(rows)){sec.rows=rows;changed=true;}});
     if(!Array.isArray(r.items)){r.items=[];changed=true;}
     r.items.forEach((item,index)=>{
       if(!item.id){item.id=gid();changed=true;}
@@ -677,15 +742,23 @@ function openRefDetail(id,options){
   setupGridItemArrangeGestures('list');
   if(restoring)restoreDetailScroll(target);
 }
+function renderGridSectionRows(scope,project,section,offset){
+  const rows=getSectionRows(section);let used=0,html='<div class="ref-section-rows">';
+  rows.forEach((row,rowIndex)=>{
+    const items=project.items.slice(offset+used,offset+used+row.count);
+    html+=`<div class="ref-section-grid" data-section-row="${rowIndex}" style="grid-template-columns:repeat(${row.cols},1fr)">${items.map((item,itemOffset)=>renderGridItem(scope,project,item,offset+used+itemOffset)).join('')}</div>`;used+=row.count;
+  });
+  return html+'</div>';
+}
 function renderGridProject(scope,gridId){
   const project=getGridProject(scope);if(!project)return;
   let html='',offset=0;
   if(project.sections&&project.sections.length){
     project.sections.forEach((sec,sectionIdx)=>{
-      const count=Math.max(0,parseInt(sec.count)||0),cols=clampCols(sec.cols);
+      const count=Math.max(0,parseInt(sec.count)||0);
       const collapseKey=gridSectionCollapseKey(scope,project,sec,sectionIdx),collapsed=!!db.sectionCollapsed[collapseKey];
       html+=`<div class="section-fold${collapsed?' collapsed':''}"><button type="button" class="section-divider" data-section-key="${esc(collapseKey)}" aria-expanded="${collapsed?'false':'true'}" onclick="toggleGridSectionFold(this)"><span class="section-divider-line" aria-hidden="true"></span><span class="section-divider-center"><span class="section-divider-label" title="Double-click to edit section" ondblclick="event.stopPropagation();openGridSectionQuick('${scope}',${sectionIdx})">${esc(sec.name||('Section '+(sectionIdx+1)))}</span><span class="section-divider-arrow" aria-hidden="true">▼</span></span><span class="section-divider-line" aria-hidden="true"></span></button>`;
-      html+=`<div class="ref-section-grid" style="grid-template-columns:repeat(${cols},1fr)">${project.items.slice(offset,offset+count).map((item,itemOffset)=>renderGridItem(scope,project,item,offset+itemOffset)).join('')}</div></div>`;
+      html+=renderGridSectionRows(scope,project,sec,offset)+'</div>';
       offset+=count;
     });
   }
@@ -765,7 +838,7 @@ function openEditActiveGridItem(){if(curRefItemId)openEditGridItem(curGridItemSc
 function deleteGridItem(scope,index){
   const project=getGridProject(scope),item=project&&project.items[index];if(!item)return;
   if(typeof window.confirm==='function'&&!window.confirm(`Delete "${isGenericRefItemName(item.name)?'item '+(index+1):item.name}"?`))return;
-  const sectionIndex=getRefItemSectionIndex(project,index);if(sectionIndex>=0)project.sections[sectionIndex].count=Math.max(0,(parseInt(project.sections[sectionIndex].count)||0)-1);
+  const sectionIndex=getRefItemSectionIndex(project,index);if(sectionIndex>=0){const section=project.sections[sectionIndex],rowIndex=getSectionRowIndexAt(section,index-getRefSectionStartIndex(project,sectionIndex));adjustSectionRowCount(section,rowIndex,-1);}
   const scroll=currentScrollY();project.items.splice(index,1);renumberBlankRefItems(project);editRefItemId=null;refItemClickSuppressedUntil=Date.now()+400;save();refreshGridScope(scope,scroll);
 }
 function deleteRefGridItem(index){deleteGridItem('list',index);}
@@ -774,8 +847,17 @@ function moveGridItem(scope,fromIdx,toIdx){
   if(!project||fromIdx===toIdx||fromIdx<0||toIdx<0||fromIdx>=project.items.length||toIdx>=project.items.length)return false;
   const fromSection=getRefItemSectionIndex(project,fromIdx),toSection=getRefItemSectionIndex(project,toIdx),scroll=currentScrollY();
   if(fromSection!==toSection){
-    if(fromSection>=0)project.sections[fromSection].count=Math.max(0,(parseInt(project.sections[fromSection].count)||0)-1);
-    if(toSection>=0)project.sections[toSection].count=(parseInt(project.sections[toSection].count)||0)+1;
+    if(toSection>=0){
+      const placement=findSectionOpenPlacement(project,toSection);if(!placement){toast('请先在目标栏目新增一排');return false;}
+      if(placement.type==='replace'){
+        const blank=project.items[placement.index];project.items[placement.index]=project.items[fromIdx];project.items[fromIdx]=blank;renumberBlankRefItems(project);
+        editRefItemId=null;refItemClickSuppressedUntil=Date.now()+400;save();refreshGridScope(scope,scroll);return true;
+      }
+    }
+    if(fromSection>=0){const section=project.sections[fromSection],rowIndex=getSectionRowIndexAt(section,fromIdx-getRefSectionStartIndex(project,fromSection));adjustSectionRowCount(section,rowIndex,-1);}
+    const moved=project.items.splice(fromIdx,1)[0];
+    if(toSection>=0){const placement=findSectionOpenPlacement(project,toSection);if(!placement||placement.type!=='insert')return false;adjustSectionRowCount(project.sections[toSection],placement.rowIndex,1);project.items.splice(placement.index,0,moved);}else project.items.splice(Math.min(toIdx,project.items.length),0,moved);
+    renumberBlankRefItems(project);editRefItemId=null;refItemClickSuppressedUntil=Date.now()+400;save();refreshGridScope(scope,scroll);return true;
   }
   const moved=project.items.splice(fromIdx,1)[0];project.items.splice(toIdx,0,moved);renumberBlankRefItems(project);
   editRefItemId=null;refItemClickSuppressedUntil=Date.now()+400;save();refreshGridScope(scope,scroll);return true;
@@ -844,6 +926,23 @@ function getRefItemSectionIndex(r,itemIdx){
 function getRefSectionEndIndex(r,sectionIdx){
   let end=0;for(let i=0;i<=sectionIdx&&i<(r.sections||[]).length;i++)end+=Math.max(0,parseInt(r.sections[i].count)||0);return Math.min(end,r.items.length);
 }
+function getRefSectionStartIndex(r,sectionIdx){let start=0;for(let i=0;i<sectionIdx&&i<(r.sections||[]).length;i++)start+=Math.max(0,parseInt(r.sections[i].count)||0);return start;}
+function getSectionRowIndexAt(section,relativeIndex){
+  let end=0;const rows=getSectionRows(section);for(let i=0;i<rows.length;i++){end+=rows[i].count;if(relativeIndex<end)return i;}return rows.length-1;
+}
+function adjustSectionRowCount(section,rowIndex,delta){
+  const rows=getSectionRows(section);if(rowIndex<0||rowIndex>=rows.length)return false;
+  const next=rows[rowIndex].count+delta;if(next<0||next>rows[rowIndex].cols)return false;
+  rows[rowIndex].count=next;setSectionRows(section,rows);return true;
+}
+function findSectionOpenPlacement(project,sectionIndex){
+  const section=project&&project.sections&&project.sections[sectionIndex];if(!section)return null;
+  const start=getRefSectionStartIndex(project,sectionIndex),count=Math.max(0,parseInt(section.count)||0),end=Math.min(start+count,project.items.length);
+  for(let index=start;index<end;index++)if(isBlankRefItem(project.items[index]))return{type:'replace',index};
+  const rows=getSectionRows(section);let offset=0;
+  for(let rowIndex=0;rowIndex<rows.length;rowIndex++){const row=rows[rowIndex];if(row.count<row.cols)return{type:'insert',index:start+offset+row.count,rowIndex};offset+=row.count;}
+  return null;
+}
 function renumberBlankRefItems(r){(r.items||[]).forEach((item,index)=>{if(isBlankRefItem(item))item.name='Title '+(index+1);});}
 
 /* ── List CRUD ── */
@@ -854,7 +953,7 @@ function openAddRef(){
   document.getElementById('refIconInput').value='';
   const preview=document.getElementById('refIconPreview');preview.dataset.uploadToken='reset_'+Date.now();delete preview.dataset.uploading;preview.style.opacity='';preview.removeAttribute('src');preview.style.objectPosition='50% 50%';
   document.getElementById('refIconEditor').style.display='none';
-  _refSections=[{name:'',count:0,cols:3,_items:[]}];renderRefSections();renderRefColors();renderProjectCategoryOptions();
+  _refSections=[{name:'',count:0,cols:3,_items:[],_rows:[]}];renderRefSections();renderRefColors();renderProjectCategoryOptions();
   openModal('refModal');
 }
 function openEditRef(){
@@ -880,12 +979,21 @@ function buildRefSectionDrafts(r){
   sections.forEach((sec,index)=>{
     const count=Math.max(0,parseInt(sec.count)||0),items=r.items.slice(offset,offset+count);offset+=count;
     if(index===sections.length-1&&offset<r.items.length)items.push(...r.items.slice(offset));
-    drafts.push({name:sec.name||'',count:index===sections.length-1&&items.length>count?items.length:count,cols:clampCols(sec.cols),_items:items});
+    const layout=items.length===count?sec:Object.assign({},sec,{count:items.length}),draft={name:sec.name||'',count:items.length,cols:clampCols(sec.cols),_rows:buildSectionRowDrafts(layout,items)};
+    draft._items=flattenSectionRowDrafts(draft._rows);drafts.push(draft);
   });
   return drafts;
 }
-function refDraftHasSavedItems(sec){return!!(sec&&Array.isArray(sec._items)&&sec._items.some(item=>!isBlankRefItem(item)));}
-function setRefSectionDraftCount(index,value){const sec=_refSections[index];if(sec)sec.count=Math.max(0,parseInt(value)||0);}
+function syncRefSectionDraft(sec){
+  if(!sec)return;sec._items=flattenSectionRowDrafts(sec._rows);sec.count=sec._items.length;sec.cols=sec._rows&&sec._rows.length?clampCols(sec._rows[0].cols):clampCols(sec.cols);
+}
+function refDraftHasSavedItems(sec){return!!(sec&&flattenSectionRowDrafts(sec._rows).some(item=>!isBlankRefItem(item)));}
+function setRefSectionDraftCount(index,value){
+  const sec=_refSections[index];if(!sec)return;const requested=Math.max(0,parseInt(value)||0),source=flattenSectionRowDrafts(sec._rows),bucket=source.slice(0,requested);
+  for(let i=requested;i<source.length;i++)if(!isBlankRefItem(source[i]))bucket.push(source[i]);
+  while(bucket.length<requested)bucket.push(makeBlankRefItem(bucket.length+1));
+  sec._rows=buildSectionRowDrafts({count:bucket.length,cols:sec.cols||3},bucket);syncRefSectionDraft(sec);renderRefSections();
+}
 function removeRefSectionDraft(index){
   const sec=_refSections[index];if(!sec)return;
   const remove=()=>{_refSections.splice(index,1);renderRefSections();};
@@ -895,11 +1003,22 @@ function moveRefSectionDraft(fromIndex,toIndex){
   if(fromIndex===toIndex||fromIndex<0||toIndex<0||fromIndex>=_refSections.length||toIndex>=_refSections.length)return false;
   const moved=_refSections.splice(fromIndex,1)[0];_refSections.splice(toIndex,0,moved);renderRefSections();return true;
 }
+function refRowOptions(cols){return[2,3,4,5,6].map(n=>`<option value="${n}"${clampCols(cols)===n?' selected':''}>${n} col</option>`).join('');}
 function renderRefSections(){
-  document.getElementById('refSectionList').innerHTML=_refSections.map((s,i)=>`<div class="section-row" data-ref-sec-idx="${i}"><span class="ref-section-drag-handle" aria-label="Long press to reorder">⠿</span><input type="text" value="${esc(s.name||'')}" placeholder="Section" onchange="_refSections[${i}].name=this.value"><input type="number" value="${Math.max(0,parseInt(s.count)||0)}" min="0" max="999" aria-label="Item count" onchange="setRefSectionDraftCount(${i},this.value)"><select aria-label="Columns" onchange="_refSections[${i}].cols=parseInt(this.value)||3">${[2,3,4,5,6].map(n=>`<option value="${n}"${clampCols(s.cols)===n?' selected':''}>${n}col</option>`).join('')}</select><button type="button" class="del-sec" aria-label="Delete section" onclick="removeRefSectionDraft(${i})">×</button></div>`).join('');
+  document.getElementById('refSectionList').innerHTML=_refSections.map((s,i)=>{
+    syncRefSectionDraft(s);const rows=Array.isArray(s._rows)?s._rows:[];
+    return`<div class="ref-section-editor"><div class="section-row" data-ref-sec-idx="${i}"><span class="ref-section-drag-handle" aria-label="Long press to reorder">⠿</span><input type="text" value="${esc(s.name||'')}" placeholder="Section" onchange="_refSections[${i}].name=this.value"><span class="ref-section-total">${s.count} items</span><button type="button" class="del-sec" aria-label="Delete section" onclick="removeRefSectionDraft(${i})">×</button></div><div class="ref-row-editor">${rows.map((row,rowIndex)=>`<div class="ref-layout-row"><span>Row ${rowIndex+1}</span><select aria-label="Row ${rowIndex+1} columns" onchange="setRefSectionDraftRowCols(${i},${rowIndex},this.value)">${refRowOptions(row.cols)}</select><button type="button" class="del-sec" aria-label="Delete row ${rowIndex+1}" onclick="removeRefSectionDraftRow(${i},${rowIndex})">×</button></div>`).join('')}</div><button type="button" class="ref-add-row-btn" onclick="addRefSectionDraftRow(${i})">+ Row</button></div>`;
+  }).join('');
   initRefSectionDrag();
 }
-function addRefSectionRow(){_refSections.push({name:'',count:0,cols:3,_items:[]});renderRefSections();}
+function addRefSectionDraftRow(sectionIndex){const sec=_refSections[sectionIndex];if(!sec)return;sec._rows=sec._rows||[];sec._rows.push(makeSectionRowDraft(3));syncRefSectionDraft(sec);renderRefSections();}
+function setRefSectionDraftRowCols(sectionIndex,rowIndex,value){const sec=_refSections[sectionIndex],row=sec&&sec._rows&&sec._rows[rowIndex];if(!row)return;if(resizeSectionRowDraft(row,value))syncRefSectionDraft(sec);renderRefSections();}
+function removeRefSectionDraftRow(sectionIndex,rowIndex){
+  const sec=_refSections[sectionIndex],row=sec&&sec._rows&&sec._rows[rowIndex];if(!row)return;
+  if((row._items||[]).some(item=>!isBlankRefItem(item))){toast('先清空这一排的已填写品目');return;}
+  sec._rows.splice(rowIndex,1);syncRefSectionDraft(sec);renderRefSections();
+}
+function addRefSectionRow(){_refSections.push({name:'',count:0,cols:3,_items:[],_rows:[]});renderRefSections();}
 function initRefSectionDrag(){
   if(refSectionDragBound)return;const list=document.getElementById('refSectionList');if(!list)return;refSectionDragBound=true;
   list.addEventListener('pointerdown',event=>{
@@ -931,12 +1050,9 @@ function clearRefSectionPress(){
 function finalizeRefSectionDrafts(){
   const sections=[],items=[];let preserved=0;
   _refSections.forEach((draft,index)=>{
-    const name=String(draft.name||'').trim(),requested=Math.max(0,parseInt(draft.count)||0),source=Array.isArray(draft._items)?draft._items.slice():[];
-    if(!name&&!requested&&!source.length)return;
-    const bucket=source.slice(0,requested);
-    for(let i=requested;i<source.length;i++){if(!isBlankRefItem(source[i])){bucket.push(source[i]);preserved++;}}
-    while(bucket.length<requested)bucket.push(makeBlankRefItem(items.length+bucket.length+1));
-    sections.push({name:name||('Section '+(index+1)),count:bucket.length,cols:clampCols(draft.cols)});items.push(...bucket);
+    syncRefSectionDraft(draft);const name=String(draft.name||'').trim(),bucket=draft._items.slice(),rows=sectionRowsFromDrafts(draft._rows);
+    if(!name&&!bucket.length)return;
+    sections.push({name:name||('Section '+(index+1)),count:bucket.length,cols:rows.length?rows[0].cols:clampCols(draft.cols),rows});items.push(...bucket);
   });
   return{sections,items,preserved};
 }
@@ -962,28 +1078,38 @@ function saveRef(){
   save();closeModal('refModal');if(finalized.preserved)toast(`Kept ${finalized.preserved} filled item${finalized.preserved===1?'':'s'}`);if(editRefId)openRefDetail(editRefId,{restoreScroll:returnScroll});else renderRefList();
 }
 
+function renderQuickRefSectionRows(){
+  document.getElementById('quickRefSectionRows').innerHTML=quickRefSectionRows.map((row,index)=>`<div class="ref-layout-row"><span>Row ${index+1}</span><select aria-label="Row ${index+1} columns" onchange="setQuickRefSectionRowCols(${index},this.value)">${refRowOptions(row.cols)}</select><button type="button" class="del-sec" aria-label="Delete row ${index+1}" onclick="removeQuickRefSectionRow(${index})">×</button></div>`).join('');
+}
+function addQuickRefSectionRow(){quickRefSectionRows.push(makeSectionRowDraft(3));renderQuickRefSectionRows();}
+function setQuickRefSectionRowCols(index,value){const row=quickRefSectionRows[index];if(!row)return;resizeSectionRowDraft(row,value);renderQuickRefSectionRows();}
+function removeQuickRefSectionRow(index){
+  const row=quickRefSectionRows[index];if(!row)return;
+  if((row._items||[]).some(item=>!isBlankRefItem(item))){toast('先清空这一排的已填写品目');return;}
+  quickRefSectionRows.splice(index,1);renderQuickRefSectionRows();
+}
 function openGridSectionQuick(scope,index){
   const project=getGridProject(scope),sec=project&&project.sections&&project.sections[index];if(!sec)return;
   rememberGridScroll(scope);editGridSectionScope=scope;
+  let start=0;for(let i=0;i<index;i++)start+=Math.max(0,parseInt(project.sections[i].count)||0);
+  const count=Math.max(0,parseInt(sec.count)||0);quickRefSectionRows=buildSectionRowDrafts(sec,project.items.slice(start,start+count));
   editRefSectionIdx=index;document.getElementById('refSectionQuickTitle').textContent='Edit Section';
-  document.getElementById('inputQuickRefSectionName').value=sec.name||'';document.getElementById('inputQuickRefSectionCount').value=Math.max(0,parseInt(sec.count)||0);document.getElementById('inputQuickRefSectionCols').value=String(clampCols(sec.cols));openModal('refSectionQuickModal');
+  document.getElementById('inputQuickRefSectionName').value=sec.name||'';renderQuickRefSectionRows();openModal('refSectionQuickModal');
 }
 function openAddGridSection(scope){
-  rememberGridScroll(scope);editGridSectionScope=scope;editRefSectionIdx=null;document.getElementById('refSectionQuickTitle').textContent='New Section';
-  document.getElementById('inputQuickRefSectionName').value='';document.getElementById('inputQuickRefSectionCount').value='0';document.getElementById('inputQuickRefSectionCols').value='3';openModal('refSectionQuickModal');
+  rememberGridScroll(scope);editGridSectionScope=scope;editRefSectionIdx=null;quickRefSectionRows=[];document.getElementById('refSectionQuickTitle').textContent='New Section';
+  document.getElementById('inputQuickRefSectionName').value='';renderQuickRefSectionRows();openModal('refSectionQuickModal');
 }
 function saveGridSectionQuick(){
   const scope=editGridSectionScope,project=getGridProject(scope);if(!project)return;
   const returnScroll=getGridScroll(scope);
   const name=document.getElementById('inputQuickRefSectionName').value.trim();if(!name){toast('Name required');return;}
-  const nextCount=Math.max(0,Math.min(999,parseInt(document.getElementById('inputQuickRefSectionCount').value)||0)),cols=clampCols(document.getElementById('inputQuickRefSectionCols').value);
+  const nextItems=flattenSectionRowDrafts(quickRefSectionRows),rows=sectionRowsFromDrafts(quickRefSectionRows),nextCount=nextItems.length,cols=rows.length?rows[0].cols:3;
   if(editRefSectionIdx===null){
-    project.sections=project.sections||[];project.sections.push({id:scope==='items'?gid():undefined,name,count:nextCount,cols,order:project.sections.length});for(let i=0;i<nextCount;i++)project.items.push(makeBlankRefItem(project.items.length+1));
+    project.sections=project.sections||[];project.sections.push({id:scope==='items'?gid():undefined,name,count:nextCount,cols,rows,order:project.sections.length});project.items.push(...nextItems);
   }else{
     const sec=project.sections[editRefSectionIdx],oldCount=Math.max(0,parseInt(sec.count)||0);let start=0;for(let i=0;i<editRefSectionIdx;i++)start+=Math.max(0,parseInt(project.sections[i].count)||0);
-    if(nextCount<oldCount){const removeAt=start+nextCount,removeCount=oldCount-nextCount;if(project.items.slice(removeAt,removeAt+removeCount).some(item=>!isBlankRefItem(item))){toast('先清空要删掉的已填写品目');return;}project.items.splice(removeAt,removeCount);}
-    else if(nextCount>oldCount){const insertAt=start+oldCount,created=[];for(let i=0;i<nextCount-oldCount;i++)created.push(makeBlankRefItem(insertAt+i+1));project.items.splice(insertAt,0,...created);}
-    sec.name=name;sec.count=nextCount;sec.cols=cols;
+    project.items.splice(start,oldCount,...nextItems);sec.name=name;sec.count=nextCount;sec.cols=cols;sec.rows=rows;
   }
   project.sections.forEach((sec,index)=>{sec.order=index;});renumberBlankRefItems(project);editRefSectionIdx=null;save();closeModal('refSectionQuickModal');refreshGridScope(scope,returnScroll);
 }
@@ -1013,7 +1139,7 @@ function openEditGridItem(scope,itemId){
 }
 function prepareGridItemSectionSelect(scope,selectedIndex){
   const project=getGridProject(scope),field=document.getElementById('refItemSectionField'),select=document.getElementById('inputRefItemSection');
-  if(project&&project.sections&&project.sections.length){select.innerHTML=project.sections.map((sec,index)=>`<option value="${index}"${index===selectedIndex?' selected':''}>${esc(sec.name||('Section '+(index+1)))}</option>`).join('');field.style.display='block';}
+  if(project&&project.sections&&project.sections.length){select.innerHTML=`<option value="-1"${selectedIndex<0?' selected':''}>No section</option>`+project.sections.map((sec,index)=>`<option value="${index}"${index===selectedIndex?' selected':''}>${esc(sec.name||('Section '+(index+1)))}</option>`).join('');select.value=String(selectedIndex>=0?selectedIndex:-1);field.style.display='block';}
   else{select.innerHTML='';field.style.display='none';}
 }
 function saveGridItem(){
@@ -1025,22 +1151,34 @@ function saveGridItem(){
   const note=document.getElementById('inputRefItemNote').value.trim();
   const preview=document.getElementById('refItemImgPreview');
   const img=preview.style.display!=='none'?preview.src:'';
-  const selectedSection=project.sections&&project.sections.length?Math.max(0,parseInt(document.getElementById('inputRefItemSection').value)||0):-1;
+  const selectedValue=parseInt(document.getElementById('inputRefItemSection').value),selectedSection=project.sections&&project.sections.length&&Number.isInteger(selectedValue)&&selectedValue>=0?selectedValue:-1;
   if(editRefItemId){
     const oldIndex=project.items.findIndex(item=>item.id===editRefItemId),item=project.items[oldIndex];if(oldIndex<0||!item)return;
-    item.name=name;item.img=img;item.usage=usage;item.note=note;
     const oldSection=getRefItemSectionIndex(project,oldIndex);
-    if(selectedSection>=0&&selectedSection!==oldSection){project.items.splice(oldIndex,1);if(oldSection>=0)project.sections[oldSection].count=Math.max(0,(parseInt(project.sections[oldSection].count)||0)-1);const insertAt=getRefSectionEndIndex(project,selectedSection);project.items.splice(insertAt,0,item);project.sections[selectedSection].count=(parseInt(project.sections[selectedSection].count)||0)+1;}
+    if(selectedSection!==oldSection){
+      const target=selectedSection>=0?findSectionOpenPlacement(project,selectedSection):null;if(selectedSection>=0&&!target){toast('请先在目标栏目新增一排');return;}
+      item.name=name;item.img=img;item.usage=usage;item.note=note;
+      if(target&&target.type==='replace'){const blank=project.items[target.index];project.items[target.index]=item;project.items[oldIndex]=blank;}
+      else{
+        if(oldSection>=0){const source=project.sections[oldSection],sourceRow=getSectionRowIndexAt(source,oldIndex-getRefSectionStartIndex(project,oldSection));adjustSectionRowCount(source,sourceRow,-1);}
+        project.items.splice(oldIndex,1);
+        if(selectedSection>=0){const placement=findSectionOpenPlacement(project,selectedSection);if(!placement||placement.type!=='insert'){toast('请先在目标栏目新增一排');return;}adjustSectionRowCount(project.sections[selectedSection],placement.rowIndex,1);project.items.splice(placement.index,0,item);}
+        else project.items.push(item);
+      }
+    }else{item.name=name;item.img=img;item.usage=usage;item.note=note;}
   }else{
     const item={id:gid(),name,img,usage,note,checked:false};
-    if(selectedSection>=0){const insertAt=getRefSectionEndIndex(project,selectedSection);project.items.splice(insertAt,0,item);project.sections[selectedSection].count=(parseInt(project.sections[selectedSection].count)||0)+1;}else project.items.push(item);
+    if(selectedSection>=0){
+      const placement=findSectionOpenPlacement(project,selectedSection);if(!placement){toast('请先在栏目设置中新增一排');return;}
+      if(placement.type==='replace')project.items[placement.index]=item;else{adjustSectionRowCount(project.sections[selectedSection],placement.rowIndex,1);project.items.splice(placement.index,0,item);}
+    }else project.items.push(item);
   }
   renumberBlankRefItems(project);
   const returnScroll=getGridScroll(scope);save();closeModal('refItemModal');if(returnToItemDetail)openGridItemDetail(scope,editingId);else refreshGridScope(scope,returnScroll);
 }
 function deleteGridItemEditing(){
   const scope=editGridScope,project=getGridProject(scope),index=project?project.items.findIndex(item=>item.id===editRefItemId):-1;if(!project||index<0)return;
-  const sectionIndex=getRefItemSectionIndex(project,index);if(sectionIndex>=0)project.sections[sectionIndex].count=Math.max(0,(parseInt(project.sections[sectionIndex].count)||0)-1);
+  const sectionIndex=getRefItemSectionIndex(project,index);if(sectionIndex>=0){const section=project.sections[sectionIndex],rowIndex=getSectionRowIndexAt(section,index-getRefSectionStartIndex(project,sectionIndex));adjustSectionRowCount(section,rowIndex,-1);}
   const returnScroll=getGridScroll(scope);project.items.splice(index,1);renumberBlankRefItems(project);editRefItemId=null;curRefItemId=null;save();closeModal('refItemModal');refreshGridScope(scope,returnScroll);toast('Deleted');
 }
 function openAddRefItem(){openAddGridItem('list');}

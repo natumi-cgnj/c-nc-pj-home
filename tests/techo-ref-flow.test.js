@@ -12,7 +12,7 @@ source += `\n;globalThis.__testApi={
   renderItems,renderRefList,openRefDetail,openRefItemDetail,openGridItemDetail,handleRefItemClick,handleGridItemClick,toggleListItemCheck,toggleGridItemCheck,reorderRefProjects,
   openEditRef,saveRef,pickRefColor,openEditRefItemById,saveRefItem,openAddGridItem,openEditGridItem,saveGridItem,
   setRefSectionDraftCount,moveRefSectionDraft,moveRefItem,moveGridItem,
-  openRefSectionQuick,saveRefSectionQuick,openGridSectionQuick,openAddGridSection,saveGridSectionQuick,toggleGridSectionFold,switchTechoTab,
+  openRefSectionQuick,saveRefSectionQuick,openGridSectionQuick,openAddGridSection,saveGridSectionQuick,addQuickRefSectionRow,setQuickRefSectionRowCols,toggleGridSectionFold,switchTechoTab,
   openCategoryManager,saveCategoryManager,getCategoryDrafts:()=>categoryDrafts
 };`;
 
@@ -110,6 +110,7 @@ assert.equal(state.lists[0].items[0].usage, '', 'legacy List items receive an em
 assert.equal(state.lists[0].items[0].checked, true, 'a previously acquired Ref item migrates as lit');
 assert.equal(state.lists[0].items[1].checked, false, 'an unrecorded old List item stays unlit');
 assert.equal(state.lists[0].items[2].checked, false, 'a plain Ref item starts unlit');
+assert.deepEqual(JSON.parse(JSON.stringify(state.lists[0].sections[0].rows)), [{cols: 6, count: 3}], 'legacy sections gain a row layout without changing their partial final row');
 assert.equal(Object.hasOwn(state.lists[0].items[0], 'mode'), false, 'the Ref/List mode switch is removed');
 assert.equal(Object.hasOwn(state.lists[0].items[0], 'listAssignment'), false, 'the Ref-to-List assignment is removed');
 assert.equal(state.items.length, 1, 'existing Item data is preserved by migration');
@@ -229,5 +230,24 @@ assert.match(source, /function saveGridItem[\s\S]*?checked:false/, 'new Item and
 assert.match(source, /function renderRefItem\(r,item,index\)\{return renderGridItem\('list',r,item,index\);\}/, 'List delegates to the shared Item/List card renderer');
 assert.doesNotMatch(html, /ref-item-check|>✓</, 'Techo no longer renders collected check marks');
 assert.equal(api.clampCols(6), 6, 'six-column List sections remain supported');
+
+const mixedItems = Array.from({length: 5}, (_, index) => ({id: `mixed-${index}`, name: `Mixed ${index}`, img: `mixed-${index}.jpg`, usage: '', note: '', checked: false}));
+state.lists.push({id: 'mixed-list', name: 'Mixed rows', shelf: '', icon: '', note: '', order: 2, sections: [{name: 'Mixed', count: 5, cols: 5}], items: mixedItems});
+api.openRefDetail('mixed-list');
+api.openGridSectionQuick('list', 0);
+api.addQuickRefSectionRow();
+api.setQuickRefSectionRowCols(1, 6);
+api.addQuickRefSectionRow();
+api.setQuickRefSectionRowCols(2, 4);
+api.saveGridSectionQuick();
+const mixedSection = state.lists.find(list => list.id === 'mixed-list').sections[0];
+assert.deepEqual(JSON.parse(JSON.stringify(mixedSection.rows)), [{cols: 5, count: 5}, {cols: 6, count: 6}, {cols: 4, count: 4}], 'each newly added row stores its independently selected column count');
+assert.equal(mixedSection.count, 15, 'adding rows creates exactly the selected number of item slots');
+const mixedGrid = document.getElementById('refDetailGrid').innerHTML;
+assert.match(mixedGrid, /repeat\(5,1fr\)[\s\S]*repeat\(6,1fr\)[\s\S]*repeat\(4,1fr\)/, 'one section renders its 5-, 6-, and 4-column rows independently');
+assert.equal((mixedGrid.match(/data-section-row=/g) || []).length, 3, 'a third row appears only after it is explicitly added');
+api.openEditRef();
+api.saveRef();
+assert.deepEqual(JSON.parse(JSON.stringify(state.lists.find(list => list.id === 'mixed-list').sections[0].rows)), [{cols: 5, count: 5}, {cols: 6, count: 6}, {cols: 4, count: 4}], 'the full List editor preserves mixed row layouts');
 
 console.log('techo simplified list flow: ok');
