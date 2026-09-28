@@ -541,11 +541,8 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-home-status-target{di
 .cbi-guest-rug{width:45%;height:30%;background:#E8B96A;top:48%;left:43%;transform:translate(-50%,-50%);border-radius:3px;opacity:.035}
 .cbi-guest-bosshoe{width:6%;height:3%;background:#E8B96A;bottom:7%;right:27%;border-radius:1px;opacity:.09;transform:rotate(15deg)}
 .cbi-guest-janebook{width:8%;height:5%;background:#E8B96A;bottom:10%;left:12%;border-radius:1px;opacity:.1}
-.cbi-bedroom-closet{display:none;position:absolute;right:3%;bottom:2%;width:23%;height:20%;z-index:16;padding:0;border:1px solid rgba(197,157,80,.24);border-radius:3px;background:rgba(232,185,106,.13);cursor:pointer}
-.cbi-bedroom-closet::before{content:'';position:absolute;left:50%;top:8%;bottom:8%;border-left:1px solid rgba(169,132,62,.22)}
-.cbi-bedroom-closet::after{content:'';position:absolute;left:36%;top:45%;width:2px;height:4px;border-radius:2px;background:rgba(169,132,62,.35);box-shadow:7px 0 rgba(169,132,62,.35)}
-body[data-world-id="cbi"][data-world-location="home"] .cbi-bedroom-closet{display:block}
-.cbi-bedroom-closet:focus-visible,.cbi-snack-basket:focus-visible{outline:2px solid #bc9b58;outline-offset:2px}
+.cbi-closet-target{-webkit-appearance:none;appearance:none;padding:0;border:0;font:inherit;pointer-events:auto;cursor:pointer}
+.cbi-closet-target:focus-visible{outline:1px solid rgba(232,185,106,.42);outline-offset:2px}
 body[data-world-id="cbi"][data-world-location="home"] .room-jane .jane-couch{width:23%;height:18%;left:5%;top:11%;border-radius:4px}
 body[data-world-id="cbi"][data-world-location="home"] .room-jane .jane-teatable{width:13%;height:10%;left:7%;top:31%;border-radius:3px}
 body[data-world-id="cbi"][data-world-location="home"] .room-jane .jane-blanket{width:13%;height:9%;left:8%;top:14%;opacity:.06}
@@ -590,8 +587,7 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-sleep-status-target.i
 .cbi-desk-boss::before{content:'';position:absolute;width:17%;height:22%;left:15%;top:18%;background:rgba(232,185,106,.12);border-radius:1px;transform:rotate(8deg)}
 .cbi-desk-boss::after{width:13%;height:19%;right:14%;top:15%;background:rgba(232,185,106,.1);transform:rotate(-5deg)}
 .cbi-boss-mug{position:absolute;left:58.4%;top:18.2%;width:1.3%;aspect-ratio:1;border-radius:50%;background:rgba(232,185,106,.08)}
-.cbi-snack-basket{position:absolute;left:67.5%;top:8%;width:8.5%;height:10%;z-index:16;padding:0;border:1px solid rgba(197,157,80,.28);border-radius:2px;background:rgba(232,185,106,.16);cursor:pointer}
-.cbi-snack-basket::after{content:'';position:absolute;inset:23% 15%;border-top:1px solid rgba(169,132,62,.35);border-bottom:1px solid rgba(169,132,62,.25)}
+.cbi-snack-basket{position:absolute;left:67.5%;top:8%;width:8.5%;height:10%;z-index:16;border:0;border-radius:2px;background:rgba(232,185,106,.08)}
 /* Team bullpen: two vertical pairs stacked with a clear horizontal aisle */
 .cbi-desk-rigsby{left:30%;top:29%;transform:rotate(2deg)}
 .cbi-desk-grace{left:36.5%;top:29%}
@@ -789,11 +785,10 @@ body[data-world-id="cbi"][data-world-location="home"] .room-jane .cbi-guest-teap
         <div class="furniture cbi-home-only cbi-bedroom-bed"></div>
         <button class="cbi-sleep-status-target cbi-sleep-bedroom-sofa" type="button" data-cbi-sleep-place="bedroom_sofa" onclick="onCbiSleepPlaceTap('bedroom_sofa',event)" aria-label="查看卧室沙发上的 Jane 睡眠状态" hidden></button>
         <button class="cbi-sleep-status-target cbi-sleep-bedroom-bed" type="button" data-cbi-sleep-place="bedroom_bed" onclick="onCbiSleepPlaceTap('bedroom_bed',event)" aria-label="查看卧室床上的 Jane 睡眠状态" hidden></button>
-        <div class="furniture cbi-home-only cbi-guest-shelf"></div><div class="furniture cbi-home-only cbi-guest-teacup"></div><div class="furniture cbi-home-only cbi-guest-teapot"></div>
+        <button class="furniture cbi-home-only cbi-guest-shelf cbi-closet-target" type="button" onclick="openCbiStorage('closet',event)" aria-label="查看家里的衣柜" title="衣柜"></button><div class="furniture cbi-home-only cbi-guest-teacup"></div><div class="furniture cbi-home-only cbi-guest-teapot"></div>
         <div class="furniture cbi-home-only cbi-guest-bossbox1"></div><div class="furniture cbi-home-only cbi-guest-bossbox2"></div>
         <div class="furniture cbi-home-only cbi-guest-bossjacket"></div><div class="furniture cbi-home-only cbi-guest-rug"></div>
         <div class="furniture cbi-home-only cbi-guest-bosshoe"></div><div class="furniture cbi-home-only cbi-guest-janebook"></div>
-        <button class="cbi-bedroom-closet" type="button" onclick="openCbiStorage('closet',event)" aria-label="查看家里的衣柜" title="衣柜"></button>
         <button class="wardrobe-btn" type="button" onclick="openWardrobe('jane',event)" aria-label="打开 Jane 的衣柜" title="衣柜"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a2 2 0 0 0-2 2c0 .74.4 1.39 1 1.73V8l-7 6h16l-7-6V6.73A2 2 0 0 0 12 3z"/><path d="M4 14v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg></button>
       </div>
       <div class="room-away-status" id="away-jane" onclick="onAwayTap('jane',event)"><div class="room-away-label"><span class="away-title" id="away-title-jane"></span><span class="away-eta" id="away-eta-jane"></span></div></div>
@@ -879,7 +874,7 @@ body[data-world-id="cbi"][data-world-location="home"] .room-jane .cbi-guest-teap
       <button class="cbi-location-trigger" type="button" onclick="openCbiLocationSheet(event)" aria-label="切换 CBI 地点">CBI · Serious Crimes Unit⌄</button>
       <div class="cbi-office-window"></div>
       <a class="cbi-desk cbi-desk-boss cbi-status-target" href="contact.html" aria-label="设置 Boss 状态"></a><div class="cbi-boss-mug"></div>
-      <button class="cbi-snack-basket" type="button" onclick="openCbiStorage('snacks',event)" aria-label="查看办公桌旁的零食筐" title="零食筐"></button>
+      <button class="cbi-snack-basket cbi-status-target" type="button" onclick="openCbiStorage('snacks',event)" aria-label="查看办公桌旁的零食筐" title="零食筐"></button>
       <button class="cbi-desk cbi-desk-rigsby cbi-status-target" type="button" data-cbi-desk="rigsby" onclick="onCbiDeskTap('rigsby',event)" aria-label="Rigsby 的工位"></button>
       <div class="cbi-desk-divider cbi-desk-divider-upper"></div>
       <button class="cbi-desk cbi-desk-grace cbi-status-target" type="button" data-cbi-desk="vanpelt" onclick="onCbiDeskTap('vanpelt',event)" aria-label="Van Pelt 的工位"></button>
