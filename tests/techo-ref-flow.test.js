@@ -129,7 +129,7 @@ api.renderItems();
 let itemGrid = document.getElementById('itemDetailGrid').innerHTML;
 assert.match(itemGrid, /ref-item-cell checked/, 'Item uses the same lit square card as List');
 assert.match(itemGrid, /section-fold/, 'Item sections render as collapsible groups');
-assert.doesNotMatch(itemGrid, /section-divider-line/, 'section headings no longer render decorative divider lines');
+assert.match(itemGrid, /section-divider-line/, 'section headings keep their decorative side lines');
 assert.doesNotMatch(itemGrid, /ref-item-usage/, 'an empty usage status does not reserve a row below the card');
 const fold = element('sectionFold');
 const foldButton = element('sectionFoldButton');

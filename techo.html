@@ -119,9 +119,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .ref-detail-header h1{font-size:15px;font-weight:600;color:#333;letter-spacing:.5px;text-align:center;flex:1}
 .ref-item-grid{padding:16px 0}
 #viewRefDetail .section-fold,#viewItems .section-fold{background:#fafafa}
-#viewRefDetail .section-divider,#viewItems .section-divider{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 20px;border:0;background:#fafafa;color:inherit;font-family:inherit;cursor:pointer;user-select:none}
-#viewRefDetail .section-divider::after,#viewItems .section-divider::after{content:'▼';font-size:7px;color:#ccc;transition:transform .18s}
-#viewRefDetail .section-fold.collapsed>.section-divider::after,#viewItems .section-fold.collapsed>.section-divider::after{transform:rotate(-90deg)}
+#viewRefDetail .section-divider,#viewItems .section-divider{width:100%;display:flex;align-items:center;gap:10px;padding:10px 20px;border:0;background:#fafafa;color:inherit;font-family:inherit;cursor:pointer;user-select:none}
+#viewRefDetail .section-divider-line,#viewItems .section-divider-line{flex:1;height:1px;background:#e0e0e0}
+#viewRefDetail .section-divider-center,#viewItems .section-divider-center{display:flex;align-items:center;gap:6px;flex-shrink:0}
+#viewRefDetail .section-divider-arrow,#viewItems .section-divider-arrow{font-size:7px;color:#ccc;transition:transform .18s}
+#viewRefDetail .section-fold.collapsed .section-divider-arrow,#viewItems .section-fold.collapsed .section-divider-arrow{transform:rotate(-90deg)}
 #viewRefDetail .section-fold.collapsed>.ref-section-grid,#viewItems .section-fold.collapsed>.ref-section-grid{display:none}
 #viewRefDetail .section-divider-label,#viewItems .section-divider-label{font-size:11px;color:#999;font-weight:500;letter-spacing:.3px;cursor:text;border-bottom:1px dashed transparent;transition:color .15s,border-color .15s}
 #viewRefDetail .section-divider-label:hover,#viewItems .section-divider-label:hover{color:#8B6914;border-bottom-color:#D8C18B}
@@ -682,7 +684,7 @@ function renderGridProject(scope,gridId){
     project.sections.forEach((sec,sectionIdx)=>{
       const count=Math.max(0,parseInt(sec.count)||0),cols=clampCols(sec.cols);
       const collapseKey=gridSectionCollapseKey(scope,project,sec,sectionIdx),collapsed=!!db.sectionCollapsed[collapseKey];
-      html+=`<div class="section-fold${collapsed?' collapsed':''}"><button type="button" class="section-divider" data-section-key="${esc(collapseKey)}" aria-expanded="${collapsed?'false':'true'}" onclick="toggleGridSectionFold(this)"><span class="section-divider-label" title="Double-click to edit section" ondblclick="event.stopPropagation();openGridSectionQuick('${scope}',${sectionIdx})">${esc(sec.name||('Section '+(sectionIdx+1)))}</span></button>`;
+      html+=`<div class="section-fold${collapsed?' collapsed':''}"><button type="button" class="section-divider" data-section-key="${esc(collapseKey)}" aria-expanded="${collapsed?'false':'true'}" onclick="toggleGridSectionFold(this)"><span class="section-divider-line" aria-hidden="true"></span><span class="section-divider-center"><span class="section-divider-label" title="Double-click to edit section" ondblclick="event.stopPropagation();openGridSectionQuick('${scope}',${sectionIdx})">${esc(sec.name||('Section '+(sectionIdx+1)))}</span><span class="section-divider-arrow" aria-hidden="true">▼</span></span><span class="section-divider-line" aria-hidden="true"></span></button>`;
       html+=`<div class="ref-section-grid" style="grid-template-columns:repeat(${cols},1fr)">${project.items.slice(offset,offset+count).map((item,itemOffset)=>renderGridItem(scope,project,item,offset+itemOffset)).join('')}</div></div>`;
       offset+=count;
     });
