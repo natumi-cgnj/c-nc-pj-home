@@ -674,6 +674,7 @@ body[data-world-id="cbi"][data-world-location="home"] .room-jane .jane-lamp,
 body[data-world-id="cbi"][data-world-location="home"] .room-jane .cbi-guest-teacup,
 body[data-world-id="cbi"][data-world-location="home"] .room-jane .cbi-guest-teapot{background:#5BA66B;opacity:.09}
 @media(max-width:400px){.cbi-office-wrap{max-width:320px}}
+@media(max-width:699px){body[data-world-id="cbi"] .apt-wrap,body[data-world-id="cbi"] .cbi-office-wrap{touch-action:pan-y}}
 @media(min-width:700px){.cbi-office-wrap{width:min(460px,calc((100dvh - 103px)*.6),calc(100vw - 390px));max-width:none;align-self:start}.cbi-office{aspect-ratio:18/11}}
 @media(min-width:900px) and (orientation:landscape){.cbi-office-wrap{width:var(--desktop-map-width)}}
 
@@ -2956,6 +2957,72 @@ function consumeHomeShortcutReturn(){
     });
   });
 })();
+
+(function initCbiLocationSwipe(){
+  var pager=document.getElementById('homePager');
+  var targets=[document.getElementById('aptWrap'),document.getElementById('cbiOfficeWrap')].filter(Boolean);
+  var gesture=null;
+  if(!pager||!targets.length)return;
+
+  function isMobile(){return window.matchMedia?window.matchMedia('(max-width:699px)').matches:window.innerWidth<700;}
+  function findTouch(list,id){
+    for(var i=0;i<list.length;i++)if(list[i].identifier===id)return list[i];
+    return null;
+  }
+  function movePager(direction){
+    var width=pager.clientWidth;
+    if(width<1)return;
+    var page=Math.round(pager.scrollLeft/width);
+    var last=Math.max(0,pager.children.length-1);
+    var next=Math.max(0,Math.min(last,page+direction));
+    if(next!==page)pager.scrollTo({left:next*width,behavior:'smooth'});
+  }
+  function onTouchStart(event){
+    if(!isMobile()||getActiveWorldId()!=='cbi'||event.touches.length!==1){gesture=null;return;}
+    var touch=event.touches[0];
+    gesture={id:touch.identifier,startX:touch.clientX,startY:touch.clientY,lastX:touch.clientX,lastY:touch.clientY,axis:''};
+  }
+  function onTouchMove(event){
+    if(!gesture)return;
+    var touch=findTouch(event.touches,gesture.id);
+    if(!touch)return;
+    gesture.lastX=touch.clientX;
+    gesture.lastY=touch.clientY;
+    var dx=touch.clientX-gesture.startX;
+    var dy=touch.clientY-gesture.startY;
+    if(!gesture.axis&&Math.max(Math.abs(dx),Math.abs(dy))>=8){
+      gesture.axis=Math.abs(dx)>Math.abs(dy)*1.15?'x':'y';
+    }
+    if(gesture.axis==='x'&&event.cancelable)event.preventDefault();
+  }
+  function onTouchEnd(event){
+    if(!gesture)return;
+    var touch=findTouch(event.changedTouches,gesture.id);
+    var current=gesture;
+    gesture=null;
+    if(!touch||current.axis!=='x')return;
+    var dx=touch.clientX-current.startX;
+    var dy=touch.clientY-current.startY;
+    if(Math.abs(dx)<44||Math.abs(dx)<=Math.abs(dy)*1.15)return;
+    if(event.cancelable)event.preventDefault();
+    var direction=dx<0?1:-1;
+    var locationId=getActiveLocationId();
+    if(locationId==='home'&&direction===1){
+      selectCbiLocation('office',{silent:true});
+    }else if(locationId==='office'&&direction===-1){
+      selectCbiLocation('home',{silent:true});
+    }else{
+      movePager(direction);
+    }
+  }
+  function onTouchCancel(){gesture=null;}
+  targets.forEach(function(target){
+    target.addEventListener('touchstart',onTouchStart,{passive:true});
+    target.addEventListener('touchmove',onTouchMove,{passive:false});
+    target.addEventListener('touchend',onTouchEnd,{passive:false});
+    target.addEventListener('touchcancel',onTouchCancel,{passive:true});
+  });
+})();
 window.addEventListener('pageshow',function(event){if(event.persisted)consumeHomeShortcutReturn();});
 
 /* ═══ MEMO ═══ */
@@ -3904,13 +3971,13 @@ function closeCbiLocationSheet(e) {
   document.getElementById('cbiLocationSheet').classList.remove('show');
 }
 
-function selectCbiLocation(locationId) {
+function selectCbiLocation(locationId,options) {
   var previous=WorldContext.getActiveLocationId('cbi');
   if(!WorldContext.setActiveLocationId('cbi',locationId)){showTip('地点切换失败');return;}
   closeCbiLocationSheet(null);
   if(previous!==locationId)resetCbiLocationViewState();
   applyWorldView();
-  showTip(WorldContext.getLocation(locationId,'cbi').label);
+  if(!options||!options.silent)showTip(WorldContext.getLocation(locationId,'cbi').label);
 }
 
 /* ═══ WORLD SWITCHING ═══ */
