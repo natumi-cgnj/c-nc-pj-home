@@ -118,13 +118,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .ref-detail-header{padding:12px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #eee;background:#fff;position:sticky;top:0;z-index:50}
 .ref-detail-header h1{font-size:15px;font-weight:600;color:#333;letter-spacing:.5px;text-align:center;flex:1}
 .ref-item-grid{padding:16px 0}
-#viewRefDetail .section-divider,#viewItems .section-divider{display:flex;align-items:center;gap:10px;padding:10px 20px;background:#fafafa;border-bottom:1px solid #f0f0f0;cursor:default;user-select:none}
-#viewRefDetail .section-divider-line,#viewItems .section-divider-line{flex:1;height:1px;background:#e0e0e0}
-#viewRefDetail .section-divider-center,#viewItems .section-divider-center{display:flex;flex-direction:column;align-items:center;gap:1px;flex-shrink:0}
+#viewRefDetail .section-fold,#viewItems .section-fold{background:#fafafa}
+#viewRefDetail .section-divider,#viewItems .section-divider{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 20px;border:0;background:#fafafa;color:inherit;font-family:inherit;cursor:pointer;user-select:none}
+#viewRefDetail .section-divider::after,#viewItems .section-divider::after{content:'▼';font-size:7px;color:#ccc;transition:transform .18s}
+#viewRefDetail .section-fold.collapsed>.section-divider::after,#viewItems .section-fold.collapsed>.section-divider::after{transform:rotate(-90deg)}
+#viewRefDetail .section-fold.collapsed>.ref-section-grid,#viewItems .section-fold.collapsed>.ref-section-grid{display:none}
 #viewRefDetail .section-divider-label,#viewItems .section-divider-label{font-size:11px;color:#999;font-weight:500;letter-spacing:.3px;cursor:text;border-bottom:1px dashed transparent;transition:color .15s,border-color .15s}
 #viewRefDetail .section-divider-label:hover,#viewItems .section-divider-label:hover{color:#8B6914;border-bottom-color:#D8C18B}
 .ref-section-grid{display:grid;gap:8px;padding:8px 20px 16px}
-.ref-item-slot{min-width:0;display:flex;flex-direction:column;gap:6px;cursor:pointer}
+.ref-section-grid:empty{display:none}
+.ref-item-slot{min-width:0;display:flex;flex-direction:column;align-self:start;gap:6px;cursor:pointer}
 .ref-item-cell{aspect-ratio:1;border-radius:10px;border:1.5px solid #e8e8e8;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;position:relative;overflow:hidden;background:#f5f5f5}
 .ref-item-cell:active{transform:scale(.97)}
 .ref-item-cell .item-img{width:100%;height:100%;object-fit:contain;padding:5px;border-radius:9px;position:absolute;inset:0;background:#fff;filter:grayscale(100%) brightness(.85);transition:filter .4s}
@@ -132,7 +135,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .ref-item-cell.checked .item-img{filter:none}
 .ref-item-cell .item-label{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.5));color:#fff;font-size:10px;font-weight:500;padding:14px 5px 4px;border-radius:0 0 9px 9px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;z-index:1}
 .ref-item-cell:not(.has-img) .item-label{background:none;color:#ccc;position:static;font-size:9px;padding:0 4px;margin-top:2px}
-.ref-item-usage{min-height:11px;padding:0 2px;color:#a69370;font-size:9px;line-height:1.2;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ref-item-usage{padding:0 2px;color:#a69370;font-size:9px;line-height:1.2;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #viewRefDetail.ref-item-arrange-mode .ref-item-cell,#viewItems.ref-item-arrange-mode .ref-item-cell{cursor:grab;touch-action:none;-webkit-touch-callout:none;user-select:none}
 #viewRefDetail.ref-item-arrange-mode .ref-item-delete-x,#viewItems.ref-item-arrange-mode .ref-item-delete-x{display:block;opacity:1;transform:scale(1)}
 #viewRefDetail.ref-item-arrange-mode .section-divider-label,#viewItems.ref-item-arrange-mode .section-divider-label{pointer-events:none}
@@ -425,6 +428,7 @@ function normalizeTechoData(){
   if(Object.prototype.hasOwnProperty.call(db,'catalogs')){delete db.catalogs;changed=true;}
   if(db.version!==4){db.version=4;changed=true;}
   if(!Array.isArray(db.projectCategories)){db.projectCategories=[];changed=true;}
+  if(!db.sectionCollapsed||typeof db.sectionCollapsed!=='object'){db.sectionCollapsed={};changed=true;}
   if(!db.listShelfCollapsed||typeof db.listShelfCollapsed!=='object'){db.listShelfCollapsed={};changed=true;}
   db.sections.forEach((sec,index)=>{
     if(!sec.id){sec.id=gid();changed=true;}
@@ -677,17 +681,23 @@ function renderGridProject(scope,gridId){
   if(project.sections&&project.sections.length){
     project.sections.forEach((sec,sectionIdx)=>{
       const count=Math.max(0,parseInt(sec.count)||0),cols=clampCols(sec.cols);
-      html+=`<div class="section-divider"><div class="section-divider-line"></div><div class="section-divider-center"><span class="section-divider-label" title="Double-click to edit section" ondblclick="event.stopPropagation();openGridSectionQuick('${scope}',${sectionIdx})">${esc(sec.name||('Section '+(sectionIdx+1)))}</span></div><div class="section-divider-line"></div></div>`;
-      html+=`<div class="ref-section-grid" style="grid-template-columns:repeat(${cols},1fr)">${project.items.slice(offset,offset+count).map((item,itemOffset)=>renderGridItem(scope,project,item,offset+itemOffset)).join('')}</div>`;
+      const collapseKey=gridSectionCollapseKey(scope,project,sec,sectionIdx),collapsed=!!db.sectionCollapsed[collapseKey];
+      html+=`<div class="section-fold${collapsed?' collapsed':''}"><button type="button" class="section-divider" data-section-key="${esc(collapseKey)}" aria-expanded="${collapsed?'false':'true'}" onclick="toggleGridSectionFold(this)"><span class="section-divider-label" title="Double-click to edit section" ondblclick="event.stopPropagation();openGridSectionQuick('${scope}',${sectionIdx})">${esc(sec.name||('Section '+(sectionIdx+1)))}</span></button>`;
+      html+=`<div class="ref-section-grid" style="grid-template-columns:repeat(${cols},1fr)">${project.items.slice(offset,offset+count).map((item,itemOffset)=>renderGridItem(scope,project,item,offset+itemOffset)).join('')}</div></div>`;
       offset+=count;
     });
   }
   if(offset<project.items.length||!project.sections.length)html+=`<div class="ref-section-grid" style="grid-template-columns:repeat(3,1fr)">${project.items.slice(offset).map((item,itemOffset)=>renderGridItem(scope,project,item,offset+itemOffset)).join('')}</div>`;
   document.getElementById(gridId).innerHTML=html;
 }
+function gridSectionCollapseKey(scope,project,section,index){return String(section&&section.id||`${scope}:${project&&project.id||scope}:${index}`);}
+function toggleGridSectionFold(button){
+  const key=button&&button.dataset&&button.dataset.sectionKey,fold=button&&button.closest&&button.closest('.section-fold');if(!key||!fold)return;
+  const collapsed=fold.classList.toggle('collapsed');button.setAttribute('aria-expanded',collapsed?'false':'true');db.sectionCollapsed[key]=collapsed;save();
+}
 function renderGridItem(scope,project,item,index){
-  const hasImg=!!item.img,hasCustomName=!isGenericRefItemName(item.name);
-  return`<div class="ref-item-slot" onclick="handleGridItemClick('${scope}','${item.id}')"><div class="ref-item-cell${item.checked?' checked':''}${hasImg?' has-img':''}" data-index="${index}" data-grid-scope="${scope}" data-ref-item-id="${item.id}">${hasImg?`<img class="item-img" src="${item.img}" alt="" onerror="this.style.display='none'">`:''}${hasCustomName?`<span class="item-label">${esc(item.name)}</span>`:''}<button class="ref-item-delete-x" aria-label="Delete item" onclick="event.stopPropagation();deleteGridItem('${scope}',${index})">×</button></div><div class="ref-item-usage">${esc(item.usage||'')}</div></div>`;
+  const hasImg=!!item.img,hasCustomName=!isGenericRefItemName(item.name),usage=String(item.usage||'').trim();
+  return`<div class="ref-item-slot" onclick="handleGridItemClick('${scope}','${item.id}')"><div class="ref-item-cell${item.checked?' checked':''}${hasImg?' has-img':''}" data-index="${index}" data-grid-scope="${scope}" data-ref-item-id="${item.id}">${hasImg?`<img class="item-img" src="${item.img}" alt="" onerror="this.style.display='none'">`:''}${hasCustomName?`<span class="item-label">${esc(item.name)}</span>`:''}<button class="ref-item-delete-x" aria-label="Delete item" onclick="event.stopPropagation();deleteGridItem('${scope}',${index})">×</button></div>${usage?`<div class="ref-item-usage">${esc(usage)}</div>`:''}</div>`;
 }
 function renderRefItem(r,item,index){return renderGridItem('list',r,item,index);}
 

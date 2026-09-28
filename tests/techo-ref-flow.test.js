@@ -12,7 +12,7 @@ source += `\n;globalThis.__testApi={
   renderItems,renderRefList,openRefDetail,openRefItemDetail,openGridItemDetail,handleRefItemClick,handleGridItemClick,toggleListItemCheck,toggleGridItemCheck,reorderRefProjects,
   openEditRef,saveRef,pickRefColor,openEditRefItemById,saveRefItem,openAddGridItem,openEditGridItem,saveGridItem,
   setRefSectionDraftCount,moveRefSectionDraft,moveRefItem,moveGridItem,
-  openRefSectionQuick,saveRefSectionQuick,openGridSectionQuick,openAddGridSection,saveGridSectionQuick,switchTechoTab,
+  openRefSectionQuick,saveRefSectionQuick,openGridSectionQuick,openAddGridSection,saveGridSectionQuick,toggleGridSectionFold,switchTechoTab,
   openCategoryManager,saveCategoryManager,getCategoryDrafts:()=>categoryDrafts
 };`;
 
@@ -128,6 +128,18 @@ assert.equal(Object.hasOwn(persisted, 'catalogs'), false, 'the saved database no
 api.renderItems();
 let itemGrid = document.getElementById('itemDetailGrid').innerHTML;
 assert.match(itemGrid, /ref-item-cell checked/, 'Item uses the same lit square card as List');
+assert.match(itemGrid, /section-fold/, 'Item sections render as collapsible groups');
+assert.doesNotMatch(itemGrid, /section-divider-line/, 'section headings no longer render decorative divider lines');
+assert.doesNotMatch(itemGrid, /ref-item-usage/, 'an empty usage status does not reserve a row below the card');
+const fold = element('sectionFold');
+const foldButton = element('sectionFoldButton');
+foldButton.dataset.sectionKey = 'desk';
+foldButton.closest = () => fold;
+api.toggleGridSectionFold(foldButton);
+assert.equal(state.sectionCollapsed.desk, true, 'collapsing a section is persisted');
+assert.equal(foldButton['aria-expanded'], 'false', 'the section button exposes its collapsed state');
+api.toggleGridSectionFold(foldButton);
+assert.equal(state.sectionCollapsed.desk, false, 'a collapsed section can be expanded again');
 assert.doesNotMatch(itemGrid, /pending-section|item-row|ref-item-edit/, 'the old Item pending and assignment layout is gone');
 api.handleGridItemClick('items', 'owned-1');
 assert.equal(document.getElementById('viewRefItemDetail').classList.contains('active'), true, 'a lit Item opens the shared item detail');
