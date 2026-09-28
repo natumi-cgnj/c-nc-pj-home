@@ -106,6 +106,7 @@ assert.equal(state.lists.length, 1, 'the legacy Ref project is preserved');
 assert.equal(state.lists[0].name, 'Rollbahn 图鉴', 'project metadata is preserved');
 assert.equal(state.lists[0].items[0].name, 'Loft M', 'item content is preserved');
 assert.equal(state.lists[0].items[0].note, '保留我', 'item notes are preserved');
+assert.equal(state.lists[0].items[0].usage, '', 'legacy List items receive an empty editable status');
 assert.equal(state.lists[0].items[0].checked, true, 'a previously acquired Ref item migrates as lit');
 assert.equal(state.lists[0].items[1].checked, false, 'an unrecorded old List item stays unlit');
 assert.equal(state.lists[0].items[2].checked, false, 'a plain Ref item starts unlit');
@@ -114,6 +115,7 @@ assert.equal(Object.hasOwn(state.lists[0].items[0], 'listAssignment'), false, 't
 assert.equal(state.items.length, 1, 'existing Item data is preserved by migration');
 assert.equal(state.items[0].name, legacyItem.name, 'existing Item names are preserved');
 assert.equal(state.items[0].note, legacyItem.note, 'existing Item notes are preserved');
+assert.equal(state.items[0].usage, '', 'legacy Items receive an empty editable status');
 assert.equal(state.items[0].cost, legacyItem.cost, 'legacy Item metadata remains available');
 assert.equal(state.items[0].checked, true, 'existing Items migrate as lit');
 assert.equal(state.sections[0].count, 0, 'unassigned legacy Items remain outside old sections');
@@ -136,11 +138,14 @@ document.getElementById('viewItems').classList.add('active');
 const listsBeforeItemChange = JSON.stringify(state.lists);
 api.openAddGridItem('items');
 document.getElementById('inputRefItemName').value = '没想好但想要';
+document.getElementById('inputRefItemUsage').value = '2027 年使用';
 document.getElementById('inputRefItemNote').value = '先放着';
 api.saveGridItem();
 state = api.getDb();
 const newItem = state.items.find(item => item.name === '没想好但想要');
 assert.equal(newItem.checked, false, 'a new Item starts unlit just like a new List item');
+assert.equal(newItem.usage, '2027 年使用', 'Item stores its editable usage status separately from notes');
+assert.match(document.getElementById('itemDetailGrid').innerHTML, /ref-item-usage">2027 年使用</, 'Item displays the usage status below its card');
 api.handleGridItemClick('items', newItem.id);
 assert.equal(state.items.find(item => item.id === newItem.id).checked, true, 'tapping an unlit Item lights it directly');
 assert.equal(JSON.stringify(state.lists), listsBeforeItemChange, 'Item changes never alter List data');
@@ -151,7 +156,7 @@ assert.match(document.getElementById('refList').innerHTML, /object-position:25% 
 api.openRefDetail('ref1');
 let grid = document.getElementById('refDetailGrid').innerHTML;
 assert.equal((grid.match(/ref-item-cell checked/g) || []).length, 1, 'only checked items render lit');
-assert.equal((grid.match(/ref-item-check/g) || []).length, 1, 'a lit item displays a check mark');
+assert.doesNotMatch(grid, /ref-item-check|>✓</, 'lit cards use only color and border without a check mark');
 assert.doesNotMatch(grid, /ref-item-edit|>···<|>\.\.\.<\//, 'List cards stay as clean as Food cards without item edit dots');
 assert.match(grid, /grid-template-columns:repeat\(6,1fr\)/, 'legacy section layout is preserved');
 
@@ -172,10 +177,13 @@ assert.equal(JSON.stringify(api.getDb().items), itemsBeforeCheckIn, 'unchecking 
 
 api.openEditRefItemById('ri1');
 document.getElementById('inputRefItemName').value = 'Loft M edited';
+document.getElementById('inputRefItemUsage').value = '下一本使用';
 document.getElementById('inputRefItemNote').value = 'still checked';
 api.saveRefItem();
 state = api.getDb();
 assert.equal(state.lists[0].items[0].name, 'Loft M edited', 'List items remain editable');
+assert.equal(state.lists[0].items[0].usage, '下一本使用', 'List items share the editable usage status');
+assert.match(document.getElementById('refDetailGrid').innerHTML, /ref-item-usage">下一本使用</, 'List displays the usage status below its card');
 assert.equal(state.lists[0].items[0].checked, true, 'editing does not reset the check-in');
 assert.equal(JSON.stringify(state.items), itemsBeforeCheckIn, 'editing a List item does not push to Item');
 
@@ -207,6 +215,7 @@ assert.doesNotMatch(source, /function assignItem|function unassignItem|function 
 assert.match(source, /function toggleGridItemCheck[\s\S]*?item\.checked=!item\.checked;save\(\)/, 'both grids use a direct light toggle');
 assert.match(source, /function saveGridItem[\s\S]*?checked:false/, 'new Item and List cards start unlit');
 assert.match(source, /function renderRefItem\(r,item,index\)\{return renderGridItem\('list',r,item,index\);\}/, 'List delegates to the shared Item/List card renderer');
+assert.doesNotMatch(html, /ref-item-check|>✓</, 'Techo no longer renders collected check marks');
 assert.equal(api.clampCols(6), 6, 'six-column List sections remain supported');
 
 console.log('techo simplified list flow: ok');
