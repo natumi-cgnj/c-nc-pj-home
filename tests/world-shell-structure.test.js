@@ -293,7 +293,8 @@ test('CBI reality loop reuses the mature pages without crossing its currencies',
   assert.match(wallet, /return Math\.max\(0,walletRawSharedFund\(db\)\)/);
   assert.match(index, /'wallet':'记账'/);
   assert.doesNotMatch(index, /worldId==='cbi'\?'案件基金':'记账'/);
-  assert.match(index, /openWardrobe\('boss',event\)/);
+  assert.match(index, /openCbiStorage\('closet',event\)/);
+  assert.match(index, /openCbiStorage\('snacks',event\)/);
   assert.match(index, /change\.worldId&&change\.worldId!==getActiveWorldId\(\)/);
   assert.match(schedule, /id="cbiDeploymentPanel"/);
   assert.match(schedule, /function returnCbiDeployment\(\)/);

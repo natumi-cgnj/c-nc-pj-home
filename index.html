@@ -195,8 +195,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .wardrobe-btn:hover{opacity:0.75;background:rgba(0,0,0,0.06)}
 .wardrobe-btn:active{transform:scale(0.9)}
 .wardrobe-btn svg{width:14px;height:14px;stroke:currentColor;stroke-width:1.5;fill:none;color:#888}
-.boss-wardrobe-btn{display:none}
-body[data-world-id="cbi"][data-world-location="home"] .boss-wardrobe-btn{display:flex}
+body[data-world-id="cbi"][data-world-location="home"] #roomJane>.room-inner>.wardrobe-btn{display:none}
 .wardrobe-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.45);display:none;align-items:center;justify-content:center;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);padding:16px}
 .wardrobe-overlay.show{display:flex}
 .wardrobe-panel{background:#fff;border-radius:18px;width:min(400px,100%);max-height:82dvh;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,0.18);overflow:hidden}
@@ -542,6 +541,11 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-home-status-target{di
 .cbi-guest-rug{width:45%;height:30%;background:#E8B96A;top:48%;left:43%;transform:translate(-50%,-50%);border-radius:3px;opacity:.035}
 .cbi-guest-bosshoe{width:6%;height:3%;background:#E8B96A;bottom:7%;right:27%;border-radius:1px;opacity:.09;transform:rotate(15deg)}
 .cbi-guest-janebook{width:8%;height:5%;background:#E8B96A;bottom:10%;left:12%;border-radius:1px;opacity:.1}
+.cbi-bedroom-closet{display:none;position:absolute;right:3%;bottom:2%;width:23%;height:20%;z-index:16;padding:0;border:1px solid rgba(197,157,80,.24);border-radius:3px;background:rgba(232,185,106,.13);cursor:pointer}
+.cbi-bedroom-closet::before{content:'';position:absolute;left:50%;top:8%;bottom:8%;border-left:1px solid rgba(169,132,62,.22)}
+.cbi-bedroom-closet::after{content:'';position:absolute;left:36%;top:45%;width:2px;height:4px;border-radius:2px;background:rgba(169,132,62,.35);box-shadow:7px 0 rgba(169,132,62,.35)}
+body[data-world-id="cbi"][data-world-location="home"] .cbi-bedroom-closet{display:block}
+.cbi-bedroom-closet:focus-visible,.cbi-snack-basket:focus-visible{outline:2px solid #bc9b58;outline-offset:2px}
 body[data-world-id="cbi"][data-world-location="home"] .room-jane .jane-couch{width:23%;height:18%;left:5%;top:11%;border-radius:4px}
 body[data-world-id="cbi"][data-world-location="home"] .room-jane .jane-teatable{width:13%;height:10%;left:7%;top:31%;border-radius:3px}
 body[data-world-id="cbi"][data-world-location="home"] .room-jane .jane-blanket{width:13%;height:9%;left:8%;top:14%;opacity:.06}
@@ -586,6 +590,8 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-sleep-status-target.i
 .cbi-desk-boss::before{content:'';position:absolute;width:17%;height:22%;left:15%;top:18%;background:rgba(232,185,106,.12);border-radius:1px;transform:rotate(8deg)}
 .cbi-desk-boss::after{width:13%;height:19%;right:14%;top:15%;background:rgba(232,185,106,.1);transform:rotate(-5deg)}
 .cbi-boss-mug{position:absolute;left:58.4%;top:18.2%;width:1.3%;aspect-ratio:1;border-radius:50%;background:rgba(232,185,106,.08)}
+.cbi-snack-basket{position:absolute;left:67.5%;top:8%;width:8.5%;height:10%;z-index:16;padding:0;border:1px solid rgba(197,157,80,.28);border-radius:2px;background:rgba(232,185,106,.16);cursor:pointer}
+.cbi-snack-basket::after{content:'';position:absolute;inset:23% 15%;border-top:1px solid rgba(169,132,62,.35);border-bottom:1px solid rgba(169,132,62,.25)}
 /* Team bullpen: two vertical pairs stacked with a clear horizontal aisle */
 .cbi-desk-rigsby{left:30%;top:29%;transform:rotate(2deg)}
 .cbi-desk-grace{left:36.5%;top:29%}
@@ -674,6 +680,23 @@ body[data-world-id="cbi"][data-world-location="home"] .room-jane .cbi-guest-teap
 @media(max-width:400px){.cbi-office-wrap{max-width:320px}}
 @media(min-width:700px){.cbi-office-wrap{width:min(460px,calc((100dvh - 103px)*.6),calc(100vw - 390px));max-width:none;align-self:start}.cbi-office{aspect-ratio:18/11}}
 @media(min-width:900px) and (orientation:landscape){.cbi-office-wrap{width:var(--desktop-map-width)}}
+
+/* CBI room storage: map shapes open a quiet list, while the map stays uncluttered. */
+.cbi-storage-overlay{display:none;position:fixed;inset:0;z-index:275;align-items:flex-end;justify-content:center;background:rgba(30,28,24,.3);padding:0}
+.cbi-storage-overlay.show{display:flex}
+.cbi-storage-panel{width:min(100%,520px);max-height:85dvh;overflow:auto;border-radius:16px 16px 0 0;background:#fff;padding:19px 20px calc(26px + env(safe-area-inset-bottom,0px));box-shadow:0 -12px 38px rgba(0,0,0,.1)}
+.cbi-storage-header{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.cbi-storage-title{font-size:17px;font-weight:500;color:#5a5143}
+.cbi-storage-close{width:34px;height:34px;border:1px solid #e8e4dd;border-radius:50%;background:#fff;color:#938c81;font-size:18px;cursor:pointer}
+.cbi-storage-count{margin-top:5px;color:#aaa197;font-size:12px}
+.cbi-storage-items{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:18px}
+.cbi-storage-item{display:flex;align-items:flex-start;gap:10px;min-width:0;padding:9px;border:1px solid #ebe8e1;border-radius:10px;background:#fffefa}
+.cbi-storage-item-photo{display:flex;align-items:center;justify-content:center;overflow:hidden;width:58px;height:58px;flex:0 0 58px;border-radius:6px;background:#f6f3ed;color:#c2b49b}
+.cbi-storage-item-photo img{width:100%;height:100%;object-fit:cover}
+.cbi-storage-item-copy{min-width:0;overflow-wrap:anywhere}.cbi-storage-item-name{font-size:13px;line-height:1.45;color:#55504a}.cbi-storage-item-note{margin-top:4px;font-size:11px;line-height:1.45;color:#aaa197}
+.cbi-storage-empty{margin-top:20px;padding:27px 15px;border:1px dashed #e7e2d9;border-radius:10px;color:#aaa197;font-size:13px;text-align:center}
+@media(max-width:520px){.cbi-storage-items{grid-template-columns:1fr}.cbi-storage-item-photo{width:64px;height:64px;flex-basis:64px}}
+@media(min-width:700px){.cbi-storage-overlay{align-items:center;padding:20px}.cbi-storage-panel{border-radius:16px;max-height:75dvh}}
 
 /* ── World selector ── */
 .world-switch-overlay{display:none;position:fixed;inset:0;z-index:270;background:rgba(0,0,0,.3);align-items:center;justify-content:center;padding:20px;-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px)}
@@ -770,6 +793,7 @@ body[data-world-id="cbi"][data-world-location="home"] .room-jane .cbi-guest-teap
         <div class="furniture cbi-home-only cbi-guest-bossbox1"></div><div class="furniture cbi-home-only cbi-guest-bossbox2"></div>
         <div class="furniture cbi-home-only cbi-guest-bossjacket"></div><div class="furniture cbi-home-only cbi-guest-rug"></div>
         <div class="furniture cbi-home-only cbi-guest-bosshoe"></div><div class="furniture cbi-home-only cbi-guest-janebook"></div>
+        <button class="cbi-bedroom-closet" type="button" onclick="openCbiStorage('closet',event)" aria-label="查看家里的衣柜" title="衣柜"></button>
         <button class="wardrobe-btn" type="button" onclick="openWardrobe('jane',event)" aria-label="打开 Jane 的衣柜" title="衣柜"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a2 2 0 0 0-2 2c0 .74.4 1.39 1 1.73V8l-7 6h16l-7-6V6.73A2 2 0 0 0 12 3z"/><path d="M4 14v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg></button>
       </div>
       <div class="room-away-status" id="away-jane" onclick="onAwayTap('jane',event)"><div class="room-away-label"><span class="away-title" id="away-title-jane"></span><span class="away-eta" id="away-eta-jane"></span></div></div>
@@ -800,7 +824,6 @@ body[data-world-id="cbi"][data-world-location="home"] .room-jane .cbi-guest-teap
         <div class="furniture cbi-home-only natumi-gamepad"></div><div class="furniture cbi-home-only natumi-cans"></div>
         <div class="furniture cbi-home-only natumi-pizzabox"></div><div class="furniture cbi-home-only natumi-casefiles"></div>
         <div class="furniture cbi-home-only natumi-poster"></div><div class="furniture cbi-home-only natumi-towel"></div>
-        <button class="wardrobe-btn boss-wardrobe-btn" type="button" onclick="openWardrobe('boss',event)" aria-label="打开 Boss 的衣柜" title="Boss 衣柜"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a2 2 0 0 0-2 2c0 .74.4 1.39 1 1.73V8l-7 6h16l-7-6V6.73A2 2 0 0 0 12 3z"/><path d="M4 14v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg></button>
       </div>
       <!-- Neal↔Natumi: top center -->
       <button class="conn-btn conn-on-natumi-top branch-connector on" id="cNeal" data-branch-target="top" onclick="toggleMod('neal')"><span class="conn-dot" id="dNeal" style="background:#6B8AFF"></span> <span id="lNeal">连接</span></button>
@@ -856,6 +879,7 @@ body[data-world-id="cbi"][data-world-location="home"] .room-jane .cbi-guest-teap
       <button class="cbi-location-trigger" type="button" onclick="openCbiLocationSheet(event)" aria-label="切换 CBI 地点">CBI · Serious Crimes Unit⌄</button>
       <div class="cbi-office-window"></div>
       <a class="cbi-desk cbi-desk-boss cbi-status-target" href="contact.html" aria-label="设置 Boss 状态"></a><div class="cbi-boss-mug"></div>
+      <button class="cbi-snack-basket" type="button" onclick="openCbiStorage('snacks',event)" aria-label="查看办公桌旁的零食筐" title="零食筐"></button>
       <button class="cbi-desk cbi-desk-rigsby cbi-status-target" type="button" data-cbi-desk="rigsby" onclick="onCbiDeskTap('rigsby',event)" aria-label="Rigsby 的工位"></button>
       <div class="cbi-desk-divider cbi-desk-divider-upper"></div>
       <button class="cbi-desk cbi-desk-grace cbi-status-target" type="button" data-cbi-desk="vanpelt" onclick="onCbiDeskTap('vanpelt',event)" aria-label="Van Pelt 的工位"></button>
@@ -1071,6 +1095,15 @@ body[data-world-id="cbi"][data-world-location="home"] .room-jane .cbi-guest-teap
 </div>
 </div>
 
+<div class="cbi-storage-overlay" id="cbiStorageOverlay" role="dialog" aria-modal="true" aria-labelledby="cbiStorageTitle" onclick="closeCbiStorage(event)">
+  <div class="cbi-storage-panel" onclick="event.stopPropagation()">
+    <div class="cbi-storage-header"><h2 class="cbi-storage-title" id="cbiStorageTitle"></h2><button class="cbi-storage-close" id="cbiStorageClose" type="button" onclick="closeCbiStorage()" aria-label="关闭">×</button></div>
+    <div class="cbi-storage-count" id="cbiStorageCount"></div>
+    <div class="cbi-storage-items" id="cbiStorageItems"></div>
+    <div class="cbi-storage-empty" id="cbiStorageEmpty" hidden></div>
+  </div>
+</div>
+
 <div class="world-switch-overlay" id="worldSwitchOverlay" onclick="closeWorldSwitcher(event)">
   <div class="world-switch-panel" onclick="event.stopPropagation()">
     <div class="world-switch-title">World Select</div>
@@ -1082,6 +1115,7 @@ body[data-world-id="cbi"][data-world-location="home"] .room-jane .cbi-guest-teap
 <script src="cloud-sync.js?v=20260922-shortcuts1"></script>
 <script src="character-runtime.js?v=20260914-cbi-sleep2"></script>
 <script src="cbi-weather.js?v=20260903-cbi-weather2"></script>
+<script src="cbi-data.js?v=20260929-room-storage1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 
@@ -1240,6 +1274,47 @@ function renderCbiLocationPresence(){
   if(getActiveWorldId()!=='cbi'||!window.CharacterRuntime)return;
   if(getActiveLocationId()==='home')renderCbiHomePresence();
   else renderCbiDutyRoster();
+}
+
+let cbiStorageReturnFocus=null;
+function cbiStorageItems(kind){
+  if(kind!=='closet'||!window.CBIData)return[];
+  return CBIData.load().work.suitcase.items.filter(function(item){
+    return item.status==='collected'&&item.series.trim()==='衣柜';
+  }).slice().sort(function(a,b){return String(b.redeemedAt||b.createdAt).localeCompare(String(a.redeemedAt||a.createdAt));});
+}
+
+function openCbiStorage(kind,event){
+  if(event)event.stopPropagation();
+  if(kind!=='closet'&&kind!=='snacks')return;
+  cbiStorageReturnFocus=document.activeElement;
+  const items=cbiStorageItems(kind);
+  document.getElementById('cbiStorageTitle').textContent=kind==='closet'?'家里的衣柜':'零食筐';
+  document.getElementById('cbiStorageCount').textContent=items.length+' 件';
+  const list=document.getElementById('cbiStorageItems');
+  list.replaceChildren();
+  items.forEach(function(item){
+    const card=document.createElement('article');card.className='cbi-storage-item';
+    const photo=document.createElement('div');photo.className='cbi-storage-item-photo';
+    if(item.image){const img=document.createElement('img');img.src=item.image;img.alt='';photo.appendChild(img);}
+    else photo.textContent='◇';
+    const copy=document.createElement('div');copy.className='cbi-storage-item-copy';
+    const name=document.createElement('div');name.className='cbi-storage-item-name';name.textContent=item.name||'未命名物品';copy.appendChild(name);
+    if(item.note){const note=document.createElement('div');note.className='cbi-storage-item-note';note.textContent=item.note;copy.appendChild(note);}
+    card.append(photo,copy);list.appendChild(card);
+  });
+  const empty=document.getElementById('cbiStorageEmpty');
+  empty.textContent=kind==='closet'?'衣柜还是空的':'零食筐还是空的';
+  empty.hidden=items.length>0;
+  document.getElementById('cbiStorageOverlay').classList.add('show');
+  document.getElementById('cbiStorageClose').focus();
+}
+
+function closeCbiStorage(event){
+  if(event&&event.target!==event.currentTarget)return;
+  document.getElementById('cbiStorageOverlay').classList.remove('show');
+  if(cbiStorageReturnFocus&&cbiStorageReturnFocus.isConnected&&cbiStorageReturnFocus.getClientRects().length)cbiStorageReturnFocus.focus();
+  cbiStorageReturnFocus=null;
 }
 
 function onCbiDeskTap(charId,event){
@@ -3894,6 +3969,7 @@ function applyWorldView(){
   if(window.CBIWeather)CBIWeather.setActive(world.id==='cbi',new Date());
   initCG();
   closeCbiLocationSheet(null);
+  closeCbiStorage();
   if(world.id==='cbi'){
     if(locationId==='home'){
       applyRoomPkg('jane','cbi-boss');
@@ -3950,6 +4026,9 @@ document.getElementById('worldHeader').addEventListener('keydown',function(event
 window.addEventListener('storage',function(event){if(event.key===WorldContext.STORAGE_KEY)applyWorldView();});
 window.addEventListener('omniverse:worldchange',function(){applyWorldView();});
 window.addEventListener('omniverse:locationchange',function(){applyWorldView();});
+document.addEventListener('keydown',function(event){
+  if(event.key==='Escape'&&document.getElementById('cbiStorageOverlay').classList.contains('show'))closeCbiStorage();
+});
 
 applyWorldView();
 if(window.CloudSync&&typeof CloudSync.whenReady==='function'){
