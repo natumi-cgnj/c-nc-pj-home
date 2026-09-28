@@ -28,41 +28,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .tab-bar button.active{color:#4e4a44}
 .tab-bar button.active::before{content:"";position:absolute;left:36%;right:36%;top:0;height:1px;background:#9c907c}
 
-/* ── Items view ── */
-.pending-section{padding:12px 20px}
-.pending-header{font-size:10px;color:#bbb;letter-spacing:0.5px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
-.pending-header .count{background:#f0f0f0;border-radius:8px;padding:1px 6px;font-size:9px;color:#999}
-.pending-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:8px}
-.item-thumb{position:relative;border-radius:8px;overflow:hidden;cursor:pointer;background:#f5f5f5;aspect-ratio:1;display:flex;align-items:center;justify-content:center}
-.item-thumb img{width:100%;height:100%;object-fit:cover}
-.item-thumb .item-name-s{font-size:8px;color:#bbb;text-align:center;padding:2px;word-break:break-all}
-.item-thumb.long-term{border:2px solid #C4A24C22}
-.item-thumb.consumable{border:2px solid #8AAAC422}
-
-.section-divider{display:flex;align-items:center;gap:10px;padding:16px 20px 8px;cursor:pointer;user-select:none}
-.section-divider:active{opacity:0.7}
-.section-line{flex:1;height:1px;background:#e0e0e0}
-.section-label{font-size:11px;color:#999;font-weight:500;letter-spacing:0.3px}
-.section-arrow{font-size:8px;color:#ccc;transition:transform 0.2s;display:inline-block}
-.section-divider.collapsed .section-arrow{transform:rotate(-90deg)}
-.section-items{padding:4px 20px 8px}
-.section-items.collapsed{display:none}
-
-.item-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f5f5f5;cursor:pointer}
-.item-row:active{opacity:0.7}
-.item-row-img{width:40px;height:40px;border-radius:6px;object-fit:cover;background:#f0f0f0;flex-shrink:0}
-.item-row-body{flex:1;min-width:0}
-.item-row-name{font-size:13px;font-weight:500;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.item-row-meta{font-size:10px;color:#ccc;margin-top:2px}
-.status-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
-.status-dot.active{background:#C4A24C}
-.status-dot.pending{background:#ddd}
-
-.add-row{display:flex;gap:8px;padding:12px 20px}
-.add-btn{flex:1;padding:10px;border:1.5px dashed #ddd;border-radius:10px;background:none;font-size:12px;color:#ccc;cursor:pointer;font-family:inherit;text-align:center}
-.add-btn:active{background:#fafafa}
-.add-btn.gold{border-color:#E8B96A;color:#E8B96A}
-
 /* ── List projects ── */
 
 .catalog-row{display:flex;align-items:center;gap:12px;padding:14px 20px;background:#fff;border-bottom:1px solid #f5f5f5;cursor:pointer;transition:background .15s,box-shadow .15s}
@@ -153,35 +118,43 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .ref-detail-header{padding:12px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #eee;background:#fff;position:sticky;top:0;z-index:50}
 .ref-detail-header h1{font-size:15px;font-weight:600;color:#333;letter-spacing:.5px;text-align:center;flex:1}
 .ref-item-grid{padding:16px 0}
-#viewRefDetail .section-divider{display:flex;align-items:center;gap:10px;padding:10px 20px;background:#fafafa;border-bottom:1px solid #f0f0f0;cursor:default}
-#viewRefDetail .section-divider-line{flex:1;height:1px;background:#e0e0e0}
-#viewRefDetail .section-divider-center{display:flex;flex-direction:column;align-items:center;gap:1px;flex-shrink:0}
-#viewRefDetail .section-divider-label{font-size:11px;color:#999;font-weight:500;letter-spacing:.3px;cursor:text;border-bottom:1px dashed transparent;transition:color .15s,border-color .15s}
-#viewRefDetail .section-divider-label:hover{color:#8B6914;border-bottom-color:#D8C18B}
+#viewRefDetail .section-divider,#viewItems .section-divider{display:flex;align-items:center;gap:10px;padding:10px 20px;background:#fafafa;border-bottom:1px solid #f0f0f0;cursor:default;user-select:none}
+#viewRefDetail .section-divider-line,#viewItems .section-divider-line{flex:1;height:1px;background:#e0e0e0}
+#viewRefDetail .section-divider-center,#viewItems .section-divider-center{display:flex;flex-direction:column;align-items:center;gap:1px;flex-shrink:0}
+#viewRefDetail .section-divider-label,#viewItems .section-divider-label{font-size:11px;color:#999;font-weight:500;letter-spacing:.3px;cursor:text;border-bottom:1px dashed transparent;transition:color .15s,border-color .15s}
+#viewRefDetail .section-divider-label:hover,#viewItems .section-divider-label:hover{color:#8B6914;border-bottom-color:#D8C18B}
 .ref-section-grid{display:grid;gap:8px;padding:8px 20px 16px}
-.ref-item-cell{aspect-ratio:1;border-radius:10px;border:1.5px solid #eee;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;background:#f5f5f5}
+.ref-item-cell{aspect-ratio:1;border-radius:10px;border:1.5px solid #e8e8e8;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;position:relative;overflow:hidden;background:#f5f5f5}
 .ref-item-cell:active{transform:scale(.97)}
-.ref-item-cell .item-img{width:100%;height:100%;object-fit:contain;padding:5px;border-radius:9px;position:absolute;inset:0;background:#fff;filter:grayscale(.7);opacity:.3;transition:filter .2s,opacity .2s}
-.ref-item-cell.checked{border-color:#E8B96A;background:#FFFDF7;box-shadow:0 0 0 1px rgba(232,185,106,.12)}
-.ref-item-cell.checked .item-img{filter:none;opacity:1}
+.ref-item-cell .item-img{width:100%;height:100%;object-fit:contain;padding:5px;border-radius:9px;position:absolute;inset:0;background:#fff;filter:grayscale(100%) brightness(.85);transition:filter .4s}
+.ref-item-cell.checked{border-color:#E8B96A;background:#FFFDF7}
+.ref-item-cell.checked .item-img{filter:none}
 .ref-item-cell .item-label{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.5));color:#fff;font-size:10px;font-weight:500;padding:14px 5px 4px;border-radius:0 0 9px 9px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;z-index:1}
-.ref-item-cell:not(.has-img) .item-label{background:none;color:#ccc;position:static;font-size:9px;padding:0 4px;margin-top:2px;white-space:normal}
-.ref-item-cell.checked:not(.has-img) .item-label{color:#9B7D41}
-.ref-item-check{position:absolute;top:4px;right:4px;width:18px;height:18px;border-radius:50%;background:rgba(232,185,106,.92);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;z-index:3}
-.ref-item-edit{position:absolute;top:4px;left:4px;width:20px;height:18px;border:0;border-radius:7px;background:rgba(255,255,255,.84);color:#999;font:11px/16px inherit;z-index:4;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.08)}
-#viewRefDetail.ref-item-arrange-mode .ref-item-cell{cursor:grab;touch-action:none;-webkit-touch-callout:none;user-select:none}
-#viewRefDetail.ref-item-arrange-mode .ref-item-delete-x{display:block;opacity:1;transform:scale(1)}
-#viewRefDetail.ref-item-arrange-mode .ref-item-check,#viewRefDetail.ref-item-arrange-mode .ref-item-edit{display:none}
-#viewRefDetail.ref-item-arrange-mode .section-divider-label{pointer-events:none}
-#viewRefDetail.ref-item-arrange-mode .ref-add-item-btn{pointer-events:none;opacity:.35;transition:opacity .25s}
+.ref-item-cell:not(.has-img) .item-label{background:none;color:#ccc;position:static;font-size:9px;padding:0 4px;margin-top:2px}
+.ref-item-check{position:absolute;top:4px;right:4px;width:18px;height:18px;border-radius:50%;background:rgba(232,185,106,.9);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;z-index:2}
+#viewRefDetail.ref-item-arrange-mode .ref-item-cell,#viewItems.ref-item-arrange-mode .ref-item-cell{cursor:grab;touch-action:none;-webkit-touch-callout:none;user-select:none}
+#viewRefDetail.ref-item-arrange-mode .ref-item-delete-x,#viewItems.ref-item-arrange-mode .ref-item-delete-x{display:block;opacity:1;transform:scale(1)}
+#viewRefDetail.ref-item-arrange-mode .ref-item-check,#viewItems.ref-item-arrange-mode .ref-item-check{display:none}
+#viewRefDetail.ref-item-arrange-mode .section-divider-label,#viewItems.ref-item-arrange-mode .section-divider-label{pointer-events:none}
+#viewRefDetail.ref-item-arrange-mode .ref-add-item-btn,#viewItems.ref-item-arrange-mode .ref-add-item-btn{pointer-events:none;opacity:.35;transition:opacity .25s}
 .ref-item-delete-x{display:none;position:absolute;top:3px;right:3px;width:16px;height:16px;border:1.5px solid rgba(255,255,255,.9);border-radius:50%;background:rgba(120,110,100,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);color:#fff;font-size:9px;line-height:13px;font-weight:600;text-align:center;z-index:6;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.08);font-family:inherit;opacity:0;transform:scale(.3);transition:opacity .2s,transform .2s cubic-bezier(.34,1.3,.64,1)}
 .ref-item-cell.drag-source{opacity:.2;transition:opacity .15s}
 .ref-item-cell.drop-target{box-shadow:0 0 0 2px rgba(232,185,106,.7);border-color:rgba(232,185,106,.6);transition:box-shadow .15s,border-color .15s}
 .ref-item-drag-ghost{position:fixed!important;margin:0!important;z-index:500;pointer-events:none;opacity:.88;transform:scale(1.04) rotate(.8deg);box-shadow:0 10px 32px rgba(0,0,0,.18);border-radius:10px}
-.ref-item-drag-ghost .ref-item-delete-x,.ref-item-drag-ghost .ref-item-edit{display:none!important}
+.ref-item-drag-ghost .ref-item-delete-x,.ref-item-drag-ghost .ref-item-check{display:none!important}
 .ref-add-item-btn{margin:0 20px 16px;padding:10px;border:1.5px dashed #ddd;border-radius:10px;background:#fff;font-size:12px;color:#aaa;cursor:pointer;text-align:center;font-family:inherit;width:calc(100% - 40px)}
 .ref-add-item-btn.gold{border-color:#E8B96A;color:#E8B96A}
 @media(min-width:700px){.ref-item-grid{width:100%;max-width:640px;margin-left:auto;margin-right:auto}.ref-add-item-btn{display:block;max-width:600px;margin-left:auto;margin-right:auto}}
+
+/* List item detail — same card pattern as Food */
+.ref-card-detail{width:calc(100% - 40px);max-width:520px;margin:20px auto;background:#fff;border:1px solid #eee;border-radius:12px;overflow:hidden}
+.ref-card-media{min-height:180px;max-height:420px;padding:16px;background:#f7f7f7;display:flex;align-items:center;justify-content:center}
+.ref-card-media img{display:block;width:auto;max-width:100%;height:auto;max-height:388px;object-fit:contain}
+.ref-card-body{padding:14px 16px}
+.ref-card-name{font-size:16px;font-weight:600;color:#333;margin-bottom:4px}
+.ref-card-note{margin-top:8px;padding:8px 10px;border-radius:8px;background:#faf8f4;font-size:12px;color:#777;line-height:1.6;white-space:pre-wrap}
+.ref-card-actions{width:calc(100% - 40px);max-width:520px;display:flex;gap:8px;margin:8px auto 0}
+.ref-card-actions .btn{flex:1;padding:10px;border:none;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit}
 
 /* List item/section editors follow the Food modal rhythm */
 #refItemModal .ref-food-modal,#refSectionQuickModal .ref-food-modal{max-width:480px;padding:20px;animation:refEditorSlideUp .25s ease-out}
@@ -191,7 +164,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 #refItemModal .ref-food-modal textarea{min-height:50px;height:auto;resize:vertical}
 #refItemModal .ref-food-modal .file-label{margin-top:4px;border-width:1px;color:#aaa}
 #refItemModal .ref-food-modal .img-preview{width:100%;height:auto;max-height:240px;object-fit:contain;border-radius:8px;margin-top:8px;background:#f7f7f7}
-#refItemModal .ref-food-modal .cat-select{margin-top:4px}
 #refItemModal .ref-food-modal .btn-row,#refSectionQuickModal .ref-food-modal .btn-row{gap:8px;margin-top:20px}
 #refItemModal .ref-food-modal .btn,#refSectionQuickModal .ref-food-modal .btn{font-size:14px}
 
@@ -210,17 +182,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .color-swatch{width:100%;aspect-ratio:1;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:border-color 0.15s;box-sizing:border-box}
 .color-swatch.active{border-color:#333}
 
-/* Category select */
-.cat-select{display:flex;gap:6px;margin-top:4px}
-.cat-opt{padding:6px 12px;border-radius:8px;border:1.5px solid #e8e8e8;font-size:11px;color:#999;cursor:pointer;font-family:inherit;background:#fff}
-.cat-opt.active{border-color:#C4A24C;color:#C4A24C;background:#C4A24C0a}
-
-/* Disposition */
-.disp-row{display:flex;gap:6px;margin-top:6px}
-.disp-btn{padding:6px 12px;border-radius:8px;border:1.5px solid #e8e8e8;font-size:11px;color:#999;cursor:pointer;font-family:inherit;background:#fff}
-.disp-btn.active{border-color:#C4A24C;color:#C4A24C}
-.disp-btn.sold.active{border-color:#5BA66B;color:#5BA66B}
-
 .toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.7);color:#fff;font-size:11px;padding:8px 16px;border-radius:8px;display:none;z-index:300}
 </style>
 </head>
@@ -234,12 +195,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 <!-- Items View (default) -->
 <div class="view active" id="viewItems">
-  <div id="pendingArea"></div>
-  <div id="sectionsArea"></div>
-  <div class="add-row">
-    <button class="add-btn gold" onclick="openAddItem()">New Item</button>
-    <button class="add-btn" onclick="openAddSection()">New Section</button>
-  </div>
+  <div class="ref-item-grid" id="itemDetailGrid"></div>
+  <button class="ref-add-item-btn gold" onclick="openAddGridSection('items')">+ New Section</button>
+  <button class="ref-add-item-btn" onclick="openAddGridItem('items')">+ New Item</button>
 </div>
 
 <!-- List View -->
@@ -258,6 +216,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <div class="ref-item-grid" id="refDetailGrid"></div>
   <button class="ref-add-item-btn gold" onclick="openAddRefSection()">+ New Section</button>
   <button class="ref-add-item-btn" onclick="openAddRefItem()">+ New Item</button>
+</div>
+
+<!-- List Item Detail View -->
+<div class="view" id="viewRefItemDetail">
+  <div class="ref-detail-header">
+    <a class="back" onclick="returnFromGridItemDetail()">← Back</a>
+    <h1 id="refItemDetailTitle"></h1>
+    <button class="btn-s" aria-label="Edit item" onclick="openEditActiveGridItem()">⋯</button>
+  </div>
+  <div id="refItemDetailContent"></div>
 </div>
 
 <!-- Add/Edit List Modal -->
@@ -330,8 +298,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <img id="refItemImgPreview" class="img-preview" style="display:none">
   <div class="btn-row">
     <button class="btn btn-cancel" onclick="closeModal('refItemModal')">Cancel</button>
-    <button class="btn btn-del" id="refItemDeleteBtn" style="display:none" onclick="deleteRefItem()">Delete</button>
-    <button class="btn btn-primary" onclick="saveRefItem()">Save</button>
+    <button class="btn btn-del" id="refItemDeleteBtn" style="display:none" onclick="deleteGridItemEditing()">Delete</button>
+    <button class="btn btn-primary" onclick="saveGridItem()">Save</button>
   </div>
 </div>
 </div>
@@ -350,59 +318,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   </select>
   <div class="btn-row">
     <button class="btn btn-cancel" onclick="closeModal('refSectionQuickModal')">Cancel</button>
-    <button class="btn btn-primary" onclick="saveRefSectionQuick()">Save</button>
+    <button class="btn btn-primary" onclick="saveGridSectionQuick()">Save</button>
   </div>
-</div>
-</div>
-
-<!-- Add/Edit Item Modal -->
-<div class="modal-bg" id="itemModal">
-<div class="modal">
-  <h2 id="itemModalTitle">New Item</h2>
-  <label>Name</label>
-  <input type="text" id="inputItemName">
-  <label>Cover</label>
-  <label class="file-label" id="itemFileLabel">Select</label>
-  <input type="file" accept="image/*" id="itemImgInput" onchange="previewImg(this,'itemImgPreview')" style="display:none">
-  <img id="itemImgPreview" class="img-preview" style="display:none">
-  <label>Category</label>
-  <div class="cat-select" id="catSelect">
-    <button type="button" class="cat-opt active" onclick="pickCat('long_term')">Long-term</button>
-    <button type="button" class="cat-opt" onclick="pickCat('consumable')">Consumable</button>
-  </div>
-  <input type="hidden" id="itemCat" value="long_term">
-  <label>Cost</label>
-  <input type="number" id="inputItemCost" min="0" step="1">
-  <label>Notes</label>
-  <textarea id="inputItemNote"></textarea>
-  <div class="btn-row">
-    <button class="btn btn-cancel" onclick="closeModal('itemModal')">Cancel</button>
-    <button class="btn btn-primary" onclick="saveItem()">Save</button>
-  </div>
-  <div id="itemDeleteWrap" style="display:none;text-align:center;margin-top:12px">
-    <button class="btn-del" style="width:100%;padding:10px;border-radius:10px" onclick="deleteItem()">Delete</button>
-  </div>
-</div>
-</div>
-
-<!-- Add Section Modal -->
-<div class="modal-bg" id="sectionModal">
-<div class="modal">
-  <h2>New Section</h2>
-  <label>Name</label>
-  <input type="text" id="inputSectionName">
-  <div class="btn-row">
-    <button class="btn btn-cancel" onclick="closeModal('sectionModal')">Cancel</button>
-    <button class="btn btn-primary" onclick="saveSection()">Save</button>
-  </div>
-</div>
-</div>
-
-<!-- Item Action Modal (assign/dispose) -->
-<div class="modal-bg" id="actionModal">
-<div class="modal">
-  <h2 id="actionTitle">Item</h2>
-  <div id="actionContent"></div>
 </div>
 </div>
 
@@ -419,15 +336,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 'use strict';
 const DB_KEY='techo_archive_db';
 const COLORS=['#C4A24C','#8B6B4A','#9B8AE8','#6B5ACD','#D85A30','#E84A7A','#E8B96A','#9B6BCC','#4AADE8','#3A8DD4','#5BA66B','#3D8B50','#6B8AFF','#4A6AE0','#888','#4ECDC4'];
-let db={version:3,items:[],sections:[],lists:[],projectCategories:[],sectionCollapsed:{},listShelfCollapsed:{}};
-let curRefId=null,editItemId=null,editRefId=null;
+let db={version:4,items:[],sections:[],lists:[],projectCategories:[],sectionCollapsed:{},listShelfCollapsed:{}};
+let curRefId=null,curRefItemId=null,editRefId=null;
+let curGridItemScope='items',editGridScope='list',editGridSectionScope='list';
 let editRefItemId=null,editRefSectionIdx=null,_refSections=[];
 let refSectionDragBound=false,refSectionPressState=null;
 let refIconTemp='',refIconPosTemp={x:50,y:50};
 let refLabelColor='#C4A24C';
 let refProjectArrangeMode=false,refProjectClickSuppressedUntil=0,refProjectGestureBound=false,refProjectPressState=null;
 const refDetailScrollByProject={};
-let refItemArrangeMode=false,refItemPressState=null,refItemDragState=null,refItemClickSuppressedUntil=0,refItemGestureBound=false;
+let itemGridScroll=0;
+let refItemArrangeMode=false,refItemArrangeScope='list',refItemPressState=null,refItemDragState=null,refItemClickSuppressedUntil=0;
 let categoryDrafts=[],categoryManagerOriginals=[];
 const techoTabState={items:{view:'viewItems',scroll:0},list:{view:'viewRef',scroll:0}};
 
@@ -458,12 +377,26 @@ function migrateLegacyLists(data){
     return project;
   });
 }
+function migrateLegacyItems(data){
+  const items=Array.isArray(data&&data.items)?data.items:[],sourceSections=Array.isArray(data&&data.sections)?data.sections:[];
+  items.forEach(item=>{if(typeof item.checked!=='boolean')item.checked=true;});
+  if(data&&data.version===4)return{items,sections:sourceSections};
+  const sections=sourceSections.slice().sort((a,b)=>(parseInt(a.order)||0)-(parseInt(b.order)||0)),used=new Set(),ordered=[];
+  const normalizedSections=sections.map((sec,index)=>{
+    const bucket=items.filter(item=>item&&item.assignment===sec.id&&!used.has(item));
+    bucket.forEach(item=>{used.add(item);ordered.push(item);});
+    return{id:sec.id||gid(),name:sec.name||('Section '+(index+1)),order:index,count:bucket.length,cols:clampCols(sec.cols)};
+  });
+  items.forEach(item=>{if(!used.has(item))ordered.push(item);});
+  return{items:ordered,sections:normalizedSections};
+}
 function load(){
   try{
     const d=JSON.parse(localStorage.getItem(DB_KEY));
     if(d){
-      const migrated=!Array.isArray(d.lists)||Object.prototype.hasOwnProperty.call(d,'refs')||Object.prototype.hasOwnProperty.call(d,'catalogs')||d.version!==3;
-      db={version:3,items:Array.isArray(d.items)?d.items:[],sections:Array.isArray(d.sections)?d.sections:[],lists:migrateLegacyLists(d),projectCategories:Array.isArray(d.projectCategories)?d.projectCategories:[],sectionCollapsed:d.sectionCollapsed||{},listShelfCollapsed:d.listShelfCollapsed||d.refShelfCollapsed||{}};
+      const migrated=!Array.isArray(d.lists)||Object.prototype.hasOwnProperty.call(d,'refs')||Object.prototype.hasOwnProperty.call(d,'catalogs')||d.version!==4;
+      const itemLayout=migrateLegacyItems(d);
+      db={version:4,items:itemLayout.items,sections:itemLayout.sections,lists:migrateLegacyLists(d),projectCategories:Array.isArray(d.projectCategories)?d.projectCategories:[],sectionCollapsed:d.sectionCollapsed||{},listShelfCollapsed:d.listShelfCollapsed||d.refShelfCollapsed||{}};
       normalizeTechoData();if(migrated)save();return;
     }
   }catch(e){}
@@ -480,14 +413,29 @@ function isGenericRefItemName(name){return !String(name||'').trim()||/^Title \d+
 function isBlankRefItem(item){return!!item&&!item.img&&!String(item.note||'').trim()&&!item.checked&&isGenericRefItemName(item.name);}
 function normalizeTechoData(){
   let changed=false;
+  if(db.version!==4){const itemLayout=migrateLegacyItems(db);db.items=itemLayout.items;db.sections=itemLayout.sections;changed=true;}
   if(!Array.isArray(db.items)){db.items=[];changed=true;}
   if(!Array.isArray(db.sections)){db.sections=[];changed=true;}
   if(!Array.isArray(db.lists)){db.lists=migrateLegacyLists(db);changed=true;}
   if(Object.prototype.hasOwnProperty.call(db,'refs')){delete db.refs;changed=true;}
   if(Object.prototype.hasOwnProperty.call(db,'catalogs')){delete db.catalogs;changed=true;}
-  if(db.version!==3){db.version=3;changed=true;}
+  if(db.version!==4){db.version=4;changed=true;}
   if(!Array.isArray(db.projectCategories)){db.projectCategories=[];changed=true;}
   if(!db.listShelfCollapsed||typeof db.listShelfCollapsed!=='object'){db.listShelfCollapsed={};changed=true;}
+  db.sections.forEach((sec,index)=>{
+    if(!sec.id){sec.id=gid();changed=true;}
+    if(!sec.name){sec.name='Section '+(index+1);changed=true;}
+    const count=Math.max(0,parseInt(sec.count)||0),cols=clampCols(sec.cols);
+    if(sec.count!==count){sec.count=count;changed=true;}
+    if(sec.cols!==cols){sec.cols=cols;changed=true;}
+    if(sec.order!==index){sec.order=index;changed=true;}
+  });
+  db.items.forEach((item,index)=>{
+    if(!item.id){item.id=gid();changed=true;}
+    if(!item.name){item.name='Title '+(index+1);changed=true;}
+    if(!('note' in item)){item.note='';changed=true;}
+    if(typeof item.checked!=='boolean'){item.checked=true;changed=true;}
+  });
   db.lists.forEach(r=>{
     const iconPositionX=clampImagePosition(r.iconPositionX),iconPositionY=clampImagePosition(r.iconPositionY);
     if(r.iconPositionX!==iconPositionX){r.iconPositionX=iconPositionX;changed=true;}
@@ -512,6 +460,10 @@ function normalizeTechoData(){
   if(JSON.stringify(categories)!==JSON.stringify(db.projectCategories)){db.projectCategories=categories;changed=true;}
   if(changed)save();
 }
+function getGridProject(scope){
+  if(scope==='items')return{id:'items',get items(){return db.items;},set items(value){db.items=value;},get sections(){return db.sections;},set sections(value){db.sections=value;}};
+  return db.lists.find(entry=>entry.id===curRefId)||null;
+}
 
 /* ═══ VIEWS ═══ */
 function currentScrollY(){return window.scrollY||document.documentElement.scrollTop||document.body.scrollTop||0;}
@@ -519,31 +471,34 @@ function restoreDetailScroll(y){
   const target=Math.max(0,Number(y)||0),restore=()=>window.scrollTo(0,target);
   if(typeof requestAnimationFrame==='function')requestAnimationFrame(()=>requestAnimationFrame(restore));else setTimeout(restore,0);
 }
-function rememberRefDetailScroll(){if(curRefId)refDetailScrollByProject[curRefId]=currentScrollY();}
-function activeTechoViewId(){for(const id of ['viewItems','viewRef','viewRefDetail']){const view=document.getElementById(id);if(view&&view.classList.contains('active'))return id;}return'viewItems';}
+function rememberRefDetailScroll(){const view=document.getElementById('viewRefDetail');if(curRefId&&view&&view.classList.contains('active'))refDetailScrollByProject[curRefId]=currentScrollY();}
+function activeTechoViewId(){for(const id of ['viewItems','viewRef','viewRefDetail','viewRefItemDetail']){const view=document.getElementById(id);if(view&&view.classList.contains('active'))return id;}return'viewItems';}
 function rememberTechoTabState(){
   const view=activeTechoViewId(),key=tabKeyForView(view),state=techoTabState[key];state.view=view;state.scroll=currentScrollY();
+  if(view==='viewRefItemDetail')state.itemId=curRefItemId;
   if(key==='list'){state.refId=curRefId;if(view==='viewRefDetail')rememberRefDetailScroll();}
+  else if(view==='viewItems')itemGridScroll=state.scroll;
 }
 function showView(id,options){
   const target=document.getElementById(id),preserve=!!(options&&options.preserveScroll);
   if(!preserve||!target.classList.contains('active')){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));target.classList.add('active');}
   syncTechoTabs(id);
-  const state=techoTabState[tabKeyForView(id)];state.view=id;if(id==='viewRefDetail')state.refId=curRefId;
+  const key=tabKeyForView(id),state=techoTabState[key];state.view=id;if(key==='list'&&(id==='viewRefDetail'||id==='viewRefItemDetail'))state.refId=curRefId;if(id==='viewRefItemDetail')state.itemId=curRefItemId;
   if(!preserve)window.scrollTo(0,0);
 }
-function tabKeyForView(id){return id==='viewRef'||id==='viewRefDetail'?'list':'items';}
+function tabKeyForView(id){return id==='viewRefItemDetail'?curGridItemScope:(id==='viewRef'||id==='viewRefDetail'?'list':'items');}
 function syncTechoTabs(viewId){
   const key=tabKeyForView(viewId);document.querySelectorAll('.tab-bar button').forEach(btn=>btn.classList.toggle('active',btn.id==='tab-'+key));
 }
 function switchTechoTab(key){
   rememberTechoTabState();const state=techoTabState[key]||techoTabState.items;
+  if(state.view==='viewRefItemDetail'&&state.itemId&&(key==='items'||state.refId)){if(key==='list')curRefId=state.refId;openGridItemDetail(key,state.itemId,{restoreScroll:state.scroll});return;}
   if(key==='list'&&state.view==='viewRefDetail'&&state.refId){openRefDetail(state.refId,{restoreScroll:state.scroll});return;}
   navTo(key==='list'?'viewRef':'viewItems',{restoreScroll:state.scroll});
 }
 function navTo(id,options){
   if(id!=='viewRef'&&refProjectArrangeMode)setRefProjectArrangeMode(false);
-  if(id!=='viewRefDetail'&&refItemArrangeMode)setRefItemArrangeMode(false);
+  const arrangeView=refItemArrangeScope==='items'?'viewItems':'viewRefDetail';if(id!==arrangeView&&refItemArrangeMode)setRefItemArrangeMode(false);
   const restoring=!!(options&&options.restoreScroll!==undefined),target=restoring?Math.max(0,Number(options.restoreScroll)||0):0;
   showView(id,restoring?{preserveScroll:true}:undefined);
   if(id==='viewItems')renderItems();else if(id==='viewRef')renderRefList();
@@ -552,143 +507,8 @@ function navTo(id,options){
 
 /* ═══ ITEMS VIEW ═══ */
 function renderItems(){
-  const pending=db.items.filter(i=>i.status==='pending');
-  const longTerm=pending.filter(i=>i.category==='long_term');
-  const consumable=pending.filter(i=>i.category==='consumable');
-  let html='';
-  if(longTerm.length){
-    html+=`<div class="pending-section"><div class="pending-header">Long-term <span class="count">${longTerm.length}</span></div><div class="pending-grid">${longTerm.map(i=>renderThumb(i,'long-term')).join('')}</div></div>`;
-  }
-  if(consumable.length){
-    html+=`<div class="pending-section"><div class="pending-header">Consumable <span class="count">${consumable.length}</span></div><div class="pending-grid">${consumable.map(i=>renderThumb(i,'consumable')).join('')}</div></div>`;
-  }
-  if(!pending.length)html+=`<div class="pending-section"><div class="pending-header" style="justify-content:center;color:#ddd;padding:20px 0">No pending items</div></div>`;
-  document.getElementById('pendingArea').innerHTML=html;
-  let secHtml='';
-  db.sections.forEach(sec=>{
-    const items=db.items.filter(i=>i.assignment===sec.id&&i.status==='active');
-    const coll=db.sectionCollapsed[sec.id];
-    secHtml+=`<div class="section-divider${coll?' collapsed':''}" onclick="toggleItemSection('${sec.id}')"><div class="section-line"></div><span class="section-label">${esc(sec.name)}</span><span class="section-arrow">▼</span><div class="section-line"></div></div>`;
-    secHtml+=`<div class="section-items${coll?' collapsed':''}">`;
-    items.forEach(i=>{
-      secHtml+=`<div class="item-row" onclick="openItemAction('${i.id}')"><img class="item-row-img" src="${i.img||''}" alt="" onerror="this.style.display='none'"><div class="item-row-body"><div class="item-row-name">${esc(i.name)}</div><div class="item-row-meta">${i.category==='consumable'?'Consumable':'Long-term'}</div></div><div class="status-dot active"></div></div>`;
-    });
-    if(!items.length)secHtml+=`<div style="padding:12px 0;text-align:center;font-size:11px;color:#ddd">Empty</div>`;
-    secHtml+=`</div>`;
-  });
-  document.getElementById('sectionsArea').innerHTML=secHtml;
-}
-function renderThumb(item,cls){
-  return`<div class="item-thumb ${cls}" onclick="openItemAction('${item.id}')">${item.img?`<img src="${item.img}" onerror="this.style.display='none'">`:`<div class="item-name-s">${esc(item.name)}</div>`}</div>`;
-}
-function toggleItemSection(id){db.sectionCollapsed[id]=!db.sectionCollapsed[id];save();renderItems();}
-
-/* ── Item CRUD ── */
-function openAddItem(){
-  editItemId=null;
-  document.getElementById('itemModalTitle').textContent='New Item';
-  document.getElementById('inputItemName').value='';
-  document.getElementById('inputItemCost').value='';
-  document.getElementById('inputItemNote').value='';
-  document.getElementById('itemImgPreview').style.display='none';
-  document.getElementById('itemCat').value='long_term';
-  document.querySelectorAll('#catSelect .cat-opt').forEach((b,i)=>b.classList.toggle('active',i===0));
-  document.getElementById('itemDeleteWrap').style.display='none';
-  openModal('itemModal');
-}
-function openEditItem(id){
-  const item=db.items.find(i=>i.id===id);if(!item)return;
-  editItemId=id;
-  document.getElementById('itemModalTitle').textContent='Edit Item';
-  document.getElementById('inputItemName').value=item.name||'';
-  document.getElementById('inputItemCost').value=item.cost||'';
-  document.getElementById('inputItemNote').value=item.note||'';
-  const preview=document.getElementById('itemImgPreview');
-  if(item.img){preview.src=item.img;preview.style.display='block';}else{preview.removeAttribute('src');preview.style.display='none';}
-  pickCat(item.category||'long_term');
-  document.getElementById('itemDeleteWrap').style.display='block';
-  closeModal('actionModal');openModal('itemModal');
-}
-function pickCat(val){
-  document.getElementById('itemCat').value=val;
-  document.querySelectorAll('#catSelect .cat-opt').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase().replace('-','_')===val));
-}
-function saveItem(){
-  if(!imageReady('itemImgPreview'))return;
-  const name=document.getElementById('inputItemName').value.trim();if(!name){toast('Name required');return;}
-  const cost=parseInt(document.getElementById('inputItemCost').value)||0;
-  const note=document.getElementById('inputItemNote').value.trim();
-  const cat=document.getElementById('itemCat').value;
-  const preview=document.getElementById('itemImgPreview');
-  const img=preview.style.display!=='none'?preview.src:'';
-  if(editItemId){
-    const item=db.items.find(i=>i.id===editItemId);
-    if(item){item.name=name;item.cost=cost;item.note=note;item.category=cat;if(img)item.img=img;}
-  }else{
-    db.items.push({id:gid(),name,img,category:cat,status:'pending',assignment:null,cost,note,source:'manual',catalogRef:null,disposition:null,soldPrice:0,addedAt:Date.now()});
-  }
-  save();closeModal('itemModal');renderItems();
-}
-function deleteItem(){
-  if(!editItemId)return;
-  db.items=db.items.filter(i=>i.id!==editItemId);
-  save();closeModal('itemModal');closeModal('actionModal');renderItems();toast('Deleted');
-}
-
-/* ── Item Actions ── */
-function openItemAction(id){
-  const item=db.items.find(i=>i.id===id);if(!item)return;
-  editItemId=id;
-  let html=`<div style="text-align:center;margin-bottom:12px">${item.img?`<img src="${item.img}" style="width:80px;height:80px;object-fit:cover;border-radius:10px">`:''}<div style="font-size:14px;font-weight:500;margin-top:8px">${esc(item.name)}</div><div style="font-size:10px;color:#ccc;margin-top:2px">${item.category==='consumable'?'Consumable':'Long-term'}${item.cost?' · ¥'+item.cost:''}</div></div>`;
-  if(item.status==='pending'){
-    html+=`<label>Assign to section</label><select id="assignSelect" style="width:100%;padding:10px;border:1px solid #e8e8e8;border-radius:8px;font-size:13px;font-family:inherit"><option value="">Choose...</option>${db.sections.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('')}</select>`;
-    html+=`<div class="btn-row"><button class="btn btn-cancel" onclick="closeModal('actionModal')">Cancel</button><button class="btn btn-primary" onclick="assignItem('${id}')">Assign</button></div>`;
-    html+=`<div style="text-align:center;margin-top:12px"><button class="btn-del" style="padding:8px 16px;border-radius:8px;cursor:pointer;font-family:inherit;border:1px solid #E85A5A;background:none;color:#E85A5A" onclick="editItemId='${id}';deleteItem()">Delete</button></div>`;
-  }else if(item.status==='active'){
-    html+=`<label>Disposition</label><div class="disp-row"><button type="button" class="disp-btn" onclick="disposeItem('${id}','done')">Done</button><button type="button" class="disp-btn sold" onclick="openSoldInput('${id}')">Sold</button><button type="button" class="disp-btn" onclick="disposeItem('${id}','gift')">Gift</button></div>`;
-    html+=`<div id="soldInput" style="display:none;margin-top:8px"><label>Sold for</label><input type="number" id="soldPrice" min="0" step="1" style="width:100%;padding:10px;border:1px solid #e8e8e8;border-radius:8px;font-size:13px"><div class="btn-row" style="margin-top:8px"><button class="btn btn-primary" onclick="confirmSold('${id}')">Confirm</button></div></div>`;
-    html+=`<div class="btn-row" style="margin-top:12px"><button class="btn btn-cancel" onclick="unassignItem('${id}')">Back to pending</button><button class="btn btn-cancel" onclick="closeModal('actionModal')">Close</button></div>`;
-  }
-  html+=`<div style="text-align:center;margin-top:12px"><button class="btn btn-cancel" style="width:100%" onclick="openEditItem('${id}')">Edit Item</button></div>`;
-  document.getElementById('actionTitle').textContent=item.name;
-  document.getElementById('actionContent').innerHTML=html;
-  openModal('actionModal');
-}
-function assignItem(id){
-  const secId=document.getElementById('assignSelect').value;
-  if(!secId){toast('Choose a section');return;}
-  const item=db.items.find(i=>i.id===id);if(!item)return;
-  item.status='active';item.assignment=secId;
-  save();closeModal('actionModal');renderItems();toast('Assigned');
-}
-function unassignItem(id){
-  const item=db.items.find(i=>i.id===id);if(!item)return;
-  item.status='pending';item.assignment=null;
-  save();closeModal('actionModal');renderItems();
-}
-function disposeItem(id,type){
-  const item=db.items.find(i=>i.id===id);if(!item)return;
-  item.disposition=type;item.status='done';
-  if(item.source==='manual'&&type!=='sold'){db.items=db.items.filter(i=>i.id!==id);}
-  save();closeModal('actionModal');renderItems();toast(type==='done'?'Completed':'Done');
-}
-function openSoldInput(id){document.getElementById('soldInput').style.display='block';}
-function confirmSold(id){
-  const item=db.items.find(i=>i.id===id);if(!item)return;
-  item.soldPrice=parseInt(document.getElementById('soldPrice').value)||0;
-  item.disposition='sold';item.status='done';
-  if(item.source==='manual'){db.items=db.items.filter(i=>i.id!==id);}
-  save();closeModal('actionModal');renderItems();toast('Sold · ¥'+item.soldPrice);
-}
-
-/* ── Section CRUD ── */
-function openAddSection(){
-  document.getElementById('inputSectionName').value='';openModal('sectionModal');
-}
-function saveSection(){
-  const name=document.getElementById('inputSectionName').value.trim();if(!name)return;
-  db.sections.push({id:gid(),name,order:db.sections.length});
-  save();closeModal('sectionModal');renderItems();
+  renderGridProject('items','itemDetailGrid');
+  setupGridItemArrangeGestures('items');
 }
 
 /* ═══ LIST CATEGORIES ═══ */
@@ -834,63 +654,114 @@ function initRefProjectDrag(){
   });
 }
 function openRefDetail(id,options){
-  if(curRefId&&curRefId!==id&&refItemArrangeMode)setRefItemArrangeMode(false);
-  curRefId=id;const r=db.lists.find(x=>x.id===id);if(!r)return;
+  if(refItemArrangeMode&&(refItemArrangeScope!=='list'||curRefId!==id))setRefItemArrangeMode(false);
+  curRefId=id;curRefItemId=null;const r=db.lists.find(x=>x.id===id);if(!r)return;
   const restoring=!!(options&&options.restoreScroll!==undefined);
   const target=restoring?Math.max(0,Number(options.restoreScroll)||0):0;
   refDetailScrollByProject[id]=target;
   document.getElementById('refDetailTitle').textContent=r.name;
+  renderGridProject('list','refDetailGrid');
+  showView('viewRefDetail',restoring?{preserveScroll:true}:undefined);
+  setupGridItemArrangeGestures('list');
+  if(restoring)restoreDetailScroll(target);
+}
+function renderGridProject(scope,gridId){
+  const project=getGridProject(scope);if(!project)return;
   let html='',offset=0;
-  if(r.sections&&r.sections.length){
-    r.sections.forEach((sec,sectionIdx)=>{
+  if(project.sections&&project.sections.length){
+    project.sections.forEach((sec,sectionIdx)=>{
       const count=Math.max(0,parseInt(sec.count)||0),cols=clampCols(sec.cols);
-      html+=`<div class="section-divider"><div class="section-divider-line"></div><div class="section-divider-center"><span class="section-divider-label" title="Double-click to edit section" ondblclick="event.stopPropagation();openRefSectionQuick(${sectionIdx})">${esc(sec.name||('Section '+(sectionIdx+1)))}</span></div><div class="section-divider-line"></div></div>`;
-      html+=`<div class="ref-section-grid" style="grid-template-columns:repeat(${cols},1fr)">${r.items.slice(offset,offset+count).map((item,itemOffset)=>renderRefItem(r,item,offset+itemOffset)).join('')}</div>`;
+      html+=`<div class="section-divider"><div class="section-divider-line"></div><div class="section-divider-center"><span class="section-divider-label" title="Double-click to edit section" ondblclick="event.stopPropagation();openGridSectionQuick('${scope}',${sectionIdx})">${esc(sec.name||('Section '+(sectionIdx+1)))}</span></div><div class="section-divider-line"></div></div>`;
+      html+=`<div class="ref-section-grid" style="grid-template-columns:repeat(${cols},1fr)">${project.items.slice(offset,offset+count).map((item,itemOffset)=>renderGridItem(scope,project,item,offset+itemOffset)).join('')}</div>`;
       offset+=count;
     });
   }
-  if(offset<r.items.length||!r.sections.length)html+=`<div class="ref-section-grid" style="grid-template-columns:repeat(3,1fr)">${r.items.slice(offset).map((item,itemOffset)=>renderRefItem(r,item,offset+itemOffset)).join('')}</div>`;
-  document.getElementById('refDetailGrid').innerHTML=html;
-  showView('viewRefDetail',restoring?{preserveScroll:true}:undefined);
-  setupRefItemArrangeGestures();
+  if(offset<project.items.length||!project.sections.length)html+=`<div class="ref-section-grid" style="grid-template-columns:repeat(3,1fr)">${project.items.slice(offset).map((item,itemOffset)=>renderGridItem(scope,project,item,offset+itemOffset)).join('')}</div>`;
+  document.getElementById(gridId).innerHTML=html;
+}
+function renderGridItem(scope,project,item,index){
+  const hasImg=!!item.img,hasCustomName=!isGenericRefItemName(item.name);
+  return`<div class="ref-item-cell${item.checked?' checked':''}${hasImg?' has-img':''}" data-index="${index}" data-grid-scope="${scope}" data-ref-item-id="${item.id}" onclick="handleGridItemClick('${scope}','${item.id}')">${hasImg?`<img class="item-img" src="${item.img}" alt="" onerror="this.style.display='none'">`:''}${hasCustomName?`<span class="item-label">${esc(item.name)}</span>`:''}${item.checked?'<span class="ref-item-check">✓</span>':''}<button class="ref-item-delete-x" aria-label="Delete item" onclick="event.stopPropagation();deleteGridItem('${scope}',${index})">×</button></div>`;
+}
+function renderRefItem(r,item,index){return renderGridItem('list',r,item,index);}
+
+function rememberGridScroll(scope){if(scope==='list')rememberRefDetailScroll();else if(activeTechoViewId()==='viewItems')itemGridScroll=currentScrollY();}
+function getGridScroll(scope){return scope==='list'?(refDetailScrollByProject[curRefId]||0):itemGridScroll;}
+function refreshGridScope(scope,scroll){
+  const target=Math.max(0,Number(scroll)||0);
+  if(scope==='list'){if(curRefId)openRefDetail(curRefId,{restoreScroll:target});return;}
+  itemGridScroll=target;renderItems();showView('viewItems',{preserveScroll:true});restoreDetailScroll(target);
+}
+function openGridItemDetail(scope,itemId,options){
+  const project=getGridProject(scope),item=project&&(project.items||[]).find(entry=>entry.id===itemId);if(!project||!item)return;
+  if(refItemArrangeMode)setRefItemArrangeMode(false);
+  rememberGridScroll(scope);curGridItemScope=scope;curRefItemId=item.id;
+  const restoring=!!(options&&options.restoreScroll!==undefined),target=restoring?Math.max(0,Number(options.restoreScroll)||0):0;
+  const title=isGenericRefItemName(item.name)?'Item':item.name;
+  document.getElementById('refItemDetailTitle').textContent=title;
+  let html='<div class="ref-card-detail">';
+  if(item.img)html+=`<div class="ref-card-media"><img src="${item.img}" alt=""></div>`;
+  html+=`<div class="ref-card-body"><div class="ref-card-name">${esc(title)}</div>`;
+  if(item.note)html+=`<div class="ref-card-note">${esc(item.note)}</div>`;
+  html+='</div></div>';
+  html+=`<div class="ref-card-actions"><button class="btn ${item.checked?'btn-cancel':'btn-primary'}" onclick="toggleRefItemDetailCheck()">${item.checked?'Uncheck':'Check In'}</button></div>`;
+  document.getElementById('refItemDetailContent').innerHTML=html;
+  showView('viewRefItemDetail',restoring?{preserveScroll:true}:undefined);
   if(restoring)restoreDetailScroll(target);
 }
-function renderRefItem(r,item,index){
-  const hasImg=!!item.img,hasCustomName=!isGenericRefItemName(item.name);
-  return`<div class="ref-item-cell${item.checked?' checked':''}${hasImg?' has-img':''}" data-index="${index}" data-ref-item-id="${item.id}" onclick="handleRefItemClick('${item.id}')">${hasImg?`<img class="item-img" src="${item.img}" alt="" onerror="this.style.display='none'">`:''}${hasCustomName?`<span class="item-label">${esc(item.name)}</span>`:''}${item.checked?'<span class="ref-item-check">✓</span>':''}<button class="ref-item-edit" aria-label="Edit item" onclick="event.stopPropagation();openEditRefItemById('${item.id}')">···</button><button class="ref-item-delete-x" aria-label="Delete item" onclick="event.stopPropagation();deleteRefGridItem(${index})">×</button></div>`;
+function openRefItemDetail(itemId,options){openGridItemDetail('list',itemId,options);}
+function returnFromGridItemDetail(){const scope=curGridItemScope,scroll=getGridScroll(scope);curRefItemId=null;refreshGridScope(scope,scroll);}
+function returnToRefDetail(){curGridItemScope='list';returnFromGridItemDetail();}
+function toggleRefItemDetailCheck(){
+  const project=getGridProject(curGridItemScope),item=project&&(project.items||[]).find(entry=>entry.id===curRefItemId);if(!project||!item)return;
+  const scroll=currentScrollY();item.checked=!item.checked;save();openGridItemDetail(curGridItemScope,item.id,{restoreScroll:scroll});
 }
 
 /* ═══ LIST ITEM ARRANGE MODE ═══ */
 function handleRefDetailHeaderButton(){if(refItemArrangeMode)setRefItemArrangeMode(false);else openEditRef();}
-function setRefItemArrangeMode(active){
+function gridViewId(scope){return scope==='items'?'viewItems':'viewRefDetail';}
+function gridElementId(scope){return scope==='items'?'itemDetailGrid':'refDetailGrid';}
+function setRefItemArrangeMode(active,scope){
+  if(active)refItemArrangeScope=scope||refItemArrangeScope;
   refItemArrangeMode=!!active;
-  const view=document.getElementById('viewRefDetail'),btn=document.getElementById('refDetailHeaderBtn');
-  if(view)view.classList.toggle('ref-item-arrange-mode',refItemArrangeMode);
-  if(btn){btn.textContent=refItemArrangeMode?'Done':'⋯';btn.setAttribute('aria-label',refItemArrangeMode?'Finish arranging':'Edit list');}
+  ['items','list'].forEach(key=>{const view=document.getElementById(gridViewId(key));if(view)view.classList.toggle('ref-item-arrange-mode',refItemArrangeMode&&refItemArrangeScope===key);});
+  const btn=document.getElementById('refDetailHeaderBtn'),listArranging=refItemArrangeMode&&refItemArrangeScope==='list';
+  if(btn){btn.textContent=listArranging?'Done':'⋯';btn.setAttribute('aria-label',listArranging?'Finish arranging':'Edit list');}
   if(!refItemArrangeMode)cancelRefItemArrangeGesture();
 }
-function handleRefItemClick(itemId){if(refItemArrangeMode||Date.now()<refItemClickSuppressedUntil)return;toggleListItemCheck(itemId);}
-function toggleListItemCheck(itemId){
-  const r=db.lists.find(x=>x.id===curRefId),item=r&&(r.items||[]).find(entry=>entry.id===itemId);if(!r||!item)return false;
-  const scroll=currentScrollY();item.checked=!item.checked;save();openRefDetail(r.id,{restoreScroll:scroll});return item.checked;
+function handleGridItemClick(scope,itemId){
+  if(refItemArrangeMode||Date.now()<refItemClickSuppressedUntil)return;
+  const project=getGridProject(scope),item=project&&(project.items||[]).find(entry=>entry.id===itemId);if(!project||!item)return;
+  if(isBlankRefItem(item)){openEditGridItem(scope,itemId);return;}
+  if(item.checked){openGridItemDetail(scope,itemId);return;}
+  toggleGridItemCheck(scope,itemId);
 }
-function deleteRefGridItem(index){
-  const r=db.lists.find(x=>x.id===curRefId),item=r&&r.items[index];if(!item)return;
+function handleRefItemClick(itemId){handleGridItemClick('list',itemId);}
+function toggleGridItemCheck(scope,itemId){
+  const project=getGridProject(scope),item=project&&(project.items||[]).find(entry=>entry.id===itemId);if(!project||!item)return false;
+  const scroll=currentScrollY();item.checked=!item.checked;save();refreshGridScope(scope,scroll);return item.checked;
+}
+function toggleListItemCheck(itemId){return toggleGridItemCheck('list',itemId);}
+function openEditActiveGridItem(){if(curRefItemId)openEditGridItem(curGridItemScope,curRefItemId);}
+function deleteGridItem(scope,index){
+  const project=getGridProject(scope),item=project&&project.items[index];if(!item)return;
   if(typeof window.confirm==='function'&&!window.confirm(`Delete "${isGenericRefItemName(item.name)?'item '+(index+1):item.name}"?`))return;
-  const sectionIndex=getRefItemSectionIndex(r,index);if(sectionIndex>=0)r.sections[sectionIndex].count=Math.max(0,(parseInt(r.sections[sectionIndex].count)||0)-1);
-  const scroll=currentScrollY();r.items.splice(index,1);renumberBlankRefItems(r);editRefItemId=null;refItemClickSuppressedUntil=Date.now()+400;save();openRefDetail(r.id,{restoreScroll:scroll});
+  const sectionIndex=getRefItemSectionIndex(project,index);if(sectionIndex>=0)project.sections[sectionIndex].count=Math.max(0,(parseInt(project.sections[sectionIndex].count)||0)-1);
+  const scroll=currentScrollY();project.items.splice(index,1);renumberBlankRefItems(project);editRefItemId=null;refItemClickSuppressedUntil=Date.now()+400;save();refreshGridScope(scope,scroll);
 }
-function moveRefItem(fromIdx,toIdx){
-  const r=db.lists.find(x=>x.id===curRefId);
-  if(!r||fromIdx===toIdx||fromIdx<0||toIdx<0||fromIdx>=r.items.length||toIdx>=r.items.length)return false;
-  const fromSection=getRefItemSectionIndex(r,fromIdx),toSection=getRefItemSectionIndex(r,toIdx),scroll=currentScrollY();
+function deleteRefGridItem(index){deleteGridItem('list',index);}
+function moveGridItem(scope,fromIdx,toIdx){
+  const project=getGridProject(scope);
+  if(!project||fromIdx===toIdx||fromIdx<0||toIdx<0||fromIdx>=project.items.length||toIdx>=project.items.length)return false;
+  const fromSection=getRefItemSectionIndex(project,fromIdx),toSection=getRefItemSectionIndex(project,toIdx),scroll=currentScrollY();
   if(fromSection!==toSection){
-    if(fromSection>=0)r.sections[fromSection].count=Math.max(0,(parseInt(r.sections[fromSection].count)||0)-1);
-    if(toSection>=0)r.sections[toSection].count=(parseInt(r.sections[toSection].count)||0)+1;
+    if(fromSection>=0)project.sections[fromSection].count=Math.max(0,(parseInt(project.sections[fromSection].count)||0)-1);
+    if(toSection>=0)project.sections[toSection].count=(parseInt(project.sections[toSection].count)||0)+1;
   }
-  const moved=r.items.splice(fromIdx,1)[0];r.items.splice(toIdx,0,moved);renumberBlankRefItems(r);
-  editRefItemId=null;refItemClickSuppressedUntil=Date.now()+400;save();openRefDetail(r.id,{restoreScroll:scroll});return true;
+  const moved=project.items.splice(fromIdx,1)[0];project.items.splice(toIdx,0,moved);renumberBlankRefItems(project);
+  editRefItemId=null;refItemClickSuppressedUntil=Date.now()+400;save();refreshGridScope(scope,scroll);return true;
 }
+function moveRefItem(fromIdx,toIdx){return moveGridItem('list',fromIdx,toIdx);}
 function releaseRefItemPointer(state){
   if(!state||!state.cell||!state.cell.releasePointerCapture)return;
   try{if(!state.cell.hasPointerCapture||state.cell.hasPointerCapture(state.pointerId))state.cell.releasePointerCapture(state.pointerId);}catch(e){}
@@ -901,30 +772,31 @@ function beginRefItemDrag(state){
   if(state.timer){clearTimeout(state.timer);state.timer=null;}
   const rect=state.cell.getBoundingClientRect(),ghost=state.cell.cloneNode(true);
   ghost.classList.remove('drag-source','drop-target');ghost.classList.add('ref-item-drag-ghost');ghost.removeAttribute('onclick');ghost.style.width=rect.width+'px';ghost.style.height=rect.height+'px';
-  document.body.appendChild(ghost);state.cell.classList.add('drag-source');refItemDragState={from:state.idx,target:state.idx,source:state.cell,ghost,width:rect.width,height:rect.height};updateRefItemDrag(state.lastX,state.lastY);
+  document.body.appendChild(ghost);state.cell.classList.add('drag-source');refItemDragState={scope:state.scope,from:state.idx,target:state.idx,source:state.cell,ghost,width:rect.width,height:rect.height};updateRefItemDrag(state.lastX,state.lastY);
 }
 function updateRefItemDrag(x,y){
   const drag=refItemDragState;if(!drag)return;
   drag.ghost.style.left=(x-drag.width/2)+'px';drag.ghost.style.top=(y-drag.height/2)+'px';
-  document.querySelectorAll('#refDetailGrid .ref-item-cell.drop-target').forEach(cell=>cell.classList.remove('drop-target'));
-  const under=document.elementFromPoint(x,y),target=under&&under.closest?under.closest('#refDetailGrid .ref-item-cell'):null;
+  const selector='#'+gridElementId(drag.scope)+' .ref-item-cell';document.querySelectorAll(selector+'.drop-target').forEach(cell=>cell.classList.remove('drop-target'));
+  const under=document.elementFromPoint(x,y),target=under&&under.closest?under.closest(selector):null;
   if(target){const idx=parseInt(target.dataset.index);if(Number.isInteger(idx)){drag.target=idx;if(idx!==drag.from)target.classList.add('drop-target');}}
   const edge=72;if(y<edge&&window.scrollBy)window.scrollBy(0,-12);else if(y>window.innerHeight-edge&&window.scrollBy)window.scrollBy(0,12);
 }
 function finishRefItemDrag(commit){
   const drag=refItemDragState;if(!drag)return;
-  drag.source&&drag.source.classList.remove('drag-source');document.querySelectorAll('#refDetailGrid .ref-item-cell.drop-target').forEach(cell=>cell.classList.remove('drop-target'));drag.ghost&&drag.ghost.remove();refItemDragState=null;refItemClickSuppressedUntil=Date.now()+700;
-  if(commit&&drag.from!==drag.target)moveRefItem(drag.from,drag.target);
+  drag.source&&drag.source.classList.remove('drag-source');document.querySelectorAll('#'+gridElementId(drag.scope)+' .ref-item-cell.drop-target').forEach(cell=>cell.classList.remove('drop-target'));drag.ghost&&drag.ghost.remove();refItemDragState=null;refItemClickSuppressedUntil=Date.now()+700;
+  if(commit&&drag.from!==drag.target)moveGridItem(drag.scope,drag.from,drag.target);
 }
 function cancelRefItemArrangeGesture(){clearRefItemPressState();finishRefItemDrag(false);}
 function onRefItemPointerDown(event){
   if(event.button!==undefined&&event.button!==0)return;
-  if(event.target.closest&&event.target.closest('.ref-item-delete-x,.ref-item-edit'))return;
-  const cell=event.target.closest&&event.target.closest('#refDetailGrid .ref-item-cell');if(!cell)return;
+  if(event.target.closest&&event.target.closest('.ref-item-delete-x'))return;
+  const cell=event.target.closest&&event.target.closest('.ref-item-cell');if(!cell)return;
   cancelRefItemArrangeGesture();const idx=parseInt(cell.dataset.index);if(!Number.isInteger(idx))return;
-  const state={cell,idx,pointerId:event.pointerId,startX:event.clientX,startY:event.clientY,lastX:event.clientX,lastY:event.clientY,timer:null};refItemPressState=state;
+  const scope=cell.dataset.gridScope==='items'?'items':'list';
+  const state={cell,idx,scope,pointerId:event.pointerId,startX:event.clientX,startY:event.clientY,lastX:event.clientX,lastY:event.clientY,timer:null};refItemPressState=state;
   if(cell.setPointerCapture)try{cell.setPointerCapture(event.pointerId);}catch(e){}
-  state.timer=setTimeout(()=>{if(refItemPressState!==state)return;refItemClickSuppressedUntil=Date.now()+700;setRefItemArrangeMode(true);if(typeof navigator!=='undefined'&&navigator.vibrate)navigator.vibrate(12);beginRefItemDrag(state);},refItemArrangeMode?170:520);
+  state.timer=setTimeout(()=>{if(refItemPressState!==state)return;refItemClickSuppressedUntil=Date.now()+700;setRefItemArrangeMode(true,scope);if(typeof navigator!=='undefined'&&navigator.vibrate)navigator.vibrate(12);beginRefItemDrag(state);},refItemArrangeMode&&refItemArrangeScope===scope?170:520);
 }
 function onRefItemPointerMove(event){
   const state=refItemPressState;if(!state||state.pointerId!==event.pointerId)return;
@@ -937,12 +809,13 @@ function onRefItemPointerUp(event){
   if(state.timer)clearTimeout(state.timer);releaseRefItemPointer(state);const shouldCommit=!!refItemDragState;refItemPressState=null;if(shouldCommit)finishRefItemDrag(true);
 }
 function onRefItemPointerCancel(event){const state=refItemPressState;if(!state||state.pointerId!==event.pointerId)return;clearRefItemPressState();finishRefItemDrag(false);}
-function setupRefItemArrangeGestures(){
-  if(refItemGestureBound)return;const grid=document.getElementById('refDetailGrid');if(!grid)return;refItemGestureBound=true;
+function setupGridItemArrangeGestures(scope){
+  const grid=document.getElementById(gridElementId(scope));if(!grid||grid.dataset.arrangeBound==='1')return;grid.dataset.arrangeBound='1';
   grid.addEventListener('pointerdown',onRefItemPointerDown);grid.addEventListener('pointermove',onRefItemPointerMove,{passive:false});grid.addEventListener('pointerup',onRefItemPointerUp);grid.addEventListener('pointercancel',onRefItemPointerCancel);
   grid.addEventListener('contextmenu',event=>{if(event.target.closest&&event.target.closest('.ref-item-cell'))event.preventDefault();});grid.addEventListener('dragstart',event=>event.preventDefault());
-  document.getElementById('viewRefDetail').addEventListener('click',event=>{if(!refItemArrangeMode)return;if(event.target.closest&&event.target.closest('.ref-item-cell,.btn-s,.back,.ref-add-item-btn,.section-divider,.modal-bg.show'))return;setRefItemArrangeMode(false);});
+  const view=document.getElementById(gridViewId(scope));if(view&&view.dataset.arrangeExitBound!=='1'){view.dataset.arrangeExitBound='1';view.addEventListener('click',event=>{if(!refItemArrangeMode||refItemArrangeScope!==scope)return;if(event.target.closest&&event.target.closest('.ref-item-cell,.btn-s,.back,.ref-add-item-btn,.section-divider,.modal-bg.show'))return;setRefItemArrangeMode(false);});}
 }
+function setupRefItemArrangeGestures(){setupGridItemArrangeGestures('list');}
 
 function getRefItemSectionIndex(r,itemIdx){
   let end=0;
@@ -1070,81 +943,90 @@ function saveRef(){
   save();closeModal('refModal');if(finalized.preserved)toast(`Kept ${finalized.preserved} filled item${finalized.preserved===1?'':'s'}`);if(editRefId)openRefDetail(editRefId,{restoreScroll:returnScroll});else renderRefList();
 }
 
-function openRefSectionQuick(index){
-  const r=db.lists.find(x=>x.id===curRefId),sec=r&&r.sections&&r.sections[index];if(!sec)return;
-  rememberRefDetailScroll();
+function openGridSectionQuick(scope,index){
+  const project=getGridProject(scope),sec=project&&project.sections&&project.sections[index];if(!sec)return;
+  rememberGridScroll(scope);editGridSectionScope=scope;
   editRefSectionIdx=index;document.getElementById('refSectionQuickTitle').textContent='Edit Section';
   document.getElementById('inputQuickRefSectionName').value=sec.name||'';document.getElementById('inputQuickRefSectionCount').value=Math.max(0,parseInt(sec.count)||0);document.getElementById('inputQuickRefSectionCols').value=String(clampCols(sec.cols));openModal('refSectionQuickModal');
 }
-function openAddRefSection(){
-  rememberRefDetailScroll();editRefSectionIdx=null;document.getElementById('refSectionQuickTitle').textContent='New Section';
+function openAddGridSection(scope){
+  rememberGridScroll(scope);editGridSectionScope=scope;editRefSectionIdx=null;document.getElementById('refSectionQuickTitle').textContent='New Section';
   document.getElementById('inputQuickRefSectionName').value='';document.getElementById('inputQuickRefSectionCount').value='0';document.getElementById('inputQuickRefSectionCols').value='3';openModal('refSectionQuickModal');
 }
-function saveRefSectionQuick(){
-  const r=db.lists.find(x=>x.id===curRefId);if(!r)return;
-  const returnScroll=refDetailScrollByProject[r.id]??currentScrollY();
+function saveGridSectionQuick(){
+  const scope=editGridSectionScope,project=getGridProject(scope);if(!project)return;
+  const returnScroll=getGridScroll(scope);
   const name=document.getElementById('inputQuickRefSectionName').value.trim();if(!name){toast('Name required');return;}
   const nextCount=Math.max(0,Math.min(999,parseInt(document.getElementById('inputQuickRefSectionCount').value)||0)),cols=clampCols(document.getElementById('inputQuickRefSectionCols').value);
   if(editRefSectionIdx===null){
-    r.sections=r.sections||[];r.sections.push({name,count:nextCount,cols});for(let i=0;i<nextCount;i++)r.items.push(makeBlankRefItem(r.items.length+1));
+    project.sections=project.sections||[];project.sections.push({id:scope==='items'?gid():undefined,name,count:nextCount,cols,order:project.sections.length});for(let i=0;i<nextCount;i++)project.items.push(makeBlankRefItem(project.items.length+1));
   }else{
-    const sec=r.sections[editRefSectionIdx],oldCount=Math.max(0,parseInt(sec.count)||0);let start=0;for(let i=0;i<editRefSectionIdx;i++)start+=Math.max(0,parseInt(r.sections[i].count)||0);
-    if(nextCount<oldCount){const removeAt=start+nextCount,removeCount=oldCount-nextCount;if(r.items.slice(removeAt,removeAt+removeCount).some(item=>!isBlankRefItem(item))){toast('先清空要删掉的已填写品目');return;}r.items.splice(removeAt,removeCount);}
-    else if(nextCount>oldCount){const insertAt=start+oldCount,created=[];for(let i=0;i<nextCount-oldCount;i++)created.push(makeBlankRefItem(insertAt+i+1));r.items.splice(insertAt,0,...created);}
+    const sec=project.sections[editRefSectionIdx],oldCount=Math.max(0,parseInt(sec.count)||0);let start=0;for(let i=0;i<editRefSectionIdx;i++)start+=Math.max(0,parseInt(project.sections[i].count)||0);
+    if(nextCount<oldCount){const removeAt=start+nextCount,removeCount=oldCount-nextCount;if(project.items.slice(removeAt,removeAt+removeCount).some(item=>!isBlankRefItem(item))){toast('先清空要删掉的已填写品目');return;}project.items.splice(removeAt,removeCount);}
+    else if(nextCount>oldCount){const insertAt=start+oldCount,created=[];for(let i=0;i<nextCount-oldCount;i++)created.push(makeBlankRefItem(insertAt+i+1));project.items.splice(insertAt,0,...created);}
     sec.name=name;sec.count=nextCount;sec.cols=cols;
   }
-  renumberBlankRefItems(r);editRefSectionIdx=null;save();closeModal('refSectionQuickModal');openRefDetail(r.id,{restoreScroll:returnScroll});
+  project.sections.forEach((sec,index)=>{sec.order=index;});renumberBlankRefItems(project);editRefSectionIdx=null;save();closeModal('refSectionQuickModal');refreshGridScope(scope,returnScroll);
 }
+function openRefSectionQuick(index){openGridSectionQuick('list',index);}
+function openAddRefSection(){openAddGridSection('list');}
+function saveRefSectionQuick(){editGridSectionScope='list';saveGridSectionQuick();}
 
-function openAddRefItem(){
-  rememberRefDetailScroll();
+function openAddGridItem(scope){
+  rememberGridScroll(scope);editGridScope=scope;
   editRefItemId=null;document.getElementById('refItemModalTitle').textContent='New Item';
   document.getElementById('inputRefItemName').value='';
   document.getElementById('inputRefItemNote').value='';
   document.getElementById('refItemImgInput').value='';
   const preview=document.getElementById('refItemImgPreview');preview.removeAttribute('src');preview.style.display='none';
-  document.getElementById('refItemDeleteBtn').style.display='none';prepareRefItemSectionSelect(-1);
+  document.getElementById('refItemDeleteBtn').style.display='none';prepareGridItemSectionSelect(scope,-1);
   openModal('refItemModal');
 }
-function openEditRefItemById(itemId){
-  const r=db.lists.find(x=>x.id===curRefId),index=r?r.items.findIndex(item=>item.id===itemId):-1;if(!r||index<0)return;
-  rememberRefDetailScroll();
-  const item=r.items[index];editRefItemId=item.id;document.getElementById('refItemModalTitle').textContent='Edit Item';
+function openEditGridItem(scope,itemId){
+  const project=getGridProject(scope),index=project?project.items.findIndex(item=>item.id===itemId):-1;if(!project||index<0)return;
+  rememberGridScroll(scope);editGridScope=scope;
+  const item=project.items[index];editRefItemId=item.id;document.getElementById('refItemModalTitle').textContent='Edit Item';
   document.getElementById('inputRefItemName').value=item.name||'';document.getElementById('inputRefItemNote').value=item.note||'';
   document.getElementById('refItemImgInput').value='';
   const preview=document.getElementById('refItemImgPreview');if(item.img){preview.src=item.img;preview.style.display='block';}else{preview.removeAttribute('src');preview.style.display='none';}
-  document.getElementById('refItemDeleteBtn').style.display='';prepareRefItemSectionSelect(getRefItemSectionIndex(r,index));openModal('refItemModal');
+  document.getElementById('refItemDeleteBtn').style.display='';prepareGridItemSectionSelect(scope,getRefItemSectionIndex(project,index));openModal('refItemModal');
 }
-function prepareRefItemSectionSelect(selectedIndex){
-  const r=db.lists.find(x=>x.id===curRefId),field=document.getElementById('refItemSectionField'),select=document.getElementById('inputRefItemSection');
-  if(r&&r.sections&&r.sections.length){select.innerHTML=r.sections.map((sec,index)=>`<option value="${index}"${index===selectedIndex?' selected':''}>${esc(sec.name||('Section '+(index+1)))}</option>`).join('');field.style.display='block';}
+function prepareGridItemSectionSelect(scope,selectedIndex){
+  const project=getGridProject(scope),field=document.getElementById('refItemSectionField'),select=document.getElementById('inputRefItemSection');
+  if(project&&project.sections&&project.sections.length){select.innerHTML=project.sections.map((sec,index)=>`<option value="${index}"${index===selectedIndex?' selected':''}>${esc(sec.name||('Section '+(index+1)))}</option>`).join('');field.style.display='block';}
   else{select.innerHTML='';field.style.display='none';}
 }
-function saveRefItem(){
+function saveGridItem(){
   if(!imageReady('refItemImgPreview'))return;
-  const r=db.lists.find(x=>x.id===curRefId);if(!r)return;
-  const name=document.getElementById('inputRefItemName').value.trim()||'Item '+(r.items.length+1);
+  const scope=editGridScope,project=getGridProject(scope);if(!project)return;
+  const editingId=editRefItemId,returnToItemDetail=!!editingId&&activeTechoViewId()==='viewRefItemDetail'&&curGridItemScope===scope&&curRefItemId===editingId;
+  const name=document.getElementById('inputRefItemName').value.trim()||'Item '+(project.items.length+1);
   const note=document.getElementById('inputRefItemNote').value.trim();
   const preview=document.getElementById('refItemImgPreview');
   const img=preview.style.display!=='none'?preview.src:'';
-  const selectedSection=r.sections&&r.sections.length?Math.max(0,parseInt(document.getElementById('inputRefItemSection').value)||0):-1;
+  const selectedSection=project.sections&&project.sections.length?Math.max(0,parseInt(document.getElementById('inputRefItemSection').value)||0):-1;
   if(editRefItemId){
-    const oldIndex=r.items.findIndex(item=>item.id===editRefItemId),item=r.items[oldIndex];if(oldIndex<0||!item)return;
+    const oldIndex=project.items.findIndex(item=>item.id===editRefItemId),item=project.items[oldIndex];if(oldIndex<0||!item)return;
     item.name=name;item.img=img;item.note=note;
-    const oldSection=getRefItemSectionIndex(r,oldIndex);
-    if(selectedSection>=0&&selectedSection!==oldSection){r.items.splice(oldIndex,1);if(oldSection>=0)r.sections[oldSection].count=Math.max(0,(parseInt(r.sections[oldSection].count)||0)-1);const insertAt=getRefSectionEndIndex(r,selectedSection);r.items.splice(insertAt,0,item);r.sections[selectedSection].count=(parseInt(r.sections[selectedSection].count)||0)+1;}
+    const oldSection=getRefItemSectionIndex(project,oldIndex);
+    if(selectedSection>=0&&selectedSection!==oldSection){project.items.splice(oldIndex,1);if(oldSection>=0)project.sections[oldSection].count=Math.max(0,(parseInt(project.sections[oldSection].count)||0)-1);const insertAt=getRefSectionEndIndex(project,selectedSection);project.items.splice(insertAt,0,item);project.sections[selectedSection].count=(parseInt(project.sections[selectedSection].count)||0)+1;}
   }else{
     const item={id:gid(),name,img,note,checked:false};
-    if(selectedSection>=0){const insertAt=getRefSectionEndIndex(r,selectedSection);r.items.splice(insertAt,0,item);r.sections[selectedSection].count=(parseInt(r.sections[selectedSection].count)||0)+1;}else r.items.push(item);
+    if(selectedSection>=0){const insertAt=getRefSectionEndIndex(project,selectedSection);project.items.splice(insertAt,0,item);project.sections[selectedSection].count=(parseInt(project.sections[selectedSection].count)||0)+1;}else project.items.push(item);
   }
-  renumberBlankRefItems(r);
-  const returnScroll=refDetailScrollByProject[curRefId]??currentScrollY();save();closeModal('refItemModal');openRefDetail(curRefId,{restoreScroll:returnScroll});
+  renumberBlankRefItems(project);
+  const returnScroll=getGridScroll(scope);save();closeModal('refItemModal');if(returnToItemDetail)openGridItemDetail(scope,editingId);else refreshGridScope(scope,returnScroll);
 }
-function deleteRefItem(){
-  const r=db.lists.find(x=>x.id===curRefId),index=r?r.items.findIndex(item=>item.id===editRefItemId):-1;if(!r||index<0)return;
-  const sectionIndex=getRefItemSectionIndex(r,index);if(sectionIndex>=0)r.sections[sectionIndex].count=Math.max(0,(parseInt(r.sections[sectionIndex].count)||0)-1);
-  const returnScroll=refDetailScrollByProject[r.id]??currentScrollY();r.items.splice(index,1);renumberBlankRefItems(r);editRefItemId=null;save();closeModal('refItemModal');openRefDetail(r.id,{restoreScroll:returnScroll});toast('Deleted');
+function deleteGridItemEditing(){
+  const scope=editGridScope,project=getGridProject(scope),index=project?project.items.findIndex(item=>item.id===editRefItemId):-1;if(!project||index<0)return;
+  const sectionIndex=getRefItemSectionIndex(project,index);if(sectionIndex>=0)project.sections[sectionIndex].count=Math.max(0,(parseInt(project.sections[sectionIndex].count)||0)-1);
+  const returnScroll=getGridScroll(scope);project.items.splice(index,1);renumberBlankRefItems(project);editRefItemId=null;curRefItemId=null;save();closeModal('refItemModal');refreshGridScope(scope,returnScroll);toast('Deleted');
 }
+function openAddRefItem(){openAddGridItem('list');}
+function openEditRefItemById(itemId){openEditGridItem('list',itemId);}
+function prepareRefItemSectionSelect(selectedIndex){prepareGridItemSectionSelect('list',selectedIndex);}
+function saveRefItem(){editGridScope='list';saveGridItem();}
+function deleteRefItem(){editGridScope='list';deleteGridItemEditing();}
 
 /* ═══ HELPERS ═══ */
 function openModal(id){document.getElementById(id).classList.add('show');}
@@ -1226,7 +1108,6 @@ function startRefIconDrag(e){
   document.addEventListener('mousemove',onMove);document.addEventListener('mouseup',onEnd);document.addEventListener('touchmove',onMove,{passive:false});document.addEventListener('touchend',onEnd);
 }
 // Wire file labels
-document.getElementById('itemFileLabel').addEventListener('click',()=>document.getElementById('itemImgInput').click());
 document.getElementById('refIconLabel').addEventListener('click',()=>document.getElementById('refIconInput').click());
 document.getElementById('refItemFileLabel').addEventListener('click',()=>document.getElementById('refItemImgInput').click());
 

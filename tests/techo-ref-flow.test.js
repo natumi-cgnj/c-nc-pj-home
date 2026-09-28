@@ -9,10 +9,10 @@ let source = scripts.at(-1);
 source = source.replace(/load\(\);renderItems\(\);\s*$/, '');
 source += `\n;globalThis.__testApi={
   getDb:()=>db,setDb:value=>{db=value;},load,save,normalizeTechoData,clampCols,
-  renderRefList,openRefDetail,toggleListItemCheck,reorderRefProjects,
-  openEditRef,saveRef,pickRefColor,openEditRefItemById,saveRefItem,
-  setRefSectionDraftCount,moveRefSectionDraft,moveRefItem,
-  openRefSectionQuick,saveRefSectionQuick,switchTechoTab,
+  renderItems,renderRefList,openRefDetail,openRefItemDetail,openGridItemDetail,handleRefItemClick,handleGridItemClick,toggleListItemCheck,toggleGridItemCheck,reorderRefProjects,
+  openEditRef,saveRef,pickRefColor,openEditRefItemById,saveRefItem,openAddGridItem,openEditGridItem,saveGridItem,
+  setRefSectionDraftCount,moveRefSectionDraft,moveRefItem,moveGridItem,
+  openRefSectionQuick,saveRefSectionQuick,openGridSectionQuick,openAddGridSection,saveGridSectionQuick,switchTechoTab,
   openCategoryManager,saveCategoryManager,getCategoryDrafts:()=>categoryDrafts
 };`;
 
@@ -38,7 +38,7 @@ const document = {
   addEventListener() {}, removeEventListener() {},
   getElementById(id) { if (!elements.has(id)) elements.set(id, element(id)); return elements.get(id); },
   querySelectorAll(selector) {
-    if (selector === '.view') return ['viewItems','viewRef','viewRefDetail'].map(id => this.getElementById(id));
+    if (selector === '.view') return ['viewItems','viewRef','viewRefDetail','viewRefItemDetail'].map(id => this.getElementById(id));
     if (selector === '.tab-bar button') return ['tab-items','tab-list'].map(id => this.getElementById(id));
     return [];
   },
@@ -98,7 +98,7 @@ const legacy = {
 storage.set('techo_archive_db', JSON.stringify(legacy));
 api.load();
 let state = api.getDb();
-assert.equal(state.version, 3, 'Techo writes the simplified schema version');
+assert.equal(state.version, 4, 'Techo writes the shared Item/List grid schema version');
 assert.equal(Object.hasOwn(state, 'lists'), true, 'legacy ref data becomes the new List data');
 assert.equal(Object.hasOwn(state, 'refs'), false, 'the Ref layer is removed after migration');
 assert.equal(Object.hasOwn(state, 'catalogs'), false, 'the old List layer is removed after migration');
@@ -111,12 +111,39 @@ assert.equal(state.lists[0].items[1].checked, false, 'an unrecorded old List ite
 assert.equal(state.lists[0].items[2].checked, false, 'a plain Ref item starts unlit');
 assert.equal(Object.hasOwn(state.lists[0].items[0], 'mode'), false, 'the Ref/List mode switch is removed');
 assert.equal(Object.hasOwn(state.lists[0].items[0], 'listAssignment'), false, 'the Ref-to-List assignment is removed');
-assert.deepEqual(JSON.parse(JSON.stringify(state.items)), [legacyItem], 'existing Item data is untouched by migration');
+assert.equal(state.items.length, 1, 'existing Item data is preserved by migration');
+assert.equal(state.items[0].name, legacyItem.name, 'existing Item names are preserved');
+assert.equal(state.items[0].note, legacyItem.note, 'existing Item notes are preserved');
+assert.equal(state.items[0].cost, legacyItem.cost, 'legacy Item metadata remains available');
+assert.equal(state.items[0].checked, true, 'existing Items migrate as lit');
+assert.equal(state.sections[0].count, 0, 'unassigned legacy Items remain outside old sections');
 assert.deepEqual(JSON.parse(JSON.stringify(state.listShelfCollapsed)), {Rollbahn: true}, 'collapsed category state follows the migrated List');
 
 const persisted = JSON.parse(storage.get('techo_archive_db'));
 assert.equal(Object.hasOwn(persisted, 'refs'), false, 'the saved database no longer contains refs');
 assert.equal(Object.hasOwn(persisted, 'catalogs'), false, 'the saved database no longer contains old catalogs');
+
+api.renderItems();
+let itemGrid = document.getElementById('itemDetailGrid').innerHTML;
+assert.match(itemGrid, /ref-item-cell checked/, 'Item uses the same lit square card as List');
+assert.doesNotMatch(itemGrid, /pending-section|item-row|ref-item-edit/, 'the old Item pending and assignment layout is gone');
+api.handleGridItemClick('items', 'owned-1');
+assert.equal(document.getElementById('viewRefItemDetail').classList.contains('active'), true, 'a lit Item opens the shared item detail');
+assert.match(document.getElementById('refItemDetailContent').innerHTML, /ref-card-detail/, 'Item and List use the same detail card');
+document.getElementById('viewRefItemDetail').classList.remove('active');
+document.getElementById('viewItems').classList.add('active');
+
+const listsBeforeItemChange = JSON.stringify(state.lists);
+api.openAddGridItem('items');
+document.getElementById('inputRefItemName').value = '没想好但想要';
+document.getElementById('inputRefItemNote').value = '先放着';
+api.saveGridItem();
+state = api.getDb();
+const newItem = state.items.find(item => item.name === '没想好但想要');
+assert.equal(newItem.checked, false, 'a new Item starts unlit just like a new List item');
+api.handleGridItemClick('items', newItem.id);
+assert.equal(state.items.find(item => item.id === newItem.id).checked, true, 'tapping an unlit Item lights it directly');
+assert.equal(JSON.stringify(state.lists), listsBeforeItemChange, 'Item changes never alter List data');
 
 api.renderRefList();
 assert.match(document.getElementById('refList').innerHTML, /1 \/ 3 checked/, 'List rows summarize simple check-ins');
@@ -125,12 +152,17 @@ api.openRefDetail('ref1');
 let grid = document.getElementById('refDetailGrid').innerHTML;
 assert.equal((grid.match(/ref-item-cell checked/g) || []).length, 1, 'only checked items render lit');
 assert.equal((grid.match(/ref-item-check/g) || []).length, 1, 'a lit item displays a check mark');
-assert.match(grid, /ref-item-edit/, 'editing stays available separately from check-in');
+assert.doesNotMatch(grid, /ref-item-edit|>···<|>\.\.\.<\//, 'List cards stay as clean as Food cards without item edit dots');
 assert.match(grid, /grid-template-columns:repeat\(6,1fr\)/, 'legacy section layout is preserved');
+
+api.handleRefItemClick('ri1');
+assert.equal(document.getElementById('viewRefItemDetail').classList.contains('active'), true, 'tapping a lit List item opens the Food-style item detail');
+assert.match(document.getElementById('refItemDetailContent').innerHTML, /ref-card-detail/, 'List item detail uses the Food card pattern');
+api.openRefDetail('ref1');
 
 const itemsBeforeCheckIn = JSON.stringify(state.items);
 windowState.scrollY = 420;
-assert.equal(api.toggleListItemCheck('ri2'), true, 'tapping an unlit item checks it in');
+api.handleRefItemClick('ri2');
 state = api.getDb();
 assert.equal(state.lists[0].items[1].checked, true, 'check-in directly lights the List item');
 assert.equal(JSON.stringify(state.items), itemsBeforeCheckIn, 'List check-in never creates or changes an Item');
@@ -156,6 +188,8 @@ const project = api.getDb().lists.find(list => list.id === 'ref1');
 project.sections = [{name: 'A', count: 1, cols: 3}, {name: 'B', count: 2, cols: 3}];
 assert.equal(api.moveRefItem(0, 1), true, 'List items retain long-press reorder support');
 assert.deepEqual(Array.from(project.sections, section => section.count), [0, 3], 'cross-section reorder repairs section counts');
+assert.equal(api.moveGridItem('items', 0, 1), true, 'Item cards use the same reorder path as List cards');
+assert.equal(state.sections[0].count, 0, 'moving an Item out of a section repairs its section count');
 
 document.getElementById('viewItems').classList.add('active');
 api.switchTechoTab('list');
@@ -166,10 +200,13 @@ assert.match(html, /class="tab-bar"[\s\S]*?>ITEM<\/button>[\s\S]*?>LIST<\/button
 assert.doesNotMatch(html, />REF<\/button>|id="tab-ref"|id="tab-catalog"/, 'the Ref and old List tabs are gone');
 assert.doesNotMatch(html, /id="viewCatalog"|id="catalogModal"|id="catRecordModal"/, 'the old List screens and acquisition modal are gone');
 assert.doesNotMatch(html, /id="refItemModeSelect"|id="refItemListTargetField"/, 'the Ref-to-List mode and target controls are gone');
+assert.doesNotMatch(html, /id="itemModal"|id="sectionModal"|id="actionModal"/, 'the old Item assignment and disposition dialogs are gone');
 assert.doesNotMatch(html, /id="techoCost"|累计花销/, 'the old acquisition-derived cost header is gone');
 assert.doesNotMatch(source, /function assignRefItemToCatalog|function toggleCollect|function makeCatalogOwnedItem|function changeRefItemMode/, 'automatic Ref-to-List and List-to-Item flows are removed');
-assert.match(source, /function toggleListItemCheck[\s\S]*?item\.checked=!item\.checked;save\(\)/, 'check-in is a direct light toggle');
-assert.match(source, /function saveRefItem[\s\S]*?checked:false/, 'new List items start unlit');
+assert.doesNotMatch(source, /function assignItem|function unassignItem|function disposeItem|function openItemAction/, 'the old Item pending and assignment flow is removed');
+assert.match(source, /function toggleGridItemCheck[\s\S]*?item\.checked=!item\.checked;save\(\)/, 'both grids use a direct light toggle');
+assert.match(source, /function saveGridItem[\s\S]*?checked:false/, 'new Item and List cards start unlit');
+assert.match(source, /function renderRefItem\(r,item,index\)\{return renderGridItem\('list',r,item,index\);\}/, 'List delegates to the shared Item/List card renderer');
 assert.equal(api.clampCols(6), 6, 'six-column List sections remain supported');
 
 console.log('techo simplified list flow: ok');
