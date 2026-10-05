@@ -626,7 +626,7 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-sleep-status-target.i
 #char-vanpelt{left:35%;top:27%;z-index:19}
 #char-lisbon{left:27%;top:59%;z-index:21}
 #char-cho{left:35%;top:59%;z-index:22}
-body[data-world-id="cbi"][data-world-location="home"] .apt-wrap{display:grid;grid-template-columns:32% 6% 62%;grid-template-rows:59% 41%;aspect-ratio:18/11;align-items:stretch}
+body[data-world-id="cbi"][data-world-location="home"] .apt-wrap{display:grid;grid-template-areas:none;grid-template-columns:35.5% 11.3% 53.2%;grid-template-rows:53.2% 46.8%;aspect-ratio:1672/941;align-items:stretch;isolation:isolate}
 body[data-world-id="cbi"][data-world-location="home"] .apt-wrap>.branch-top,
 body[data-world-id="cbi"][data-world-location="home"] .apt-wrap>.branch-adaptive{display:none!important}
 body[data-world-id="cbi"][data-world-location="home"] .apt-wrap>.mid-row,
@@ -673,6 +673,22 @@ body[data-world-id="cbi"][data-world-location="home"] .apt-wrap .cbi-kitchen-sto
 body[data-world-id="cbi"][data-world-location="home"] .room-jane .jane-lamp,
 body[data-world-id="cbi"][data-world-location="home"] .room-jane .cbi-guest-teacup,
 body[data-world-id="cbi"][data-world-location="home"] .room-jane .cbi-guest-teapot{background:#5BA66B;opacity:.09}
+/* The approved illustration and transparent controls share one uncropped canvas. */
+.cbi-home-scene{display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none;user-select:none;-webkit-user-drag:none;z-index:0}
+body[data-world-id="cbi"][data-world-location="home"] .cbi-home-scene{display:block}
+body[data-world-id="cbi"][data-world-location="home"] .apt-wrap .room-box{border:0;border-radius:0;background:transparent;min-height:0;pointer-events:none}
+body[data-world-id="cbi"][data-world-location="home"] .apt-wrap .room-inner{background:transparent;overflow:visible;cursor:default;pointer-events:none}
+body[data-world-id="cbi"][data-world-location="home"] .apt-wrap .furniture{display:none}
+body[data-world-id="cbi"][data-world-location="home"] .apt-wrap .cbi-closet-target{display:block;left:16.7%;top:68.9%;bottom:auto;right:auto;width:13%;height:29%;background:transparent;opacity:1;border-radius:0;pointer-events:auto}
+body[data-world-id="cbi"][data-world-location="home"] .apt-wrap .cbi-sleep-status-target{pointer-events:auto}
+body[data-world-id="cbi"][data-world-location="home"] .cbi-sleep-bedroom-sofa{left:30.5%;top:38%;right:auto;bottom:auto;width:16%;height:25%}
+body[data-world-id="cbi"][data-world-location="home"] .cbi-sleep-bedroom-bed{left:64.5%;top:35.8%;right:auto;bottom:auto;width:30%;height:52%}
+body[data-world-id="cbi"][data-world-location="home"] .cbi-sleep-living-sofa{left:.8%;top:40.8%;right:auto;bottom:auto;width:27%;height:52%}
+body[data-world-id="cbi"][data-world-location="home"] .cbi-home-status-target{left:57.3%;top:8.7%;bottom:auto;width:14%;height:15%;pointer-events:auto}
+body[data-world-id="cbi"][data-world-location="home"] .cbi-home-trigger{pointer-events:auto}
+body[data-world-id="cbi"][data-world-location="home"] .cbi-home-lower-row .room-label{display:none}
+body[data-world-id="cbi"][data-world-location="home"] #char-jane{pointer-events:auto}
+body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:block;height:var(--cbi-home-sprite-height,46px);max-width:none}
 @media(max-width:400px){.cbi-office-wrap{max-width:320px}}
 @media(min-width:700px){.cbi-office-wrap{width:min(460px,calc((100dvh - 103px)*.6),calc(100vw - 390px));max-width:none;align-self:start}.cbi-office{aspect-ratio:18/11}}
 @media(min-width:900px) and (orientation:landscape){.cbi-office-wrap{width:var(--desktop-map-width)}}
@@ -752,6 +768,7 @@ body[data-world-id="cbi"][data-world-location="home"] .room-jane .cbi-guest-teap
 </div>
 
 <div class="apt-wrap" id="aptWrap">
+  <img class="cbi-home-scene" src="assets/scenes/cbi-home.webp" width="1672" height="941" alt="Boss 家：左上卧室、左下卫生间，右侧客厅与厨房" draggable="false" decoding="async">
   <!-- TOP BRANCH STACK: new rooms added here overlap instead of expanding the map -->
   <div class="branch-stack branch-top has-active-room" data-branch="top">
   <div class="room-box room-neal branch-room is-stack-front" id="roomNeal" data-room-id="neal" data-character-id="neal">
@@ -813,7 +830,6 @@ body[data-world-id="cbi"][data-world-location="home"] .room-jane .cbi-guest-teap
         <div class="furniture cbi-home-only natumi-media-shelf"></div>
         <button class="cbi-sleep-status-target cbi-sleep-living-sofa" type="button" data-cbi-sleep-place="living_sofa_bed" onclick="onCbiSleepPlaceTap('living_sofa_bed',event)" aria-label="查看客厅沙发床上的 Jane 睡眠状态" hidden></button>
         <div class="furniture cbi-home-only natumi-homedesk"></div><div class="furniture cbi-home-only natumi-homescreen"></div>
-        <a class="cbi-home-status-target" href="contact.html" aria-label="设置 Boss 状态" title="状态"></a>
         <div class="furniture cbi-home-only natumi-laundry"></div><div class="furniture cbi-home-only natumi-sneaker1"></div>
         <div class="furniture cbi-home-only natumi-sneaker2"></div><div class="furniture cbi-home-only natumi-guitar"></div>
         <div class="furniture cbi-home-only natumi-gamepad"></div><div class="furniture cbi-home-only natumi-cans"></div>
@@ -841,6 +857,7 @@ body[data-world-id="cbi"][data-world-location="home"] .room-jane .cbi-guest-teap
     <div class="room-box cbi-kitchen-room" id="cbiKitchenRoom">
       <div class="room-inner">
         <div class="room-label">厨房</div>
+        <a class="cbi-home-status-target" href="contact.html" aria-label="设置 Boss 状态" title="状态"></a>
         <div class="furniture cbi-laundry-stack"></div>
         <div class="furniture cbi-kitchen-window"></div><div class="furniture cbi-kitchen-counter"></div>
         <div class="furniture cbi-kitchen-shelf"></div><div class="furniture cbi-kitchen-fridge"></div>
@@ -1553,6 +1570,35 @@ function getAvailableRooms(charId){
 
 const roomIdMap={neal:'roomNeal',jane:'roomJane',natumi:'roomNatumi',will:'roomWill',cbi:'roomCbiOffice'};
 
+// Feet anchors use the approved 1672 x 941 canvas, away from furniture and walls.
+const CBI_HOME_FLOOR_ANCHORS={
+  jane:[{x:286,y:443},{x:445,y:314}],
+  natumi:[{x:1000,y:560},{x:1120,y:564},{x:905,y:675}]
+};
+const CBI_HOME_SLEEP_ANCHORS={
+  bedroom_bed:{x:628,y:330},
+  bedroom_sofa:{x:300,y:265},
+  living_sofa_bed:{x:917,y:344}
+};
+
+function positionCbiHomeJane(el,room,placement){
+  const wrap=document.getElementById('aptWrap');
+  const wrapRect=wrap.getBoundingClientRect();
+  if(wrapRect.width<10||wrapRect.height<10)return;
+  const points=CBI_HOME_FLOOR_ANCHORS[placement.zone];
+  if(!points)return;
+  const anchor=CBI_HOME_SLEEP_ANCHORS[el.dataset.sleepPlace]
+    ||points[Math.min(points.length-1,Math.floor(placement.x*points.length))];
+  const spriteHeight=Math.round(wrapRect.width*.135);
+  el.style.setProperty('--cbi-home-sprite-height',spriteHeight+'px');
+  const sprite=el.querySelector('img');
+  const spriteWidth=(sprite&&sprite.offsetWidth)||spriteHeight*.55;
+  const roomRect=room.getBoundingClientRect();
+  el.style.left=Math.round(anchor.x/1672*wrapRect.width-(roomRect.left-wrapRect.left)-spriteWidth/2)+'px';
+  el.style.top=Math.round(anchor.y/941*wrapRect.height-(roomRect.top-wrapRect.top)-spriteHeight)+'px';
+  el.style.zIndex=String(10+anchor.y);
+}
+
 function placeChar(id){
   const avail=getAvailableRooms(id);
   if(!avail.length)return;
@@ -1583,6 +1629,10 @@ function placeChar(id){
   room.appendChild(el);
   const inner=room.querySelector('.room-inner');
   if(!inner||!el)return;
+  if(id==='jane'&&getActiveWorldId()==='cbi'&&getActiveLocationId()==='home'){
+    positionCbiHomeJane(el,room,placement);
+    return;
+  }
   const w=inner.offsetWidth,h=inner.offsetHeight;
   if(w<10||h<10)return;
   const isPh=characterUsesPlaceholder(el);
@@ -1719,7 +1769,8 @@ function showCbiJaneSleepBubble(status){
   if(bubble.parentElement!==wrap)wrap.appendChild(bubble);
   document.getElementById('status-jane').textContent=sleep.status||'';
   document.getElementById('msg-jane').textContent=sleep.detail||'';
-  positionBubbleAtCharacter(bubble,charEl,wrap);
+  const sleepTarget=document.querySelector('[data-cbi-sleep-place="'+sleep.placeId+'"]');
+  positionBubbleAtCharacter(bubble,sleepTarget&&!sleepTarget.hidden?sleepTarget:charEl,wrap);
   if(bubbleTimers.jane)clearTimeout(bubbleTimers.jane);
   bubble.style.zIndex=++bubbleZCounter;
   bubble.classList.add('show');
@@ -4086,6 +4137,16 @@ document.addEventListener('keydown',function(event){
 });
 
 applyWorldView();
+// Keep the same saved placement aligned when mobile/desktop map widths change.
+function realignCbiHomeJane(){
+  if(getActiveWorldId()==='cbi'&&getActiveLocationId()==='home')placeChar('jane');
+}
+if(typeof ResizeObserver==='function'){
+  const cbiHomeResizeObserver=new ResizeObserver(realignCbiHomeJane);
+  cbiHomeResizeObserver.observe(document.getElementById('aptWrap'));
+}else{
+  window.addEventListener('resize',realignCbiHomeJane);
+}
 if(window.CloudSync&&typeof CloudSync.whenReady==='function'){
   CloudSync.whenReady().then(function(){startCbiAutoLocation();applyWorldView();}).catch(function(){startCbiAutoLocation();});
 }else{
