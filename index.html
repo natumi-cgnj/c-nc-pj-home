@@ -689,6 +689,12 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-home-trigger{pointer-
 body[data-world-id="cbi"][data-world-location="home"] .cbi-home-lower-row .room-label{display:none}
 body[data-world-id="cbi"][data-world-location="home"] #char-jane{pointer-events:auto}
 body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:block;height:var(--cbi-home-sprite-height,46px);max-width:none}
+/* Give the home more room on wide screens while retaining the CG banner's size. */
+@media(min-width:1100px) and (orientation:landscape){
+  body[data-world-id="cbi"][data-world-location="home"]{--cbi-home-map-width:min(792px,calc(100vw - 340px - clamp(36px,6vw,88px)),calc((100dvh - 106px)*1.176))}
+  body[data-world-id="cbi"][data-world-location="home"] #pageMain{width:var(--cbi-home-map-width)}
+  body[data-world-id="cbi"][data-world-location="home"] .apt-wrap{width:100%;align-self:center}
+}
 @media(max-width:400px){.cbi-office-wrap{max-width:320px}}
 @media(min-width:700px){.cbi-office-wrap{width:min(460px,calc((100dvh - 103px)*.6),calc(100vw - 390px));max-width:none;align-self:start}.cbi-office{aspect-ratio:18/11}}
 @media(min-width:900px) and (orientation:landscape){.cbi-office-wrap{width:var(--desktop-map-width)}}
