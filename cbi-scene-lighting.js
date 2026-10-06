@@ -10,7 +10,8 @@
   function getSceneSource(locationId, slot) {
     if (!Object.prototype.hasOwnProperty.call(BASE_SOURCES, locationId)) return '';
     if (SLOTS.indexOf(slot) < 0 || slot === 'morning') return BASE_SOURCES[locationId];
-    return 'assets/scenes/cbi-' + locationId + '-' + slot + '.webp?v=20261007-time1';
+    var version = locationId === 'office' && slot === 'night' ? '20261007-nightoff1' : '20261007-time1';
+    return 'assets/scenes/cbi-' + locationId + '-' + slot + '.webp?v=' + version;
   }
 
   // Keep the last loaded image visible while the next lighting variant downloads.
