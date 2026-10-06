@@ -27,7 +27,7 @@ test('CBI home follows the reference floor plan without the Osaka room', () => {
   assert.match(index, /<div class="room-label">厨房<\/div>/);
   assert.doesNotMatch(index, /id="cbiOsakaRoom"|>Osaka Room</);
   assert.match(index, /body\[data-world-id="cbi"\]\[data-world-location="home"\] \.apt-wrap\{[^}]*display:grid;grid-template-columns:32% 6% 62%;grid-template-rows:59% 41%;aspect-ratio:18\/11/);
-  assert.match(index, /\.cbi-office\{[^}]*aspect-ratio:18\/11/);
+  assert.match(index, /\.cbi-office\{[^}]*aspect-ratio:1672\/940/);
   assert.match(index, /body\[data-world-id="cbi"\]\[data-world-location="home"\] \.cbi-home-lower-row\{display:contents\}/);
   assert.match(index, /\.cbi-bathroom-room\{grid-area:2\/1/);
   assert.match(index, /\.cbi-kitchen-room\{grid-area:2\/2\/3\/4/);

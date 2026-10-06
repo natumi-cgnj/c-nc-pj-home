@@ -569,7 +569,7 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-sleep-status-target.i
 [hidden]{display:none!important}
 .cg-banner.world-banner-empty{visibility:hidden;pointer-events:none}
 .cbi-office-wrap{position:relative;width:100%;max-width:360px}
-.cbi-office{width:100%;aspect-ratio:18/11;border-color:#E8E8E8;background:#fff;overflow:visible}
+.cbi-office{width:100%;aspect-ratio:1672/940;border-color:#E8E8E8;background:#fff;overflow:visible}
 .cbi-office .room-inner{overflow:hidden;border-radius:inherit;background:#fff}
 .cbi-office-label{position:absolute;left:10px;top:8px;font-size:8px;letter-spacing:1.3px;color:#E8B96A;text-transform:uppercase;opacity:.18}
 .cbi-location-trigger{position:absolute;left:0;top:0;z-index:24;border:0;background:transparent;color:#E8B96A;border-radius:0;padding:6px 8px;font-family:inherit;font-size:8px;font-weight:500;line-height:1;letter-spacing:1.2px;text-transform:uppercase;cursor:pointer;opacity:.18}
@@ -628,10 +628,26 @@ body[data-world-id="cbi"] .cbi-office,body[data-world-id="cbi"] .cbi-office .roo
 .cbi-office .char-sprite{z-index:15}
 .cbi-staff-sprite{display:none}
 .cbi-staff-sprite.is-present{display:block}
-#char-rigsby{left:27%;top:27%;z-index:18}
-#char-vanpelt{left:35%;top:27%;z-index:19}
-#char-lisbon{left:27%;top:59%;z-index:21}
-#char-cho{left:35%;top:59%;z-index:22}
+#char-rigsby{left:22.1%;top:55.7%;z-index:18}
+#char-vanpelt{left:37.8%;top:55.7%;z-index:19}
+#char-lisbon{left:20.8%;top:77.5%;z-index:21}
+#char-cho{left:37.8%;top:77.5%;z-index:22}
+/* Approved office illustration; transparent controls follow its furniture. */
+.cbi-office-scene{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none;user-select:none;-webkit-user-drag:none;z-index:0}
+.cbi-office .room-inner{cursor:default}
+.cbi-office .room-inner>div{display:none}
+.cbi-office .cbi-status-target{background:transparent;border:0;border-radius:0;transform:none;z-index:10}
+.cbi-office .cbi-status-target::before,.cbi-office .cbi-status-target::after{display:none}
+.cbi-office .cbi-desk-boss{left:41.1%;top:26.1%;width:10.4%;height:12%}
+.cbi-office .cbi-snack-basket{left:51.7%;top:25.5%;width:4.2%;height:7.2%;z-index:16}
+.cbi-office .cbi-desk-rigsby{left:24.7%;top:40.8%;width:5.3%;height:11.4%}
+.cbi-office .cbi-desk-grace{left:30.7%;top:40.8%;width:4.8%;height:11.4%}
+.cbi-office .cbi-desk-lisbon{left:23.5%;top:60.1%;width:5.4%;height:11.4%}
+.cbi-office .cbi-desk-cho{left:30.5%;top:60.1%;width:4.7%;height:11.4%}
+.cbi-office .cbi-sofa{left:19%;top:22.2%;right:auto;width:16.4%;height:12%}
+.cbi-office .char-sprite{height:22%;transform:translate(-50%,-100%);transform-origin:bottom center}
+.cbi-office .char-sprite img{display:block;height:100%;max-width:none}
+.cbi-office .char-sprite:active{transform:translate(-50%,-100%) scale(.95)}
 body[data-world-id="cbi"][data-world-location="home"] .apt-wrap{display:grid;grid-template-areas:none;grid-template-columns:35.5% 11.3% 53.2%;grid-template-rows:53.2% 46.8%;aspect-ratio:1672/941;align-items:stretch;isolation:isolate}
 body[data-world-id="cbi"][data-world-location="home"] .apt-wrap>.branch-top,
 body[data-world-id="cbi"][data-world-location="home"] .apt-wrap>.branch-adaptive{display:none!important}
@@ -702,7 +718,7 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
   body[data-world-id="cbi"][data-world-location="home"] .apt-wrap{width:100%;align-self:center}
 }
 @media(max-width:400px){.cbi-office-wrap{max-width:320px}}
-@media(min-width:700px){.cbi-office-wrap{width:min(460px,calc((100dvh - 103px)*.6),calc(100vw - 390px));max-width:none;align-self:start}.cbi-office{aspect-ratio:18/11}}
+@media(min-width:700px){.cbi-office-wrap{width:min(460px,calc((100dvh - 103px)*.6),calc(100vw - 390px));max-width:none;align-self:start}.cbi-office{aspect-ratio:1672/940}}
 @media(min-width:900px) and (orientation:landscape){.cbi-office-wrap{width:var(--desktop-map-width)}}
 
 /* CBI room storage: map shapes open a quiet list, while the map stays uncluttered. */
@@ -901,6 +917,7 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
   <button class="cbi-location-trigger cbi-scene-switch" type="button" onclick="openCbiLocationSheet(event)" aria-label="当前在办公室，切换 CBI 地点" title="切换地点">Office ⇄</button>
   <div class="room-box cbi-office" id="roomCbiOffice" data-room-id="cbi" data-character-id="jane">
     <div class="room-inner">
+      <img class="cbi-office-scene" src="assets/scenes/cbi-office.webp?v=20261007-office1" width="1672" height="940" alt="" aria-hidden="true" decoding="async">
       <div class="cbi-office-window"></div>
       <a class="cbi-desk cbi-desk-boss cbi-status-target" href="contact.html" aria-label="设置 Boss 状态"></a><div class="cbi-boss-mug"></div>
       <button class="cbi-snack-basket cbi-status-target" type="button" onclick="openCbiStorage('snacks',event)" aria-label="查看办公桌旁的零食筐" title="零食筐"></button>
@@ -1209,8 +1226,8 @@ function positionCbiOfficeJane(){
   if(!jane||!room)return;
   if(jane.parentElement!==room)room.appendChild(jane);
   charZone.jane='cbi';
-  jane.style.left='76%';
-  jane.style.top='31%';
+  jane.style.left='26.8%';
+  jane.style.top='39%';
   jane.style.zIndex='20';
 }
 
