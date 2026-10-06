@@ -634,6 +634,7 @@ body[data-world-id="cbi"] .cbi-office,body[data-world-id="cbi"] .cbi-office .roo
 #char-cho{left:37.8%;top:77.5%;z-index:22}
 /* Approved office illustration; transparent controls follow its furniture. */
 .cbi-office-scene{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none;user-select:none;-webkit-user-drag:none;z-index:0}
+[data-cbi-scene]:not([src]){visibility:hidden}
 .cbi-office .room-inner{cursor:default}
 .cbi-office .room-inner>div{display:none}
 .cbi-office .cbi-status-target{background:transparent;border:0;border-radius:0;transform:none;z-index:10}
@@ -796,7 +797,7 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
 </div>
 
 <div class="apt-wrap" id="aptWrap">
-  <img class="cbi-home-scene" data-cbi-scene="home" data-time-slot="morning" src="assets/scenes/cbi-home.webp" width="1672" height="941" alt="Boss 家：左上卧室、左下卫生间，右侧客厅与厨房" draggable="false" decoding="async">
+  <img class="cbi-home-scene" data-cbi-scene="home" width="1672" height="941" alt="Boss 家：左上卧室、左下卫生间，右侧客厅与厨房" draggable="false" decoding="async">
   <button class="cbi-location-trigger cbi-home-trigger cbi-scene-switch" type="button" onclick="openCbiLocationSheet(event)" aria-label="当前在家，切换 CBI 地点" title="切换地点">Home ⇄</button>
   <!-- TOP BRANCH STACK: new rooms added here overlap instead of expanding the map -->
   <div class="branch-stack branch-top has-active-room" data-branch="top">
@@ -917,7 +918,7 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
   <button class="cbi-location-trigger cbi-scene-switch" type="button" onclick="openCbiLocationSheet(event)" aria-label="当前在办公室，切换 CBI 地点" title="切换地点">Office ⇄</button>
   <div class="room-box cbi-office" id="roomCbiOffice" data-room-id="cbi" data-character-id="jane">
     <div class="room-inner">
-      <img class="cbi-office-scene" data-cbi-scene="office" data-time-slot="morning" src="assets/scenes/cbi-office.webp?v=20261007-office1" width="1672" height="940" alt="" aria-hidden="true" decoding="async">
+      <img class="cbi-office-scene" data-cbi-scene="office" width="1672" height="940" alt="" aria-hidden="true" decoding="async">
       <div class="cbi-office-window"></div>
       <a class="cbi-desk cbi-desk-boss cbi-status-target" href="contact.html" aria-label="设置 Boss 状态"></a><div class="cbi-boss-mug"></div>
       <button class="cbi-snack-basket cbi-status-target" type="button" onclick="openCbiStorage('snacks',event)" aria-label="查看办公桌旁的零食筐" title="零食筐"></button>
@@ -1157,7 +1158,7 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
 <script src="app-back.js?v=20260929-android-back1"></script>
 <script src="character-runtime.js?v=20260914-cbi-sleep2"></script>
 <script src="cbi-weather.js?v=20260903-cbi-weather2"></script>
-<script src="cbi-scene-lighting.js?v=20261007-nightoff2"></script>
+<script src="cbi-scene-lighting.js?v=20261007-scenereturn1"></script>
 <script src="cbi-data.js?v=20260929-room-storage1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
@@ -2233,8 +2234,12 @@ function updateClock(){
 }
 updateClock();
 setInterval(updateClock,10000);
-document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')updateClock();});
-window.addEventListener('pageshow',updateClock);
+function resumeHomeClock(){
+  if(window.CBISceneLighting)CBISceneLighting.resetPending();
+  updateClock();
+}
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')resumeHomeClock();});
+window.addEventListener('pageshow',resumeHomeClock);
 
 
 

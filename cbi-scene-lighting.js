@@ -6,6 +6,7 @@
     home: 'assets/scenes/cbi-home.webp'
   };
   var SLOTS = ['morning', 'day', 'evening', 'night'];
+  var requests = Object.create(null);
 
   function getSceneSource(locationId, slot) {
     if (!Object.prototype.hasOwnProperty.call(BASE_SOURCES, locationId)) return '';
@@ -22,26 +23,34 @@
     var image = global.document.querySelector('[data-cbi-scene="' + locationId + '"]');
     if (!image) return;
     if (image.getAttribute('src') === source) {
-      delete image.dataset.sceneRequest;
+      delete requests[locationId];
       image.dataset.timeSlot = slot;
       return;
     }
-    if (image.dataset.sceneRequest === source) return;
-    image.dataset.sceneRequest = source;
-    var preload = new global.Image();
+    var previous = requests[locationId];
+    if (previous && previous.image === image && previous.source === source) return;
+    // Retain the preloader and identify this attempt even when its URL is retried.
+    var request = { image: image, source: source, preload: new global.Image() };
+    requests[locationId] = request;
+    var preload = request.preload;
     preload.onload = function () {
-      if (image.dataset.sceneRequest !== source) return;
+      if (requests[locationId] !== request) return;
       image.setAttribute('src', source);
       image.dataset.timeSlot = slot;
-      delete image.dataset.sceneRequest;
+      delete requests[locationId];
     };
     preload.onerror = function () {
-      if (image.dataset.sceneRequest === source) delete image.dataset.sceneRequest;
+      if (requests[locationId] === request) delete requests[locationId];
     };
     preload.src = source;
   }
 
-  var api = { getSceneSource: getSceneSource, update: update };
+  // Navigation or background suspension can cancel a request without a callback.
+  function resetPending() {
+    requests = Object.create(null);
+  }
+
+  var api = { getSceneSource: getSceneSource, update: update, resetPending: resetPending };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   global.CBISceneLighting = api;
 })(typeof window !== 'undefined' ? window : globalThis);
