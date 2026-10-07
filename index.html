@@ -1155,7 +1155,7 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
 <script src="app-back.js?v=20260929-android-back1"></script>
 <script src="character-runtime.js?v=20260914-cbi-sleep2"></script>
 <script src="cbi-weather.js?v=20260903-cbi-weather2"></script>
-<script src="cbi-scene-lighting.js?v=20261007-scenereturn1"></script>
+<script src="cbi-scene-lighting.js?v=20261007-scenereturn2"></script>
 <script src="cbi-data.js?v=20260929-room-storage1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
@@ -2214,7 +2214,6 @@ function updateClock(){
   const days=['日','月','火','水','木','金','土'];
   document.getElementById('date').textContent=(now.getMonth()+1)+'月'+now.getDate()+'日 '+days[now.getDay()]+'曜日';
   if(window.CBIWeather)CBIWeather.tick(now);
-  updateCbiSceneLighting(now);
   const nextCGPeriod=getCGDisplayPeriodKey(now);
   if(currentCGPeriodKey&&nextCGPeriod!==currentCGPeriodKey)initCG();
   if(getActiveWorldId()==='cbi'&&window.CharacterRuntime)renderCbiLocationPresence();
@@ -2232,7 +2231,6 @@ function updateClock(){
 updateClock();
 setInterval(updateClock,10000);
 function resumeHomeClock(){
-  if(window.CBISceneLighting)CBISceneLighting.resetPending();
   updateClock();
 }
 document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')resumeHomeClock();});
