@@ -574,10 +574,9 @@ body[data-world-id="cbi"][data-world-location="home"] .cbi-sleep-status-target.i
 .cbi-office-label{position:absolute;left:10px;top:8px;font-size:8px;letter-spacing:1.3px;color:#E8B96A;text-transform:uppercase;opacity:.18}
 .cbi-location-trigger{position:absolute;left:0;top:0;z-index:24;border:0;background:transparent;color:#E8B96A;border-radius:0;padding:6px 8px;font-family:inherit;font-size:8px;font-weight:500;line-height:1;letter-spacing:1.2px;text-transform:uppercase;cursor:pointer;opacity:.18}
 .cbi-location-trigger:hover,.cbi-location-trigger:active{background:transparent;opacity:.32}
-.cbi-scene-switch{left:auto;top:auto;right:4px;bottom:0;min-width:60px;min-height:32px;padding:10px 4px 6px;color:#999;opacity:.8;touch-action:manipulation}
+.cbi-scene-switch{left:auto;top:auto;right:8px;bottom:8px;min-width:60px;min-height:32px;padding:6px 4px;text-align:right;color:#999;opacity:.8;touch-action:manipulation}
 .cbi-scene-switch:hover,.cbi-scene-switch:active{opacity:1}
 .cbi-scene-switch:focus-visible{outline:1px solid #bbb;outline-offset:1px;border-radius:3px}
-.cbi-office-wrap>.cbi-scene-switch{right:36px}
 body[data-world-id="cbi"] .cbi-office,body[data-world-id="cbi"] .cbi-office .room-inner{border:0;border-radius:0;background:transparent}
 @media(max-width:699px){body[data-world-id="cbi"] .cg-banner{width:85%;max-width:306px;align-self:center}}
 .cbi-home-trigger{display:none}
@@ -624,7 +623,6 @@ body[data-world-id="cbi"] .cbi-office,body[data-world-id="cbi"] .cbi-office .roo
 .cbi-papers2{position:absolute;left:45.2%;bottom:6%;width:1.5%;height:2.7%;background:rgba(232,185,106,.05);border-radius:1px;transform:rotate(25deg)}
 .cbi-mug2{position:absolute;right:12.9%;top:34%;width:1%;aspect-ratio:1;border-radius:50%;background:rgba(91,166,107,.14)}
 .cbi-takeout{position:absolute;left:28.8%;top:47.2%;width:2%;height:2.3%;border-radius:1px;background:rgba(232,185,106,.05);transform:rotate(15deg)}
-.cbi-office .wardrobe-btn{bottom:8px;right:8px}
 .cbi-office .char-sprite{z-index:15}
 .cbi-staff-sprite{display:none}
 .cbi-staff-sprite.is-present{display:block}
@@ -935,7 +933,6 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
       <div class="cbi-papers1"></div><div class="cbi-papers2"></div>
       <div class="cbi-mug2"></div>
       <div class="cbi-takeout"></div>
-      <button class="wardrobe-btn" type="button" onclick="openWardrobe('jane',event)" aria-label="打开 Jane 的衣柜" title="衣柜"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a2 2 0 0 0-2 2c0 .74.4 1.39 1 1.73V8l-7 6h16l-7-6V6.73A2 2 0 0 0 12 3z"/><path d="M4 14v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg></button>
     </div>
     <div class="char-sprite cbi-staff-sprite" id="char-rigsby" onclick="onCbiStaffTap('rigsby',event)"><img src="assets/characters/cbi/rigsby/rigsby-default.png" alt="Rigsby"></div>
     <div class="speech-bubble" id="bubble-rigsby"><span class="bubble-status bubble-status-rigsby" id="status-rigsby"></span><span id="msg-rigsby"></span></div>
