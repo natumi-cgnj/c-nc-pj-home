@@ -139,12 +139,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .project-icon-pos-frame:active{cursor:grabbing}
 .project-icon-pos-frame img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;user-select:none;-webkit-user-select:none}
 .project-icon-clear{position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;border:none;background:rgba(0,0,0,0.45);color:#fff;font-size:12px;cursor:pointer;line-height:22px;text-align:center;z-index:2}
-/* Duty color selector */
-.duty-row{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px}
-.duty-opt{padding:3px 9px;border-radius:6px;border:1.5px solid #e0e0e0;font-size:11px;cursor:pointer;font-family:inherit;background:#fff;transition:all 0.15s}
-.duty-opt.active{border-width:2px}
-.duty-custom-row{display:flex;gap:5px;align-items:center;margin-top:6px;flex-wrap:wrap}
-.duty-custom-row input{flex:1 1 160px;min-width:140px;font-size:12px;padding:6px 8px}
+/* Section tag colors */
 .color-dot{width:18px;height:18px;border-radius:50%;border:1.5px solid #ddd;cursor:pointer;flex-shrink:0}
 .color-picker-row{display:flex;gap:3px;margin-top:0;align-items:center;flex-wrap:wrap}
 .color-swatch{width:14px;height:14px;border-radius:50%;cursor:pointer;border:1.5px solid transparent;transition:border 0.15s,transform 0.15s}
@@ -355,12 +350,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <button class="add-section-btn" onclick="addSectionRow()">+ 添加分栏</button>
     <label>备注（选填）</label>
     <textarea id="inputProjectNote" placeholder="心斋桥店、只记常规款…"></textarea>
-    <label>值班</label>
-    <div class="duty-row" id="dutyRow"></div>
-    <div class="duty-custom-row" id="dutyCustomRow" style="display:none">
-      <input type="text" id="dutyCustomName" placeholder="如: Hello Kitty">
-      <div class="color-picker-row" id="colorPicker"></div>
-    </div>
+    <label for="inputProjectDuty">值班</label>
+    <input type="text" id="inputProjectDuty">
     <div class="btn-row">
       <button class="btn btn-cancel" onclick="closeModal('projectModal')">取消</button>
       <button class="btn btn-primary" onclick="saveProject()">保存</button>
@@ -939,12 +930,16 @@ function returnToDetail(){
   restoreViewScroll(target);
 }
 
-/* ═══ DUTY PRESETS ═══ */
+/* ═══ LEGACY DUTY LABELS ═══ */
 const DUTY_PRESETS=[
   {type:'neal',name:'Neal',color:'#6B8AFF'},
   {type:'jane',name:'Jane',color:'#5BA66B'},
   {type:'will',name:'Will',color:'#D85A30'}
 ];
+function getDutyName(duty){
+  const d=duty||{};
+  return DUTY_PRESETS.find(p=>p.type===d.type)?.name||d.name||'';
+}
 const CUSTOM_COLORS=['#9B8AE8','#6B5ACD','#D85A30','#E84A7A','#E8B96A','#C7A24C','#9B6BCC','#4AADE8','#3A8DD4','#5BA66B','#3D8B50','#6B8AFF','#4A6AE0','#888','#B0805A','#4ECDC4'];
 
 /* ── Celebration lines per character ── */
@@ -982,7 +977,7 @@ function showCheckinCelebration(duty){
   const lines=CHECKIN_LINES[charType]||CHECKIN_LINES.other;
   const pick=lines[Math.floor(Math.random()*lines.length)];
   const color=d.color||'#E8B96A';
-  const name=charType?DUTY_PRESETS.find(p=>p.type===charType)?.name||d.name||'':'';
+  const name=getDutyName(d);
 
   let visual='';
   if(name){
@@ -1057,7 +1052,7 @@ function renderProjectRow(p){
   const iconHtml=p.icon?`<img src="${p.icon}" alt="" style="object-position:${iconPosX}% ${iconPosY}%">`:`<div class="emoji-fb">🍽</div>`;
   const duty=p.duty||{};
   const dutyColor=duty.color||'#E8B96A';
-  const dutyName=duty.type?DUTY_PRESETS.find(d=>d.type===duty.type)?.name||duty.name||'':duty.name||'';
+  const dutyName=getDutyName(duty);
   const dutyBadge=dutyName?`<span class="duty-badge" style="background:${dutyColor}15;color:${dutyColor}">${esc(dutyName)}</span>`:'';
   const borderStyle=dutyName?`border-left:3px solid ${dutyColor}`:'';
   const fillStyle=dutyName?`background:linear-gradient(90deg,${dutyColor},${dutyColor}cc)`:'';
@@ -1247,32 +1242,10 @@ function commitProjectDrag(state,y){
 }
 
 /* ═══ PROJECT MODAL ═══ */
-function renderDutyRow(selected){
-  const row=document.getElementById('dutyRow');
-  const selType=(selected&&selected.type)||'';
-  let html=DUTY_PRESETS.map(d=>{
-    const active=selType===d.type;
-    return`<button class="duty-opt ${active?'active':''}" style="border-color:${d.color};${active?'background:'+d.color+'15;color:'+d.color:''}" onclick="selectDuty('${d.type}')">${d.name}</button>`;
-  }).join('');
-  html+=`<button class="duty-opt ${selType==='custom'?'active':''}" style="${selType==='custom'?'border-color:'+(selected.color||'#E8B96A'):''}" onclick="selectDuty('custom')">其他</button>`;
-  row.innerHTML=html;
-  document.getElementById('dutyCustomRow').style.display=selType==='custom'?'flex':'none';
-  if(selType==='custom'){
-    document.getElementById('dutyCustomName').value=(selected&&selected.name)||'';
-    renderColorPicker((selected&&selected.color)||'#E8B96A');
-  }
-}
-function renderColorPicker(activeColor){
-  document.getElementById('colorPicker').innerHTML=CUSTOM_COLORS.map(c=>
-    `<div class="color-swatch ${c===activeColor?'active':''}" style="background:${c}" onclick="pickColor('${c}')"></div>`
-  ).join('');
+function renderDutyInput(selected){
+  document.getElementById('inputProjectDuty').value=getDutyName(selected);
 }
 let _dutyState={type:'',color:'#E8B96A',name:''};
-function selectDuty(type){
-  if(type==='custom'){_dutyState.type='custom';renderDutyRow(_dutyState);}
-  else{const preset=DUTY_PRESETS.find(d=>d.type===type);_dutyState={type:type,color:preset.color,name:preset.name};renderDutyRow(_dutyState);}
-}
-function pickColor(c){_dutyState.color=c;renderColorPicker(c);}
 
 /* ── Section rows in modal ── */
 let _sections=[],_addSectionDraft=null,_quickSectionDraft=null,sectionDragBound=false,sectionPressState=null,sectionClickSuppressedUntil=0;
@@ -1760,7 +1733,7 @@ function openAddProject(){
   iconPreview.src='';iconPreview.style.objectPosition='50% 50%';
   _sections=[{name:'',count:0,cols:3,itemType:'food',tagText:'',tagColor:'#E8B96A',_items:[]}];
   _dutyState={type:'',color:'#E8B96A',name:''};
-  renderProjectCategoryOptions();renderSectionList();renderDutyRow(_dutyState);
+  renderProjectCategoryOptions();renderSectionList();renderDutyInput(_dutyState);
   openModal('projectModal');
 }
 function openEditProject(){
@@ -1779,7 +1752,7 @@ function openEditProject(){
   // Keep each section and its own item group together in the edit draft.
   _sections=buildSectionDrafts(p);
   _dutyState=p.duty?{...p.duty}:{type:'',color:'#E8B96A',name:''};
-  renderProjectCategoryOptions();renderSectionList();renderDutyRow(_dutyState);
+  renderProjectCategoryOptions();renderSectionList();renderDutyInput(_dutyState);
   openModal('projectModal');
 }
 
@@ -1788,8 +1761,11 @@ async function saveProject(){
   const category=document.getElementById('inputProjectCategory').value.trim();
   registerProjectCategory(category);
   const note=document.getElementById('inputProjectNote').value.trim();
-  let duty={..._dutyState};
-  if(duty.type==='custom'){duty.name=document.getElementById('dutyCustomName').value.trim();}
+  const duty={..._dutyState};
+  const dutyName=document.getElementById('inputProjectDuty').value.trim();
+  if(dutyName!==getDutyName(duty))duty.type='custom';
+  duty.type=dutyName?(duty.type||'custom'):'';
+  duty.name=dutyName;
   let icon=projectTempIcon;
   const iconPositionX=clampImagePosition(projectIconPosTemp.x);
   const iconPositionY=clampImagePosition(projectIconPosTemp.y);
