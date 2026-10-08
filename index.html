@@ -1046,7 +1046,6 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
 <div class="page-title" onclick="toggleSection(this)">Events</div>
 <div class="section-collapse"><div class="entry-grid" data-section="events">
   <a class="entry-card" href="daily.html?tab=drop" data-world-module="daily" data-entry-id="daily-drop"><div class="entry-icon">📋</div><div class="entry-label">委托</div></a>
-  <a class="entry-card" href="event.html"><div class="entry-icon">🎟</div><div class="entry-label">活动</div></a>
   <a class="entry-card draft" href="artist.html"><div class="entry-icon">🎤</div><div class="entry-label">艺人</div></a>
 </div>
 </div>
@@ -1062,8 +1061,7 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
   <a class="entry-card" href="reading.html"><div class="entry-icon">📚</div><div class="entry-label">Book</div></a>
   <a class="entry-card" href="techo.html"><div class="entry-icon">✎</div><div class="entry-label">Techo</div></a>
   <a class="entry-card" href="bjd.html"><div class="entry-icon">✦</div><div class="entry-label">Doll</div></a>
-  <a class="entry-card" href="merch.html"><div class="entry-icon">🎁</div><div class="entry-label">Merch</div></a>
-  <a class="entry-card" href="kitchen.html" data-entry-id="food-archive"><div class="entry-icon">🥡</div><div class="entry-label">Food</div></a>
+  <a class="entry-card" href="kitchen.html" data-entry-id="food-archive"><div class="entry-icon">🎟</div><div class="entry-label">ACTIVITY</div></a>
 </div>
 </div>
 </div>
@@ -1144,7 +1142,8 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
 </div>
 
 <script src="world-context.js?v=20261005-cbi-home-label2"></script>
-<script src="cloud-sync.js?v=20260922-shortcuts1"></script>
+<script src="activity-migration.js?v=20261008-merge1"></script>
+<script src="cloud-sync.js?v=20261008-activity-merge1"></script>
 <script src="app-back.js?v=20260929-android-back1"></script>
 <script src="character-runtime.js?v=20260914-cbi-sleep2"></script>
 <script src="cbi-weather.js?v=20260903-cbi-weather2"></script>
@@ -3568,7 +3567,12 @@ function closeCategoryPopup(e){
 
 /* ═══ DESKTOP CUSTOM SHORTCUTS ═══ */
 var DS_KEY='home_custom_shortcuts';
-function loadDSShortcuts(){try{return JSON.parse(localStorage.getItem(DS_KEY))||[];}catch(e){return[];}}
+function loadDSShortcuts(){try{
+  var saved=JSON.parse(localStorage.getItem(DS_KEY))||[];
+  var merged=ActivityMigration.normalizeShortcuts(Array.isArray(saved)?saved:[]);
+  if(JSON.stringify(saved)!==JSON.stringify(merged))saveDSShortcuts(merged);
+  return merged;
+}catch(e){return[];}}
 function saveDSShortcuts(list){try{localStorage.setItem(DS_KEY,JSON.stringify(list));}catch(e){}}
 function renderDSShortcuts(){
   var wraps=[document.getElementById('desktopShortcuts'),document.getElementById('mobileShortcuts')].filter(Boolean);

@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<!-- Food build: 2026-10-04-series-sort-r2 -->
+<!-- Activity build: 2026-10-08-unified-food -->
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Food">
-<title>Food</title>
+<meta name="apple-mobile-web-app-title" content="Activity">
+<title>Activity</title>
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="apple-touch-icon.png">
 <link rel="icon" href="favicon.ico">
@@ -299,7 +299,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <div id="viewHome" class="view active">
   <div class="top-bar">
     <a class="back-btn" href="index.html?p=2">← Home</a>
-    <h1>FOOD</h1>
+    <h1>ACTIVITY</h1>
     <button class="btn-s" onclick="openProjectCategoryManager()">编辑</button>
   </div>
   <div class="project-list" id="projectList"></div>
@@ -347,7 +347,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     </div>
     <label>项目名</label>
     <input type="text" id="inputProjectName" placeholder="如: Subway 三明治收集">
-    <label>项目分类（选填）</label>
+    <label>IP 分组（选填）</label>
     <input type="text" id="inputProjectCategory" list="projectCategoryOptions" placeholder="如：三丽鸥、角落生物">
     <datalist id="projectCategoryOptions"></datalist>
     <label>项目细分</label>
@@ -514,7 +514,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- Module category manager -->
 <div class="modal-bg" id="projectCategoryManagerModal">
   <div class="modal">
-    <h2>分类管理</h2>
+    <h2>IP 分组管理</h2>
     <div class="category-manager-list" id="projectCategoryManagerList"></div>
     <button type="button" class="add-section-btn" onclick="addProjectCategoryDraft()">+ 添加分类</button>
     <div class="category-manager-actions"><button type="button" class="btn-s" onclick="closeModal('projectCategoryManagerModal');openModal('backupModal')">备份</button></div>
@@ -546,7 +546,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   </div>
 </div>
 
-<script src="cloud-sync.js?v=20260914-home-badge1"></script>
+<script src="activity-migration.js?v=20261008-merge1"></script>
+<script src="cloud-sync.js?v=20261008-activity-merge1"></script>
 <script src="app-back.js?v=20260929-android-back1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
@@ -2742,6 +2743,10 @@ function getItemSectionType(p,itemIdx){
   return info.itemType||'normal';
 }
 function getItemBehaviorType(p,item,itemIdx){
+  // Content and shopping from the retired activity page retain their existing
+  // record behavior inside Food's two display groups.
+  if(item&&item.legacyActivityItemType==='content'&&item.itemType==='food')return'content';
+  if(item&&item.legacyActivityItemType==='shopping'&&item.itemType==='merch')return'shopping';
   if(item&&item.itemType)return item.itemType;
   const st=getItemSectionType(p,itemIdx);
   if(st==='food'||st==='merch')return st;
@@ -2932,9 +2937,10 @@ function closeSheet(id){document.getElementById(id).classList.remove('show');}
 
 /* ═══ BACKUP ═══ */
 function exportKitchen(){
-  const blob=new Blob([JSON.stringify({version:2,projects,categories:readProjectCategories()},null,2)],{type:'application/json'});
+  const migration=JSON.parse(localStorage.getItem(ActivityMigration.KEYS.migration)||'{}');
+  const blob=new Blob([JSON.stringify({version:3,projects,categories:readProjectCategories(),migration},null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download='kitchen_backup_'+new Date().toISOString().slice(0,10)+'.json';a.click();
+  a.download='activity_backup_'+new Date().toISOString().slice(0,10)+'.json';a.click();
 }
 function importKitchen(input){
   if(!input.files||!input.files[0])return;
@@ -2948,7 +2954,9 @@ function importKitchen(input){
         projects=importedProjects;
         migrateKitchenSectionModel();
         projects.forEach(project=>normalizeProjectSubtypes(project));
-        writeProjectCategories(Array.isArray(data&&data.categories)?data.categories:projects.map(project=>String(project.category||'').trim()).filter(Boolean));save();renderProjects();closeModal('backupModal');
+        writeProjectCategories(Array.isArray(data&&data.categories)?data.categories:projects.map(project=>String(project.category||'').trim()).filter(Boolean));save();
+        if(data&&data.migration&&typeof data.migration==='object'&&!Array.isArray(data.migration))localStorage.setItem(ActivityMigration.KEYS.migration,JSON.stringify(data.migration));
+        renderProjects();closeModal('backupModal');
       });
     }catch(e){showToast('导入失败');}
     input.value='';
@@ -3083,8 +3091,26 @@ window.addEventListener('pageshow',()=>{
 /* ═══ INIT ═══ */
 setupItemArrangeGestures();
 setupSubsectionDrag();
-restoreInitialView();
-migrateLocalImages();
+function initializeActivity(mergeLegacy=true){
+  try{
+    if(mergeLegacy)ActivityMigration.migrate(localStorage);
+    const stored=JSON.parse(localStorage.getItem(SK)||'[]');
+    if(Array.isArray(stored))projects=stored;
+    let changed=migrateKitchenSectionModel();
+    projects.forEach(project=>{if(normalizeProjectSubtypes(project))changed=true;});
+    if(changed)save();
+  }catch(error){
+    console.warn('Activity migration pending:',error);
+    showToast('旧活动迁移暂未完成，原记录已保留');
+  }
+  restoreInitialView();
+  migrateLocalImages();
+}
+renderProjects();
+// Merge only after the initial cloud pull, so a freshly connected device also
+// receives the old activity archive and the shared migration marker first.
+if(window.CloudSync)CloudSync.whenReady().then(()=>initializeActivity(),()=>initializeActivity(false));
+else initializeActivity();
 </script>
 </body>
 </html>

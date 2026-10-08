@@ -220,22 +220,26 @@ class FakeSupabase {
   }
 }
 
-function makeEnvironment({ remoteValue, localValue, pathname = '/daily.html' }) {
+function makeEnvironment({ remoteValue, localValue, pathname = '/daily.html', localStates = {}, remoteStates = {}, alreadyReloaded = false }) {
   const authKey = 'sb-lbxjshaiffklmalcxiif-auth-token';
   const meta = {};
   const localStorage = new MemoryStorage({
     [authKey]: '{}',
     liminal_cloud_device_v1: '1',
     liminal_cloud_meta_v1: JSON.stringify(meta),
-    daily_db: JSON.stringify(localValue)
+    daily_db: JSON.stringify(localValue),
+    ...Object.fromEntries(Object.entries(localStates).map(([key, value]) => [key, JSON.stringify(value)]))
   });
   const sessionStorage = new MemoryStorage();
+  if (alreadyReloaded) sessionStorage.setItem('liminal_cloud_reloaded', '1');
   const db = new FakeSupabase([{
     user_id: 'u1',
     state_key: 'daily_db',
     state_data: clone(remoteValue),
     updated_at: '2026-07-30T00:00:00.000Z'
-  }]);
+  }, ...Object.entries(remoteStates).map(([key, value]) => ({
+    user_id: 'u1', state_key: key, state_data: clone(value), updated_at: '2026-07-30T00:00:00.000Z'
+  }))]);
   const document = new FakeDocument();
   const intervals = [];
   const storageListeners = [];
@@ -426,6 +430,32 @@ async function testFullSnapshotCanBeRestoredSafely() {
   assert.deepEqual(beforeRestore.state_data.states.daily_db, changed);
 }
 
+async function testActivityMergeAfterCloudPull() {
+  const migration = require('../activity-migration.js');
+  const daily = { todos: [], completed: [] };
+  const food = [{ id: 'food', name: 'スシロー x プリン', items: [] }];
+  const legacy = [{ id: 'island', name: 'ちいかわ｜人魚の島のひみつ', items: [
+    { id: 'gift', itemType: 'merch', collected: true, records: [{ id: 'r', processStatus: 'processed', img: 'gift.png' }] }
+  ] }];
+  const env = makeEnvironment({ remoteValue: daily, localValue: daily, pathname: '/kitchen.html',
+    localStates: { kitchen_db: food }, remoteStates: { kitchen_db: food, activity_db: legacy }, alreadyReloaded: true });
+  await env.window.CloudSync.whenReady();
+  assert.deepEqual(JSON.parse(env.localStorage.getItem('activity_db')), legacy, 'cloud source must arrive before conversion');
+  assert.equal(migration.migrate(env.localStorage).importedCount, 1);
+  env.intervals[0]();
+  await waitForPush();
+  assert.equal(currentRow(env, 'kitchen_db').state_data.length, 2);
+  assert.deepEqual(currentRow(env, 'kitchen_activity_merge_v1').state_data.projectIds, ['island']);
+  assert.deepEqual(currentRow(env, 'activity_db').state_data, legacy);
+  assert.ok(archiveRows(env, '__snapshot__:').some(row => row.state_data.states.activity_db), 'existing sync snapshots retain the legacy source');
+  const remoteStates = Object.fromEntries(['kitchen_db', 'activity_db', 'kitchen_project_categories_v1', 'kitchen_activity_merge_v1']
+    .map(key => [key, currentRow(env, key).state_data]));
+  const second = makeEnvironment({ remoteValue: daily, localValue: daily, pathname: '/kitchen.html', remoteStates, alreadyReloaded: true });
+  await second.window.CloudSync.whenReady();
+  assert.equal(migration.migrate(second.localStorage).importedCount, 0);
+  assert.equal(JSON.parse(second.localStorage.getItem('kitchen_db')).length, 2);
+}
+
 async function main() {
   await testStatusBadgeOnlyAppearsOnHomepage();
   await testNormalWriteCreatesHistory();
@@ -433,6 +463,7 @@ async function main() {
   await testUnrelatedPageDataIsNotPushed();
   await testConcurrentWriteUsesCompareAndSwap();
   await testFullSnapshotCanBeRestoredSafely();
+  await testActivityMergeAfterCloudPull();
   console.log('cloud-sync guard behavior: ok');
 }
 
