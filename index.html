@@ -796,7 +796,7 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
 
 <div class="apt-wrap" id="aptWrap">
   <img class="cbi-home-scene" data-cbi-scene="home" width="1672" height="941" alt="Boss 家：左上卧室、左下卫生间，右侧客厅与厨房" draggable="false" decoding="async">
-  <button class="cbi-location-trigger cbi-home-trigger cbi-scene-switch" type="button" onclick="openCbiLocationSheet(event)" aria-label="当前在家，切换 CBI 地点" title="切换地点">Home ⇄</button>
+  <button class="cbi-location-trigger cbi-home-trigger cbi-scene-switch" type="button" onclick="toggleCbiLocation(event)" aria-label="当前在家，切换到办公室" title="切换到办公室">Home ⇄</button>
   <!-- TOP BRANCH STACK: new rooms added here overlap instead of expanding the map -->
   <div class="branch-stack branch-top has-active-room" data-branch="top">
   <div class="room-box room-neal branch-room is-stack-front" id="roomNeal" data-room-id="neal" data-character-id="neal">
@@ -913,7 +913,7 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
 </div>
 
 <div class="cbi-office-wrap" id="cbiOfficeWrap" hidden>
-  <button class="cbi-location-trigger cbi-scene-switch" type="button" onclick="openCbiLocationSheet(event)" aria-label="当前在办公室，切换 CBI 地点" title="切换地点">Office ⇄</button>
+  <button class="cbi-location-trigger cbi-scene-switch" type="button" onclick="toggleCbiLocation(event)" aria-label="当前在办公室，切换到家" title="切换到家">Office ⇄</button>
   <div class="room-box cbi-office" id="roomCbiOffice" data-room-id="cbi" data-character-id="jane">
     <div class="room-inner">
       <img class="cbi-office-scene" data-cbi-scene="office" width="1672" height="940" alt="" aria-hidden="true" decoding="async">
@@ -1124,13 +1124,6 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
 <div class="shortcut-picker" onclick="event.stopPropagation()">
 <div class="shortcut-picker-title">添加快捷入口</div>
 <div id="shortcutPickerContent"></div>
-</div>
-</div>
-
-<div class="room-pkg-sheet" id="cbiLocationSheet" onclick="closeCbiLocationSheet(event)">
-<div class="room-pkg-menu" onclick="event.stopPropagation()">
-<div class="room-pkg-menu-title">CBI Location</div>
-<div id="cbiLocationOptions"></div>
 </div>
 </div>
 
@@ -4029,34 +4022,15 @@ function applyRoomPkg(charId, forcedId) {
   }
 }
 
-function openCbiLocationSheet(e) {
-  if (e) e.stopPropagation();
+function toggleCbiLocation(event) {
+  if(event)event.stopPropagation();
   if(getActiveWorldId()!=='cbi')return;
-  const world=WorldContext.getWorld('cbi');
-  const activeId=WorldContext.getActiveLocationId('cbi');
-  const container=document.getElementById('cbiLocationOptions');
-  var html = '';
-  Object.values(world.locations).forEach(function(location) {
-    var cls = location.id === activeId ? ' active' : '';
-    html += '<div class="room-pkg-option' + cls + '" onclick="selectCbiLocation(\'' + location.id + '\')">'
-      + '<div class="room-pkg-option-dot"></div>'
-      + '<div><div class="room-pkg-option-label">' + location.label + '</div>'
-      + '<div class="room-pkg-option-sub">' + location.description + '</div></div>'
-      + '</div>';
-  });
-  container.innerHTML = html;
-  document.getElementById('cbiLocationSheet').classList.add('show');
-}
-
-function closeCbiLocationSheet(e) {
-  if (e && e.target !== e.currentTarget) return;
-  document.getElementById('cbiLocationSheet').classList.remove('show');
+  selectCbiLocation(getActiveLocationId()==='home'?'office':'home',{silent:true});
 }
 
 function selectCbiLocation(locationId,options) {
   var previous=WorldContext.getActiveLocationId('cbi');
   if(!WorldContext.setActiveLocationId('cbi',locationId)){showTip('地点切换失败');return;}
-  closeCbiLocationSheet(null);
   if(previous!==locationId)resetCbiLocationViewState();
   applyWorldView();
   if(!options||!options.silent)showTip(WorldContext.getLocation(locationId,'cbi').label);
@@ -4113,7 +4087,6 @@ function applyWorldView(){
   document.getElementById('cgBanner').classList.toggle('world-banner-empty',world.banner==='empty');
   if(window.CBIWeather)CBIWeather.setActive(world.id==='cbi',new Date());
   initCG();
-  closeCbiLocationSheet(null);
   closeCbiStorage();
   if(world.id==='cbi'){
     if(locationId==='home'){
