@@ -123,7 +123,7 @@ function fixture({ url = 'https://example.test/index.html?world=cbi', state = nu
   if (guarded) vm.runInContext(appBack, context);
   vm.runInContext(pagerScript, context);
   return {
-    window, pager, pages, links, shortcut, popup, storage, entries,
+    window, pager, pages, links, shortcut, popup, storage, entries, context,
     swipe: page => { pager.scrollLeft = page * pager.clientWidth; pager.dispatch('scroll'); },
     click: node => {
       const event = { target: node, button: 0, defaultPrevented: false };
@@ -236,3 +236,19 @@ test('a cached main Home entry also restores a module hint before a browser pops
   assert.equal(home.window.LiminalMobileBack.isArmed(), true);
   assert.equal(home.storage.has('liminal_module_home_return_v1'), false);
 });
+
+for (const [open, module] of [['openWorldFiles', '/story.html'], ['openSuitcase', '/suitcase.html']]) {
+  test(`the room ${open} button also records main Home as its return destination`, () => {
+    const home = fixture({ url: 'https://example.test/index.html?p=4&world=cbi' });
+    const start = index.indexOf('function openWorldFiles(){');
+    const end = index.indexOf('function updateWorldFilesBlock(){', start);
+    vm.runInContext(index.slice(start, end), home.context);
+    vm.runInContext(open + '()', home.context);
+    const record = JSON.parse(home.storage.get('liminal_module_home_return_v1'));
+    assert.equal(record.module, module);
+    assert.equal(new URL(record.home).searchParams.get('p'), null);
+    const returned = fixture({ url: 'https://example.test/index.html?p=5', storage: home.storage });
+    assert.equal(returned.pager.scrollLeft, returned.pager.clientWidth);
+    assert.equal(new URL(returned.window.location.href).searchParams.get('world'), 'cbi');
+  });
+}

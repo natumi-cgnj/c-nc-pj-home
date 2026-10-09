@@ -3019,6 +3019,16 @@ function consumeModuleHomeReturn(){
     return url;
   }catch(error){return null;}
 }
+function rememberHomeModuleReturn(href,page){
+  try{
+    var destination=new URL(href,window.location.href);
+    if(destination.origin!==window.location.origin)return;
+    var home=new URL(window.location.href);
+    if(page===1)home.searchParams.delete('p');
+    else home.searchParams.set('p',String(page));
+    sessionStorage.setItem(MODULE_HOME_RETURN_KEY,JSON.stringify({module:destination.pathname,home:home.href}));
+  }catch(error){}
+}
 ['mobileShortcutsWrap','desktopShortcutsWrap'].forEach(function(id){
   var wrap=document.getElementById(id);
   if(wrap)wrap.addEventListener('click',markHomeShortcutReturn);
@@ -3073,7 +3083,7 @@ function consumeModuleHomeReturn(){
     rememberModuleReturn(destination);
   }
   function rememberModuleReturn(destination){
-    try{sessionStorage.setItem(MODULE_HOME_RETURN_KEY,JSON.stringify({module:destination.pathname,home:window.location.href}));}catch(error){}
+    rememberHomeModuleReturn(destination.href,entryPage);
   }
   function restorePager(){
     consumeModuleHomeReturn();
@@ -4125,10 +4135,12 @@ function selectCbiLocation(locationId,options) {
 /* ═══ WORLD SWITCHING ═══ */
 function openWorldFiles(){
   var href=window.WorldContext?WorldContext.getRoute('story','story.html'): 'story.html';
+  rememberHomeModuleReturn(href,1);
   window.location.href=href;
 }
 
 function openSuitcase(){
+  rememberHomeModuleReturn('suitcase.html',1);
   window.location.href='suitcase.html';
 }
 
