@@ -2990,8 +2990,10 @@ function showTip(t){const el=document.getElementById('tooltip');el.textContent=t
 /* ═══ HOME PAGER DOTS ═══ */
 var HOME_SHORTCUT_RETURN_KEY='home_shortcut_return_main_v1';
 function markHomeShortcutReturn(event){
+  if(!event||event.defaultPrevented||event.button>0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
   var link=event.target&&event.target.closest?event.target.closest('.ds-item[href]'):null;
   if(!link)return;
+  if(link.getAttribute('target')==='_blank')return;
   var href=link.getAttribute('href')||'';
   if(!href||href==='#')return;
   try{sessionStorage.setItem(HOME_SHORTCUT_RETURN_KEY,'1');}catch(error){}
@@ -3012,13 +3014,65 @@ function consumeHomeShortcutReturn(){
   var pager=document.getElementById('homePager');
   var dots=[].slice.call(document.querySelectorAll('.page-dot'));
   if(!pager||!dots.length) return;
+  var pages=[].slice.call(pager.children).filter(function(page){return page.classList.contains('home-page');});
+  var entryPage=null;
+
+  function validPage(value){
+    var page=Number(value);
+    return value!==null&&value!==''&&Number.isInteger(page)&&page>=0&&page<pages.length?page:1;
+  }
+  function rememberPage(page){
+    page=validPage(page);
+    var url=new URL(window.location.href);
+    if(page===1)url.searchParams.delete('p');
+    else url.searchParams.set('p',String(page));
+    var next=url.pathname+url.search+url.hash;
+    if(next!==window.location.pathname+window.location.search+window.location.hash){
+      try{window.history.replaceState(window.history.state,'',next);}catch(error){}
+    }
+  }
+  function rememberEntryPage(event){
+    if(event.defaultPrevented||event.button>0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
+    var link=event.target&&event.target.closest?event.target.closest('a[href]'):null;
+    if(!link||link.getAttribute('target')==='_blank')return;
+    var destination;
+    try{destination=new URL(link.getAttribute('href'),window.location.href);}catch(error){return;}
+    if(destination.origin!==window.location.origin||destination.pathname===window.location.pathname)return;
+    if(link.classList.contains('ds-item')){
+      entryPage=1;
+      rememberPage(entryPage);
+      return;
+    }
+    var page=link.closest('.home-page');
+    if(!page){
+      var grid=link.closest('.entry-grid');
+      var category=grid&&typeof CATEGORY_MAP==='object'&&CATEGORY_MAP&&CATEGORY_MAP[grid.dataset.section];
+      if(category)page=document.getElementById(category.pageId);
+    }
+    var pageIndex=pages.indexOf(page);
+    if(pageIndex<0)return;
+    entryPage=pageIndex;
+    try{sessionStorage.removeItem(HOME_SHORTCUT_RETURN_KEY);}catch(error){}
+    rememberPage(entryPage);
+  }
+  function restorePager(){
+    var returnToMain=consumeHomeShortcutReturn();
+    var page=returnToMain?1:validPage(new URLSearchParams(window.location.search).get('p'));
+    entryPage=null;
+    rememberPage(page);
+    requestAnimationFrame(function(){
+      pager.scrollLeft=page*pager.clientWidth;
+      updateDots();
+    });
+  }
   var returnToMain=consumeHomeShortcutReturn();
   var urlP=new URLSearchParams(window.location.search).get('p');
   var defaultPage=returnToMain?1:(urlP!==null?+urlP:1);
+  defaultPage=validPage(defaultPage);
   if(returnToMain&&urlP!==null){
     var cleanUrl=new URL(window.location.href);
     cleanUrl.searchParams.delete('p');
-    window.history.replaceState(null,'',cleanUrl.pathname+cleanUrl.search+cleanUrl.hash);
+    window.history.replaceState(window.history.state,'',cleanUrl.pathname+cleanUrl.search+cleanUrl.hash);
   }
   requestAnimationFrame(function(){
     pager.scrollLeft=defaultPage*pager.clientWidth;
@@ -3029,8 +3083,15 @@ function consumeHomeShortcutReturn(){
     if(w<1)return;
     var idx=Math.round(pager.scrollLeft/w);
     dots.forEach(function(d,i){d.classList.toggle('active',i===idx);});
+    if(entryPage===null)rememberPage(idx);
   }
   pager.addEventListener('scroll',updateDots,{passive:true});
+  document.addEventListener('click',rememberEntryPage);
+  window.addEventListener('pagehide',function(){
+    if(entryPage!==null)rememberPage(entryPage);
+    else if(pager.clientWidth>0)rememberPage(Math.round(pager.scrollLeft/pager.clientWidth));
+  });
+  window.addEventListener('pageshow',function(event){if(event.persisted)restorePager();});
   dots.forEach(function(d){
     d.addEventListener('click',function(){
       var p=+this.dataset.page;
@@ -3097,7 +3158,6 @@ function consumeHomeShortcutReturn(){
     target.addEventListener('touchcancel',onTouchCancel,{passive:true});
   });
 })();
-window.addEventListener('pageshow',function(event){if(event.persisted)consumeHomeShortcutReturn();});
 
 /* ═══ MEMO ═══ */
 (function(){
