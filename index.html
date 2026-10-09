@@ -1144,7 +1144,7 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
 <script src="world-context.js?v=20261005-cbi-home-label2"></script>
 <script src="activity-migration.js?v=20261008-merge1"></script>
 <script src="cloud-sync.js?v=20261008-activity-merge1"></script>
-<script src="app-back.js?v=20260929-android-back1"></script>
+<script src="app-back.js?v=20261010-home-return2"></script>
 <script src="character-runtime.js?v=20260914-cbi-sleep2"></script>
 <script src="cbi-weather.js?v=20260903-cbi-weather2"></script>
 <script src="cbi-scene-lighting.js?v=20261007-scenereturn2"></script>
@@ -2989,6 +2989,7 @@ function showTip(t){const el=document.getElementById('tooltip');el.textContent=t
 
 /* ═══ HOME PAGER DOTS ═══ */
 var HOME_SHORTCUT_RETURN_KEY='home_shortcut_return_main_v1';
+var MODULE_HOME_RETURN_KEY='liminal_module_home_return_v1';
 function markHomeShortcutReturn(event){
   if(!event||event.defaultPrevented||event.button>0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
   var link=event.target&&event.target.closest?event.target.closest('.ds-item[href]'):null;
@@ -3005,6 +3006,19 @@ function consumeHomeShortcutReturn(){
     return true;
   }catch(error){return false;}
 }
+function consumeModuleHomeReturn(){
+  try{
+    var record=JSON.parse(sessionStorage.getItem(MODULE_HOME_RETURN_KEY));
+    sessionStorage.removeItem(MODULE_HOME_RETURN_KEY);
+    if(!record||!record.home)return null;
+    var url=new URL(record.home,window.location.href);
+    var home=new URL('index.html',window.location.href);
+    var directory=new URL('.',home);
+    if(url.origin!==home.origin||(url.pathname!==home.pathname&&url.pathname!==directory.pathname))return null;
+    window.history.replaceState(window.history.state,'',url.pathname+url.search+url.hash);
+    return url;
+  }catch(error){return null;}
+}
 ['mobileShortcutsWrap','desktopShortcutsWrap'].forEach(function(id){
   var wrap=document.getElementById(id);
   if(wrap)wrap.addEventListener('click',markHomeShortcutReturn);
@@ -3016,6 +3030,7 @@ function consumeHomeShortcutReturn(){
   if(!pager||!dots.length) return;
   var pages=[].slice.call(pager.children).filter(function(page){return page.classList.contains('home-page');});
   var entryPage=null;
+  if('scrollRestoration' in window.history)window.history.scrollRestoration='manual';
 
   function validPage(value){
     var page=Number(value);
@@ -3041,6 +3056,7 @@ function consumeHomeShortcutReturn(){
     if(link.classList.contains('ds-item')){
       entryPage=1;
       rememberPage(entryPage);
+      rememberModuleReturn(destination);
       return;
     }
     var page=link.closest('.home-page');
@@ -3054,8 +3070,13 @@ function consumeHomeShortcutReturn(){
     entryPage=pageIndex;
     try{sessionStorage.removeItem(HOME_SHORTCUT_RETURN_KEY);}catch(error){}
     rememberPage(entryPage);
+    rememberModuleReturn(destination);
+  }
+  function rememberModuleReturn(destination){
+    try{sessionStorage.setItem(MODULE_HOME_RETURN_KEY,JSON.stringify({module:destination.pathname,home:window.location.href}));}catch(error){}
   }
   function restorePager(){
+    consumeModuleHomeReturn();
     var returnToMain=consumeHomeShortcutReturn();
     var page=returnToMain?1:validPage(new URLSearchParams(window.location.search).get('p'));
     entryPage=null;
@@ -3065,6 +3086,7 @@ function consumeHomeShortcutReturn(){
       updateDots();
     });
   }
+  consumeModuleHomeReturn();
   var returnToMain=consumeHomeShortcutReturn();
   var urlP=new URLSearchParams(window.location.search).get('p');
   var defaultPage=returnToMain?1:(urlP!==null?+urlP:1);

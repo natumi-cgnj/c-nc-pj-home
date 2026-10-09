@@ -86,6 +86,7 @@ function fixture({ url = 'https://example.test/index.html?world=cbi', state = nu
   }
   setLocation(url);
   const history = {
+    scrollRestoration: 'auto',
     get state() { return entries[position].state; },
     replaceState(next, _title, href) {
       entries[position] = { state: next, url: href ? new URL(href, location.href).href : location.href };
@@ -110,7 +111,7 @@ function fixture({ url = 'https://example.test/index.html?world=cbi', state = nu
     removeItem: key => storage.delete(key)
   };
   const window = {
-    document, location, history, listeners: new Map(),
+    document, location, history, sessionStorage, listeners: new Map(),
     addEventListener: Node.prototype.addEventListener,
     dispatch: Node.prototype.dispatch,
     setTimeout: callback => { callback(); return 1; }
@@ -205,4 +206,33 @@ test('Activity explicit Home navigation points to its Archive entry page', () =>
   const href = kitchen.match(/<a class="back-btn" href="([^"]+)"/)[1];
   const home = fixture({ url: new URL(href, 'https://example.test/kitchen.html').href });
   assert.equal(home.pager.scrollLeft, 4 * home.pager.clientWidth);
+});
+
+test('Home records the exact module destination and category separately from browser history', () => {
+  const home = fixture();
+  home.links[4].href = 'techo.html';
+  home.swipe(4);
+  home.click(home.links[4]);
+  const record = JSON.parse(home.storage.get('liminal_module_home_return_v1'));
+  assert.equal(record.module, '/techo.html');
+  assert.equal(record.home, 'https://example.test/index.html?world=cbi&p=4');
+});
+
+test('a module hint recovers Archive when Android skips guards and reloads an old main Home entry', () => {
+  const storage = new Map([['liminal_module_home_return_v1', JSON.stringify({ module: '/techo.html', home: 'https://example.test/index.html?p=4&world=cbi' })]]);
+  const home = fixture({ url: 'https://example.test/index.html', storage });
+  assert.equal(home.pager.scrollLeft, 4 * home.pager.clientWidth);
+  assert.equal(new URL(home.window.location.href).searchParams.get('world'), 'cbi');
+  assert.equal(storage.has('liminal_module_home_return_v1'), false);
+  assert.equal(home.window.history.scrollRestoration, 'manual');
+});
+
+test('a cached main Home entry also restores a module hint before a browser popstate', () => {
+  const home = fixture({ guarded: true });
+  home.storage.set('liminal_module_home_return_v1', JSON.stringify({ module: '/techo.html', home: 'https://example.test/index.html?p=4' }));
+  home.window.dispatch('pageshow', { persisted: true });
+  assert.equal(home.pager.scrollLeft, 4 * home.pager.clientWidth);
+  assert.equal(new URL(home.window.location.href).searchParams.get('p'), '4');
+  assert.equal(home.window.LiminalMobileBack.isArmed(), true);
+  assert.equal(home.storage.has('liminal_module_home_return_v1'), false);
 });

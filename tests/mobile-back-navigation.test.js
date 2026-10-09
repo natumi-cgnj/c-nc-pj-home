@@ -59,7 +59,7 @@ class FakeElement {
   }
 }
 
-function createFixture() {
+function createFixture({ module = 'bjd.html', previous = 'https://example.test/start', homeHref = '', storage = new Map(), state = null } = {}) {
   const body = new FakeElement('body', []);
   const viewItems = body.append(new FakeElement('viewItems', ['view', 'active']));
   const viewCatalog = body.append(new FakeElement('viewCatalog', ['view']));
@@ -70,6 +70,8 @@ function createFixture() {
   const firstTab = tabs.append(new FakeElement('', ['active'], 'First'));
   const secondTab = tabs.append(new FakeElement('', [], 'Second'));
   const elements = [body, viewItems, viewCatalog, back, editor, cancel, tabs, firstTab, secondTab];
+  const home = body.append(new FakeElement('homeBack', ['back'], 'Home'));
+  if (homeHref) home.setAttribute('href', homeHref);
 
   function showView(id) {
     [viewItems, viewCatalog].forEach(view => view.classList.toggle('active', view.id === id));
@@ -88,6 +90,7 @@ function createFixture() {
     getElementById(id) { return elements.find(node => node.id === id) || null; },
     addEventListener() {},
     querySelectorAll(selector) {
+      if (selector === 'a[href]') return homeHref ? [home] : [];
       if (selector === '.view.active[id]') return [viewItems, viewCatalog].filter(node => node.classList.contains('active'));
       if (selector === '.view.active') return [viewItems, viewCatalog].filter(node => node.classList.contains('active'));
       if (selector.includes('.modal-bg[id]')) return [editor];
@@ -98,10 +101,10 @@ function createFixture() {
   };
 
   const listeners = {};
-  const location = { pathname: '/bjd.html', search: '', hash: '', href: 'https://example.test/bjd.html' };
+  const location = { pathname: '/' + module, search: '', hash: '', origin: 'https://example.test', href: 'https://example.test/' + module };
   const entries = [
-    { state: null, url: 'https://example.test/start' },
-    { state: null, url: location.href }
+    { state: null, url: previous },
+    { state, url: location.href }
   ];
   let index = 1;
   function setLocation(url) {
@@ -137,14 +140,37 @@ function createFixture() {
     document,
     history,
     location,
+    sessionStorage: {
+      getItem: key => storage.has(key) ? storage.get(key) : null,
+      setItem: (key, value) => storage.set(key, String(value)),
+      removeItem: key => storage.delete(key)
+    },
     showView,
     setTimeout(callback) { callback(); return 1; },
     addEventListener(type, listener) { (listeners[type] || (listeners[type] = [])).push(listener); },
     getComputedStyle(node) { return { zIndex: node.style.zIndex || '200' }; }
   };
+  location.replace = url => {
+    entries.splice(index + 1);
+    entries[index] = { state: null, url: new URL(url, location.href).href };
+    setLocation(entries[index].url);
+  };
   window.window = window;
 
-  return { window, viewItems, viewCatalog, editor, firstTab, secondTab, showView, showTab };
+  return {
+    window, viewItems, viewCatalog, editor, firstTab, secondTab, showView, showTab, storage,
+    restoreBaseBeforePop() {
+      index -= 1;
+      setLocation(entries[index].url);
+      const event = { state: entries[index].state };
+      dispatch('pageshow', { persisted: true });
+      dispatch('popstate', event);
+    }
+  };
+}
+
+function initializeBack(fixture) {
+  vm.runInNewContext(appBack, { window: fixture.window, URL, Object, Array, Date, Math, String, parseInt });
 }
 
 test('system Back closes the top layer, returns through the view and tab, then leaves the module', () => {
@@ -186,4 +212,85 @@ test('every app page that loads cloud sync also loads the shared Back handler', 
   });
   assert.deepEqual(missing, []);
   assert.deepEqual(misplaced, []);
+});
+
+test('TECHO system Back returns to Archive even when browser history still points at main Home', () => {
+  const fixture = createFixture({ module: 'techo.html', previous: 'https://example.test/index.html', homeHref: 'index.html?p=4' });
+  initializeBack(fixture);
+  fixture.window.history.back();
+  assert.equal(fixture.window.location.href, 'https://example.test/index.html?p=4');
+});
+
+test('recorded entry category takes priority over a module default Home link', () => {
+  const storage = new Map([['liminal_module_home_return_v1', JSON.stringify({ module: '/daily.html', home: 'https://example.test/index.html?p=3&world=cbi' })]]);
+  const fixture = createFixture({ module: 'daily.html', homeHref: 'index.html?p=2', storage });
+  initializeBack(fixture);
+  fixture.window.history.back();
+  assert.equal(fixture.window.location.href, 'https://example.test/index.html?p=3&world=cbi');
+});
+
+test('Home shortcuts override a module category default without consuming the Home flag early', () => {
+  const storage = new Map([['home_shortcut_return_main_v1', '1']]);
+  const fixture = createFixture({ module: 'techo.html', homeHref: 'index.html?p=4', storage });
+  initializeBack(fixture);
+  fixture.window.history.back();
+  assert.equal(fixture.window.location.href, 'https://example.test/index.html');
+  assert.equal(storage.get('home_shortcut_return_main_v1'), '1');
+});
+
+test('TECHO still closes an editor, returns from details and resets a tab before exiting to Archive', () => {
+  const fixture = createFixture({ module: 'techo.html', homeHref: 'index.html?p=4' });
+  initializeBack(fixture);
+  fixture.showView('viewCatalog');
+  fixture.editor.classList.add('show');
+  fixture.window.history.back();
+  assert.equal(fixture.editor.classList.contains('show'), false);
+  assert.equal(fixture.viewCatalog.classList.contains('active'), true);
+  fixture.window.history.back();
+  assert.equal(fixture.viewItems.classList.contains('active'), true);
+  fixture.showTab(fixture.secondTab);
+  fixture.window.history.back();
+  assert.equal(fixture.firstTab.classList.contains('active'), true);
+  fixture.window.history.back();
+  assert.equal(fixture.window.location.href, 'https://example.test/index.html?p=4');
+});
+
+test('cached pageshow re-arming does not let a stale popstate immediately exit the restored page', () => {
+  const fixture = createFixture({ module: 'techo.html', homeHref: 'index.html?p=4' });
+  initializeBack(fixture);
+  fixture.restoreBaseBeforePop();
+  assert.equal(fixture.window.location.pathname, '/techo.html');
+  assert.equal(fixture.window.LiminalMobileBack.isArmed(), true);
+});
+
+test('refresh preserves the captured entry category in history state after the session hint is lost', () => {
+  const storage = new Map([['liminal_module_home_return_v1', JSON.stringify({ module: '/daily.html', home: 'https://example.test/index.html?p=3' })]]);
+  const first = createFixture({ module: 'daily.html', homeHref: 'index.html?p=2', storage });
+  initializeBack(first);
+  const refreshed = createFixture({ module: 'daily.html', homeHref: 'index.html?p=2', state: first.window.history.state });
+  initializeBack(refreshed);
+  refreshed.window.history.back();
+  assert.equal(refreshed.window.location.href, 'https://example.test/index.html?p=3');
+});
+
+test('invalid or other-module entry hints do not replace the current module Home destination', () => {
+  for (const hint of [
+    { module: '/techo.html', home: 'https://outside.test/index.html?p=4' },
+    { module: '/techo.html', home: 'https://example.test/unrelated/index.html?p=4' },
+    { module: '/daily.html', home: 'https://example.test/index.html?p=2' }
+  ]) {
+    const fixture = createFixture({ module: 'techo.html', homeHref: 'index.html?p=4', storage: new Map([['liminal_module_home_return_v1', JSON.stringify(hint)]]) });
+    initializeBack(fixture);
+    fixture.window.history.back();
+    assert.equal(fixture.window.location.href, 'https://example.test/index.html?p=4');
+  }
+});
+
+test('blocked session storage still permits the module Home fallback', () => {
+  const fixture = createFixture({ module: 'techo.html', homeHref: 'index.html?p=4' });
+  fixture.window.sessionStorage.getItem = () => { throw new Error('blocked'); };
+  fixture.window.sessionStorage.setItem = () => { throw new Error('blocked'); };
+  initializeBack(fixture);
+  fixture.window.history.back();
+  assert.equal(fixture.window.location.href, 'https://example.test/index.html?p=4');
 });

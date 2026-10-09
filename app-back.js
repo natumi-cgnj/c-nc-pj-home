@@ -4,11 +4,14 @@
   if (!global || !global.document || !global.history || global.LiminalMobileBack) return;
 
   var STATE_KEY = '__liminalMobileBackV1';
+  var HOME_RETURN_KEY = 'liminal_module_home_return_v1';
+  var HOME_SHORTCUT_KEY = 'home_shortcut_return_main_v1';
   var instanceId = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
   var initialized = false;
   var handlingPop = false;
   var baseline = null;
   var guardUrl = '';
+  var homeUrl = '';
   var nativeReplaceState = global.history.replaceState.bind(global.history);
   var nativePushState = global.history.pushState.bind(global.history);
 
@@ -80,6 +83,53 @@
   function currentMarker() {
     var state = global.history.state;
     return state && typeof state === 'object' ? state[STATE_KEY] : null;
+  }
+
+  function homeDestination(value) {
+    if (!value) return null;
+    try {
+      var url = new URL(value, global.location.href);
+      var home = new URL('index.html', global.location.href);
+      var directory = new URL('.', home);
+      return url.origin === home.origin && (url.pathname === home.pathname || url.pathname === directory.pathname) ? url : null;
+    } catch (error) { return null; }
+  }
+
+  function captureHomeDestination() {
+    if (pageName() === 'index.html') return '';
+    var destination = null;
+    try {
+      var record = JSON.parse(global.sessionStorage.getItem(HOME_RETURN_KEY));
+      if (record && record.module === global.location.pathname) destination = homeDestination(record.home);
+    } catch (error) {}
+    var marker = currentMarker();
+    if (!destination && marker) destination = homeDestination(marker.homeUrl);
+    if (!destination) {
+      var links = global.document.querySelectorAll('a[href]');
+      for (var i = 0; i < links.length && !destination; i += 1) {
+        destination = homeDestination(links[i].getAttribute('href'));
+      }
+    }
+    if (!destination) destination = homeDestination(global.document.referrer);
+    if (!destination) return '';
+    try {
+      if (global.sessionStorage.getItem(HOME_SHORTCUT_KEY) === '1') destination.searchParams.delete('p');
+    } catch (error) {}
+    return destination.href;
+  }
+
+  function rememberHomeDestination() {
+    if (!homeUrl) return;
+    try {
+      // Home can recover this even when Android skips a synthetic history entry.
+      global.sessionStorage.setItem(HOME_RETURN_KEY, JSON.stringify({ module: global.location.pathname, home: homeUrl }));
+    } catch (error) {}
+  }
+
+  function leaveModule() {
+    if (!homeUrl) { global.history.back(); return; }
+    rememberHomeDestination();
+    global.location.replace(homeUrl);
   }
 
   global.history.replaceState = function (state, title, url) {
@@ -322,7 +372,7 @@
     if (marker && marker.instance === instanceId && marker.role === 'guard') return;
     guardUrl = global.location.href;
     nativePushState(
-      copyStateWithMarker(global.history.state, { instance: instanceId, role: 'guard' }),
+      copyStateWithMarker(global.history.state, { instance: instanceId, role: 'guard', homeUrl: homeUrl }),
       '',
       global.location.href
     );
@@ -331,6 +381,9 @@
   function handlePopState(event) {
     var marker = event.state && typeof event.state === 'object' ? event.state[STATE_KEY] : null;
     if (!marker || marker.instance !== instanceId || marker.role !== 'base' || handlingPop) return;
+    var current = currentMarker();
+    // pageshow may have re-armed before the traversal's popstate is delivered.
+    if (!current || current.instance !== instanceId || current.role !== 'base') return;
     handlingPop = true;
     var consumed = consumeInternalBack();
     if (consumed) {
@@ -342,16 +395,18 @@
       return;
     }
     handlingPop = false;
-    global.history.back();
+    leaveModule();
   }
 
   function initialize() {
     if (initialized) return;
+    homeUrl = captureHomeDestination();
+    rememberHomeDestination();
     baseline = captureBaseline();
     initialized = true;
     global.addEventListener('popstate', handlePopState);
     nativeReplaceState(
-      copyStateWithMarker(global.history.state, { instance: instanceId, role: 'base' }),
+      copyStateWithMarker(global.history.state, { instance: instanceId, role: 'base', homeUrl: homeUrl }),
       '',
       global.location.href
     );
