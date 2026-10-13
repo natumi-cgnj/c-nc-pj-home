@@ -10,14 +10,11 @@
     { id: 'jpFund', title: '日币基金', kicker: '日元投资', currency: 'JPY', detail: '为基金账户预留', fallbackColor: '#7E9AB0' },
     { id: 'mercari', title: 'メルカリ', kicker: '日常资金', currency: 'JPY', detail: '生活开销 · 二手进出', fallbackColor: '#B48A9B' }
   ];
-  var MANAGERS = [
-    { id: 'boss', name: 'Boss', color: '#B08A5A' },
-    { id: 'jane', name: 'Jane', color: '#87977F' },
-    { id: 'cho', name: 'Cho', color: '#68747A' },
-    { id: 'rigsby', name: 'Rigsby', color: '#7E9AB0' },
-    { id: 'lisbon', name: 'Lisbon', color: '#A06F62' },
-    { id: 'vanpelt', name: 'Van Pelt', color: '#B48A9B' }
-  ];
+  var COLORS = ['#B08A5A', '#87977F', '#68747A', '#7E9AB0', '#A06F62', '#B48A9B'];
+  var LEGACY_MANAGER_COLORS = {
+    boss: '#B08A5A', jane: '#87977F', cho: '#68747A',
+    rigsby: '#7E9AB0', lisbon: '#A06F62', vanpelt: '#B48A9B'
+  };
   var mounted = false;
 
   function esc(value) {
@@ -29,14 +26,21 @@
     return ACCOUNTS.find(function (entry) { return entry.id === id; }) || null;
   }
 
-  function managerDefinition(id) {
-    return MANAGERS.find(function (entry) { return entry.id === id; }) || null;
+  function validColor(value) {
+    var normalized = String(value || '').toLowerCase();
+    return COLORS.find(function (color) { return color.toLowerCase() === normalized; }) || '';
+  }
+
+  function accountColor(account, entry) {
+    return validColor(account && account.color) ||
+      validColor(account && LEGACY_MANAGER_COLORS[account.manager]) ||
+      entry.fallbackColor;
   }
 
   function emptyState() {
     var accounts = {};
     ACCOUNTS.forEach(function (entry) {
-      accounts[entry.id] = { balance: null, note: '', manager: '' };
+      accounts[entry.id] = { balance: null, note: '', color: '' };
     });
     return { version: 1, accounts: accounts };
   }
@@ -58,7 +62,7 @@
         value.accounts[entry.id] = {
           balance: normalizeBalance(source.balance),
           note: String(source.note || '').slice(0, 80),
-          manager: managerDefinition(source.manager) ? source.manager : ''
+          color: validColor(source.color) || validColor(LEGACY_MANAGER_COLORS[source.manager])
         };
       });
     } catch (error) {}
@@ -89,7 +93,7 @@
     style.id = 'walletAssetStyles';
     style.textContent =
       '#viewAccounts{min-height:calc(100vh - 118px);min-height:calc(100dvh - 118px);background:#f8f8f6}' +
-      '.asset-board{padding:22px 14px 24px;max-width:700px;margin:0 auto}' +
+      '.asset-board{padding:22px 14px 24px;width:100%;margin:0}' +
       '.asset-board-head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin:0 2px 14px}' +
       '.asset-board-kicker{font-size:9px;letter-spacing:1.8px;color:#aaa}' +
       '.asset-board-hint{font-size:9px;color:#bbb;text-align:right;line-height:1.5}' +
@@ -102,9 +106,10 @@
       '.asset-account-currency{font-size:8px;letter-spacing:1px;color:#bbb}' +
       '.asset-account-amount{margin-top:3px;font-size:17px;line-height:1.15;font-weight:300;font-variant-numeric:tabular-nums;letter-spacing:-.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#363430}' +
       '.asset-account-meta{margin-top:auto;padding-top:13px;min-width:0}' +
-      '.asset-account-owner{display:flex;align-items:center;gap:5px;font-size:8px;letter-spacing:.3px;color:#aaa;white-space:nowrap;overflow:hidden}' +
-      '.asset-account-dot{width:5px;height:5px;border-radius:50%;background:var(--account-color);flex:0 0 auto}' +
-      '.asset-account-note{margin-top:5px;font-size:8px;line-height:1.4;color:#c0bfbb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
+      '.asset-account-note{display:block;font-size:8px;line-height:1.4;color:#b9b8b4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
+      '.asset-color-trigger{position:relative;width:100%;height:38px;padding:0 11px 0 16px;border:1px solid #e8e8e8;border-radius:6px;background:#fafafa;color:#999;font:400 11px/1 inherit;text-align:left;cursor:pointer}' +
+      '.asset-color-trigger:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--asset-edit-color)}' +
+      '.asset-color-trigger:after{content:"›";position:absolute;right:11px;top:50%;transform:translateY(-52%);color:#ccc;font-size:16px}' +
       '.asset-board-footnote{margin:13px 2px 0;font-size:8px;line-height:1.6;letter-spacing:.25px;color:#c0bfbb}' +
       '.asset-modal-context{margin:-7px 0 4px;font-size:10px;line-height:1.6;color:#bbb}' +
       '.asset-modal-currency{font-size:9px;color:#bbb;margin-left:5px;letter-spacing:.7px}' +
@@ -119,15 +124,13 @@
     var state = loadState();
     grid.innerHTML = ACCOUNTS.map(function (entry) {
       var account = state.accounts[entry.id];
-      var manager = managerDefinition(account.manager);
-      var color = manager ? manager.color : entry.fallbackColor;
-      var owner = manager ? manager.name : '待分配';
+      var color = accountColor(account, entry);
       var note = account.note || entry.detail;
       return '<button class="asset-account-card" type="button" data-account-id="' + esc(entry.id) + '" style="--account-color:' + color + '" aria-label="编辑' + esc(entry.title) + '">' +
         '<span class="asset-account-kicker">' + esc(entry.kicker) + '</span>' +
         '<span class="asset-account-name">' + esc(entry.title) + '</span>' +
         '<span class="asset-account-balance"><span class="asset-account-currency">' + esc(entry.currency) + '</span><span class="asset-account-amount">' + esc(formatBalance(account.balance, entry.currency)) + '</span></span>' +
-        '<span class="asset-account-meta"><span class="asset-account-owner"><span class="asset-account-dot"></span><span>' + esc(owner) + '</span></span><span class="asset-account-note">' + esc(note) + '</span></span>' +
+        '<span class="asset-account-meta"><span class="asset-account-note">' + esc(note) + '</span></span>' +
         '</button>';
     }).join('');
     Array.prototype.forEach.call(grid.querySelectorAll('[data-account-id]'), function (button) {
@@ -156,9 +159,45 @@
     document.getElementById('assetAccountModalContext').textContent = entry.detail;
     document.getElementById('assetAccountCurrency').textContent = entry.currency;
     document.getElementById('assetAccountBalance').value = account.balance == null ? '' : String(account.balance);
-    document.getElementById('assetAccountManager').value = account.manager || '';
     document.getElementById('assetAccountNote').value = account.note || '';
+    setEditorColor(accountColor(account, entry));
     modal.classList.add('show');
+  }
+
+  function setEditorColor(color) {
+    var selected = validColor(color) || COLORS[0];
+    var input = document.getElementById('assetAccountColor');
+    var trigger = document.getElementById('assetAccountColorTrigger');
+    if (input) input.value = selected;
+    if (trigger) trigger.style.setProperty('--asset-edit-color', selected);
+  }
+
+  function renderColorPicker() {
+    var active = validColor(document.getElementById('assetAccountColor').value);
+    var target = document.getElementById('assetAccountColorPicker');
+    if (!target) return;
+    target.innerHTML = COLORS.map(function (color) {
+      var selected = color.toLowerCase() === String(active || '').toLowerCase();
+      return '<button type="button" class="cat-color-swatch' + (selected ? ' active' : '') + '" style="--swatch-color:' + color + '" onclick="WalletAssets.pickColor(\'' + color + '\')" aria-label="选择颜色 ' + color + '" aria-pressed="' + selected + '"></button>';
+    }).join('');
+  }
+
+  function openColorPicker() {
+    var id = document.getElementById('assetAccountId').value;
+    var entry = accountDefinition(id);
+    document.getElementById('assetAccountColorTitle').textContent = (entry ? entry.title : '账户') + ' · 颜色';
+    renderColorPicker();
+    document.getElementById('assetAccountColorModal').classList.add('show');
+  }
+
+  function closeColorPicker() {
+    document.getElementById('assetAccountColorModal').classList.remove('show');
+  }
+
+  function pickColor(color) {
+    if (!validColor(color)) return;
+    setEditorColor(color);
+    closeColorPicker();
   }
 
   function saveEditor() {
@@ -174,7 +213,7 @@
     var state = loadState();
     state.accounts[id] = {
       balance: balance,
-      manager: document.getElementById('assetAccountManager').value,
+      color: validColor(document.getElementById('assetAccountColor').value) || entry.fallbackColor,
       note: document.getElementById('assetAccountNote').value.trim().slice(0, 80)
     };
     saveState(state);
@@ -185,13 +224,6 @@
 
   function mount() {
     injectStyles();
-    var select = document.getElementById('assetAccountManager');
-    if (select && !select.dataset.ready) {
-      select.innerHTML = '<option value="">待分配</option>' + MANAGERS.map(function (manager) {
-        return '<option value="' + esc(manager.id) + '">' + esc(manager.name) + '</option>';
-      }).join('');
-      select.dataset.ready = '1';
-    }
     mounted = true;
     return true;
   }
@@ -200,6 +232,9 @@
     mount: mount,
     render: render,
     saveEditor: saveEditor,
+    openColorPicker: openColorPicker,
+    closeColorPicker: closeColorPicker,
+    pickColor: pickColor,
     storageKey: STORAGE_KEY
   });
 })(window);
