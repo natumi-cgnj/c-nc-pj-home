@@ -415,6 +415,7 @@ body[data-world-id="cbi"] .mobile-suitcase{display:flex}
 .mobile-shortcuts-wrap{width:100%;max-width:360px;margin-top:18px;padding:2px 2px max(56px,calc(env(safe-area-inset-bottom,0px) + 44px));display:grid;grid-template-columns:repeat(5,44px);justify-content:space-between;align-items:start;row-gap:14px}
 .mobile-shortcuts{display:contents}
 .mobile-shortcuts-wrap .ds-item{display:flex;flex-direction:column;align-items:center;gap:5px;text-decoration:none;cursor:pointer;position:relative;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
+.mobile-shortcuts-wrap .ds-item[hidden],.ds-item[hidden]{display:none}
 .ds-item-del{display:none}
 .ds-add{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;border:0;background:none;padding:0;font:inherit;color:inherit}
 .ds-add .entry-icon{border-style:dashed;color:#ccc}
@@ -1029,9 +1030,6 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
 <div class="page-clock"><div class="time" id="clock2"></div><div class="date" id="date2"></div></div>
 <div class="page-title" onclick="toggleSection(this)">Dailies</div>
 <div class="section-collapse"><div class="entry-grid" data-section="daily">
-  <a class="entry-card" href="daily.html?tab=habits" data-world-module="daily" data-entry-id="daily-habits"><div class="entry-icon">🗒️</div><div class="entry-label">打卡</div></a>
-  <a class="entry-card" href="habit.html"><div class="entry-icon">📅</div><div class="entry-label">目标</div></a>
-  <a class="entry-card" href="daily.html?tab=todo" data-world-module="daily" data-entry-id="daily-todo"><div class="entry-icon">📋</div><div class="entry-label">日程</div></a>
   <a class="entry-card" href="wallet.html" data-world-module="wallet" data-entry-id="wallet"><div class="entry-icon">¥</div><div class="entry-label">记账</div></a>
   <a class="entry-card" href="meals.html" data-world-module="kitchen" data-entry-id="kitchen"><div class="entry-icon">🍽</div><div class="entry-label">饮食</div></a>
   <a class="entry-card draft"><div class="entry-icon">👔</div><div class="entry-label">穿搭</div></a>
@@ -3666,6 +3664,15 @@ function loadDSShortcuts(){try{
   return merged;
 }catch(e){return[];}}
 function saveDSShortcuts(list){try{localStorage.setItem(DS_KEY,JSON.stringify(list));}catch(e){}}
+// Pause only home visibility; saved shortcuts keep their indices and reorder behavior.
+function isPausedHomeShortcut(entry){
+  var href=String(entry.href||'').split('#')[0];
+  if(/(?:^|\/)habit\.html(?:\?|$)/.test(href))return true;
+  if(!/(?:^|\/)daily\.html(?:\?|$)/.test(href))return false;
+  var tab=href.match(/[?&]tab=([^&]*)/);
+  if(tab)return tab[1]==='habits'||tab[1]==='todo';
+  return ['打卡','日课','行动','日程'].indexOf(entry.label)>=0;
+}
 function renderDSShortcuts(){
   var wraps=[document.getElementById('desktopShortcuts'),document.getElementById('mobileShortcuts')].filter(Boolean);
   if(!wraps.length)return;
@@ -3681,7 +3688,7 @@ function renderDSShortcuts(){
       var legacyDailyTab={'委托':'drop','行动':'todo','日程':'todo','日课':'habits','打卡':'habits'}[s.label];
       if(legacyDailyTab)href+='?tab='+legacyDailyTab;
     }
-    return '<a class="'+cls+'" href="'+(href||'#')+'" data-ds-idx="'+i+'">'
+    return '<a class="'+cls+'"'+(isPausedHomeShortcut(s)?' hidden':'')+' href="'+(href||'#')+'" data-ds-idx="'+i+'">'
       +'<div class="entry-icon">'+s.icon+'</div>'
       +'<div class="entry-label">'+s.label+'</div>'
       +'<button class="ds-item-del" type="button" aria-label="删除 '+s.label+' 快捷入口" onclick="event.preventDefault();event.stopPropagation();removeDSShortcut('+i+')">✕</button>'

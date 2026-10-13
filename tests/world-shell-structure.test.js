@@ -172,7 +172,7 @@ test('CBI locations have separate day and night banner scenes', () => {
 });
 
 test('world-sensitive entries use stable identities instead of mutable hrefs', () => {
-  for (const id of ['daily-habits', 'daily-todo', 'daily-drop', 'wallet', 'kitchen', 'story', 'dungeon', 'shop', 'gacha']) {
+  for (const id of ['daily-drop', 'wallet', 'kitchen', 'story', 'dungeon', 'shop', 'gacha']) {
     assert.match(index, new RegExp(`data-entry-id="${id}"`));
   }
   assert.match(index, /function entryOrderKey\(card\)/);
@@ -330,9 +330,9 @@ test('CBI check-ins use one repeatable grouped list while commissions and action
   assert.match(daily, /lockedTab:\['drop','todo','habits'\]\.indexOf\(urlTab\)>=0\?urlTab:''/);
   assert.match(index, /hrefParts\.slice\(1\)\.join\('\?'\)/);
   assert.match(index, /legacyDailyTab=\{'委托':'drop','行动':'todo','日程':'todo','日课':'habits','打卡':'habits'\}/);
-  assert.match(index, /data-entry-id="daily-habits"[^>]*><div class="entry-icon">🗒️<\/div><div class="entry-label">打卡<\/div>/);
-  assert.match(index, /href="habit\.html"><div class="entry-icon">📅<\/div><div class="entry-label">目标<\/div>/);
-  assert.match(index, /data-entry-id="daily-todo"[^>]*><div class="entry-icon">📋<\/div>/);
+  assert.doesNotMatch(index, /data-entry-id="daily-habits"/);
+  assert.doesNotMatch(index, /class="entry-card" href="habit\.html"/);
+  assert.doesNotMatch(index, /data-entry-id="daily-todo"/);
   assert.match(daily, /data-tab="habits"[^>]*>打卡<\/div>/);
   assert.match(cbiWork, /data-tab="habits">打卡<\/div>/);
 });
