@@ -241,8 +241,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <button class="btn-s" onclick="openModal('settingsModal')">设置</button>
 </div>
 
+<!-- SIX ACCOUNTS TAB -->
+<div id="viewAccounts" class="view active">
+  <section class="asset-board" aria-label="六账户总览">
+    <div class="asset-board-head">
+      <p class="asset-board-kicker">SIX ACCOUNTS</p>
+      <p class="asset-board-hint">点按账户填写余额、备注和管理人</p>
+    </div>
+    <div class="asset-account-grid" id="assetAccountGrid"></div>
+    <p class="asset-board-footnote">这是一层独立的账户总览，不会改变原记账数据。</p>
+  </section>
+</div>
+
 <!-- LEDGER TAB -->
-<div id="viewLedger" class="view active">
+<div id="viewLedger" class="view">
   <div class="account-ledger-grid">
     <section class="account-pane living">
       <div class="account-summary" id="livingSummary"></div>
@@ -297,6 +309,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <button class="btn-s" style="width:100%;padding:10px" onclick="exportPacks()">导出行动包配置</button>
   </div>
   <div id="packInfo"></div>
+</div>
+
+<!-- Account overview editor -->
+<div class="modal-bg" id="assetAccountModal">
+  <div class="modal">
+    <h2 id="assetAccountModalTitle">账户</h2>
+    <p class="asset-modal-context" id="assetAccountModalContext"></p>
+    <input type="hidden" id="assetAccountId">
+    <label>余额 <span class="asset-modal-currency" id="assetAccountCurrency"></span></label>
+    <input type="number" id="assetAccountBalance" step="0.01" inputmode="decimal" placeholder="暂不填写也可以">
+    <label>管理人</label>
+    <select id="assetAccountManager"></select>
+    <label>备注（选填）</label>
+    <input type="text" id="assetAccountNote" maxlength="80" placeholder="用途、状态或下一步">
+    <div class="btn-row">
+      <button class="btn btn-cancel" type="button" onclick="closeModal('assetAccountModal')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="WalletAssets.saveEditor()">保存</button>
+    </div>
+  </div>
 </div>
 
 <!-- Diary write modal -->
@@ -462,7 +493,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 <!-- Tab bar -->
 <div class="tab-bar">
-  <button class="active" onclick="switchTab('viewLedger',this)"><span class="tab-icon">📝</span>记账</button>
+  <button class="active" onclick="switchTab('viewAccounts',this)"><span class="tab-icon">▦</span>账户</button>
+  <button onclick="switchTab('viewLedger',this)"><span class="tab-icon">📝</span>记账</button>
   <button onclick="switchTab('viewTreasury',this)"><span class="tab-icon">💰</span>金库</button>
   <button onclick="switchTab('viewOutings',this)"><span class="tab-icon">🚶</span>外出</button>
   <button onclick="switchTab('viewCollection',this)"><span class="tab-icon">📦</span>收集</button>
@@ -477,7 +509,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script src="cbi-data.js?v=20260927-checkin-categories1"></script>
 <script src="character-runtime.js?v=20260914-cbi-sleep2"></script>
-<script src="cbi-wallet.js?v=20260914-resolved-history1"></script>
+<script src="wallet-assets.js?v=20261013-six-accounts1"></script>
+<script src="cbi-wallet.js?v=20261013-six-accounts1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 var SK='wallet_db';
@@ -701,11 +734,20 @@ function switchTab(viewId,btn){
   renderCurrentTab(viewId);
 }
 function renderCurrentTab(viewId){
-  if(viewId==='viewLedger')renderLedger();
-  else if(viewId==='viewTreasury')renderTreasury();
-  else if(viewId==='viewOutings')renderOutings();
-  else if(viewId==='viewCollection')renderCollection();
-  else if(viewId==='viewDiary')renderDiary();
+  if(viewId==='viewAccounts'&&window.WalletAssets)WalletAssets.render();
+  else{
+    if(!isCbiWallet){
+      var subtitle=document.getElementById('monthBudgetStatus');
+      var settings=document.querySelector('.top-bar .btn-s');
+      if(subtitle){subtitle.disabled=false;renderMonthBudgetStatus();}
+      if(settings)settings.style.visibility='visible';
+    }
+    if(viewId==='viewLedger')renderLedger();
+    else if(viewId==='viewTreasury')renderTreasury();
+    else if(viewId==='viewOutings')renderOutings();
+    else if(viewId==='viewCollection')renderCollection();
+    else if(viewId==='viewDiary')renderDiary();
+  }
 }
 
 /* ═══ DATE / PERIOD HELPERS ═══ */
@@ -1508,10 +1550,11 @@ function confirmPackImport(){
 rememberLedgerFold('historyFold',LEDGER_HISTORY_FOLD_KEY,true);
 rememberLedgerFold('pendingFold',LEDGER_PENDING_FOLD_KEY,false);
 var isCbiWallet=window.WorldContext&&WorldContext.getActiveWorldId()==='cbi';
+if(window.WalletAssets)WalletAssets.mount();
 if(isCbiWallet&&window.CBIWallet){
   CBIWallet.mount();
 }else{
-  renderLedger();
+  renderCurrentTab('viewAccounts');
 }
 if(!isCbiWallet&&window.CharacterRuntime){
   CharacterRuntime.init({onTick:function(){
