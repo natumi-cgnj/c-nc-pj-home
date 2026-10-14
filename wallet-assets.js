@@ -94,21 +94,24 @@
     style.textContent =
       '#viewAccounts{background:#fff}' +
       '.asset-board{width:100%;margin:0;padding:0}' +
-      '.asset-account-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:0;min-height:calc(100vh - 113px);min-height:calc(100dvh - 113px);background:#fff;border-bottom:1px solid #eeeeec}' +
-      '.asset-account-card{appearance:none;-webkit-appearance:none;min-width:0;position:relative;display:flex;flex-direction:column;text-align:left;background:#fff;border:0;border-right:1px solid #eeeeec;border-bottom:1px solid #eeeeec;border-radius:0;padding:24px 20px 20px;color:#333;font-family:inherit;cursor:pointer;box-shadow:inset 3px 0 var(--account-color);transition:background .12s ease}' +
-      '.asset-account-card:nth-child(3n){border-right:0}' +
-      '.asset-account-card:nth-child(n+4){border-bottom:0}' +
-      '.asset-account-card:active{background:#fafaf8}' +
-      '.asset-account-name{font-size:13px;line-height:1.35;font-weight:500;letter-spacing:.2px;color:#555;white-space:nowrap}' +
-      '.asset-account-balance{display:block;margin-top:28px;min-width:0}' +
-      '.asset-account-currency{display:block;font-size:8px;letter-spacing:1.1px;color:#bbb}' +
-      '.asset-account-amount{display:block;margin-top:7px;font-size:clamp(20px,2.1vw,30px);line-height:1.12;font-weight:250;font-variant-numeric:tabular-nums;letter-spacing:-.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#333}' +
-      '.asset-account-note{display:block;margin-top:auto;padding-top:18px;font-size:9px;line-height:1.45;color:#aaa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
+      '.asset-account-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:0;min-height:calc(100vh - 113px);min-height:calc(100dvh - 113px);background:#fff}' +
+      '.asset-account-card{appearance:none;-webkit-appearance:none;min-width:0;position:relative;display:flex;flex-direction:column;justify-content:flex-start;text-align:left;background:#fff;border:0;border-radius:0;padding:34px clamp(20px,2.7vw,46px);color:#333;font-family:inherit;cursor:pointer;overflow:hidden;transition:background .12s ease}' +
+      '.asset-account-card:nth-child(n+4){justify-content:flex-end}' +
+      '.asset-account-card:before{content:"";position:absolute;left:clamp(20px,2.7vw,46px);right:clamp(20px,2.7vw,46px);height:1px;background:var(--account-color);opacity:.68}' +
+      '.asset-account-card:nth-child(-n+3):before{top:0}' +
+      '.asset-account-card:nth-child(n+4):before{bottom:0}' +
+      '.asset-account-card:hover{background:#fdfcfb}' +
+      '.asset-account-card:active{background:#faf9f6}' +
+      '.asset-account-name{font-size:12px;line-height:1.35;font-weight:500;letter-spacing:.35px;color:#66625e;white-space:nowrap}' +
+      '.asset-account-balance{display:block;margin-top:20px;min-width:0}' +
+      '.asset-account-currency{display:block;font-size:8px;letter-spacing:1.15px;color:#c0bdb8}' +
+      '.asset-account-amount{display:block;margin-top:6px;font-size:clamp(23px,2.15vw,32px);line-height:1.12;font-weight:250;font-variant-numeric:tabular-nums;letter-spacing:-.45px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--account-color)}' +
+      '.asset-account-note{display:block;margin-top:11px;font-size:9px;line-height:1.45;color:#aaa6a1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
       '.asset-color-trigger{position:relative;width:100%;height:38px;padding:0 11px 0 16px;border:1px solid #e8e8e8;border-radius:6px;background:#fafafa;color:#999;font:400 11px/1 inherit;text-align:left;cursor:pointer}' +
       '.asset-color-trigger:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--asset-edit-color)}' +
       '.asset-color-trigger:after{content:"›";position:absolute;right:11px;top:50%;transform:translateY(-52%);color:#ccc;font-size:16px}' +
       '.asset-modal-currency{font-size:9px;color:#bbb;margin-left:5px;letter-spacing:.7px}' +
-      '@media(max-width:480px){.asset-account-grid{min-height:calc(100dvh - 108px)}.asset-account-card{padding:19px 12px 16px}.asset-account-name{font-size:12px}.asset-account-balance{margin-top:22px}.asset-account-note{padding-top:13px;font-size:8px}}';
+      '@media(max-width:480px){.asset-account-grid{min-height:calc(100dvh - 108px)}.asset-account-card{padding:25px 11px}.asset-account-card:before{left:11px;right:11px}.asset-account-name{font-size:11px}.asset-account-balance{margin-top:17px}.asset-account-amount{font-size:clamp(19px,6vw,24px)}.asset-account-note{margin-top:9px;font-size:8px}}';
     document.head.appendChild(style);
   }
 
