@@ -246,7 +246,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <section class="asset-board" aria-label="六账户">
     <div class="asset-account-grid" id="assetAccountGrid"></div>
   </section>
-  <section class="asset-account-detail" id="assetAccountDetail" aria-label="人民币储蓄详情">
+  <section class="asset-account-detail" id="assetAccountDetail" aria-label="账户详情">
     <div id="assetSavingsDetail"></div>
   </section>
 </div>
@@ -344,6 +344,55 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <div class="btn-row">
       <button class="btn btn-cancel" type="button" onclick="closeModal('assetSavingsItemModal')">取消</button>
       <button class="btn btn-primary" type="button" onclick="WalletAssets.saveSavingsItem()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Flexible asset item editor -->
+<div class="modal-bg" id="assetFlexibleItemModal">
+  <div class="modal">
+    <h2 id="assetFlexibleItemModalTitle">资产栏</h2>
+    <input type="hidden" id="assetFlexibleItemId">
+    <label>名称</label>
+    <input type="text" id="assetFlexibleItemName" maxlength="30">
+    <label>当前余额 <span class="asset-modal-currency">CNY</span></label>
+    <input type="number" id="assetFlexibleItemBalance" step="0.01" inputmode="decimal">
+    <div class="btn-row">
+      <button class="btn btn-cancel" type="button" onclick="closeModal('assetFlexibleItemModal')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="WalletAssets.saveFlexibleItem()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Flexible account transaction editor -->
+<div class="modal-bg" id="assetFlexibleTransactionModal">
+  <div class="modal">
+    <h2 id="assetFlexibleTransactionModalTitle">记一笔</h2>
+    <input type="hidden" id="assetFlexibleTransactionId">
+    <input type="hidden" id="assetFlexibleTransactionContext">
+    <input type="hidden" id="assetFlexibleTransactionType" value="expense">
+    <label>类型</label>
+    <div class="asset-ledger-type-picker">
+      <button class="asset-ledger-type active" type="button" data-flexible-type="expense" onclick="WalletAssets.selectFlexibleTransactionType('expense')">支出</button>
+      <button class="asset-ledger-type" type="button" data-flexible-type="income" onclick="WalletAssets.selectFlexibleTransactionType('income')">收入</button>
+      <button class="asset-ledger-type" type="button" data-flexible-type="transfer" onclick="WalletAssets.selectFlexibleTransactionType('transfer')">转账</button>
+    </div>
+    <label id="assetFlexibleTransactionItemLabel">资产栏</label>
+    <select id="assetFlexibleTransactionItem" onchange="WalletAssets.syncFlexibleTransferOptions()"></select>
+    <div id="assetFlexibleTransferToWrap" style="display:none">
+      <label>转入资产栏</label>
+      <select id="assetFlexibleTransactionToItem"></select>
+    </div>
+    <label>金额 <span class="asset-modal-currency">CNY</span></label>
+    <input type="number" id="assetFlexibleTransactionAmount" min="0" step="0.01" inputmode="decimal">
+    <label>日期</label>
+    <input type="date" id="assetFlexibleTransactionDate">
+    <label>备注（选填）</label>
+    <input type="text" id="assetFlexibleTransactionNote" maxlength="80">
+    <div class="btn-row">
+      <button class="btn btn-del" id="assetFlexibleTransactionDelete" type="button" onclick="WalletAssets.deleteFlexibleTransaction()">删除</button>
+      <button class="btn btn-cancel" type="button" onclick="closeModal('assetFlexibleTransactionModal')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="WalletAssets.saveFlexibleTransaction()">保存</button>
     </div>
   </div>
 </div>
@@ -528,7 +577,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script src="cbi-data.js?v=20260927-checkin-categories1"></script>
 <script src="character-runtime.js?v=20260914-cbi-sleep2"></script>
-<script src="wallet-assets.js?v=20261014-savings-manage2"></script>
+<script src="wallet-assets.js?v=20261015-flexible-ledger1"></script>
 <script src="cbi-wallet.js?v=20261014-flat-accounts1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
@@ -1588,4 +1637,5 @@ if(!isCbiWallet&&window.CharacterRuntime){
 </script>
 </body>
 </html>
+
 
