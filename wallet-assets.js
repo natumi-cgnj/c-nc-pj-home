@@ -3,17 +3,17 @@
 
   var STORAGE_KEY = 'wallet_accounts_v1';
   var ACCOUNTS = [
-    { id: 'chinaSavings', title: '����Ҵ���', currency: 'CNY', fallbackColor: '#B08A5A' },
-    { id: 'jpBank', title: '�ձ�����', currency: 'JPY', fallbackColor: '#68747A' },
-    { id: 'cashVouchers', title: '�ֽ�&ȯ', currency: 'JPY', fallbackColor: '#A06F62' },
-    { id: 'cnFlexible', title: '����+΢��', currency: 'CNY', fallbackColor: '#87977F' },
-    { id: 'jpFund', title: '�ձһ���', currency: 'JPY', fallbackColor: '#7E9AB0' },
-    { id: 'mercari', title: '��륫��', currency: 'JPY', fallbackColor: '#B48A9B' }
+    { id: 'chinaSavings', title: '人民币储蓄', currency: 'CNY', fallbackColor: '#B08A5A' },
+    { id: 'jpBank', title: '日币银行', currency: 'JPY', fallbackColor: '#68747A' },
+    { id: 'cashVouchers', title: '现金&券', currency: 'JPY', fallbackColor: '#A06F62' },
+    { id: 'cnFlexible', title: '阿里+微信', currency: 'CNY', fallbackColor: '#87977F' },
+    { id: 'jpFund', title: '日币基金', currency: 'JPY', fallbackColor: '#7E9AB0' },
+    { id: 'mercari', title: 'メルカリ', currency: 'JPY', fallbackColor: '#B48A9B' }
   ];
   var COLORS = ['#B08A5A', '#87977F', '#68747A', '#7E9AB0', '#A06F62', '#B48A9B'];
   var SAVINGS_ITEM_DEFAULTS = [
-    { id: 'chinaBank', title: '�й�����' },
-    { id: 'chinaFund', title: '�����˻�' }
+    { id: 'chinaBank', title: '中国银行' },
+    { id: 'chinaFund', title: '基金账户' }
   ];
   var LEGACY_MANAGER_COLORS = {
     boss: '#B08A5A', jane: '#87977F', cho: '#68747A',
@@ -63,7 +63,7 @@
       while (seen[id]) id += '_';
       seen[id] = true;
       var confirmedAt = String(saved.confirmedAt || '');
-      var fallbackTitle = '�ʲ��� ' + (index + 1);
+      var fallbackTitle = '资产栏 ' + (index + 1);
       return {
         id: id,
         title: String(saved.title || fallbackTitle).trim().slice(0, 30) || fallbackTitle,
@@ -123,7 +123,7 @@
   }
 
   function formatBalance(value, currency) {
-    if (value == null) return '��';
+    if (value == null) return '—';
     try {
       return new Intl.NumberFormat(currency === 'JPY' ? 'ja-JP' : 'zh-CN', {
         minimumFractionDigits: 0,
@@ -189,7 +189,7 @@
       var color = accountColor(account, entry);
       var title = String(account.title || entry.title).trim().slice(0, 30) || entry.title;
       var note = account.note;
-      var action = entry.id === 'chinaSavings' ? '��' : '�༭';
+      var action = entry.id === 'chinaSavings' ? '打开' : '编辑';
       return '<button class="asset-account-card" type="button" data-account-id="' + esc(entry.id) + '" style="--account-color:' + color + '" aria-label="' + action + esc(title) + '">' +
         '<span class="asset-account-name">' + esc(title) + '</span>' +
         '<span class="asset-account-balance"><span class="asset-account-currency">' + esc(entry.currency) + '</span><span class="asset-account-amount">' + esc(formatBalance(account.balance, entry.currency)) + '</span></span>' +
@@ -248,36 +248,36 @@
     var total = savingsTotal(items);
     if (total == null) total = account.balance;
     var rows = items.map(function (item, index) {
-      var confirmed = item.confirmedAt ? item.confirmedAt.replace(/-/g, '.') : '��';
+      var confirmed = item.confirmedAt ? item.confirmedAt.replace(/-/g, '.') : '—';
       if (savingsManageMode) {
         return '<div class="asset-static-row asset-static-row-manage" data-savings-manage-item="' + esc(item.id) + '">' +
           '<span><span class="asset-static-name">' + esc(item.title) + '</span>' +
-          '<span class="asset-static-confirmed">CNY ' + esc(formatBalance(item.balance, 'CNY')) + ' �� ���ȷ�� ' + esc(confirmed) + '</span></span>' +
+          '<span class="asset-static-confirmed">CNY ' + esc(formatBalance(item.balance, 'CNY')) + ' · 最后确认 ' + esc(confirmed) + '</span></span>' +
           '<span class="asset-static-manage-actions">' +
-            '<button class="asset-static-manage-button" type="button" data-savings-move="up" aria-label="�����ƶ�"' + (index === 0 ? ' disabled' : '') + '>��</button>' +
-            '<button class="asset-static-manage-button" type="button" data-savings-move="down" aria-label="�����ƶ�"' + (index === items.length - 1 ? ' disabled' : '') + '>��</button>' +
-            '<button class="asset-static-manage-button asset-static-delete" type="button" data-savings-delete>ɾ��</button>' +
+            '<button class="asset-static-manage-button" type="button" data-savings-move="up" aria-label="向上移动"' + (index === 0 ? ' disabled' : '') + '>↑</button>' +
+            '<button class="asset-static-manage-button" type="button" data-savings-move="down" aria-label="向下移动"' + (index === items.length - 1 ? ' disabled' : '') + '>↓</button>' +
+            '<button class="asset-static-manage-button asset-static-delete" type="button" data-savings-delete>删除</button>' +
           '</span>' +
         '</div>';
       }
       return '<button class="asset-static-row" type="button" data-savings-item="' + esc(item.id) + '">' +
         '<span><span class="asset-static-name">' + esc(item.title) + '</span>' +
-        '<span class="asset-static-confirmed">���ȷ�� ' + esc(confirmed) + '</span></span>' +
+        '<span class="asset-static-confirmed">最后确认 ' + esc(confirmed) + '</span></span>' +
         '<span class="asset-static-amount">' + esc(formatBalance(item.balance, 'CNY')) + '</span>' +
       '</button>';
     }).join('');
-    if (!rows && !savingsManageMode) rows = '<div class="asset-static-empty">�����ʲ���</div>';
+    if (!rows && !savingsManageMode) rows = '<div class="asset-static-empty">暂无资产栏</div>';
     target.style.setProperty('--account-color', color);
     target.innerHTML =
       '<div class="asset-detail-toolbar">' +
-        '<button class="asset-detail-back" type="button" data-savings-back>�� �˻�</button>' +
+        '<button class="asset-detail-back" type="button" data-savings-back>← 账户</button>' +
         '<div class="asset-detail-heading"><div class="asset-detail-title">' + esc(title) + '</div>' +
           '<div class="asset-detail-total"><span class="asset-detail-currency">CNY</span>' + esc(formatBalance(total, 'CNY')) + '</div></div>' +
-        '<button class="asset-detail-edit" type="button" data-savings-manage>' + (savingsManageMode ? '���' : '�༭') + '</button>' +
+        '<button class="asset-detail-edit" type="button" data-savings-manage>' + (savingsManageMode ? '完成' : '编辑') + '</button>' +
       '</div>' +
       '<div class="asset-static-list">' +
         rows +
-        (savingsManageMode ? '<button class="asset-static-add" type="button" data-savings-add>�� �����ʲ���</button>' : '') +
+        (savingsManageMode ? '<button class="asset-static-add" type="button" data-savings-add>＋ 增加资产栏</button>' : '') +
       '</div>';
     target.querySelector('[data-savings-back]').addEventListener('click', closeSavingsDetail);
     target.querySelector('[data-savings-manage]').addEventListener('click', function () {
@@ -302,7 +302,7 @@
     var modal = document.getElementById('assetSavingsItemModal');
     if (!modal) return;
     document.getElementById('assetSavingsItemId').value = '';
-    document.getElementById('assetSavingsItemModalTitle').textContent = '�����ʲ���';
+    document.getElementById('assetSavingsItemModalTitle').textContent = '新增资产栏';
     document.getElementById('assetSavingsItemName').value = '';
     document.getElementById('assetSavingsItemBalance').value = '';
     document.getElementById('assetSavingsItemConfirmedAt').value = '';
@@ -328,7 +328,7 @@
     var rawBalance = document.getElementById('assetSavingsItemBalance').value.trim();
     var balance = normalizeBalance(rawBalance);
     if (rawBalance && balance == null) {
-      if (typeof global.showToast === 'function') global.showToast('��������Ч���');
+      if (typeof global.showToast === 'function') global.showToast('请输入有效金额');
       return;
     }
     var state = loadState();
@@ -337,7 +337,7 @@
     var hadDetailedBalance = items.some(function (item) { return item.balance != null; });
     var item = items.find(function (candidate) { return candidate.id === itemId; });
     if (!item) {
-      item = { id: createSavingsItemId(), title: '�ʲ��� ' + (items.length + 1), balance: null, confirmedAt: '' };
+      item = { id: createSavingsItemId(), title: '资产栏 ' + (items.length + 1), balance: null, confirmedAt: '' };
       items.push(item);
     }
     item.title = document.getElementById('assetSavingsItemName').value.trim().slice(0, 30) || item.title;
@@ -352,7 +352,7 @@
     document.getElementById('assetSavingsItemModal').classList.remove('show');
     render();
     renderSavingsDetail();
-    if (typeof global.showToast === 'function') global.showToast('�ʲ��Ѹ���');
+    if (typeof global.showToast === 'function') global.showToast('资产已更新');
   }
 
   function moveSavingsItem(itemId, direction) {
@@ -385,11 +385,11 @@
       saveState(state);
       render();
       renderSavingsDetail();
-      if (typeof global.showToast === 'function') global.showToast('�ʲ�����ɾ��');
+      if (typeof global.showToast === 'function') global.showToast('资产栏已删除');
     }
     if (typeof global.customConfirm === 'function') {
-      global.customConfirm('ɾ������ʲ�����', removeItem, { yes: 'ɾ��', danger: true });
-    } else if (typeof global.confirm !== 'function' || global.confirm('ɾ������ʲ�����')) {
+      global.customConfirm('删除这个资产栏？', removeItem, { yes: '删除', danger: true });
+    } else if (typeof global.confirm !== 'function' || global.confirm('删除这个资产栏？')) {
       removeItem();
     }
   }
@@ -424,7 +424,7 @@
     if (!target) return;
     target.innerHTML = COLORS.map(function (color) {
       var selected = color.toLowerCase() === String(active || '').toLowerCase();
-      return '<button type="button" class="cat-color-swatch' + (selected ? ' active' : '') + '" style="--swatch-color:' + color + '" onclick="WalletAssets.pickColor(\'' + color + '\')" aria-label="ѡ����ɫ ' + color + '" aria-pressed="' + selected + '"></button>';
+      return '<button type="button" class="cat-color-swatch' + (selected ? ' active' : '') + '" style="--swatch-color:' + color + '" onclick="WalletAssets.pickColor(\'' + color + '\')" aria-label="选择颜色 ' + color + '" aria-pressed="' + selected + '"></button>';
     }).join('');
   }
 
@@ -441,7 +441,7 @@
     var rawBalance = document.getElementById('assetAccountBalance').value.trim();
     var balance = normalizeBalance(rawBalance);
     if (rawBalance && balance == null) {
-      if (typeof global.showToast === 'function') global.showToast('��������Ч���');
+      if (typeof global.showToast === 'function') global.showToast('请输入有效金额');
       return;
     }
     var state = loadState();
@@ -461,7 +461,7 @@
     saveState(state);
     document.getElementById('assetAccountModal').classList.remove('show');
     render();
-    if (typeof global.showToast === 'function') global.showToast('�˻��Ѹ���');
+    if (typeof global.showToast === 'function') global.showToast('账户已更新');
   }
 
   function mount() {
@@ -479,5 +479,4 @@
     storageKey: STORAGE_KEY
   });
 })(window);
-
 
