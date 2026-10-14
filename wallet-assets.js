@@ -154,11 +154,10 @@
       '.asset-account-detail{display:none;min-height:calc(100vh - 113px);min-height:calc(100dvh - 113px);padding:0 clamp(20px,4vw,64px);background:#fff}' +
       '.asset-account-detail.show{display:block}' +
       '.asset-detail-toolbar{display:grid;grid-template-columns:72px minmax(0,1fr) 72px;align-items:start;padding:23px 0 19px;border-bottom:1px solid #efede9}' +
-      '.asset-detail-back,.asset-detail-edit{appearance:none;border:0;background:none;padding:2px 0;color:#aaa6a1;font:400 9px/1.4 inherit;letter-spacing:.2px;cursor:pointer}' +
+      '.asset-detail-back,.asset-detail-edit{appearance:none;border:0;background:none;padding:2px 0;color:var(--account-color);font-family:inherit;font-size:12px;font-weight:500;line-height:1.35;letter-spacing:.25px;cursor:pointer}' +
       '.asset-detail-back{text-align:left}.asset-detail-edit{text-align:right}' +
       '.asset-detail-heading{min-width:0;text-align:center}' +
-      '.asset-detail-title{font-size:13px;line-height:1.35;font-weight:500;letter-spacing:.45px;color:#5f5b57;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
-      '.asset-detail-total{margin-top:7px;color:var(--account-color);font-size:22px;line-height:1.15;font-weight:250;font-variant-numeric:tabular-nums;letter-spacing:-.35px}' +
+      '.asset-detail-total{margin-top:0;color:var(--account-color);font-size:22px;line-height:1.15;font-weight:250;font-variant-numeric:tabular-nums;letter-spacing:-.35px}' +
       '.asset-detail-currency{margin-right:7px;color:#bbb7b2;font-size:8px;letter-spacing:1.1px;vertical-align:middle}' +
       '.asset-static-list{width:100%}' +
       '.asset-static-row{appearance:none;-webkit-appearance:none;width:100%;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px;align-items:center;padding:22px 0;border:0;border-bottom:1px solid #efede9;background:#fff;font-family:inherit;text-align:left;cursor:pointer}' +
@@ -244,7 +243,6 @@
     var account = state.accounts.chinaSavings;
     var items = normalizeSavingsItems(account.items);
     var color = accountColor(account, entry);
-    var title = String(account.title || entry.title).trim().slice(0, 30) || entry.title;
     var total = savingsTotal(items);
     if (total == null) total = account.balance;
     var rows = items.map(function (item, index) {
@@ -270,9 +268,8 @@
     target.style.setProperty('--account-color', color);
     target.innerHTML =
       '<div class="asset-detail-toolbar">' +
-        '<button class="asset-detail-back" type="button" data-savings-back>← 账户</button>' +
-        '<div class="asset-detail-heading"><div class="asset-detail-title">' + esc(title) + '</div>' +
-          '<div class="asset-detail-total"><span class="asset-detail-currency">CNY</span>' + esc(formatBalance(total, 'CNY')) + '</div></div>' +
+        '<button class="asset-detail-back" type="button" data-savings-back>账户</button>' +
+        '<div class="asset-detail-heading"><div class="asset-detail-total"><span class="asset-detail-currency">CNY</span>' + esc(formatBalance(total, 'CNY')) + '</div></div>' +
         '<button class="asset-detail-edit" type="button" data-savings-manage>' + (savingsManageMode ? '完成' : '编辑') + '</button>' +
       '</div>' +
       '<div class="asset-static-list">' +
