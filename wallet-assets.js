@@ -271,7 +271,7 @@
       '#viewAccounts{background:#fff}' +
       '.asset-board{width:100%;margin:0;padding:0}' +
       '.asset-account-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:0;min-height:calc(100vh - 113px);min-height:calc(100dvh - 113px);background:#fff}' +
-      '.asset-account-card{appearance:none;-webkit-appearance:none;min-width:0;position:relative;display:flex;flex-direction:column;justify-content:flex-start;text-align:left;background:#fff;border:0;border-radius:0;padding:34px clamp(20px,2.7vw,46px);color:#333;font-family:inherit;cursor:pointer;overflow:hidden;transition:background .12s ease}' +
+      '.asset-account-card{appearance:none;-webkit-appearance:none;min-width:0;position:relative;display:flex;flex-direction:column;justify-content:flex-start;text-align:left;background:#fff;border:0;border-radius:0;padding:34px clamp(20px,2.7vw,46px);color:#333;font-family:inherit;cursor:pointer;overflow:hidden;touch-action:manipulation;transition:background .12s ease}' +
       '.asset-account-card:before{content:"";position:absolute;left:clamp(20px,2.7vw,46px);right:clamp(20px,2.7vw,46px);top:0;height:1px;background:var(--account-color);opacity:.68}' +
       '.asset-account-card:hover{background:#fdfcfb}' +
       '.asset-account-card:active{background:#faf9f6}' +
@@ -339,7 +339,7 @@
       var color = accountColor(account, entry);
       var title = String(account.title || entry.title).trim().slice(0, 30) || entry.title;
       var note = account.note;
-      var action = entry.id === 'chinaSavings' || entry.id === 'cnFlexible' ? '打开' : '编辑';
+      var action = entry.id === 'chinaSavings' || entry.id === 'cnFlexible' ? '打开，双击编辑' : '编辑';
       return '<button class="asset-account-card" type="button" data-account-id="' + esc(entry.id) + '" style="--account-color:' + color + '" aria-label="' + action + esc(title) + '">' +
         '<span class="asset-account-name">' + esc(title) + '</span>' +
         '<span class="asset-account-balance"><span class="asset-account-currency">' + esc(entry.currency) + '</span><span class="asset-account-amount">' + esc(formatBalance(account.balance, entry.currency)) + '</span></span>' +
@@ -349,9 +349,21 @@
     Array.prototype.forEach.call(grid.querySelectorAll('[data-account-id]'), function (button) {
       button.addEventListener('click', function () {
         var id = button.getAttribute('data-account-id');
-        if (id === 'chinaSavings') openSavingsDetail();
-        else if (id === 'cnFlexible') openFlexibleDetail();
-        else openEditor(id);
+        if (id !== 'chinaSavings' && id !== 'cnFlexible') {
+          openEditor(id);
+          return;
+        }
+        if (button._assetClickTimer) {
+          global.clearTimeout(button._assetClickTimer);
+          button._assetClickTimer = null;
+          openEditor(id);
+          return;
+        }
+        button._assetClickTimer = global.setTimeout(function () {
+          button._assetClickTimer = null;
+          if (id === 'chinaSavings') openSavingsDetail();
+          else openFlexibleDetail();
+        }, 260);
       });
     });
     if (activeDetailId === 'chinaSavings') renderSavingsDetail();
