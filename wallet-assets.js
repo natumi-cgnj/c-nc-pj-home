@@ -3,7 +3,7 @@
 
   var STORAGE_KEY = 'wallet_accounts_v1';
   var ACCOUNTS = [
-    { id: 'chinaSavings', title: '中银+基金', currency: 'CNY', fallbackColor: '#B08A5A' },
+    { id: 'chinaSavings', title: '人民币储蓄', currency: 'CNY', fallbackColor: '#B08A5A' },
     { id: 'jpBank', title: '日币银行', currency: 'JPY', fallbackColor: '#68747A' },
     { id: 'cashVouchers', title: '现金&券', currency: 'JPY', fallbackColor: '#A06F62' },
     { id: 'cnFlexible', title: '阿里+微信', currency: 'CNY', fallbackColor: '#87977F' },
@@ -11,11 +11,16 @@
     { id: 'mercari', title: 'メルカリ', currency: 'JPY', fallbackColor: '#B48A9B' }
   ];
   var COLORS = ['#B08A5A', '#87977F', '#68747A', '#7E9AB0', '#A06F62', '#B48A9B'];
+  var SAVINGS_ITEM_DEFAULTS = [
+    { id: 'chinaBank', title: '中国银行' },
+    { id: 'chinaFund', title: '基金账户' }
+  ];
   var LEGACY_MANAGER_COLORS = {
     boss: '#B08A5A', jane: '#87977F', cho: '#68747A',
     rigsby: '#7E9AB0', lisbon: '#A06F62', vanpelt: '#B48A9B'
   };
   var mounted = false;
+  var activeDetailId = '';
 
   function esc(value) {
     return String(value == null ? '' : value)
@@ -37,10 +42,38 @@
       entry.fallbackColor;
   }
 
+  function defaultSavingsItems() {
+    return SAVINGS_ITEM_DEFAULTS.map(function (item) {
+      return { id: item.id, title: item.title, balance: null, confirmedAt: '' };
+    });
+  }
+
+  function normalizeSavingsItems(value) {
+    var source = Array.isArray(value) ? value : [];
+    return SAVINGS_ITEM_DEFAULTS.map(function (item) {
+      var saved = source.find(function (candidate) { return candidate && candidate.id === item.id; }) || {};
+      var confirmedAt = String(saved.confirmedAt || '');
+      return {
+        id: item.id,
+        title: String(saved.title || item.title).trim().slice(0, 30) || item.title,
+        balance: normalizeBalance(saved.balance),
+        confirmedAt: /^\d{4}-\d{2}-\d{2}$/.test(confirmedAt) ? confirmedAt : ''
+      };
+    });
+  }
+
+  function savingsTotal(items) {
+    var known = items.filter(function (item) { return item.balance != null; });
+    if (!known.length) return null;
+    return known.reduce(function (total, item) { return total + item.balance; }, 0);
+  }
+
   function emptyState() {
     var accounts = {};
     ACCOUNTS.forEach(function (entry) {
-      accounts[entry.id] = { title: entry.title, balance: null, note: '', color: '' };
+      var account = { title: entry.title, balance: null, note: '', color: '' };
+      if (entry.id === 'chinaSavings') account.items = defaultSavingsItems();
+      accounts[entry.id] = account;
     });
     return { version: 1, accounts: accounts };
   }
@@ -59,12 +92,14 @@
       ACCOUNTS.forEach(function (entry) {
         var source = saved.accounts && saved.accounts[entry.id];
         if (!source || typeof source !== 'object') return;
-        value.accounts[entry.id] = {
+        var account = {
           title: String(source.title || entry.title).trim().slice(0, 30) || entry.title,
           balance: normalizeBalance(source.balance),
           note: String(source.note || '').slice(0, 80),
           color: validColor(source.color) || validColor(LEGACY_MANAGER_COLORS[source.manager])
         };
+        if (entry.id === 'chinaSavings') account.items = normalizeSavingsItems(source.items);
+        value.accounts[entry.id] = account;
       });
     } catch (error) {}
     return value;
@@ -105,9 +140,24 @@
       '.asset-account-currency{display:block;font-size:8px;letter-spacing:1.15px;color:#c0bdb8}' +
       '.asset-account-amount{display:block;margin-top:6px;font-size:clamp(23px,2.15vw,32px);line-height:1.12;font-weight:250;font-variant-numeric:tabular-nums;letter-spacing:-.45px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--account-color)}' +
       '.asset-account-note{display:block;margin-top:11px;font-size:9px;line-height:1.45;color:#aaa6a1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
+      '.asset-account-detail{display:none;min-height:calc(100vh - 113px);min-height:calc(100dvh - 113px);padding:0 clamp(20px,4vw,64px);background:#fff}' +
+      '.asset-account-detail.show{display:block}' +
+      '.asset-detail-toolbar{display:grid;grid-template-columns:72px minmax(0,1fr) 72px;align-items:start;padding:23px 0 19px;border-bottom:1px solid #efede9}' +
+      '.asset-detail-back,.asset-detail-edit{appearance:none;border:0;background:none;padding:2px 0;color:#aaa6a1;font:400 11px/1.4 inherit;cursor:pointer}' +
+      '.asset-detail-back{text-align:left}.asset-detail-edit{text-align:right}' +
+      '.asset-detail-heading{min-width:0;text-align:center}' +
+      '.asset-detail-title{font-size:13px;line-height:1.35;font-weight:500;letter-spacing:.45px;color:#5f5b57;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
+      '.asset-detail-total{margin-top:7px;color:var(--account-color);font-size:22px;line-height:1.15;font-weight:250;font-variant-numeric:tabular-nums;letter-spacing:-.35px}' +
+      '.asset-detail-currency{margin-right:7px;color:#bbb7b2;font-size:8px;letter-spacing:1.1px;vertical-align:middle}' +
+      '.asset-static-list{width:100%}' +
+      '.asset-static-row{appearance:none;-webkit-appearance:none;width:100%;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px;align-items:center;padding:22px 0;border:0;border-bottom:1px solid #efede9;background:#fff;font-family:inherit;text-align:left;cursor:pointer}' +
+      '.asset-static-row:active{background:#faf9f6}' +
+      '.asset-static-name{display:block;color:#625e5a;font-size:12px;font-weight:500;letter-spacing:.25px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
+      '.asset-static-confirmed{display:block;margin-top:7px;color:#aaa6a1;font-size:9px;letter-spacing:.2px}' +
+      '.asset-static-amount{color:var(--account-color);font-size:clamp(20px,2vw,28px);font-weight:250;font-variant-numeric:tabular-nums;letter-spacing:-.4px;white-space:nowrap}' +
       '.asset-inline-color-picker{justify-content:start;column-gap:14px;padding:4px 0 6px}' +
       '.asset-modal-currency{font-size:9px;color:#bbb;margin-left:5px;letter-spacing:.7px}' +
-      '@media(max-width:480px){.asset-account-grid{min-height:calc(100dvh - 108px)}.asset-account-card{padding:25px 11px}.asset-account-card:before{left:11px;right:11px}.asset-account-name{font-size:11px}.asset-account-balance{margin-top:17px}.asset-account-amount{font-size:clamp(19px,6vw,24px)}.asset-account-note{margin-top:9px;font-size:8px}}';
+      '@media(max-width:480px){.asset-account-grid{min-height:calc(100dvh - 108px)}.asset-account-card{padding:25px 11px}.asset-account-card:before{left:11px;right:11px}.asset-account-name{font-size:11px}.asset-account-balance{margin-top:17px}.asset-account-amount{font-size:clamp(19px,6vw,24px)}.asset-account-note{margin-top:9px;font-size:8px}.asset-account-detail{min-height:calc(100dvh - 108px);padding:0 16px}.asset-detail-toolbar{grid-template-columns:58px minmax(0,1fr) 58px;padding-top:19px}.asset-static-row{padding:19px 0}.asset-static-amount{font-size:21px}}';
     document.head.appendChild(style);
   }
 
@@ -121,15 +171,21 @@
       var color = accountColor(account, entry);
       var title = String(account.title || entry.title).trim().slice(0, 30) || entry.title;
       var note = account.note;
-      return '<button class="asset-account-card" type="button" data-account-id="' + esc(entry.id) + '" style="--account-color:' + color + '" aria-label="编辑' + esc(title) + '">' +
+      var action = entry.id === 'chinaSavings' ? '打开' : '编辑';
+      return '<button class="asset-account-card" type="button" data-account-id="' + esc(entry.id) + '" style="--account-color:' + color + '" aria-label="' + action + esc(title) + '">' +
         '<span class="asset-account-name">' + esc(title) + '</span>' +
         '<span class="asset-account-balance"><span class="asset-account-currency">' + esc(entry.currency) + '</span><span class="asset-account-amount">' + esc(formatBalance(account.balance, entry.currency)) + '</span></span>' +
         (note ? '<span class="asset-account-note">' + esc(note) + '</span>' : '') +
         '</button>';
     }).join('');
     Array.prototype.forEach.call(grid.querySelectorAll('[data-account-id]'), function (button) {
-      button.addEventListener('click', function () { openEditor(button.getAttribute('data-account-id')); });
+      button.addEventListener('click', function () {
+        var id = button.getAttribute('data-account-id');
+        if (id === 'chinaSavings') openSavingsDetail();
+        else openEditor(id);
+      });
     });
+    if (activeDetailId === 'chinaSavings') renderSavingsDetail();
 
     if (document.body.dataset.cbiWallet !== '1') {
       var subtitle = document.getElementById('monthBudgetStatus');
@@ -140,6 +196,104 @@
       }
       if (settings) settings.style.visibility = 'hidden';
     }
+  }
+
+  function openSavingsDetail() {
+    var board = document.querySelector('#viewAccounts .asset-board');
+    var detail = document.getElementById('assetAccountDetail');
+    if (!board || !detail) return;
+    activeDetailId = 'chinaSavings';
+    board.style.display = 'none';
+    detail.classList.add('show');
+    renderSavingsDetail();
+    if (typeof global.scrollTo === 'function') global.scrollTo(0, 0);
+  }
+
+  function closeSavingsDetail() {
+    var board = document.querySelector('#viewAccounts .asset-board');
+    var detail = document.getElementById('assetAccountDetail');
+    activeDetailId = '';
+    if (board) board.style.display = '';
+    if (detail) detail.classList.remove('show');
+  }
+
+  function renderSavingsDetail() {
+    var target = document.getElementById('assetSavingsDetail');
+    var entry = accountDefinition('chinaSavings');
+    if (!target || !entry) return;
+    var state = loadState();
+    var account = state.accounts.chinaSavings;
+    var items = normalizeSavingsItems(account.items);
+    var color = accountColor(account, entry);
+    var title = String(account.title || entry.title).trim().slice(0, 30) || entry.title;
+    var total = savingsTotal(items);
+    if (total == null) total = account.balance;
+    target.style.setProperty('--account-color', color);
+    target.innerHTML =
+      '<div class="asset-detail-toolbar">' +
+        '<button class="asset-detail-back" type="button" data-savings-back>← 账户</button>' +
+        '<div class="asset-detail-heading"><div class="asset-detail-title">' + esc(title) + '</div>' +
+          '<div class="asset-detail-total"><span class="asset-detail-currency">CNY</span>' + esc(formatBalance(total, 'CNY')) + '</div></div>' +
+        '<button class="asset-detail-edit" type="button" data-savings-account-edit>编辑</button>' +
+      '</div>' +
+      '<div class="asset-static-list">' +
+        items.map(function (item) {
+          var confirmed = item.confirmedAt ? item.confirmedAt.replace(/-/g, '.') : '—';
+          return '<button class="asset-static-row" type="button" data-savings-item="' + esc(item.id) + '">' +
+            '<span><span class="asset-static-name">' + esc(item.title) + '</span>' +
+            '<span class="asset-static-confirmed">最后确认 ' + esc(confirmed) + '</span></span>' +
+            '<span class="asset-static-amount">' + esc(formatBalance(item.balance, 'CNY')) + '</span>' +
+          '</button>';
+        }).join('') +
+      '</div>';
+    target.querySelector('[data-savings-back]').addEventListener('click', closeSavingsDetail);
+    target.querySelector('[data-savings-account-edit]').addEventListener('click', function () { openEditor('chinaSavings'); });
+    Array.prototype.forEach.call(target.querySelectorAll('[data-savings-item]'), function (button) {
+      button.addEventListener('click', function () { openSavingsItemEditor(button.getAttribute('data-savings-item')); });
+    });
+  }
+
+  function openSavingsItemEditor(itemId) {
+    var state = loadState();
+    var items = normalizeSavingsItems(state.accounts.chinaSavings.items);
+    var item = items.find(function (candidate) { return candidate.id === itemId; });
+    var modal = document.getElementById('assetSavingsItemModal');
+    if (!item || !modal) return;
+    document.getElementById('assetSavingsItemId').value = item.id;
+    document.getElementById('assetSavingsItemModalTitle').textContent = item.title;
+    document.getElementById('assetSavingsItemName').value = item.title;
+    document.getElementById('assetSavingsItemBalance').value = item.balance == null ? '' : String(item.balance);
+    document.getElementById('assetSavingsItemConfirmedAt').value = item.confirmedAt || '';
+    modal.classList.add('show');
+  }
+
+  function saveSavingsItem() {
+    var itemId = document.getElementById('assetSavingsItemId').value;
+    var rawBalance = document.getElementById('assetSavingsItemBalance').value.trim();
+    var balance = normalizeBalance(rawBalance);
+    if (rawBalance && balance == null) {
+      if (typeof global.showToast === 'function') global.showToast('请输入有效金额');
+      return;
+    }
+    var state = loadState();
+    var account = state.accounts.chinaSavings;
+    var items = normalizeSavingsItems(account.items);
+    var hadDetailedBalance = items.some(function (item) { return item.balance != null; });
+    var item = items.find(function (candidate) { return candidate.id === itemId; });
+    if (!item) return;
+    item.title = document.getElementById('assetSavingsItemName').value.trim().slice(0, 30) || item.title;
+    item.balance = balance;
+    item.confirmedAt = document.getElementById('assetSavingsItemConfirmedAt').value || '';
+    account.items = items;
+    var total = savingsTotal(items);
+    if (total != null) account.balance = total;
+    else if (hadDetailedBalance) account.balance = null;
+    state.accounts.chinaSavings = account;
+    saveState(state);
+    document.getElementById('assetSavingsItemModal').classList.remove('show');
+    render();
+    renderSavingsDetail();
+    if (typeof global.showToast === 'function') global.showToast('资产已更新');
   }
 
   function openEditor(id) {
@@ -193,12 +347,19 @@
       return;
     }
     var state = loadState();
-    state.accounts[id] = {
+    var previous = state.accounts[id] || {};
+    var next = {
       title: document.getElementById('assetAccountName').value.trim().slice(0, 30) || entry.title,
       balance: balance,
       color: validColor(document.getElementById('assetAccountColor').value) || entry.fallbackColor,
       note: document.getElementById('assetAccountNote').value.trim().slice(0, 80)
     };
+    if (id === 'chinaSavings') {
+      next.items = normalizeSavingsItems(previous.items);
+      var detailedTotal = savingsTotal(next.items);
+      if (detailedTotal != null) next.balance = detailedTotal;
+    }
+    state.accounts[id] = next;
     saveState(state);
     document.getElementById('assetAccountModal').classList.remove('show');
     render();
@@ -215,6 +376,7 @@
     mount: mount,
     render: render,
     saveEditor: saveEditor,
+    saveSavingsItem: saveSavingsItem,
     pickColor: pickColor,
     storageKey: STORAGE_KEY
   });

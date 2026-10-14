@@ -246,6 +246,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <section class="asset-board" aria-label="六账户">
     <div class="asset-account-grid" id="assetAccountGrid"></div>
   </section>
+  <section class="asset-account-detail" id="assetAccountDetail" aria-label="人民币储蓄详情">
+    <div id="assetSavingsDetail"></div>
+  </section>
 </div>
 
 <!-- LEDGER TAB -->
@@ -323,6 +326,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <div class="btn-row">
       <button class="btn btn-cancel" type="button" onclick="closeModal('assetAccountModal')">取消</button>
       <button class="btn btn-primary" type="button" onclick="WalletAssets.saveEditor()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Static savings item editor -->
+<div class="modal-bg" id="assetSavingsItemModal">
+  <div class="modal">
+    <h2 id="assetSavingsItemModalTitle">静态资产</h2>
+    <input type="hidden" id="assetSavingsItemId">
+    <label>名称</label>
+    <input type="text" id="assetSavingsItemName" maxlength="30">
+    <label>余额 <span class="asset-modal-currency">CNY</span></label>
+    <input type="number" id="assetSavingsItemBalance" step="0.01" inputmode="decimal">
+    <label>最后确认时间</label>
+    <input type="date" id="assetSavingsItemConfirmedAt">
+    <div class="btn-row">
+      <button class="btn btn-cancel" type="button" onclick="closeModal('assetSavingsItemModal')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="WalletAssets.saveSavingsItem()">保存</button>
     </div>
   </div>
 </div>
@@ -507,7 +528,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script src="cbi-data.js?v=20260927-checkin-categories1"></script>
 <script src="character-runtime.js?v=20260914-cbi-sleep2"></script>
-<script src="wallet-assets.js?v=20261014-editable-titles1"></script>
+<script src="wallet-assets.js?v=20261014-savings-detail1"></script>
 <script src="cbi-wallet.js?v=20261014-flat-accounts1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
