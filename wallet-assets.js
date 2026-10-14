@@ -40,7 +40,7 @@
   function emptyState() {
     var accounts = {};
     ACCOUNTS.forEach(function (entry) {
-      accounts[entry.id] = { balance: null, note: '', color: '' };
+      accounts[entry.id] = { title: entry.title, balance: null, note: '', color: '' };
     });
     return { version: 1, accounts: accounts };
   }
@@ -60,6 +60,7 @@
         var source = saved.accounts && saved.accounts[entry.id];
         if (!source || typeof source !== 'object') return;
         value.accounts[entry.id] = {
+          title: String(source.title || entry.title).trim().slice(0, 30) || entry.title,
           balance: normalizeBalance(source.balance),
           note: String(source.note || '').slice(0, 80),
           color: validColor(source.color) || validColor(LEGACY_MANAGER_COLORS[source.manager])
@@ -96,10 +97,7 @@
       '.asset-board{width:100%;margin:0;padding:0}' +
       '.asset-account-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:0;min-height:calc(100vh - 113px);min-height:calc(100dvh - 113px);background:#fff}' +
       '.asset-account-card{appearance:none;-webkit-appearance:none;min-width:0;position:relative;display:flex;flex-direction:column;justify-content:flex-start;text-align:left;background:#fff;border:0;border-radius:0;padding:34px clamp(20px,2.7vw,46px);color:#333;font-family:inherit;cursor:pointer;overflow:hidden;transition:background .12s ease}' +
-      '.asset-account-card:nth-child(n+4){justify-content:flex-end}' +
-      '.asset-account-card:before{content:"";position:absolute;left:clamp(20px,2.7vw,46px);right:clamp(20px,2.7vw,46px);height:1px;background:var(--account-color);opacity:.68}' +
-      '.asset-account-card:nth-child(-n+3):before{top:0}' +
-      '.asset-account-card:nth-child(n+4):before{bottom:0}' +
+      '.asset-account-card:before{content:"";position:absolute;left:clamp(20px,2.7vw,46px);right:clamp(20px,2.7vw,46px);top:0;height:1px;background:var(--account-color);opacity:.68}' +
       '.asset-account-card:hover{background:#fdfcfb}' +
       '.asset-account-card:active{background:#faf9f6}' +
       '.asset-account-name{font-size:12px;line-height:1.35;font-weight:500;letter-spacing:.35px;color:#66625e;white-space:nowrap}' +
@@ -121,9 +119,10 @@
     grid.innerHTML = ACCOUNTS.map(function (entry) {
       var account = state.accounts[entry.id];
       var color = accountColor(account, entry);
+      var title = String(account.title || entry.title).trim().slice(0, 30) || entry.title;
       var note = account.note;
-      return '<button class="asset-account-card" type="button" data-account-id="' + esc(entry.id) + '" style="--account-color:' + color + '" aria-label="编辑' + esc(entry.title) + '">' +
-        '<span class="asset-account-name">' + esc(entry.title) + '</span>' +
+      return '<button class="asset-account-card" type="button" data-account-id="' + esc(entry.id) + '" style="--account-color:' + color + '" aria-label="编辑' + esc(title) + '">' +
+        '<span class="asset-account-name">' + esc(title) + '</span>' +
         '<span class="asset-account-balance"><span class="asset-account-currency">' + esc(entry.currency) + '</span><span class="asset-account-amount">' + esc(formatBalance(account.balance, entry.currency)) + '</span></span>' +
         (note ? '<span class="asset-account-note">' + esc(note) + '</span>' : '') +
         '</button>';
@@ -149,8 +148,10 @@
     if (!entry || !modal) return;
     var state = loadState();
     var account = state.accounts[id];
+    var title = String(account.title || entry.title).trim().slice(0, 30) || entry.title;
     document.getElementById('assetAccountId').value = id;
-    document.getElementById('assetAccountModalTitle').textContent = entry.title;
+    document.getElementById('assetAccountModalTitle').textContent = title;
+    document.getElementById('assetAccountName').value = title;
     document.getElementById('assetAccountCurrency').textContent = entry.currency;
     document.getElementById('assetAccountBalance').value = account.balance == null ? '' : String(account.balance);
     document.getElementById('assetAccountNote').value = account.note || '';
@@ -193,6 +194,7 @@
     }
     var state = loadState();
     state.accounts[id] = {
+      title: document.getElementById('assetAccountName').value.trim().slice(0, 30) || entry.title,
       balance: balance,
       color: validColor(document.getElementById('assetAccountColor').value) || entry.fallbackColor,
       note: document.getElementById('assetAccountNote').value.trim().slice(0, 80)
