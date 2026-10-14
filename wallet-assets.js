@@ -107,9 +107,7 @@
       '.asset-account-currency{display:block;font-size:8px;letter-spacing:1.15px;color:#c0bdb8}' +
       '.asset-account-amount{display:block;margin-top:6px;font-size:clamp(23px,2.15vw,32px);line-height:1.12;font-weight:250;font-variant-numeric:tabular-nums;letter-spacing:-.45px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--account-color)}' +
       '.asset-account-note{display:block;margin-top:11px;font-size:9px;line-height:1.45;color:#aaa6a1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
-      '.asset-color-trigger{position:relative;width:100%;height:38px;padding:0 11px 0 16px;border:1px solid #e8e8e8;border-radius:6px;background:#fafafa;color:#999;font:400 11px/1 inherit;text-align:left;cursor:pointer}' +
-      '.asset-color-trigger:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--asset-edit-color)}' +
-      '.asset-color-trigger:after{content:"›";position:absolute;right:11px;top:50%;transform:translateY(-52%);color:#ccc;font-size:16px}' +
+      '.asset-inline-color-picker{justify-content:start;column-gap:14px;padding:4px 0 6px}' +
       '.asset-modal-currency{font-size:9px;color:#bbb;margin-left:5px;letter-spacing:.7px}' +
       '@media(max-width:480px){.asset-account-grid{min-height:calc(100dvh - 108px)}.asset-account-card{padding:25px 11px}.asset-account-card:before{left:11px;right:11px}.asset-account-name{font-size:11px}.asset-account-balance{margin-top:17px}.asset-account-amount{font-size:clamp(19px,6vw,24px)}.asset-account-note{margin-top:9px;font-size:8px}}';
     document.head.appendChild(style);
@@ -157,15 +155,14 @@
     document.getElementById('assetAccountBalance').value = account.balance == null ? '' : String(account.balance);
     document.getElementById('assetAccountNote').value = account.note || '';
     setEditorColor(accountColor(account, entry));
+    renderColorPicker();
     modal.classList.add('show');
   }
 
   function setEditorColor(color) {
     var selected = validColor(color) || COLORS[0];
     var input = document.getElementById('assetAccountColor');
-    var trigger = document.getElementById('assetAccountColorTrigger');
     if (input) input.value = selected;
-    if (trigger) trigger.style.setProperty('--asset-edit-color', selected);
   }
 
   function renderColorPicker() {
@@ -178,22 +175,10 @@
     }).join('');
   }
 
-  function openColorPicker() {
-    var id = document.getElementById('assetAccountId').value;
-    var entry = accountDefinition(id);
-    document.getElementById('assetAccountColorTitle').textContent = (entry ? entry.title : '账户') + ' · 颜色';
-    renderColorPicker();
-    document.getElementById('assetAccountColorModal').classList.add('show');
-  }
-
-  function closeColorPicker() {
-    document.getElementById('assetAccountColorModal').classList.remove('show');
-  }
-
   function pickColor(color) {
     if (!validColor(color)) return;
     setEditorColor(color);
-    closeColorPicker();
+    renderColorPicker();
   }
 
   function saveEditor() {
@@ -228,8 +213,6 @@
     mount: mount,
     render: render,
     saveEditor: saveEditor,
-    openColorPicker: openColorPicker,
-    closeColorPicker: closeColorPicker,
     pickColor: pickColor,
     storageKey: STORAGE_KEY
   });

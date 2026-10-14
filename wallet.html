@@ -315,7 +315,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <input type="number" id="assetAccountBalance" step="0.01" inputmode="decimal">
     <label>颜色</label>
     <input type="hidden" id="assetAccountColor">
-    <button class="asset-color-trigger" id="assetAccountColorTrigger" type="button" onclick="WalletAssets.openColorPicker()">选择颜色</button>
+    <div class="category-color-picker asset-inline-color-picker" id="assetAccountColorPicker"></div>
     <label>备注（选填）</label>
     <input type="text" id="assetAccountNote" maxlength="80">
     <div class="btn-row">
@@ -325,16 +325,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   </div>
 </div>
 
-<!-- Account color palette -->
-<div class="modal-bg" id="assetAccountColorModal">
-  <div class="modal category-color-modal">
-    <h2 id="assetAccountColorTitle">选择颜色</h2>
-    <div class="category-color-picker" id="assetAccountColorPicker"></div>
-    <div class="btn-row" style="margin-top:16px">
-      <button class="btn btn-cancel" type="button" onclick="WalletAssets.closeColorPicker()">取消</button>
-    </div>
-  </div>
-</div>
 
 <!-- Diary write modal -->
 <div class="modal-bg" id="diaryModal">
@@ -515,7 +505,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script src="cbi-data.js?v=20260927-checkin-categories1"></script>
 <script src="character-runtime.js?v=20260914-cbi-sleep2"></script>
-<script src="wallet-assets.js?v=20261014-airy-accounts1"></script>
+<script src="wallet-assets.js?v=20261014-direct-colors1"></script>
 <script src="cbi-wallet.js?v=20261014-flat-accounts1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
