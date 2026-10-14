@@ -27,6 +27,11 @@ assert.doesNotMatch(html + assets, /assetAccountManager|>管理人</, 'account c
 assert.match(html, /class="category-color-picker" id="assetAccountColorPicker"/, 'account editor reuses the ledger color picker');
 assert.match(assets, /\.asset-board\{[^}]*width:100%/, 'account board fills desktop width');
 assert.doesNotMatch(assets, /max-width:700px/, 'desktop width is not capped');
+assert.match(assets, /\.asset-account-grid\{[^}]*gap:0/, 'six sections form one continuous grid');
+assert.match(assets, /\.asset-account-card\{[^}]*border-radius:0/, 'accounts are sections, not cards');
+assert.doesNotMatch(html, />SIX ACCOUNTS<|点按账户|不会改变原记账数据/, 'account page has no explanatory copy');
+assert.doesNotMatch(assets, /kicker:|detail:|asset-account-kicker|asset-board-hint|asset-board-footnote/, 'account sections only contain necessary information');
+assert.match(assets, /if \(value == null\) return '—'/, 'unset balances use a quiet dash');
 assert.match(cbi, /data-view="viewAccounts"[\s\S]*data-view="viewLedger"[\s\S]*data-view="viewTreasury"/, 'CBI tabs keep accounts leftmost');
 assert.match(cbi, /: 'viewAccounts';/, 'CBI opens the account view by default');
 assert.match(cloud, /'wallet.html': \['wallet_db', 'wallet_accounts_v1'/, 'account overview is included in wallet cloud sync');

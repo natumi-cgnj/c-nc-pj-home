@@ -128,7 +128,7 @@
     if (!title || !subtitle) return;
     if (viewId === 'viewAccounts') {
       title.textContent = 'REALITY WALLET';
-      subtitle.textContent = '六账户总览';
+      subtitle.textContent = '';
       subtitle.disabled = true;
       document.title = 'Reality Wallet · CBI';
       return;

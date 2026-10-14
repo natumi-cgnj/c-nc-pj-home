@@ -243,13 +243,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 <!-- SIX ACCOUNTS TAB -->
 <div id="viewAccounts" class="view active">
-  <section class="asset-board" aria-label="六账户总览">
-    <div class="asset-board-head">
-      <p class="asset-board-kicker">SIX ACCOUNTS</p>
-      <p class="asset-board-hint">点按账户填写余额、备注和管理人</p>
-    </div>
+  <section class="asset-board" aria-label="六账户">
     <div class="asset-account-grid" id="assetAccountGrid"></div>
-    <p class="asset-board-footnote">这是一层独立的账户总览，不会改变原记账数据。</p>
   </section>
 </div>
 
@@ -315,15 +310,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <div class="modal-bg" id="assetAccountModal">
   <div class="modal">
     <h2 id="assetAccountModalTitle">账户</h2>
-    <p class="asset-modal-context" id="assetAccountModalContext"></p>
     <input type="hidden" id="assetAccountId">
     <label>余额 <span class="asset-modal-currency" id="assetAccountCurrency"></span></label>
-    <input type="number" id="assetAccountBalance" step="0.01" inputmode="decimal" placeholder="暂不填写也可以">
+    <input type="number" id="assetAccountBalance" step="0.01" inputmode="decimal">
     <label>颜色</label>
     <input type="hidden" id="assetAccountColor">
     <button class="asset-color-trigger" id="assetAccountColorTrigger" type="button" onclick="WalletAssets.openColorPicker()">选择颜色</button>
     <label>备注（选填）</label>
-    <input type="text" id="assetAccountNote" maxlength="80" placeholder="用途、状态或下一步">
+    <input type="text" id="assetAccountNote" maxlength="80">
     <div class="btn-row">
       <button class="btn btn-cancel" type="button" onclick="closeModal('assetAccountModal')">取消</button>
       <button class="btn btn-primary" type="button" onclick="WalletAssets.saveEditor()">保存</button>
@@ -521,8 +515,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script src="cbi-data.js?v=20260927-checkin-categories1"></script>
 <script src="character-runtime.js?v=20260914-cbi-sleep2"></script>
-<script src="wallet-assets.js?v=20261013-six-accounts3"></script>
-<script src="cbi-wallet.js?v=20261013-six-accounts1"></script>
+<script src="wallet-assets.js?v=20261014-flat-accounts1"></script>
+<script src="cbi-wallet.js?v=20261014-flat-accounts1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 var SK='wallet_db';

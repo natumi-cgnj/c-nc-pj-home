@@ -3,12 +3,12 @@
 
   var STORAGE_KEY = 'wallet_accounts_v1';
   var ACCOUNTS = [
-    { id: 'chinaSavings', title: '中银+基金', kicker: '人民币储蓄', currency: 'CNY', detail: '中国银行 · 国内基金', fallbackColor: '#B08A5A' },
-    { id: 'jpBank', title: '日币银行', kicker: '日元活期', currency: 'JPY', detail: '工资 · 扣款 · 储蓄', fallbackColor: '#68747A' },
-    { id: 'cashVouchers', title: '现金&券', kicker: '现金与券', currency: 'JPY', detail: '现金 · 点券 · 商品券', fallbackColor: '#A06F62' },
-    { id: 'cnFlexible', title: '阿里+微信', kicker: '人民币灵活', currency: 'CNY', detail: '支付宝 · 微信', fallbackColor: '#87977F' },
-    { id: 'jpFund', title: '日币基金', kicker: '日元投资', currency: 'JPY', detail: '为基金账户预留', fallbackColor: '#7E9AB0' },
-    { id: 'mercari', title: 'メルカリ', kicker: '日常资金', currency: 'JPY', detail: '生活开销 · 二手进出', fallbackColor: '#B48A9B' }
+    { id: 'chinaSavings', title: '中银+基金', currency: 'CNY', fallbackColor: '#B08A5A' },
+    { id: 'jpBank', title: '日币银行', currency: 'JPY', fallbackColor: '#68747A' },
+    { id: 'cashVouchers', title: '现金&券', currency: 'JPY', fallbackColor: '#A06F62' },
+    { id: 'cnFlexible', title: '阿里+微信', currency: 'CNY', fallbackColor: '#87977F' },
+    { id: 'jpFund', title: '日币基金', currency: 'JPY', fallbackColor: '#7E9AB0' },
+    { id: 'mercari', title: 'メルカリ', currency: 'JPY', fallbackColor: '#B48A9B' }
   ];
   var COLORS = ['#B08A5A', '#87977F', '#68747A', '#7E9AB0', '#A06F62', '#B48A9B'];
   var LEGACY_MANAGER_COLORS = {
@@ -76,7 +76,7 @@
   }
 
   function formatBalance(value, currency) {
-    if (value == null) return '未设置';
+    if (value == null) return '—';
     try {
       return new Intl.NumberFormat(currency === 'JPY' ? 'ja-JP' : 'zh-CN', {
         minimumFractionDigits: 0,
@@ -92,28 +92,23 @@
     var style = document.createElement('style');
     style.id = 'walletAssetStyles';
     style.textContent =
-      '#viewAccounts{min-height:calc(100vh - 118px);min-height:calc(100dvh - 118px);background:#f8f8f6}' +
-      '.asset-board{padding:22px 14px 24px;width:100%;margin:0}' +
-      '.asset-board-head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin:0 2px 14px}' +
-      '.asset-board-kicker{font-size:9px;letter-spacing:1.8px;color:#aaa}' +
-      '.asset-board-hint{font-size:9px;color:#bbb;text-align:right;line-height:1.5}' +
-      '.asset-account-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(152px,auto));gap:8px}' +
-      '.asset-account-card{appearance:none;-webkit-appearance:none;min-width:0;position:relative;display:flex;flex-direction:column;text-align:left;background:#fff;border:1px solid #ebeae6;border-left:3px solid var(--account-color);border-radius:3px;padding:13px 10px 11px;color:#333;font-family:inherit;cursor:pointer;box-shadow:0 1px 2px rgba(36,32,26,.025);transition:transform .12s ease,border-color .12s ease}' +
-      '.asset-account-card:active{transform:scale(.985)}' +
-      '.asset-account-kicker{min-height:22px;font-size:8px;line-height:1.45;letter-spacing:.55px;color:#aaa}' +
-      '.asset-account-name{font-size:13px;line-height:1.35;font-weight:600;letter-spacing:.15px;color:#3f3d39;white-space:nowrap}' +
-      '.asset-account-balance{margin-top:17px;min-width:0}' +
-      '.asset-account-currency{font-size:8px;letter-spacing:1px;color:#bbb}' +
-      '.asset-account-amount{margin-top:3px;font-size:17px;line-height:1.15;font-weight:300;font-variant-numeric:tabular-nums;letter-spacing:-.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#363430}' +
-      '.asset-account-meta{margin-top:auto;padding-top:13px;min-width:0}' +
-      '.asset-account-note{display:block;font-size:8px;line-height:1.4;color:#b9b8b4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
+      '#viewAccounts{background:#fff}' +
+      '.asset-board{width:100%;margin:0;padding:0}' +
+      '.asset-account-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:0;min-height:calc(100vh - 113px);min-height:calc(100dvh - 113px);background:#fff;border-bottom:1px solid #eeeeec}' +
+      '.asset-account-card{appearance:none;-webkit-appearance:none;min-width:0;position:relative;display:flex;flex-direction:column;text-align:left;background:#fff;border:0;border-right:1px solid #eeeeec;border-bottom:1px solid #eeeeec;border-radius:0;padding:24px 20px 20px;color:#333;font-family:inherit;cursor:pointer;box-shadow:inset 3px 0 var(--account-color);transition:background .12s ease}' +
+      '.asset-account-card:nth-child(3n){border-right:0}' +
+      '.asset-account-card:nth-child(n+4){border-bottom:0}' +
+      '.asset-account-card:active{background:#fafaf8}' +
+      '.asset-account-name{font-size:13px;line-height:1.35;font-weight:500;letter-spacing:.2px;color:#555;white-space:nowrap}' +
+      '.asset-account-balance{display:block;margin-top:28px;min-width:0}' +
+      '.asset-account-currency{display:block;font-size:8px;letter-spacing:1.1px;color:#bbb}' +
+      '.asset-account-amount{display:block;margin-top:7px;font-size:clamp(20px,2.1vw,30px);line-height:1.12;font-weight:250;font-variant-numeric:tabular-nums;letter-spacing:-.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#333}' +
+      '.asset-account-note{display:block;margin-top:auto;padding-top:18px;font-size:9px;line-height:1.45;color:#aaa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
       '.asset-color-trigger{position:relative;width:100%;height:38px;padding:0 11px 0 16px;border:1px solid #e8e8e8;border-radius:6px;background:#fafafa;color:#999;font:400 11px/1 inherit;text-align:left;cursor:pointer}' +
       '.asset-color-trigger:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--asset-edit-color)}' +
       '.asset-color-trigger:after{content:"›";position:absolute;right:11px;top:50%;transform:translateY(-52%);color:#ccc;font-size:16px}' +
-      '.asset-board-footnote{margin:13px 2px 0;font-size:8px;line-height:1.6;letter-spacing:.25px;color:#c0bfbb}' +
-      '.asset-modal-context{margin:-7px 0 4px;font-size:10px;line-height:1.6;color:#bbb}' +
       '.asset-modal-currency{font-size:9px;color:#bbb;margin-left:5px;letter-spacing:.7px}' +
-      '@media(max-width:380px){.asset-board{padding-left:10px;padding-right:10px}.asset-account-grid{gap:6px;grid-template-rows:repeat(2,minmax(146px,auto))}.asset-account-card{padding-left:8px;padding-right:8px}.asset-account-name{font-size:12px}.asset-account-amount{font-size:15px}}';
+      '@media(max-width:480px){.asset-account-grid{min-height:calc(100dvh - 108px)}.asset-account-card{padding:19px 12px 16px}.asset-account-name{font-size:12px}.asset-account-balance{margin-top:22px}.asset-account-note{padding-top:13px;font-size:8px}}';
     document.head.appendChild(style);
   }
 
@@ -125,12 +120,11 @@
     grid.innerHTML = ACCOUNTS.map(function (entry) {
       var account = state.accounts[entry.id];
       var color = accountColor(account, entry);
-      var note = account.note || entry.detail;
+      var note = account.note;
       return '<button class="asset-account-card" type="button" data-account-id="' + esc(entry.id) + '" style="--account-color:' + color + '" aria-label="编辑' + esc(entry.title) + '">' +
-        '<span class="asset-account-kicker">' + esc(entry.kicker) + '</span>' +
         '<span class="asset-account-name">' + esc(entry.title) + '</span>' +
         '<span class="asset-account-balance"><span class="asset-account-currency">' + esc(entry.currency) + '</span><span class="asset-account-amount">' + esc(formatBalance(account.balance, entry.currency)) + '</span></span>' +
-        '<span class="asset-account-meta"><span class="asset-account-note">' + esc(note) + '</span></span>' +
+        (note ? '<span class="asset-account-note">' + esc(note) + '</span>' : '') +
         '</button>';
     }).join('');
     Array.prototype.forEach.call(grid.querySelectorAll('[data-account-id]'), function (button) {
@@ -141,7 +135,7 @@
       var subtitle = document.getElementById('monthBudgetStatus');
       var settings = document.querySelector('.top-bar .btn-s');
       if (subtitle) {
-        subtitle.textContent = '六账户总览';
+        subtitle.textContent = '';
         subtitle.disabled = true;
       }
       if (settings) settings.style.visibility = 'hidden';
@@ -156,7 +150,6 @@
     var account = state.accounts[id];
     document.getElementById('assetAccountId').value = id;
     document.getElementById('assetAccountModalTitle').textContent = entry.title;
-    document.getElementById('assetAccountModalContext').textContent = entry.detail;
     document.getElementById('assetAccountCurrency').textContent = entry.currency;
     document.getElementById('assetAccountBalance').value = account.balance == null ? '' : String(account.balance);
     document.getElementById('assetAccountNote').value = account.note || '';
