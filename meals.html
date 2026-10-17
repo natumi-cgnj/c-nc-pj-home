@@ -212,13 +212,16 @@ const COMPANION_KEY='meal_companion_db';
 const CALORIE_KEY='calorie_log_db';
 const NUTRITION_KEY='nutrition_check_db';
 const NUTRITION_ITEMS=[
+  {id:'carbs',name:'碳水',source:'米饭 · 乌冬 · 面包 · 面类 · 薯类'},
   {id:'protein',name:'蛋白质',source:'肉 · 鱼 · 蛋 · 豆'},
+  {id:'fat',name:'脂肪',source:'肉 · 鱼 · 蛋 · 奶 · 坚果 · 油脂'},
+  {id:'fiber',name:'膳食纤维',source:'豆类 · 燕麦 · 全麦 · 车前子壳'},
   {id:'calcium',name:'钙',source:'牛奶 · 酸奶 · 奶酪 · 小鱼'},
   {id:'vitaminC',name:'维C',source:'果汁 · 强化饮料 · 补充剂'},
   {id:'folate',name:'叶酸',source:'豆类 · 纳豆 · 蛋 · 强化食品'},
-  {id:'fiber',name:'膳食纤维',source:'豆类 · 燕麦 · 全麦 · 车前子壳'},
   {id:'vitaminD',name:'维D',source:'鱼 · 蛋 · 强化食品 · 补充剂'},
-  {id:'omega3',name:'Omega-3',source:'青花鱼 · 鲑鱼 · 沙丁鱼'}
+  {id:'omega3',name:'Omega-3',source:'青花鱼 · 鲑鱼 · 沙丁鱼'},
+  {id:'ironZincB12',name:'铁 / 锌 / B12',source:'红肉 · 贝类 · 鱼 · 蛋 · 奶'}
 ];
 const FOOD_SLOTS=['morning','day','evening','night'];
 const FOOD_SLOT_LABELS={morning:'朝',day:'昼',evening:'夕',night:'夜'};
