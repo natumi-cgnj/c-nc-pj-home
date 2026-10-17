@@ -100,24 +100,29 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .calorie-amount.burn{color:#66839D}
 .calorie-delete{border:0;background:none;color:#d5d5d5;font-size:14px;padding:3px;cursor:pointer}
 .calorie-empty{padding:28px 20px;text-align:center;color:#ccc;font-size:11px;background:#fff}
-.nutrition-wrap{padding:18px 16px 28px;max-width:560px;margin:0 auto}
-.nutrition-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.nutrition-title{font-size:14px;font-weight:600;color:#333;letter-spacing:.3px}
-.nutrition-date-nav{display:flex;align-items:center;gap:8px}
-.nutrition-date{font-size:11px;color:#888;font-variant-numeric:tabular-nums;min-width:82px;text-align:center}
-.nutrition-nav-btn{width:28px;height:28px;border:1px solid #e8e3d8;border-radius:8px;background:#fff;color:#9B7D41;font:14px/1 inherit;cursor:pointer}
+.nutrition-wrap{padding:10px 14px 18px;max-width:560px;margin:0 auto}
+.nutrition-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.nutrition-title{font-size:13px;font-weight:600;color:#333;letter-spacing:.2px}
+.nutrition-date-nav{display:flex;align-items:center;gap:6px}
+.nutrition-date{font-size:10px;color:#888;font-variant-numeric:tabular-nums;min-width:74px;text-align:center}
+.nutrition-nav-btn{width:24px;height:24px;border:1px solid #ece7dd;border-radius:7px;background:#fff;color:#9B7D41;font:13px/1 inherit;cursor:pointer}
 .nutrition-nav-btn:disabled{color:#ddd;border-color:#eee;cursor:default}
-.nutrition-card{background:#fff;border:1px solid #eee9df;border-radius:14px;overflow:hidden}
-.nutrition-row{display:flex;align-items:center;gap:12px;padding:13px 14px;border-bottom:1px solid #f2f0eb}
+.nutrition-summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px}
+.nutrition-summary-item{background:#fff;border:1px solid #eee9df;border-radius:10px;padding:7px 8px;text-align:center}
+.nutrition-summary-label{font-size:8px;color:#bbb;letter-spacing:.3px;margin-bottom:2px}
+.nutrition-summary-value{font-size:15px;font-weight:500;color:#444;font-variant-numeric:tabular-nums}
+.nutrition-summary-value small{font-size:8px;font-weight:400;color:#bbb;margin-left:2px}
+.nutrition-card{background:#fff;border:1px solid #eee9df;border-radius:12px;overflow:hidden}
+.nutrition-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid #f2f0eb}
 .nutrition-row:last-child{border-bottom:0}
 .nutrition-copy{flex:1;min-width:0}
-.nutrition-name{font-size:13px;font-weight:500;color:#333}
-.nutrition-source{font-size:9px;color:#aaa;margin-top:3px;line-height:1.35}
-.nutrition-state{min-width:72px;padding:7px 8px;border-radius:8px;border:1px solid #ece8df;background:#fafafa;color:#aaa;font:10px/1 inherit;cursor:pointer;white-space:nowrap}
-.nutrition-state.s1{background:#FFF8E8;border-color:#EED7A5;color:#A97D2A}
-.nutrition-state.s2{background:#F7F0DB;border-color:#D7B96F;color:#7D642D}
-.nutrition-legend{display:flex;gap:12px;justify-content:center;margin-top:12px;font-size:9px;color:#bbb}
-.nutrition-note{margin-top:10px;font-size:9px;color:#bbb;line-height:1.55;text-align:center}
+.nutrition-name{font-size:12px;font-weight:500;color:#333}
+.nutrition-source{font-size:8px;color:#aaa;margin-top:2px;line-height:1.25}
+.nutrition-state{width:18px;height:18px;flex:0 0 18px;padding:0;border-radius:50%;border:1.4px solid #d8d4ca;background:transparent;color:transparent;font:0/0 inherit;cursor:pointer}
+.nutrition-state.s1{background:linear-gradient(90deg,#D9B86F 50%,transparent 50%);border-color:#D9B86F}
+.nutrition-state.s2{background:#C69A42;border-color:#C69A42}
+.nutrition-legend{display:flex;gap:10px;justify-content:center;margin-top:8px;font-size:8px;color:#bbb}
+.nutrition-note{margin-top:7px;font-size:8px;color:#bbb;line-height:1.4;text-align:center}
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.3);display:none;align-items:flex-end;justify-content:center;z-index:200}
 .modal-bg.show{display:flex}
 .modal{background:#fff;border-radius:16px 16px 0 0;width:100%;max-width:420px;max-height:85vh;overflow-y:auto;padding:20px;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
@@ -147,12 +152,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <div id="viewNutrition" class="view">
   <section class="nutrition-wrap">
     <div class="nutrition-head">
-      <div class="nutrition-title">营养覆盖</div>
+      <div class="nutrition-title">今日饮食</div>
       <div class="nutrition-date-nav">
         <button class="nutrition-nav-btn" type="button" onclick="shiftNutritionDay(-1)" aria-label="前一天">‹</button>
         <span class="nutrition-date" id="nutritionDate"></span>
         <button class="nutrition-nav-btn" id="nutritionNext" type="button" onclick="shiftNutritionDay(1)" aria-label="后一天">›</button>
       </div>
+    </div>
+    <div class="nutrition-summary">
+      <div class="nutrition-summary-item"><div class="nutrition-summary-label">摄入</div><div class="nutrition-summary-value"><span id="nutritionIntake">0</span><small>kcal</small></div></div>
+      <div class="nutrition-summary-item"><div class="nutrition-summary-label">消耗</div><div class="nutrition-summary-value"><span id="nutritionBurn">0</span><small>kcal</small></div></div>
+      <div class="nutrition-summary-item"><div class="nutrition-summary-label">净摄入</div><div class="nutrition-summary-value"><span id="nutritionNet">0</span><small>kcal</small></div></div>
     </div>
     <div class="nutrition-card" id="nutritionRows"></div>
     <div class="nutrition-legend"><span>○ 未覆盖</span><span>◐ 有一点</span><span>● 够了</span></div>
@@ -267,13 +277,13 @@ function getNutritionStore(){const data=readJson(NUTRITION_KEY,{version:1,days:{
 function nutritionDayDate(day){const parts=String(day||'').split('-').map(Number);return new Date(parts[0]||1970,(parts[1]||1)-1,parts[2]||1,12,0,0,0);}
 function shiftNutritionDay(delta){if(!nutritionSelectedDate)nutritionSelectedDate=workdayKey();const date=nutritionDayDate(nutritionSelectedDate);date.setDate(date.getDate()+delta);const next=dateKey(date),today=workdayKey();nutritionSelectedDate=next>today?today:next;renderNutritionChecklist();}
 function cycleNutrition(itemId){if(!nutritionSelectedDate)nutritionSelectedDate=workdayKey();const store=getNutritionStore();store.days[nutritionSelectedDate]=store.days[nutritionSelectedDate]||{};const current=Math.max(0,Math.min(2,Number(store.days[nutritionSelectedDate][itemId])||0));store.days[nutritionSelectedDate][itemId]=(current+1)%3;writeJson(NUTRITION_KEY,store);renderNutritionChecklist();}
-function renderNutritionChecklist(){if(!nutritionSelectedDate)nutritionSelectedDate=workdayKey();const today=workdayKey();if(nutritionSelectedDate>today)nutritionSelectedDate=today;const store=getNutritionStore(),day=store.days[nutritionSelectedDate]||{},dateEl=document.getElementById('nutritionDate'),rowsEl=document.getElementById('nutritionRows'),nextEl=document.getElementById('nutritionNext');if(!dateEl||!rowsEl)return;dateEl.textContent=nutritionSelectedDate===today?'今天 · '+nutritionSelectedDate:nutritionSelectedDate;if(nextEl)nextEl.disabled=nutritionSelectedDate>=today;const labels=['○ 未覆盖','◐ 有一点','● 够了'];rowsEl.innerHTML=NUTRITION_ITEMS.map(item=>{const state=Math.max(0,Math.min(2,Number(day[item.id])||0));return'<div class="nutrition-row"><div class="nutrition-copy"><div class="nutrition-name">'+esc(item.name)+'</div><div class="nutrition-source">'+esc(item.source)+'</div></div><button class="nutrition-state s'+state+'" type="button" onclick="cycleNutrition(\''+item.id+'\')">'+labels[state]+'</button></div>';}).join('');}
+function renderNutritionChecklist(){if(!nutritionSelectedDate)nutritionSelectedDate=workdayKey();const today=workdayKey();if(nutritionSelectedDate>today)nutritionSelectedDate=today;const store=getNutritionStore(),day=store.days[nutritionSelectedDate]||{},dateEl=document.getElementById('nutritionDate'),rowsEl=document.getElementById('nutritionRows'),nextEl=document.getElementById('nutritionNext');if(!dateEl||!rowsEl)return;dateEl.textContent=nutritionSelectedDate===today?'今天 · '+nutritionSelectedDate:nutritionSelectedDate;if(nextEl)nextEl.disabled=nutritionSelectedDate>=today;const stats=calorieStatsForDay(nutritionSelectedDate),intakeEl=document.getElementById('nutritionIntake'),burnEl=document.getElementById('nutritionBurn'),netEl=document.getElementById('nutritionNet');if(intakeEl)intakeEl.textContent=stats.intake;if(burnEl)burnEl.textContent=stats.burn;if(netEl)netEl.textContent=(stats.net<0?'−':'')+Math.abs(stats.net);const labels=['未覆盖','有一点','够了'];rowsEl.innerHTML=NUTRITION_ITEMS.map(item=>{const state=Math.max(0,Math.min(2,Number(day[item.id])||0));return'<div class="nutrition-row"><div class="nutrition-copy"><div class="nutrition-name">'+esc(item.name)+'</div><div class="nutrition-source">'+esc(item.source)+'</div></div><button class="nutrition-state s'+state+'" type="button" aria-label="'+esc(item.name)+'：'+labels[state]+'" title="'+labels[state]+'" onclick="cycleNutrition(\''+item.id+'\')"></button></div>';}).join('');}
 function switchMealTab(viewId,button){document.querySelectorAll('.view').forEach(view=>view.classList.toggle('active',view.id===viewId));document.querySelectorAll('.tab-bar button').forEach(item=>item.classList.remove('active'));if(button)button.classList.add('active');document.getElementById('worldLabel').textContent=viewId==='viewMeals'?CFG.label:(viewId==='viewCalories'||viewId==='viewNutrition')?'REALITY':'';if(viewId==='viewNutrition')renderNutritionChecklist();if(viewId==='viewCalories')renderCalorieLedger();}
 function openCalorieModal(){const today=workdayKey(),first=document.querySelector('#calorieTypeGroup button[data-value="intake"]');document.getElementById('calorieDate').value=today;document.getElementById('calorieDate').max=today;document.getElementById('calorieDetail').value='';document.getElementById('calorieAmount').value='';pickCalorieType(first);document.getElementById('calorieModal').classList.add('show');}
 function closeMealModal(id){document.getElementById(id).classList.remove('show');}
 function pickCalorieType(button){if(!button)return;document.querySelectorAll('#calorieTypeGroup button').forEach(item=>item.classList.toggle('active',item===button));const type=button.dataset.value==='burn'?'burn':'intake';document.getElementById('calorieType').value=type;document.getElementById('calorieDetailLabel').textContent=type==='burn'?'做了什么运动':'吃了什么';}
-function saveCalorieRecord(){const date=document.getElementById('calorieDate').value,type=document.getElementById('calorieType').value==='burn'?'burn':'intake',detail=document.getElementById('calorieDetail').value.trim(),kcal=Math.round(Number(document.getElementById('calorieAmount').value)||0);if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||date>workdayKey()){showToast('请选择有效日期');return;}if(!detail){showToast(type==='burn'?'请填写运动':'请填写吃了什么');return;}if(kcal<=0){showToast('请输入卡路里');return;}const log=getCalorieLog();log.records.push({id:gid('kcal'),date,type,detail,kcal,createdAt:Date.now()});writeJson(CALORIE_KEY,log);closeMealModal('calorieModal');renderCalorieLedger();}
-function deleteCalorieRecord(id){const log=getCalorieLog();log.records=log.records.filter(record=>record.id!==id);writeJson(CALORIE_KEY,log);renderCalorieLedger();}
+function saveCalorieRecord(){const date=document.getElementById('calorieDate').value,type=document.getElementById('calorieType').value==='burn'?'burn':'intake',detail=document.getElementById('calorieDetail').value.trim(),kcal=Math.round(Number(document.getElementById('calorieAmount').value)||0);if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||date>workdayKey()){showToast('请选择有效日期');return;}if(!detail){showToast(type==='burn'?'请填写运动':'请填写吃了什么');return;}if(kcal<=0){showToast('请输入卡路里');return;}const log=getCalorieLog();log.records.push({id:gid('kcal'),date,type,detail,kcal,createdAt:Date.now()});writeJson(CALORIE_KEY,log);closeMealModal('calorieModal');renderCalorieLedger();renderNutritionChecklist();}
+function deleteCalorieRecord(id){const log=getCalorieLog();log.records=log.records.filter(record=>record.id!==id);writeJson(CALORIE_KEY,log);renderCalorieLedger();renderNutritionChecklist();}
 function currentPeriodKey(){const now=new Date();return dateKey(now)+':'+getSlot(now.getHours());}
 function checkDiningInvite(){if(!CFG.places.length)return null;const holder=getWorldCompanion(),data=holder.data,period=currentPeriodKey();if(data.currentInvite&&data.currentInvite.period===period)return data.currentInvite;if(data.dismissedPeriod===period)return null;const rng=seedRand('dining:'+WORLD_ID+':'+period),candidates=[];Object.keys(CFG.characters).forEach(charId=>{if(rng()>=(CFG.inviteChance[charId]||0))return;const places=CFG.places.filter(place=>place.char===charId);if(places.length)candidates.push(places[Math.floor(rng()*places.length)]);});if(!candidates.length){data.dismissedPeriod=period;saveWorldCompanion(holder);return null;}const pick=candidates[0];data.currentInvite={char:pick.char,place:pick.name,genre:pick.genre,msg:pick.msg,period};saveWorldCompanion(holder);return data.currentInvite;}
 function renderDiningInvite(){const element=document.getElementById('diningInviteArea'),invite=checkDiningInvite();if(!invite){element.innerHTML='';return;}const meta=CFG.characters[invite.char];element.innerHTML='<div class="dining-invite"><button class="dining-invite-dismiss" onclick="dismissDining()">×</button><div class="dining-invite-char"><div class="dining-invite-avatar" style="background:'+meta.color+'">'+meta.initial+'</div><div class="dining-invite-name" style="color:'+meta.color+'">'+meta.name+'</div></div><div class="dining-invite-msg">「'+esc(invite.msg)+'」</div><div class="dining-invite-place">📍 '+esc(invite.place)+' <span style="font-size:10px;color:#bbb">'+esc(invite.genre)+'</span></div><div class="dining-invite-actions"><button onclick="dismissDining()">下次吧</button><button class="accept" onclick="acceptDining()">好呀！</button></div></div>';}
