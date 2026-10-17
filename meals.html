@@ -100,6 +100,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .calorie-amount.burn{color:#66839D}
 .calorie-delete{border:0;background:none;color:#d5d5d5;font-size:14px;padding:3px;cursor:pointer}
 .calorie-empty{padding:28px 20px;text-align:center;color:#ccc;font-size:11px;background:#fff}
+.nutrition-wrap{padding:18px 16px 28px;max-width:560px;margin:0 auto}
+.nutrition-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.nutrition-title{font-size:14px;font-weight:600;color:#333;letter-spacing:.3px}
+.nutrition-date-nav{display:flex;align-items:center;gap:8px}
+.nutrition-date{font-size:11px;color:#888;font-variant-numeric:tabular-nums;min-width:82px;text-align:center}
+.nutrition-nav-btn{width:28px;height:28px;border:1px solid #e8e3d8;border-radius:8px;background:#fff;color:#9B7D41;font:14px/1 inherit;cursor:pointer}
+.nutrition-nav-btn:disabled{color:#ddd;border-color:#eee;cursor:default}
+.nutrition-card{background:#fff;border:1px solid #eee9df;border-radius:14px;overflow:hidden}
+.nutrition-row{display:flex;align-items:center;gap:12px;padding:13px 14px;border-bottom:1px solid #f2f0eb}
+.nutrition-row:last-child{border-bottom:0}
+.nutrition-copy{flex:1;min-width:0}
+.nutrition-name{font-size:13px;font-weight:500;color:#333}
+.nutrition-source{font-size:9px;color:#aaa;margin-top:3px;line-height:1.35}
+.nutrition-state{min-width:72px;padding:7px 8px;border-radius:8px;border:1px solid #ece8df;background:#fafafa;color:#aaa;font:10px/1 inherit;cursor:pointer;white-space:nowrap}
+.nutrition-state.s1{background:#FFF8E8;border-color:#EED7A5;color:#A97D2A}
+.nutrition-state.s2{background:#F7F0DB;border-color:#D7B96F;color:#7D642D}
+.nutrition-legend{display:flex;gap:12px;justify-content:center;margin-top:12px;font-size:9px;color:#bbb}
+.nutrition-note{margin-top:10px;font-size:9px;color:#bbb;line-height:1.55;text-align:center}
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.3);display:none;align-items:flex-end;justify-content:center;z-index:200}
 .modal-bg.show{display:flex}
 .modal{background:#fff;border-radius:16px 16px 0 0;width:100%;max-width:420px;max-height:85vh;overflow-y:auto;padding:20px;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
@@ -126,7 +144,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <div id="worldEmptyArea"></div>
   <div id="recipeShelf"></div>
 </div>
-<div id="viewBlank" class="view" aria-label="预留"></div>
+<div id="viewNutrition" class="view">
+  <section class="nutrition-wrap">
+    <div class="nutrition-head">
+      <div class="nutrition-title">营养覆盖</div>
+      <div class="nutrition-date-nav">
+        <button class="nutrition-nav-btn" type="button" onclick="shiftNutritionDay(-1)" aria-label="前一天">‹</button>
+        <span class="nutrition-date" id="nutritionDate"></span>
+        <button class="nutrition-nav-btn" id="nutritionNext" type="button" onclick="shiftNutritionDay(1)" aria-label="后一天">›</button>
+      </div>
+    </div>
+    <div class="nutrition-card" id="nutritionRows"></div>
+    <div class="nutrition-legend"><span>○ 未覆盖</span><span>◐ 有一点</span><span>● 够了</span></div>
+    <div class="nutrition-note">按当天实际摄入记录；强化食品或补充剂也可以算。</div>
+  </section>
+</div>
 <div id="viewCalories" class="view">
   <section class="calorie-summary">
     <div class="calorie-summary-label">今日净摄入</div>
@@ -164,12 +196,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 <nav class="tab-bar" aria-label="饮食页面">
   <button type="button" class="active" onclick="switchMealTab('viewMeals',this)">饮食</button>
-  <button type="button" aria-label="预留页面" onclick="switchMealTab('viewBlank',this)">···</button>
+  <button type="button" onclick="switchMealTab('viewNutrition',this)">营养</button>
   <button type="button" onclick="switchMealTab('viewCalories',this)">热量</button>
 </nav>
 <div class="toast" id="toast"></div>
 <script src="world-context.js?v=20260913-cbi-room-label1"></script>
-<script src="cloud-sync.js?v=20260914-home-badge1"></script>
+<script src="cloud-sync.js?v=20261017-nutrition1"></script>
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script>
 'use strict';
@@ -178,6 +210,16 @@ const WORLD_ID=window.WorldContext?WorldContext.getActiveWorldId():'liminal';
 const LOG_KEY='meal_log_db';
 const COMPANION_KEY='meal_companion_db';
 const CALORIE_KEY='calorie_log_db';
+const NUTRITION_KEY='nutrition_check_db';
+const NUTRITION_ITEMS=[
+  {id:'protein',name:'蛋白质',source:'肉 · 鱼 · 蛋 · 豆'},
+  {id:'calcium',name:'钙',source:'牛奶 · 酸奶 · 奶酪 · 小鱼'},
+  {id:'vitaminC',name:'维C',source:'果汁 · 强化饮料 · 补充剂'},
+  {id:'folate',name:'叶酸',source:'豆类 · 纳豆 · 蛋 · 强化食品'},
+  {id:'fiber',name:'膳食纤维',source:'豆类 · 燕麦 · 全麦 · 车前子壳'},
+  {id:'vitaminD',name:'维D',source:'鱼 · 蛋 · 强化食品 · 补充剂'},
+  {id:'omega3',name:'Omega-3',source:'青花鱼 · 鲑鱼 · 沙丁鱼'}
+];
 const FOOD_SLOTS=['morning','day','evening','night'];
 const FOOD_SLOT_LABELS={morning:'朝',day:'昼',evening:'夕',night:'夜'};
 const WORLDS={
@@ -194,6 +236,7 @@ const WORLDS={
 };
 const CFG=WORLDS[WORLD_ID]||WORLDS.liminal;
 let calSelectedDate=null;
+let nutritionSelectedDate=null;
 function readJson(key,fallback){try{const value=JSON.parse(localStorage.getItem(key));return value&&typeof value==='object'?value:fallback;}catch(error){return fallback;}}
 function writeJson(key,value){localStorage.setItem(key,JSON.stringify(value));}
 function esc(value){return String(value||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
@@ -217,7 +260,12 @@ function workdayKey(value){const date=value?new Date(value):new Date();date.setH
 function getCalorieLog(){const data=readJson(CALORIE_KEY,{version:1,records:[]});data.version=1;data.records=Array.isArray(data.records)?data.records:[];return data;}
 function calorieStatsForDay(day){return getCalorieLog().records.reduce((total,record)=>{if(record.date!==day)return total;const kcal=Math.max(0,Math.round(Number(record.kcal)||0));if(record.type==='burn')total.burn+=kcal;else total.intake+=kcal;total.net=total.intake-total.burn;return total;},{intake:0,burn:0,net:0});}
 function renderCalorieLedger(){const today=workdayKey(),stats=calorieStatsForDay(today),log=getCalorieLog();document.getElementById('calorieNet').textContent=(stats.net<0?'−':'')+Math.abs(stats.net);document.getElementById('calorieIntake').textContent=stats.intake+' kcal';document.getElementById('calorieBurn').textContent=stats.burn+' kcal';const records=log.records.slice().sort((left,right)=>String(right.date||'').localeCompare(String(left.date||''))||(Number(right.createdAt)||0)-(Number(left.createdAt)||0));document.getElementById('calorieCount').textContent=records.length?'· '+records.length+' 笔':'';document.getElementById('calorieHistory').innerHTML=records.length?records.map(record=>{const burn=record.type==='burn',kcal=Math.max(0,Math.round(Number(record.kcal)||0));return'<div class="calorie-row"><span class="calorie-date">'+esc(record.date||'—')+'</span><span class="calorie-kind '+(burn?'burn':'intake')+'">'+(burn?'运动':'吃')+'</span><span class="calorie-detail">'+esc(record.detail||'—')+'</span><span class="calorie-amount '+(burn?'burn':'intake')+'">'+(burn?'−':'+')+kcal+' kcal</span><button class="calorie-delete" type="button" aria-label="删除" onclick="deleteCalorieRecord(\''+record.id+'\')">×</button></div>';}).join(''):'<div class="calorie-empty">还没有记录</div>';}
-function switchMealTab(viewId,button){document.querySelectorAll('.view').forEach(view=>view.classList.toggle('active',view.id===viewId));document.querySelectorAll('.tab-bar button').forEach(item=>item.classList.remove('active'));if(button)button.classList.add('active');document.getElementById('worldLabel').textContent=viewId==='viewMeals'?CFG.label:viewId==='viewCalories'?'REALITY':'';if(viewId==='viewCalories')renderCalorieLedger();}
+function getNutritionStore(){const data=readJson(NUTRITION_KEY,{version:1,days:{}});data.version=1;data.days=data.days&&typeof data.days==='object'?data.days:{};return data;}
+function nutritionDayDate(day){const parts=String(day||'').split('-').map(Number);return new Date(parts[0]||1970,(parts[1]||1)-1,parts[2]||1,12,0,0,0);}
+function shiftNutritionDay(delta){if(!nutritionSelectedDate)nutritionSelectedDate=workdayKey();const date=nutritionDayDate(nutritionSelectedDate);date.setDate(date.getDate()+delta);const next=dateKey(date),today=workdayKey();nutritionSelectedDate=next>today?today:next;renderNutritionChecklist();}
+function cycleNutrition(itemId){if(!nutritionSelectedDate)nutritionSelectedDate=workdayKey();const store=getNutritionStore();store.days[nutritionSelectedDate]=store.days[nutritionSelectedDate]||{};const current=Math.max(0,Math.min(2,Number(store.days[nutritionSelectedDate][itemId])||0));store.days[nutritionSelectedDate][itemId]=(current+1)%3;writeJson(NUTRITION_KEY,store);renderNutritionChecklist();}
+function renderNutritionChecklist(){if(!nutritionSelectedDate)nutritionSelectedDate=workdayKey();const today=workdayKey();if(nutritionSelectedDate>today)nutritionSelectedDate=today;const store=getNutritionStore(),day=store.days[nutritionSelectedDate]||{},dateEl=document.getElementById('nutritionDate'),rowsEl=document.getElementById('nutritionRows'),nextEl=document.getElementById('nutritionNext');if(!dateEl||!rowsEl)return;dateEl.textContent=nutritionSelectedDate===today?'今天 · '+nutritionSelectedDate:nutritionSelectedDate;if(nextEl)nextEl.disabled=nutritionSelectedDate>=today;const labels=['○ 未覆盖','◐ 有一点','● 够了'];rowsEl.innerHTML=NUTRITION_ITEMS.map(item=>{const state=Math.max(0,Math.min(2,Number(day[item.id])||0));return'<div class="nutrition-row"><div class="nutrition-copy"><div class="nutrition-name">'+esc(item.name)+'</div><div class="nutrition-source">'+esc(item.source)+'</div></div><button class="nutrition-state s'+state+'" type="button" onclick="cycleNutrition(\''+item.id+'\')">'+labels[state]+'</button></div>';}).join('');}
+function switchMealTab(viewId,button){document.querySelectorAll('.view').forEach(view=>view.classList.toggle('active',view.id===viewId));document.querySelectorAll('.tab-bar button').forEach(item=>item.classList.remove('active'));if(button)button.classList.add('active');document.getElementById('worldLabel').textContent=viewId==='viewMeals'?CFG.label:(viewId==='viewCalories'||viewId==='viewNutrition')?'REALITY':'';if(viewId==='viewNutrition')renderNutritionChecklist();if(viewId==='viewCalories')renderCalorieLedger();}
 function openCalorieModal(){const today=workdayKey(),first=document.querySelector('#calorieTypeGroup button[data-value="intake"]');document.getElementById('calorieDate').value=today;document.getElementById('calorieDate').max=today;document.getElementById('calorieDetail').value='';document.getElementById('calorieAmount').value='';pickCalorieType(first);document.getElementById('calorieModal').classList.add('show');}
 function closeMealModal(id){document.getElementById(id).classList.remove('show');}
 function pickCalorieType(button){if(!button)return;document.querySelectorAll('#calorieTypeGroup button').forEach(item=>item.classList.toggle('active',item===button));const type=button.dataset.value==='burn'?'burn':'intake';document.getElementById('calorieType').value=type;document.getElementById('calorieDetailLabel').textContent=type==='burn'?'做了什么运动':'吃了什么';}
@@ -234,7 +282,7 @@ function renderRecipeShelf(){let name='沙拉盲盒',meta='',done=0,total=18;if(
 function showToast(message){const toast=document.getElementById('toast');toast.textContent=message;toast.style.display='block';clearTimeout(toast._timer);toast._timer=setTimeout(()=>toast.style.display='none',1800);}
 document.getElementById('worldLabel').textContent=CFG.label;
 document.getElementById('worldEmptyArea').innerHTML=Object.keys(CFG.characters).length?'':'<div class="world-empty"><strong>CBI 饮食陪伴尚未建立</strong>你的餐食记录仍然延续；这里以后只显示CBI角色的饮食、邀请与约饭。</div>';
-renderMiniCal();renderDiningInvite();renderRecipeShelf();renderCalorieLedger();
+renderMiniCal();renderDiningInvite();renderRecipeShelf();renderNutritionChecklist();renderCalorieLedger();
 </script>
 </body>
 </html>
