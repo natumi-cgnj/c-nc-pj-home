@@ -93,6 +93,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <input type="number" id="assetSavingsItemBalance" step="0.01" inputmode="decimal">
     <label id="assetSavingsItemDateLabel">最后确认时间</label>
     <input type="date" id="assetSavingsItemConfirmedAt">
+    <div id="assetMonthlyDebitSection" style="display:none">
+      <label>每月扣款</label>
+      <div class="asset-monthly-help">按日本日期扣款；当月没有设置的日期时，按月末计算。</div>
+      <div class="asset-monthly-list" id="assetMonthlyDebitList"></div>
+      <button class="asset-monthly-add" type="button" onclick="WalletAssets.addMonthlyDebit()">＋ 增加每月扣款</button>
+    </div>
     <div class="btn-row">
       <button class="btn btn-cancel" type="button" onclick="closeModal('assetSavingsItemModal')">取消</button>
       <button class="btn btn-primary" type="button" onclick="WalletAssets.saveSavingsItem()">保存</button>
@@ -111,7 +117,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <script src="world-context.js?v=20261019-ledger-split1"></script>
 <script src="cloud-sync.js?v=20261019-ledger-split1"></script>
 <script src="app-back.js?v=20261010-home-return2"></script>
-<script src="wallet-assets.js?v=20261019-static-flexible-notes1"></script>
+<script src="wallet-recurring.js?v=20261019-monthly-debits1"></script>
+<script src="wallet-assets.js?v=20261019-monthly-debits1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 
@@ -153,6 +160,12 @@ var initialView=location.hash==='#record'?'viewRecord':location.hash==='#draft'?
 switchTab(initialView,document.querySelector('[data-ledger-tab="'+initialView+'"]'));
 window.addEventListener('liminal-cloud-ready',function(){WalletAssets.render();});
 window.addEventListener('storage',function(event){if(event.key===WalletAssets.storageKey)WalletAssets.render();});
+function refreshAccountDate(){
+  if(document.visibilityState!=='hidden'&&document.getElementById('viewAccounts').classList.contains('active'))WalletAssets.render();
+}
+window.addEventListener('pageshow',refreshAccountDate);
+document.addEventListener('visibilitychange',refreshAccountDate);
+setInterval(refreshAccountDate,60000);
 var swipeStart=null;
 document.addEventListener('touchstart',function(event){
   if(window.innerWidth>720||event.touches.length!==1||event.target.closest('input,textarea,select,[contenteditable="true"],.modal-bg.show,.confirm-bg.show')){swipeStart=null;return;}

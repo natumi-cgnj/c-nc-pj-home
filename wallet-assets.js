@@ -23,6 +23,7 @@
     { id: 'alipay', title: '支付宝' },
     { id: 'wechat', title: '微信' }
   ];
+  var JP_SAVINGS_ITEM_DEFAULTS = [{ id: 'jpSavings', title: '银行账户' }];
   var LEGACY_MANAGER_COLORS = {
     boss: '#B08A5A', jane: '#87977F', cho: '#68747A',
     rigsby: '#7E9AB0', lisbon: '#A06F62', vanpelt: '#B48A9B'
@@ -30,6 +31,7 @@
   var mounted = false;
   var activeDetailId = '';
   var savingsManageMode = false;
+  var savingsEditorSnapshot = null;
 
   function esc(value) {
     return String(value == null ? '' : value)
@@ -55,17 +57,20 @@
     if (id === 'chinaSavings') return { dateField: 'confirmedAt', dateLabel: '最后确认时间', dateSummary: '最后确认' };
     if (id === 'cashVouchers') return { dateField: 'expiresAt', dateLabel: '到期日期', dateSummary: '到期日期' };
     if (id === 'cnFlexible') return { dateField: 'note', dateLabel: '备注', isNote: true };
+    if (id === 'jpBank') return { dateField: 'confirmedAt', dateLabel: '最后确认时间', dateSummary: '最后确认', monthly: true };
     return null;
   }
 
   function defaultSavingsItems(accountId, fallbackBalance) {
     var isCash = accountId === 'cashVouchers';
     var isFlexible = accountId === 'cnFlexible';
-    var defaults = isCash ? CASH_VOUCHER_ITEM_DEFAULTS : isFlexible ? FLEXIBLE_ITEM_DEFAULTS : SAVINGS_ITEM_DEFAULTS;
+    var isJapan = accountId === 'jpBank';
+    var defaults = isCash ? CASH_VOUCHER_ITEM_DEFAULTS : isFlexible ? FLEXIBLE_ITEM_DEFAULTS : isJapan ? JP_SAVINGS_ITEM_DEFAULTS : SAVINGS_ITEM_DEFAULTS;
     var dateField = staticAccountConfig(accountId || 'chinaSavings').dateField;
     return defaults.map(function (item, index) {
-      var result = { id: item.id, title: item.title, balance: (isCash || isFlexible) && index === 0 ? normalizeBalance(fallbackBalance) : null };
+      var result = { id: item.id, title: item.title, balance: (isCash || isFlexible || isJapan) && index === 0 ? normalizeBalance(fallbackBalance) : null };
       result[dateField] = '';
+      if (isJapan) result.monthlyDebits = [];
       return result;
     });
   }
@@ -93,6 +98,9 @@
         balance: normalizeBalance(saved.balance)
       };
       item[dateField] = config.isNote ? date.slice(0, 120) : /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : '';
+      if (config.monthly) {
+        item.monthlyDebits = global.WalletRecurring.normalizeRules(saved.monthlyDebits);
+      }
       return item;
     }).filter(Boolean);
   }
@@ -240,6 +248,11 @@
           color: validColor(source.color) || validColor(LEGACY_MANAGER_COLORS[source.manager])
         };
         if (staticAccountConfig(entry.id)) account.items = normalizeSavingsItems(source.items, entry.id, account.balance);
+        if (entry.id === 'jpBank') {
+          account.items = account.items.map(function (item) { return global.WalletRecurring.applyItem(item); });
+          var japanBalance = savingsTotal(account.items);
+          if (japanBalance != null) account.balance = japanBalance;
+        }
         if (entry.id === 'cnFlexible') {
           if (source.detailMode !== 'static') {
             account.items = normalizeFlexibleStaticItems(source.items, source.transactions, account.balance);
@@ -304,6 +317,15 @@
       '.asset-static-row:not(.asset-static-row-manage):active{background:#faf9f6}' +
       '.asset-static-name{display:block;color:#625e5a;font-size:12px;font-weight:500;letter-spacing:.25px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
       '.asset-static-confirmed{display:block;margin-top:7px;color:#aaa6a1;font-size:9px;letter-spacing:.2px}' +
+      '.asset-static-schedule{white-space:pre-line;line-height:1.65}' +
+      '.asset-monthly-list{margin-top:9px}' +
+      '.asset-monthly-row{padding:12px 0;border-bottom:1px solid #efede9}' +
+      '.asset-monthly-fields{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}' +
+      '.asset-monthly-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}' +
+      '.asset-monthly-heading label{margin:0}' +
+      '.asset-monthly-remove,.asset-monthly-add{appearance:none;border:0;background:none;padding:5px 0;color:#99948f;font-family:inherit;font-size:10px;cursor:pointer}' +
+      '.asset-monthly-next{margin-top:8px;font-size:9px;color:#aaa6a1;line-height:1.5}' +
+      '.asset-monthly-help{margin-top:6px;font-size:9px;color:#bbb7b2;line-height:1.6}' +
       '.asset-static-amount{color:var(--account-color);font-size:clamp(20px,2vw,28px);font-weight:250;font-variant-numeric:tabular-nums;letter-spacing:-.4px;white-space:nowrap}' +
       '.asset-static-row-manage{cursor:default}' +
       '.asset-static-manage-actions{display:flex;align-items:center;gap:8px}' +
@@ -401,10 +423,15 @@
     var rows = items.map(function (item, index) {
       var date = item[config.dateField] ? item[config.dateField].replace(/-/g, '.') : '—';
       var description = config.isNote ? item.note : config.dateSummary + ' ' + date;
+      if (config.monthly && item.monthlyDebits.length) {
+        description = item.monthlyDebits.map(function (rule) {
+          return '每月' + rule.day + '号 ' + rule.title + ' ' + formatBalance(rule.amount, 'JPY') + '円';
+        }).join('\n');
+      }
       if (savingsManageMode) {
         return '<div class="asset-static-row asset-static-row-manage" data-savings-manage-item="' + esc(item.id) + '">' +
           '<span><span class="asset-static-name">' + esc(item.title) + '</span>' +
-          '<span class="asset-static-confirmed">' + esc(entry.currency + ' ' + formatBalance(item.balance, entry.currency) + (description ? ' · ' + description : '')) + '</span></span>' +
+          '<span class="asset-static-confirmed' + (config.monthly ? ' asset-static-schedule' : '') + '">' + esc(entry.currency + ' ' + formatBalance(item.balance, entry.currency) + (description ? ' · ' + description : '')) + '</span></span>' +
           '<span class="asset-static-manage-actions">' +
             '<button class="asset-static-manage-button" type="button" data-savings-move="up" aria-label="向上移动"' + (index === 0 ? ' disabled' : '') + '>↑</button>' +
             '<button class="asset-static-manage-button" type="button" data-savings-move="down" aria-label="向下移动"' + (index === items.length - 1 ? ' disabled' : '') + '>↓</button>' +
@@ -414,7 +441,7 @@
       }
       return '<button class="asset-static-row" type="button" data-savings-item="' + esc(item.id) + '">' +
         '<span><span class="asset-static-name">' + esc(item.title) + '</span>' +
-        (description ? '<span class="asset-static-confirmed">' + esc(description) + '</span>' : '') + '</span>' +
+        (description ? '<span class="asset-static-confirmed' + (config.monthly ? ' asset-static-schedule' : '') + '">' + esc(description) + '</span>' : '') + '</span>' +
         '<span class="asset-static-amount">' + esc(formatBalance(item.balance, entry.currency)) + '</span>' +
       '</button>';
     }).join('');
@@ -457,6 +484,8 @@
     document.getElementById('assetSavingsItemName').value = '';
     document.getElementById('assetSavingsItemBalance').value = '';
     document.getElementById('assetSavingsItemConfirmedAt').value = '';
+    savingsEditorSnapshot = null;
+    renderMonthlyDebitEditor([]);
     modal.classList.add('show');
   }
 
@@ -474,6 +503,8 @@
     document.getElementById('assetSavingsItemName').value = item.title;
     document.getElementById('assetSavingsItemBalance').value = item.balance == null ? '' : String(item.balance);
     document.getElementById('assetSavingsItemConfirmedAt').value = item[config.dateField] || '';
+    savingsEditorSnapshot = { accountId: activeDetailId, itemId: item.id, balance: item.balance };
+    renderMonthlyDebitEditor(config.monthly ? item.monthlyDebits : []);
     modal.classList.add('show');
   }
 
@@ -489,7 +520,86 @@
     detailInput.type = config.isNote ? 'text' : 'date';
     if (config.isNote) detailInput.maxLength = 120;
     else detailInput.removeAttribute('maxlength');
+    document.getElementById('assetMonthlyDebitSection').style.display = config.monthly ? '' : 'none';
     return true;
+  }
+
+  function monthlyDebitDrafts() {
+    var target = document.getElementById('assetMonthlyDebitList');
+    return Array.prototype.map.call(target.querySelectorAll('[data-monthly-id]'), function (row) {
+      return {
+        id: row.getAttribute('data-monthly-id'),
+        title: row.querySelector('[data-monthly-field="title"]').value,
+        day: row.querySelector('[data-monthly-field="day"]').value,
+        amount: row.querySelector('[data-monthly-field="amount"]').value,
+        nextDueOn: row.getAttribute('data-next-due') || '',
+        originalDay: row.getAttribute('data-original-day') || ''
+      };
+    });
+  }
+
+  function renderMonthlyDebitEditor(rules) {
+    var target = document.getElementById('assetMonthlyDebitList');
+    target.innerHTML = rules.map(function (rule) {
+      var originalDay = rule.originalDay == null ? (rule.nextDueOn ? rule.day : '') : rule.originalDay;
+      return '<div class="asset-monthly-row" data-monthly-id="' + esc(rule.id) + '" data-next-due="' + esc(rule.nextDueOn || '') + '" data-original-day="' + esc(originalDay) + '">' +
+        '<div class="asset-monthly-heading"><label>款项</label><button class="asset-monthly-remove" type="button" data-monthly-remove aria-label="删除扣款">删除</button></div>' +
+        '<input type="text" maxlength="40" data-monthly-field="title" value="' + esc(rule.title || '') + '">' +
+        '<div class="asset-monthly-fields">' +
+          '<div><label>每月几号</label><input type="number" min="1" max="31" step="1" inputmode="numeric" data-monthly-field="day" value="' + esc(rule.day || '') + '"></div>' +
+          '<div><label>金额（日元）</label><input type="number" min="1" step="1" inputmode="numeric" data-monthly-field="amount" value="' + esc(rule.amount || '') + '"></div>' +
+        '</div><div class="asset-monthly-next" data-monthly-next></div>' +
+      '</div>';
+    }).join('');
+    Array.prototype.forEach.call(target.querySelectorAll('[data-monthly-id]'), function (row) {
+      function preview() {
+        var day = Number(row.querySelector('[data-monthly-field="day"]').value);
+        var next = '';
+        if (Number.isInteger(day) && day >= 1 && day <= 31) {
+          next = global.WalletRecurring.reschedule({ nextDueOn: row.getAttribute('data-next-due') || '' }, day);
+        }
+        row.querySelector('[data-monthly-next]').textContent = '下次扣款 ' + (next ? next.replace(/-/g, '.') : '—');
+      }
+      Array.prototype.forEach.call(row.querySelectorAll('input'), function (input) { input.addEventListener('input', preview); });
+      row.querySelector('[data-monthly-remove]').addEventListener('click', function () {
+        var id = row.getAttribute('data-monthly-id');
+        renderMonthlyDebitEditor(monthlyDebitDrafts().filter(function (rule) { return rule.id !== id; }));
+      });
+      preview();
+    });
+  }
+
+  function addMonthlyDebit() {
+    var rules = monthlyDebitDrafts();
+    rules.push({ id: 'monthly' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), title: '', day: '', amount: '' });
+    renderMonthlyDebitEditor(rules);
+  }
+
+  function readMonthlyDebitEditor(previousRules) {
+    var result = [];
+    var error = '';
+    monthlyDebitDrafts().forEach(function (draft) {
+      if (error || (!draft.title.trim() && !draft.day.trim() && !draft.amount.trim())) return;
+      var title = draft.title.trim().slice(0, 40);
+      var day = Number(draft.day);
+      var amount = Number(draft.amount);
+      if (!title) { error = '请填写扣款名称'; return; }
+      if (!Number.isInteger(day) || day < 1 || day > 31) { error = '扣款日期请填1～31号'; return; }
+      if (!Number.isSafeInteger(amount) || amount <= 0) { error = '请输入有效的日元扣款金额'; return; }
+      var previous = previousRules.find(function (rule) { return rule.id === draft.id; });
+      result.push({
+        id: draft.id,
+        title: title,
+        day: day,
+        amount: amount,
+        nextDueOn: global.WalletRecurring.reschedule(previous, day)
+      });
+    });
+    if (error) {
+      if (typeof global.showToast === 'function') global.showToast(error);
+      return null;
+    }
+    return result;
   }
 
   function saveSavingsItem() {
@@ -508,6 +618,14 @@
     var items = normalizeSavingsItems(account.items, accountId, account.balance);
     var hadDetailedBalance = items.some(function (item) { return item.balance != null; });
     var item = items.find(function (candidate) { return candidate.id === itemId; });
+    if (config.monthly && item && savingsEditorSnapshot && savingsEditorSnapshot.accountId === accountId &&
+        savingsEditorSnapshot.itemId === itemId && balance === savingsEditorSnapshot.balance) balance = item.balance;
+    var monthlyDebits = config.monthly ? readMonthlyDebitEditor(item ? item.monthlyDebits : []) : [];
+    if (monthlyDebits === null) return;
+    if (monthlyDebits.length && balance == null) {
+      if (typeof global.showToast === 'function') global.showToast('设置扣款前请填写余额');
+      return;
+    }
     if (!item) {
       item = { id: createSavingsItemId(), title: '资产栏 ' + (items.length + 1), balance: null };
       items.push(item);
@@ -516,6 +634,11 @@
     item.balance = balance;
     var detail = document.getElementById('assetSavingsItemConfirmedAt').value || '';
     item[config.dateField] = config.isNote ? detail.trim().slice(0, 120) : detail;
+    if (config.monthly) {
+      item.monthlyDebits = monthlyDebits;
+      var adjusted = global.WalletRecurring.applyItem(item);
+      Object.assign(item, adjusted);
+    }
     account.items = items;
     var total = savingsTotal(items);
     if (total != null) account.balance = total;
@@ -656,6 +779,7 @@
     render: render,
     saveEditor: saveEditor,
     saveSavingsItem: saveSavingsItem,
+    addMonthlyDebit: addMonthlyDebit,
     pickColor: pickColor,
     storageKey: STORAGE_KEY
   });
