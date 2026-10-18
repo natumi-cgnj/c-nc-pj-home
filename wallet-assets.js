@@ -57,7 +57,7 @@
     if (id === 'chinaSavings') return { dateField: 'confirmedAt', dateLabel: '最后确认时间', dateSummary: '最后确认' };
     if (id === 'cashVouchers') return { dateField: 'expiresAt', dateLabel: '到期日期', dateSummary: '到期日期' };
     if (id === 'cnFlexible') return { dateField: 'note', dateLabel: '备注', isNote: true };
-    if (id === 'jpBank') return { dateField: 'confirmedAt', dateLabel: '最后确认时间', dateSummary: '最后确认', monthly: true };
+    if (id === 'jpBank') return { dateField: 'confirmedAt', dateLabel: '最后确认时间', hideDate: true, monthly: true };
     return null;
   }
 
@@ -315,9 +315,10 @@
       '.asset-static-list{width:100%}' +
       '.asset-static-row{appearance:none;-webkit-appearance:none;width:100%;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px;align-items:center;padding:22px 0;border:0;border-bottom:1px solid #efede9;background:#fff;font-family:inherit;text-align:left;cursor:pointer}' +
       '.asset-static-row:not(.asset-static-row-manage):active{background:#faf9f6}' +
+      '.asset-static-row>span:first-child{min-width:0}' +
       '.asset-static-name{display:block;color:#625e5a;font-size:12px;font-weight:500;letter-spacing:.25px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
       '.asset-static-confirmed{display:block;margin-top:7px;color:#aaa6a1;font-size:9px;letter-spacing:.2px}' +
-      '.asset-static-schedule{white-space:pre-line;line-height:1.65}' +
+      '.asset-static-schedule{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.65}' +
       '.asset-monthly-list{margin-top:9px}' +
       '.asset-monthly-row{padding:12px 0;border-bottom:1px solid #efede9}' +
       '.asset-monthly-fields{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}' +
@@ -422,11 +423,11 @@
     if (total == null) total = account.balance;
     var rows = items.map(function (item, index) {
       var date = item[config.dateField] ? item[config.dateField].replace(/-/g, '.') : '—';
-      var description = config.isNote ? item.note : config.dateSummary + ' ' + date;
+      var description = config.hideDate ? '' : config.isNote ? item.note : config.dateSummary + ' ' + date;
       if (config.monthly && item.monthlyDebits.length) {
         description = item.monthlyDebits.map(function (rule) {
-          return '每月' + rule.day + '号 ' + rule.title + ' ' + formatBalance(rule.amount, 'JPY') + '円';
-        }).join('\n');
+          return rule.title;
+        }).join(' · ');
       }
       if (savingsManageMode) {
         return '<div class="asset-static-row asset-static-row-manage" data-savings-manage-item="' + esc(item.id) + '">' +
@@ -515,8 +516,11 @@
     document.getElementById('assetSavingsItemAccountId').value = entry.id;
     document.getElementById('assetSavingsItemCurrency').textContent = entry.currency;
     document.getElementById('assetSavingsItemBalance').step = entry.currency === 'JPY' ? '1' : '0.01';
-    document.getElementById('assetSavingsItemDateLabel').textContent = config.dateLabel;
+    var detailLabel = document.getElementById('assetSavingsItemDateLabel');
+    detailLabel.textContent = config.dateLabel;
+    detailLabel.style.display = config.hideDate ? 'none' : '';
     var detailInput = document.getElementById('assetSavingsItemConfirmedAt');
+    detailInput.style.display = config.hideDate ? 'none' : '';
     detailInput.type = config.isNote ? 'text' : 'date';
     if (config.isNote) detailInput.maxLength = 120;
     else detailInput.removeAttribute('maxlength');
