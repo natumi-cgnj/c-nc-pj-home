@@ -24,6 +24,8 @@
     { id: 'wechat', title: '微信' }
   ];
   var JP_SAVINGS_ITEM_DEFAULTS = [{ id: 'jpSavings', title: '银行账户' }];
+  var JP_FUND_ITEM_DEFAULTS = [{ id: 'jpInvestment', title: '投资账户' }];
+  var MERCARI_ITEM_DEFAULTS = [{ id: 'mercariBalance', title: '账户余额' }];
   var LEGACY_MANAGER_COLORS = {
     boss: '#B08A5A', jane: '#87977F', cho: '#68747A',
     rigsby: '#7E9AB0', lisbon: '#A06F62', vanpelt: '#B48A9B'
@@ -54,7 +56,7 @@
   }
 
   function staticAccountConfig(id) {
-    if (id === 'chinaSavings') return { dateField: 'confirmedAt', dateLabel: '最后确认时间', dateSummary: '最后确认' };
+    if (id === 'chinaSavings' || id === 'jpFund' || id === 'mercari') return { dateField: 'confirmedAt', dateLabel: '最后确认时间', dateSummary: '最后确认' };
     if (id === 'cashVouchers') return { dateField: 'expiresAt', dateLabel: '到期日期', dateSummary: '到期日期' };
     if (id === 'cnFlexible') return { dateField: 'note', dateLabel: '备注', isNote: true };
     if (id === 'jpBank') return { dateField: 'confirmedAt', dateLabel: '最后确认时间', hideDate: true, monthly: true };
@@ -62,13 +64,16 @@
   }
 
   function defaultSavingsItems(accountId, fallbackBalance) {
+    accountId = accountId || 'chinaSavings';
     var isCash = accountId === 'cashVouchers';
     var isFlexible = accountId === 'cnFlexible';
     var isJapan = accountId === 'jpBank';
     var defaults = isCash ? CASH_VOUCHER_ITEM_DEFAULTS : isFlexible ? FLEXIBLE_ITEM_DEFAULTS : isJapan ? JP_SAVINGS_ITEM_DEFAULTS : SAVINGS_ITEM_DEFAULTS;
-    var dateField = staticAccountConfig(accountId || 'chinaSavings').dateField;
+    if (accountId === 'jpFund') defaults = JP_FUND_ITEM_DEFAULTS;
+    if (accountId === 'mercari') defaults = MERCARI_ITEM_DEFAULTS;
+    var dateField = staticAccountConfig(accountId).dateField;
     return defaults.map(function (item, index) {
-      var result = { id: item.id, title: item.title, balance: (isCash || isFlexible || isJapan) && index === 0 ? normalizeBalance(fallbackBalance) : null };
+      var result = { id: item.id, title: item.title, balance: accountId !== 'chinaSavings' && index === 0 ? normalizeBalance(fallbackBalance) : null };
       result[dateField] = '';
       if (isJapan) result.monthlyDebits = [];
       return result;
