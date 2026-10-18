@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Wallet">
-<title>Wallet</title>
+<meta name="apple-mobile-web-app-title" content="记账（旧版）">
+<title>记账（旧版）</title>
 <style>
 html{scrollbar-width:none}
 html::-webkit-scrollbar{display:none}
@@ -235,24 +235,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <div class="top-bar">
   <a class="back-btn" href="index.html?p=2">← Home</a>
   <div class="wallet-title">
-    <h1>WALLET</h1>
+    <h1>记账（旧版）</h1>
     <button type="button" class="month-budget-status" id="monthBudgetStatus" onclick="openMonthlyBudgetModal()">26年09月预算未设置</button>
   </div>
   <button class="btn-s" onclick="openModal('settingsModal')">设置</button>
 </div>
 
-<!-- SIX ACCOUNTS TAB -->
-<div id="viewAccounts" class="view active">
-  <section class="asset-board" aria-label="六账户">
-    <div class="asset-account-grid" id="assetAccountGrid"></div>
-  </section>
-  <section class="asset-account-detail" id="assetAccountDetail" aria-label="账户详情">
-    <div id="assetSavingsDetail"></div>
-  </section>
-</div>
-
 <!-- LEDGER TAB -->
-<div id="viewLedger" class="view">
+<div id="viewLedger" class="view active">
   <div class="account-ledger-grid">
     <section class="account-pane living">
       <div class="account-summary" id="livingSummary"></div>
@@ -308,96 +298,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   </div>
   <div id="packInfo"></div>
 </div>
-
-<!-- Account overview editor -->
-<div class="modal-bg" id="assetAccountModal">
-  <div class="modal">
-    <h2 id="assetAccountModalTitle">账户</h2>
-    <input type="hidden" id="assetAccountId">
-    <label>账户名称</label>
-    <input type="text" id="assetAccountName" maxlength="30">
-    <label>余额 <span class="asset-modal-currency" id="assetAccountCurrency"></span></label>
-    <input type="number" id="assetAccountBalance" step="0.01" inputmode="decimal">
-    <label>颜色</label>
-    <input type="hidden" id="assetAccountColor">
-    <div class="category-color-picker asset-inline-color-picker" id="assetAccountColorPicker"></div>
-    <label>备注（选填）</label>
-    <input type="text" id="assetAccountNote" maxlength="80">
-    <div class="btn-row">
-      <button class="btn btn-cancel" type="button" onclick="closeModal('assetAccountModal')">取消</button>
-      <button class="btn btn-primary" type="button" onclick="WalletAssets.saveEditor()">保存</button>
-    </div>
-  </div>
-</div>
-
-<!-- Static account item editor -->
-<div class="modal-bg" id="assetSavingsItemModal">
-  <div class="modal">
-    <h2 id="assetSavingsItemModalTitle">静态资产</h2>
-    <input type="hidden" id="assetSavingsItemAccountId">
-    <input type="hidden" id="assetSavingsItemId">
-    <label>名称</label>
-    <input type="text" id="assetSavingsItemName" maxlength="30">
-    <label>余额 <span class="asset-modal-currency" id="assetSavingsItemCurrency">CNY</span></label>
-    <input type="number" id="assetSavingsItemBalance" step="0.01" inputmode="decimal">
-    <label id="assetSavingsItemDateLabel">最后确认时间</label>
-    <input type="date" id="assetSavingsItemConfirmedAt">
-    <div class="btn-row">
-      <button class="btn btn-cancel" type="button" onclick="closeModal('assetSavingsItemModal')">取消</button>
-      <button class="btn btn-primary" type="button" onclick="WalletAssets.saveSavingsItem()">保存</button>
-    </div>
-  </div>
-</div>
-
-<!-- Flexible asset item editor -->
-<div class="modal-bg" id="assetFlexibleItemModal">
-  <div class="modal">
-    <h2 id="assetFlexibleItemModalTitle">资产栏</h2>
-    <input type="hidden" id="assetFlexibleItemId">
-    <label>名称</label>
-    <input type="text" id="assetFlexibleItemName" maxlength="30">
-    <label>当前余额 <span class="asset-modal-currency">CNY</span></label>
-    <input type="number" id="assetFlexibleItemBalance" step="0.01" inputmode="decimal">
-    <div class="btn-row">
-      <button class="btn btn-cancel" type="button" onclick="closeModal('assetFlexibleItemModal')">取消</button>
-      <button class="btn btn-primary" type="button" onclick="WalletAssets.saveFlexibleItem()">保存</button>
-    </div>
-  </div>
-</div>
-
-<!-- Flexible account transaction editor -->
-<div class="modal-bg" id="assetFlexibleTransactionModal">
-  <div class="modal">
-    <h2 id="assetFlexibleTransactionModalTitle">记一笔</h2>
-    <input type="hidden" id="assetFlexibleTransactionId">
-    <input type="hidden" id="assetFlexibleTransactionContext">
-    <input type="hidden" id="assetFlexibleTransactionType" value="expense">
-    <label>类型</label>
-    <div class="asset-ledger-type-picker">
-      <button class="asset-ledger-type active" type="button" data-flexible-type="expense" onclick="WalletAssets.selectFlexibleTransactionType('expense')">支出</button>
-      <button class="asset-ledger-type" type="button" data-flexible-type="income" onclick="WalletAssets.selectFlexibleTransactionType('income')">收入</button>
-      <button class="asset-ledger-type" type="button" data-flexible-type="transfer" onclick="WalletAssets.selectFlexibleTransactionType('transfer')">转账</button>
-    </div>
-    <label id="assetFlexibleTransactionItemLabel">资产栏</label>
-    <select id="assetFlexibleTransactionItem" onchange="WalletAssets.syncFlexibleTransferOptions()"></select>
-    <div id="assetFlexibleTransferToWrap" style="display:none">
-      <label>转入资产栏</label>
-      <select id="assetFlexibleTransactionToItem"></select>
-    </div>
-    <label>金额 <span class="asset-modal-currency">CNY</span></label>
-    <input type="number" id="assetFlexibleTransactionAmount" min="0" step="0.01" inputmode="decimal">
-    <label>日期</label>
-    <input type="date" id="assetFlexibleTransactionDate">
-    <label>备注（选填）</label>
-    <input type="text" id="assetFlexibleTransactionNote" maxlength="80">
-    <div class="btn-row">
-      <button class="btn btn-del" id="assetFlexibleTransactionDelete" type="button" onclick="WalletAssets.deleteFlexibleTransaction()">删除</button>
-      <button class="btn btn-cancel" type="button" onclick="closeModal('assetFlexibleTransactionModal')">取消</button>
-      <button class="btn btn-primary" type="button" onclick="WalletAssets.saveFlexibleTransaction()">保存</button>
-    </div>
-  </div>
-</div>
-
 
 <!-- Diary write modal -->
 <div class="modal-bg" id="diaryModal">
@@ -561,25 +461,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 </div>
 
 <!-- Tab bar -->
-<div class="tab-bar">
-  <button class="active" onclick="switchTab('viewAccounts',this)"><span class="tab-icon">▦</span>账户</button>
-  <button onclick="switchTab('viewLedger',this)"><span class="tab-icon">📝</span>记账</button>
-  <button onclick="switchTab('viewTreasury',this)"><span class="tab-icon">💰</span>金库</button>
-  <button onclick="switchTab('viewOutings',this)"><span class="tab-icon">🚶</span>外出</button>
-  <button onclick="switchTab('viewCollection',this)"><span class="tab-icon">📦</span>收集</button>
-  <button onclick="switchTab('viewDiary',this)"><span class="tab-icon">📔</span>日记</button>
+<div class="tab-bar" aria-label="记账（旧版）">
+  <button class="active" type="button" onclick="switchTab('viewLedger',this)">记账</button>
+  <button type="button" onclick="switchTab('viewTreasury',this)">报销</button>
+  <button type="button" onclick="location.href='shop.html'">商城</button>
 </div>
 
 <div class="toast" id="toast"></div>
 <div class="confirm-bg" id="confirmBg"><div class="confirm-box"></div></div>
 
-<script src="world-context.js?v=20260913-cbi-room-label1"></script>
-<script src="cloud-sync.js?v=20260914-home-badge1"></script>
+<script src="world-context.js?v=20261019-ledger-split1"></script>
+<script src="cloud-sync.js?v=20261019-ledger-split1"></script>
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script src="cbi-data.js?v=20260927-checkin-categories1"></script>
 <script src="character-runtime.js?v=20260914-cbi-sleep2"></script>
-<script src="wallet-assets.js?v=20261018-cash-vouchers1"></script>
-<script src="cbi-wallet.js?v=20261014-flat-accounts1"></script>
+<script src="cbi-wallet.js?v=20261019-ledger-split1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 var SK='wallet_db';
@@ -803,8 +699,6 @@ function switchTab(viewId,btn){
   renderCurrentTab(viewId);
 }
 function renderCurrentTab(viewId){
-  if(viewId==='viewAccounts'&&window.WalletAssets)WalletAssets.render();
-  else{
     if(!isCbiWallet){
       var subtitle=document.getElementById('monthBudgetStatus');
       var settings=document.querySelector('.top-bar .btn-s');
@@ -816,7 +710,6 @@ function renderCurrentTab(viewId){
     else if(viewId==='viewOutings')renderOutings();
     else if(viewId==='viewCollection')renderCollection();
     else if(viewId==='viewDiary')renderDiary();
-  }
 }
 
 /* ═══ DATE / PERIOD HELPERS ═══ */
@@ -1619,11 +1512,11 @@ function confirmPackImport(){
 rememberLedgerFold('historyFold',LEDGER_HISTORY_FOLD_KEY,true);
 rememberLedgerFold('pendingFold',LEDGER_PENDING_FOLD_KEY,false);
 var isCbiWallet=window.WorldContext&&WorldContext.getActiveWorldId()==='cbi';
-if(window.WalletAssets)WalletAssets.mount();
 if(isCbiWallet&&window.CBIWallet){
   CBIWallet.mount();
 }else{
-  renderCurrentTab('viewAccounts');
+  var initialView=location.hash==='#reimbursement'?'viewTreasury':'viewLedger';
+  switchTab(initialView,document.querySelectorAll('.tab-bar button')[initialView==='viewTreasury'?1:0]);
 }
 if(!isCbiWallet&&window.CharacterRuntime){
   CharacterRuntime.init({onTick:function(){

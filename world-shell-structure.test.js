@@ -93,7 +93,7 @@ test('CBI locations have separate day and night banner scenes', () => {
 });
 
 test('world-sensitive entries use stable identities instead of mutable hrefs', () => {
-  for (const id of ['daily-drop', 'wallet', 'kitchen', 'story', 'dungeon', 'shop', 'gacha']) {
+  for (const id of ['daily-drop', 'ledger', 'wallet', 'kitchen', 'story', 'dungeon', 'gacha']) {
     assert.match(index, new RegExp(`data-entry-id="${id}"`));
   }
   assert.match(index, /function entryOrderKey\(card\)/);

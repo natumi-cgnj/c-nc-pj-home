@@ -20,6 +20,7 @@
       banner: 'shared',
       routes: {
         daily: 'daily.html',
+        ledger: 'ledger.html',
         wallet: 'wallet.html',
         kitchen: 'meals.html',
         story: 'story.html',
@@ -44,6 +45,7 @@
       banner: 'location',
       routes: {
         daily: 'daily.html',
+        ledger: 'ledger.html',
         wallet: 'wallet.html',
         kitchen: 'meals.html',
         story: 'cbi.html',
@@ -163,6 +165,7 @@
     var path = String(href || '').split('#')[0].split('?')[0].replace(/^\.\//, '');
     var map = {
       'daily.html': 'daily',
+      'ledger.html': 'ledger',
       'wallet.html': 'wallet',
       'kitchen.html': 'kitchen',
       'meals.html': 'kitchen',

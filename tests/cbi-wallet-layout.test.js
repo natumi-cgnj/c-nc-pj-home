@@ -34,7 +34,7 @@ test('CBI reimbursement tab owns its Wish Desk title and fulfilled total', () =>
   assert.match(header, /global\.CBIData\.wishSpend\(load\(\)\)/);
   assert.match(header, /subtitle\.textContent = '累计达成愿望'/);
   assert.match(header, /subtitle\.disabled = true/);
-  assert.match(header, /title\.textContent = 'REALITY WALLET'/);
+  assert.match(header, /title\.textContent = '记账（旧版）'/);
   assert.match(header, /subtitle\.disabled = false/);
 });
 

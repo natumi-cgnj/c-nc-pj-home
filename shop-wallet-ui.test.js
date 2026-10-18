@@ -65,7 +65,7 @@ test('shop keeps the item-grid model inside a three-tier Reward House', () => {
   assert.match(cbiShop, /source:\s*'entertainment_balance'/);
   assert.doesNotMatch(cbiShop, /currentProjectId/);
   assert.doesNotMatch(cbiShop, /work\.salary\s*[-+]=/);
-  assert.match(shop, /cbi-shop\.js\?v=20260913-light-project1/);
+  assert.match(shop, /cbi-shop\.js\?v=20261019-ledger-split1/);
 });
 
 test('reality wallet merges allowance and wishes into reimbursement', () => {
@@ -87,7 +87,7 @@ test('reality wallet merges allowance and wishes into reimbursement', () => {
   assert.doesNotMatch(cbiWallet, /closest\('input,textarea,select,button,a,summary/);
   assert.match(cbiWallet, /event\.preventDefault\(\)/);
   assert.match(cbiWallet, /\}, \{ passive: false \}\);/);
-  assert.match(wallet, /cbi-wallet\.js\?v=20260914-resolved-history1/);
+  assert.match(wallet, /cbi-wallet\.js\?v=20261019-ledger-split1/);
   assert.match(cbiShop, /wallet\.html#reimbursement/);
   assert.match(cbiShop, /bindTabSwipe/);
   assert.doesNotMatch(cbiWallet, /案件进度已移至/);

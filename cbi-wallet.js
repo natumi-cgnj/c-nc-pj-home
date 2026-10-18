@@ -126,24 +126,17 @@
     var title = document.querySelector('.top-bar h1');
     var subtitle = document.getElementById('monthBudgetStatus');
     if (!title || !subtitle) return;
-    if (viewId === 'viewAccounts') {
-      title.textContent = 'REALITY WALLET';
-      subtitle.textContent = '';
-      subtitle.disabled = true;
-      document.title = 'Reality Wallet · CBI';
-      return;
-    }
     if (viewId === 'viewTreasury') {
       title.textContent = 'WISH DESK';
       subtitle.textContent = '累计达成愿望' + global.CBIData.wishSpend(load()) + '円';
       subtitle.disabled = true;
-      document.title = 'Wish Desk · CBI';
+      document.title = '报销 · 记账（旧版）';
       return;
     }
-    title.textContent = 'REALITY WALLET';
+    title.textContent = '记账（旧版）';
     subtitle.disabled = false;
     if (typeof global.renderMonthBudgetStatus === 'function') global.renderMonthBudgetStatus();
-    document.title = 'Reality Wallet · CBI';
+    document.title = '记账（旧版）';
   }
 
   function renderAllocationHistory(cbi) {
@@ -315,8 +308,7 @@
   }
 
   function renderView(viewId) {
-    if (viewId === 'viewAccounts' && global.WalletAssets) global.WalletAssets.render();
-    else if (viewId === 'viewLedger') global.renderLedger();
+    if (viewId === 'viewLedger') global.renderLedger();
     else if (viewId === 'viewTreasury') renderTreasury();
     renderHeader(viewId);
   }
@@ -352,11 +344,7 @@
       var active = document.querySelector('.view.active');
       if (!active) return;
       event.preventDefault();
-      if (active.id === 'viewAccounts' && dx < 0) {
-        switchView('viewLedger', document.querySelector('.tab-bar [data-view="viewLedger"]'));
-      } else if (active.id === 'viewLedger' && dx > 0) {
-        switchView('viewAccounts', document.querySelector('.tab-bar [data-view="viewAccounts"]'));
-      } else if (active.id === 'viewLedger' && dx < 0) {
+      if (active.id === 'viewLedger' && dx < 0) {
         switchView('viewTreasury', document.querySelector('.tab-bar [data-view="viewTreasury"]'));
       } else if (active.id === 'viewTreasury' && dx > 0) {
         switchView('viewLedger', document.querySelector('.tab-bar [data-view="viewLedger"]'));
@@ -381,7 +369,7 @@
     if (!global.CBIData) return false;
     document.body.dataset.cbiWallet = '1';
     injectStyles();
-    document.title = 'Reality Wallet · CBI';
+    document.title = '记账（旧版）';
     var treasuryView = document.getElementById('viewTreasury');
     var charFunds = document.getElementById('charFunds');
     var transferButton = treasuryView && treasuryView.querySelector('.transfer-btn');
@@ -430,8 +418,7 @@
       treasuryView.appendChild(purchaseHistoryFold);
     }
     document.querySelector('.tab-bar').innerHTML =
-      '<button class="active" data-view="viewAccounts" type="button" onclick="CBIWallet.switchView(\'viewAccounts\',this)">账户</button>' +
-      '<button data-view="viewLedger" type="button" onclick="CBIWallet.switchView(\'viewLedger\',this)">记账</button>' +
+      '<button class="active" data-view="viewLedger" type="button" onclick="CBIWallet.switchView(\'viewLedger\',this)">记账</button>' +
       '<button data-view="viewTreasury" type="button" onclick="CBIWallet.switchView(\'viewTreasury\',this)">报销</button>' +
       '<button data-route="shop" type="button" onclick="location.href=\'shop.html\'">商城</button>';
     global.openTransferModal = openTransferModal;
@@ -447,7 +434,7 @@
     var hash = global.location ? global.location.hash : '';
     var initialView = hash === '#investigation' || hash === '#wishes' || hash === '#allowance' || hash === '#treasury' || hash === '#reimbursement'
       ? 'viewTreasury'
-      : 'viewAccounts';
+      : 'viewLedger';
     var initialButton = document.querySelector('.tab-bar [data-view="' + initialView + '"]');
     switchView(initialView, initialButton);
     return true;

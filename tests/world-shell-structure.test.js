@@ -172,7 +172,7 @@ test('CBI locations have separate day and night banner scenes', () => {
 });
 
 test('world-sensitive entries use stable identities instead of mutable hrefs', () => {
-  for (const id of ['daily-drop', 'wallet', 'kitchen', 'story', 'dungeon', 'shop', 'gacha']) {
+  for (const id of ['daily-drop', 'ledger', 'wallet', 'kitchen', 'story', 'dungeon', 'gacha']) {
     assert.match(index, new RegExp(`data-entry-id="${id}"`));
   }
   assert.match(index, /function entryOrderKey\(card\)/);
@@ -292,7 +292,7 @@ test('CBI reality loop reuses the mature pages without crossing its currencies',
   assert.match(wallet, /CBIWallet\.mount/);
   assert.match(wallet, /legacyDebtWaiverApplied/);
   assert.match(wallet, /return Math\.max\(0,walletRawSharedFund\(db\)\)/);
-  assert.match(index, /'wallet':'记账'/);
+  assert.match(index, /'wallet':'记账（旧版）'/);
   assert.doesNotMatch(index, /worldId==='cbi'\?'案件基金':'记账'/);
   assert.match(index, /class="furniture cbi-home-only cbi-guest-shelf cbi-closet-target"[^>]+openCbiStorage\('closet',event\)/);
   assert.doesNotMatch(index, /class="cbi-bedroom-closet"/);
