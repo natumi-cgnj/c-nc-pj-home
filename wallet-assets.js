@@ -15,6 +15,10 @@
     { id: 'chinaBank', title: '中国银行' },
     { id: 'chinaFund', title: '基金账户' }
   ];
+  var CASH_VOUCHER_ITEM_DEFAULTS = [
+    { id: 'cash', title: '现金' },
+    { id: 'vouchers', title: '券' }
+  ];
   var FLEXIBLE_ITEM_DEFAULTS = [
     { id: 'alipay', title: '支付宝' },
     { id: 'wechat', title: '微信' }
@@ -49,9 +53,20 @@
       entry.fallbackColor;
   }
 
-  function defaultSavingsItems() {
-    return SAVINGS_ITEM_DEFAULTS.map(function (item) {
-      return { id: item.id, title: item.title, balance: null, confirmedAt: '' };
+  function staticAccountConfig(id) {
+    if (id === 'chinaSavings') return { dateField: 'confirmedAt', dateLabel: '最后确认时间', dateSummary: '最后确认' };
+    if (id === 'cashVouchers') return { dateField: 'expiresAt', dateLabel: '到期日期', dateSummary: '到期日期' };
+    return null;
+  }
+
+  function defaultSavingsItems(accountId, fallbackBalance) {
+    var isCash = accountId === 'cashVouchers';
+    var defaults = isCash ? CASH_VOUCHER_ITEM_DEFAULTS : SAVINGS_ITEM_DEFAULTS;
+    var dateField = isCash ? 'expiresAt' : 'confirmedAt';
+    return defaults.map(function (item, index) {
+      var result = { id: item.id, title: item.title, balance: isCash && index === 0 ? normalizeBalance(fallbackBalance) : null };
+      result[dateField] = '';
+      return result;
     });
   }
 
@@ -59,8 +74,9 @@
     return 'asset' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   }
 
-  function normalizeSavingsItems(value) {
-    if (!Array.isArray(value)) return defaultSavingsItems();
+  function normalizeSavingsItems(value, accountId, fallbackBalance) {
+    if (!Array.isArray(value)) return defaultSavingsItems(accountId, fallbackBalance);
+    var dateField = accountId === 'cashVouchers' ? 'expiresAt' : 'confirmedAt';
     var seen = {};
     return value.map(function (saved, index) {
       if (!saved || typeof saved !== 'object') return null;
@@ -68,14 +84,15 @@
       if (!id || seen[id]) id = 'assetRow' + (index + 1);
       while (seen[id]) id += '_';
       seen[id] = true;
-      var confirmedAt = String(saved.confirmedAt || '');
+      var date = String(saved[dateField] || '');
       var fallbackTitle = '资产栏 ' + (index + 1);
-      return {
+      var item = {
         id: id,
         title: String(saved.title || fallbackTitle).trim().slice(0, 30) || fallbackTitle,
-        balance: normalizeBalance(saved.balance),
-        confirmedAt: /^\d{4}-\d{2}-\d{2}$/.test(confirmedAt) ? confirmedAt : ''
+        balance: normalizeBalance(saved.balance)
       };
+      item[dateField] = /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : '';
+      return item;
     }).filter(Boolean);
   }
 
@@ -202,7 +219,7 @@
     var accounts = {};
     ACCOUNTS.forEach(function (entry) {
       var account = { title: entry.title, balance: null, note: '', color: '' };
-      if (entry.id === 'chinaSavings') account.items = defaultSavingsItems();
+      if (staticAccountConfig(entry.id)) account.items = defaultSavingsItems(entry.id);
       if (entry.id === 'cnFlexible') {
         account.items = defaultFlexibleItems(null);
         account.transactions = [];
@@ -232,7 +249,7 @@
           note: String(source.note || '').slice(0, 80),
           color: validColor(source.color) || validColor(LEGACY_MANAGER_COLORS[source.manager])
         };
-        if (entry.id === 'chinaSavings') account.items = normalizeSavingsItems(source.items);
+        if (staticAccountConfig(entry.id)) account.items = normalizeSavingsItems(source.items, entry.id, account.balance);
         if (entry.id === 'cnFlexible') {
           account.items = normalizeFlexibleItems(source.items, account.balance);
           account.transactions = normalizeFlexibleTransactions(source.transactions, account.items);
@@ -339,7 +356,7 @@
       var color = accountColor(account, entry);
       var title = String(account.title || entry.title).trim().slice(0, 30) || entry.title;
       var note = account.note;
-      var action = entry.id === 'chinaSavings' || entry.id === 'cnFlexible' ? '打开，双击编辑' : '编辑';
+      var action = staticAccountConfig(entry.id) || entry.id === 'cnFlexible' ? '打开，双击编辑' : '编辑';
       return '<button class="asset-account-card" type="button" data-account-id="' + esc(entry.id) + '" style="--account-color:' + color + '" aria-label="' + action + esc(title) + '">' +
         '<span class="asset-account-name">' + esc(title) + '</span>' +
         '<span class="asset-account-balance"><span class="asset-account-currency">' + esc(entry.currency) + '</span><span class="asset-account-amount">' + esc(formatBalance(account.balance, entry.currency)) + '</span></span>' +
@@ -349,7 +366,7 @@
     Array.prototype.forEach.call(grid.querySelectorAll('[data-account-id]'), function (button) {
       button.addEventListener('click', function () {
         var id = button.getAttribute('data-account-id');
-        if (id !== 'chinaSavings' && id !== 'cnFlexible') {
+        if (!staticAccountConfig(id) && id !== 'cnFlexible') {
           openEditor(id);
           return;
         }
@@ -361,12 +378,12 @@
         }
         button._assetClickTimer = global.setTimeout(function () {
           button._assetClickTimer = null;
-          if (id === 'chinaSavings') openSavingsDetail();
+          if (staticAccountConfig(id)) openSavingsDetail(id);
           else openFlexibleDetail();
         }, 260);
       });
     });
-    if (activeDetailId === 'chinaSavings') renderSavingsDetail();
+    if (staticAccountConfig(activeDetailId)) renderSavingsDetail();
     else if (activeDetailId === 'cnFlexible') renderFlexibleDetail();
 
     if (document.body.dataset.cbiWallet !== '1') {
@@ -380,11 +397,11 @@
     }
   }
 
-  function openSavingsDetail() {
+  function openSavingsDetail(accountId) {
     var board = document.querySelector('#viewAccounts .asset-board');
     var detail = document.getElementById('assetAccountDetail');
-    if (!board || !detail) return;
-    activeDetailId = 'chinaSavings';
+    if (!board || !detail || !staticAccountConfig(accountId)) return;
+    activeDetailId = accountId;
     board.style.display = 'none';
     detail.classList.add('show');
     renderSavingsDetail();
@@ -415,20 +432,21 @@
 
   function renderSavingsDetail() {
     var target = document.getElementById('assetSavingsDetail');
-    var entry = accountDefinition('chinaSavings');
-    if (!target || !entry) return;
+    var entry = accountDefinition(activeDetailId);
+    var config = staticAccountConfig(activeDetailId);
+    if (!target || !entry || !config) return;
     var state = loadState();
-    var account = state.accounts.chinaSavings;
-    var items = normalizeSavingsItems(account.items);
+    var account = state.accounts[entry.id];
+    var items = normalizeSavingsItems(account.items, entry.id, account.balance);
     var color = accountColor(account, entry);
     var total = savingsTotal(items);
     if (total == null) total = account.balance;
     var rows = items.map(function (item, index) {
-      var confirmed = item.confirmedAt ? item.confirmedAt.replace(/-/g, '.') : '—';
+      var date = item[config.dateField] ? item[config.dateField].replace(/-/g, '.') : '—';
       if (savingsManageMode) {
         return '<div class="asset-static-row asset-static-row-manage" data-savings-manage-item="' + esc(item.id) + '">' +
           '<span><span class="asset-static-name">' + esc(item.title) + '</span>' +
-          '<span class="asset-static-confirmed">CNY ' + esc(formatBalance(item.balance, 'CNY')) + ' · 最后确认 ' + esc(confirmed) + '</span></span>' +
+          '<span class="asset-static-confirmed">' + esc(entry.currency) + ' ' + esc(formatBalance(item.balance, entry.currency)) + ' · ' + config.dateSummary + ' ' + esc(date) + '</span></span>' +
           '<span class="asset-static-manage-actions">' +
             '<button class="asset-static-manage-button" type="button" data-savings-move="up" aria-label="向上移动"' + (index === 0 ? ' disabled' : '') + '>↑</button>' +
             '<button class="asset-static-manage-button" type="button" data-savings-move="down" aria-label="向下移动"' + (index === items.length - 1 ? ' disabled' : '') + '>↓</button>' +
@@ -438,8 +456,8 @@
       }
       return '<button class="asset-static-row" type="button" data-savings-item="' + esc(item.id) + '">' +
         '<span><span class="asset-static-name">' + esc(item.title) + '</span>' +
-        '<span class="asset-static-confirmed">最后确认 ' + esc(confirmed) + '</span></span>' +
-        '<span class="asset-static-amount">' + esc(formatBalance(item.balance, 'CNY')) + '</span>' +
+        '<span class="asset-static-confirmed">' + config.dateSummary + ' ' + esc(date) + '</span></span>' +
+        '<span class="asset-static-amount">' + esc(formatBalance(item.balance, entry.currency)) + '</span>' +
       '</button>';
     }).join('');
     if (!rows && !savingsManageMode) rows = '<div class="asset-static-empty">暂无资产栏</div>';
@@ -447,7 +465,7 @@
     target.innerHTML =
       '<div class="asset-detail-toolbar">' +
         '<button class="asset-detail-back" type="button" data-savings-back>账户</button>' +
-        '<div class="asset-detail-heading"><div class="asset-detail-total"><span class="asset-detail-currency">CNY</span>' + esc(formatBalance(total, 'CNY')) + '</div></div>' +
+        '<div class="asset-detail-heading"><div class="asset-detail-total"><span class="asset-detail-currency">' + esc(entry.currency) + '</span>' + esc(formatBalance(total, entry.currency)) + '</div></div>' +
         '<button class="asset-detail-edit" type="button" data-savings-manage>' + (savingsManageMode ? '完成' : '编辑') + '</button>' +
       '</div>' +
       '<div class="asset-static-list">' +
@@ -475,7 +493,7 @@
 
   function openNewSavingsItemEditor() {
     var modal = document.getElementById('assetSavingsItemModal');
-    if (!modal) return;
+    if (!modal || !prepareSavingsItemEditor()) return;
     document.getElementById('assetSavingsItemId').value = '';
     document.getElementById('assetSavingsItemModalTitle').textContent = '新增资产栏';
     document.getElementById('assetSavingsItemName').value = '';
@@ -486,19 +504,36 @@
 
   function openSavingsItemEditor(itemId) {
     var state = loadState();
-    var items = normalizeSavingsItems(state.accounts.chinaSavings.items);
+    var account = state.accounts[activeDetailId];
+    var config = staticAccountConfig(activeDetailId);
+    if (!account || !config) return;
+    var items = normalizeSavingsItems(account.items, activeDetailId, account.balance);
     var item = items.find(function (candidate) { return candidate.id === itemId; });
     var modal = document.getElementById('assetSavingsItemModal');
-    if (!item || !modal) return;
+    if (!item || !modal || !prepareSavingsItemEditor()) return;
     document.getElementById('assetSavingsItemId').value = item.id;
     document.getElementById('assetSavingsItemModalTitle').textContent = item.title;
     document.getElementById('assetSavingsItemName').value = item.title;
     document.getElementById('assetSavingsItemBalance').value = item.balance == null ? '' : String(item.balance);
-    document.getElementById('assetSavingsItemConfirmedAt').value = item.confirmedAt || '';
+    document.getElementById('assetSavingsItemConfirmedAt').value = item[config.dateField] || '';
     modal.classList.add('show');
   }
 
+  function prepareSavingsItemEditor() {
+    var entry = accountDefinition(activeDetailId);
+    var config = staticAccountConfig(activeDetailId);
+    if (!entry || !config) return false;
+    document.getElementById('assetSavingsItemAccountId').value = entry.id;
+    document.getElementById('assetSavingsItemCurrency').textContent = entry.currency;
+    document.getElementById('assetSavingsItemBalance').step = entry.currency === 'JPY' ? '1' : '0.01';
+    document.getElementById('assetSavingsItemDateLabel').textContent = config.dateLabel;
+    return true;
+  }
+
   function saveSavingsItem() {
+    var accountId = document.getElementById('assetSavingsItemAccountId').value;
+    var config = staticAccountConfig(accountId);
+    if (!config) return;
     var itemId = document.getElementById('assetSavingsItemId').value;
     var rawBalance = document.getElementById('assetSavingsItemBalance').value.trim();
     var balance = normalizeBalance(rawBalance);
@@ -507,22 +542,22 @@
       return;
     }
     var state = loadState();
-    var account = state.accounts.chinaSavings;
-    var items = normalizeSavingsItems(account.items);
+    var account = state.accounts[accountId];
+    var items = normalizeSavingsItems(account.items, accountId, account.balance);
     var hadDetailedBalance = items.some(function (item) { return item.balance != null; });
     var item = items.find(function (candidate) { return candidate.id === itemId; });
     if (!item) {
-      item = { id: createSavingsItemId(), title: '资产栏 ' + (items.length + 1), balance: null, confirmedAt: '' };
+      item = { id: createSavingsItemId(), title: '资产栏 ' + (items.length + 1), balance: null };
       items.push(item);
     }
     item.title = document.getElementById('assetSavingsItemName').value.trim().slice(0, 30) || item.title;
     item.balance = balance;
-    item.confirmedAt = document.getElementById('assetSavingsItemConfirmedAt').value || '';
+    item[config.dateField] = document.getElementById('assetSavingsItemConfirmedAt').value || '';
     account.items = items;
     var total = savingsTotal(items);
     if (total != null) account.balance = total;
     else if (hadDetailedBalance) account.balance = null;
-    state.accounts.chinaSavings = account;
+    state.accounts[accountId] = account;
     saveState(state);
     document.getElementById('assetSavingsItemModal').classList.remove('show');
     render();
@@ -531,32 +566,36 @@
   }
 
   function moveSavingsItem(itemId, direction) {
+    var accountId = activeDetailId;
+    if (!staticAccountConfig(accountId)) return;
     var state = loadState();
-    var account = state.accounts.chinaSavings;
-    var items = normalizeSavingsItems(account.items);
+    var account = state.accounts[accountId];
+    var items = normalizeSavingsItems(account.items, accountId, account.balance);
     var index = items.findIndex(function (item) { return item.id === itemId; });
     var nextIndex = direction === 'up' ? index - 1 : index + 1;
     if (index < 0 || nextIndex < 0 || nextIndex >= items.length) return;
     var moved = items.splice(index, 1)[0];
     items.splice(nextIndex, 0, moved);
     account.items = items;
-    state.accounts.chinaSavings = account;
+    state.accounts[accountId] = account;
     saveState(state);
     renderSavingsDetail();
   }
 
   function deleteSavingsItem(itemId) {
+    var accountId = activeDetailId;
+    if (!staticAccountConfig(accountId)) return;
     function removeItem() {
       var state = loadState();
-      var account = state.accounts.chinaSavings;
-      var items = normalizeSavingsItems(account.items);
+      var account = state.accounts[accountId];
+      var items = normalizeSavingsItems(account.items, accountId, account.balance);
       var hadDetailedBalance = items.some(function (item) { return item.balance != null; });
       items = items.filter(function (item) { return item.id !== itemId; });
       account.items = items;
       var total = savingsTotal(items);
       if (total != null) account.balance = total;
       else if (hadDetailedBalance) account.balance = null;
-      state.accounts.chinaSavings = account;
+      state.accounts[accountId] = account;
       saveState(state);
       render();
       renderSavingsDetail();
@@ -1024,8 +1063,8 @@
       color: validColor(document.getElementById('assetAccountColor').value) || entry.fallbackColor,
       note: document.getElementById('assetAccountNote').value.trim().slice(0, 80)
     };
-    if (id === 'chinaSavings') {
-      next.items = normalizeSavingsItems(previous.items);
+    if (staticAccountConfig(id)) {
+      next.items = normalizeSavingsItems(previous.items, id, balance);
       var detailedTotal = savingsTotal(next.items);
       if (detailedTotal != null) next.balance = detailedTotal;
     } else if (id === 'cnFlexible') {

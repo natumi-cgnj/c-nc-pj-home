@@ -330,16 +330,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   </div>
 </div>
 
-<!-- Static savings item editor -->
+<!-- Static account item editor -->
 <div class="modal-bg" id="assetSavingsItemModal">
   <div class="modal">
     <h2 id="assetSavingsItemModalTitle">静态资产</h2>
+    <input type="hidden" id="assetSavingsItemAccountId">
     <input type="hidden" id="assetSavingsItemId">
     <label>名称</label>
     <input type="text" id="assetSavingsItemName" maxlength="30">
-    <label>余额 <span class="asset-modal-currency">CNY</span></label>
+    <label>余额 <span class="asset-modal-currency" id="assetSavingsItemCurrency">CNY</span></label>
     <input type="number" id="assetSavingsItemBalance" step="0.01" inputmode="decimal">
-    <label>最后确认时间</label>
+    <label id="assetSavingsItemDateLabel">最后确认时间</label>
     <input type="date" id="assetSavingsItemConfirmedAt">
     <div class="btn-row">
       <button class="btn btn-cancel" type="button" onclick="closeModal('assetSavingsItemModal')">取消</button>
@@ -577,7 +578,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script src="cbi-data.js?v=20260927-checkin-categories1"></script>
 <script src="character-runtime.js?v=20260914-cbi-sleep2"></script>
-<script src="wallet-assets.js?v=20261015-account-doubletap1"></script>
+<script src="wallet-assets.js?v=20261018-cash-vouchers1"></script>
 <script src="cbi-wallet.js?v=20261014-flat-accounts1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
