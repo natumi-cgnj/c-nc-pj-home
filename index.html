@@ -1032,7 +1032,8 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
 <div class="section-collapse"><div class="entry-grid" data-section="daily">
   <a class="entry-card" href="ledger.html" data-world-module="ledger" data-entry-id="ledger"><div class="entry-icon">▦</div><div class="entry-label">LEDGER</div></a>
   <a class="entry-card" href="wallet.html" data-world-module="wallet" data-entry-id="wallet"><div class="entry-icon">¥</div><div class="entry-label">记账（旧版）</div></a>
-  <a class="entry-card" href="meals.html" data-world-module="kitchen" data-entry-id="kitchen"><div class="entry-icon">🍽</div><div class="entry-label">饮食</div></a>
+  <a class="entry-card" href="diet.html" data-world-module="diet" data-entry-id="diet"><div class="entry-icon">🍽</div><div class="entry-label">DIET</div></a>
+  <a class="entry-card" href="meals.html" data-world-module="kitchen" data-entry-id="kitchen"><div class="entry-icon">🍽</div><div class="entry-label">饮食（旧版）</div></a>
   <a class="entry-card draft"><div class="entry-icon">👔</div><div class="entry-label">穿搭</div></a>
 </div>
 </div>
@@ -1139,9 +1140,9 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
   </div>
 </div>
 
-<script src="world-context.js?v=20261019-ledger-split1"></script>
+<script src="world-context.js?v=20261019-diet-split1"></script>
 <script src="activity-migration.js?v=20261008-merge1"></script>
-<script src="cloud-sync.js?v=20261019-ledger-split1"></script>
+<script src="cloud-sync.js?v=20261019-diet-split1"></script>
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script src="character-runtime.js?v=20260914-cbi-sleep2"></script>
 <script src="cbi-weather.js?v=20260903-cbi-weather2"></script>
@@ -3682,10 +3683,11 @@ function renderDSShortcuts(){
     var cls='ds-item'+(s.draft?' draft':'');
     var hasSavedModule=Object.prototype.hasOwnProperty.call(s,'moduleId');
     var moduleId=hasSavedModule?s.moduleId:(window.WorldContext?WorldContext.inferModuleId(s.href):'');
-    var label=moduleId==='wallet'?'记账（旧版）':moduleId==='ledger'?'LEDGER':s.label;
+    var label=moduleId==='wallet'?'记账（旧版）':moduleId==='ledger'?'LEDGER':moduleId==='kitchen'?'饮食（旧版）':moduleId==='diet'?'DIET':s.label;
     var href=moduleId&&window.WorldContext&&WorldContext.getActiveWorldId()!=='liminal'?WorldContext.getRoute(moduleId,s.href):s.href;
+    if(moduleId==='kitchen'&&window.WorldContext)href=WorldContext.getRoute(moduleId,'meals.html');
     var hrefParts=(s.href||'').split('?');
-    if(moduleId&&window.WorldContext&&WorldContext.getActiveWorldId()!=='liminal'&&hrefParts[1]&&href.indexOf('?')<0)href+='?'+hrefParts.slice(1).join('?');
+    if(moduleId&&window.WorldContext&&hrefParts[1]&&href.indexOf('?')<0)href+='?'+hrefParts.slice(1).join('?');
     if(moduleId==='daily'&&window.WorldContext&&WorldContext.getActiveWorldId()==='cbi'&&href.indexOf('?')<0){
       var legacyDailyTab={'委托':'drop','行动':'todo','日程':'todo','日课':'habits','打卡':'habits'}[s.label];
       if(legacyDailyTab)href+='?tab='+legacyDailyTab;
@@ -3787,7 +3789,7 @@ function togglePickerEntry(el){
 function shortcutIdentity(entry){
   var hasSavedModule=Object.prototype.hasOwnProperty.call(entry,'moduleId');
   var moduleId=hasSavedModule?entry.moduleId:(window.WorldContext?WorldContext.inferModuleId(entry.href):'');
-  return (moduleId||entry.href||'')+'|'+(moduleId==='wallet'?'记账（旧版）':entry.label||'');
+  return (moduleId||entry.href||'')+'|'+(moduleId==='wallet'?'记账（旧版）':moduleId==='kitchen'?'饮食（旧版）':entry.label||'');
 }
 renderDSShortcuts();
 

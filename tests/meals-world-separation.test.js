@@ -9,16 +9,24 @@ class MemoryStorage {
   setItem(key, value) { this.data.set(String(key), String(value)); }
 }
 
-function inlineScript() {
-  const html = fs.readFileSync('meals.html', 'utf8');
+function inlineScript(file = 'meals.html') {
+  const html = fs.readFileSync(file, 'utf8');
   const scripts = [...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)];
   assert.equal(scripts.length, 1);
   return scripts[0][1];
 }
 
-function loadMeals(worldId, localStorage = new MemoryStorage()) {
+function loadMeals(worldId, localStorage = new MemoryStorage(), file = 'meals.html') {
   const elements = new Map();
+  const listeners = new Map();
+  const views = [];
+  const tabs = [];
   const document = {
+    querySelectorAll(selector) {
+      if (selector === '.view') return views;
+      if (selector === '.tab-bar button') return tabs;
+      return [];
+    },
     getElementById(id) {
       if (!elements.has(id)) {
         const classes = new Set();
@@ -45,8 +53,19 @@ function loadMeals(worldId, localStorage = new MemoryStorage()) {
       return elements.get(id);
     }
   };
+  const html = fs.readFileSync(file, 'utf8');
+  for (const match of html.matchAll(/<div id="([^"]+)" class="view( active)?"/g)) {
+    const view = document.getElementById(match[1]);
+    if (match[2]) view.classList.add('active');
+    views.push(view);
+  }
+  for (const match of html.matchAll(/<button[^>]*onclick="switchMealTab\('([^']+)',this\)"/g)) {
+    const tab = document.getElementById('tab-' + match[1]);
+    if (match[0].includes('class="active"')) tab.classList.add('active');
+    tabs.push(tab);
+  }
   const WorldContext = { getActiveWorldId: () => worldId };
-  const window = { WorldContext, __LIMINAL_REDIRECTING: false };
+  const window = { WorldContext, __LIMINAL_REDIRECTING: false, addEventListener(name, callback) { listeners.set(name, callback); } };
   const context = vm.createContext({
     window,
     WorldContext,
@@ -64,8 +83,8 @@ function loadMeals(worldId, localStorage = new MemoryStorage()) {
     setTimeout,
     clearTimeout
   });
-  vm.runInContext(inlineScript(), context, { filename: 'meals.html:inline' });
-  return { context, document, elements, localStorage };
+  vm.runInContext(inlineScript(file), context, { filename: file + ':inline' });
+  return { context, document, elements, localStorage, listeners, views, tabs };
 }
 
 test('actual meals survive a world switch while companion layers remain separate', () => {
@@ -100,22 +119,30 @@ test('CBI starts without a copied character roster or generated companion meals'
   assert.equal(generatedSlots.every(slot => Object.keys(slot).length === 0), true);
 });
 
-test('three meal tabs add a global calorie ledger without deciding a body-weight goal', () => {
-  const html = fs.readFileSync('meals.html', 'utf8');
+test('DIET keeps nutrition and calories beside a blank page while legacy dining stays separate', () => {
+  const html = fs.readFileSync('diet.html', 'utf8');
+  const legacy = fs.readFileSync('meals.html', 'utf8');
   const cloudSync = fs.readFileSync('cloud-sync.js', 'utf8');
   const backup = fs.readFileSync('backup.html', 'utf8');
-  assert.match(html, /id="viewMeals" class="view active"/);
-  assert.match(html, /<div id="viewBlank" class="view" aria-label="预留"><\/div>/);
+  assert.match(html, /<h1>DIET<\/h1>/);
+  assert.match(html, /id="viewNutrition" class="view active"/);
+  assert.match(html, /<div id="viewDraft" class="view"><\/div>/);
   assert.match(html, /id="viewCalories" class="view"/);
-  assert.match(html, /switchMealTab\('viewMeals'/);
-  assert.match(html, /switchMealTab\('viewBlank'/);
+  assert.match(html, /switchMealTab\('viewNutrition'/);
+  assert.match(html, /switchMealTab\('viewDraft'/);
   assert.match(html, /switchMealTab\('viewCalories'/);
+  assert.doesNotMatch(html, /viewMeals|meal_log_db|meal_companion_db|recipeShelf|CFG/);
+  assert.match(legacy, /<h1>饮食（旧版）<\/h1>/);
+  assert.match(legacy, /id="viewMeals" class="view active"/);
+  assert.doesNotMatch(legacy, /viewNutrition|viewCalories|nutrition_check_db|calorie_log_db/);
   assert.doesNotMatch(html, /减脂目标|增重目标|每日限额/);
-  assert.match(cloudSync, /'meals\.html': \['meal_log_db', 'calorie_log_db'/);
+  assert.match(cloudSync, /'diet\.html': \['calorie_log_db', 'nutrition_check_db', 'omniverse_world_context'\]/);
+  assert.match(cloudSync, /'meals\.html': \['meal_log_db', 'meal_companion_db'/);
   assert.match(backup, /key:'calorie_log_db'/);
+  assert.match(cloudSync, /const STATE_KEYS = \[[\s\S]*?'nutrition_check_db'/);
 
   const storage = new MemoryStorage();
-  const cbi = loadMeals('cbi', storage);
+  const cbi = loadMeals('cbi', storage, 'diet.html');
   const add = (type, detail, kcal) => {
     cbi.document.getElementById('calorieDate').value = '2026-09-11';
     cbi.document.getElementById('calorieType').value = type;
@@ -139,6 +166,47 @@ test('three meal tabs add a global calorie ledger without deciding a body-weight
   assert.match(cbi.elements.get('calorieHistory').innerHTML, /汉堡/);
   assert.match(cbi.elements.get('calorieHistory').innerHTML, /散步/);
 
-  const liminal = loadMeals('liminal', storage);
+  const liminal = loadMeals('liminal', storage, 'diet.html');
   assert.equal(liminal.context.getCalorieLog().records.length, 2);
+});
+
+test('DIET opens existing records without writing or initializing legacy dining, and refreshes cloud updates', () => {
+  const day = new Date();
+  day.setHours(day.getHours() - 4);
+  const date = day.getFullYear() + '-' + String(day.getMonth() + 1).padStart(2, '0') + '-' + String(day.getDate()).padStart(2, '0');
+  const storage = new MemoryStorage({
+    meal_log_db: JSON.stringify({ version: 1, days: { [date]: { day: [{ id: 'meal', text: '乌冬' }] } }, legacyMigrated: true }),
+    meal_companion_db: JSON.stringify({ worlds: { cbi: { appointments: [{ id: 'keep' }] } } }),
+    calorie_log_db: JSON.stringify({ version: 1, records: [{ id: 'meal-kcal', date, type: 'intake', detail: '乌冬', kcal: 757, nutrients: { protein: 21.4 } }] }),
+    nutrition_check_db: JSON.stringify({ version: 1, days: { [date]: { protein: 2, carbs: 1 } } })
+  });
+  const before = [...storage.data];
+  const diet = loadMeals('cbi', storage, 'diet.html');
+  assert.deepEqual([...storage.data], before);
+  assert.equal(diet.elements.get('nutritionIntake').textContent, 757);
+  assert.match(diet.elements.get('nutritionRows').innerHTML, /蛋白质：够了/);
+  assert.equal(diet.elements.has('miniCalArea'), false);
+  assert.equal(diet.elements.has('diningInviteArea'), false);
+  diet.context.switchMealTab('viewDraft', diet.tabs[2]);
+  assert.deepEqual(diet.views.filter(view => view.classList.contains('active')).map(view => view.id), ['viewDraft']);
+  assert.equal(diet.elements.get('viewDraft').innerHTML, '');
+  diet.context.switchMealTab('viewMeals', diet.tabs[0]);
+  assert.deepEqual(diet.views.filter(view => view.classList.contains('active')).map(view => view.id), ['viewDraft']);
+  assert.deepEqual([...storage.data], before);
+
+  diet.context.cycleNutrition('protein');
+  assert.equal(JSON.parse(storage.getItem('nutrition_check_db')).days[date].protein, 0);
+  assert.equal(storage.getItem('meal_log_db'), before.find(entry => entry[0] === 'meal_log_db')[1]);
+  assert.equal(storage.getItem('meal_companion_db'), before.find(entry => entry[0] === 'meal_companion_db')[1]);
+  assert.deepEqual(JSON.parse(storage.getItem('calorie_log_db')).records[0].nutrients, { protein: 21.4 });
+
+  const log = JSON.parse(storage.getItem('calorie_log_db'));
+  log.records.push({ id: 'burn', date, type: 'burn', detail: '散步', kcal: 100 });
+  storage.setItem('calorie_log_db', JSON.stringify(log));
+  diet.listeners.get('liminal-cloud-ready')();
+  assert.equal(diet.elements.get('nutritionNet').textContent, '657');
+  assert.match(diet.elements.get('calorieHistory').innerHTML, /散步/);
+  diet.context.switchMealTab('viewNutrition', diet.tabs[0]);
+  assert.deepEqual(diet.views.filter(view => view.classList.contains('active')).map(view => view.id), ['viewNutrition']);
+  assert.equal(diet.elements.get('worldLabel').textContent, 'REALITY');
 });
