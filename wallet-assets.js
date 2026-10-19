@@ -2,6 +2,7 @@
   'use strict';
 
   var STORAGE_KEY = 'wallet_accounts_v1';
+  var CNY_PER_JPY = 0.042;
   var ACCOUNTS = [
     { id: 'chinaSavings', title: '人民币储蓄', currency: 'CNY', fallbackColor: '#B08A5A' },
     { id: 'jpBank', title: '日币银行', currency: 'JPY', fallbackColor: '#68747A' },
@@ -56,7 +57,8 @@
   }
 
   function staticAccountConfig(id) {
-    if (id === 'chinaSavings' || id === 'jpFund' || id === 'mercari') return { dateField: 'confirmedAt', dateLabel: '最后确认时间', dateSummary: '最后确认' };
+    if (id === 'chinaSavings' || id === 'jpFund') return { dateField: 'confirmedAt', dateLabel: '最后确认时间', dateSummary: '最后确认' };
+    if (id === 'mercari') return { dateField: 'confirmedAt', dateLabel: '上回处理时间', dateSummary: '上回处理' };
     if (id === 'cashVouchers') return { dateField: 'expiresAt', dateLabel: '失效日期', dateSummary: '失效日期' };
     if (id === 'cnFlexible') return { dateField: 'note', dateLabel: '备注', isNote: true };
     if (id === 'jpBank') return { dateField: 'confirmedAt', dateLabel: '最后确认时间', hideDate: true, monthly: true };
@@ -229,7 +231,7 @@
       if (entry.id === 'cnFlexible') account.detailMode = 'static';
       accounts[entry.id] = account;
     });
-    return { version: 1, accounts: accounts };
+    return { version: 1, accounts: accounts, goalJPY: null };
   }
 
   function normalizeBalance(value) {
@@ -238,11 +240,18 @@
     return Number.isFinite(number) ? number : null;
   }
 
+  function normalizeGoal(value) {
+    if (value === '' || value == null) return null;
+    var goal = Number(value);
+    return Number.isSafeInteger(goal) && goal > 0 ? goal : null;
+  }
+
   function loadState() {
     var value = emptyState();
     try {
       var saved = JSON.parse(global.localStorage.getItem(STORAGE_KEY) || 'null');
       if (!saved || typeof saved !== 'object') return value;
+      value.goalJPY = normalizeGoal(saved.goalJPY);
       ACCOUNTS.forEach(function (entry) {
         var source = saved.accounts && saved.accounts[entry.id];
         if (!source || typeof source !== 'object') return;
@@ -292,6 +301,64 @@
     }
   }
 
+  function accountSummary(state) {
+    var totals = { CNY: null, JPY: null };
+    ACCOUNTS.forEach(function (entry) {
+      var balance = state.accounts[entry.id].balance;
+      if (balance == null) return;
+      var scale = entry.currency === 'CNY' ? 100 : 1;
+      totals[entry.currency] = (totals[entry.currency] || 0) + Math.round(balance * scale);
+    });
+    if (totals.CNY != null) totals.CNY /= 100;
+    var combined = totals.CNY == null && totals.JPY == null ? null :
+      Math.round((totals.JPY || 0) + (totals.CNY || 0) / CNY_PER_JPY);
+    return {
+      cny: totals.CNY,
+      jpy: totals.JPY,
+      goal: state.goalJPY,
+      remaining: state.goalJPY == null || combined == null ? null : Math.max(0, state.goalJPY - combined)
+    };
+  }
+
+  function renderAccountSummary(state) {
+    var target = document.getElementById('assetAccountSummary');
+    if (!target) return;
+    var summary = accountSummary(state);
+    function amount(value, currency, unit) {
+      return '<span class="asset-summary-amount"><span class="asset-summary-value">' + esc(formatBalance(value, currency)) + '</span><span class="asset-summary-unit">' + unit + '</span></span>';
+    }
+    target.innerHTML =
+      '<div class="asset-summary-row">' +
+        '<div class="asset-summary-entry"><span class="asset-summary-label">共计</span>' + amount(summary.cny, 'CNY', '元') + '</div>' +
+        '<div class="asset-summary-entry"><span class="asset-summary-label">共计</span>' + amount(summary.jpy, 'JPY', '円') + '</div>' +
+      '</div>' +
+      '<div class="asset-summary-row">' +
+        '<button class="asset-summary-entry asset-summary-goal" type="button" data-asset-goal aria-label="设置日元目标"><span class="asset-summary-label">目标</span>' + amount(summary.goal, 'JPY', '円') + '</button>' +
+        '<div class="asset-summary-entry"><span class="asset-summary-label">距离目标</span>' + amount(summary.remaining, 'JPY', '円') + '</div>' +
+      '</div>';
+    target.querySelector('[data-asset-goal]').addEventListener('click', openGoalEditor);
+  }
+
+  function openGoalEditor() {
+    var state = loadState();
+    document.getElementById('assetGoalAmount').value = state.goalJPY == null ? '' : String(state.goalJPY);
+    document.getElementById('assetGoalModal').classList.add('show');
+  }
+
+  function saveGoal() {
+    var input = document.getElementById('assetGoalAmount').value.trim();
+    var goal = normalizeGoal(input);
+    if (input && goal == null) {
+      if (typeof global.showToast === 'function') global.showToast('请输入有效的整数日元目标');
+      return;
+    }
+    var state = loadState();
+    state.goalJPY = goal;
+    saveState(state);
+    document.getElementById('assetGoalModal').classList.remove('show');
+    render();
+  }
+
   function injectStyles() {
     if (document.getElementById('walletAssetStyles')) return;
     var style = document.createElement('style');
@@ -299,7 +366,7 @@
     style.textContent =
       '#viewAccounts{background:#fff}' +
       '.asset-board{width:100%;margin:0;padding:0}' +
-      '.asset-account-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:0;min-height:calc(100vh - 113px);min-height:calc(100dvh - 113px);background:#fff}' +
+      '.asset-account-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,220px);gap:0;min-height:0;background:#fff}' +
       '.asset-account-card{appearance:none;-webkit-appearance:none;min-width:0;position:relative;display:flex;flex-direction:column;justify-content:flex-start;text-align:left;background:#fff;border:0;border-radius:0;padding:34px clamp(20px,2.7vw,46px);color:#333;font-family:inherit;cursor:pointer;overflow:hidden;touch-action:manipulation;transition:background .12s ease}' +
       '.asset-account-card:before{content:"";position:absolute;left:clamp(20px,2.7vw,46px);right:clamp(20px,2.7vw,46px);top:0;height:1px;background:var(--account-color);opacity:.68}' +
       '.asset-account-card:hover{background:#fdfcfb}' +
@@ -309,6 +376,15 @@
       '.asset-account-currency{display:block;font-size:8px;letter-spacing:1.15px;color:#c0bdb8}' +
       '.asset-account-amount{display:block;margin-top:6px;font-size:clamp(23px,2.15vw,32px);line-height:1.12;font-weight:250;font-variant-numeric:tabular-nums;letter-spacing:-.45px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--account-color)}' +
       '.asset-account-note{display:block;margin-top:11px;font-size:9px;line-height:1.45;color:#aaa6a1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
+      '.asset-account-summary{margin:0 clamp(20px,2.7vw,46px);padding:0 0 24px;border-top:1px solid #efede9}' +
+      '.asset-summary-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;padding:14px 0 4px;align-items:center}' +
+      '.asset-summary-entry{display:flex;align-items:baseline;gap:7px;min-width:0;flex-wrap:wrap}' +
+      '.asset-summary-label,.asset-summary-unit{color:#aaa6a1;font-size:9px;white-space:nowrap}' +
+      '.asset-summary-amount{display:inline-flex;align-items:baseline;gap:4px;max-width:100%;min-width:0}' +
+      '.asset-summary-value{color:#77736d;font-size:16px;font-weight:300;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
+      '.asset-summary-unit{flex-shrink:0}' +
+      '.asset-summary-goal{appearance:none;border:0;background:none;padding:0;min-height:28px;font-family:inherit;text-align:left;cursor:pointer;touch-action:manipulation}' +
+      '.asset-goal-rate{margin-top:12px;font-size:10px;color:#aaa6a1;line-height:1.6}' +
       '.asset-account-detail{display:none;min-height:calc(100vh - 113px);min-height:calc(100dvh - 113px);padding:0 clamp(20px,4vw,64px);background:#fff}' +
       '.asset-account-detail.show{display:block}' +
       '.asset-detail-toolbar{display:grid;grid-template-columns:72px minmax(0,1fr) 72px;align-items:start;padding:23px 0 19px;border-bottom:1px solid #efede9}' +
@@ -342,7 +418,7 @@
       '.asset-static-empty{padding:30px 0;border-bottom:1px solid #efede9;color:#bbb7b2;font-size:9px;text-align:center}' +
       '.asset-inline-color-picker{justify-content:start;column-gap:14px;padding:4px 0 6px}' +
       '.asset-modal-currency{font-size:9px;color:#bbb;margin-left:5px;letter-spacing:.7px}' +
-      '@media(max-width:480px){.asset-account-grid{min-height:0;grid-template-rows:repeat(2,178px);align-content:start}.asset-account-card{padding:25px 11px}.asset-account-card:before{left:11px;right:11px}.asset-account-name{font-size:11px}.asset-account-balance{margin-top:17px}.asset-account-amount{font-size:clamp(19px,6vw,24px)}.asset-account-note{margin-top:9px;font-size:8px}.asset-account-detail{min-height:calc(100dvh - 108px);padding:0 16px}.asset-detail-toolbar{grid-template-columns:58px minmax(0,1fr) 58px;padding-top:19px}.asset-static-row{padding:19px 0}.asset-static-amount{font-size:21px}}';
+      '@media(max-width:480px){.asset-account-grid{min-height:0;grid-template-rows:repeat(2,178px);align-content:start}.asset-account-card{padding:25px 11px}.asset-account-card:before{left:11px;right:11px}.asset-account-name{font-size:11px}.asset-account-balance{margin-top:17px}.asset-account-amount{font-size:clamp(19px,6vw,24px)}.asset-account-note{margin-top:9px;font-size:8px}.asset-summary-row{gap:12px}.asset-summary-entry{gap:5px}.asset-summary-value{font-size:14px}.asset-account-detail{min-height:calc(100dvh - 108px);padding:0 16px}.asset-detail-toolbar{grid-template-columns:58px minmax(0,1fr) 58px;padding-top:19px}.asset-static-row{padding:19px 0}.asset-static-amount{font-size:21px}}';
     document.head.appendChild(style);
   }
 
@@ -382,6 +458,7 @@
         }, 260);
       });
     });
+    renderAccountSummary(state);
     if (staticAccountConfig(activeDetailId)) renderSavingsDetail();
 
     if (document.body.dataset.cbiWallet !== '1') {
@@ -799,6 +876,7 @@
     render: render,
     saveEditor: saveEditor,
     saveSavingsItem: saveSavingsItem,
+    saveGoal: saveGoal,
     addMonthlyDebit: addMonthlyDebit,
     pickColor: pickColor,
     storageKey: STORAGE_KEY

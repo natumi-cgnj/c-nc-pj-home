@@ -50,6 +50,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <div id="viewAccounts" class="view active">
   <section class="asset-board" aria-label="六账户">
     <div class="asset-account-grid" id="assetAccountGrid"></div>
+    <div class="asset-account-summary" id="assetAccountSummary" aria-label="资产合计与目标"></div>
   </section>
   <section class="asset-account-detail" id="assetAccountDetail" aria-label="账户详情">
     <div id="assetSavingsDetail"></div>
@@ -77,6 +78,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <div class="btn-row">
       <button class="btn btn-cancel" type="button" onclick="closeModal('assetAccountModal')">取消</button>
       <button class="btn btn-primary" type="button" onclick="WalletAssets.saveEditor()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Asset goal editor -->
+<div class="modal-bg" id="assetGoalModal">
+  <div class="modal">
+    <h2>目标</h2>
+    <label for="assetGoalAmount">目标金额（日元）</label>
+    <input type="number" id="assetGoalAmount" min="1" step="1" inputmode="numeric">
+    <div class="asset-goal-rate">人民币按 1円＝0.042元折算。留空可清除目标。</div>
+    <div class="btn-row">
+      <button class="btn btn-cancel" type="button" onclick="closeModal('assetGoalModal')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="WalletAssets.saveGoal()">保存</button>
     </div>
   </div>
 </div>
@@ -118,7 +133,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <script src="cloud-sync.js?v=20261019-ledger-split1"></script>
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script src="wallet-recurring.js?v=20261019-monthly-debits1"></script>
-<script src="wallet-assets.js?v=20261020-expiry-countdown1"></script>
+<script src="wallet-assets.js?v=20261020-account-summary1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 
