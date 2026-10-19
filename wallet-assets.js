@@ -808,6 +808,7 @@
       '.asset-summary-value{font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis}' +
       '.asset-summary-goal .asset-summary-value{color:' + COLORS[1] + '}' +
       '.asset-summary-remaining .asset-summary-value{color:' + COLORS[0] + '}' +
+      '.asset-expense-monthly-difference{min-height:28px}' +
       '.asset-expense-monthly-difference .asset-summary-value{color:' + COLORS[1] + '}' +
       '.asset-expense-total-difference .asset-summary-value{color:' + COLORS[0] + '}' +
       '.asset-summary-unit{flex-shrink:0}' +
