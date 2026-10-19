@@ -57,7 +57,7 @@
 
   function staticAccountConfig(id) {
     if (id === 'chinaSavings' || id === 'jpFund' || id === 'mercari') return { dateField: 'confirmedAt', dateLabel: '最后确认时间', dateSummary: '最后确认' };
-    if (id === 'cashVouchers') return { dateField: 'expiresAt', dateLabel: '到期日期', dateSummary: '到期日期' };
+    if (id === 'cashVouchers') return { dateField: 'expiresAt', dateLabel: '失效日期', dateSummary: '失效日期' };
     if (id === 'cnFlexible') return { dateField: 'note', dateLabel: '备注', isNote: true };
     if (id === 'jpBank') return { dateField: 'confirmedAt', dateLabel: '最后确认时间', hideDate: true, monthly: true };
     return null;
