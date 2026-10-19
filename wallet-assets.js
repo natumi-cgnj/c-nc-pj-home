@@ -58,7 +58,7 @@
 
   function staticAccountConfig(id) {
     if (id === 'chinaSavings' || id === 'jpFund') return { dateField: 'confirmedAt', dateLabel: '最后确认时间', dateSummary: '最后确认' };
-    if (id === 'mercari') return { dateField: 'confirmedAt', dateLabel: '上回处理时间', dateSummary: '上回处理' };
+    if (id === 'mercari') return { dateField: 'confirmedAt', dateLabel: '上回处理时间', dateSummary: '上回处理', elapsed: true };
     if (id === 'cashVouchers') return { dateField: 'expiresAt', dateLabel: '失效日期', dateSummary: '失效日期' };
     if (id === 'cnFlexible') return { dateField: 'note', dateLabel: '备注', isNote: true };
     if (id === 'jpBank') return { dateField: 'confirmedAt', dateLabel: '最后确认时间', hideDate: true, monthly: true };
@@ -365,23 +365,22 @@
     style.id = 'walletAssetStyles';
     style.textContent =
       '#viewAccounts{background:#fff}' +
-      '.asset-board{width:100%;margin:0;padding:0}' +
+      '.asset-board{width:100%;margin:0;padding:0;display:flex;flex-direction:column;row-gap:48px;min-height:calc(100vh - 113px);min-height:calc(100dvh - 113px)}' +
       '.asset-account-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,220px);gap:0;min-height:0;background:#fff}' +
       '.asset-account-card{appearance:none;-webkit-appearance:none;min-width:0;position:relative;display:flex;flex-direction:column;justify-content:flex-start;text-align:left;background:#fff;border:0;border-radius:0;padding:34px clamp(20px,2.7vw,46px);color:#333;font-family:inherit;cursor:pointer;overflow:hidden;touch-action:manipulation;transition:background .12s ease}' +
       '.asset-account-card:before{content:"";position:absolute;left:clamp(20px,2.7vw,46px);right:clamp(20px,2.7vw,46px);top:0;height:1px;background:var(--account-color);opacity:.68}' +
       '.asset-account-card:hover{background:#fdfcfb}' +
       '.asset-account-card:active{background:#faf9f6}' +
-      '.asset-account-name{font-size:12px;line-height:1.35;font-weight:500;letter-spacing:.35px;color:#66625e;white-space:nowrap}' +
+      '.asset-account-name,.asset-summary-label,.asset-summary-unit,.asset-summary-value{font-family:inherit;font-size:12px;line-height:1.35;font-weight:500;letter-spacing:.35px;color:#66625e;white-space:nowrap}' +
       '.asset-account-balance{display:block;margin-top:20px;min-width:0}' +
       '.asset-account-currency{display:block;font-size:8px;letter-spacing:1.15px;color:#c0bdb8}' +
       '.asset-account-amount{display:block;margin-top:6px;font-size:clamp(23px,2.15vw,32px);line-height:1.12;font-weight:250;font-variant-numeric:tabular-nums;letter-spacing:-.45px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--account-color)}' +
       '.asset-account-note{display:block;margin-top:11px;font-size:9px;line-height:1.45;color:#aaa6a1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
-      '.asset-account-summary{margin:0 clamp(20px,2.7vw,46px);padding:0 0 24px;border-top:1px solid #efede9}' +
-      '.asset-summary-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;padding:14px 0 4px;align-items:center}' +
+      '.asset-account-summary{margin:auto clamp(20px,2.7vw,46px) 0;padding:0 0 12px;border-top:1px solid #efede9;flex-shrink:0}' +
+      '.asset-summary-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;padding:14px 0 4px;align-items:baseline}' +
       '.asset-summary-entry{display:flex;align-items:baseline;gap:7px;min-width:0;flex-wrap:wrap}' +
-      '.asset-summary-label,.asset-summary-unit{color:#aaa6a1;font-size:9px;white-space:nowrap}' +
       '.asset-summary-amount{display:inline-flex;align-items:baseline;gap:4px;max-width:100%;min-width:0}' +
-      '.asset-summary-value{color:#77736d;font-size:16px;font-weight:300;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
+      '.asset-summary-value{font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis}' +
       '.asset-summary-unit{flex-shrink:0}' +
       '.asset-summary-goal{appearance:none;border:0;background:none;padding:0;min-height:28px;font-family:inherit;text-align:left;cursor:pointer;touch-action:manipulation}' +
       '.asset-goal-rate{margin-top:12px;font-size:10px;color:#aaa6a1;line-height:1.6}' +
@@ -418,7 +417,7 @@
       '.asset-static-empty{padding:30px 0;border-bottom:1px solid #efede9;color:#bbb7b2;font-size:9px;text-align:center}' +
       '.asset-inline-color-picker{justify-content:start;column-gap:14px;padding:4px 0 6px}' +
       '.asset-modal-currency{font-size:9px;color:#bbb;margin-left:5px;letter-spacing:.7px}' +
-      '@media(max-width:480px){.asset-account-grid{min-height:0;grid-template-rows:repeat(2,178px);align-content:start}.asset-account-card{padding:25px 11px}.asset-account-card:before{left:11px;right:11px}.asset-account-name{font-size:11px}.asset-account-balance{margin-top:17px}.asset-account-amount{font-size:clamp(19px,6vw,24px)}.asset-account-note{margin-top:9px;font-size:8px}.asset-summary-row{gap:12px}.asset-summary-entry{gap:5px}.asset-summary-value{font-size:14px}.asset-account-detail{min-height:calc(100dvh - 108px);padding:0 16px}.asset-detail-toolbar{grid-template-columns:58px minmax(0,1fr) 58px;padding-top:19px}.asset-static-row{padding:19px 0}.asset-static-amount{font-size:21px}}';
+      '@media(max-width:480px){.asset-account-grid{min-height:0;grid-template-rows:repeat(2,178px);align-content:start}.asset-account-card{padding:25px 11px}.asset-account-card:before{left:11px;right:11px}.asset-account-name,.asset-summary-label,.asset-summary-unit,.asset-summary-value{font-size:11px}.asset-account-balance{margin-top:17px}.asset-account-amount{font-size:clamp(19px,6vw,24px)}.asset-account-note{margin-top:9px;font-size:8px}.asset-summary-row{gap:12px}.asset-summary-entry{gap:5px}.asset-account-detail{min-height:calc(100dvh - 108px);padding:0 16px}.asset-detail-toolbar{grid-template-columns:58px minmax(0,1fr) 58px;padding-top:19px}.asset-static-row{padding:19px 0}.asset-static-amount{font-size:21px}}';
     document.head.appendChild(style);
   }
 
@@ -492,13 +491,25 @@
     if (detail) detail.classList.remove('show');
   }
 
+  function calendarDayDifference(value, today) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+    var date = new Date(value + 'T00:00:00Z');
+    if (!Number.isFinite(date.getTime()) || date.toISOString().slice(0, 10) !== value) return null;
+    return Math.round((date.getTime() - Date.parse(today + 'T00:00:00Z')) / 86400000);
+  }
+
   function expiryDescription(value, today) {
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return '暂无失效日期';
-    var expiry = new Date(value + 'T00:00:00Z');
-    if (!Number.isFinite(expiry.getTime()) || expiry.toISOString().slice(0, 10) !== value) return '暂无失效日期';
-    var days = Math.round((expiry.getTime() - Date.parse(today + 'T00:00:00Z')) / 86400000);
+    var days = calendarDayDifference(value, today);
+    if (days == null) return '暂无失效日期';
     if (days > 0) return '还剩' + days + '天失效';
     return days === 0 ? '今天失效' : '已失效';
+  }
+
+  function processingDescription(value, today) {
+    var days = calendarDayDifference(value, today);
+    if (days == null) return '暂无处理日期';
+    if (days > 0) return '处理日期未到';
+    return '距离上回处理' + Math.abs(days) + '天';
   }
 
   function renderSavingsDetail() {
@@ -512,11 +523,12 @@
     var color = accountColor(account, entry);
     var total = savingsTotal(items);
     if (total == null) total = account.balance;
-    var expiryToday = config.dateField === 'expiresAt' ? global.WalletRecurring.today() : '';
+    var descriptionToday = config.dateField === 'expiresAt' || config.elapsed ? global.WalletRecurring.today() : '';
     var rows = items.map(function (item, index) {
       var date = item[config.dateField] ? item[config.dateField].replace(/-/g, '.') : '—';
       var description = config.hideDate ? '' : config.isNote ? item.note : config.dateSummary + ' ' + date;
-      if (expiryToday) description = expiryDescription(item.expiresAt, expiryToday);
+      if (config.dateField === 'expiresAt') description = expiryDescription(item.expiresAt, descriptionToday);
+      if (config.elapsed) description = processingDescription(item.confirmedAt, descriptionToday);
       if (config.monthly && item.monthlyDebits.length) {
         description = item.monthlyDebits.map(function (rule) {
           return rule.title;
