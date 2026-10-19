@@ -253,7 +253,7 @@
       return {
         id: id,
         title: String(book.title || title).trim().slice(0, 30) || title,
-        currency: ['CNY', 'JPY'].indexOf(book.currency) >= 0 ? book.currency : '',
+        currency: 'JPY',
         color: validColor(book.color) || COLORS[index],
         note: String(book.note || '').slice(0, 80)
       };
@@ -392,7 +392,7 @@
     grid.innerHTML = state.expenseBooks.map(function (book) {
       return '<button class="asset-account-card" type="button" data-expense-book="' + book.id + '" style="--account-color:' + book.color + '" onclick="WalletAssets.openExpenseBook(\'' + book.id + '\')" aria-label="编辑' + esc(book.title) + '">' +
         '<span class="asset-account-name">' + esc(book.title) + '</span>' +
-        '<span class="asset-account-balance"><span class="asset-account-currency">' + (book.currency || '&nbsp;') + '</span><span class="asset-account-amount">—</span></span>' +
+        '<span class="asset-account-balance"><span class="asset-account-currency">' + book.currency + '</span><span class="asset-account-amount">—</span></span>' +
         (book.note ? '<span class="asset-account-note">' + esc(book.note) + '</span>' : '') +
       '</button>';
     }).join('');
@@ -403,7 +403,6 @@
     if (!book) return;
     document.getElementById('assetExpenseBookId').value = book.id;
     document.getElementById('assetExpenseBookName').value = book.title;
-    document.getElementById('assetExpenseBookCurrency').value = book.currency;
     document.getElementById('assetExpenseBookNote').value = book.note;
     pickExpenseColor(book.color);
     showAssetModal('assetExpenseBookModal');
@@ -424,10 +423,7 @@
     var id = document.getElementById('assetExpenseBookId').value;
     var book = state.expenseBooks.find(function (entry) { return entry.id === id; });
     if (!book) return;
-    var currency = document.getElementById('assetExpenseBookCurrency').value;
-    if (['', 'CNY', 'JPY'].indexOf(currency) < 0) return;
     book.title = document.getElementById('assetExpenseBookName').value.trim().slice(0, 30) || book.title;
-    book.currency = currency;
     book.color = validColor(document.getElementById('assetExpenseBookColor').value) || book.color;
     book.note = document.getElementById('assetExpenseBookNote').value.trim().slice(0, 80);
     saveState(state);

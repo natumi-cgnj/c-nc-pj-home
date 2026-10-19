@@ -75,12 +75,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <input type="hidden" id="assetExpenseBookId">
     <label for="assetExpenseBookName">账本名称</label>
     <input type="text" id="assetExpenseBookName" maxlength="30">
-    <label for="assetExpenseBookCurrency">币种</label>
-    <select id="assetExpenseBookCurrency">
-      <option value="">未设置</option>
-      <option value="CNY">人民币（CNY）</option>
-      <option value="JPY">日元（JPY）</option>
-    </select>
     <label>颜色</label>
     <input type="hidden" id="assetExpenseBookColor">
     <div class="category-color-picker asset-inline-color-picker" id="assetExpenseBookColorPicker"></div>
@@ -166,7 +160,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script src="ledger-modal.js?v=20261020-screen1"></script>
 <script src="wallet-recurring.js?v=20261019-monthly-debits1"></script>
-<script src="wallet-assets.js?v=20261020-summary-spacing1"></script>
+<script src="wallet-assets.js?v=20261020-expenses-jpy1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 
