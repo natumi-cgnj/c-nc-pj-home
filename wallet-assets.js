@@ -415,6 +415,15 @@
     if (detail) detail.classList.remove('show');
   }
 
+  function expiryDescription(value, today) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return '暂无失效日期';
+    var expiry = new Date(value + 'T00:00:00Z');
+    if (!Number.isFinite(expiry.getTime()) || expiry.toISOString().slice(0, 10) !== value) return '暂无失效日期';
+    var days = Math.round((expiry.getTime() - Date.parse(today + 'T00:00:00Z')) / 86400000);
+    if (days > 0) return '还剩' + days + '天失效';
+    return days === 0 ? '今天失效' : '已失效';
+  }
+
   function renderSavingsDetail() {
     var target = document.getElementById('assetSavingsDetail');
     var entry = accountDefinition(activeDetailId);
@@ -426,9 +435,11 @@
     var color = accountColor(account, entry);
     var total = savingsTotal(items);
     if (total == null) total = account.balance;
+    var expiryToday = config.dateField === 'expiresAt' ? global.WalletRecurring.today() : '';
     var rows = items.map(function (item, index) {
       var date = item[config.dateField] ? item[config.dateField].replace(/-/g, '.') : '—';
       var description = config.hideDate ? '' : config.isNote ? item.note : config.dateSummary + ' ' + date;
+      if (expiryToday) description = expiryDescription(item.expiresAt, expiryToday);
       if (config.monthly && item.monthlyDebits.length) {
         description = item.monthlyDebits.map(function (rule) {
           return rule.title;
