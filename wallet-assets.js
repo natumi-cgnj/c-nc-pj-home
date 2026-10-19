@@ -260,9 +260,51 @@
       activeWorldId: STAGE_WORLDS.some(function (world) { return world.id === saved.activeWorldId; }) ? saved.activeWorldId : 'meta',
       worlds: STAGE_WORLDS.map(function (world) {
         var source = worlds.find(function (entry) { return entry && entry.id === world.id; }) || {};
-        return { id: world.id, title: String(source.title || world.title).trim().slice(0, 30) || world.title };
+        var result = { id: world.id, title: String(source.title || world.title).trim().slice(0, 30) || world.title };
+        if (world.id !== 'meta') {
+          var appearance = source.appearance && typeof source.appearance === 'object' ? source.appearance : {};
+          result.appearance = {
+            accounts: normalizeStageAppearance(appearance.accounts, ACCOUNTS.map(function (entry) { return entry.id; })),
+            expenseBooks: normalizeStageAppearance(appearance.expenseBooks, EXPENSE_BOOK_TITLES.map(function (_, index) { return 'book' + (index + 1); }))
+          };
+        }
+        return result;
       })
     };
+  }
+
+  function normalizeStageAppearance(value, ids) {
+    var result = {};
+    ids.forEach(function (id, index) {
+      var entry = value && typeof value === 'object' && value[id];
+      if (!entry || typeof entry !== 'object') return;
+      result[id] = {
+        title: String(entry.title || index + 1).trim().slice(0, 30) || String(index + 1),
+        color: validColor(entry.color),
+        note: String(entry.note || '').slice(0, 80)
+      };
+    });
+    return result;
+  }
+
+  function stageWorld(state, id) {
+    return state.stage.worlds.find(function (world) { return world.id === (id || state.stage.activeWorldId); }) || null;
+  }
+
+  function accountAppearance(state, entry, worldId) {
+    var world = stageWorld(state, worldId);
+    var account = state.accounts[entry.id];
+    if (world.id === 'meta') return { title: account.title, color: accountColor(account, entry), note: account.note };
+    var view = world.appearance.accounts[entry.id] || {};
+    return { title: view.title || String(ACCOUNTS.indexOf(entry) + 1), color: validColor(view.color) || entry.fallbackColor, note: view.note || '' };
+  }
+
+  function expenseBookAppearance(state, book, worldId) {
+    var world = stageWorld(state, worldId);
+    if (world.id === 'meta') return { title: book.title, color: book.color, note: book.note };
+    var index = state.expenseBooks.indexOf(book);
+    var view = world.appearance.expenseBooks[book.id] || {};
+    return { title: view.title || String(index + 1), color: validColor(view.color) || COLORS[index], note: view.note || '' };
   }
 
   function normalizeExpenseBooks(value) {
@@ -448,10 +490,11 @@
     var grid = document.getElementById('assetExpenseGrid');
     if (!grid) return;
     grid.innerHTML = state.expenseBooks.map(function (book) {
-      return '<button class="asset-account-card" type="button" data-expense-book="' + book.id + '" style="--account-color:' + book.color + '" onclick="WalletAssets.openExpenseDetail(\'' + book.id + '\')" aria-label="打开' + esc(book.title) + '">' +
-        '<span class="asset-account-name">' + esc(book.title) + '</span>' +
+      var view = expenseBookAppearance(state, book);
+      return '<button class="asset-account-card" type="button" data-expense-book="' + book.id + '" style="--account-color:' + view.color + '" onclick="WalletAssets.openExpenseDetail(\'' + book.id + '\')" aria-label="打开' + esc(view.title) + '">' +
+        '<span class="asset-account-name">' + esc(view.title) + '</span>' +
         '<span class="asset-account-balance"><span class="asset-account-currency">' + book.currency + '</span><span class="asset-account-amount">' + esc(formatBalance(expenseTotal(book), 'JPY')) + '</span></span>' +
-        (book.note ? '<span class="asset-account-note">' + esc(book.note) + '</span>' : '') +
+        (view.note ? '<span class="asset-account-note">' + esc(view.note) + '</span>' : '') +
       '</button>';
     }).join('');
   }
@@ -516,17 +559,19 @@
 
   function renderExpenseDetail() {
     var target = document.getElementById('assetExpenseDetail');
-    var book = loadState().expenseBooks.find(function (entry) { return entry.id === activeExpenseBookId; });
+    var state = loadState();
+    var book = state.expenseBooks.find(function (entry) { return entry.id === activeExpenseBookId; });
     if (!target || !book) return;
-    target.style.setProperty('--account-color', book.color);
+    var view = expenseBookAppearance(state, book);
+    target.style.setProperty('--account-color', view.color);
     var records = book.records.map(function (record, index) { return { record: record, index: index }; });
     records.sort(function (left, right) {
       return right.record.date.localeCompare(left.record.date) || right.index - left.index;
     });
     target.innerHTML =
       '<div class="asset-detail-toolbar">' +
-        '<button class="asset-detail-back" type="button" data-expense-back>账本</button>' +
-        '<div class="asset-detail-heading"><div class="asset-expense-title">' + esc(book.title) + '</div>' +
+        '<button class="asset-detail-back" type="button" data-expense-back>记录</button>' +
+        '<div class="asset-detail-heading"><div class="asset-expense-title">' + esc(view.title) + '</div>' +
           '<div class="asset-detail-total"><span class="asset-detail-currency">JPY</span>' + esc(formatBalance(expenseTotal(book), 'JPY')) + '</div></div>' +
         '<button class="asset-detail-edit" type="button" data-expense-settings>设置</button>' +
       '</div>' +
@@ -629,12 +674,15 @@
   }
 
   function openExpenseBook(id) {
-    var book = loadState().expenseBooks.find(function (entry) { return entry.id === id; });
+    var state = loadState();
+    var book = state.expenseBooks.find(function (entry) { return entry.id === id; });
     if (!book) return;
+    var view = expenseBookAppearance(state, book);
     document.getElementById('assetExpenseBookId').value = book.id;
-    document.getElementById('assetExpenseBookName').value = book.title;
-    document.getElementById('assetExpenseBookNote').value = book.note;
-    pickExpenseColor(book.color);
+    document.getElementById('assetExpenseBookWorldId').value = state.stage.activeWorldId;
+    document.getElementById('assetExpenseBookName').value = view.title;
+    document.getElementById('assetExpenseBookNote').value = view.note;
+    pickExpenseColor(view.color);
     showAssetModal('assetExpenseBookModal');
   }
 
@@ -653,9 +701,16 @@
     var id = document.getElementById('assetExpenseBookId').value;
     var book = state.expenseBooks.find(function (entry) { return entry.id === id; });
     if (!book) return;
-    book.title = document.getElementById('assetExpenseBookName').value.trim().slice(0, 30) || book.title;
-    book.color = validColor(document.getElementById('assetExpenseBookColor').value) || book.color;
-    book.note = document.getElementById('assetExpenseBookNote').value.trim().slice(0, 80);
+    var world = stageWorld(state, document.getElementById('assetExpenseBookWorldId').value);
+    if (!world) return;
+    var view = expenseBookAppearance(state, book, world.id);
+    var appearance = {
+      title: document.getElementById('assetExpenseBookName').value.trim().slice(0, 30) || view.title,
+      color: validColor(document.getElementById('assetExpenseBookColor').value) || view.color,
+      note: document.getElementById('assetExpenseBookNote').value.trim().slice(0, 80)
+    };
+    if (world.id === 'meta') Object.assign(book, appearance);
+    else world.appearance.expenseBooks[id] = appearance;
     saveState(state);
     hideAssetModal('assetExpenseBookModal');
     render();
@@ -814,9 +869,10 @@
     var state = loadState();
     grid.innerHTML = ACCOUNTS.map(function (entry) {
       var account = state.accounts[entry.id];
-      var color = accountColor(account, entry);
-      var title = String(account.title || entry.title).trim().slice(0, 30) || entry.title;
-      var note = account.note;
+      var view = accountAppearance(state, entry);
+      var color = view.color;
+      var title = view.title;
+      var note = view.note;
       var action = staticAccountConfig(entry.id) ? '打开，双击编辑' : '编辑';
       return '<button class="asset-account-card" type="button" data-account-id="' + esc(entry.id) + '" style="--account-color:' + color + '" aria-label="' + action + esc(title) + '">' +
         '<span class="asset-account-name">' + esc(title) + '</span>' +
@@ -913,7 +969,7 @@
     var state = loadState();
     var account = state.accounts[entry.id];
     var items = normalizeSavingsItems(account.items, entry.id, account.balance);
-    var color = accountColor(account, entry);
+    var color = accountAppearance(state, entry).color;
     var total = savingsTotal(items);
     if (total == null) total = account.balance;
     var descriptionToday = config.dateField === 'expiresAt' || config.elapsed ? global.WalletRecurring.today() : '';
@@ -1202,14 +1258,16 @@
     if (!entry || !modal) return;
     var state = loadState();
     var account = state.accounts[id];
-    var title = String(account.title || entry.title).trim().slice(0, 30) || entry.title;
+    var view = accountAppearance(state, entry);
+    var title = view.title;
     document.getElementById('assetAccountId').value = id;
+    document.getElementById('assetAccountWorldId').value = state.stage.activeWorldId;
     document.getElementById('assetAccountModalTitle').textContent = title;
     document.getElementById('assetAccountName').value = title;
     document.getElementById('assetAccountCurrency').textContent = entry.currency;
     document.getElementById('assetAccountBalance').value = account.balance == null ? '' : String(account.balance);
-    document.getElementById('assetAccountNote').value = account.note || '';
-    setEditorColor(accountColor(account, entry));
+    document.getElementById('assetAccountNote').value = view.note;
+    setEditorColor(view.color);
     renderColorPicker();
     showAssetModal('assetAccountModal');
   }
@@ -1248,12 +1306,22 @@
     }
     var state = loadState();
     var previous = state.accounts[id] || {};
-    var next = {
-      title: document.getElementById('assetAccountName').value.trim().slice(0, 30) || entry.title,
-      balance: balance,
-      color: validColor(document.getElementById('assetAccountColor').value) || entry.fallbackColor,
+    var world = stageWorld(state, document.getElementById('assetAccountWorldId').value);
+    if (!world) return;
+    var view = accountAppearance(state, entry, world.id);
+    var appearance = {
+      title: document.getElementById('assetAccountName').value.trim().slice(0, 30) || (world.id === 'meta' ? entry.title : String(ACCOUNTS.indexOf(entry) + 1)),
+      color: validColor(document.getElementById('assetAccountColor').value) || view.color,
       note: document.getElementById('assetAccountNote').value.trim().slice(0, 80)
     };
+    var next = {
+      title: previous.title,
+      balance: balance,
+      color: previous.color,
+      note: previous.note
+    };
+    if (world.id === 'meta') Object.assign(next, appearance);
+    else world.appearance.accounts[id] = appearance;
     if (staticAccountConfig(id)) {
       next.items = normalizeSavingsItems(previous.items, id, balance);
       var detailedTotal = savingsTotal(next.items);
@@ -1279,6 +1347,7 @@
   global.WalletAssets = Object.freeze({
     mount: mount,
     render: render,
+    openAccountEditor: openEditor,
     saveEditor: saveEditor,
     saveSavingsItem: saveSavingsItem,
     saveGoal: saveGoal,

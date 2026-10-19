@@ -668,17 +668,20 @@ test('goal, account, item, book and record edits preserve the chosen stage and c
   } });
   app.nodes.get('assetGoalAmount').value = '5000';
   app.window.WalletAssets.saveGoal();
-  const stage = app.stored().stage;
+  let stage = app.stored().stage;
+  const identity = value => [value.activeWorldId, value.worlds.map(world => [world.id, world.title])];
   for (const [id, value] of Object.entries({ assetAccountId: 'mercari', assetAccountName: '煤炉', assetAccountBalance: '1000', assetAccountColor: '#B48A9B', assetAccountNote: '备注' })) app.nodes.get(id).value = value;
   app.window.WalletAssets.saveEditor();
-  assert.deepEqual(app.stored().stage, stage);
+  assert.deepEqual(identity(app.stored().stage), identity(stage));
+  stage = app.stored().stage;
   for (const [id, value] of Object.entries({ assetSavingsItemAccountId: 'mercari', assetSavingsItemId: 'me', assetSavingsItemName: '余额', assetSavingsItemBalance: '1200', assetSavingsItemConfirmedAt: '2026-10-20' })) app.nodes.get(id).value = value;
   app.window.WalletAssets.saveSavingsItem();
   assert.deepEqual(app.stored().stage, stage);
   app.window.WalletAssets.openExpenseBook('book1');
   app.nodes.get('assetExpenseBookName').value = '新账本';
   app.window.WalletAssets.saveExpenseBook();
-  assert.deepEqual(app.stored().stage, stage);
+  assert.deepEqual(identity(app.stored().stage), identity(stage));
+  stage = app.stored().stage;
   app.window.WalletAssets.openExpenseDetail('book1');
   app.window.WalletAssets.openExpenseRecord();
   fillExpense(app, { type: 'income', amount: '500' });
@@ -690,4 +693,158 @@ test('goal, account, item, book and record edits preserve the chosen stage and c
   app.confirmations.at(-1).onYes();
   assert.deepEqual(app.stored().stage, stage);
   assert.match(app.nodes.get('assetStageSummary').innerHTML, /金子/);
+});
+
+function sectionNames(app, id) {
+  return [...app.nodes.get(id).innerHTML.matchAll(/class="asset-account-name">([^<]+)</g)].map(match => match[1]);
+}
+
+test('each unconfigured world shows 1–6 in both views and META restores the original names and settings', () => {
+  const app = fixture({ accounts: { chinaSavings: { title: 'RMB储蓄', balance: 42, note: '中国银行 · 基金', color: '#68747A' } }, expenseBooks: [
+    { id: 'book1', title: '衣食住行', color: '#7E9AB0', note: '生活必需品', records: [
+      { id: 'out', date: '2026-10-01', type: 'expense', amount: 500, note: '午餐' }
+    ] }
+  ] });
+  app.render();
+  const accountGrid = app.nodes.get('assetAccountGrid').innerHTML;
+  const recordGrid = app.nodes.get('assetExpenseGrid').innerHTML;
+  const totals = [app.amounts(), app.expenseAmounts()];
+  for (const id of ['sacramento', 'palace', 'fox', 'heist']) {
+    app.window.WalletAssets.selectStageWorld(id);
+    assert.deepEqual(sectionNames(app, 'assetAccountGrid'), ['1', '2', '3', '4', '5', '6']);
+    assert.deepEqual(sectionNames(app, 'assetExpenseGrid'), ['1', '2', '3', '4', '5', '6']);
+    assert.doesNotMatch(app.nodes.get('assetAccountGrid').innerHTML, /中国银行 · 基金/);
+    assert.doesNotMatch(app.nodes.get('assetExpenseGrid').innerHTML, /生活必需品/);
+    assert.deepEqual([app.amounts(), app.expenseAmounts()], totals);
+  }
+  app.window.WalletAssets.selectStageWorld('meta');
+  assert.equal(app.nodes.get('assetAccountGrid').innerHTML, accountGrid);
+  assert.equal(app.nodes.get('assetExpenseGrid').innerHTML, recordGrid);
+});
+
+test('account names, colors and notes are saved per world while balances and META settings stay shared', () => {
+  const app = fixture({ accounts: { chinaSavings: { title: 'RMB储蓄', balance: 100, color: '#68747A', note: '中行' } } });
+  app.window.WalletAssets.selectStageWorld('palace');
+  app.window.WalletAssets.openAccountEditor('chinaSavings');
+  assert.equal(app.nodes.get('assetAccountName').value, '1');
+  assert.equal(app.nodes.get('assetAccountNote').value, '');
+  assert.equal(app.nodes.get('assetAccountWorldId').value, 'palace');
+  assert.equal(app.nodes.get('assetAccountBalance').value, '100');
+  app.nodes.get('assetAccountName').value = '银两';
+  app.nodes.get('assetAccountNote').value = '钱庄';
+  app.window.WalletAssets.pickColor('#87977F');
+  app.window.WalletAssets.saveEditor();
+  const saved = app.stored();
+  assert.deepEqual(saved.stage.worlds.find(world => world.id === 'palace').appearance.accounts.chinaSavings, { title: '银两', color: '#87977F', note: '钱庄' });
+  assert.equal(saved.accounts.chinaSavings.title, 'RMB储蓄');
+  assert.equal(saved.accounts.chinaSavings.note, '中行');
+  assert.equal(saved.accounts.chinaSavings.color, '#68747A');
+  assert.equal(saved.accounts.chinaSavings.balance, 100);
+  const reloaded = fixture(null, app.storage);
+  reloaded.render();
+  assert.equal(sectionNames(reloaded, 'assetAccountGrid')[0], '银两');
+  reloaded.window.WalletAssets.openAccountEditor('chinaSavings');
+  assert.equal(reloaded.nodes.get('assetAccountName').value, '银两');
+  assert.equal(reloaded.nodes.get('assetAccountColor').value, '#87977F');
+  reloaded.window.WalletAssets.selectStageWorld('fox');
+  reloaded.window.WalletAssets.openAccountEditor('chinaSavings');
+  assert.equal(reloaded.nodes.get('assetAccountName').value, '1');
+  reloaded.nodes.get('assetAccountName').value = '狐狐存款';
+  reloaded.nodes.get('assetAccountBalance').value = '200';
+  reloaded.window.WalletAssets.saveEditor();
+  reloaded.window.WalletAssets.selectStageWorld('meta');
+  reloaded.window.WalletAssets.openAccountEditor('chinaSavings');
+  assert.equal(reloaded.nodes.get('assetAccountName').value, 'RMB储蓄');
+  assert.equal(reloaded.nodes.get('assetAccountNote').value, '中行');
+  assert.equal(reloaded.nodes.get('assetAccountBalance').value, '200');
+  reloaded.nodes.get('assetAccountName').value = 'META新名字';
+  reloaded.window.WalletAssets.saveEditor();
+  reloaded.window.WalletAssets.selectStageWorld('palace');
+  assert.equal(sectionNames(reloaded, 'assetAccountGrid')[0], '银两');
+  reloaded.window.WalletAssets.selectStageWorld('fox');
+  assert.equal(sectionNames(reloaded, 'assetAccountGrid')[0], '狐狐存款');
+});
+
+test('record-section appearance follows each world and its detail while all worlds use the same entries and totals', () => {
+  const records = [{ id: 'income', date: '2026-10-01', type: 'income', amount: 1000, note: '收入' },
+    { id: 'out', date: '2026-10-02', type: 'expense', amount: 100, note: '支出' }];
+  const app = fixture({ expenseBooks: [{ id: 'book3', title: 'Goods', color: '#68747A', note: '谷', records }] });
+  app.window.WalletAssets.selectStageWorld('palace');
+  const totals = app.expenseAmounts();
+  app.window.WalletAssets.openExpenseDetail('book3');
+  assert.match(app.nodes.get('assetExpenseDetail').innerHTML, /asset-expense-title">3</);
+  app.window.WalletAssets.openExpenseBook('book3');
+  assert.equal(app.nodes.get('assetExpenseBookName').value, '3');
+  app.nodes.get('assetExpenseBookName').value = '俸禄 & 礼物';
+  app.nodes.get('assetExpenseBookNote').value = '宫中';
+  app.window.WalletAssets.pickExpenseColor('#B08A5A');
+  app.window.WalletAssets.saveExpenseBook();
+  assert.match(app.nodes.get('assetExpenseDetail').innerHTML, /俸禄 &amp; 礼物/);
+  assert.equal(app.nodes.get('assetExpenseDetail').style['--account-color'], '#B08A5A');
+  assert.equal(app.stored().expenseBooks[2].title, 'Goods');
+  assert.deepEqual(app.stored().expenseBooks[2].records, records);
+  app.window.WalletAssets.selectStageWorld('fox');
+  assert.equal(sectionNames(app, 'assetExpenseGrid')[2], '3');
+  assert.match(app.nodes.get('assetExpenseDetail').innerHTML, /asset-expense-title">3</);
+  assert.deepEqual(app.expenseAmounts(), totals);
+  app.window.WalletAssets.openExpenseRecord();
+  fillExpense(app, { type: 'income', amount: '500' });
+  app.window.WalletAssets.saveExpenseRecord();
+  assert.equal(app.stored().expenseBooks[2].records.length, 3);
+  app.window.WalletAssets.selectStageWorld('palace');
+  assert.equal(sectionNames(app, 'assetExpenseGrid')[2], '俸禄 &amp; 礼物');
+  assert.match(app.nodes.get('assetExpenseDetail').innerHTML, /JPY<\/span>1,400/);
+  app.window.WalletAssets.selectStageWorld('meta');
+  assert.equal(sectionNames(app, 'assetExpenseGrid')[2], 'Goods');
+  assert.deepEqual(app.expenseAmounts(), ['1,500', '100', '1,400', '1,400']);
+  const reloaded = fixture(null, app.storage);
+  reloaded.window.WalletAssets.selectStageWorld('palace');
+  assert.equal(sectionNames(reloaded, 'assetExpenseGrid')[2], '俸禄 &amp; 礼物');
+  assert.equal(reloaded.stored().expenseBooks[2].records.length, 3);
+});
+
+test('an editor keeps its original world even if another device changes the selected stage before saving', () => {
+  const app = fixture({ accounts: { chinaSavings: { title: 'RMB储蓄', balance: 100 } } });
+  app.window.WalletAssets.selectStageWorld('palace');
+  app.window.WalletAssets.openAccountEditor('chinaSavings');
+  app.nodes.get('assetAccountName').value = '银两';
+  app.window.WalletAssets.selectStageWorld('fox');
+  app.window.WalletAssets.saveEditor();
+  assert.equal(sectionNames(app, 'assetAccountGrid')[0], '1');
+  assert.equal(app.stored().stage.worlds.find(world => world.id === 'palace').appearance.accounts.chinaSavings.title, '银两');
+  app.window.WalletAssets.openExpenseBook('book1');
+  app.nodes.get('assetExpenseBookName').value = '狐狐日常';
+  app.window.WalletAssets.selectStageWorld('sacramento');
+  app.window.WalletAssets.saveExpenseBook();
+  assert.equal(sectionNames(app, 'assetExpenseGrid')[0], '1');
+  assert.equal(app.stored().stage.worlds.find(world => world.id === 'fox').appearance.expenseBooks.book1.title, '狐狐日常');
+  assert.equal(app.stored().expenseBooks[0].title, '账本一');
+  const before = [...app.storage];
+  app.nodes.get('assetAccountWorldId').value = 'missing';
+  app.window.WalletAssets.saveEditor();
+  app.nodes.get('assetExpenseBookWorldId').value = 'missing';
+  app.window.WalletAssets.saveExpenseBook();
+  assert.deepEqual([...app.storage], before);
+});
+
+test('malformed world appearances normalize only display settings without copying balances or records', () => {
+  const app = fixture({ accounts: { chinaSavings: { balance: 100 } }, stage: { activeWorldId: 'fox', worlds: [{ id: 'fox', appearance: {
+    accounts: { chinaSavings: { title: '  ', note: 'a'.repeat(100), color: 'bad', balance: 999999 }, unknown: { title: 'ignore' } },
+    expenseBooks: { book1: { title: '<小账本>', color: '#87977F', note: '小字', records: [{ amount: 999999 }] } }
+  } }] } });
+  const before = [...app.storage];
+  app.render();
+  assert.equal(sectionNames(app, 'assetAccountGrid')[0], '1');
+  assert.equal(sectionNames(app, 'assetExpenseGrid')[0], '&lt;小账本&gt;');
+  assert.deepEqual(app.amounts().slice(0, 2), ['100', '—']);
+  assert.deepEqual(app.expenseAmounts(), ['0', '0', '0', '0']);
+  assert.deepEqual([...app.storage], before);
+  app.nodes.get('assetGoalAmount').value = '5000';
+  app.window.WalletAssets.saveGoal();
+  const appearance = app.stored().stage.worlds.find(world => world.id === 'fox').appearance;
+  assert.deepEqual(Object.keys(appearance.accounts), ['chinaSavings']);
+  assert.equal(appearance.accounts.chinaSavings.note.length, 80);
+  assert.equal(Object.hasOwn(appearance.accounts.chinaSavings, 'balance'), false);
+  assert.equal(Object.hasOwn(appearance.expenseBooks.book1, 'records'), false);
+  assert.equal(app.stored().accounts.chinaSavings.balance, 100);
 });
