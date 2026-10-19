@@ -344,7 +344,7 @@
       '</div>' +
       '<div class="asset-summary-row">' +
         '<button class="asset-summary-entry asset-summary-goal" type="button" data-asset-goal aria-label="设置日元目标金额"><span class="asset-summary-label">目标金额</span>' + amount(summary.goal, 'JPY', '円') + '</button>' +
-        '<div class="asset-summary-entry"><span class="asset-summary-label">当前还差</span>' + amount(summary.remaining, 'JPY', '円') + '</div>' +
+        '<div class="asset-summary-entry asset-summary-remaining"><span class="asset-summary-label">当前还差</span>' + amount(summary.remaining, 'JPY', '円') + '</div>' +
       '</div>';
     target.querySelector('[data-asset-goal]').addEventListener('click', openGoalEditor);
   }
@@ -375,7 +375,7 @@
     style.id = 'walletAssetStyles';
     style.textContent =
       '#viewAccounts{background:#fff}' +
-      '.asset-board{width:100%;margin:0;padding:0;display:flex;flex-direction:column;row-gap:48px;min-height:calc(100vh - 113px);min-height:calc(100dvh - 113px)}' +
+      '.asset-board{width:100%;margin:0;padding:0 0 48px;display:flex;flex-direction:column;row-gap:48px;min-height:calc(100vh - 113px);min-height:calc(100dvh - 113px)}' +
       '.asset-account-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,220px);gap:0;min-height:0;background:#fff}' +
       '.asset-account-card{appearance:none;-webkit-appearance:none;min-width:0;position:relative;display:flex;flex-direction:column;justify-content:flex-start;text-align:left;background:#fff;border:0;border-radius:0;padding:34px clamp(20px,2.7vw,46px);color:#333;font-family:inherit;cursor:pointer;overflow:hidden;touch-action:manipulation;transition:background .12s ease}' +
       '.asset-account-card:before{content:"";position:absolute;left:clamp(20px,2.7vw,46px);right:clamp(20px,2.7vw,46px);top:0;height:1px;background:var(--account-color);opacity:.68}' +
@@ -386,11 +386,13 @@
       '.asset-account-currency{display:block;font-size:8px;letter-spacing:1.15px;color:#c0bdb8}' +
       '.asset-account-amount{display:block;margin-top:6px;font-size:clamp(23px,2.15vw,32px);line-height:1.12;font-weight:250;font-variant-numeric:tabular-nums;letter-spacing:-.45px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--account-color)}' +
       '.asset-account-note{display:block;margin-top:11px;font-size:9px;line-height:1.45;color:#aaa6a1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
-      '.asset-account-summary{margin:auto clamp(20px,2.7vw,46px) 0;padding:0 0 12px;border-top:1px solid #efede9;flex-shrink:0}' +
+      '.asset-account-summary{margin:auto clamp(20px,2.7vw,46px);padding:0 0 12px;border-top:1px solid #efede9;flex-shrink:0}' +
       '.asset-summary-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;padding:14px 0 4px;align-items:baseline}' +
       '.asset-summary-entry{display:flex;align-items:baseline;gap:7px;min-width:0;flex-wrap:wrap}' +
       '.asset-summary-amount{display:inline-flex;align-items:baseline;gap:4px;max-width:100%;min-width:0}' +
       '.asset-summary-value{font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis}' +
+      '.asset-summary-goal .asset-summary-value{color:' + COLORS[1] + '}' +
+      '.asset-summary-remaining .asset-summary-value{color:' + COLORS[0] + '}' +
       '.asset-summary-unit{flex-shrink:0}' +
       '.asset-summary-goal{appearance:none;border:0;background:none;padding:0;min-height:28px;font-family:inherit;text-align:left;cursor:pointer;touch-action:manipulation}' +
       '.asset-goal-rate{margin-top:12px;font-size:10px;color:#aaa6a1;line-height:1.6}' +
