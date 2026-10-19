@@ -36,6 +36,16 @@
   var savingsManageMode = false;
   var savingsEditorSnapshot = null;
 
+  function showAssetModal(id) {
+    if (typeof global.openModal === 'function') global.openModal(id);
+    else document.getElementById(id).classList.add('show');
+  }
+
+  function hideAssetModal(id) {
+    if (typeof global.closeModal === 'function') global.closeModal(id);
+    else document.getElementById(id).classList.remove('show');
+  }
+
   function esc(value) {
     return String(value == null ? '' : value)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -329,12 +339,12 @@
     }
     target.innerHTML =
       '<div class="asset-summary-row">' +
-        '<div class="asset-summary-entry"><span class="asset-summary-label">共计</span>' + amount(summary.cny, 'CNY', '元') + '</div>' +
-        '<div class="asset-summary-entry"><span class="asset-summary-label">共计</span>' + amount(summary.jpy, 'JPY', '円') + '</div>' +
+        '<div class="asset-summary-entry"><span class="asset-summary-label">CNY共计</span>' + amount(summary.cny, 'CNY', '元') + '</div>' +
+        '<div class="asset-summary-entry"><span class="asset-summary-label">JPY合算</span>' + amount(summary.jpy, 'JPY', '円') + '</div>' +
       '</div>' +
       '<div class="asset-summary-row">' +
-        '<button class="asset-summary-entry asset-summary-goal" type="button" data-asset-goal aria-label="设置日元目标"><span class="asset-summary-label">目标</span>' + amount(summary.goal, 'JPY', '円') + '</button>' +
-        '<div class="asset-summary-entry"><span class="asset-summary-label">距离目标</span>' + amount(summary.remaining, 'JPY', '円') + '</div>' +
+        '<button class="asset-summary-entry asset-summary-goal" type="button" data-asset-goal aria-label="设置日元目标金额"><span class="asset-summary-label">目标金额</span>' + amount(summary.goal, 'JPY', '円') + '</button>' +
+        '<div class="asset-summary-entry"><span class="asset-summary-label">当前还差</span>' + amount(summary.remaining, 'JPY', '円') + '</div>' +
       '</div>';
     target.querySelector('[data-asset-goal]').addEventListener('click', openGoalEditor);
   }
@@ -342,7 +352,7 @@
   function openGoalEditor() {
     var state = loadState();
     document.getElementById('assetGoalAmount').value = state.goalJPY == null ? '' : String(state.goalJPY);
-    document.getElementById('assetGoalModal').classList.add('show');
+    showAssetModal('assetGoalModal');
   }
 
   function saveGoal() {
@@ -355,7 +365,7 @@
     var state = loadState();
     state.goalJPY = goal;
     saveState(state);
-    document.getElementById('assetGoalModal').classList.remove('show');
+    hideAssetModal('assetGoalModal');
     render();
   }
 
@@ -592,7 +602,7 @@
     document.getElementById('assetSavingsItemConfirmedAt').value = '';
     savingsEditorSnapshot = null;
     renderMonthlyDebitEditor([]);
-    modal.classList.add('show');
+    showAssetModal('assetSavingsItemModal');
   }
 
   function openSavingsItemEditor(itemId) {
@@ -611,7 +621,7 @@
     document.getElementById('assetSavingsItemConfirmedAt').value = item[config.dateField] || '';
     savingsEditorSnapshot = { accountId: activeDetailId, itemId: item.id, balance: item.balance };
     renderMonthlyDebitEditor(config.monthly ? item.monthlyDebits : []);
-    modal.classList.add('show');
+    showAssetModal('assetSavingsItemModal');
   }
 
   function prepareSavingsItemEditor() {
@@ -754,7 +764,7 @@
     else if (hadDetailedBalance) account.balance = null;
     state.accounts[accountId] = account;
     saveState(state);
-    document.getElementById('assetSavingsItemModal').classList.remove('show');
+    hideAssetModal('assetSavingsItemModal');
     render();
     renderSavingsDetail();
     if (typeof global.showToast === 'function') global.showToast('资产已更新');
@@ -818,7 +828,7 @@
     document.getElementById('assetAccountNote').value = account.note || '';
     setEditorColor(accountColor(account, entry));
     renderColorPicker();
-    modal.classList.add('show');
+    showAssetModal('assetAccountModal');
   }
 
   function setEditorColor(color) {
@@ -872,7 +882,7 @@
     }
     state.accounts[id] = next;
     saveState(state);
-    document.getElementById('assetAccountModal').classList.remove('show');
+    hideAssetModal('assetAccountModal');
     render();
     if (typeof global.showToast === 'function') global.showToast('账户已更新');
   }

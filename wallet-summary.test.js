@@ -10,6 +10,7 @@ const recurring = fs.readFileSync('wallet-recurring.js', 'utf8');
 function fixture(state, sharedStorage) {
   const storage = sharedStorage || new Map([['wallet_accounts_v1', JSON.stringify(state)], ['wallet_db', 'legacy-untouched']]);
   const writes = [];
+  const modalCalls = [];
   const nodes = new Map();
   let now = '2026-10-19T18:30:00Z';
   function element(id) {
@@ -27,10 +28,12 @@ function fixture(state, sharedStorage) {
     static now() { return new Date(now).getTime(); }
   }
   const window = { localStorage: { getItem: key => storage.get(key) || null, setItem(key, value) { storage.set(key, value); writes.push(key); } }, showToast() {} };
+  window.openModal = id => { modalCalls.push(['open', id]); nodes.get(id).classList.add('show'); };
+  window.closeModal = id => { modalCalls.push(['close', id]); nodes.get(id).classList.remove('show'); };
   const context = vm.createContext({ window, document, Date: ClockDate, Intl });
   vm.runInContext(recurring, context);
   vm.runInContext(source, context);
-  return { window, storage, writes, nodes, time(value) { now = value; }, render() { window.WalletAssets.render(); },
+  return { window, storage, writes, nodes, modalCalls, time(value) { now = value; }, render() { window.WalletAssets.render(); },
     amounts() { return [...nodes.get('assetAccountSummary').innerHTML.matchAll(/class="asset-summary-value">([^<]+)</g)].map(match => match[1]); },
     stored() { return JSON.parse(storage.get('wallet_accounts_v1')); } };
 }
@@ -44,6 +47,7 @@ test('currency totals stay separate and the goal converts yuan to yen at the fix
   const before = [...app.storage];
   app.render();
   assert.deepEqual(app.amounts(), ['33,747.37', '2,975,082', '4,000,000', '221,409']);
+  assert.deepEqual([...app.nodes.get('assetAccountSummary').innerHTML.matchAll(/class="asset-summary-label">([^<]+)</g)].map(match => match[1]), ['CNY共计', 'JPY合算', '目标金额', '当前还差']);
   assert.deepEqual([...app.storage], before);
   assert.deepEqual(app.writes, []);
 });
@@ -68,6 +72,7 @@ test('goals can be set, reloaded and cleared while invalid amounts leave the sav
   app.render();
   assert.deepEqual(app.amounts(), ['—', '1,000', '—', '—']);
   app.nodes.get('assetAccountSummary').action();
+  assert.deepEqual(app.modalCalls, [['open', 'assetGoalModal']]);
   assert.equal(app.nodes.get('assetGoalAmount').value, '');
   for (const invalid of ['0', '-1', '1.5', 'NaN', 'Infinity']) {
     app.nodes.get('assetGoalAmount').value = invalid;
@@ -77,6 +82,7 @@ test('goals can be set, reloaded and cleared while invalid amounts leave the sav
   app.nodes.get('assetGoalAmount').value = '5000';
   app.window.WalletAssets.saveGoal();
   assert.equal(app.stored().goalJPY, 5000);
+  assert.deepEqual(app.modalCalls, [['open', 'assetGoalModal'], ['close', 'assetGoalModal']]);
   assert.deepEqual(app.amounts(), ['—', '1,000', '5,000', '4,000']);
   const reloaded = fixture(null, app.storage);
   reloaded.render();
@@ -115,9 +121,11 @@ test('saving account metadata or item dates preserves the target and other asset
   } });
   for (const [id, value] of Object.entries({assetAccountId: 'mercari', assetAccountName: '煤炉', assetAccountBalance: '1000', assetAccountColor: '#B48A9B', assetAccountNote: '备注'})) app.nodes.get(id).value = value;
   app.window.WalletAssets.saveEditor();
+  assert.deepEqual(app.modalCalls.at(-1), ['close', 'assetAccountModal']);
   assert.equal(app.stored().goalJPY, 5000000);
   for (const [id, value] of Object.entries({assetSavingsItemAccountId: 'mercari', assetSavingsItemId: 'me', assetSavingsItemName: '余额', assetSavingsItemBalance: '1200', assetSavingsItemConfirmedAt: '2026-10-20'})) app.nodes.get(id).value = value;
   app.window.WalletAssets.saveSavingsItem();
+  assert.deepEqual(app.modalCalls.at(-1), ['close', 'assetSavingsItemModal']);
   assert.equal(app.stored().goalJPY, 5000000);
   assert.equal(app.stored().accounts.mercari.items[0].confirmedAt, '2026-10-20');
   assert.equal(app.stored().accounts.chinaSavings.items[0].confirmedAt, '2026-10-02');
