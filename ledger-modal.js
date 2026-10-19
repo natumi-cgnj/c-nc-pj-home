@@ -16,7 +16,13 @@
     var timer;
     var viewport = global.visualViewport;
     var gestures = ['pointerdown', 'touchstart', 'wheel', 'keydown'];
-    function restore() { global.scrollTo(saved.x, saved.y); }
+    function restore() {
+      global.scrollTo(saved.x, saved.y);
+      if (saved.view) {
+        saved.view.scrollLeft = saved.left;
+        saved.view.scrollTop = saved.top;
+      }
+    }
     function stop() {
       global.cancelAnimationFrame(frame);
       global.clearTimeout(timer);
@@ -39,7 +45,9 @@
     if (!modal) return;
     cancelRestore();
     if (!position) {
-      position = { x: global.scrollX, y: global.scrollY };
+      var view = document.querySelector('.view.active');
+      position = { x: global.scrollX, y: global.scrollY, view: view,
+        left: view ? view.scrollLeft : 0, top: view ? view.scrollTop : 0 };
       document.documentElement.style.setProperty('--ledger-scroll-top', -position.y + 'px');
       document.documentElement.classList.add('ledger-modal-open');
     }

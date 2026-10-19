@@ -8,19 +8,20 @@
 <meta name="apple-mobile-web-app-title" content="LEDGER">
 <title>LEDGER</title>
 <style>
-html{scrollbar-width:none}html::-webkit-scrollbar{display:none}
+html{height:100%;overflow:hidden;scrollbar-width:none}html::-webkit-scrollbar{display:none}
 html.ledger-modal-open{overflow:hidden;overscroll-behavior:none}
 html.ledger-modal-open body{position:fixed;top:var(--ledger-scroll-top);left:0;right:0;overflow:hidden}
+html.ledger-modal-open .view{overflow:hidden}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;background:#fff;color:#262626;min-height:100vh;min-height:100dvh;padding-bottom:62px}
-.top-bar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;padding:15px 20px;padding-top:calc(15px + env(safe-area-inset-top,0px));background:rgba(255,255,255,.96);position:sticky;top:0;z-index:50;border-bottom:1px solid #f0f0f0}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;background:#fff;color:#262626;position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden}
+.top-bar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;padding:15px 20px;padding-top:calc(15px + env(safe-area-inset-top,0px));background:rgba(255,255,255,.96);position:relative;flex-shrink:0;z-index:50;border-bottom:1px solid #f0f0f0}
 .top-bar h1{font-size:12px;font-weight:500;letter-spacing:3.2px;color:#8d8579;white-space:nowrap}
 .back-btn{justify-self:start;font-size:13px;color:#bbb;text-decoration:none;cursor:pointer;background:none;border:none;font-family:inherit;padding:4px}
-.tab-bar{position:fixed;bottom:0;left:0;right:0;display:flex;background:rgba(255,255,255,.94);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-top:1px solid rgba(0,0,0,.06);z-index:50;padding:0 12px env(safe-area-inset-bottom,0)}
+.tab-bar{position:relative;flex-shrink:0;display:flex;background:rgba(255,255,255,.94);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-top:1px solid rgba(0,0,0,.06);z-index:50;padding:0 12px env(safe-area-inset-bottom,0)}
 .tab-bar button{position:relative;flex:1;padding:15px 0 13px;background:none;border:none;font-family:inherit;font-size:10px;letter-spacing:.25px;color:#bbb;cursor:pointer}
 .tab-bar button.active{color:#4e4a44}
 .tab-bar button.active:before{content:"";position:absolute;left:36%;right:36%;top:0;height:1px;background:#9c907c}
-.view{display:none;min-height:calc(100vh - 113px);min-height:calc(100dvh - 113px);touch-action:pan-y}.view.active{display:block}
+.view{display:none;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y}.view.active{display:block}
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:200;display:none;align-items:flex-end;justify-content:center}.modal-bg.show{display:flex}
 .modal{background:#fff;border-radius:16px 16px 0 0;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;overscroll-behavior:contain;padding:20px;animation:slideUp .25s ease-out}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
@@ -134,9 +135,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <script src="world-context.js?v=20261019-ledger-split1"></script>
 <script src="cloud-sync.js?v=20261019-ledger-split1"></script>
 <script src="app-back.js?v=20261010-home-return2"></script>
-<script src="ledger-modal.js?v=20261020-scroll1"></script>
+<script src="ledger-modal.js?v=20261020-screen1"></script>
 <script src="wallet-recurring.js?v=20261019-monthly-debits1"></script>
-<script src="wallet-assets.js?v=20261020-summary-middle1"></script>
+<script src="wallet-assets.js?v=20261020-screen1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 

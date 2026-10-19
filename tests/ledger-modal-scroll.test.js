@@ -27,6 +27,7 @@ function fixture(y = 0, withViewport = true) {
     };
   }
   const root = element('html');
+  const view = { scrollLeft: 0, scrollTop: 0 };
   const modals = new Map(['assetAccountModal', 'assetGoalModal', 'assetSavingsItemModal', 'confirmBg'].map(id => [id, element(id)]));
   const frames = new Map();
   const timers = new Map();
@@ -43,10 +44,10 @@ function fixture(y = 0, withViewport = true) {
   const document = {
     documentElement: root, activeElement: null,
     getElementById: id => modals.get(id) || null,
-    querySelector: () => [...modals.values()].find(modal => modal.classes.has('show')) || null
+    querySelector: selector => selector === '.view.active' ? view : [...modals.values()].find(modal => modal.classes.has('show')) || null
   };
   vm.runInNewContext(source, { window, document });
-  return { window, document, root, modals, frames, timers,
+  return { window, document, root, view, modals, frames, timers,
     flushFrames() { const pending = [...frames.values()]; frames.clear(); pending.forEach(callback => callback()); },
     flushTimers() { const pending = [...timers.values()]; timers.clear(); pending.forEach(callback => callback()); }
   };
@@ -129,4 +130,24 @@ test('the resize fallback works without VisualViewport and mobile modal scrollin
   assert.match(html, /html\.ledger-modal-open body\{position:fixed;top:var\(--ledger-scroll-top\)/);
   assert.match(html, /\.modal\{[^}]*overflow-y:auto;overscroll-behavior:contain/);
   assert.ok(html.indexOf('src="ledger-modal.js') < html.indexOf('src="wallet-assets.js'));
+});
+
+test('long account details keep their own scroll position after editing inside the screen shell', () => {
+  const app = fixture();
+  app.view.scrollTop = 420;
+  app.window.openModal('assetSavingsItemModal');
+  app.view.scrollTop = 480;
+  app.window.closeModal('assetSavingsItemModal');
+  assert.equal(app.window.scrollY, 0);
+  assert.equal(app.view.scrollTop, 420);
+  app.view.scrollTop = 510;
+  app.flushFrames();
+  assert.equal(app.view.scrollTop, 420, 'saving and re-rendering keep the original detail position');
+  app.view.scrollTop = 530;
+  app.window.visualViewport.dispatch('resize');
+  assert.equal(app.view.scrollTop, 420, 'keyboard dismissal also restores the content scroller');
+  app.window.dispatch('touchstart');
+  app.view.scrollTop = 600;
+  app.window.visualViewport.dispatch('resize');
+  assert.equal(app.view.scrollTop, 600, 'normal detail scrolling resumes immediately');
 });
