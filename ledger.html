@@ -62,11 +62,32 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 
 <div id="viewRecord" class="view">
-  <section class="asset-board" aria-label="六账本">
+  <section class="asset-board" id="assetExpenseBoard" aria-label="六账本">
     <div class="asset-account-grid" id="assetExpenseGrid"></div>
   </section>
+  <section class="asset-account-detail" id="assetExpenseDetail" aria-label="花销明细"></section>
 </div>
 <div id="viewDraft" class="view"></div>
+
+<!-- Expense record editor -->
+<div class="modal-bg" id="assetExpenseRecordModal">
+  <div class="modal">
+    <h2 id="assetExpenseRecordTitle">记一笔</h2>
+    <input type="hidden" id="assetExpenseRecordBookId">
+    <input type="hidden" id="assetExpenseRecordId">
+    <label for="assetExpenseRecordDate">日期</label>
+    <input type="date" id="assetExpenseRecordDate">
+    <label for="assetExpenseRecordAmount">金额（日元）</label>
+    <input type="number" id="assetExpenseRecordAmount" min="1" step="1" inputmode="numeric">
+    <label for="assetExpenseRecordNote">备注（选填）</label>
+    <input type="text" id="assetExpenseRecordNote" maxlength="120">
+    <div class="btn-row">
+      <button class="btn btn-del" id="assetExpenseRecordDelete" type="button" onclick="WalletAssets.deleteExpenseRecord()">删除</button>
+      <button class="btn btn-cancel" type="button" onclick="closeModal('assetExpenseRecordModal')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="WalletAssets.saveExpenseRecord()">保存</button>
+    </div>
+  </div>
+</div>
 
 <!-- Expense book settings -->
 <div class="modal-bg" id="assetExpenseBookModal">
@@ -160,7 +181,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script src="ledger-modal.js?v=20261020-screen1"></script>
 <script src="wallet-recurring.js?v=20261019-monthly-debits1"></script>
-<script src="wallet-assets.js?v=20261020-expenses-jpy1"></script>
+<script src="wallet-assets.js?v=20261020-expense-records1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 

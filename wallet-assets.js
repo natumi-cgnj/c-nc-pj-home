@@ -34,6 +34,7 @@
   };
   var mounted = false;
   var activeDetailId = '';
+  var activeExpenseBookId = '';
   var savingsManageMode = false;
   var savingsEditorSnapshot = null;
 
@@ -255,9 +256,40 @@
         title: String(book.title || title).trim().slice(0, 30) || title,
         currency: 'JPY',
         color: validColor(book.color) || COLORS[index],
-        note: String(book.note || '').slice(0, 80)
+        note: String(book.note || '').slice(0, 80),
+        records: normalizeExpenseRecords(book.records)
       };
     });
+  }
+
+  function expenseAmount(value) {
+    if (typeof value !== 'number' && typeof value !== 'string') return null;
+    if (String(value).trim() === '') return null;
+    var amount = Number(value);
+    return Number.isSafeInteger(amount) && amount > 0 ? amount : null;
+  }
+
+  function normalizeExpenseRecords(value) {
+    if (!Array.isArray(value)) return [];
+    var seen = Object.create(null);
+    return value.map(function (saved, index) {
+      if (!saved || typeof saved !== 'object') return null;
+      var date = String(saved.date || '');
+      var amount = expenseAmount(saved.amount);
+      if (amount == null || calendarDayDifference(date, date) == null) return null;
+      var id = String(saved.id || '').trim().slice(0, 80) || 'expenseRow' + (index + 1);
+      while (seen[id]) id += '_';
+      seen[id] = true;
+      return { id: id, date: date, amount: amount, note: String(saved.note || '').slice(0, 120) };
+    }).filter(Boolean);
+  }
+
+  function expenseToday() {
+    return global.WalletRecurring.today(new Date(Date.now() - 4 * 60 * 60 * 1000));
+  }
+
+  function expenseTotal(book) {
+    return book.records.reduce(function (total, record) { return total + record.amount; }, 0);
   }
 
   function normalizeBalance(value) {
@@ -390,12 +422,140 @@
     var grid = document.getElementById('assetExpenseGrid');
     if (!grid) return;
     grid.innerHTML = state.expenseBooks.map(function (book) {
-      return '<button class="asset-account-card" type="button" data-expense-book="' + book.id + '" style="--account-color:' + book.color + '" onclick="WalletAssets.openExpenseBook(\'' + book.id + '\')" aria-label="编辑' + esc(book.title) + '">' +
+      return '<button class="asset-account-card" type="button" data-expense-book="' + book.id + '" style="--account-color:' + book.color + '" onclick="WalletAssets.openExpenseDetail(\'' + book.id + '\')" aria-label="打开' + esc(book.title) + '">' +
         '<span class="asset-account-name">' + esc(book.title) + '</span>' +
-        '<span class="asset-account-balance"><span class="asset-account-currency">' + book.currency + '</span><span class="asset-account-amount">—</span></span>' +
+        '<span class="asset-account-balance"><span class="asset-account-currency">' + book.currency + '</span><span class="asset-account-amount">' + esc(formatBalance(expenseTotal(book), 'JPY')) + '</span></span>' +
         (book.note ? '<span class="asset-account-note">' + esc(book.note) + '</span>' : '') +
       '</button>';
     }).join('');
+  }
+
+  function openExpenseDetail(id) {
+    var book = loadState().expenseBooks.find(function (entry) { return entry.id === id; });
+    var board = document.getElementById('assetExpenseBoard');
+    var detail = document.getElementById('assetExpenseDetail');
+    if (!book || !board || !detail) return;
+    activeExpenseBookId = id;
+    board.style.display = 'none';
+    detail.classList.add('show');
+    renderExpenseDetail();
+    var view = document.getElementById('viewRecord');
+    if (view) view.scrollTop = 0;
+  }
+
+  function closeExpenseDetail() {
+    activeExpenseBookId = '';
+    var board = document.getElementById('assetExpenseBoard');
+    var detail = document.getElementById('assetExpenseDetail');
+    if (board) board.style.display = '';
+    if (detail) detail.classList.remove('show');
+    var view = document.getElementById('viewRecord');
+    if (view) view.scrollTop = 0;
+  }
+
+  function renderExpenseDetail() {
+    var target = document.getElementById('assetExpenseDetail');
+    var book = loadState().expenseBooks.find(function (entry) { return entry.id === activeExpenseBookId; });
+    if (!target || !book) return;
+    target.style.setProperty('--account-color', book.color);
+    var records = book.records.map(function (record, index) { return { record: record, index: index }; });
+    records.sort(function (left, right) {
+      return right.record.date.localeCompare(left.record.date) || right.index - left.index;
+    });
+    target.innerHTML =
+      '<div class="asset-detail-toolbar">' +
+        '<button class="asset-detail-back" type="button" data-expense-back>花销</button>' +
+        '<div class="asset-detail-heading"><div class="asset-expense-title">' + esc(book.title) + '</div>' +
+          '<div class="asset-detail-total"><span class="asset-detail-currency">JPY</span>' + esc(formatBalance(expenseTotal(book), 'JPY')) + '</div></div>' +
+        '<button class="asset-detail-edit" type="button" data-expense-settings>设置</button>' +
+      '</div>' +
+      '<button class="asset-static-add" type="button" data-expense-add>＋ 记一笔</button>' +
+      '<div class="asset-static-list">' + (records.length ? records.map(function (entry) {
+        var record = entry.record;
+        return '<button class="asset-static-row" type="button" data-expense-record="' + esc(record.id) + '" aria-label="编辑' + esc(record.note || '支出') + '">' +
+          '<span><span class="asset-static-name">' + esc(record.note || '支出') + '</span><span class="asset-static-confirmed">' + esc(record.date.replace(/-/g, '.')) + '</span></span>' +
+          '<span class="asset-static-amount">' + esc(formatBalance(record.amount, 'JPY')) + '</span></button>';
+      }).join('') : '<div class="asset-static-empty">暂无记录</div>') + '</div>';
+    target.querySelector('[data-expense-back]').addEventListener('click', closeExpenseDetail);
+    target.querySelector('[data-expense-settings]').addEventListener('click', function () { openExpenseBook(book.id); });
+    target.querySelector('[data-expense-add]').addEventListener('click', function () { openExpenseRecord(); });
+    Array.prototype.forEach.call(target.querySelectorAll('[data-expense-record]'), function (button) {
+      button.addEventListener('click', function () { openExpenseRecord(button.getAttribute('data-expense-record')); });
+    });
+  }
+
+  function openExpenseRecord(id) {
+    var book = loadState().expenseBooks.find(function (entry) { return entry.id === activeExpenseBookId; });
+    if (!book) return;
+    var record = id ? book.records.find(function (entry) { return entry.id === id; }) : null;
+    if (id && !record) return;
+    var today = expenseToday();
+    document.getElementById('assetExpenseRecordTitle').textContent = record ? '编辑花销' : '记一笔';
+    document.getElementById('assetExpenseRecordBookId').value = book.id;
+    document.getElementById('assetExpenseRecordId').value = record ? record.id : '';
+    document.getElementById('assetExpenseRecordDate').value = record ? record.date : today;
+    document.getElementById('assetExpenseRecordDate').max = today;
+    document.getElementById('assetExpenseRecordAmount').value = record ? String(record.amount) : '';
+    document.getElementById('assetExpenseRecordNote').value = record ? record.note : '';
+    document.getElementById('assetExpenseRecordDelete').style.display = record ? '' : 'none';
+    showAssetModal('assetExpenseRecordModal');
+  }
+
+  function finishExpenseRecord() {
+    document.getElementById('assetExpenseRecordBookId').value = '';
+    document.getElementById('assetExpenseRecordId').value = '';
+    hideAssetModal('assetExpenseRecordModal');
+    render();
+  }
+
+  function saveExpenseRecord() {
+    var state = loadState();
+    var bookId = document.getElementById('assetExpenseRecordBookId').value;
+    var book = state.expenseBooks.find(function (entry) { return entry.id === bookId; });
+    if (!book) return;
+    var id = document.getElementById('assetExpenseRecordId').value;
+    var existing = id ? book.records.find(function (entry) { return entry.id === id; }) : null;
+    if (id && !existing) {
+      if (typeof global.showToast === 'function') global.showToast('这笔记录已不存在');
+      return;
+    }
+    var date = document.getElementById('assetExpenseRecordDate').value;
+    var days = calendarDayDifference(date, expenseToday());
+    if (days == null || days > 0) {
+      if (typeof global.showToast === 'function') global.showToast('请选择有效日期，不能晚于当前记账日');
+      return;
+    }
+    var amount = expenseAmount(document.getElementById('assetExpenseRecordAmount').value);
+    if (amount == null || !Number.isSafeInteger(expenseTotal(book) - (existing ? existing.amount : 0) + amount)) {
+      if (typeof global.showToast === 'function') global.showToast('请输入有效的正整数日元金额');
+      return;
+    }
+    var note = document.getElementById('assetExpenseRecordNote').value.trim().slice(0, 120);
+    if (existing) {
+      existing.date = date;
+      existing.amount = amount;
+      existing.note = note;
+    } else {
+      book.records.push({ id: 'expense' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10), date: date, amount: amount, note: note });
+    }
+    saveState(state);
+    finishExpenseRecord();
+  }
+
+  function deleteExpenseRecord() {
+    var bookId = document.getElementById('assetExpenseRecordBookId').value;
+    var id = document.getElementById('assetExpenseRecordId').value;
+    var book = loadState().expenseBooks.find(function (entry) { return entry.id === bookId; });
+    if (!book || !book.records.some(function (entry) { return entry.id === id; })) return;
+    if (typeof global.customConfirm !== 'function') return;
+    global.customConfirm('删除这笔花销？', function () {
+      var state = loadState();
+      var currentBook = state.expenseBooks.find(function (entry) { return entry.id === bookId; });
+      if (!currentBook || !currentBook.records.some(function (entry) { return entry.id === id; })) return;
+      currentBook.records = currentBook.records.filter(function (entry) { return entry.id !== id; });
+      saveState(state);
+      finishExpenseRecord();
+    }, { yes: '删除', danger: true });
   }
 
   function openExpenseBook(id) {
@@ -448,7 +608,7 @@
       '.asset-account-currency{display:block;font-size:8px;letter-spacing:1.15px;color:#c0bdb8}' +
       '.asset-account-amount{display:block;margin-top:6px;font-size:clamp(23px,2.15vw,32px);line-height:1.12;font-weight:250;font-variant-numeric:tabular-nums;letter-spacing:-.45px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--account-color)}' +
       '.asset-account-note{display:block;margin-top:11px;font-size:9px;line-height:1.45;color:#aaa6a1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
-      '.asset-account-summary{margin:auto clamp(20px,2.7vw,46px);padding:0 0 12px;flex-shrink:0;transform:translateY(-18px)}' +
+      '.asset-account-summary{margin:auto clamp(20px,2.7vw,46px);padding:0 0 12px;flex-shrink:0;transform:translateY(-36px)}' +
       '.asset-summary-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;padding:14px 0 4px;align-items:baseline}' +
       '.asset-summary-entry{display:flex;align-items:baseline;gap:7px;min-width:0;flex-wrap:wrap}' +
       '.asset-summary-row>.asset-summary-entry:first-child{transform:translateX(-6px)}' +
@@ -466,6 +626,7 @@
       '.asset-detail-back,.asset-detail-edit{appearance:none;border:0;background:none;padding:2px 0;color:var(--account-color);font-family:inherit;font-size:12px;font-weight:500;line-height:1.35;letter-spacing:.25px;cursor:pointer}' +
       '.asset-detail-back{text-align:left}.asset-detail-edit{text-align:right}' +
       '.asset-detail-heading{min-width:0;text-align:center}' +
+      '.asset-expense-title{margin-bottom:8px;color:#66625e;font-size:12px;font-weight:500;letter-spacing:.35px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}' +
       '.asset-detail-total{margin-top:0;color:var(--account-color);font-size:22px;line-height:1.15;font-weight:250;font-variant-numeric:tabular-nums;letter-spacing:-.35px}' +
       '.asset-detail-currency{margin-right:7px;color:#bbb7b2;font-size:8px;letter-spacing:1.1px;vertical-align:middle}' +
       '.asset-static-list{width:100%}' +
@@ -535,6 +696,7 @@
     });
     renderAccountSummary(state);
     renderExpenseBooks(state);
+    if (activeExpenseBookId) renderExpenseDetail();
     if (staticAccountConfig(activeDetailId)) renderSavingsDetail();
 
     if (document.body.dataset.cbiWallet !== '1') {
@@ -969,6 +1131,11 @@
     saveEditor: saveEditor,
     saveSavingsItem: saveSavingsItem,
     saveGoal: saveGoal,
+    openExpenseDetail: openExpenseDetail,
+    closeExpenseDetail: closeExpenseDetail,
+    openExpenseRecord: openExpenseRecord,
+    saveExpenseRecord: saveExpenseRecord,
+    deleteExpenseRecord: deleteExpenseRecord,
     openExpenseBook: openExpenseBook,
     saveExpenseBook: saveExpenseBook,
     pickExpenseColor: pickExpenseColor,

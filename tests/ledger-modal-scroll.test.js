@@ -28,7 +28,7 @@ function fixture(y = 0, withViewport = true) {
   }
   const root = element('html');
   const view = { scrollLeft: 0, scrollTop: 0 };
-  const modals = new Map(['assetAccountModal', 'assetGoalModal', 'assetSavingsItemModal', 'confirmBg'].map(id => [id, element(id)]));
+  const modals = new Map(['assetAccountModal', 'assetGoalModal', 'assetSavingsItemModal', 'assetExpenseRecordModal', 'confirmBg'].map(id => [id, element(id)]));
   const frames = new Map();
   const timers = new Map();
   let nextId = 1;
@@ -150,4 +150,23 @@ test('long account details keep their own scroll position after editing inside t
   app.view.scrollTop = 600;
   app.window.visualViewport.dispatch('resize');
   assert.equal(app.view.scrollTop, 600, 'normal detail scrolling resumes immediately');
+});
+
+test('expense editing and a nested delete confirmation restore the long record list after the keyboard closes', () => {
+  const app = fixture();
+  app.view.scrollTop = 360;
+  app.window.openModal('assetExpenseRecordModal');
+  app.document.activeElement = { parent: 'assetExpenseRecordModal', blur() { app.document.activeElement = null; } };
+  app.view.scrollTop = 440;
+  app.window.openModal('confirmBg');
+  app.window.closeModal('confirmBg');
+  assert.equal(app.root.classes.has('ledger-modal-open'), true);
+  app.window.closeModal('assetExpenseRecordModal');
+  assert.equal(app.document.activeElement, null);
+  assert.equal(app.view.scrollTop, 360);
+  app.view.scrollTop = 420;
+  app.window.visualViewport.dispatch('resize');
+  assert.equal(app.view.scrollTop, 360);
+  assert.equal(app.window.scrollY, 0);
+  assert.equal(app.root.classes.has('ledger-modal-open'), false);
 });
