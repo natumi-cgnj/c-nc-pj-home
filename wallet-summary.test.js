@@ -187,7 +187,7 @@ test('expense book settings survive reload and remain separate from account bala
 test('goal, account and asset-item saves preserve expense records and monthly income', () => {
   const books = [
     { id: 'book2', title: '人民币花销', currency: 'CNY', color: '#7E9AB0', note: '小字', records: [
-      { id: 'expense-old', date: '2026-10-01', amount: 1250, note: '旧记录' }
+      { id: 'expense-old', date: '2026-10-01', type: 'expense', amount: 1250, note: '旧记录' }
     ] },
     { id: 'book6', title: '账本六改名', currency: 'JPY', color: '#B08A5A', note: '' }
   ];
@@ -235,8 +235,8 @@ test('invalid book IDs leave storage untouched and malformed settings keep six y
   assert.deepEqual(app.writes, []);
 });
 
-function fillExpense(app, { date = '2026-10-19', amount = '500', note = '' } = {}) {
-  for (const [id, value] of Object.entries({ assetExpenseRecordDate: date, assetExpenseRecordAmount: amount, assetExpenseRecordNote: note })) app.nodes.get(id).value = value;
+function fillExpense(app, { date = '2026-10-19', type = 'expense', amount = '500', note = '' } = {}) {
+  for (const [id, value] of Object.entries({ assetExpenseRecordDate: date, assetExpenseRecordType: type, assetExpenseRecordAmount: amount, assetExpenseRecordNote: note })) app.nodes.get(id).value = value;
 }
 
 test('each of the six books opens the same record page and keeps its spending independent', () => {
@@ -266,7 +266,7 @@ test('each of the six books opens the same record page and keeps its spending in
     assert.equal(detail.classes.has('show'), false);
   }
   assert.deepEqual(app.stored().expenseBooks.map(book => book.records.map(record => record.amount)), [[100], [200], [300], [400], [500], [600]]);
-  assert.deepEqual([...app.nodes.get('assetExpenseGrid').innerHTML.matchAll(/class="asset-account-amount">([^<]+)</g)].map(match => match[1]), ['100', '200', '300', '400', '500', '600']);
+  assert.deepEqual([...app.nodes.get('assetExpenseGrid').innerHTML.matchAll(/class="asset-account-amount">([^<]+)</g)].map(match => match[1]), ['-100', '-200', '-300', '-400', '-500', '-600']);
   assert.deepEqual(app.amounts(), accountAmounts);
   assert.equal(app.stored().accounts.chinaSavings.balance, 42);
   assert.equal(app.stored().accounts.mercari.balance, 1000);
@@ -290,9 +290,9 @@ test('expense edits, deletion confirmation and book settings keep records and to
   fillExpense(app, { date: '2026-10-03', amount: '1250', note: '<餐费 & "礼物">' });
   app.window.WalletAssets.saveExpenseRecord();
   assert.equal(app.stored().expenseBooks[2].records.length, 2);
-  assert.deepEqual(app.stored().expenseBooks[2].records[0], { id: 'first', date: '2026-10-03', amount: 1250, note: '<餐费 & "礼物">' });
+  assert.deepEqual(app.stored().expenseBooks[2].records[0], { id: 'first', date: '2026-10-03', type: 'expense', amount: 1250, note: '<餐费 & "礼物">' });
   assert.match(app.nodes.get('assetExpenseDetail').innerHTML, /&lt;餐费 &amp; &quot;礼物&quot;&gt;/);
-  assert.match(app.nodes.get('assetExpenseDetail').innerHTML, /JPY<\/span>1,450/);
+  assert.match(app.nodes.get('assetExpenseDetail').innerHTML, /JPY<\/span>-1,450/);
   app.nodes.get('assetExpenseDetail').actions['[data-expense-settings]']();
   assert.equal(app.nodes.get('assetExpenseBookName').value, 'Goods');
   app.nodes.get('assetExpenseBookName').value = '新名称';
@@ -317,7 +317,7 @@ test('expense edits, deletion confirmation and book settings keep records and to
   const reloaded = fixture(null, app.storage);
   reloaded.render();
   reloaded.window.WalletAssets.openExpenseDetail('book3');
-  assert.match(reloaded.nodes.get('assetExpenseDetail').innerHTML, /JPY<\/span>1,250/);
+  assert.match(reloaded.nodes.get('assetExpenseDetail').innerHTML, /JPY<\/span>-1,250/);
   reloaded.window.WalletAssets.openExpenseRecord('first');
   reloaded.window.WalletAssets.deleteExpenseRecord();
   reloaded.confirmations.at(-1).onYes();
@@ -401,7 +401,7 @@ test('legacy empty books and malformed records normalize on read without writing
   const before = [...app.storage];
   app.window.WalletAssets.openExpenseDetail('book2');
   const detail = app.nodes.get('assetExpenseDetail').innerHTML;
-  assert.match(detail, /JPY<\/span>150/);
+  assert.match(detail, /JPY<\/span>-150/);
   assert.doesNotMatch(detail, /<img|onclick=/);
   assert.match(detail, /&lt;img onerror=&quot;bad&quot;&gt;/);
   assert.deepEqual([...app.storage], before);
@@ -416,13 +416,17 @@ test('legacy empty books and malformed records normalize on read without writing
   assert.deepEqual(app.stored().expenseBooks[0].records, []);
 });
 
-test('expense summary combines all six books and retains negative monthly and cumulative differences', () => {
+test('ledger summary derives income and expenses from all six books and retains negative differences', () => {
   const books = Array.from({ length: 6 }, (_, index) => ({ id: 'book' + (index + 1), records: [
     { id: 'current', date: '2026-10-19', amount: (index + 1) * 100, note: '' }
   ] }));
-  books[0].records.push({ id: 'previous', date: '2026-09-01', amount: 2500, note: '' });
+  books[0].records.push(
+    { id: 'previous', date: '2026-09-01', amount: 2500, note: '' },
+    { id: 'income-current', date: '2026-10-01', type: 'income', amount: 1000, note: '' },
+    { id: 'income-previous', date: '2026-09-01', type: 'income', amount: 3000, note: '' }
+  );
   const app = fixture({ accounts: { mercari: { balance: 900000 } }, goalJPY: 2000000,
-    expenseBooks: books, monthlyIncomeJPY: { '2026-09': 3000, '2026-10': 1000 } });
+    expenseBooks: books, monthlyIncomeJPY: { '2026-09': 300000, '2026-10': 100000 } });
   const before = [...app.storage];
   app.render();
   assert.deepEqual(app.expenseAmounts(), ['1,000', '2,100', '-1,100', '-600']);
@@ -437,60 +441,68 @@ test('expense summary combines all six books and retains negative monthly and cu
   assert.deepEqual(empty.expenseAmounts(), ['0', '0', '0', '0']);
 });
 
-test('monthly income can be entered, replaced, backfilled, cleared and reloaded without changing assets or expenses', () => {
+test('income is recorded in the same book and changing its direction or date updates every total after reload', () => {
+  const legacyIncome = { '2026-09': 300000, '2026-10': 100000 };
   const app = fixture({ goalJPY: 5000, accounts: { mercari: { balance: 1000 } },
-    monthlyIncomeJPY: { '2026-09': 3000, '2026-10': 1000 },
+    monthlyIncomeJPY: legacyIncome,
     expenseBooks: [{ id: 'book2', title: 'Goods', records: [{ id: 'purchase', date: '2026-10-01', amount: 100, note: '花销' }] }] });
   app.render();
-  app.nodes.get('assetExpenseSummary').actions['[data-expense-income]']();
-  assert.deepEqual(app.modalCalls.at(-1), ['open', 'assetExpenseIncomeModal']);
-  assert.equal(app.nodes.get('assetExpenseIncomeMonth').value, '2026-10');
-  assert.equal(app.nodes.get('assetExpenseIncomeMonth').max, '2026-10');
-  assert.equal(app.nodes.get('assetExpenseIncomeAmount').value, '1000');
-  app.nodes.get('assetExpenseIncomeAmount').value = '2500';
-  app.window.WalletAssets.saveExpenseIncome();
-  assert.deepEqual(app.expenseAmounts(), ['2,500', '100', '2,400', '5,400']);
-  const savedBooks = app.stored().expenseBooks;
+  assert.deepEqual(app.expenseAmounts(), ['0', '100', '-100', '-100']);
+  app.window.WalletAssets.openExpenseDetail('book2');
+  app.window.WalletAssets.openExpenseRecord();
+  assert.equal(app.nodes.get('assetExpenseRecordType').value, 'expense');
+  fillExpense(app, { type: 'income', amount: '2500', note: '卖物进账' });
+  app.window.WalletAssets.saveExpenseRecord();
+  const id = app.stored().expenseBooks[1].records[1].id;
+  assert.equal(app.stored().expenseBooks[1].records[1].type, 'income');
+  assert.deepEqual(app.expenseAmounts(), ['2,500', '100', '2,400', '2,400']);
+  assert.match(app.nodes.get('assetExpenseDetail').innerHTML, /asset-static-amount">\+2,500/);
+  assert.match(app.nodes.get('assetExpenseDetail').innerHTML, /asset-static-amount">−100/);
+  assert.match(app.nodes.get('assetExpenseDetail').innerHTML, /JPY<\/span>2,400/);
   const savedAccounts = app.stored().accounts;
-  assert.deepEqual(app.modalCalls.at(-1), ['close', 'assetExpenseIncomeModal']);
   const reloaded = fixture(null, app.storage);
   reloaded.render();
   assert.deepEqual(reloaded.expenseAmounts(), app.expenseAmounts());
-  reloaded.nodes.get('assetExpenseSummary').actions['[data-expense-income]']();
-  reloaded.nodes.get('assetExpenseIncomeMonth').value = '2026-09';
-  reloaded.window.WalletAssets.loadExpenseIncomeMonth();
-  assert.equal(reloaded.nodes.get('assetExpenseIncomeAmount').value, '3000');
-  reloaded.nodes.get('assetExpenseIncomeAmount').value = '6000';
-  reloaded.window.WalletAssets.saveExpenseIncome();
-  assert.deepEqual(reloaded.expenseAmounts(), ['2,500', '100', '2,400', '8,400']);
-  reloaded.nodes.get('assetExpenseIncomeMonth').value = '2026-08';
-  reloaded.window.WalletAssets.loadExpenseIncomeMonth();
-  assert.equal(reloaded.nodes.get('assetExpenseIncomeAmount').value, '');
-  reloaded.nodes.get('assetExpenseIncomeAmount').value = '500';
-  reloaded.window.WalletAssets.saveExpenseIncome();
-  assert.equal(reloaded.expenseAmounts()[3], '8,900');
-  reloaded.nodes.get('assetExpenseIncomeMonth').value = '2026-09';
-  reloaded.nodes.get('assetExpenseIncomeAmount').value = '';
-  reloaded.window.WalletAssets.saveExpenseIncome();
-  assert.deepEqual(reloaded.stored().monthlyIncomeJPY, { '2026-08': 500, '2026-10': 2500 });
-  assert.deepEqual(reloaded.expenseAmounts(), ['2,500', '100', '2,400', '2,900']);
-  reloaded.nodes.get('assetExpenseIncomeMonth').value = '2026-10';
-  reloaded.nodes.get('assetExpenseIncomeAmount').value = '0';
-  reloaded.window.WalletAssets.saveExpenseIncome();
-  assert.equal(reloaded.stored().monthlyIncomeJPY['2026-10'], 0);
-  assert.deepEqual(reloaded.expenseAmounts(), ['0', '100', '-100', '400']);
-  assert.deepEqual(reloaded.stored().expenseBooks, savedBooks);
+  reloaded.window.WalletAssets.openExpenseDetail('book2');
+  reloaded.window.WalletAssets.openExpenseRecord(id);
+  assert.equal(reloaded.nodes.get('assetExpenseRecordType').value, 'income');
+  assert.equal(reloaded.nodes.get('assetExpenseRecordAmount').value, '2500');
+  fillExpense(reloaded, { type: 'income', date: '2026-09-30', amount: '1000' });
+  reloaded.window.WalletAssets.saveExpenseRecord();
+  assert.deepEqual(reloaded.expenseAmounts(), ['0', '100', '-100', '900']);
+  reloaded.window.WalletAssets.openExpenseRecord(id);
+  fillExpense(reloaded, { type: 'expense', amount: '200' });
+  reloaded.window.WalletAssets.saveExpenseRecord();
+  assert.deepEqual(reloaded.expenseAmounts(), ['0', '300', '-300', '-300']);
+  assert.match(reloaded.nodes.get('assetExpenseDetail').innerHTML, /asset-static-amount">−200/);
+  reloaded.window.WalletAssets.openExpenseRecord(id);
+  fillExpense(reloaded, { type: 'income', amount: '500' });
+  reloaded.window.WalletAssets.saveExpenseRecord();
+  assert.deepEqual(reloaded.expenseAmounts(), ['500', '100', '400', '400']);
+  reloaded.window.WalletAssets.openExpenseBook('book2');
+  reloaded.nodes.get('assetExpenseBookName').value = '新名称';
+  reloaded.window.WalletAssets.saveExpenseBook();
+  assert.equal(reloaded.stored().expenseBooks[1].records[1].type, 'income');
+  reloaded.window.WalletAssets.openExpenseRecord(id);
+  reloaded.window.WalletAssets.deleteExpenseRecord();
+  reloaded.confirmations.at(-1).onYes();
+  assert.deepEqual(reloaded.expenseAmounts(), ['0', '100', '-100', '-100']);
+  assert.deepEqual(reloaded.stored().monthlyIncomeJPY, legacyIncome);
   assert.deepEqual(reloaded.stored().accounts, savedAccounts);
   assert.equal(reloaded.stored().goalJPY, 5000);
   assert.equal(reloaded.storage.get('wallet_db'), 'legacy-untouched');
 });
 
-test('monthly totals roll at Japan calendar month boundaries and never count future dated data early', () => {
-  const app = fixture({ monthlyIncomeJPY: { '2026-09': 2500, '2026-10': 1000, '2026-11': 400 }, expenseBooks: [{ id: 'book1', records: [
+test('record-derived totals roll at Japan month boundaries and do not count future income or expenses early', () => {
+  const app = fixture({ expenseBooks: [{ id: 'book1', records: [
     { id: 'september', date: '2026-09-30', amount: 50, note: '' },
     { id: 'october', date: '2026-10-31', amount: 100, note: '' },
     { id: 'november', date: '2026-11-01', amount: 200, note: '' },
-    { id: 'future', date: '2026-11-02', amount: 300, note: '' }
+    { id: 'future', date: '2026-11-02', amount: 300, note: '' },
+    { id: 'income-september', date: '2026-09-30', type: 'income', amount: 2500, note: '' },
+    { id: 'income-october', date: '2026-10-31', type: 'income', amount: 1000, note: '' },
+    { id: 'income-november', date: '2026-11-01', type: 'income', amount: 400, note: '' },
+    { id: 'income-future', date: '2026-11-02', type: 'income', amount: 600, note: '' }
   ] }] });
   app.time('2026-10-31T14:59:59Z');
   app.render();
@@ -498,66 +510,47 @@ test('monthly totals roll at Japan calendar month boundaries and never count fut
   app.time('2026-10-31T15:00:00Z');
   app.render();
   assert.deepEqual(app.expenseAmounts(), ['400', '200', '200', '3,550']);
-  app.nodes.get('assetExpenseSummary').actions['[data-expense-income]']();
-  assert.equal(app.nodes.get('assetExpenseIncomeMonth').value, '2026-11');
   app.time('2026-11-01T15:00:00Z');
   app.render();
-  assert.deepEqual(app.expenseAmounts(), ['400', '500', '-100', '3,250']);
+  assert.deepEqual(app.expenseAmounts(), ['1,000', '500', '500', '3,850']);
   app.time('2026-11-30T15:00:00Z');
   app.render();
-  assert.deepEqual(app.expenseAmounts(), ['0', '0', '0', '3,250']);
+  assert.deepEqual(app.expenseAmounts(), ['0', '0', '0', '3,850']);
   assert.deepEqual(app.writes, []);
 });
 
-test('invalid income values or months leave storage unchanged and malformed legacy income is ignored on read', () => {
-  const app = fixture({ monthlyIncomeJPY: { '2026-10': 1000 } });
-  const before = [...app.storage];
-  app.nodes.get('assetExpenseIncomeMonth').value = '2026-10';
-  for (const amount of ['-1', '1.5', 'NaN', 'Infinity', '9007199254740992']) {
-    app.nodes.get('assetExpenseIncomeAmount').value = amount;
-    app.window.WalletAssets.saveExpenseIncome();
-    assert.deepEqual([...app.storage], before);
-  }
-  app.nodes.get('assetExpenseIncomeAmount').value = '500';
-  for (const month of ['', '0000-01', '2026-00', '2026-13', '2026-1', '2026-10-01', '2026-11', '2027-01', '<script>']) {
-    app.nodes.get('assetExpenseIncomeMonth').value = month;
-    app.window.WalletAssets.saveExpenseIncome();
-    assert.deepEqual([...app.storage], before, month);
-  }
-  assert.deepEqual(app.writes, []);
-  const malformed = fixture({ monthlyIncomeJPY: {
-    '2026-10': '1000', '2026-09': 0, '2026-08': -100, '2026-07': true,
-    '2026-06': null, '2026-05': ' ', '2026-04': 1.5, '2026-13': 999, '<img>': 200
-  } });
-  const untouched = [...malformed.storage];
-  malformed.render();
-  assert.deepEqual(malformed.expenseAmounts(), ['1,000', '0', '1,000', '1,000']);
-  assert.deepEqual([...malformed.storage], untouched);
-  malformed.nodes.get('assetGoalAmount').value = '10000';
-  malformed.window.WalletAssets.saveGoal();
-  assert.deepEqual(malformed.stored().monthlyIncomeJPY, { '2026-10': 1000, '2026-09': 0 });
-});
-
-test('expense creation, edits, deletion and book settings preserve income and immediately update the differences', () => {
+test('the retired manual-income UI is removed and any saved manual values remain inert and preserved', () => {
   const income = { '2026-10': 1000 };
   const app = fixture({ monthlyIncomeJPY: income });
-  app.window.WalletAssets.openExpenseDetail('book1');
+  const before = [...app.storage];
+  app.render();
+  assert.deepEqual(app.expenseAmounts(), ['0', '0', '0', '0']);
+  assert.equal(app.nodes.has('assetExpenseIncomeModal'), false);
+  assert.doesNotMatch(app.nodes.get('assetExpenseSummary').innerHTML, /button|data-expense-income/);
+  assert.equal(app.window.WalletAssets.saveExpenseIncome, undefined);
+  assert.equal(app.window.WalletAssets.loadExpenseIncomeMonth, undefined);
+  assert.deepEqual([...app.storage], before);
+  app.nodes.get('assetGoalAmount').value = '10000';
+  app.window.WalletAssets.saveGoal();
+  assert.deepEqual(app.stored().monthlyIncomeJPY, income);
+  assert.ok(app.stored().expenseBooks.every(book => book.records.length === 0));
+});
+
+test('all six books can record income and invalid directions cannot change storage', () => {
+  const app = fixture({});
+  for (let index = 1; index <= 6; index++) {
+    app.window.WalletAssets.openExpenseDetail('book' + index);
+    app.window.WalletAssets.openExpenseRecord();
+    fillExpense(app, { type: 'income', amount: String(index * 100) });
+    app.window.WalletAssets.saveExpenseRecord();
+  }
+  assert.deepEqual(app.expenseAmounts(), ['2,100', '0', '2,100', '2,100']);
+  assert.deepEqual([...app.nodes.get('assetExpenseGrid').innerHTML.matchAll(/class="asset-account-amount">([^<]+)</g)].map(match => match[1]), ['100', '200', '300', '400', '500', '600']);
   app.window.WalletAssets.openExpenseRecord();
-  fillExpense(app, { amount: '400' });
+  const before = [...app.storage];
+  fillExpense(app, { type: 'bad' });
   app.window.WalletAssets.saveExpenseRecord();
-  assert.deepEqual(app.expenseAmounts(), ['1,000', '400', '600', '600']);
-  const id = app.stored().expenseBooks[0].records[0].id;
-  app.window.WalletAssets.openExpenseRecord(id);
-  fillExpense(app, { amount: '1200', date: '2026-09-30' });
-  app.window.WalletAssets.saveExpenseRecord();
-  assert.deepEqual(app.expenseAmounts(), ['1,000', '0', '1,000', '-200']);
-  app.window.WalletAssets.openExpenseBook('book1');
-  app.nodes.get('assetExpenseBookName').value = '新名字';
-  app.window.WalletAssets.saveExpenseBook();
-  assert.deepEqual(app.stored().monthlyIncomeJPY, income);
-  app.window.WalletAssets.openExpenseRecord(id);
-  app.window.WalletAssets.deleteExpenseRecord();
-  app.confirmations.at(-1).onYes();
-  assert.deepEqual(app.expenseAmounts(), ['1,000', '0', '1,000', '1,000']);
-  assert.deepEqual(app.stored().monthlyIncomeJPY, income);
+  assert.deepEqual([...app.storage], before);
+  assert.equal(app.toasts.at(-1), '请选择进账或支出');
+  assert.equal(Object.hasOwn(app.stored(), 'monthlyIncomeJPY'), false, 'new storage does not recreate manual income');
 });

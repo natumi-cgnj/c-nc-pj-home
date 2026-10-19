@@ -66,24 +66,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <div class="asset-account-grid" id="assetExpenseGrid"></div>
     <div class="asset-account-summary" id="assetExpenseSummary" aria-label="进账与花销合计"></div>
   </section>
-  <section class="asset-account-detail" id="assetExpenseDetail" aria-label="花销明细"></section>
+  <section class="asset-account-detail" id="assetExpenseDetail" aria-label="账本明细"></section>
 </div>
 <div id="viewDraft" class="view"></div>
-
-<!-- Monthly income editor -->
-<div class="modal-bg" id="assetExpenseIncomeModal">
-  <div class="modal">
-    <h2>月度进账</h2>
-    <label for="assetExpenseIncomeMonth">月份</label>
-    <input type="month" id="assetExpenseIncomeMonth" min="0001-01" onchange="WalletAssets.loadExpenseIncomeMonth()">
-    <label for="assetExpenseIncomeAmount">该月进账合计（日元）</label>
-    <input type="number" id="assetExpenseIncomeAmount" min="0" step="1" inputmode="numeric">
-    <div class="btn-row">
-      <button class="btn btn-cancel" type="button" onclick="closeModal('assetExpenseIncomeModal')">取消</button>
-      <button class="btn btn-primary" type="button" onclick="WalletAssets.saveExpenseIncome()">保存</button>
-    </div>
-  </div>
-</div>
 
 <!-- Expense record editor -->
 <div class="modal-bg" id="assetExpenseRecordModal">
@@ -91,6 +76,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <h2 id="assetExpenseRecordTitle">记一笔</h2>
     <input type="hidden" id="assetExpenseRecordBookId">
     <input type="hidden" id="assetExpenseRecordId">
+    <label for="assetExpenseRecordType">收支</label>
+    <select id="assetExpenseRecordType">
+      <option value="expense">支出（−）</option>
+      <option value="income">进账（＋）</option>
+    </select>
     <label for="assetExpenseRecordDate">日期</label>
     <input type="date" id="assetExpenseRecordDate">
     <label for="assetExpenseRecordAmount">金额（日元）</label>
@@ -186,7 +176,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 <nav class="tab-bar" aria-label="LEDGER">
   <button class="active" type="button" data-ledger-tab="viewAccounts" onclick="switchTab('viewAccounts',this)">账户</button>
-  <button type="button" data-ledger-tab="viewRecord" onclick="switchTab('viewRecord',this)">花销</button>
+  <button type="button" data-ledger-tab="viewRecord" onclick="switchTab('viewRecord',this)">账本</button>
   <button type="button" data-ledger-tab="viewDraft" onclick="switchTab('viewDraft',this)">片场</button>
 </nav>
 <div class="toast" id="toast"></div>
@@ -197,7 +187,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script src="ledger-modal.js?v=20261020-screen1"></script>
 <script src="wallet-recurring.js?v=20261019-monthly-debits1"></script>
-<script src="wallet-assets.js?v=20261020-expense-summary1"></script>
+<script src="wallet-assets.js?v=20261020-ledger-income1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 

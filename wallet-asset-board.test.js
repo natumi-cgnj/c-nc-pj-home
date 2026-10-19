@@ -8,7 +8,7 @@ const cbi = fs.readFileSync('cbi-wallet.js', 'utf8');
 const cloud = fs.readFileSync('cloud-sync.js', 'utf8');
 
 assert.match(html, /switchTab\('viewAccounts',this\)[\s\S]*switchTab\('viewRecord',this\)[\s\S]*switchTab\('viewDraft',this\)/, 'new ledger has accounts followed by the two reserved tabs');
-assert.match(html, /data-ledger-tab="viewRecord"[^>]*>花销<\/button>/, 'the second tab is now expenses');
+assert.match(html, /data-ledger-tab="viewRecord"[^>]*>账本<\/button>/, 'the second tab holds income and expenses');
 assert.match(html, /id="viewRecord"[\s\S]*class="asset-account-grid" id="assetExpenseGrid"/, 'expenses reuse the same six-section grid');
 assert.match(html, /<div id="viewDraft" class="view"><\/div>/, 'reserved page stays empty');
 assert.match(legacy, /<div id="viewLedger" class="view active">/, 'legacy wallet opens the existing ledger');

@@ -243,7 +243,7 @@
       if (entry.id === 'cnFlexible') account.detailMode = 'static';
       accounts[entry.id] = account;
     });
-    return { version: 1, accounts: accounts, goalJPY: null, expenseBooks: normalizeExpenseBooks(), monthlyIncomeJPY: {} };
+    return { version: 1, accounts: accounts, goalJPY: null, expenseBooks: normalizeExpenseBooks() };
   }
 
   function normalizeExpenseBooks(value) {
@@ -280,7 +280,7 @@
       var id = String(saved.id || '').trim().slice(0, 80) || 'expenseRow' + (index + 1);
       while (seen[id]) id += '_';
       seen[id] = true;
-      return { id: id, date: date, amount: amount, note: String(saved.note || '').slice(0, 120) };
+      return { id: id, date: date, type: saved.type === 'income' ? 'income' : 'expense', amount: amount, note: String(saved.note || '').slice(0, 120) };
     }).filter(Boolean);
   }
 
@@ -289,28 +289,11 @@
   }
 
   function expenseTotal(book) {
-    return book.records.reduce(function (total, record) { return total + record.amount; }, 0);
+    return book.records.reduce(function (total, record) { return total + signedExpenseAmount(record); }, 0);
   }
 
-  function validExpenseMonth(value) {
-    return /^\d{4}-(0[1-9]|1[0-2])$/.test(value) && value.slice(0, 4) !== '0000';
-  }
-
-  function expenseIncomeAmount(value) {
-    if (typeof value !== 'number' && typeof value !== 'string') return null;
-    if (String(value).trim() === '') return null;
-    var amount = Number(value);
-    return Number.isSafeInteger(amount) && amount >= 0 ? amount : null;
-  }
-
-  function normalizeMonthlyIncome(value) {
-    var result = {};
-    if (!value || typeof value !== 'object' || Array.isArray(value)) return result;
-    Object.keys(value).forEach(function (month) {
-      var amount = expenseIncomeAmount(value[month]);
-      if (validExpenseMonth(month) && amount != null) result[month] = amount;
-    });
-    return result;
+  function signedExpenseAmount(record) {
+    return record.type === 'income' ? record.amount : -record.amount;
   }
 
   function normalizeBalance(value) {
@@ -332,7 +315,8 @@
       if (!saved || typeof saved !== 'object') return value;
       value.goalJPY = normalizeGoal(saved.goalJPY);
       value.expenseBooks = normalizeExpenseBooks(saved.expenseBooks);
-      value.monthlyIncomeJPY = normalizeMonthlyIncome(saved.monthlyIncomeJPY);
+      // Retain the retired manual-income field without counting it or migrating it into records.
+      if (Object.prototype.hasOwnProperty.call(saved, 'monthlyIncomeJPY')) value.monthlyIncomeJPY = saved.monthlyIncomeJPY;
       ACCOUNTS.forEach(function (entry) {
         var source = saved.accounts && saved.accounts[entry.id];
         if (!source || typeof source !== 'object') return;
@@ -457,17 +441,20 @@
     if (!target) return;
     var today = global.WalletRecurring.today();
     var month = today.slice(0, 7);
-    var income = state.monthlyIncomeJPY[month] || 0;
-    var totalIncome = Object.keys(state.monthlyIncomeJPY).reduce(function (total, key) {
-      return total + (key <= month ? state.monthlyIncomeJPY[key] : 0);
-    }, 0);
+    var income = 0;
+    var totalIncome = 0;
     var spent = 0;
     var totalSpent = 0;
     state.expenseBooks.forEach(function (book) {
       book.records.forEach(function (record) {
         if (record.date > today) return;
-        totalSpent += record.amount;
-        if (record.date.slice(0, 7) === month) spent += record.amount;
+        if (record.type === 'income') {
+          totalIncome += record.amount;
+          if (record.date.slice(0, 7) === month) income += record.amount;
+        } else {
+          totalSpent += record.amount;
+          if (record.date.slice(0, 7) === month) spent += record.amount;
+        }
       });
     });
     function amount(value) {
@@ -475,48 +462,13 @@
     }
     target.innerHTML =
       '<div class="asset-summary-row">' +
-        '<button class="asset-summary-entry asset-summary-income" type="button" data-expense-income aria-label="编辑当月进账"><span class="asset-summary-label">当月进账</span>' + amount(income) + '</button>' +
+        '<div class="asset-summary-entry"><span class="asset-summary-label">当月进账</span>' + amount(income) + '</div>' +
         '<div class="asset-summary-entry"><span class="asset-summary-label">当月花销</span>' + amount(spent) + '</div>' +
       '</div>' +
       '<div class="asset-summary-row">' +
         '<div class="asset-summary-entry asset-expense-monthly-difference"><span class="asset-summary-label">当月差额</span>' + amount(income - spent) + '</div>' +
         '<div class="asset-summary-entry asset-expense-total-difference"><span class="asset-summary-label">累计差额</span>' + amount(totalIncome - totalSpent) + '</div>' +
       '</div>';
-    target.querySelector('[data-expense-income]').addEventListener('click', openExpenseIncome);
-  }
-
-  function openExpenseIncome() {
-    var month = global.WalletRecurring.today().slice(0, 7);
-    document.getElementById('assetExpenseIncomeMonth').value = month;
-    document.getElementById('assetExpenseIncomeMonth').max = month;
-    loadExpenseIncomeMonth();
-    showAssetModal('assetExpenseIncomeModal');
-  }
-
-  function loadExpenseIncomeMonth() {
-    var month = document.getElementById('assetExpenseIncomeMonth').value;
-    var amount = loadState().monthlyIncomeJPY[month];
-    document.getElementById('assetExpenseIncomeAmount').value = amount == null ? '' : String(amount);
-  }
-
-  function saveExpenseIncome() {
-    var month = document.getElementById('assetExpenseIncomeMonth').value;
-    if (!validExpenseMonth(month) || month > global.WalletRecurring.today().slice(0, 7)) {
-      if (typeof global.showToast === 'function') global.showToast('请选择有效月份，不能晚于当月');
-      return;
-    }
-    var input = document.getElementById('assetExpenseIncomeAmount').value.trim();
-    var amount = expenseIncomeAmount(input);
-    if (input && amount == null) {
-      if (typeof global.showToast === 'function') global.showToast('请输入有效的非负整数日元金额');
-      return;
-    }
-    var state = loadState();
-    if (input) state.monthlyIncomeJPY[month] = amount;
-    else delete state.monthlyIncomeJPY[month];
-    saveState(state);
-    hideAssetModal('assetExpenseIncomeModal');
-    render();
   }
 
   function openExpenseDetail(id) {
@@ -553,7 +505,7 @@
     });
     target.innerHTML =
       '<div class="asset-detail-toolbar">' +
-        '<button class="asset-detail-back" type="button" data-expense-back>花销</button>' +
+        '<button class="asset-detail-back" type="button" data-expense-back>账本</button>' +
         '<div class="asset-detail-heading"><div class="asset-expense-title">' + esc(book.title) + '</div>' +
           '<div class="asset-detail-total"><span class="asset-detail-currency">JPY</span>' + esc(formatBalance(expenseTotal(book), 'JPY')) + '</div></div>' +
         '<button class="asset-detail-edit" type="button" data-expense-settings>设置</button>' +
@@ -561,9 +513,11 @@
       '<button class="asset-static-add" type="button" data-expense-add>＋ 记一笔</button>' +
       '<div class="asset-static-list">' + (records.length ? records.map(function (entry) {
         var record = entry.record;
-        return '<button class="asset-static-row" type="button" data-expense-record="' + esc(record.id) + '" aria-label="编辑' + esc(record.note || '支出') + '">' +
-          '<span><span class="asset-static-name">' + esc(record.note || '支出') + '</span><span class="asset-static-confirmed">' + esc(record.date.replace(/-/g, '.')) + '</span></span>' +
-          '<span class="asset-static-amount">' + esc(formatBalance(record.amount, 'JPY')) + '</span></button>';
+        var label = record.type === 'income' ? '进账' : '支出';
+        var sign = record.type === 'income' ? '+' : '−';
+        return '<button class="asset-static-row" type="button" data-expense-record="' + esc(record.id) + '" aria-label="编辑' + esc(record.note || label) + '">' +
+          '<span><span class="asset-static-name">' + esc(record.note || label) + '</span><span class="asset-static-confirmed">' + esc(record.date.replace(/-/g, '.')) + '</span></span>' +
+          '<span class="asset-static-amount">' + sign + esc(formatBalance(record.amount, 'JPY')) + '</span></button>';
       }).join('') : '<div class="asset-static-empty">暂无记录</div>') + '</div>';
     target.querySelector('[data-expense-back]').addEventListener('click', closeExpenseDetail);
     target.querySelector('[data-expense-settings]').addEventListener('click', function () { openExpenseBook(book.id); });
@@ -579,9 +533,10 @@
     var record = id ? book.records.find(function (entry) { return entry.id === id; }) : null;
     if (id && !record) return;
     var today = expenseToday();
-    document.getElementById('assetExpenseRecordTitle').textContent = record ? '编辑花销' : '记一笔';
+    document.getElementById('assetExpenseRecordTitle').textContent = record ? '编辑记账' : '记一笔';
     document.getElementById('assetExpenseRecordBookId').value = book.id;
     document.getElementById('assetExpenseRecordId').value = record ? record.id : '';
+    document.getElementById('assetExpenseRecordType').value = record ? record.type : 'expense';
     document.getElementById('assetExpenseRecordDate').value = record ? record.date : today;
     document.getElementById('assetExpenseRecordDate').max = today;
     document.getElementById('assetExpenseRecordAmount').value = record ? String(record.amount) : '';
@@ -614,18 +569,24 @@
       if (typeof global.showToast === 'function') global.showToast('请选择有效日期，不能晚于当前记账日');
       return;
     }
+    var type = document.getElementById('assetExpenseRecordType').value;
+    if (type !== 'income' && type !== 'expense') {
+      if (typeof global.showToast === 'function') global.showToast('请选择进账或支出');
+      return;
+    }
     var amount = expenseAmount(document.getElementById('assetExpenseRecordAmount').value);
-    if (amount == null || !Number.isSafeInteger(expenseTotal(book) - (existing ? existing.amount : 0) + amount)) {
+    if (amount == null || !Number.isSafeInteger(expenseTotal(book) - (existing ? signedExpenseAmount(existing) : 0) + (type === 'income' ? amount : -amount))) {
       if (typeof global.showToast === 'function') global.showToast('请输入有效的正整数日元金额');
       return;
     }
     var note = document.getElementById('assetExpenseRecordNote').value.trim().slice(0, 120);
     if (existing) {
       existing.date = date;
+      existing.type = type;
       existing.amount = amount;
       existing.note = note;
     } else {
-      book.records.push({ id: 'expense' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10), date: date, amount: amount, note: note });
+      book.records.push({ id: 'expense' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10), date: date, type: type, amount: amount, note: note });
     }
     saveState(state);
     finishExpenseRecord();
@@ -637,7 +598,7 @@
     var book = loadState().expenseBooks.find(function (entry) { return entry.id === bookId; });
     if (!book || !book.records.some(function (entry) { return entry.id === id; })) return;
     if (typeof global.customConfirm !== 'function') return;
-    global.customConfirm('删除这笔花销？', function () {
+    global.customConfirm('删除这条记录？', function () {
       var state = loadState();
       var currentBook = state.expenseBooks.find(function (entry) { return entry.id === bookId; });
       if (!currentBook || !currentBook.records.some(function (entry) { return entry.id === id; })) return;
@@ -709,7 +670,7 @@
       '.asset-expense-monthly-difference .asset-summary-value{color:' + COLORS[1] + '}' +
       '.asset-expense-total-difference .asset-summary-value{color:' + COLORS[0] + '}' +
       '.asset-summary-unit{flex-shrink:0}' +
-      '.asset-summary-goal,.asset-summary-income{appearance:none;border:0;background:none;padding:0;min-height:28px;font-family:inherit;text-align:left;cursor:pointer;touch-action:manipulation}' +
+      '.asset-summary-goal{appearance:none;border:0;background:none;padding:0;min-height:28px;font-family:inherit;text-align:left;cursor:pointer;touch-action:manipulation}' +
       '.asset-goal-rate{margin-top:12px;font-size:10px;color:#aaa6a1;line-height:1.6}' +
       '.asset-account-detail{display:none;min-height:100%;padding:0 clamp(20px,4vw,64px);background:#fff}' +
       '.asset-account-detail.show{display:block}' +
@@ -1223,8 +1184,6 @@
     saveEditor: saveEditor,
     saveSavingsItem: saveSavingsItem,
     saveGoal: saveGoal,
-    loadExpenseIncomeMonth: loadExpenseIncomeMonth,
-    saveExpenseIncome: saveExpenseIncome,
     openExpenseDetail: openExpenseDetail,
     closeExpenseDetail: closeExpenseDetail,
     openExpenseRecord: openExpenseRecord,
