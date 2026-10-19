@@ -131,3 +131,93 @@ test('saving account metadata or item dates preserves the target and other asset
   assert.equal(app.stored().accounts.chinaSavings.items[0].confirmedAt, '2026-10-02');
   assert.equal(app.storage.get('wallet_db'), 'legacy-untouched');
 });
+
+test('six empty expense books use the account grid without copying balances or writing on read', () => {
+  const app = fixture({ accounts: { mercari: { balance: 2817582 } } });
+  const before = [...app.storage];
+  app.render();
+  const grid = app.nodes.get('assetExpenseGrid').innerHTML;
+  assert.deepEqual([...grid.matchAll(/data-expense-book="([^"]+)"/g)].map(match => match[1]), ['book1', 'book2', 'book3', 'book4', 'book5', 'book6']);
+  assert.deepEqual([...grid.matchAll(/class="asset-account-name">([^<]+)</g)].map(match => match[1]), ['账本一', '账本二', '账本三', '账本四', '账本五', '账本六']);
+  assert.deepEqual([...grid.matchAll(/class="asset-account-amount">([^<]+)</g)].map(match => match[1]), ['—', '—', '—', '—', '—', '—']);
+  assert.deepEqual([...grid.matchAll(/--account-color:([^"]+)/g)].map(match => match[1]), ['#B08A5A', '#87977F', '#68747A', '#7E9AB0', '#A06F62', '#B48A9B']);
+  assert.deepEqual([...app.storage], before);
+  assert.deepEqual(app.writes, []);
+});
+
+test('expense book settings survive reload and remain separate from account balances and dates', () => {
+  const app = fixture({ goalJPY: 20000000, accounts: {
+    mercari: { balance: 1000, items: [{ id: 'me', title: '余额', balance: 1000, confirmedAt: '2026-10-01' }] },
+    chinaSavings: { balance: 42 }
+  } });
+  app.window.WalletAssets.openExpenseBook('book3');
+  assert.equal(app.nodes.get('assetExpenseBookName').value, '账本三');
+  assert.equal(app.nodes.get('assetExpenseBookCurrency').value, '');
+  assert.deepEqual(app.modalCalls, [['open', 'assetExpenseBookModal']]);
+  assert.deepEqual(app.writes, []);
+  app.nodes.get('assetExpenseBookName').value = '日常 & 食事';
+  app.nodes.get('assetExpenseBookCurrency').value = 'JPY';
+  app.nodes.get('assetExpenseBookNote').value = '<小字>';
+  app.window.WalletAssets.pickExpenseColor('#87977F');
+  app.window.WalletAssets.saveExpenseBook();
+  const saved = app.stored();
+  assert.deepEqual(saved.expenseBooks[2], { id: 'book3', title: '日常 & 食事', currency: 'JPY', color: '#87977F', note: '<小字>' });
+  assert.equal(saved.expenseBooks.length, 6);
+  assert.equal(saved.expenseBooks[1].title, '账本二');
+  assert.equal(saved.goalJPY, 20000000);
+  assert.equal(saved.accounts.mercari.balance, 1000);
+  assert.equal(saved.accounts.mercari.items[0].confirmedAt, '2026-10-01');
+  assert.equal(saved.accounts.chinaSavings.balance, 42);
+  assert.deepEqual(app.writes, ['wallet_accounts_v1']);
+  assert.deepEqual(app.modalCalls.at(-1), ['close', 'assetExpenseBookModal']);
+  const reloaded = fixture(null, app.storage);
+  reloaded.render();
+  assert.match(reloaded.nodes.get('assetExpenseGrid').innerHTML, /日常 &amp; 食事/);
+  assert.match(reloaded.nodes.get('assetExpenseGrid').innerHTML, /&lt;小字&gt;/);
+  reloaded.window.WalletAssets.openExpenseBook('book3');
+  assert.equal(reloaded.nodes.get('assetExpenseBookCurrency').value, 'JPY');
+  assert.equal(reloaded.nodes.get('assetExpenseBookColor').value, '#87977F');
+  assert.equal(reloaded.storage.get('wallet_db'), 'legacy-untouched');
+});
+
+test('goal, account and asset-item saves preserve the six expense book settings', () => {
+  const books = [
+    { id: 'book2', title: '人民币花销', currency: 'CNY', color: '#7E9AB0', note: '小字' },
+    { id: 'book6', title: '账本六改名', currency: 'JPY', color: '#B08A5A', note: '' }
+  ];
+  const app = fixture({ expenseBooks: books, accounts: { mercari: { balance: 1000, items: [
+    { id: 'me', title: '余额', balance: 1000, confirmedAt: '2026-10-01' }
+  ] } } });
+  app.nodes.get('assetGoalAmount').value = '5000000';
+  app.window.WalletAssets.saveGoal();
+  const snapshot = app.stored().expenseBooks;
+  assert.equal(snapshot[1].title, '人民币花销');
+  assert.equal(snapshot[5].title, '账本六改名');
+  for (const [id, value] of Object.entries({assetAccountId: 'mercari', assetAccountName: '煤炉', assetAccountBalance: '1000', assetAccountColor: '#B48A9B', assetAccountNote: '备注'})) app.nodes.get(id).value = value;
+  app.window.WalletAssets.saveEditor();
+  assert.deepEqual(app.stored().expenseBooks, snapshot);
+  for (const [id, value] of Object.entries({assetSavingsItemAccountId: 'mercari', assetSavingsItemId: 'me', assetSavingsItemName: '余额', assetSavingsItemBalance: '1200', assetSavingsItemConfirmedAt: '2026-10-20'})) app.nodes.get(id).value = value;
+  app.window.WalletAssets.saveSavingsItem();
+  assert.deepEqual(app.stored().expenseBooks, snapshot);
+});
+
+test('invalid expense book edits leave storage untouched and malformed settings keep six usable books', () => {
+  const app = fixture({ accounts: {}, expenseBooks: [
+    null,
+    {id:'book1', title:'  ', currency:'USD', color:'bad', note:'a'.repeat(100)},
+    {id:'unknown', title:'ignore'}
+  ] });
+  app.window.WalletAssets.openExpenseBook('missing');
+  assert.deepEqual(app.modalCalls, []);
+  app.window.WalletAssets.openExpenseBook('book1');
+  assert.equal(app.nodes.get('assetExpenseBookName').value, '账本一');
+  assert.equal(app.nodes.get('assetExpenseBookCurrency').value, '');
+  assert.equal(app.nodes.get('assetExpenseBookColor').value, '#B08A5A');
+  assert.equal(app.nodes.get('assetExpenseBookNote').value.length, 80);
+  app.nodes.get('assetExpenseBookCurrency').value = 'USD';
+  app.window.WalletAssets.saveExpenseBook();
+  assert.deepEqual(app.writes, []);
+  app.render();
+  assert.equal([...app.nodes.get('assetExpenseGrid').innerHTML.matchAll(/data-expense-book=/g)].length, 6);
+  assert.deepEqual(app.writes, []);
+});

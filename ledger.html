@@ -61,8 +61,37 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 </div>
 
 
-<div id="viewRecord" class="view"></div>
+<div id="viewRecord" class="view">
+  <section class="asset-board" aria-label="六账本">
+    <div class="asset-account-grid" id="assetExpenseGrid"></div>
+  </section>
+</div>
 <div id="viewDraft" class="view"></div>
+
+<!-- Expense book settings -->
+<div class="modal-bg" id="assetExpenseBookModal">
+  <div class="modal">
+    <h2>账本设置</h2>
+    <input type="hidden" id="assetExpenseBookId">
+    <label for="assetExpenseBookName">账本名称</label>
+    <input type="text" id="assetExpenseBookName" maxlength="30">
+    <label for="assetExpenseBookCurrency">币种</label>
+    <select id="assetExpenseBookCurrency">
+      <option value="">未设置</option>
+      <option value="CNY">人民币（CNY）</option>
+      <option value="JPY">日元（JPY）</option>
+    </select>
+    <label>颜色</label>
+    <input type="hidden" id="assetExpenseBookColor">
+    <div class="category-color-picker asset-inline-color-picker" id="assetExpenseBookColorPicker"></div>
+    <label for="assetExpenseBookNote">备注（选填）</label>
+    <input type="text" id="assetExpenseBookNote" maxlength="80">
+    <div class="btn-row">
+      <button class="btn btn-cancel" type="button" onclick="closeModal('assetExpenseBookModal')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="WalletAssets.saveExpenseBook()">保存</button>
+    </div>
+  </div>
+</div>
 
 <!-- Account overview editor -->
 <div class="modal-bg" id="assetAccountModal">
@@ -126,7 +155,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 <nav class="tab-bar" aria-label="LEDGER">
   <button class="active" type="button" data-ledger-tab="viewAccounts" onclick="switchTab('viewAccounts',this)">账户</button>
-  <button type="button" data-ledger-tab="viewRecord" onclick="switchTab('viewRecord',this)">记账</button>
+  <button type="button" data-ledger-tab="viewRecord" onclick="switchTab('viewRecord',this)">花销</button>
   <button type="button" data-ledger-tab="viewDraft" onclick="switchTab('viewDraft',this)">暂定</button>
 </nav>
 <div class="toast" id="toast"></div>
@@ -137,7 +166,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script src="ledger-modal.js?v=20261020-screen1"></script>
 <script src="wallet-recurring.js?v=20261019-monthly-debits1"></script>
-<script src="wallet-assets.js?v=20261020-screen1"></script>
+<script src="wallet-assets.js?v=20261020-expense-books1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 
@@ -166,7 +195,7 @@ function switchTab(viewId,button){
   if(['viewAccounts','viewRecord','viewDraft'].indexOf(viewId)<0)return;
   document.querySelectorAll('.view').forEach(function(view){view.classList.toggle('active',view.id===viewId);});
   document.querySelectorAll('[data-ledger-tab]').forEach(function(tab){tab.classList.toggle('active',tab===button);});
-  if(viewId==='viewAccounts')WalletAssets.render();
+  if(viewId==='viewAccounts'||viewId==='viewRecord')WalletAssets.render();
   var hash=viewId==='viewRecord'?'#record':viewId==='viewDraft'?'#draft':'';
   history.replaceState(null,'',location.pathname+location.search+hash);
 }
@@ -179,7 +208,7 @@ switchTab(initialView,document.querySelector('[data-ledger-tab="'+initialView+'"
 window.addEventListener('liminal-cloud-ready',function(){WalletAssets.render();});
 window.addEventListener('storage',function(event){if(event.key===WalletAssets.storageKey)WalletAssets.render();});
 function refreshAccountDate(){
-  if(document.visibilityState!=='hidden'&&document.getElementById('viewAccounts').classList.contains('active'))WalletAssets.render();
+  if(document.visibilityState!=='hidden'&&(document.getElementById('viewAccounts').classList.contains('active')||document.getElementById('viewRecord').classList.contains('active')))WalletAssets.render();
 }
 window.addEventListener('pageshow',refreshAccountDate);
 document.addEventListener('visibilitychange',refreshAccountDate);

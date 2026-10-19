@@ -12,6 +12,7 @@
     { id: 'mercari', title: 'メルカリ', currency: 'JPY', fallbackColor: '#B48A9B' }
   ];
   var COLORS = ['#B08A5A', '#87977F', '#68747A', '#7E9AB0', '#A06F62', '#B48A9B'];
+  var EXPENSE_BOOK_TITLES = ['账本一', '账本二', '账本三', '账本四', '账本五', '账本六'];
   var SAVINGS_ITEM_DEFAULTS = [
     { id: 'chinaBank', title: '中国银行' },
     { id: 'chinaFund', title: '基金账户' }
@@ -241,7 +242,22 @@
       if (entry.id === 'cnFlexible') account.detailMode = 'static';
       accounts[entry.id] = account;
     });
-    return { version: 1, accounts: accounts, goalJPY: null };
+    return { version: 1, accounts: accounts, goalJPY: null, expenseBooks: normalizeExpenseBooks() };
+  }
+
+  function normalizeExpenseBooks(value) {
+    var saved = Array.isArray(value) ? value : [];
+    return EXPENSE_BOOK_TITLES.map(function (title, index) {
+      var id = 'book' + (index + 1);
+      var book = saved.find(function (entry) { return entry && entry.id === id; }) || {};
+      return {
+        id: id,
+        title: String(book.title || title).trim().slice(0, 30) || title,
+        currency: ['CNY', 'JPY'].indexOf(book.currency) >= 0 ? book.currency : '',
+        color: validColor(book.color) || COLORS[index],
+        note: String(book.note || '').slice(0, 80)
+      };
+    });
   }
 
   function normalizeBalance(value) {
@@ -262,6 +278,7 @@
       var saved = JSON.parse(global.localStorage.getItem(STORAGE_KEY) || 'null');
       if (!saved || typeof saved !== 'object') return value;
       value.goalJPY = normalizeGoal(saved.goalJPY);
+      value.expenseBooks = normalizeExpenseBooks(saved.expenseBooks);
       ACCOUNTS.forEach(function (entry) {
         var source = saved.accounts && saved.accounts[entry.id];
         if (!source || typeof source !== 'object') return;
@@ -369,6 +386,55 @@
     render();
   }
 
+  function renderExpenseBooks(state) {
+    var grid = document.getElementById('assetExpenseGrid');
+    if (!grid) return;
+    grid.innerHTML = state.expenseBooks.map(function (book) {
+      return '<button class="asset-account-card" type="button" data-expense-book="' + book.id + '" style="--account-color:' + book.color + '" onclick="WalletAssets.openExpenseBook(\'' + book.id + '\')" aria-label="编辑' + esc(book.title) + '">' +
+        '<span class="asset-account-name">' + esc(book.title) + '</span>' +
+        '<span class="asset-account-balance"><span class="asset-account-currency">' + (book.currency || '&nbsp;') + '</span><span class="asset-account-amount">—</span></span>' +
+        (book.note ? '<span class="asset-account-note">' + esc(book.note) + '</span>' : '') +
+      '</button>';
+    }).join('');
+  }
+
+  function openExpenseBook(id) {
+    var book = loadState().expenseBooks.find(function (entry) { return entry.id === id; });
+    if (!book) return;
+    document.getElementById('assetExpenseBookId').value = book.id;
+    document.getElementById('assetExpenseBookName').value = book.title;
+    document.getElementById('assetExpenseBookCurrency').value = book.currency;
+    document.getElementById('assetExpenseBookNote').value = book.note;
+    pickExpenseColor(book.color);
+    showAssetModal('assetExpenseBookModal');
+  }
+
+  function pickExpenseColor(color) {
+    var selected = validColor(color);
+    if (!selected) return;
+    document.getElementById('assetExpenseBookColor').value = selected;
+    document.getElementById('assetExpenseBookColorPicker').innerHTML = COLORS.map(function (value) {
+      var active = value === selected;
+      return '<button type="button" class="cat-color-swatch' + (active ? ' active' : '') + '" style="--swatch-color:' + value + '" onclick="WalletAssets.pickExpenseColor(\'' + value + '\')" aria-label="选择颜色 ' + value + '" aria-pressed="' + active + '"></button>';
+    }).join('');
+  }
+
+  function saveExpenseBook() {
+    var state = loadState();
+    var id = document.getElementById('assetExpenseBookId').value;
+    var book = state.expenseBooks.find(function (entry) { return entry.id === id; });
+    if (!book) return;
+    var currency = document.getElementById('assetExpenseBookCurrency').value;
+    if (['', 'CNY', 'JPY'].indexOf(currency) < 0) return;
+    book.title = document.getElementById('assetExpenseBookName').value.trim().slice(0, 30) || book.title;
+    book.currency = currency;
+    book.color = validColor(document.getElementById('assetExpenseBookColor').value) || book.color;
+    book.note = document.getElementById('assetExpenseBookNote').value.trim().slice(0, 80);
+    saveState(state);
+    hideAssetModal('assetExpenseBookModal');
+    render();
+  }
+
   function injectStyles() {
     if (document.getElementById('walletAssetStyles')) return;
     var style = document.createElement('style');
@@ -386,7 +452,7 @@
       '.asset-account-currency{display:block;font-size:8px;letter-spacing:1.15px;color:#c0bdb8}' +
       '.asset-account-amount{display:block;margin-top:6px;font-size:clamp(23px,2.15vw,32px);line-height:1.12;font-weight:250;font-variant-numeric:tabular-nums;letter-spacing:-.45px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--account-color)}' +
       '.asset-account-note{display:block;margin-top:11px;font-size:9px;line-height:1.45;color:#aaa6a1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
-      '.asset-account-summary{margin:auto clamp(20px,2.7vw,46px);padding:0 0 12px;border-top:1px solid #efede9;flex-shrink:0}' +
+      '.asset-account-summary{margin:auto clamp(20px,2.7vw,46px);padding:0 0 12px;flex-shrink:0;transform:translateY(-18px)}' +
       '.asset-summary-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;padding:14px 0 4px;align-items:baseline}' +
       '.asset-summary-entry{display:flex;align-items:baseline;gap:7px;min-width:0;flex-wrap:wrap}' +
       '.asset-summary-amount{display:inline-flex;align-items:baseline;gap:4px;max-width:100%;min-width:0}' +
@@ -470,6 +536,7 @@
       });
     });
     renderAccountSummary(state);
+    renderExpenseBooks(state);
     if (staticAccountConfig(activeDetailId)) renderSavingsDetail();
 
     if (document.body.dataset.cbiWallet !== '1') {
@@ -904,6 +971,9 @@
     saveEditor: saveEditor,
     saveSavingsItem: saveSavingsItem,
     saveGoal: saveGoal,
+    openExpenseBook: openExpenseBook,
+    saveExpenseBook: saveExpenseBook,
+    pickExpenseColor: pickExpenseColor,
     addMonthlyDebit: addMonthlyDebit,
     pickColor: pickColor,
     storageKey: STORAGE_KEY
