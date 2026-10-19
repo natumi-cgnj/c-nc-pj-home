@@ -720,7 +720,7 @@
     var target = document.getElementById('assetStageSummary');
     if (!target) return;
     var current = state.stage.worlds.find(function (world) { return world.id === state.stage.activeWorldId; });
-    target.innerHTML = '<button class="asset-stage-current" type="button" data-stage-open aria-label="选择或编辑片场"><span class="asset-summary-label">' + esc(current.title) + '</span><span class="asset-stage-chevron" aria-hidden="true">▾</span></button>';
+    target.innerHTML = '<button class="asset-stage-current" type="button" data-stage-open aria-label="选择或编辑片场"><span class="asset-summary-label">' + esc(current.title) + '</span></button>';
     target.querySelector('[data-stage-open]').addEventListener('click', openStageSelector);
     renderStageWorldList(state);
   }
@@ -817,9 +817,8 @@
       '.asset-stage-story{height:440px;flex-shrink:0;display:flex;align-items:center;justify-content:center;padding:24px clamp(20px,2.7vw,46px)}' +
       '.asset-stage-empty{font-size:10px;line-height:1.6;letter-spacing:.35px;color:#bbb7b2}' +
       '.asset-stage-summary{min-height:80px;display:flex;align-items:center;justify-content:center}' +
-      '.asset-stage-current{appearance:none;-webkit-appearance:none;display:inline-flex;align-items:center;gap:9px;min-height:44px;max-width:100%;padding:0;border:0;background:none;font-family:inherit;cursor:pointer;touch-action:manipulation}' +
+      '.asset-stage-current{appearance:none;-webkit-appearance:none;display:inline-flex;align-items:center;justify-content:center;min-height:44px;max-width:100%;padding:0;border:0;background:none;font-family:inherit;cursor:pointer;touch-action:manipulation}' +
       '.asset-stage-current .asset-summary-label{min-width:0;overflow:hidden;text-overflow:ellipsis}' +
-      '.asset-stage-chevron{font-size:10px;color:#bbb7b2}' +
       '.asset-stage-option{display:flex;align-items:center;gap:16px;border-bottom:1px solid #efede9}' +
       '.asset-stage-select,.asset-stage-edit{appearance:none;-webkit-appearance:none;border:0;background:none;font-family:inherit;cursor:pointer;touch-action:manipulation}' +
       '.asset-stage-select{display:flex;align-items:center;gap:10px;flex:1;min-width:0;padding:16px 0;color:#66625e;font-size:12px;text-align:left;overflow-wrap:anywhere}' +
