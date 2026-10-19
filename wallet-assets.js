@@ -243,7 +243,7 @@
       if (entry.id === 'cnFlexible') account.detailMode = 'static';
       accounts[entry.id] = account;
     });
-    return { version: 1, accounts: accounts, goalJPY: null, expenseBooks: normalizeExpenseBooks() };
+    return { version: 1, accounts: accounts, goalJPY: null, expenseBooks: normalizeExpenseBooks(), monthlyIncomeJPY: {} };
   }
 
   function normalizeExpenseBooks(value) {
@@ -292,6 +292,27 @@
     return book.records.reduce(function (total, record) { return total + record.amount; }, 0);
   }
 
+  function validExpenseMonth(value) {
+    return /^\d{4}-(0[1-9]|1[0-2])$/.test(value) && value.slice(0, 4) !== '0000';
+  }
+
+  function expenseIncomeAmount(value) {
+    if (typeof value !== 'number' && typeof value !== 'string') return null;
+    if (String(value).trim() === '') return null;
+    var amount = Number(value);
+    return Number.isSafeInteger(amount) && amount >= 0 ? amount : null;
+  }
+
+  function normalizeMonthlyIncome(value) {
+    var result = {};
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return result;
+    Object.keys(value).forEach(function (month) {
+      var amount = expenseIncomeAmount(value[month]);
+      if (validExpenseMonth(month) && amount != null) result[month] = amount;
+    });
+    return result;
+  }
+
   function normalizeBalance(value) {
     if (value === '' || value == null) return null;
     var number = Number(value);
@@ -311,6 +332,7 @@
       if (!saved || typeof saved !== 'object') return value;
       value.goalJPY = normalizeGoal(saved.goalJPY);
       value.expenseBooks = normalizeExpenseBooks(saved.expenseBooks);
+      value.monthlyIncomeJPY = normalizeMonthlyIncome(saved.monthlyIncomeJPY);
       ACCOUNTS.forEach(function (entry) {
         var source = saved.accounts && saved.accounts[entry.id];
         if (!source || typeof source !== 'object') return;
@@ -428,6 +450,73 @@
         (book.note ? '<span class="asset-account-note">' + esc(book.note) + '</span>' : '') +
       '</button>';
     }).join('');
+  }
+
+  function renderExpenseSummary(state) {
+    var target = document.getElementById('assetExpenseSummary');
+    if (!target) return;
+    var today = global.WalletRecurring.today();
+    var month = today.slice(0, 7);
+    var income = state.monthlyIncomeJPY[month] || 0;
+    var totalIncome = Object.keys(state.monthlyIncomeJPY).reduce(function (total, key) {
+      return total + (key <= month ? state.monthlyIncomeJPY[key] : 0);
+    }, 0);
+    var spent = 0;
+    var totalSpent = 0;
+    state.expenseBooks.forEach(function (book) {
+      book.records.forEach(function (record) {
+        if (record.date > today) return;
+        totalSpent += record.amount;
+        if (record.date.slice(0, 7) === month) spent += record.amount;
+      });
+    });
+    function amount(value) {
+      return '<span class="asset-summary-amount"><span class="asset-summary-value">' + esc(formatBalance(value, 'JPY')) + '</span><span class="asset-summary-unit">円</span></span>';
+    }
+    target.innerHTML =
+      '<div class="asset-summary-row">' +
+        '<button class="asset-summary-entry asset-summary-income" type="button" data-expense-income aria-label="编辑当月进账"><span class="asset-summary-label">当月进账</span>' + amount(income) + '</button>' +
+        '<div class="asset-summary-entry"><span class="asset-summary-label">当月花销</span>' + amount(spent) + '</div>' +
+      '</div>' +
+      '<div class="asset-summary-row">' +
+        '<div class="asset-summary-entry asset-expense-monthly-difference"><span class="asset-summary-label">当月差额</span>' + amount(income - spent) + '</div>' +
+        '<div class="asset-summary-entry asset-expense-total-difference"><span class="asset-summary-label">累计差额</span>' + amount(totalIncome - totalSpent) + '</div>' +
+      '</div>';
+    target.querySelector('[data-expense-income]').addEventListener('click', openExpenseIncome);
+  }
+
+  function openExpenseIncome() {
+    var month = global.WalletRecurring.today().slice(0, 7);
+    document.getElementById('assetExpenseIncomeMonth').value = month;
+    document.getElementById('assetExpenseIncomeMonth').max = month;
+    loadExpenseIncomeMonth();
+    showAssetModal('assetExpenseIncomeModal');
+  }
+
+  function loadExpenseIncomeMonth() {
+    var month = document.getElementById('assetExpenseIncomeMonth').value;
+    var amount = loadState().monthlyIncomeJPY[month];
+    document.getElementById('assetExpenseIncomeAmount').value = amount == null ? '' : String(amount);
+  }
+
+  function saveExpenseIncome() {
+    var month = document.getElementById('assetExpenseIncomeMonth').value;
+    if (!validExpenseMonth(month) || month > global.WalletRecurring.today().slice(0, 7)) {
+      if (typeof global.showToast === 'function') global.showToast('请选择有效月份，不能晚于当月');
+      return;
+    }
+    var input = document.getElementById('assetExpenseIncomeAmount').value.trim();
+    var amount = expenseIncomeAmount(input);
+    if (input && amount == null) {
+      if (typeof global.showToast === 'function') global.showToast('请输入有效的非负整数日元金额');
+      return;
+    }
+    var state = loadState();
+    if (input) state.monthlyIncomeJPY[month] = amount;
+    else delete state.monthlyIncomeJPY[month];
+    saveState(state);
+    hideAssetModal('assetExpenseIncomeModal');
+    render();
   }
 
   function openExpenseDetail(id) {
@@ -617,8 +706,10 @@
       '.asset-summary-value{font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis}' +
       '.asset-summary-goal .asset-summary-value{color:' + COLORS[1] + '}' +
       '.asset-summary-remaining .asset-summary-value{color:' + COLORS[0] + '}' +
+      '.asset-expense-monthly-difference .asset-summary-value{color:' + COLORS[1] + '}' +
+      '.asset-expense-total-difference .asset-summary-value{color:' + COLORS[0] + '}' +
       '.asset-summary-unit{flex-shrink:0}' +
-      '.asset-summary-goal{appearance:none;border:0;background:none;padding:0;min-height:28px;font-family:inherit;text-align:left;cursor:pointer;touch-action:manipulation}' +
+      '.asset-summary-goal,.asset-summary-income{appearance:none;border:0;background:none;padding:0;min-height:28px;font-family:inherit;text-align:left;cursor:pointer;touch-action:manipulation}' +
       '.asset-goal-rate{margin-top:12px;font-size:10px;color:#aaa6a1;line-height:1.6}' +
       '.asset-account-detail{display:none;min-height:100%;padding:0 clamp(20px,4vw,64px);background:#fff}' +
       '.asset-account-detail.show{display:block}' +
@@ -696,6 +787,7 @@
     });
     renderAccountSummary(state);
     renderExpenseBooks(state);
+    renderExpenseSummary(state);
     if (activeExpenseBookId) renderExpenseDetail();
     if (staticAccountConfig(activeDetailId)) renderSavingsDetail();
 
@@ -1131,6 +1223,8 @@
     saveEditor: saveEditor,
     saveSavingsItem: saveSavingsItem,
     saveGoal: saveGoal,
+    loadExpenseIncomeMonth: loadExpenseIncomeMonth,
+    saveExpenseIncome: saveExpenseIncome,
     openExpenseDetail: openExpenseDetail,
     closeExpenseDetail: closeExpenseDetail,
     openExpenseRecord: openExpenseRecord,
