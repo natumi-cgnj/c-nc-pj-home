@@ -68,7 +68,35 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   </section>
   <section class="asset-account-detail" id="assetExpenseDetail" aria-label="账本明细"></section>
 </div>
-<div id="viewDraft" class="view"></div>
+<div id="viewDraft" class="view">
+  <section class="asset-board" aria-label="片场">
+    <div class="asset-stage-story" aria-label="任务小剧情"><p class="asset-stage-empty">暂无</p></div>
+    <div class="asset-account-summary asset-stage-summary" id="assetStageSummary"></div>
+  </section>
+</div>
+
+<!-- Stage selection and title editor -->
+<div class="modal-bg" id="assetStageWorldModal">
+  <div class="modal">
+    <h2>选择片场</h2>
+    <div id="assetStageWorldList" role="radiogroup" aria-label="当前片场"></div>
+    <div class="btn-row">
+      <button class="btn btn-cancel" type="button" onclick="closeModal('assetStageWorldModal')">关闭</button>
+    </div>
+  </div>
+</div>
+<div class="modal-bg" id="assetStageTitleModal">
+  <div class="modal">
+    <h2>编辑题目</h2>
+    <input type="hidden" id="assetStageWorldId">
+    <label for="assetStageWorldTitle">片场题目</label>
+    <input type="text" id="assetStageWorldTitle" maxlength="30">
+    <div class="btn-row">
+      <button class="btn btn-cancel" type="button" onclick="closeModal('assetStageTitleModal')">取消</button>
+      <button class="btn btn-primary" type="button" onclick="WalletAssets.saveStageWorldTitle()">保存</button>
+    </div>
+  </div>
+</div>
 
 <!-- Expense record editor -->
 <div class="modal-bg" id="assetExpenseRecordModal">
@@ -187,7 +215,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script src="ledger-modal.js?v=20261020-screen1"></script>
 <script src="wallet-recurring.js?v=20261019-monthly-debits1"></script>
-<script src="wallet-assets.js?v=20261020-ledger-income1"></script>
+<script src="wallet-assets.js?v=20261020-stage-worlds1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 
@@ -216,7 +244,7 @@ function switchTab(viewId,button){
   if(['viewAccounts','viewRecord','viewDraft'].indexOf(viewId)<0)return;
   document.querySelectorAll('.view').forEach(function(view){view.classList.toggle('active',view.id===viewId);});
   document.querySelectorAll('[data-ledger-tab]').forEach(function(tab){tab.classList.toggle('active',tab===button);});
-  if(viewId==='viewAccounts'||viewId==='viewRecord')WalletAssets.render();
+  WalletAssets.render();
   var hash=viewId==='viewRecord'?'#record':viewId==='viewDraft'?'#draft':'';
   history.replaceState(null,'',location.pathname+location.search+hash);
 }

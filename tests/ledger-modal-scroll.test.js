@@ -28,7 +28,7 @@ function fixture(y = 0, withViewport = true) {
   }
   const root = element('html');
   const view = { scrollLeft: 0, scrollTop: 0 };
-  const modals = new Map(['assetAccountModal', 'assetGoalModal', 'assetSavingsItemModal', 'assetExpenseRecordModal', 'confirmBg'].map(id => [id, element(id)]));
+  const modals = new Map(['assetAccountModal', 'assetGoalModal', 'assetSavingsItemModal', 'assetExpenseRecordModal', 'assetStageWorldModal', 'assetStageTitleModal', 'confirmBg'].map(id => [id, element(id)]));
   const frames = new Map();
   const timers = new Map();
   let nextId = 1;
@@ -169,4 +169,22 @@ test('expense editing and a nested delete confirmation restore the long record l
   assert.equal(app.view.scrollTop, 360);
   assert.equal(app.window.scrollY, 0);
   assert.equal(app.root.classes.has('ledger-modal-open'), false);
+});
+
+test('editing a stage title keeps the selector locked underneath and restores the page only after both close', () => {
+  const app = fixture();
+  app.view.scrollTop = 120;
+  app.window.openModal('assetStageWorldModal');
+  app.window.openModal('assetStageTitleModal');
+  app.document.activeElement = { parent: 'assetStageTitleModal', blur() { app.document.activeElement = null; } };
+  app.view.scrollTop = 220;
+  app.window.closeModal('assetStageTitleModal');
+  assert.equal(app.document.activeElement, null);
+  assert.equal(app.root.classes.has('ledger-modal-open'), true);
+  app.window.closeModal('assetStageWorldModal');
+  assert.equal(app.root.classes.has('ledger-modal-open'), false);
+  assert.equal(app.view.scrollTop, 120);
+  app.view.scrollTop = 200;
+  app.window.visualViewport.dispatch('resize');
+  assert.equal(app.view.scrollTop, 120);
 });

@@ -13,6 +13,13 @@
   ];
   var COLORS = ['#B08A5A', '#87977F', '#68747A', '#7E9AB0', '#A06F62', '#B48A9B'];
   var EXPENSE_BOOK_TITLES = ['账本一', '账本二', '账本三', '账本四', '账本五', '账本六'];
+  var STAGE_WORLDS = [
+    { id: 'meta', title: 'META世界' },
+    { id: 'sacramento', title: '萨克门托' },
+    { id: 'palace', title: '古代后宫' },
+    { id: 'fox', title: '狐狸AU' },
+    { id: 'heist', title: 'Leverage AU' }
+  ];
   var SAVINGS_ITEM_DEFAULTS = [
     { id: 'chinaBank', title: '中国银行' },
     { id: 'chinaFund', title: '基金账户' }
@@ -243,7 +250,19 @@
       if (entry.id === 'cnFlexible') account.detailMode = 'static';
       accounts[entry.id] = account;
     });
-    return { version: 1, accounts: accounts, goalJPY: null, expenseBooks: normalizeExpenseBooks() };
+    return { version: 1, accounts: accounts, goalJPY: null, expenseBooks: normalizeExpenseBooks(), stage: normalizeStage() };
+  }
+
+  function normalizeStage(value) {
+    var saved = value && typeof value === 'object' ? value : {};
+    var worlds = Array.isArray(saved.worlds) ? saved.worlds : [];
+    return {
+      activeWorldId: STAGE_WORLDS.some(function (world) { return world.id === saved.activeWorldId; }) ? saved.activeWorldId : 'meta',
+      worlds: STAGE_WORLDS.map(function (world) {
+        var source = worlds.find(function (entry) { return entry && entry.id === world.id; }) || {};
+        return { id: world.id, title: String(source.title || world.title).trim().slice(0, 30) || world.title };
+      })
+    };
   }
 
   function normalizeExpenseBooks(value) {
@@ -315,6 +334,7 @@
       if (!saved || typeof saved !== 'object') return value;
       value.goalJPY = normalizeGoal(saved.goalJPY);
       value.expenseBooks = normalizeExpenseBooks(saved.expenseBooks);
+      value.stage = normalizeStage(saved.stage);
       // Retain the retired manual-income field without counting it or migrating it into records.
       if (Object.prototype.hasOwnProperty.call(saved, 'monthlyIncomeJPY')) value.monthlyIncomeJPY = saved.monthlyIncomeJPY;
       ACCOUNTS.forEach(function (entry) {
@@ -641,6 +661,72 @@
     render();
   }
 
+  function renderStage(state) {
+    var target = document.getElementById('assetStageSummary');
+    if (!target) return;
+    var current = state.stage.worlds.find(function (world) { return world.id === state.stage.activeWorldId; });
+    target.innerHTML = '<button class="asset-stage-current" type="button" data-stage-open aria-label="选择或编辑片场"><span class="asset-summary-label">' + esc(current.title) + '</span><span class="asset-stage-chevron" aria-hidden="true">▾</span></button>';
+    target.querySelector('[data-stage-open]').addEventListener('click', openStageSelector);
+    renderStageWorldList(state);
+  }
+
+  function renderStageWorldList(state) {
+    var list = document.getElementById('assetStageWorldList');
+    if (!list) return;
+    list.innerHTML = state.stage.worlds.map(function (world) {
+      var selected = world.id === state.stage.activeWorldId;
+      return '<div class="asset-stage-option">' +
+        '<button class="asset-stage-select" type="button" role="radio" aria-checked="' + selected + '" data-stage-select="' + world.id + '"><span class="asset-stage-mark" aria-hidden="true">' + (selected ? '●' : '○') + '</span><span>' + esc(world.title) + '</span></button>' +
+        '<button class="asset-stage-edit" type="button" data-stage-edit="' + world.id + '" aria-label="编辑' + esc(world.title) + '题目">编辑</button></div>';
+    }).join('');
+    Array.prototype.forEach.call(list.querySelectorAll('[data-stage-select]'), function (button) {
+      button.addEventListener('click', function () { selectStageWorld(button.getAttribute('data-stage-select')); });
+    });
+    Array.prototype.forEach.call(list.querySelectorAll('[data-stage-edit]'), function (button) {
+      button.addEventListener('click', function () { openStageWorldEditor(button.getAttribute('data-stage-edit')); });
+    });
+  }
+
+  function openStageSelector() {
+    renderStageWorldList(loadState());
+    showAssetModal('assetStageWorldModal');
+  }
+
+  function selectStageWorld(id) {
+    var state = loadState();
+    if (!state.stage.worlds.some(function (world) { return world.id === id; })) return;
+    if (state.stage.activeWorldId !== id) {
+      state.stage.activeWorldId = id;
+      saveState(state);
+    }
+    hideAssetModal('assetStageWorldModal');
+    render();
+  }
+
+  function openStageWorldEditor(id) {
+    var world = loadState().stage.worlds.find(function (entry) { return entry.id === id; });
+    if (!world) return;
+    document.getElementById('assetStageWorldId').value = id;
+    document.getElementById('assetStageWorldTitle').value = world.title;
+    showAssetModal('assetStageTitleModal');
+  }
+
+  function saveStageWorldTitle() {
+    var state = loadState();
+    var id = document.getElementById('assetStageWorldId').value;
+    var world = state.stage.worlds.find(function (entry) { return entry.id === id; });
+    if (!world) return;
+    var title = document.getElementById('assetStageWorldTitle').value.trim().slice(0, 30);
+    if (!title) {
+      if (typeof global.showToast === 'function') global.showToast('请输入片场题目');
+      return;
+    }
+    world.title = title;
+    saveState(state);
+    hideAssetModal('assetStageTitleModal');
+    render();
+  }
+
   function injectStyles() {
     if (document.getElementById('walletAssetStyles')) return;
     var style = document.createElement('style');
@@ -672,6 +758,17 @@
       '.asset-summary-unit{flex-shrink:0}' +
       '.asset-summary-goal{appearance:none;border:0;background:none;padding:0;min-height:28px;font-family:inherit;text-align:left;cursor:pointer;touch-action:manipulation}' +
       '.asset-goal-rate{margin-top:12px;font-size:10px;color:#aaa6a1;line-height:1.6}' +
+      '.asset-stage-story{height:440px;flex-shrink:0;display:flex;align-items:center;justify-content:center;padding:24px clamp(20px,2.7vw,46px)}' +
+      '.asset-stage-empty{font-size:10px;line-height:1.6;letter-spacing:.35px;color:#bbb7b2}' +
+      '.asset-stage-summary{min-height:80px;display:flex;align-items:center;justify-content:center}' +
+      '.asset-stage-current{appearance:none;-webkit-appearance:none;display:inline-flex;align-items:center;gap:9px;min-height:44px;max-width:100%;padding:0;border:0;background:none;font-family:inherit;cursor:pointer;touch-action:manipulation}' +
+      '.asset-stage-current .asset-summary-label{min-width:0;overflow:hidden;text-overflow:ellipsis}' +
+      '.asset-stage-chevron{font-size:10px;color:#bbb7b2}' +
+      '.asset-stage-option{display:flex;align-items:center;gap:16px;border-bottom:1px solid #efede9}' +
+      '.asset-stage-select,.asset-stage-edit{appearance:none;-webkit-appearance:none;border:0;background:none;font-family:inherit;cursor:pointer;touch-action:manipulation}' +
+      '.asset-stage-select{display:flex;align-items:center;gap:10px;flex:1;min-width:0;padding:16px 0;color:#66625e;font-size:12px;text-align:left;overflow-wrap:anywhere}' +
+      '.asset-stage-mark{flex-shrink:0;width:12px;color:#9c907c;font-size:10px}' +
+      '.asset-stage-edit{flex-shrink:0;padding:12px 0 12px 10px;color:#aaa6a1;font-size:10px}' +
       '.asset-account-detail{display:none;min-height:100%;padding:0 clamp(20px,4vw,64px);background:#fff}' +
       '.asset-account-detail.show{display:block}' +
       '.asset-detail-toolbar{display:grid;grid-template-columns:72px minmax(0,1fr) 72px;align-items:start;padding:23px 0 19px;border-bottom:1px solid #efede9}' +
@@ -706,7 +803,7 @@
       '.asset-static-empty{padding:30px 0;border-bottom:1px solid #efede9;color:#bbb7b2;font-size:9px;text-align:center}' +
       '.asset-inline-color-picker{justify-content:start;column-gap:14px;padding:4px 0 6px}' +
       '.asset-modal-currency{font-size:9px;color:#bbb;margin-left:5px;letter-spacing:.7px}' +
-      '@media(max-width:480px){.asset-account-grid{min-height:0;grid-template-rows:repeat(2,178px);align-content:start}.asset-account-card{padding:25px 11px}.asset-account-card:before{left:11px;right:11px}.asset-account-name,.asset-summary-label,.asset-summary-unit,.asset-summary-value{font-size:11px}.asset-account-balance{margin-top:17px}.asset-account-amount{font-size:clamp(19px,6vw,24px)}.asset-account-note{margin-top:9px;font-size:8px}.asset-summary-row{gap:12px}.asset-summary-entry{gap:5px}.asset-account-detail{padding:0 16px}.asset-detail-toolbar{grid-template-columns:58px minmax(0,1fr) 58px;padding-top:19px}.asset-static-row{padding:19px 0}.asset-static-amount{font-size:21px}}';
+      '@media(max-width:480px){.asset-account-grid{min-height:0;grid-template-rows:repeat(2,178px);align-content:start}.asset-account-card{padding:25px 11px}.asset-account-card:before{left:11px;right:11px}.asset-account-name,.asset-summary-label,.asset-summary-unit,.asset-summary-value{font-size:11px}.asset-account-balance{margin-top:17px}.asset-account-amount{font-size:clamp(19px,6vw,24px)}.asset-account-note{margin-top:9px;font-size:8px}.asset-summary-row{gap:12px}.asset-summary-entry{gap:5px}.asset-stage-story{height:356px}.asset-account-detail{padding:0 16px}.asset-detail-toolbar{grid-template-columns:58px minmax(0,1fr) 58px;padding-top:19px}.asset-static-row{padding:19px 0}.asset-static-amount{font-size:21px}}';
     document.head.appendChild(style);
   }
 
@@ -749,6 +846,7 @@
     renderAccountSummary(state);
     renderExpenseBooks(state);
     renderExpenseSummary(state);
+    renderStage(state);
     if (activeExpenseBookId) renderExpenseDetail();
     if (staticAccountConfig(activeDetailId)) renderSavingsDetail();
 
@@ -1184,6 +1282,10 @@
     saveEditor: saveEditor,
     saveSavingsItem: saveSavingsItem,
     saveGoal: saveGoal,
+    openStageSelector: openStageSelector,
+    selectStageWorld: selectStageWorld,
+    openStageWorldEditor: openStageWorldEditor,
+    saveStageWorldTitle: saveStageWorldTitle,
     openExpenseDetail: openExpenseDetail,
     closeExpenseDetail: closeExpenseDetail,
     openExpenseRecord: openExpenseRecord,

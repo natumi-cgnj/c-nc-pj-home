@@ -554,3 +554,140 @@ test('all six books can record income and invalid directions cannot change stora
   assert.equal(app.toasts.at(-1), '请选择进账或支出');
   assert.equal(Object.hasOwn(app.stored(), 'monthlyIncomeJPY'), false, 'new storage does not recreate manual income');
 });
+
+test('stage defaults to five named worlds with META selected and never writes on first render', () => {
+  const app = fixture({ accounts: {} });
+  const before = [...app.storage];
+  app.render();
+  assert.match(app.nodes.get('assetStageSummary').innerHTML, /META世界/);
+  const list = app.nodes.get('assetStageWorldList').innerHTML;
+  assert.deepEqual([...list.matchAll(/data-stage-select="([^"]+)"/g)].map(match => match[1]), ['meta', 'sacramento', 'palace', 'fox', 'heist']);
+  for (const title of ['META世界', '萨克门托', '古代后宫', '狐狸AU', 'Leverage AU']) assert.ok(list.includes(title));
+  assert.equal([...list.matchAll(/aria-checked="true"/g)].length, 1);
+  assert.match(list, /aria-checked="true" data-stage-select="meta"/);
+  app.nodes.get('assetStageSummary').actions['[data-stage-open]']();
+  assert.deepEqual(app.modalCalls.at(-1), ['open', 'assetStageWorldModal']);
+  assert.deepEqual([...app.storage], before);
+  assert.deepEqual(app.writes, []);
+});
+
+test('each world can be selected and restored without changing finances or the main app world', () => {
+  const app = fixture({ goalJPY: 5000, accounts: { mercari: { balance: 1000, items: [
+    { id: 'balance', title: '余额', balance: 1000, confirmedAt: '2026-10-01' }
+  ] } }, monthlyIncomeJPY: { '2026-09': 100 }, expenseBooks: [{ id: 'book2', title: 'Goods', records: [
+    { id: 'out', date: '2026-10-01', type: 'expense', amount: 100, note: '花销' },
+    { id: 'in', date: '2026-10-02', type: 'income', amount: 500, note: '进账' }
+  ] }] });
+  app.storage.set('omniverse_world_context', 'main-world-untouched');
+  app.nodes.get('assetGoalAmount').value = '5000';
+  app.window.WalletAssets.saveGoal();
+  const baseline = app.stored();
+  const accountTotals = app.amounts();
+  const ledgerTotals = app.expenseAmounts();
+  for (const id of ['sacramento', 'palace', 'fox', 'heist', 'meta']) {
+    app.window.WalletAssets.openStageSelector();
+    app.window.WalletAssets.selectStageWorld(id);
+    assert.equal(app.stored().stage.activeWorldId, id);
+    assert.deepEqual(app.modalCalls.at(-1), ['close', 'assetStageWorldModal']);
+    assert.deepEqual(app.stored().accounts, baseline.accounts);
+    assert.deepEqual(app.stored().expenseBooks, baseline.expenseBooks);
+    assert.deepEqual(app.stored().monthlyIncomeJPY, baseline.monthlyIncomeJPY);
+    assert.equal(app.stored().goalJPY, baseline.goalJPY);
+    assert.deepEqual(app.amounts(), accountTotals);
+    assert.deepEqual(app.expenseAmounts(), ledgerTotals);
+    const reloaded = fixture(null, app.storage);
+    reloaded.render();
+    assert.match(reloaded.nodes.get('assetStageWorldList').innerHTML, new RegExp('aria-checked="true" data-stage-select="' + id + '"'));
+    assert.deepEqual(reloaded.writes, []);
+  }
+  const writes = app.writes.length;
+  app.window.WalletAssets.selectStageWorld('meta');
+  assert.equal(app.writes.length, writes, 'selecting the current world does not save again');
+  assert.equal(app.storage.get('omniverse_world_context'), 'main-world-untouched');
+  assert.equal(app.storage.get('wallet_db'), 'legacy-untouched');
+  assert.ok(app.writes.every(key => key === 'wallet_accounts_v1'));
+});
+
+test('stage titles can be renamed independently while preserving selection, escaping HTML and keeping the selector open', () => {
+  const app = fixture({});
+  app.render();
+  app.window.WalletAssets.selectStageWorld('palace');
+  app.window.WalletAssets.openStageSelector();
+  app.window.WalletAssets.openStageWorldEditor('palace');
+  assert.equal(app.nodes.get('assetStageWorldTitle').value, '古代后宫');
+  assert.ok(app.nodes.get('assetStageWorldModal').classes.has('show'));
+  assert.ok(app.nodes.get('assetStageTitleModal').classes.has('show'));
+  app.nodes.get('assetStageWorldTitle').value = '  古风 · 新题目  ';
+  app.window.WalletAssets.saveStageWorldTitle();
+  assert.equal(app.stored().stage.activeWorldId, 'palace');
+  assert.match(app.nodes.get('assetStageSummary').innerHTML, /古风 · 新题目/);
+  assert.ok(app.nodes.get('assetStageWorldModal').classes.has('show'));
+  assert.equal(app.nodes.get('assetStageTitleModal').classes.has('show'), false);
+  app.window.WalletAssets.openStageWorldEditor('fox');
+  app.nodes.get('assetStageWorldTitle').value = '<小狐狸 & "Patrick">';
+  app.window.WalletAssets.saveStageWorldTitle();
+  assert.match(app.nodes.get('assetStageSummary').innerHTML, /古风 · 新题目/);
+  assert.match(app.nodes.get('assetStageWorldList').innerHTML, /&lt;小狐狸 &amp; &quot;Patrick&quot;&gt;/);
+  app.window.WalletAssets.selectStageWorld('fox');
+  assert.match(app.nodes.get('assetStageSummary').innerHTML, /&lt;小狐狸 &amp; &quot;Patrick&quot;&gt;/);
+  const reloaded = fixture(null, app.storage);
+  reloaded.render();
+  reloaded.window.WalletAssets.openStageWorldEditor('fox');
+  assert.equal(reloaded.nodes.get('assetStageWorldTitle').value, '<小狐狸 & "Patrick">');
+  const beforeCancel = [...reloaded.storage];
+  reloaded.nodes.get('assetStageWorldTitle').value = '不会保存';
+  reloaded.window.closeModal('assetStageTitleModal');
+  assert.deepEqual([...reloaded.storage], beforeCancel);
+});
+
+test('invalid stage IDs or empty titles leave storage untouched and malformed settings retain five valid worlds', () => {
+  const app = fixture({ stage: { activeWorldId: 'missing', worlds: [
+    null, { id: 'fox', title: '  ' }, { id: 'meta', title: 'a'.repeat(100) }, { id: 'unknown', title: 'ignore' }
+  ] } });
+  const before = [...app.storage];
+  app.render();
+  assert.match(app.nodes.get('assetStageSummary').innerHTML, new RegExp('a'.repeat(30)));
+  assert.equal([...app.nodes.get('assetStageWorldList').innerHTML.matchAll(/data-stage-select=/g)].length, 5);
+  app.window.WalletAssets.selectStageWorld('missing');
+  app.window.WalletAssets.openStageWorldEditor('missing');
+  app.nodes.get('assetStageWorldId').value = 'missing';
+  app.window.WalletAssets.saveStageWorldTitle();
+  assert.deepEqual(app.modalCalls, []);
+  app.window.WalletAssets.openStageWorldEditor('fox');
+  assert.equal(app.nodes.get('assetStageWorldTitle').value, '狐狸AU');
+  app.nodes.get('assetStageWorldTitle').value = '  ';
+  app.window.WalletAssets.saveStageWorldTitle();
+  assert.equal(app.toasts.at(-1), '请输入片场题目');
+  assert.deepEqual([...app.storage], before);
+  assert.deepEqual(app.writes, []);
+});
+
+test('goal, account, item, book and record edits preserve the chosen stage and custom titles', () => {
+  const app = fixture({ stage: { activeWorldId: 'fox', worlds: [{ id: 'fox', title: '金子' }] }, accounts: {
+    mercari: { balance: 1000, items: [{ id: 'me', title: '余额', balance: 1000, confirmedAt: '2026-10-01' }] }
+  } });
+  app.nodes.get('assetGoalAmount').value = '5000';
+  app.window.WalletAssets.saveGoal();
+  const stage = app.stored().stage;
+  for (const [id, value] of Object.entries({ assetAccountId: 'mercari', assetAccountName: '煤炉', assetAccountBalance: '1000', assetAccountColor: '#B48A9B', assetAccountNote: '备注' })) app.nodes.get(id).value = value;
+  app.window.WalletAssets.saveEditor();
+  assert.deepEqual(app.stored().stage, stage);
+  for (const [id, value] of Object.entries({ assetSavingsItemAccountId: 'mercari', assetSavingsItemId: 'me', assetSavingsItemName: '余额', assetSavingsItemBalance: '1200', assetSavingsItemConfirmedAt: '2026-10-20' })) app.nodes.get(id).value = value;
+  app.window.WalletAssets.saveSavingsItem();
+  assert.deepEqual(app.stored().stage, stage);
+  app.window.WalletAssets.openExpenseBook('book1');
+  app.nodes.get('assetExpenseBookName').value = '新账本';
+  app.window.WalletAssets.saveExpenseBook();
+  assert.deepEqual(app.stored().stage, stage);
+  app.window.WalletAssets.openExpenseDetail('book1');
+  app.window.WalletAssets.openExpenseRecord();
+  fillExpense(app, { type: 'income', amount: '500' });
+  app.window.WalletAssets.saveExpenseRecord();
+  const record = app.stored().expenseBooks[0].records[0];
+  assert.deepEqual(app.stored().stage, stage);
+  app.window.WalletAssets.openExpenseRecord(record.id);
+  app.window.WalletAssets.deleteExpenseRecord();
+  app.confirmations.at(-1).onYes();
+  assert.deepEqual(app.stored().stage, stage);
+  assert.match(app.nodes.get('assetStageSummary').innerHTML, /金子/);
+});
