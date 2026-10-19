@@ -455,6 +455,8 @@
       '.asset-account-summary{margin:auto clamp(20px,2.7vw,46px);padding:0 0 12px;flex-shrink:0;transform:translateY(-18px)}' +
       '.asset-summary-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;padding:14px 0 4px;align-items:baseline}' +
       '.asset-summary-entry{display:flex;align-items:baseline;gap:7px;min-width:0;flex-wrap:wrap}' +
+      '.asset-summary-row>.asset-summary-entry:first-child{transform:translateX(-6px)}' +
+      '.asset-summary-row>.asset-summary-entry:last-child{transform:translateX(6px)}' +
       '.asset-summary-amount{display:inline-flex;align-items:baseline;gap:4px;max-width:100%;min-width:0}' +
       '.asset-summary-value{font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis}' +
       '.asset-summary-goal .asset-summary-value{color:' + COLORS[1] + '}' +
