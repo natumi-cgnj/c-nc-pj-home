@@ -292,8 +292,13 @@
   }
 
   function navigationLabels(state) {
-    var office = state.stage.activeWorldId === 'sacramento';
-    return { accounts: office ? '经费' : '账户', world: '世界', record: office ? '报销' : '记账' };
+    var names = {
+      sacramento: ['经费', '报销'],
+      palace: ['库房', '开销'],
+      fox: ['工资', '使用'],
+      heist: ['资金', '盈亏']
+    }[state.stage.activeWorldId] || ['账户', '记账'];
+    return { accounts: names[0], world: '世界', record: names[1] };
   }
 
   function renderNavigationLabels(state) {

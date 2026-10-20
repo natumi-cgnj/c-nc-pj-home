@@ -574,7 +574,10 @@ test('stage defaults to five named worlds with META selected and never writes on
 });
 
 test('each world can be selected and restored without changing finances or the main app world', () => {
-  const app = fixture({ stage: { worlds: [{ id: 'sacramento', title: 'CBI办公室' }] }, goalJPY: 5000, accounts: { mercari: { balance: 1000, items: [
+  const app = fixture({ stage: { worlds: [
+    { id: 'sacramento', title: 'CBI办公室' }, { id: 'palace', title: '未央宫' },
+    { id: 'fox', title: 'Patrick狐狐' }, { id: 'heist', title: 'FBI TOYS' }
+  ] }, goalJPY: 5000, accounts: { mercari: { balance: 1000, items: [
     { id: 'balance', title: '余额', balance: 1000, confirmedAt: '2026-10-01' }
   ] } }, monthlyIncomeJPY: { '2026-09': 100 }, expenseBooks: [{ id: 'book2', title: 'Goods', records: [
     { id: 'out', date: '2026-10-01', type: 'expense', amount: 100, note: '花销' },
@@ -586,11 +589,15 @@ test('each world can be selected and restored without changing finances or the m
   const baseline = app.stored();
   const accountTotals = app.amounts();
   const ledgerTotals = app.expenseAmounts();
+  const worldTabs = {
+    meta: ['账户', '世界', '记账'], sacramento: ['经费', '世界', '报销'],
+    palace: ['库房', '世界', '开销'], fox: ['工资', '世界', '使用'], heist: ['资金', '世界', '盈亏']
+  };
   for (const id of ['sacramento', 'palace', 'fox', 'heist', 'meta']) {
     app.window.WalletAssets.openStageSelector();
     app.window.WalletAssets.selectStageWorld(id);
     assert.equal(app.stored().stage.activeWorldId, id);
-    assert.deepEqual(app.tabLabels(), id === 'sacramento' ? ['经费', '世界', '报销'] : ['账户', '世界', '记账']);
+    assert.deepEqual(app.tabLabels(), worldTabs[id]);
     assert.deepEqual(app.modalCalls.at(-1), ['close', 'assetStageWorldModal']);
     assert.deepEqual(app.stored().accounts, baseline.accounts);
     assert.deepEqual(app.stored().expenseBooks, baseline.expenseBooks);
