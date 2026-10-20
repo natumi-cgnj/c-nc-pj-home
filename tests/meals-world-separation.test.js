@@ -255,7 +255,7 @@ test('DIET converts WeChat steps into burn kcal and updates both daily summaries
   assert.equal(diet.elements.get('calorieNet').textContent, '287');
   assert.equal(diet.elements.get('nutritionBurn').textContent, 470);
   assert.equal(diet.elements.get('nutritionNet').textContent, '287');
-  assert.match(diet.elements.get('calorieHistory').innerHTML, /步数<\/span>.*微信步数 12,345 步.*−370 kcal/);
+  assert.match(diet.elements.get('calorieHistory').innerHTML, /calorie-kind steps">步<\/span>.*微信步数 12,345 步.*calorie-amount steps">−370 kcal/);
 });
 
 test('DIET daily step totals replace the same date without duplicating or changing manual exercise', () => {
