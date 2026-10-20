@@ -791,7 +791,7 @@
       '.asset-board{width:100%;margin:0;padding:0 0 48px;display:flex;flex-direction:column;row-gap:48px;min-height:100%}' +
       '.asset-account-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,220px);gap:0;min-height:0;background:#fff}' +
       '.asset-account-card{appearance:none;-webkit-appearance:none;min-width:0;position:relative;display:flex;flex-direction:column;justify-content:flex-start;text-align:left;background:#fff;border:0;border-radius:0;padding:34px clamp(20px,2.7vw,46px);color:#333;font-family:inherit;cursor:pointer;overflow:hidden;touch-action:manipulation;transition:background .12s ease}' +
-      '.asset-account-card:before{content:"";position:absolute;left:clamp(20px,2.7vw,46px);right:clamp(20px,2.7vw,46px);top:0;height:1px;background:var(--account-color);opacity:.68}' +
+      '.asset-account-card:before{content:"";position:absolute;left:clamp(20px,2.7vw,46px);right:clamp(20px,2.7vw,46px);top:0;height:0;border-top:1px solid var(--account-color);opacity:.68}' +
       '.asset-account-card:hover{background:#fdfcfb}' +
       '.asset-account-card:active{background:#faf9f6}' +
       '.asset-account-name,.asset-summary-label,.asset-summary-unit,.asset-summary-value{font-family:inherit;font-size:12px;line-height:1.35;font-weight:500;letter-spacing:.35px;color:#66625e;white-space:nowrap}' +
