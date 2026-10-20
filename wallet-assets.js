@@ -509,12 +509,27 @@
     if (!grid) return;
     grid.innerHTML = state.expenseBooks.map(function (book) {
       var view = expenseBookAppearance(state, book);
-      return '<button class="asset-account-card" type="button" data-expense-book="' + book.id + '" style="--account-color:' + view.color + '" onclick="WalletAssets.openExpenseDetail(\'' + book.id + '\')" aria-label="打开' + esc(view.title) + '">' +
+      return '<button class="asset-account-card" type="button" data-expense-book="' + book.id + '" style="--account-color:' + view.color + '" aria-label="打开，双击编辑' + esc(view.title) + '">' +
         '<span class="asset-account-name">' + esc(view.title) + '</span>' +
         '<span class="asset-account-balance"><span class="asset-account-currency">' + book.currency + '</span><span class="asset-account-amount">' + esc(formatBalance(expenseTotal(book), 'JPY')) + '</span></span>' +
         (view.note ? '<span class="asset-account-note">' + esc(view.note) + '</span>' : '') +
       '</button>';
     }).join('');
+    Array.prototype.forEach.call(grid.querySelectorAll('[data-expense-book]'), function (button) {
+      button.addEventListener('click', function () {
+        var id = button.getAttribute('data-expense-book');
+        if (button._assetClickTimer) {
+          global.clearTimeout(button._assetClickTimer);
+          button._assetClickTimer = null;
+          openExpenseBook(id);
+          return;
+        }
+        button._assetClickTimer = global.setTimeout(function () {
+          button._assetClickTimer = null;
+          openExpenseDetail(id);
+        }, 260);
+      });
+    });
   }
 
   function renderExpenseSummary(state) {

@@ -14,11 +14,23 @@ function fixture(state, sharedStorage) {
   const confirmations = [];
   const toasts = [];
   const nodes = new Map();
+  const timers = new Map(), expenseCards = new Map();
+  let timerSerial = 0;
   let now = '2026-10-19T18:30:00Z';
   function element(id) {
     return { id, value: '', innerHTML: '', textContent: '', style: { setProperty(name, value) { this[name] = value; } }, classes: new Set(), actions: {},
       classList: { add(name) { nodes.get(id).classes.add(name); }, remove(name) { nodes.get(id).classes.delete(name); } },
-      querySelectorAll() { return []; },
+      querySelectorAll(selector) {
+        if (id !== 'assetExpenseGrid' || selector !== '[data-expense-book]') return [];
+        expenseCards.clear();
+        return [...this.innerHTML.matchAll(/data-expense-book="([^"]+)"/g)].map(match => {
+          const bookId = match[1], handlers = {};
+          const button = { getAttribute(name) { return name === 'data-expense-book' ? bookId : null; },
+            addEventListener(type, callback) { handlers[type] = callback; }, click() { handlers.click(); } };
+          expenseCards.set(bookId, button);
+          return button;
+        });
+      },
       querySelector(selector) { return { addEventListener(type, callback) { nodes.get(id).action = callback; nodes.get(id).actions[selector] = callback; } }; }
     };
   }
@@ -29,14 +41,18 @@ function fixture(state, sharedStorage) {
     constructor(...args) { super(...(args.length ? args : [now])); }
     static now() { return new Date(now).getTime(); }
   }
-  const window = { localStorage: { getItem: key => storage.get(key) || null, setItem(key, value) { storage.set(key, value); writes.push(key); } },
+  const window = {
+    setTimeout(callback, delay) { const token = ++timerSerial; timers.set(token, { callback, delay }); return token; },
+    clearTimeout(token) { timers.delete(token); },
+    localStorage: { getItem: key => storage.get(key) || null, setItem(key, value) { storage.set(key, value); writes.push(key); } },
     showToast(message) { toasts.push(message); }, customConfirm(message, onYes, options) { confirmations.push({ message, onYes, options }); } };
   window.openModal = id => { modalCalls.push(['open', id]); nodes.get(id).classList.add('show'); };
   window.closeModal = id => { modalCalls.push(['close', id]); nodes.get(id).classList.remove('show'); };
   const context = vm.createContext({ window, document, Date: ClockDate, Intl });
   vm.runInContext(recurring, context);
   vm.runInContext(source, context);
-  return { window, storage, writes, nodes, modalCalls, confirmations, toasts, time(value) { now = value; }, render() { window.WalletAssets.render(); },
+  return { window, storage, writes, nodes, modalCalls, confirmations, toasts, expenseCards, timers,
+    flushTimers() { const queued = [...timers.values()]; timers.clear(); queued.forEach(item => item.callback()); }, time(value) { now = value; }, render() { window.WalletAssets.render(); },
     amounts() { return [...nodes.get('assetAccountSummary').innerHTML.matchAll(/class="asset-summary-value">([^<]+)</g)].map(match => match[1]); },
     expenseAmounts() { return [...nodes.get('assetExpenseSummary').innerHTML.matchAll(/class="asset-summary-value">([^<]+)</g)].map(match => match[1]); },
     tabLabels() { return ['ledgerTabAccounts', 'ledgerTabWorld', 'ledgerTabRecord'].map(id => nodes.get(id).textContent); },
@@ -858,4 +874,43 @@ test('malformed world appearances normalize only display settings without copyin
   assert.equal(Object.hasOwn(appearance.accounts.chinaSavings, 'balance'), false);
   assert.equal(Object.hasOwn(appearance.expenseBooks.book1, 'records'), false);
   assert.equal(app.stored().accounts.chinaSavings.balance, 100);
+});
+
+
+test('expense cards open on a single click and double-click their settings without entering the detail', () => {
+  const app = fixture({ accounts: { chinaSavings: { balance: 42 } }, expenseBooks: [
+    { id: 'book2', title: '吃喝玩乐', color: '#87977F', note: '小字' }
+  ] });
+  const before = [...app.storage];
+  app.render();
+  assert.equal(app.expenseCards.size, 6);
+  assert.doesNotMatch(app.nodes.get('assetExpenseGrid').innerHTML, /onclick="WalletAssets.openExpenseDetail/);
+  assert.match(app.nodes.get('assetExpenseGrid').innerHTML, /aria-label="打开，双击编辑吃喝玩乐"/);
+  app.expenseCards.get('book1').click();
+  assert.equal(app.timers.size, 1);
+  assert.equal([...app.timers.values()][0].delay, 260);
+  assert.equal(app.nodes.get('assetExpenseDetail').classes.has('show'), false);
+  assert.deepEqual(app.modalCalls, []);
+  app.flushTimers();
+  assert.equal(app.nodes.get('assetExpenseDetail').classes.has('show'), true);
+  app.window.WalletAssets.closeExpenseDetail();
+  for (const id of ['book1', 'book2', 'book3', 'book4', 'book5', 'book6']) {
+    const button = app.expenseCards.get(id);
+    button.click();
+    button.click();
+    assert.equal(app.timers.size, 0);
+    assert.equal(app.nodes.get('assetExpenseBookId').value, id);
+    assert.equal(app.nodes.get('assetExpenseBookWorldId').value, 'meta');
+    assert.deepEqual(app.modalCalls.at(-1), ['open', 'assetExpenseBookModal']);
+    app.flushTimers();
+    assert.equal(app.nodes.get('assetExpenseDetail').classes.has('show'), false);
+    if (id === 'book2') {
+      assert.equal(app.nodes.get('assetExpenseBookName').value, '吃喝玩乐');
+      assert.equal(app.nodes.get('assetExpenseBookColor').value, '#87977F');
+      assert.equal(app.nodes.get('assetExpenseBookNote').value, '小字');
+    }
+    app.window.closeModal('assetExpenseBookModal');
+  }
+  assert.deepEqual([...app.storage], before);
+  assert.deepEqual(app.writes, []);
 });
