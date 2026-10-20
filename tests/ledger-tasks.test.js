@@ -31,9 +31,9 @@ function checked(state, wallet = {}, when = endedAt) {
   return state;
 }
 
-test('one shared batch has eleven exact conditions and four complete, distinct story skins', () => {
-  assert.equal(catalog.tasks.length, 11);
-  assert.equal(new Set(catalog.tasks.map(task => task.id)).size, 11);
+test('one shared batch has twelve exact conditions and four complete, distinct story skins', () => {
+  assert.equal(catalog.tasks.length, 12);
+  assert.equal(new Set(catalog.tasks.map(task => task.id)).size, 12);
   assert.deepEqual(catalog.worlds, ['sacramento', 'palace', 'fox', 'heist']);
   assert.equal(catalog.stories.meta, undefined);
   for (const world of catalog.worlds) {
@@ -151,7 +151,7 @@ test('manual duties do not pretend to classify food, snacks or marketplace listi
 });
 
 test('single duties start immediately, have no artificial deadline and still require explicit completion', () => {
-  for (const id of ['cnBalances', 'rollbahnFive', 'reconcile', 'cashSort']) {
+  for (const id of ['cnBalances', 'rollbahnFive', 'reconcile', 'cashSort', 'dollsSix']) {
     const initial = active(id, 'fox');
     assert.equal(initial.active.startsOn, '2026-10-20');
     assert.equal(model.finish(initial, {}, acceptedAt, 'attempt-one').reason, 'incomplete');
@@ -181,7 +181,7 @@ test('all completed tasks exhaust this batch and previous batches keep their wor
   for (const task of catalog.tasks) state.receipts[catalog.batchId + '/' + task.id] = { worldId: 'heist', points: 10, finishedOn: '2026-10-20', attemptId: task.id };
   state = model.choose(state, 0.5, 'none-left');
   assert.equal(state.offer, null);
-  assert.equal(model.points(state, 'heist'), 110);
+  assert.equal(model.points(state, 'heist'), catalog.tasks.reduce((sum, task) => sum + task.reward, 0));
   const previous = model.normalize({ batchId: 'previous', receipts: { 'previous/task': { worldId: 'heist', points: 10, finishedOn: '2026-10-20' } }, active: active('noSnacks').active });
   assert.equal(previous.active, null);
   assert.equal(model.points(previous, 'heist'), 10);
@@ -226,4 +226,26 @@ test('financial checks follow the same six-book and legacy normalization rules a
     { id: 'book1', records: [{ date: '2026-10-21', amount: 99999 }] }
   ] };
   assert.deepEqual(model.stats(wallet, '2026-10-21', '2026-10-21'), { income: 2000, spent: 100, net: 1900 });
+});
+
+test('adding six doll listings extends the existing batch without resetting old completion or an active attempt', () => {
+  assert.equal(catalog.batchId, '20261021-01');
+  assert.equal(model.task('dollsSix').condition, '挂出六个娃');
+  let state = model.normalize(null);
+  for (const task of catalog.tasks.filter(task => task.id !== 'dollsSix')) {
+    state.receipts[catalog.batchId + '/' + task.id] = { worldId: 'heist', points: 10, finishedOn: '2026-10-20', attemptId: task.id };
+  }
+  state = model.choose(JSON.parse(JSON.stringify(state)), 0.5, 'dolls-next');
+  assert.equal(state.offer.taskId, 'dollsSix');
+  assert.equal(model.points(state, 'heist'), 110);
+  for (let index = 0; index < 4; index++) state = model.advance(state, 'fox', 'dolls-next').state;
+  state = model.accept(state, 'fox', acceptedAt, 'dolls-next').state;
+  state = checked(state, {}, acceptedAt);
+  const result = model.finish(state, {}, acceptedAt, 'dolls-next');
+  assert.equal(result.reason, 'completed');
+  assert.equal(model.points(result.state, 'heist'), 110);
+  assert.equal(model.points(result.state, 'fox'), 10);
+  assert.equal(model.choose(result.state, 0.5, 'exhausted').offer, null);
+  const ongoing = active('noSnacks');
+  assert.deepEqual(model.choose(JSON.parse(JSON.stringify(ongoing)), 0.99, 'ignored'), ongoing);
 });
