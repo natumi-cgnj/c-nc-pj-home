@@ -570,7 +570,7 @@
     });
     target.innerHTML =
       '<div class="asset-detail-toolbar">' +
-        '<button class="asset-detail-back" type="button" data-expense-back>记录</button>' +
+        '<button class="asset-detail-back" type="button" data-expense-back>记账</button>' +
         '<div class="asset-detail-heading"><div class="asset-expense-title">' + esc(view.title) + '</div>' +
           '<div class="asset-detail-total"><span class="asset-detail-currency">JPY</span>' + esc(formatBalance(expenseTotal(book), 'JPY')) + '</div></div>' +
         '<button class="asset-detail-edit" type="button" data-expense-settings>设置</button>' +

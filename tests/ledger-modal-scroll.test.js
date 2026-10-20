@@ -20,9 +20,11 @@ function fixture(y = 0, withViewport = true) {
   function element(id) {
     const classes = new Set();
     const properties = new Map();
-    return { id, classes, properties,
-      classList: { add: value => classes.add(value), remove: value => classes.delete(value) },
+    const panel = { parent: id };
+    return { id, classes, properties, panel, saveButton: null,
+      classList: { add: value => classes.add(value), remove: value => classes.delete(value), contains: value => classes.has(value) },
       style: { setProperty: (key, value) => properties.set(key, value), removeProperty: key => properties.delete(key) },
+      querySelector(selector) { return selector === '.modal' ? panel : selector === '[data-modal-save]' ? this.saveButton : null; },
       contains: node => node.parent === id
     };
   }
@@ -187,4 +189,77 @@ test('editing a stage title keeps the selector locked underneath and restores th
   app.view.scrollTop = 200;
   app.window.visualViewport.dispatch('resize');
   assert.equal(app.view.scrollTop, 120);
+});
+
+test('blank taps save through the existing button after the mobile keyboard commits, keeping the stage selector open', () => {
+  for (const area of ['panel', 'backdrop']) {
+    const app = fixture();
+    const editor = app.modals.get('assetStageTitleModal');
+    let value = '未央宫', saved, calls = 0;
+    editor.saveButton = { click() { calls++; saved = value; app.window.closeModal(editor.id); } };
+    app.window.openModal('assetStageWorldModal');
+    app.window.openModal(editor.id);
+    app.document.activeElement = { parent: editor.id, blur() {
+      app.document.activeElement = null;
+      app.window.setTimeout(() => { value = '未央宫中'; }, 0);
+    } };
+    const event = { currentTarget: editor, target: area === 'panel' ? editor.panel : editor };
+    app.window.handleLedgerModalBlankClick(event);
+    app.window.handleLedgerModalBlankClick(event);
+    assert.equal(calls, 0);
+    assert.equal(app.document.activeElement, null);
+    app.flushTimers();
+    assert.equal(calls, 1, 'repeated taps queue one save');
+    assert.equal(saved, '未央宫中');
+    assert.equal(editor.classes.has('show'), false);
+    assert.equal(app.modals.get('assetStageWorldModal').classes.has('show'), true);
+    assert.equal(app.root.classes.has('ledger-modal-open'), true);
+  }
+});
+
+test('fields, labels, color choices and cancel controls do not trigger blank saves, and cancel clears a queued save', () => {
+  const app = fixture();
+  const editor = app.modals.get('assetAccountModal');
+  let saves = 0;
+  editor.saveButton = { click() { saves++; } };
+  app.window.openModal(editor.id);
+  for (const kind of ['input', 'label', 'color', 'cancel', 'save']) {
+    app.window.handleLedgerModalBlankClick({ currentTarget: editor, target: { parent: editor.id, kind } });
+  }
+  app.flushTimers();
+  assert.equal(saves, 0);
+  app.window.handleLedgerModalBlankClick({ currentTarget: editor, target: editor.panel });
+  app.window.closeModal(editor.id);
+  app.window.openModal(editor.id);
+  app.flushTimers();
+  assert.equal(saves, 0, 'cancelling and reopening cannot run an old queued save');
+});
+
+test('blank saves retain validation and disabled buttons while selection dialogs keep their existing dismissal', () => {
+  const app = fixture();
+  const editor = app.modals.get('assetGoalModal');
+  let valid = false, calls = 0;
+  editor.saveButton = { disabled: true, click() { calls++; if (valid) app.window.closeModal(editor.id); } };
+  app.window.openModal(editor.id);
+  const event = { currentTarget: editor, target: editor };
+  app.window.handleLedgerModalBlankClick(event);
+  app.flushTimers();
+  assert.equal(calls, 0);
+  editor.saveButton.disabled = false;
+  app.window.handleLedgerModalBlankClick(event);
+  app.flushTimers();
+  assert.equal(calls, 1);
+  assert.equal(editor.classes.has('show'), true, 'validation failure keeps the editor open');
+  valid = true;
+  app.window.handleLedgerModalBlankClick(event);
+  app.flushTimers();
+  assert.equal(calls, 2);
+  assert.equal(editor.classes.has('show'), false);
+
+  const selector = app.modals.get('assetStageWorldModal');
+  app.window.openModal(selector.id);
+  app.window.handleLedgerModalBlankClick({ currentTarget: selector, target: selector.panel });
+  assert.equal(selector.classes.has('show'), true);
+  app.window.handleLedgerModalBlankClick({ currentTarget: selector, target: selector });
+  assert.equal(selector.classes.has('show'), false);
 });

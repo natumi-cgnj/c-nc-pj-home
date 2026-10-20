@@ -57,6 +57,8 @@
   function closeModal(id) {
     var modal = document.getElementById(id);
     if (!modal) return;
+    global.clearTimeout(modal._ledgerBlankSaveTimer);
+    modal._ledgerBlankSaveTimer = null;
     var active = document.activeElement;
     if (active && modal.contains(active) && typeof active.blur === 'function') active.blur();
     modal.classList.remove('show');
@@ -68,6 +70,26 @@
     restorePosition(saved);
   }
 
+  function handleLedgerModalBlankClick(event) {
+    var modal = event.currentTarget;
+    if (!modal || !modal.classList.contains('show')) return;
+    if (event.target !== modal && event.target !== modal.querySelector('.modal')) return;
+    var save = modal.querySelector('[data-modal-save]');
+    if (!save) {
+      if (event.target === modal) closeModal(modal.id);
+      return;
+    }
+    if (save.disabled || modal._ledgerBlankSaveTimer != null) return;
+    var active = document.activeElement;
+    if (active && modal.contains(active) && typeof active.blur === 'function') active.blur();
+    // Let the mobile input method commit its final characters before saving.
+    modal._ledgerBlankSaveTimer = global.setTimeout(function () {
+      modal._ledgerBlankSaveTimer = null;
+      if (modal.classList.contains('show')) save.click();
+    }, 0);
+  }
+
   global.openModal = openModal;
   global.closeModal = closeModal;
+  global.handleLedgerModalBlankClick = handleLedgerModalBlankClick;
 })(window);

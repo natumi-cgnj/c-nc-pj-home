@@ -50,7 +50,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 </header>
 
 <!-- SIX ACCOUNTS TAB -->
-<div id="viewAccounts" class="view active">
+<div id="viewAccounts" class="view">
   <section class="asset-board" aria-label="六账户">
     <div class="asset-account-grid" id="assetAccountGrid"></div>
     <div class="asset-account-summary" id="assetAccountSummary" aria-label="资产合计与目标"></div>
@@ -61,7 +61,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 </div>
 
 
-<div id="viewRecord" class="view">
+<div id="viewRecord" class="view active">
   <section class="asset-board" id="assetExpenseBoard" aria-label="六账本">
     <div class="asset-account-grid" id="assetExpenseGrid"></div>
     <div class="asset-account-summary" id="assetExpenseSummary" aria-label="进账与花销合计"></div>
@@ -93,7 +93,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <input type="text" id="assetStageWorldTitle" maxlength="30">
     <div class="btn-row">
       <button class="btn btn-cancel" type="button" onclick="closeModal('assetStageTitleModal')">取消</button>
-      <button class="btn btn-primary" type="button" onclick="WalletAssets.saveStageWorldTitle()">保存</button>
+      <button class="btn btn-primary" type="button" data-modal-save onclick="WalletAssets.saveStageWorldTitle()">保存</button>
     </div>
   </div>
 </div>
@@ -118,7 +118,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <div class="btn-row">
       <button class="btn btn-del" id="assetExpenseRecordDelete" type="button" onclick="WalletAssets.deleteExpenseRecord()">删除</button>
       <button class="btn btn-cancel" type="button" onclick="closeModal('assetExpenseRecordModal')">取消</button>
-      <button class="btn btn-primary" type="button" onclick="WalletAssets.saveExpenseRecord()">保存</button>
+      <button class="btn btn-primary" type="button" data-modal-save onclick="WalletAssets.saveExpenseRecord()">保存</button>
     </div>
   </div>
 </div>
@@ -138,7 +138,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <input type="text" id="assetExpenseBookNote" maxlength="80">
     <div class="btn-row">
       <button class="btn btn-cancel" type="button" onclick="closeModal('assetExpenseBookModal')">取消</button>
-      <button class="btn btn-primary" type="button" onclick="WalletAssets.saveExpenseBook()">保存</button>
+      <button class="btn btn-primary" type="button" data-modal-save onclick="WalletAssets.saveExpenseBook()">保存</button>
     </div>
   </div>
 </div>
@@ -160,7 +160,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <input type="text" id="assetAccountNote" maxlength="80">
     <div class="btn-row">
       <button class="btn btn-cancel" type="button" onclick="closeModal('assetAccountModal')">取消</button>
-      <button class="btn btn-primary" type="button" onclick="WalletAssets.saveEditor()">保存</button>
+      <button class="btn btn-primary" type="button" data-modal-save onclick="WalletAssets.saveEditor()">保存</button>
     </div>
   </div>
 </div>
@@ -174,7 +174,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <div class="asset-goal-rate">人民币按 1円＝0.042元折算。留空可清除目标。</div>
     <div class="btn-row">
       <button class="btn btn-cancel" type="button" onclick="closeModal('assetGoalModal')">取消</button>
-      <button class="btn btn-primary" type="button" onclick="WalletAssets.saveGoal()">保存</button>
+      <button class="btn btn-primary" type="button" data-modal-save onclick="WalletAssets.saveGoal()">保存</button>
     </div>
   </div>
 </div>
@@ -199,15 +199,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     </div>
     <div class="btn-row">
       <button class="btn btn-cancel" type="button" onclick="closeModal('assetSavingsItemModal')">取消</button>
-      <button class="btn btn-primary" type="button" onclick="WalletAssets.saveSavingsItem()">保存</button>
+      <button class="btn btn-primary" type="button" data-modal-save onclick="WalletAssets.saveSavingsItem()">保存</button>
     </div>
   </div>
 </div>
 
 <nav class="tab-bar" aria-label="LEDGER">
-  <button class="active" type="button" data-ledger-tab="viewAccounts" onclick="switchTab('viewAccounts',this)">账户</button>
-  <button type="button" data-ledger-tab="viewRecord" onclick="switchTab('viewRecord',this)">记录</button>
+  <button type="button" data-ledger-tab="viewAccounts" onclick="switchTab('viewAccounts',this)">账户</button>
   <button type="button" data-ledger-tab="viewDraft" onclick="switchTab('viewDraft',this)">片场</button>
+  <button class="active" type="button" data-ledger-tab="viewRecord" onclick="switchTab('viewRecord',this)">记账</button>
 </nav>
 <div class="toast" id="toast"></div>
 <div class="confirm-bg" id="confirmBg"><div class="confirm-box"></div></div>
@@ -215,9 +215,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <script src="world-context.js?v=20261019-ledger-split1"></script>
 <script src="cloud-sync.js?v=20261019-ledger-split1"></script>
 <script src="app-back.js?v=20261010-home-return2"></script>
-<script src="ledger-modal.js?v=20261020-screen1"></script>
+<script src="ledger-modal.js?v=20261020-blank-save1"></script>
 <script src="wallet-recurring.js?v=20261019-monthly-debits1"></script>
-<script src="wallet-assets.js?v=20261020-stage-center1"></script>
+<script src="wallet-assets.js?v=20261020-bookkeeping-tabs1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 
@@ -243,18 +243,18 @@ function customConfirm(message,onYes,options){
   openModal('confirmBg');
 }
 function switchTab(viewId,button){
-  if(['viewAccounts','viewRecord','viewDraft'].indexOf(viewId)<0)return;
+  if(['viewAccounts','viewDraft','viewRecord'].indexOf(viewId)<0)return;
   document.querySelectorAll('.view').forEach(function(view){view.classList.toggle('active',view.id===viewId);});
   document.querySelectorAll('[data-ledger-tab]').forEach(function(tab){tab.classList.toggle('active',tab===button);});
   WalletAssets.render();
-  var hash=viewId==='viewRecord'?'#record':viewId==='viewDraft'?'#draft':'';
+  var hash=viewId==='viewRecord'?'#record':viewId==='viewDraft'?'#draft':'#accounts';
   history.replaceState(null,'',location.pathname+location.search+hash);
 }
 document.querySelectorAll('.modal-bg').forEach(function(background){
-  background.addEventListener('click',function(event){if(event.target===background)closeModal(background.id);});
+  background.addEventListener('click',handleLedgerModalBlankClick);
 });
 WalletAssets.mount();
-var initialView=location.hash==='#record'?'viewRecord':location.hash==='#draft'?'viewDraft':'viewAccounts';
+var initialView=location.hash==='#accounts'?'viewAccounts':location.hash==='#draft'?'viewDraft':'viewRecord';
 switchTab(initialView,document.querySelector('[data-ledger-tab="'+initialView+'"]'));
 window.addEventListener('liminal-cloud-ready',function(){WalletAssets.render();});
 window.addEventListener('storage',function(event){if(event.key===WalletAssets.storageKey)WalletAssets.render();});
