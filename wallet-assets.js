@@ -753,6 +753,7 @@
     var target = document.getElementById('assetStageSummary');
     if (!target) return;
     var current = state.stage.worlds.find(function (world) { return world.id === state.stage.activeWorldId; });
+    document.body.dataset.ledgerWorld = current.id;
     target.innerHTML = '<button class="asset-stage-current" type="button" data-stage-open aria-label="选择或编辑世界"><span class="asset-summary-label">' + esc(current.title) + '</span></button>';
     target.querySelector('[data-stage-open]').addEventListener('click', openStageSelector);
     renderStageWorldList(state);

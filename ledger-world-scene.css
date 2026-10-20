@@ -1,0 +1,40 @@
+/* A quiet edge of the room; story controls stay in the foreground. */
+#viewDraft{position:relative;isolation:isolate}
+#viewDraft>.asset-board{position:relative;z-index:1}
+.ledger-world-scene{
+  display:none;
+  position:absolute;
+  inset:0;
+  overflow:hidden;
+  pointer-events:none;
+  user-select:none;
+}
+body[data-ledger-world="sacramento"] .ledger-world-scene{display:block}
+.ledger-world-scene::before,.ledger-world-scene::after{
+  content:"";
+  position:absolute;
+  pointer-events:none;
+}
+.ledger-world-scene::before{
+  top:0;
+  right:0;
+  width:min(58vw,660px);
+  height:440px;
+  background:radial-gradient(ellipse at 100% 0,rgba(225,207,166,.15),rgba(246,239,222,.13) 35%,transparent 72%);
+}
+.ledger-world-scene::after{
+  top:-58px;
+  right:-45px;
+  width:clamp(260px,38vw,490px);
+  height:390px;
+  background:linear-gradient(90deg,transparent 0 82%,rgba(112,119,113,.14) 82% 83%,transparent 83%),repeating-linear-gradient(0deg,transparent 0 24px,rgba(112,119,113,.16) 25px 28px,transparent 29px 32px);
+  transform:skewX(-19deg) rotate(-11deg);
+  transform-origin:top right;
+  filter:blur(.7px);
+  -webkit-mask-image:radial-gradient(ellipse at 100% 0,#000 8%,rgba(0,0,0,.8) 32%,transparent 75%);
+  mask-image:radial-gradient(ellipse at 100% 0,#000 8%,rgba(0,0,0,.8) 32%,transparent 75%);
+}
+@media(max-width:480px){
+  .ledger-world-scene::before{width:250px;height:270px}
+  .ledger-world-scene::after{top:-42px;right:-38px;width:220px;height:240px}
+}

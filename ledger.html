@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="LEDGER">
 <title>LEDGER</title>
 <link rel="stylesheet" href="ledger-tasks.css?v=20261021-tasks1">
+<link rel="stylesheet" href="ledger-world-scene.css?v=20261021-sacramento1">
 <style>
 html{height:100%;overflow:hidden;scrollbar-width:none}html::-webkit-scrollbar{display:none}
 html.ledger-modal-open{overflow:hidden;overscroll-behavior:none}
@@ -70,6 +71,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <section class="asset-account-detail" id="assetExpenseDetail" aria-label="账本明细"></section>
 </div>
 <div id="viewDraft" class="view">
+  <div class="ledger-world-scene" aria-hidden="true"></div>
   <section class="asset-board" aria-label="世界">
     <div class="asset-stage-story" id="assetStageStory" aria-label="任务小剧情"><p class="asset-stage-empty">暂无</p></div>
     <div class="asset-account-summary asset-stage-summary" id="assetStageSummary"></div>
@@ -221,7 +223,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <script src="ledger-task-catalog.js?v=20261021-events2"></script>
 <script src="ledger-task-model.js?v=20261021-events2"></script>
 <script src="ledger-tasks.js?v=20261021-events2"></script>
-<script src="wallet-assets.js?v=20261021-expense-doubletap1"></script>
+<script src="wallet-assets.js?v=20261021-sacramento-scene1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 
