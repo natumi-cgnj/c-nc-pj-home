@@ -39,6 +39,6 @@ assert.match(assets, /if \(value == null\) return '—'/, 'unset balances use a 
 assert.match(cbi, /data-view="viewLedger"[\s\S]*data-view="viewTreasury"[\s\S]*data-route="shop"/, 'legacy CBI tabs retain the ledger, reimbursements and shop');
 assert.doesNotMatch(cbi, /viewAccounts/, 'legacy CBI navigation does not expose accounts');
 assert.match(cbi, /: 'viewLedger';/, 'legacy CBI opens the existing ledger by default');
-assert.match(cloud, /'ledger.html': \['wallet_accounts_v1', 'omniverse_world_context'\]/, 'new ledger syncs the existing account storage');
+assert.match(cloud, /'ledger.html': \['wallet_accounts_v1', 'ledger_world_tasks_v1', 'omniverse_world_context'\]/, 'ledger syncs financial data and task progress in separate keys');
 
 console.log('wallet six-account board tests passed');

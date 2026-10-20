@@ -741,6 +741,7 @@
     target.innerHTML = '<button class="asset-stage-current" type="button" data-stage-open aria-label="选择或编辑世界"><span class="asset-summary-label">' + esc(current.title) + '</span></button>';
     target.querySelector('[data-stage-open]').addEventListener('click', openStageSelector);
     renderStageWorldList(state);
+    if (global.LedgerTasks) global.LedgerTasks.render({ worldId: current.id, worldTitle: current.title, wallet: state });
   }
 
   function renderStageWorldList(state) {

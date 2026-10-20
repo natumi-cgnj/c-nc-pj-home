@@ -380,6 +380,26 @@ async function testUnrelatedPageDataIsNotPushed() {
     'daily page must not push an unrelated kitchen key');
 }
 
+async function testLedgerTasksStaySeparateFromFinancialData() {
+  const key = 'ledger_world_tasks_v1';
+  const taskState = { version: 1, batchId: '20261021-01', offer: null, active: null, receipts: {} };
+  const finances = { version: 1, accounts: { mercari: { balance: 1234 } }, expenseBooks: [] };
+  const env = makeEnvironment({ pathname: '/ledger.html', remoteValue: {}, localValue: {},
+    remoteStates: { [key]: taskState, wallet_accounts_v1: finances },
+    localStates: { [key]: taskState, wallet_accounts_v1: finances } });
+  await env.window.CloudSync.whenReady();
+  assert.deepEqual(JSON.parse(env.localStorage.getItem(key)), taskState);
+  const changed = { ...taskState, offer: { taskId: 'budget2000', attemptId: 'test', read: { sacramento: 1 } } };
+  env.localStorage.setItem(key, JSON.stringify(changed));
+  await env.window.CloudSync.syncNow();
+  assert.deepEqual(currentRow(env, key).state_data, changed, 'task progress is written through the existing sync route');
+  assert.deepEqual(currentRow(env, 'wallet_accounts_v1').state_data, finances, 'task writes preserve financial data');
+  const reload = makeEnvironment({ pathname: '/ledger.html', remoteValue: {}, localValue: {},
+    remoteStates: { [key]: changed, wallet_accounts_v1: finances } });
+  await reload.window.CloudSync.whenReady();
+  assert.deepEqual(JSON.parse(reload.localStorage.getItem(key)), changed, 'another device restores the task progress');
+}
+
 async function testConcurrentWriteUsesCompareAndSwap() {
   const original = { todos: [{ id: 1, name: 'A' }], completed: [] };
   const env = makeEnvironment({ remoteValue: original, localValue: original });
@@ -461,6 +481,7 @@ async function main() {
   await testNormalWriteCreatesHistory();
   await testStartupShrinkIsBlocked();
   await testUnrelatedPageDataIsNotPushed();
+  await testLedgerTasksStaySeparateFromFinancialData();
   await testConcurrentWriteUsesCompareAndSwap();
   await testFullSnapshotCanBeRestoredSafely();
   await testActivityMergeAfterCloudPull();
