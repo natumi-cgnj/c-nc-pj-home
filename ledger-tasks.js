@@ -3,7 +3,7 @@
   var model = global.LedgerTaskModel, catalog = global.LedgerTaskCatalog;
   if (!model || !catalog) return;
   var cachedRaw, cachedState, context;
-  var colors = { '我': '#B08A5A', Jane: '#87977F', Lisbon: '#A06F62', Cho: '#68747A', Rigsby: '#7E9AB0', 'Van Pelt': '#B48A9B', 'Patrick狐狐': '#87977F' };
+  var colors = { '你': '#B08A5A', Jane: '#87977F', Lisbon: '#A06F62', Cho: '#68747A', Rigsby: '#7E9AB0', 'Van Pelt': '#B48A9B', 'Patrick狐狐': '#87977F' };
 
   function esc(value) {
     return String(value == null ? '' : value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -13,21 +13,24 @@
   }
   function read() {
     var raw = global.localStorage.getItem(model.storageKey);
-    if (!cachedState || raw !== cachedRaw) {
+    // Keep V1 intact: a still-open old page cannot replace V2 world progress.
+    var legacy = raw === null ? global.localStorage.getItem(model.legacyStorageKey) : null;
+    var source = raw === null ? 'v1:' + legacy : 'v2:' + raw;
+    if (!cachedState || source !== cachedRaw) {
       var saved;
-      try { saved = JSON.parse(raw); } catch (error) { saved = null; }
-      cachedRaw = raw;
-      cachedState = model.normalize(saved);
+      try { saved = JSON.parse(raw === null ? legacy : raw); } catch (error) { saved = null; }
+      cachedRaw = source;
+      cachedState = model.normalize(saved, context.worldId);
     }
     // Merely opening/refreshing a page must not initialize or overwrite cloud data.
-    cachedState = model.choose(cachedState, Math.random(), id());
+    cachedState = model.choose(cachedState, context.worldId, Math.random(), id());
     return model.normalize(cachedState);
   }
   function save(state) {
     var raw = JSON.stringify(state);
     try { global.localStorage.setItem(model.storageKey, raw); }
     catch (error) { toast('任务进度未能保存，请稍后再试'); return false; }
-    cachedRaw = raw;
+    cachedRaw = 'v2:' + raw;
     cachedState = state;
     return true;
   }
@@ -46,8 +49,8 @@
       '<h2 class="ledger-task-title">' + esc(title) + '</h2>';
   }
   function renderOffer(state) {
-    var offer = state.offer, entry = model.task(offer.taskId), story = catalog.stories[context.worldId][entry.id];
-    var index = offer.read[context.worldId] || 0, done = index >= story.lines.length;
+    var offer = model.getWorld(state, context.worldId).offer, entry = model.task(offer.taskId), story = catalog.stories[context.worldId][entry.id];
+    var index = offer.read, done = index >= story.lines.length;
     var output = heading(state, '小事件', story.title);
     if (!done) {
       var line = story.lines[index];
@@ -64,7 +67,7 @@
     return output;
   }
   function renderActive(state) {
-    var active = state.active, summary = model.progress(state, context.wallet, Date.now()), entry = summary.task;
+    var active = model.getWorld(state, context.worldId).active, summary = model.progress(state, context.worldId, context.wallet, Date.now()), entry = summary.task;
     var story = catalog.stories[context.worldId][entry.id];
     var output = heading(state, '进行中', story.title) + '<p class="ledger-task-condition">' + esc(entry.condition) + '</p>';
     if (entry.days) output += '<p class="ledger-task-note">' + date(summary.startsOn) + ' — ' + date(summary.endsOn) + '</p>';
@@ -96,8 +99,8 @@
       target.onclick = null;
       return;
     }
-    var state = read();
-    target.innerHTML = '<div class="ledger-task-panel">' + (state.active ? renderActive(state) : state.offer ? renderOffer(state) :
+    var state = read(), group = model.getWorld(state, context.worldId);
+    target.innerHTML = '<div class="ledger-task-panel">' + (group.active ? renderActive(state) : group.offer ? renderOffer(state) :
       heading(state, '本批已完成', '这一批小事件都完成了') + '<p class="ledger-task-note">新的小事件会在之后加入。</p>') + '</div>';
     target.onclick = function (event) {
       var control = event.target.closest('[data-task-action]');
@@ -107,9 +110,9 @@
       var state = read(), response;
       if (action === 'advance') response = model.advance(state, context.worldId, expected);
       if (action === 'accept') response = model.accept(state, context.worldId, Date.now(), expected);
-      if (action === 'return') response = model.returnToPool(state, expected);
-      if (action === 'check') response = model.check(state, control.getAttribute('data-task-key'), wallet(), Date.now(), expected);
-      if (action === 'finish') response = model.finish(state, wallet(), Date.now(), expected);
+      if (action === 'return') response = model.returnToPool(state, context.worldId, expected);
+      if (action === 'check') response = model.check(state, context.worldId, control.getAttribute('data-task-key'), wallet(), Date.now(), expected);
+      if (action === 'finish') response = model.finish(state, context.worldId, wallet(), Date.now(), expected);
       if (!response) return;
       if (response.ok && !save(response.state)) return;
       if (!response.ok) toast(response.reason === 'not-ended' ? '这一天还在进行中，结束后再打卡' : response.reason === 'unread' ? '读完这段剧情后再接受' : '任务已更新，请重新查看');
@@ -127,5 +130,5 @@
       }
     };
   }
-  global.LedgerTasks = Object.freeze({ render: render, storageKey: model.storageKey });
+  global.LedgerTasks = Object.freeze({ render: render, storageKey: model.storageKey, legacyStorageKey: model.legacyStorageKey });
 })(window);

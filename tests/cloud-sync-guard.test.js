@@ -381,19 +381,27 @@ async function testUnrelatedPageDataIsNotPushed() {
 }
 
 async function testLedgerTasksStaySeparateFromFinancialData() {
-  const key = 'ledger_world_tasks_v1';
-  const taskState = { version: 1, batchId: '20261021-01', offer: null, active: null, receipts: {} };
+  const key = 'ledger_world_tasks_v2';
+  const legacyKey = 'ledger_world_tasks_v1';
+  const legacyState = { version: 1, batchId: '20261021-01', active: null, receipts: {} };
+  const taskState = { version: 2, batchId: '20261021-01', worlds: {
+    sacramento: { offer: null, active: null, receipts: {} },
+    fox: { offer: { taskId: 'dollsSix', attemptId: 'fox-test', read: 2, revision: '20261021-events2' }, active: null, receipts: {} }
+  } };
   const finances = { version: 1, accounts: { mercari: { balance: 1234 } }, expenseBooks: [] };
   const env = makeEnvironment({ pathname: '/ledger.html', remoteValue: {}, localValue: {},
-    remoteStates: { [key]: taskState, wallet_accounts_v1: finances },
-    localStates: { [key]: taskState, wallet_accounts_v1: finances } });
+    remoteStates: { [key]: taskState, [legacyKey]: legacyState, wallet_accounts_v1: finances },
+    localStates: { [key]: taskState, [legacyKey]: legacyState, wallet_accounts_v1: finances } });
   await env.window.CloudSync.whenReady();
   assert.deepEqual(JSON.parse(env.localStorage.getItem(key)), taskState);
-  const changed = { ...taskState, offer: { taskId: 'budget2000', attemptId: 'test', read: { sacramento: 1 } } };
+  const changed = clone(taskState);
+  changed.worlds.sacramento.offer = { taskId: 'budget2000', attemptId: 'test', read: 1, revision: '20261021-events2' };
   env.localStorage.setItem(key, JSON.stringify(changed));
   await env.window.CloudSync.syncNow();
   assert.deepEqual(currentRow(env, key).state_data, changed, 'task progress is written through the existing sync route');
+  assert.deepEqual(currentRow(env, key).state_data.worlds.fox, taskState.worlds.fox, 'saving one world preserves the other world reading progress');
   assert.deepEqual(currentRow(env, 'wallet_accounts_v1').state_data, finances, 'task writes preserve financial data');
+  assert.deepEqual(currentRow(env, legacyKey).state_data, legacyState, 'the original task save remains intact during upgrade');
   const reload = makeEnvironment({ pathname: '/ledger.html', remoteValue: {}, localValue: {},
     remoteStates: { [key]: changed, wallet_accounts_v1: finances } });
   await reload.window.CloudSync.whenReady();

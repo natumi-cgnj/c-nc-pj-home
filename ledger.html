@@ -214,13 +214,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <div class="confirm-bg" id="confirmBg"><div class="confirm-box"></div></div>
 
 <script src="world-context.js?v=20261019-ledger-split1"></script>
-<script src="cloud-sync.js?v=20261021-world-tasks1"></script>
+<script src="cloud-sync.js?v=20261021-world-events2"></script>
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script src="ledger-modal.js?v=20261020-blank-save1"></script>
 <script src="wallet-recurring.js?v=20261019-monthly-debits1"></script>
-<script src="ledger-task-catalog.js?v=20261021-tasks2"></script>
-<script src="ledger-task-model.js?v=20261021-tasks1"></script>
-<script src="ledger-tasks.js?v=20261021-tasks1"></script>
+<script src="ledger-task-catalog.js?v=20261021-events2"></script>
+<script src="ledger-task-model.js?v=20261021-events2"></script>
+<script src="ledger-tasks.js?v=20261021-events2"></script>
 <script src="wallet-assets.js?v=20261021-world-tasks1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
@@ -261,7 +261,7 @@ WalletAssets.mount();
 var initialView=location.hash==='#accounts'?'viewAccounts':location.hash==='#draft'?'viewDraft':'viewRecord';
 switchTab(initialView,document.querySelector('[data-ledger-tab="'+initialView+'"]'));
 window.addEventListener('liminal-cloud-ready',function(){WalletAssets.render();});
-window.addEventListener('storage',function(event){if(!event.key||event.key===WalletAssets.storageKey||(window.LedgerTasks&&event.key===window.LedgerTasks.storageKey))WalletAssets.render();});
+window.addEventListener('storage',function(event){if(!event.key||event.key===WalletAssets.storageKey||(window.LedgerTasks&&(event.key===window.LedgerTasks.storageKey||event.key===window.LedgerTasks.legacyStorageKey)))WalletAssets.render();});
 function refreshAccountDate(){
   if(document.visibilityState!=='hidden'&&(document.getElementById('viewAccounts').classList.contains('active')||document.getElementById('viewRecord').classList.contains('active')||document.getElementById('viewDraft').classList.contains('active')))WalletAssets.render();
 }
