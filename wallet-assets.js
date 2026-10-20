@@ -858,6 +858,15 @@
       '.asset-static-empty{padding:30px 0;border-bottom:1px solid #efede9;color:#bbb7b2;font-size:9px;text-align:center}' +
       '.asset-inline-color-picker{justify-content:start;column-gap:14px;padding:4px 0 6px}' +
       '.asset-modal-currency{font-size:9px;color:#bbb;margin-left:5px;letter-spacing:.7px}' +
+      '@media(min-width:900px){' +
+        '.asset-board{display:grid;height:100%;min-height:480px;grid-template-rows:minmax(360px,3fr) minmax(120px,2fr);row-gap:0;padding:0}' +
+        '.asset-account-grid{height:100%;grid-template-rows:repeat(2,minmax(0,1fr))}' +
+        '.asset-stage-story{height:100%}' +
+        '.asset-account-summary{width:calc(100% - 2 * clamp(20px,2.7vw,46px));max-width:1200px;min-height:80px;margin:auto;padding:0;transform:none}' +
+        '#assetAccountSummary,#assetExpenseSummary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));column-gap:clamp(24px,3vw,64px);align-items:center}' +
+        '#assetAccountSummary .asset-summary-row,#assetExpenseSummary .asset-summary-row{display:contents}' +
+        '#assetAccountSummary .asset-summary-entry,#assetExpenseSummary .asset-summary-entry{min-height:28px;transform:none}' +
+      '}' +
       '@media(max-width:480px){.asset-account-grid{min-height:0;grid-template-rows:repeat(2,178px);align-content:start}.asset-account-card{padding:25px 11px}.asset-account-card:before{left:11px;right:11px}.asset-account-name,.asset-summary-label,.asset-summary-unit,.asset-summary-value{font-size:11px}.asset-account-balance{margin-top:17px}.asset-account-amount{font-size:clamp(19px,6vw,24px)}.asset-account-note{margin-top:9px;font-size:8px}.asset-summary-row{gap:12px}.asset-summary-entry{gap:5px}.asset-stage-story{height:356px}.asset-account-detail{padding:0 16px}.asset-detail-toolbar{grid-template-columns:58px minmax(0,1fr) 58px;padding-top:19px}.asset-static-row{padding:19px 0}.asset-static-amount{font-size:21px}}';
     document.head.appendChild(style);
   }
