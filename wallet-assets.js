@@ -855,6 +855,7 @@
       '.asset-static-manage-button:disabled{opacity:.22;cursor:default}' +
       '.asset-static-delete{width:auto;border:0;border-radius:0;margin-left:3px;color:#b68b83;font-size:9px}' +
       '.asset-static-add{appearance:none;-webkit-appearance:none;width:100%;padding:18px 0;border:0;border-bottom:1px solid #efede9;background:#fff;color:#99948f;font:400 10px/1.4 inherit;letter-spacing:.2px;text-align:left;cursor:pointer}' +
+      '.asset-static-add[data-expense-add]{color:var(--account-color);font-family:inherit;font-size:12px;font-weight:500;line-height:1.35;letter-spacing:.25px}' +
       '.asset-static-empty{padding:30px 0;border-bottom:1px solid #efede9;color:#bbb7b2;font-size:9px;text-align:center}' +
       '.asset-inline-color-picker{justify-content:start;column-gap:14px;padding:4px 0 6px}' +
       '.asset-modal-currency{font-size:9px;color:#bbb;margin-left:5px;letter-spacing:.7px}' +
