@@ -39,6 +39,7 @@ function fixture(state, sharedStorage) {
   return { window, storage, writes, nodes, modalCalls, confirmations, toasts, time(value) { now = value; }, render() { window.WalletAssets.render(); },
     amounts() { return [...nodes.get('assetAccountSummary').innerHTML.matchAll(/class="asset-summary-value">([^<]+)</g)].map(match => match[1]); },
     expenseAmounts() { return [...nodes.get('assetExpenseSummary').innerHTML.matchAll(/class="asset-summary-value">([^<]+)</g)].map(match => match[1]); },
+    tabLabels() { return ['ledgerTabAccounts', 'ledgerTabWorld', 'ledgerTabRecord'].map(id => nodes.get(id).textContent); },
     stored() { return JSON.parse(storage.get('wallet_accounts_v1')); } };
 }
 
@@ -560,6 +561,7 @@ test('stage defaults to five named worlds with META selected and never writes on
   const before = [...app.storage];
   app.render();
   assert.match(app.nodes.get('assetStageSummary').innerHTML, /META世界/);
+  assert.deepEqual(app.tabLabels(), ['账户', '世界', '记账']);
   const list = app.nodes.get('assetStageWorldList').innerHTML;
   assert.deepEqual([...list.matchAll(/data-stage-select="([^"]+)"/g)].map(match => match[1]), ['meta', 'sacramento', 'palace', 'fox', 'heist']);
   for (const title of ['META世界', '萨克门托', '古代后宫', '狐狸AU', 'Leverage AU']) assert.ok(list.includes(title));
@@ -572,7 +574,7 @@ test('stage defaults to five named worlds with META selected and never writes on
 });
 
 test('each world can be selected and restored without changing finances or the main app world', () => {
-  const app = fixture({ goalJPY: 5000, accounts: { mercari: { balance: 1000, items: [
+  const app = fixture({ stage: { worlds: [{ id: 'sacramento', title: 'CBI办公室' }] }, goalJPY: 5000, accounts: { mercari: { balance: 1000, items: [
     { id: 'balance', title: '余额', balance: 1000, confirmedAt: '2026-10-01' }
   ] } }, monthlyIncomeJPY: { '2026-09': 100 }, expenseBooks: [{ id: 'book2', title: 'Goods', records: [
     { id: 'out', date: '2026-10-01', type: 'expense', amount: 100, note: '花销' },
@@ -588,6 +590,7 @@ test('each world can be selected and restored without changing finances or the m
     app.window.WalletAssets.openStageSelector();
     app.window.WalletAssets.selectStageWorld(id);
     assert.equal(app.stored().stage.activeWorldId, id);
+    assert.deepEqual(app.tabLabels(), id === 'sacramento' ? ['经费', '世界', '报销'] : ['账户', '世界', '记账']);
     assert.deepEqual(app.modalCalls.at(-1), ['close', 'assetStageWorldModal']);
     assert.deepEqual(app.stored().accounts, baseline.accounts);
     assert.deepEqual(app.stored().expenseBooks, baseline.expenseBooks);
@@ -598,6 +601,7 @@ test('each world can be selected and restored without changing finances or the m
     const reloaded = fixture(null, app.storage);
     reloaded.render();
     assert.match(reloaded.nodes.get('assetStageWorldList').innerHTML, new RegExp('aria-checked="true" data-stage-select="' + id + '"'));
+    assert.deepEqual(reloaded.tabLabels(), app.tabLabels());
     assert.deepEqual(reloaded.writes, []);
   }
   const writes = app.writes.length;
@@ -657,7 +661,7 @@ test('invalid stage IDs or empty titles leave storage untouched and malformed se
   assert.equal(app.nodes.get('assetStageWorldTitle').value, '狐狸AU');
   app.nodes.get('assetStageWorldTitle').value = '  ';
   app.window.WalletAssets.saveStageWorldTitle();
-  assert.equal(app.toasts.at(-1), '请输入片场题目');
+  assert.equal(app.toasts.at(-1), '请输入世界题目');
   assert.deepEqual([...app.storage], before);
   assert.deepEqual(app.writes, []);
 });

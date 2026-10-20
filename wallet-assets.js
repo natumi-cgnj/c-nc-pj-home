@@ -291,6 +291,19 @@
     return state.stage.worlds.find(function (world) { return world.id === (id || state.stage.activeWorldId); }) || null;
   }
 
+  function navigationLabels(state) {
+    var office = state.stage.activeWorldId === 'sacramento';
+    return { accounts: office ? '经费' : '账户', world: '世界', record: office ? '报销' : '记账' };
+  }
+
+  function renderNavigationLabels(state) {
+    var labels = navigationLabels(state);
+    [['ledgerTabAccounts', labels.accounts], ['ledgerTabWorld', labels.world], ['ledgerTabRecord', labels.record]].forEach(function (entry) {
+      var tab = document.getElementById(entry[0]);
+      if (tab) tab.textContent = entry[1];
+    });
+  }
+
   function accountAppearance(state, entry, worldId) {
     var world = stageWorld(state, worldId);
     var account = state.accounts[entry.id];
@@ -570,7 +583,7 @@
     });
     target.innerHTML =
       '<div class="asset-detail-toolbar">' +
-        '<button class="asset-detail-back" type="button" data-expense-back>记账</button>' +
+        '<button class="asset-detail-back" type="button" data-expense-back>' + navigationLabels(state).record + '</button>' +
         '<div class="asset-detail-heading"><div class="asset-expense-title">' + esc(view.title) + '</div>' +
           '<div class="asset-detail-total"><span class="asset-detail-currency">JPY</span>' + esc(formatBalance(expenseTotal(book), 'JPY')) + '</div></div>' +
         '<button class="asset-detail-edit" type="button" data-expense-settings>设置</button>' +
@@ -720,7 +733,7 @@
     var target = document.getElementById('assetStageSummary');
     if (!target) return;
     var current = state.stage.worlds.find(function (world) { return world.id === state.stage.activeWorldId; });
-    target.innerHTML = '<button class="asset-stage-current" type="button" data-stage-open aria-label="选择或编辑片场"><span class="asset-summary-label">' + esc(current.title) + '</span></button>';
+    target.innerHTML = '<button class="asset-stage-current" type="button" data-stage-open aria-label="选择或编辑世界"><span class="asset-summary-label">' + esc(current.title) + '</span></button>';
     target.querySelector('[data-stage-open]').addEventListener('click', openStageSelector);
     renderStageWorldList(state);
   }
@@ -773,7 +786,7 @@
     if (!world) return;
     var title = document.getElementById('assetStageWorldTitle').value.trim().slice(0, 30);
     if (!title) {
-      if (typeof global.showToast === 'function') global.showToast('请输入片场题目');
+      if (typeof global.showToast === 'function') global.showToast('请输入世界题目');
       return;
     }
     world.title = title;
@@ -877,6 +890,7 @@
     var grid = document.getElementById('assetAccountGrid');
     if (!grid) return;
     var state = loadState();
+    renderNavigationLabels(state);
     grid.innerHTML = ACCOUNTS.map(function (entry) {
       var account = state.accounts[entry.id];
       var view = accountAppearance(state, entry);
@@ -1014,7 +1028,7 @@
     target.style.setProperty('--account-color', color);
     target.innerHTML =
       '<div class="asset-detail-toolbar">' +
-        '<button class="asset-detail-back" type="button" data-savings-back>账户</button>' +
+        '<button class="asset-detail-back" type="button" data-savings-back>' + navigationLabels(state).accounts + '</button>' +
         '<div class="asset-detail-heading"><div class="asset-detail-total"><span class="asset-detail-currency">' + esc(entry.currency) + '</span>' + esc(formatBalance(total, entry.currency)) + '</div></div>' +
         '<button class="asset-detail-edit" type="button" data-savings-manage>' + (savingsManageMode ? '完成' : '编辑') + '</button>' +
       '</div>' +

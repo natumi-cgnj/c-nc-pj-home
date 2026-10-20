@@ -67,7 +67,7 @@ test('LEDGER opens bookkeeping by default and preserves explicit account and sta
     assert.deepEqual(app.activeView(), [view]);
     assert.deepEqual(app.tabs.filter(tab => tab.classes.has('active')).map(tab => tab.viewId), [view]);
     assert.equal(app.location.hash, resultingHash);
-    assert.deepEqual(app.tabs.map(tab => tab.textContent), ['账户', '片场', '记账']);
+    assert.deepEqual(app.tabs.map(tab => tab.textContent), ['账户', '世界', '记账']);
   }
 });
 

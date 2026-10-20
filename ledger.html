@@ -69,7 +69,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <section class="asset-account-detail" id="assetExpenseDetail" aria-label="账本明细"></section>
 </div>
 <div id="viewDraft" class="view">
-  <section class="asset-board" aria-label="片场">
+  <section class="asset-board" aria-label="世界">
     <div class="asset-stage-story" aria-label="任务小剧情"><p class="asset-stage-empty">暂无</p></div>
     <div class="asset-account-summary asset-stage-summary" id="assetStageSummary"></div>
   </section>
@@ -78,8 +78,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- Stage selection and title editor -->
 <div class="modal-bg" id="assetStageWorldModal">
   <div class="modal">
-    <h2>选择片场</h2>
-    <div id="assetStageWorldList" role="radiogroup" aria-label="当前片场"></div>
+    <h2>选择世界</h2>
+    <div id="assetStageWorldList" role="radiogroup" aria-label="当前世界"></div>
     <div class="btn-row">
       <button class="btn btn-cancel" type="button" onclick="closeModal('assetStageWorldModal')">关闭</button>
     </div>
@@ -89,7 +89,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <div class="modal">
     <h2>编辑题目</h2>
     <input type="hidden" id="assetStageWorldId">
-    <label for="assetStageWorldTitle">片场题目</label>
+    <label for="assetStageWorldTitle">世界题目</label>
     <input type="text" id="assetStageWorldTitle" maxlength="30">
     <div class="btn-row">
       <button class="btn btn-cancel" type="button" onclick="closeModal('assetStageTitleModal')">取消</button>
@@ -205,9 +205,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 </div>
 
 <nav class="tab-bar" aria-label="LEDGER">
-  <button type="button" data-ledger-tab="viewAccounts" onclick="switchTab('viewAccounts',this)">账户</button>
-  <button type="button" data-ledger-tab="viewDraft" onclick="switchTab('viewDraft',this)">片场</button>
-  <button class="active" type="button" data-ledger-tab="viewRecord" onclick="switchTab('viewRecord',this)">记账</button>
+  <button type="button" id="ledgerTabAccounts" data-ledger-tab="viewAccounts" onclick="switchTab('viewAccounts',this)">账户</button>
+  <button type="button" id="ledgerTabWorld" data-ledger-tab="viewDraft" onclick="switchTab('viewDraft',this)">世界</button>
+  <button class="active" type="button" id="ledgerTabRecord" data-ledger-tab="viewRecord" onclick="switchTab('viewRecord',this)">记账</button>
 </nav>
 <div class="toast" id="toast"></div>
 <div class="confirm-bg" id="confirmBg"><div class="confirm-box"></div></div>
@@ -217,7 +217,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script src="ledger-modal.js?v=20261020-blank-save1"></script>
 <script src="wallet-recurring.js?v=20261019-monthly-debits1"></script>
-<script src="wallet-assets.js?v=20261020-card-lines1"></script>
+<script src="wallet-assets.js?v=20261021-world-tabs1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 
