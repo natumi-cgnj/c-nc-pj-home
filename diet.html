@@ -78,6 +78,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .calorie-types{display:flex;gap:8px}
 .calorie-types button{flex:1;padding:9px;border:1px solid #e4e4e4;border-radius:8px;background:#fff;color:#999;font:12px/1 inherit;cursor:pointer}
 .calorie-types button.active{border-color:#D2B16F;background:#FFF9EC;color:#8B6914}
+.calorie-step-estimate{margin-top:8px;font-size:10px;color:#aaa;line-height:1.5;font-variant-numeric:tabular-nums}
 .modal-actions{display:flex;gap:8px;margin-top:20px}
 .modal-actions button{flex:1;padding:10px;border:0;border-radius:8px;font:12px/1 inherit;cursor:pointer}
 .modal-cancel{background:#f5f5f5;color:#999}
@@ -150,17 +151,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <div class="modal">
     <h2>记录热量</h2>
     <label>日期</label>
-    <input type="date" id="calorieDate">
+    <input type="date" id="calorieDate" onchange="syncCalorieSteps()">
     <label>类型</label>
     <input type="hidden" id="calorieType" value="intake">
     <div class="calorie-types" id="calorieTypeGroup">
       <button type="button" class="active" data-value="intake" onclick="pickCalorieType(this)">吃了</button>
       <button type="button" data-value="burn" onclick="pickCalorieType(this)">运动</button>
+      <button type="button" data-value="steps" onclick="pickCalorieType(this)">步数</button>
     </div>
-    <label id="calorieDetailLabel">吃了什么</label>
-    <input type="text" id="calorieDetail">
-    <label>卡路里（kcal）</label>
-    <input type="number" id="calorieAmount" min="1" step="1">
+    <div id="calorieManualFields">
+      <label id="calorieDetailLabel" for="calorieDetail">吃了什么</label>
+      <input type="text" id="calorieDetail">
+      <label for="calorieAmount">卡路里（kcal）</label>
+      <input type="number" id="calorieAmount" min="1" step="1">
+    </div>
+    <div id="calorieStepFields" hidden>
+      <label for="calorieSteps">微信步数（当天总数）</label>
+      <input type="number" id="calorieSteps" min="0" step="1" inputmode="numeric" oninput="renderStepEstimate()" aria-describedby="calorieStepEstimate">
+      <div class="calorie-step-estimate" id="calorieStepEstimate" role="status" aria-live="polite"></div>
+    </div>
     <div class="modal-actions">
       <button class="modal-cancel" type="button" onclick="closeMealModal('calorieModal')">取消</button>
       <button class="modal-save" type="button" onclick="saveCalorieRecord()">保存</button>
@@ -181,6 +190,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 'use strict';
 if(window.__LIMINAL_REDIRECTING)throw new Error('Redirecting to cloud login');
 const CALORIE_KEY='calorie_log_db';
+// Fixed logging estimate, stored as burn kcal so existing summaries stay compatible.
+const STEP_KCAL_PER_THOUSAND=30;
 const NUTRITION_KEY='nutrition_check_db';
 const NUTRITION_ITEMS=[
   {id:'carbs',name:'碳水',source:'米饭 · 乌冬 · 面包 · 面类 · 薯类'},
@@ -195,6 +206,7 @@ const NUTRITION_ITEMS=[
   {id:'ironZincB12',name:'铁 / 锌 / B12',source:'红肉 · 贝类 · 鱼 · 蛋 · 奶'}
 ];
 let nutritionSelectedDate=null;
+let calorieStepsDate=null;
 function readJson(key,fallback){try{const value=JSON.parse(localStorage.getItem(key));return value&&typeof value==='object'?value:fallback;}catch(error){return fallback;}}
 function writeJson(key,value){localStorage.setItem(key,JSON.stringify(value));}
 function esc(value){return String(value||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
@@ -203,17 +215,62 @@ function dateKey(value){const date=new Date(value);return date.getFullYear()+'-'
 function workdayKey(value){const date=value?new Date(value):new Date();date.setHours(date.getHours()-4);return dateKey(date);}
 function getCalorieLog(){const data=readJson(CALORIE_KEY,{version:1,records:[]});data.version=1;data.records=Array.isArray(data.records)?data.records:[];return data;}
 function calorieStatsForDay(day){return getCalorieLog().records.reduce((total,record)=>{if(record.date!==day)return total;const kcal=Math.max(0,Math.round(Number(record.kcal)||0));if(record.type==='burn')total.burn+=kcal;else total.intake+=kcal;total.net=total.intake-total.burn;return total;},{intake:0,burn:0,net:0});}
-function renderCalorieLedger(){const today=workdayKey(),stats=calorieStatsForDay(today),log=getCalorieLog();document.getElementById('calorieNet').textContent=(stats.net<0?'−':'')+Math.abs(stats.net);document.getElementById('calorieIntake').textContent=stats.intake+' kcal';document.getElementById('calorieBurn').textContent=stats.burn+' kcal';const records=log.records.slice().sort((left,right)=>String(right.date||'').localeCompare(String(left.date||''))||(Number(right.createdAt)||0)-(Number(left.createdAt)||0));document.getElementById('calorieCount').textContent=records.length?'· '+records.length+' 笔':'';document.getElementById('calorieHistory').innerHTML=records.length?records.map(record=>{const burn=record.type==='burn',kcal=Math.max(0,Math.round(Number(record.kcal)||0));return'<div class="calorie-row"><span class="calorie-date">'+esc(record.date||'—')+'</span><span class="calorie-kind '+(burn?'burn':'intake')+'">'+(burn?'运动':'吃')+'</span><span class="calorie-detail">'+esc(record.detail||'—')+'</span><span class="calorie-amount '+(burn?'burn':'intake')+'">'+(burn?'−':'+')+kcal+' kcal</span><button class="calorie-delete" type="button" aria-label="删除" onclick="deleteCalorieRecord(\''+record.id+'\')">×</button></div>';}).join(''):'<div class="calorie-empty">还没有记录</div>';}
+function isStepRecord(record){return record.type==='burn'&&record.source==='wechat_steps';}
+function stepCalories(steps){return Math.round(steps*STEP_KCAL_PER_THOUSAND/1000);}
+function renderCalorieLedger(){const today=workdayKey(),stats=calorieStatsForDay(today),log=getCalorieLog();document.getElementById('calorieNet').textContent=(stats.net<0?'−':'')+Math.abs(stats.net);document.getElementById('calorieIntake').textContent=stats.intake+' kcal';document.getElementById('calorieBurn').textContent=stats.burn+' kcal';const records=log.records.slice().sort((left,right)=>String(right.date||'').localeCompare(String(left.date||''))||(Number(right.createdAt)||0)-(Number(left.createdAt)||0));document.getElementById('calorieCount').textContent=records.length?'· '+records.length+' 笔':'';document.getElementById('calorieHistory').innerHTML=records.length?records.map(record=>{const burn=record.type==='burn',kcal=Math.max(0,Math.round(Number(record.kcal)||0));return'<div class="calorie-row"><span class="calorie-date">'+esc(record.date||'—')+'</span><span class="calorie-kind '+(burn?'burn':'intake')+'">'+(isStepRecord(record)?'步数':burn?'运动':'吃')+'</span><span class="calorie-detail">'+esc(record.detail||'—')+'</span><span class="calorie-amount '+(burn?'burn':'intake')+'">'+(burn?'−':'+')+kcal+' kcal</span><button class="calorie-delete" type="button" aria-label="删除" onclick="deleteCalorieRecord(\''+record.id+'\')">×</button></div>';}).join(''):'<div class="calorie-empty">还没有记录</div>';}
 function getNutritionStore(){const data=readJson(NUTRITION_KEY,{version:1,days:{}});data.version=1;data.days=data.days&&typeof data.days==='object'?data.days:{};return data;}
 function nutritionDayDate(day){const parts=String(day||'').split('-').map(Number);return new Date(parts[0]||1970,(parts[1]||1)-1,parts[2]||1,12,0,0,0);}
 function shiftNutritionDay(delta){if(!nutritionSelectedDate)nutritionSelectedDate=workdayKey();const date=nutritionDayDate(nutritionSelectedDate);date.setDate(date.getDate()+delta);const next=dateKey(date),today=workdayKey();nutritionSelectedDate=next>today?today:next;renderNutritionChecklist();}
 function cycleNutrition(itemId){if(!nutritionSelectedDate)nutritionSelectedDate=workdayKey();const store=getNutritionStore();store.days[nutritionSelectedDate]=store.days[nutritionSelectedDate]||{};const current=Math.max(0,Math.min(2,Number(store.days[nutritionSelectedDate][itemId])||0));store.days[nutritionSelectedDate][itemId]=(current+1)%3;writeJson(NUTRITION_KEY,store);renderNutritionChecklist();}
 function renderNutritionChecklist(){if(!nutritionSelectedDate)nutritionSelectedDate=workdayKey();const today=workdayKey();if(nutritionSelectedDate>today)nutritionSelectedDate=today;const store=getNutritionStore(),day=store.days[nutritionSelectedDate]||{},dateEl=document.getElementById('nutritionDate'),rowsEl=document.getElementById('nutritionRows'),nextEl=document.getElementById('nutritionNext');if(!dateEl||!rowsEl)return;dateEl.textContent=nutritionSelectedDate===today?'今天 · '+nutritionSelectedDate:nutritionSelectedDate;if(nextEl)nextEl.disabled=nutritionSelectedDate>=today;const stats=calorieStatsForDay(nutritionSelectedDate),intakeEl=document.getElementById('nutritionIntake'),burnEl=document.getElementById('nutritionBurn'),netEl=document.getElementById('nutritionNet');if(intakeEl)intakeEl.textContent=stats.intake;if(burnEl)burnEl.textContent=stats.burn;if(netEl)netEl.textContent=(stats.net<0?'−':'')+Math.abs(stats.net);const labels=['未覆盖','有一点','够了'];rowsEl.innerHTML=NUTRITION_ITEMS.map(item=>{const state=Math.max(0,Math.min(2,Number(day[item.id])||0));return'<div class="nutrition-row"><div class="nutrition-copy"><div class="nutrition-name">'+esc(item.name)+'</div><div class="nutrition-source">'+esc(item.source)+'</div></div><button class="nutrition-state s'+state+'" type="button" aria-label="'+esc(item.name)+'：'+labels[state]+'" title="'+labels[state]+'" onclick="cycleNutrition(\''+item.id+'\')"></button></div>';}).join('');}
 function switchMealTab(viewId,button){if(['viewNutrition','viewCalories','viewDraft'].indexOf(viewId)<0)return;document.querySelectorAll('.view').forEach(view=>view.classList.toggle('active',view.id===viewId));document.querySelectorAll('.tab-bar button').forEach(item=>item.classList.remove('active'));if(button)button.classList.add('active');document.getElementById('worldLabel').textContent=viewId==='viewDraft'?'':'REALITY';if(viewId==='viewNutrition')renderNutritionChecklist();if(viewId==='viewCalories')renderCalorieLedger();}
-function openCalorieModal(){const today=workdayKey(),first=document.querySelector('#calorieTypeGroup button[data-value="intake"]');document.getElementById('calorieDate').value=today;document.getElementById('calorieDate').max=today;document.getElementById('calorieDetail').value='';document.getElementById('calorieAmount').value='';pickCalorieType(first);document.getElementById('calorieModal').classList.add('show');}
+function openCalorieModal(){const today=workdayKey(),first=document.querySelector('#calorieTypeGroup button[data-value="intake"]');document.getElementById('calorieDate').value=today;document.getElementById('calorieDate').max=today;document.getElementById('calorieDetail').value='';document.getElementById('calorieAmount').value='';document.getElementById('calorieSteps').value='';calorieStepsDate=null;pickCalorieType(first);document.getElementById('calorieModal').classList.add('show');}
 function closeMealModal(id){document.getElementById(id).classList.remove('show');}
-function pickCalorieType(button){if(!button)return;document.querySelectorAll('#calorieTypeGroup button').forEach(item=>item.classList.toggle('active',item===button));const type=button.dataset.value==='burn'?'burn':'intake';document.getElementById('calorieType').value=type;document.getElementById('calorieDetailLabel').textContent=type==='burn'?'做了什么运动':'吃了什么';}
-function saveCalorieRecord(){const date=document.getElementById('calorieDate').value,type=document.getElementById('calorieType').value==='burn'?'burn':'intake',detail=document.getElementById('calorieDetail').value.trim(),kcal=Math.round(Number(document.getElementById('calorieAmount').value)||0);if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||date>workdayKey()){showToast('请选择有效日期');return;}if(!detail){showToast(type==='burn'?'请填写运动':'请填写吃了什么');return;}if(kcal<=0){showToast('请输入卡路里');return;}const log=getCalorieLog();log.records.push({id:gid('kcal'),date,type,detail,kcal,createdAt:Date.now()});writeJson(CALORIE_KEY,log);closeMealModal('calorieModal');renderCalorieLedger();renderNutritionChecklist();}
+function pickCalorieType(button){
+  if(!button)return;
+  document.querySelectorAll('#calorieTypeGroup button').forEach(item=>item.classList.toggle('active',item===button));
+  const type=['burn','steps'].includes(button.dataset.value)?button.dataset.value:'intake';
+  document.getElementById('calorieType').value=type;
+  document.getElementById('calorieDetailLabel').textContent=type==='burn'?'做了什么运动':'吃了什么';
+  document.getElementById('calorieManualFields').hidden=type==='steps';
+  document.getElementById('calorieStepFields').hidden=type!=='steps';
+  if(type==='steps')syncCalorieSteps();
+}
+function syncCalorieSteps(){
+  if(document.getElementById('calorieType').value!=='steps')return;
+  const date=document.getElementById('calorieDate').value;
+  if(calorieStepsDate!==date){
+    const saved=getCalorieLog().records.find(record=>record.date===date&&isStepRecord(record));
+    document.getElementById('calorieSteps').value=saved?String(saved.steps):'';
+    calorieStepsDate=date;
+  }
+  renderStepEstimate();
+}
+function renderStepEstimate(){
+  const raw=document.getElementById('calorieSteps').value.trim(),steps=Number(raw);
+  const estimate=raw!==''&&Number.isSafeInteger(steps)&&steps>=0?' · 预计消耗 '+stepCalories(steps)+' kcal':'';
+  document.getElementById('calorieStepEstimate').textContent='1000 步＝'+STEP_KCAL_PER_THOUSAND+' kcal'+estimate;
+}
+function saveCalorieRecord(){
+  const date=document.getElementById('calorieDate').value;
+  const type=['burn','steps'].includes(document.getElementById('calorieType').value)?document.getElementById('calorieType').value:'intake';
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||dateKey(nutritionDayDate(date))!==date||date>workdayKey()){showToast('请选择有效日期');return;}
+  const log=getCalorieLog();
+  if(type==='steps'){
+    const raw=document.getElementById('calorieSteps').value.trim(),steps=Number(raw);
+    if(raw===''||!Number.isSafeInteger(steps)||steps<0){showToast('请输入有效的整数步数');return;}
+    const index=log.records.findIndex(record=>record.date===date&&isStepRecord(record));
+    const existing=index<0?null:log.records[index];
+    const record={...existing,id:existing?existing.id:gid('kcal'),date,type:'burn',source:'wechat_steps',steps,detail:'微信步数 '+steps.toLocaleString('zh-CN')+' 步',kcal:stepCalories(steps),createdAt:existing?existing.createdAt:Date.now()};
+    if(index<0)log.records.push(record);else log.records[index]=record;
+  }else{
+    const detail=document.getElementById('calorieDetail').value.trim(),kcal=Math.round(Number(document.getElementById('calorieAmount').value)||0);
+    if(!detail){showToast(type==='burn'?'请填写运动':'请填写吃了什么');return;}
+    if(!Number.isSafeInteger(kcal)||kcal<=0){showToast('请输入卡路里');return;}
+    log.records.push({id:gid('kcal'),date,type,detail,kcal,createdAt:Date.now()});
+  }
+  writeJson(CALORIE_KEY,log);closeMealModal('calorieModal');renderCalorieLedger();renderNutritionChecklist();
+}
 function deleteCalorieRecord(id){const log=getCalorieLog();log.records=log.records.filter(record=>record.id!==id);writeJson(CALORIE_KEY,log);renderCalorieLedger();renderNutritionChecklist();}
 function showToast(message){const toast=document.getElementById('toast');toast.textContent=message;toast.style.display='block';clearTimeout(toast._timer);toast._timer=setTimeout(()=>toast.style.display='none',1800);}
 function refreshDiet(){renderNutritionChecklist();renderCalorieLedger();}
