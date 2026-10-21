@@ -933,6 +933,36 @@ test('malformed world appearances normalize only display settings without copyin
 });
 
 
+test('only Sacramento decorates the six account and record cards, without writing or changing totals', () => {
+  const app = fixture({ accounts: { mercari: { balance: 9010 } },
+    expenseBooks: [{ id: 'book1', records: [{ id: 'row', date: '2026-10-19', amount: 320 }] }],
+    stage: { activeWorldId: 'sacramento' } });
+  const before = [...app.storage];
+  app.render();
+  const characters = ['cho', 'lisbon', 'jane', 'rigsby', 'vanpelt', 'milo'];
+  function decorations(id, page) {
+    const pattern = new RegExp('<span class="ledger-card-art ledger-card-art-' + page + '" data-character="([^"]+)" aria-hidden="true"></span>', 'g');
+    return [...app.nodes.get(id).innerHTML.matchAll(pattern)].map(match => match[1]);
+  }
+  assert.deepEqual(decorations('assetAccountGrid', 'accounts'), characters);
+  assert.deepEqual(decorations('assetExpenseGrid', 'records'), characters);
+  assert.deepEqual([...app.storage], before);
+  assert.deepEqual(app.writes, []);
+  const amounts = app.amounts(), expenses = app.expenseAmounts();
+  for (const world of ['meta', 'palace', 'fox', 'heist']) {
+    app.window.WalletAssets.selectStageWorld(world);
+    assert.deepEqual(decorations('assetAccountGrid', 'accounts'), []);
+    assert.deepEqual(decorations('assetExpenseGrid', 'records'), []);
+    assert.deepEqual(app.amounts(), amounts);
+    assert.deepEqual(app.expenseAmounts(), expenses);
+  }
+  app.window.WalletAssets.selectStageWorld('sacramento');
+  assert.deepEqual(decorations('assetAccountGrid', 'accounts'), characters);
+  assert.deepEqual(decorations('assetExpenseGrid', 'records'), characters);
+  assert.equal(app.stored().accounts.mercari.balance, 9010);
+  assert.equal(app.stored().expenseBooks[0].records[0].id, 'row');
+});
+
 test('expense cards open on a single click and double-click their settings without entering the detail', () => {
   const app = fixture({ accounts: { chinaSavings: { balance: 42 } }, expenseBooks: [
     { id: 'book2', title: '吃喝玩乐', color: '#87977F', note: '小字' }

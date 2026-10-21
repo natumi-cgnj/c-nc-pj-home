@@ -325,6 +325,12 @@
     return { title: view.title || String(index + 1), color: validColor(view.color) || COLORS[index], note: view.note || '' };
   }
 
+  function characterDecoration(state, index, page) {
+    if (!document.getElementById('ledgerTabWorld') || state.stage.activeWorldId !== 'sacramento') return '';
+    var characters = ['cho', 'lisbon', 'jane', 'rigsby', 'vanpelt', 'milo'];
+    return '<span class="ledger-card-art ledger-card-art-' + page + '" data-character="' + characters[index] + '" aria-hidden="true"></span>';
+  }
+
   function normalizeExpenseBooks(value) {
     var saved = Array.isArray(value) ? value : [];
     return EXPENSE_BOOK_TITLES.map(function (title, index) {
@@ -511,9 +517,10 @@
     var grid = document.getElementById('assetExpenseGrid');
     if (!grid) return;
     var today = expenseToday();
-    grid.innerHTML = state.expenseBooks.map(function (book) {
+    grid.innerHTML = state.expenseBooks.map(function (book, index) {
       var view = expenseBookAppearance(state, book);
       return '<button class="asset-account-card" type="button" data-expense-book="' + book.id + '" style="--account-color:' + view.color + '" aria-label="打开，双击编辑' + esc(view.title) + '">' +
+        characterDecoration(state, index, 'records') +
         '<span class="asset-account-name">' + esc(view.title) + '</span>' +
         '<span class="asset-account-balance"><span class="asset-account-currency">' + book.currency + '</span><span class="asset-account-amount">' + esc(formatBalance(expenseTotal(book, today, today), 'JPY')) + '</span></span>' +
         (view.note ? '<span class="asset-account-note">' + esc(view.note) + '</span>' : '') +
@@ -918,7 +925,7 @@
     if (!grid) return;
     var state = loadState();
     renderNavigationLabels(state);
-    grid.innerHTML = ACCOUNTS.map(function (entry) {
+    grid.innerHTML = ACCOUNTS.map(function (entry, index) {
       var account = state.accounts[entry.id];
       var view = accountAppearance(state, entry);
       var color = view.color;
@@ -926,6 +933,7 @@
       var note = view.note;
       var action = staticAccountConfig(entry.id) ? '打开，双击编辑' : '编辑';
       return '<button class="asset-account-card" type="button" data-account-id="' + esc(entry.id) + '" style="--account-color:' + color + '" aria-label="' + action + esc(title) + '">' +
+        characterDecoration(state, index, 'accounts') +
         '<span class="asset-account-name">' + esc(title) + '</span>' +
         '<span class="asset-account-balance"><span class="asset-account-currency">' + esc(entry.currency) + '</span><span class="asset-account-amount">' + esc(formatBalance(account.balance, entry.currency)) + '</span></span>' +
         (note ? '<span class="asset-account-note">' + esc(note) + '</span>' : '') +

@@ -1,0 +1,66 @@
+/* Sacramento reuses the two approved sheets without redrawing the characters. */
+body[data-ledger-world="sacramento"] :is(#assetAccountGrid, #assetExpenseGrid) .asset-account-card {
+  --ledger-art-height: clamp(56px, 8.5vh, 92px);
+  padding-top: 0;
+  padding-bottom: 8px;
+}
+
+body[data-ledger-world="sacramento"] :is(#assetAccountGrid, #assetExpenseGrid) .asset-account-card::before {
+  top: var(--ledger-art-height);
+}
+
+body[data-ledger-world="sacramento"] :is(#assetAccountGrid, #assetExpenseGrid) .asset-account-name {
+  margin-top: 13px;
+}
+
+body[data-ledger-world="sacramento"] :is(#assetAccountGrid, #assetExpenseGrid) .asset-account-balance {
+  margin-top: 10px;
+}
+
+body[data-ledger-world="sacramento"] :is(#assetAccountGrid, #assetExpenseGrid) .asset-account-note {
+  margin-top: 8px;
+}
+
+.ledger-card-art {
+  display: block;
+  flex: none;
+  align-self: center;
+  width: calc(var(--ledger-art-height) * 1.1906976744);
+  height: var(--ledger-art-height);
+  max-width: 100%;
+  background-repeat: no-repeat;
+  background-size: 300% auto;
+  background-position: var(--character-x, 0%) calc(var(--ledger-art-height) * var(--character-y));
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  user-select: none;
+}
+
+.ledger-card-art-accounts {
+  --character-y: -0.1627906977;
+  background-image: url("assets/ledger/sacramento-accounts.webp");
+  opacity: .44;
+}
+
+.ledger-card-art-records {
+  --character-y: -0.0906976744;
+  background-image: url("assets/ledger/sacramento-records.webp");
+  opacity: .58;
+}
+
+.ledger-card-art:is([data-character="lisbon"], [data-character="vanpelt"]) { --character-x: 50%; }
+.ledger-card-art:is([data-character="jane"], [data-character="milo"]) { --character-x: 100%; }
+
+.ledger-card-art-accounts:is([data-character="rigsby"], [data-character="vanpelt"], [data-character="milo"]) {
+  --character-y: -1.2744186047;
+}
+
+.ledger-card-art-records:is([data-character="rigsby"], [data-character="vanpelt"], [data-character="milo"]) {
+  --character-y: -1.1674418605;
+}
+
+@media (max-width: 480px) {
+  body[data-ledger-world="sacramento"] :is(#assetAccountGrid, #assetExpenseGrid) .asset-account-card {
+    --ledger-art-height: 60px;
+  }
+}
