@@ -326,7 +326,11 @@
   }
 
   function characterDecoration(state, index, page) {
-    if (!document.getElementById('ledgerTabWorld') || state.stage.activeWorldId !== 'sacramento') return '';
+    if (!document.getElementById('ledgerTabWorld')) return '';
+    if (state.stage.activeWorldId === 'fox') {
+      return '<span class="ledger-card-art ledger-fox-art ledger-fox-art-' + page + '" data-fox-pose="' + (index + 1) + '" aria-hidden="true"></span>';
+    }
+    if (state.stage.activeWorldId !== 'sacramento') return '';
     var characters = ['cho', 'lisbon', 'jane', 'rigsby', 'vanpelt', 'milo'];
     return '<span class="ledger-card-art ledger-card-art-' + page + '" data-character="' + characters[index] + '" aria-hidden="true"></span>';
   }

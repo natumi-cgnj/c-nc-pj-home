@@ -9,7 +9,8 @@
 <title>LEDGER</title>
 <link rel="stylesheet" href="ledger-tasks.css?v=20261021-tasks1">
 <link rel="stylesheet" href="ledger-world-scene.css?v=20261021-sacramento1">
-<link rel="stylesheet" href="ledger-characters.css?v=20261022-characters5">
+<link rel="stylesheet" href="ledger-characters.css?v=20261022-characters6">
+<link rel="stylesheet" href="ledger-fox.css?v=20261022-fox1">
 <style>
 html{height:100%;overflow:hidden;scrollbar-width:none}html::-webkit-scrollbar{display:none}
 html.ledger-modal-open{overflow:hidden;overscroll-behavior:none}
@@ -46,6 +47,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 </style>
 </head>
 <body>
+<svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute;pointer-events:none;overflow:hidden">
+  <defs>
+    <filter id="ledger-fox-ink" x="0" y="0" width="1" height="1" color-interpolation-filters="sRGB">
+      <feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -.2126 -.7152 -.0722 0 1" result="fox-darkness"/>
+      <feComposite in="fox-darkness" in2="SourceAlpha" operator="in" result="fox-strokes"/>
+      <feComponentTransfer in="fox-strokes" result="fox-ink-mask">
+        <feFuncA type="linear" slope="3" intercept="0"/>
+      </feComponentTransfer>
+      <feFlood flood-color="#B08A5A" result="fox-theme-yellow"/>
+      <feComposite in="fox-theme-yellow" in2="fox-ink-mask" operator="in"/>
+    </filter>
+  </defs>
+</svg>
 <header class="top-bar">
   <a class="back-btn" href="index.html?p=2">← Home</a>
   <h1>LEDGER</h1>
@@ -224,7 +238,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <script src="ledger-task-catalog.js?v=20261021-events2"></script>
 <script src="ledger-task-model.js?v=20261021-events2"></script>
 <script src="ledger-tasks.js?v=20261021-events2"></script>
-<script src="wallet-assets.js?v=20261021-characters1"></script>
+<script src="wallet-assets.js?v=20261022-fox1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 
