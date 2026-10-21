@@ -9,7 +9,7 @@
 <title>LEDGER</title>
 <link rel="stylesheet" href="ledger-tasks.css?v=20261021-tasks1">
 <link rel="stylesheet" href="ledger-world-scene.css?v=20261021-sacramento1">
-<link rel="stylesheet" href="ledger-characters.css?v=20261021-characters1">
+<link rel="stylesheet" href="ledger-characters.css?v=20261021-characters2">
 <style>
 html{height:100%;overflow:hidden;scrollbar-width:none}html::-webkit-scrollbar{display:none}
 html.ledger-modal-open{overflow:hidden;overscroll-behavior:none}
@@ -46,6 +46,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 </style>
 </head>
 <body>
+<svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute;pointer-events:none">
+  <defs>
+    <filter id="ledger-clean-account-ink" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+      <feColorMatrix in="SourceGraphic" result="ink" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  -.2126 -.7152 -.0722 0 1"/>
+      <feComposite in="ink" in2="SourceAlpha" operator="in"/>
+      <feComponentTransfer><feFuncA type="linear" slope="2.2" intercept="-.14"/></feComponentTransfer>
+    </filter>
+  </defs>
+</svg>
 <header class="top-bar">
   <a class="back-btn" href="index.html?p=2">← Home</a>
   <h1>LEDGER</h1>

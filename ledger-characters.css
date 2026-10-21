@@ -37,10 +37,20 @@ body[data-ledger-world="sacramento"] :is(#assetAccountGrid, #assetExpenseGrid) .
 }
 
 .ledger-card-art-accounts {
-  --character-y: -0.1627906977;
+  --character-y: -0.0232558140;
+  width: calc(var(--ledger-art-height) * 1.0478139535);
   background-image: url("assets/ledger/sacramento-accounts.webp");
-  opacity: .44;
+  filter: url("#ledger-clean-account-ink");
+  clip-path: inset(12% 0 0);
+  opacity: var(--account-ink-opacity, .40);
 }
+
+.ledger-card-art-accounts[data-character="cho"] { --account-ink-opacity: .35; }
+.ledger-card-art-accounts[data-character="lisbon"] { --account-ink-opacity: .40; }
+.ledger-card-art-accounts[data-character="jane"] { --account-ink-opacity: .39; }
+.ledger-card-art-accounts[data-character="rigsby"] { --account-ink-opacity: .41; }
+.ledger-card-art-accounts[data-character="vanpelt"] { --account-ink-opacity: .48; }
+.ledger-card-art-accounts[data-character="milo"] { --account-ink-opacity: .41; }
 
 .ledger-card-art-records {
   --character-y: -0.0906976744;
@@ -52,7 +62,7 @@ body[data-ledger-world="sacramento"] :is(#assetAccountGrid, #assetExpenseGrid) .
 .ledger-card-art:is([data-character="jane"], [data-character="milo"]) { --character-x: 100%; }
 
 .ledger-card-art-accounts:is([data-character="rigsby"], [data-character="vanpelt"], [data-character="milo"]) {
-  --character-y: -1.2744186047;
+  --character-y: -1.0014883721;
 }
 
 .ledger-card-art-records:is([data-character="rigsby"], [data-character="vanpelt"], [data-character="milo"]) {
