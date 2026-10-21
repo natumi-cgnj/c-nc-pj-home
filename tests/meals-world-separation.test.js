@@ -131,7 +131,7 @@ test('CBI starts without a copied character roster or generated companion meals'
   assert.equal(generatedSlots.every(slot => Object.keys(slot).length === 0), true);
 });
 
-test('DIET keeps nutrition and calories beside a blank page while legacy dining stays separate', () => {
+test('DIET combines nutrition and calories beside body and world pages while legacy dining stays separate', () => {
   const html = fs.readFileSync('diet.html', 'utf8');
   const legacy = fs.readFileSync('meals.html', 'utf8');
   const cloudSync = fs.readFileSync('cloud-sync.js', 'utf8');
@@ -139,10 +139,10 @@ test('DIET keeps nutrition and calories beside a blank page while legacy dining 
   assert.match(html, /<h1>DIET<\/h1>/);
   assert.match(html, /id="viewNutrition" class="view active"/);
   assert.match(html, /<div id="viewDraft" class="view"><\/div>/);
-  assert.match(html, /id="viewCalories" class="view"/);
+  assert.match(html, /id="viewBody" class="view"/);
   assert.match(html, /switchMealTab\('viewNutrition'/);
   assert.match(html, /switchMealTab\('viewDraft'/);
-  assert.match(html, /switchMealTab\('viewCalories'/);
+  assert.match(html, /switchMealTab\('viewBody'/);
   assert.doesNotMatch(html, /viewMeals|meal_log_db|meal_companion_db|recipeShelf|CFG/);
   assert.match(legacy, /<h1>饮食（旧版）<\/h1>/);
   assert.match(legacy, /id="viewMeals" class="view active"/);
@@ -199,7 +199,7 @@ test('DIET opens existing records without writing or initializing legacy dining,
   assert.match(diet.elements.get('nutritionRows').innerHTML, /蛋白质：够了/);
   assert.equal(diet.elements.has('miniCalArea'), false);
   assert.equal(diet.elements.has('diningInviteArea'), false);
-  diet.context.switchMealTab('viewDraft', diet.tabs[2]);
+  diet.context.switchMealTab('viewDraft', diet.tabs[1]);
   assert.deepEqual(diet.views.filter(view => view.classList.contains('active')).map(view => view.id), ['viewDraft']);
   assert.equal(diet.elements.get('viewDraft').innerHTML, '');
   diet.context.switchMealTab('viewMeals', diet.tabs[0]);
@@ -218,7 +218,7 @@ test('DIET opens existing records without writing or initializing legacy dining,
   diet.listeners.get('liminal-cloud-ready')();
   assert.equal(diet.elements.get('nutritionNet').textContent, '657');
   assert.match(diet.elements.get('calorieHistory').innerHTML, /散步/);
-  diet.context.switchMealTab('viewNutrition', diet.tabs[0]);
+  diet.context.switchMealTab('viewNutrition', diet.tabs[2]);
   assert.deepEqual(diet.views.filter(view => view.classList.contains('active')).map(view => view.id), ['viewNutrition']);
   assert.equal(diet.elements.get('worldLabel').textContent, 'REALITY');
 });
@@ -229,7 +229,7 @@ function chooseSteps(diet, date) {
   diet.context.pickCalorieType(diet.calorieTypes.find(button => button.dataset.value === 'steps'));
 }
 
-test('DIET converts WeChat steps into burn kcal and updates both daily summaries', () => {
+test('DIET converts WeChat steps into burn kcal and updates the nutrition summary', () => {
   const diet = loadMeals('cbi', new MemoryStorage(), 'diet.html');
   const today = diet.context.workdayKey();
   const log = { version: 1, records: [
@@ -250,9 +250,7 @@ test('DIET converts WeChat steps into burn kcal and updates both daily summaries
   assert.deepEqual(saved.records.slice(0, 2), log.records);
   assert.deepEqual([saved.records[2].type, saved.records[2].source, saved.records[2].steps, saved.records[2].kcal], ['burn', 'wechat_steps', 12345, 370]);
   assert.equal(diet.elements.get('calorieModal').classList.contains('show'), false);
-  assert.equal(diet.elements.get('calorieIntake').textContent, '757 kcal');
-  assert.equal(diet.elements.get('calorieBurn').textContent, '470 kcal');
-  assert.equal(diet.elements.get('calorieNet').textContent, '287');
+  assert.equal(diet.elements.get('nutritionIntake').textContent, 757);
   assert.equal(diet.elements.get('nutritionBurn').textContent, 470);
   assert.equal(diet.elements.get('nutritionNet').textContent, '287');
   assert.match(diet.elements.get('calorieHistory').innerHTML, /calorie-kind steps">步<\/span>.*微信步数 12,345 步.*calorie-amount steps">−370 kcal/);
@@ -358,7 +356,7 @@ test('DIET step records survive reload and cloud refresh across worlds without r
   const after = [...storage.data];
   const reloaded = loadMeals('liminal', storage, 'diet.html');
   assert.deepEqual([...storage.data], after);
-  assert.equal(reloaded.elements.get('calorieBurn').textContent, '300 kcal');
+  assert.equal(reloaded.elements.get('nutritionBurn').textContent, 300);
   chooseSteps(reloaded);
   assert.equal(reloaded.elements.get('calorieSteps').value, '10000');
   assert.deepEqual([...storage.data], after);
@@ -368,7 +366,6 @@ test('DIET step records survive reload and cloud refresh across worlds without r
   log.records[0].detail = '微信步数 20,000 步';
   storage.setItem('calorie_log_db', JSON.stringify(log));
   reloaded.listeners.get('liminal-cloud-ready')();
-  assert.equal(reloaded.elements.get('calorieBurn').textContent, '600 kcal');
   assert.equal(reloaded.elements.get('nutritionBurn').textContent, 600);
-  assert.equal(reloaded.elements.get('calorieNet').textContent, '−600');
+  assert.equal(reloaded.elements.get('nutritionNet').textContent, '−600');
 });
