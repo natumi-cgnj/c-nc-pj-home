@@ -765,13 +765,23 @@
     render();
   }
 
+  function dailyFoxDecoration(now) {
+    // Match the story's Japan 04:00 day; rerenders keep the same daily visitor.
+    var day = global.LedgerTaskModel.dayKey(now);
+    var hash = 2166136261;
+    for (var i = 0; i < day.length; i++) hash = Math.imul(hash ^ day.charCodeAt(i), 16777619);
+    var index = (hash >>> 0) % 12;
+    var page = index < 6 ? 'accounts' : 'records';
+    return '<span class="ledger-card-art ledger-fox-art ledger-fox-art-' + page + ' ledger-fox-world-art" data-fox-pose="' + (index % 6 + 1) + '" aria-hidden="true"></span>';
+  }
+
   function renderStage(state) {
     var target = document.getElementById('assetStageSummary');
     if (!target) return;
     var current = state.stage.worlds.find(function (world) { return world.id === state.stage.activeWorldId; });
     document.body.dataset.ledgerWorld = current.id;
     var decoration = current.id === 'fox' && document.getElementById('ledgerTabWorld')
-      ? '<span class="ledger-card-art ledger-fox-art ledger-fox-art-accounts ledger-fox-world-art" data-fox-pose="3" aria-hidden="true"></span>'
+      ? dailyFoxDecoration()
       : '';
     target.innerHTML = '<button class="asset-stage-current" type="button" data-stage-open aria-label="选择或编辑世界">' + decoration + '<span class="asset-summary-label">' + esc(current.title) + '</span></button>';
     target.querySelector('[data-stage-open]').addEventListener('click', openStageSelector);
