@@ -163,7 +163,7 @@ test('six empty expense books use the account grid without copying balances or w
   assert.deepEqual([...grid.matchAll(/data-expense-book="([^"]+)"/g)].map(match => match[1]), ['book1', 'book2', 'book3', 'book4', 'book5', 'book6']);
   assert.deepEqual([...grid.matchAll(/class="asset-account-name">([^<]+)</g)].map(match => match[1]), ['账本一', '账本二', '账本三', '账本四', '账本五', '账本六']);
   assert.deepEqual([...grid.matchAll(/class="asset-account-amount">([^<]+)</g)].map(match => match[1]), ['0', '0', '0', '0', '0', '0']);
-  assert.deepEqual([...grid.matchAll(/class="asset-account-currency">([^<]+)</g)].map(match => match[1]), Array(6).fill('今日 · JPY'));
+  assert.deepEqual([...grid.matchAll(/class="asset-account-currency">([^<]+)</g)].map(match => match[1]), Array(6).fill('JPY'));
   assert.deepEqual([...grid.matchAll(/--account-color:([^"]+)/g)].map(match => match[1]), ['#B08A5A', '#87977F', '#68747A', '#7E9AB0', '#A06F62', '#B48A9B']);
   assert.deepEqual([...app.storage], before);
   assert.deepEqual(app.writes, []);
@@ -220,7 +220,7 @@ test('six bookkeeping cards show only today while each detail shows this month w
     app.window.WalletAssets.openExpenseDetail('book' + (index + 1));
     assert.equal(app.expenseDetailAmount(), (-(index + 1) * 270).toLocaleString('en-US'));
     const detail = app.nodes.get('assetExpenseDetail').innerHTML;
-    assert.match(detail, /本月 · JPY/);
+    assert.match(detail, /class="asset-detail-currency">JPY<\/span>/);
     assert.match(detail, /data-expense-record="old-month"/, 'older entries remain available for review and editing');
   }
   assert.deepEqual([...app.storage], before);
@@ -274,7 +274,7 @@ test('invalid book IDs leave storage untouched and malformed settings keep six y
   assert.deepEqual(app.writes, []);
   app.render();
   assert.equal([...app.nodes.get('assetExpenseGrid').innerHTML.matchAll(/data-expense-book=/g)].length, 6);
-  assert.equal([...app.nodes.get('assetExpenseGrid').innerHTML.matchAll(/class="asset-account-currency">今日 · JPY</g)].length, 6);
+  assert.equal([...app.nodes.get('assetExpenseGrid').innerHTML.matchAll(/class="asset-account-currency">JPY</g)].length, 6);
   assert.deepEqual(app.writes, []);
 });
 

@@ -515,7 +515,7 @@
       var view = expenseBookAppearance(state, book);
       return '<button class="asset-account-card" type="button" data-expense-book="' + book.id + '" style="--account-color:' + view.color + '" aria-label="打开，双击编辑' + esc(view.title) + '">' +
         '<span class="asset-account-name">' + esc(view.title) + '</span>' +
-        '<span class="asset-account-balance"><span class="asset-account-currency">今日 · ' + book.currency + '</span><span class="asset-account-amount">' + esc(formatBalance(expenseTotal(book, today, today), 'JPY')) + '</span></span>' +
+        '<span class="asset-account-balance"><span class="asset-account-currency">' + book.currency + '</span><span class="asset-account-amount">' + esc(formatBalance(expenseTotal(book, today, today), 'JPY')) + '</span></span>' +
         (view.note ? '<span class="asset-account-note">' + esc(view.note) + '</span>' : '') +
       '</button>';
     }).join('');
@@ -610,7 +610,7 @@
       '<div class="asset-detail-toolbar">' +
         '<button class="asset-detail-back" type="button" data-expense-back>' + navigationLabels(state).record + '</button>' +
         '<div class="asset-detail-heading"><div class="asset-expense-title">' + esc(view.title) + '</div>' +
-          '<div class="asset-detail-total"><span class="asset-detail-currency">本月 · JPY</span>' + esc(formatBalance(expenseTotal(book, today.slice(0, 7) + '-01', today), 'JPY')) + '</div></div>' +
+          '<div class="asset-detail-total"><span class="asset-detail-currency">JPY</span>' + esc(formatBalance(expenseTotal(book, today.slice(0, 7) + '-01', today), 'JPY')) + '</div></div>' +
         '<button class="asset-detail-edit" type="button" data-expense-settings>设置</button>' +
       '</div>' +
       '<button class="asset-static-add" type="button" data-expense-add>＋ 记一笔</button>' +
