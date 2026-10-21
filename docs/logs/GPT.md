@@ -1105,3 +1105,24 @@
 - 验证：原有 57 项账户／记账／世界导航与任务检查通过；以生产 SVG 滤镜在原 PNG 上进行组件渲染，确认大面积空白与衣服／面部内区变为真正透明，透明像素约 81.5%。对照渲染两套人物的 60px 展示区域，核对大小、淡色与横线衔接，并修正缩小后出现的上排残片；SVG 语法、20 项矩阵值与 diff 格式检查通过。
 - 验证限制：前轮 CUA 浏览器连续超时，本轮未无依据重复开启浏览器或改用其他浏览器控制路径。组件渲染使用同内容的原 PNG（本地 SVG 渲染器无法解码内嵌 WebP），实际网页仍读取既有 WebP；未完成手机／桌面实际浏览器及 vivo 真机复核。
 - 请勿误改：不要替换人物身份或重新绘制两套图，不变更第三页的大小和透明度、既有横线位置、金融统计、存档、世界选择与任务进度。
+
+## 2026-10-21｜按第三页原图重画第一页日常角色
+
+- 执行者：Codex
+- 分支：`codex/sacramento-account-redraw` → `main`，基于 `e8bb942`；提交见本条所在提交。
+- 用户纠正：前轮第一页过浅且周围仍有杂线；本轮明确授权按第三页重新绘制第一页，取代前轮“不重新绘制”的限制。
+- 素材：使用内置 imagegen，仅以第三页认可的忙乱版 `exec-f740a4f4-a1bd-446e-988d-dd6ea38a9ffb.png` 为参考，生成 `exec-c049005b-d1e7-40ec-a95b-6d06a9b419c3.png`；不再引用旧第一页素材。六人改为读一份文件、平静接电话、端茶杯与茶碟、双手吃三明治、仅操作电脑、在一份文件上写字；身份、发型、服饰与六色顺序沿用第三页。
+- 项目素材位置：`assets/ledger/sacramento-accounts-v2/{cho,lisbon,jane,rigsby,vanpelt,milo}.webp`。原生成图按人物区域分别裁出、补透明留白并编码为 WebP（quality 94、alphaQuality 100）；保持生成的 alpha，不做亮度提取、重新着色或擦除人物。每张 528×500，以统一原图缩放在既有 60px 手机装饰区域底部对齐，避免相邻／上一排人物残片串入。页面透明度使用与第三页相同的 .58。
+- 代码：移除前轮内联 SVG 滤镜、六人独立透明度与顶部裁切补丁；第一页改用六张独立透明素材，更新 CSS 缓存版本。第三页原图、原大小／深浅、横线、名称、金额和汇总位置均未修改。
+- 验证：原有账户／记账／导航／世界任务 57 项检查全部通过；diff 格式、六个资源的尺寸／alpha 与引用存在性通过。用最终 WebP 解码后的像素进行 60px 组件渲染，与第三页原图并排目视核对，确认背景清洁、无邻格零碎线条、下缘贴合横线；人物主轮廓的 alpha 连通检查通过。此为组件渲染，前轮 CUA 故障尚无恢复证据，本轮未重复耗时调用；未完成实际手机／桌面浏览器或 vivo 真机复核。
+- 请勿误改：保留全部财务数据、04:00 换日和当日／当月统计、历史流水、世界设置与独立任务进度；本轮仅替换萨克门托第一页插画。
+- 最终绘图提示词（内置 imagegen，transparent_background=true）：
+
+```text
+Create a NEW clean calm daily-office counterpart to this exact six-character illustration sheet, for the account overview of a minimalist personal ledger. Use ONLY this reference. Match its recognizable faces, hair, clothes, delicate smooth single-color line drawing style, consistent head/body scale, and visible ink strength. Do not fade the drawing. Final transparent PNG, 1536x1024, 3 equal columns x 2 equal rows in the same order and placement as the reference. Each figure must be an isolated waist-up cutout with a completely clean transparent surrounding area.
+
+Top left Cho, in cool gray #848F98: same neat short hair, tie and shirt, reading just ONE open file, calm deadpan face. Top center Lisbon, in muted terracotta #BF8178: same shoulder-length wavy hair and blazer, calmly on the phone, other arm resting naturally, NO paper stacks. Top right Jane, in sage green #94A086: same short soft curls, open collar and waistcoat, relaxed knowing smile, holding tea cup and saucer, NO flying papers.
+Bottom left Rigsby, in muted blue #7496AE: same short tousled hair, shirt and tie, calmly eating one sandwich held in his hands, NO files. Bottom center Van Pelt, in dusty mauve #B77C8D: same long wavy hair and blouse, calmly typing at ONE laptop, NO loose paper or stacks. Bottom right Milo, in ochre #BD8C5C: same young male face, narrow jaw, slightly upturned eyes, small ear stud, layered shaggy wolf/mullet hair with broken fringe and tapered nape, shirt/tie/waistcoat, calmly writing in ONE open folder. No glasses, no beard.
+
+Keep each head and torso about the SAME SIZE as its reference counterpart. Preserve all six character designs. Top figures fit inside x=0..512,512..1024,1024..1536 and y=75..470, flat lower crop at y=470. Bottom figures fit the same columns and y=535..932, flat lower crop at y=932. Absolutely NO surrounding motion marks, floating curls, detached fragments, sweat drops, decorations, scraps, scene background, shadows, haze, colored glow, gray wash, rectangular background patches, captions, numbers or interface. Remove the reference horizontal baselines: the website supplies its own line directly below the cutouts. Only intentional lines belonging to the characters and their single props. Clean and controlled, not sketchy. Keep the linework as visible and crisp as the reference, with restrained pale ink. White interiors of faces/clothes are okay but all surrounding canvas must be genuinely transparent.
+```

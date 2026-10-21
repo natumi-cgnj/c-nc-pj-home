@@ -1,4 +1,4 @@
-/* Sacramento reuses the two approved sheets without redrawing the characters. */
+/* Sacramento: calm account cutouts and the approved busy bookkeeping sheet. */
 body[data-ledger-world="sacramento"] :is(#assetAccountGrid, #assetExpenseGrid) .asset-account-card {
   --ledger-art-height: clamp(56px, 8.5vh, 92px);
   padding-top: 0;
@@ -37,20 +37,18 @@ body[data-ledger-world="sacramento"] :is(#assetAccountGrid, #assetExpenseGrid) .
 }
 
 .ledger-card-art-accounts {
-  --character-y: -0.0232558140;
-  width: calc(var(--ledger-art-height) * 1.0478139535);
-  background-image: url("assets/ledger/sacramento-accounts.webp");
-  filter: url("#ledger-clean-account-ink");
-  clip-path: inset(12% 0 0);
-  opacity: var(--account-ink-opacity, .40);
+  width: calc(var(--ledger-art-height) * 1.056);
+  background-size: 100% 100%;
+  background-position: center bottom;
+  opacity: .58;
 }
 
-.ledger-card-art-accounts[data-character="cho"] { --account-ink-opacity: .35; }
-.ledger-card-art-accounts[data-character="lisbon"] { --account-ink-opacity: .40; }
-.ledger-card-art-accounts[data-character="jane"] { --account-ink-opacity: .39; }
-.ledger-card-art-accounts[data-character="rigsby"] { --account-ink-opacity: .41; }
-.ledger-card-art-accounts[data-character="vanpelt"] { --account-ink-opacity: .48; }
-.ledger-card-art-accounts[data-character="milo"] { --account-ink-opacity: .41; }
+.ledger-card-art-accounts[data-character="cho"] { background-image: url("assets/ledger/sacramento-accounts-v2/cho.webp"); }
+.ledger-card-art-accounts[data-character="lisbon"] { background-image: url("assets/ledger/sacramento-accounts-v2/lisbon.webp"); }
+.ledger-card-art-accounts[data-character="jane"] { background-image: url("assets/ledger/sacramento-accounts-v2/jane.webp"); }
+.ledger-card-art-accounts[data-character="rigsby"] { background-image: url("assets/ledger/sacramento-accounts-v2/rigsby.webp"); }
+.ledger-card-art-accounts[data-character="vanpelt"] { background-image: url("assets/ledger/sacramento-accounts-v2/vanpelt.webp"); }
+.ledger-card-art-accounts[data-character="milo"] { background-image: url("assets/ledger/sacramento-accounts-v2/milo.webp"); }
 
 .ledger-card-art-records {
   --character-y: -0.0906976744;
@@ -60,10 +58,6 @@ body[data-ledger-world="sacramento"] :is(#assetAccountGrid, #assetExpenseGrid) .
 
 .ledger-card-art:is([data-character="lisbon"], [data-character="vanpelt"]) { --character-x: 50%; }
 .ledger-card-art:is([data-character="jane"], [data-character="milo"]) { --character-x: 100%; }
-
-.ledger-card-art-accounts:is([data-character="rigsby"], [data-character="vanpelt"], [data-character="milo"]) {
-  --character-y: -1.0014883721;
-}
 
 .ledger-card-art-records:is([data-character="rigsby"], [data-character="vanpelt"], [data-character="milo"]) {
   --character-y: -1.1674418605;
