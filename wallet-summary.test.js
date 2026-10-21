@@ -55,6 +55,8 @@ function fixture(state, sharedStorage) {
     flushTimers() { const queued = [...timers.values()]; timers.clear(); queued.forEach(item => item.callback()); }, time(value) { now = value; }, render() { window.WalletAssets.render(); },
     amounts() { return [...nodes.get('assetAccountSummary').innerHTML.matchAll(/class="asset-summary-value">([^<]+)</g)].map(match => match[1]); },
     expenseAmounts() { return [...nodes.get('assetExpenseSummary').innerHTML.matchAll(/class="asset-summary-value">([^<]+)</g)].map(match => match[1]); },
+    expenseCardAmounts() { return [...nodes.get('assetExpenseGrid').innerHTML.matchAll(/class="asset-account-amount">([^<]+)</g)].map(match => match[1]); },
+    expenseDetailAmount() { return nodes.get('assetExpenseDetail').innerHTML.match(/class="asset-detail-total"><span[^>]*>[^<]*<\/span>([^<]+)</)[1]; },
     tabLabels() { return ['ledgerTabAccounts', 'ledgerTabWorld', 'ledgerTabRecord'].map(id => nodes.get(id).textContent); },
     stored() { return JSON.parse(storage.get('wallet_accounts_v1')); } };
 }
@@ -161,7 +163,7 @@ test('six empty expense books use the account grid without copying balances or w
   assert.deepEqual([...grid.matchAll(/data-expense-book="([^"]+)"/g)].map(match => match[1]), ['book1', 'book2', 'book3', 'book4', 'book5', 'book6']);
   assert.deepEqual([...grid.matchAll(/class="asset-account-name">([^<]+)</g)].map(match => match[1]), ['账本一', '账本二', '账本三', '账本四', '账本五', '账本六']);
   assert.deepEqual([...grid.matchAll(/class="asset-account-amount">([^<]+)</g)].map(match => match[1]), ['0', '0', '0', '0', '0', '0']);
-  assert.deepEqual([...grid.matchAll(/class="asset-account-currency">([^<]+)</g)].map(match => match[1]), ['JPY', 'JPY', 'JPY', 'JPY', 'JPY', 'JPY']);
+  assert.deepEqual([...grid.matchAll(/class="asset-account-currency">([^<]+)</g)].map(match => match[1]), Array(6).fill('今日 · JPY'));
   assert.deepEqual([...grid.matchAll(/--account-color:([^"]+)/g)].map(match => match[1]), ['#B08A5A', '#87977F', '#68747A', '#7E9AB0', '#A06F62', '#B48A9B']);
   assert.deepEqual([...app.storage], before);
   assert.deepEqual(app.writes, []);
@@ -199,6 +201,30 @@ test('expense book settings survive reload and remain separate from account bala
   assert.equal(reloaded.nodes.has('assetExpenseBookCurrency'), false);
   assert.equal(reloaded.nodes.get('assetExpenseBookColor').value, '#87977F');
   assert.equal(reloaded.storage.get('wallet_db'), 'legacy-untouched');
+});
+
+test('six bookkeeping cards show only today while each detail shows this month without rewriting history', () => {
+  const books = Array.from({ length: 6 }, (_, index) => ({ id: 'book' + (index + 1), records: [
+    { id: 'old-month', date: '2026-09-30', amount: 9000 },
+    { id: 'earlier', date: '2026-10-18', amount: 40 * (index + 1) },
+    { id: 'today-spent', date: '2026-10-19', amount: 300 * (index + 1) },
+    { id: 'today-earned', date: '2026-10-19', type: 'income', amount: 70 * (index + 1) },
+    { id: 'future-spent', date: '2026-10-20', amount: 5000 },
+    { id: 'future-earned', date: '2026-10-20', type: 'income', amount: 8000 }
+  ] }));
+  const app = fixture({ expenseBooks: books });
+  const before = [...app.storage];
+  app.render();
+  assert.deepEqual(app.expenseCardAmounts(), ['-230', '-460', '-690', '-920', '-1,150', '-1,380']);
+  for (let index = 0; index < 6; index++) {
+    app.window.WalletAssets.openExpenseDetail('book' + (index + 1));
+    assert.equal(app.expenseDetailAmount(), (-(index + 1) * 270).toLocaleString('en-US'));
+    const detail = app.nodes.get('assetExpenseDetail').innerHTML;
+    assert.match(detail, /本月 · JPY/);
+    assert.match(detail, /data-expense-record="old-month"/, 'older entries remain available for review and editing');
+  }
+  assert.deepEqual([...app.storage], before);
+  assert.deepEqual(app.writes, []);
 });
 
 test('goal, account and asset-item saves preserve expense records and monthly income', () => {
@@ -248,7 +274,7 @@ test('invalid book IDs leave storage untouched and malformed settings keep six y
   assert.deepEqual(app.writes, []);
   app.render();
   assert.equal([...app.nodes.get('assetExpenseGrid').innerHTML.matchAll(/data-expense-book=/g)].length, 6);
-  assert.equal([...app.nodes.get('assetExpenseGrid').innerHTML.matchAll(/class="asset-account-currency">JPY</g)].length, 6);
+  assert.equal([...app.nodes.get('assetExpenseGrid').innerHTML.matchAll(/class="asset-account-currency">今日 · JPY</g)].length, 6);
   assert.deepEqual(app.writes, []);
 });
 
@@ -476,6 +502,7 @@ test('income is recorded in the same book and changing its direction or date upd
   assert.match(app.nodes.get('assetExpenseDetail').innerHTML, /asset-static-amount">\+2,500/);
   assert.match(app.nodes.get('assetExpenseDetail').innerHTML, /asset-static-amount">−100/);
   assert.match(app.nodes.get('assetExpenseDetail').innerHTML, /JPY<\/span>2,400/);
+  assert.equal(app.expenseCardAmounts()[1], '2,500');
   const savedAccounts = app.stored().accounts;
   const reloaded = fixture(null, app.storage);
   reloaded.render();
@@ -487,15 +514,21 @@ test('income is recorded in the same book and changing its direction or date upd
   fillExpense(reloaded, { type: 'income', date: '2026-09-30', amount: '1000' });
   reloaded.window.WalletAssets.saveExpenseRecord();
   assert.deepEqual(reloaded.expenseAmounts(), ['0', '100', '-100', '900']);
+  assert.equal(reloaded.expenseCardAmounts()[1], '0');
+  assert.equal(reloaded.expenseDetailAmount(), '-100');
   reloaded.window.WalletAssets.openExpenseRecord(id);
   fillExpense(reloaded, { type: 'expense', amount: '200' });
   reloaded.window.WalletAssets.saveExpenseRecord();
   assert.deepEqual(reloaded.expenseAmounts(), ['0', '300', '-300', '-300']);
+  assert.equal(reloaded.expenseCardAmounts()[1], '-200');
+  assert.equal(reloaded.expenseDetailAmount(), '-300');
   assert.match(reloaded.nodes.get('assetExpenseDetail').innerHTML, /asset-static-amount">−200/);
   reloaded.window.WalletAssets.openExpenseRecord(id);
   fillExpense(reloaded, { type: 'income', amount: '500' });
   reloaded.window.WalletAssets.saveExpenseRecord();
   assert.deepEqual(reloaded.expenseAmounts(), ['500', '100', '400', '400']);
+  assert.equal(reloaded.expenseCardAmounts()[1], '500');
+  assert.equal(reloaded.expenseDetailAmount(), '400');
   reloaded.window.WalletAssets.openExpenseBook('book2');
   reloaded.nodes.get('assetExpenseBookName').value = '新名称';
   reloaded.window.WalletAssets.saveExpenseBook();
@@ -510,7 +543,7 @@ test('income is recorded in the same book and changing its direction or date upd
   assert.equal(reloaded.storage.get('wallet_db'), 'legacy-untouched');
 });
 
-test('record-derived totals roll at Japan month boundaries and do not count future income or expenses early', () => {
+test('daily, monthly and summary totals share Japan 04:00 boundaries and exclude future records', () => {
   const app = fixture({ expenseBooks: [{ id: 'book1', records: [
     { id: 'september', date: '2026-09-30', amount: 50, note: '' },
     { id: 'october', date: '2026-10-31', amount: 100, note: '' },
@@ -523,16 +556,39 @@ test('record-derived totals roll at Japan month boundaries and do not count futu
   ] }] });
   app.time('2026-10-31T14:59:59Z');
   app.render();
+  app.window.WalletAssets.openExpenseDetail('book1');
   assert.deepEqual(app.expenseAmounts(), ['1,000', '100', '900', '3,350']);
+  assert.equal(app.expenseCardAmounts()[0], '900');
+  assert.equal(app.expenseDetailAmount(), '900');
   app.time('2026-10-31T15:00:00Z');
   app.render();
+  assert.deepEqual(app.expenseAmounts(), ['1,000', '100', '900', '3,350']);
+  assert.equal(app.expenseCardAmounts()[0], '900');
+  assert.equal(app.expenseDetailAmount(), '900');
+  app.time('2026-10-31T18:59:59Z');
+  app.render();
+  assert.deepEqual(app.expenseAmounts(), ['1,000', '100', '900', '3,350']);
+  assert.equal(app.expenseCardAmounts()[0], '900');
+  assert.equal(app.expenseDetailAmount(), '900');
+  app.time('2026-10-31T19:00:00Z');
+  app.render();
   assert.deepEqual(app.expenseAmounts(), ['400', '200', '200', '3,550']);
-  app.time('2026-11-01T15:00:00Z');
+  assert.equal(app.expenseCardAmounts()[0], '200');
+  assert.equal(app.expenseDetailAmount(), '200');
+  app.time('2026-11-01T19:00:00Z');
   app.render();
   assert.deepEqual(app.expenseAmounts(), ['1,000', '500', '500', '3,850']);
-  app.time('2026-11-30T15:00:00Z');
+  assert.equal(app.expenseCardAmounts()[0], '300');
+  assert.equal(app.expenseDetailAmount(), '500');
+  app.time('2026-11-02T19:00:00Z');
+  app.render();
+  assert.equal(app.expenseCardAmounts()[0], '0');
+  assert.equal(app.expenseDetailAmount(), '500');
+  app.time('2026-11-30T19:00:00Z');
   app.render();
   assert.deepEqual(app.expenseAmounts(), ['0', '0', '0', '3,850']);
+  assert.equal(app.expenseCardAmounts()[0], '0');
+  assert.equal(app.expenseDetailAmount(), '0');
   assert.deepEqual(app.writes, []);
 });
 
