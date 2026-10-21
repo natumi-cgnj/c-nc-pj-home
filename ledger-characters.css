@@ -47,21 +47,45 @@ body[data-ledger-world="sacramento"] :is(#assetAccountGrid, #assetExpenseGrid) .
   /* Match the rendered strokes, rather than reusing opacity on different originals. */
   opacity: var(--account-art-opacity);
   filter: saturate(var(--account-art-saturation));
+  /* Clip to this figure, including props, instead of the overlapping sprite cell. */
+  clip-path: var(--account-art-clip);
 }
 
-.ledger-card-art-accounts[data-character="cho"] { --account-art-opacity: .44; --account-art-saturation: 1.30; }
-.ledger-card-art-accounts[data-character="lisbon"] { --account-art-opacity: .45; --account-art-saturation: .86; }
-.ledger-card-art-accounts[data-character="jane"] { --account-art-opacity: .45; --account-art-saturation: .93; }
-.ledger-card-art-accounts[data-character="rigsby"] { --account-art-opacity: .45; --account-art-saturation: 1.18; }
-.ledger-card-art-accounts[data-character="vanpelt"] { --account-art-opacity: .49; --account-art-saturation: .92; }
-.ledger-card-art-accounts[data-character="milo"] { --account-art-opacity: .52; --account-art-saturation: .94; }
+.ledger-card-art-accounts[data-character="cho"] {
+  --account-art-opacity: .44;
+  --account-art-saturation: 1.30;
+  --account-art-clip: polygon(94.67% 99.38%, 17.28% 99.58%, 13.97% 99.17%, 12.13% 98.33%, 10.29% 96.25%, 9.56% 94.58%, 9.56% 92.92%, 30.70% 27.71%, 34.56% 20.21%, 39.15% 14.37%, 45.77% 10.42%, 48.71% 9.17%, 59.74% 9.58%, 66.54% 15.62%, 88.24% 60.00%, 93.38% 74.17%, 98.71% 92.71%, 98.35% 96.04%, 96.32% 98.96%);
+}
+.ledger-card-art-accounts[data-character="lisbon"] {
+  --account-art-opacity: .45;
+  --account-art-saturation: .86;
+  --account-art-clip: polygon(84.74% 98.96%, 42.46% 101.88%, 26.10% 99.79%, 18.38% 97.50%, 13.42% 91.67%, 13.05% 90.62%, 12.68% 79.58%, 17.65% 58.54%, 25.18% 38.54%, 29.60% 28.75%, 36.03% 20.21%, 49.08% 12.71%, 50.55% 12.29%, 55.70% 12.71%, 63.79% 18.12%, 65.62% 20.42%, 77.94% 42.92%, 90.99% 90.83%, 90.99% 92.50%, 89.71% 96.04%, 87.50% 98.33%);
+}
+.ledger-card-art-accounts[data-character="jane"] {
+  --account-art-opacity: .45;
+  --account-art-saturation: .93;
+  --account-art-clip: polygon(88.42% 87.50%, 89.52% 94.79%, 88.42% 98.12%, 87.50% 99.17%, 13.24% 99.58%, 9.01% 99.17%, 5.51% 95.42%, 5.15% 94.38%, 4.96% 85.62%, 33.46% 17.71%, 38.24% 11.25%, 47.24% 9.38%, 59.56% 12.92%, 69.85% 25.62%);
+}
+.ledger-card-art-accounts[data-character="rigsby"] {
+  --account-art-opacity: .45;
+  --account-art-saturation: 1.18;
+  --account-art-clip: polygon(9.19% 84.38%, 29.23% 24.58%, 31.62% 19.38%, 40.26% 11.88%, 45.22% 9.38%, 50.00% 9.17%, 56.80% 10.42%, 62.87% 13.33%, 66.18% 17.92%, 86.40% 56.46%, 96.69% 87.50%, 96.51% 89.17%, 93.75% 96.67%, 91.36% 98.96%, 83.46% 100.21%, 22.06% 100.21%, 15.07% 99.38%, 13.79% 98.75%, 11.95% 96.67%, 8.64% 90.00%);
+}
+.ledger-card-art-accounts[data-character="vanpelt"] {
+  --account-art-opacity: .49;
+  --account-art-saturation: .92;
+  --account-art-clip: polygon(73.53% 21.04%, 99.26% 70.00%, 89.89% 96.67%, 88.79% 97.92%, 87.68% 98.33%, 54.96% 100.42%, 15.99% 97.71%, 13.97% 97.08%, 11.95% 95.00%, 5.51% 85.21%, 4.78% 74.17%, 13.60% 51.04%, 31.99% 31.25%, 42.46% 22.08%, 53.68% 15.62%, 58.46% 14.17%, 61.03% 14.17%, 71.32% 18.75%);
+}
+.ledger-card-art-accounts[data-character="milo"] {
+  --account-art-opacity: .52;
+  --account-art-saturation: .94;
+  --account-art-clip: polygon(94.49% 90.21%, 94.67% 91.88%, 93.75% 95.42%, 92.65% 97.71%, 90.62% 99.58%, 85.85% 100.42%, 63.42% 101.04%, 12.50% 99.79%, 7.54% 98.54%, 5.51% 96.46%, 3.31% 90.83%, 3.12% 88.75%, 10.48% 70.00%, 34.56% 20.42%, 39.15% 12.92%, 47.24% 9.17%, 58.27% 10.00%, 61.40% 11.04%, 68.38% 16.04%, 75.92% 26.25%);
+}
 
 .ledger-card-art-accounts:is([data-character="lisbon"], [data-character="vanpelt"]) { --account-art-x: -1.0333333333; }
 .ledger-card-art-accounts:is([data-character="jane"], [data-character="milo"]) { --account-art-x: -2.1; }
 .ledger-card-art-accounts:is([data-character="rigsby"], [data-character="vanpelt"], [data-character="milo"]) {
   --account-art-y: -1.0416666667;
-  /* Exclude the first row's lowest strokes from the second row's top padding. */
-  clip-path: inset(6% 0 0);
 }
 
 .ledger-card-art-records {
