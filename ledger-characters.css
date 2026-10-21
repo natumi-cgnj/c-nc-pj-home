@@ -1,4 +1,4 @@
-/* Sacramento: calm account cutouts and the approved busy bookkeeping sheet. */
+/* Sacramento: new relaxed account poses, calibrated to the approved bookkeeping art. */
 body[data-ledger-world="sacramento"] :is(#assetAccountGrid, #assetExpenseGrid) .asset-account-card {
   --ledger-art-height: clamp(56px, 8.5vh, 92px);
   padding-top: 0;
@@ -37,18 +37,32 @@ body[data-ledger-world="sacramento"] :is(#assetAccountGrid, #assetExpenseGrid) .
 }
 
 .ledger-card-art-accounts {
-  width: calc(var(--ledger-art-height) * 1.056);
-  background-size: 100% 100%;
-  background-position: center bottom;
-  opacity: .58;
+  --account-art-x: .0333333333;
+  --account-art-y: -.08125;
+  width: calc(var(--ledger-art-height) * 1.1333333333);
+  background-image: url("assets/ledger/sacramento-accounts-v3.webp");
+  /* A 544 x 480 source window keeps the new heads at the reference's scale. */
+  background-size: calc(var(--ledger-art-height) * 3.2) auto;
+  background-position: calc(var(--ledger-art-height) * var(--account-art-x)) calc(var(--ledger-art-height) * var(--account-art-y));
+  /* Match the rendered strokes, rather than reusing opacity on different originals. */
+  opacity: var(--account-art-opacity);
+  filter: saturate(var(--account-art-saturation));
 }
 
-.ledger-card-art-accounts[data-character="cho"] { background-image: url("assets/ledger/sacramento-accounts-v2/cho.webp"); }
-.ledger-card-art-accounts[data-character="lisbon"] { background-image: url("assets/ledger/sacramento-accounts-v2/lisbon.webp"); }
-.ledger-card-art-accounts[data-character="jane"] { background-image: url("assets/ledger/sacramento-accounts-v2/jane.webp"); }
-.ledger-card-art-accounts[data-character="rigsby"] { background-image: url("assets/ledger/sacramento-accounts-v2/rigsby.webp"); }
-.ledger-card-art-accounts[data-character="vanpelt"] { background-image: url("assets/ledger/sacramento-accounts-v2/vanpelt.webp"); }
-.ledger-card-art-accounts[data-character="milo"] { background-image: url("assets/ledger/sacramento-accounts-v2/milo.webp"); }
+.ledger-card-art-accounts[data-character="cho"] { --account-art-opacity: .44; --account-art-saturation: 1.30; }
+.ledger-card-art-accounts[data-character="lisbon"] { --account-art-opacity: .45; --account-art-saturation: .86; }
+.ledger-card-art-accounts[data-character="jane"] { --account-art-opacity: .45; --account-art-saturation: .93; }
+.ledger-card-art-accounts[data-character="rigsby"] { --account-art-opacity: .45; --account-art-saturation: 1.18; }
+.ledger-card-art-accounts[data-character="vanpelt"] { --account-art-opacity: .49; --account-art-saturation: .92; }
+.ledger-card-art-accounts[data-character="milo"] { --account-art-opacity: .52; --account-art-saturation: .94; }
+
+.ledger-card-art-accounts:is([data-character="lisbon"], [data-character="vanpelt"]) { --account-art-x: -1.0333333333; }
+.ledger-card-art-accounts:is([data-character="jane"], [data-character="milo"]) { --account-art-x: -2.1; }
+.ledger-card-art-accounts:is([data-character="rigsby"], [data-character="vanpelt"], [data-character="milo"]) {
+  --account-art-y: -1.0416666667;
+  /* Exclude the first row's lowest strokes from the second row's top padding. */
+  clip-path: inset(6% 0 0);
+}
 
 .ledger-card-art-records {
   --character-y: -0.0906976744;
