@@ -20,6 +20,18 @@
   background-image: url("assets/ledger/fox-records-v1.webp");
 }
 
+/* A resting fox keeps the world selector company, below the story. */
+body[data-ledger-world="fox"] #viewDraft .asset-stage-current {
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ledger-fox-world-art {
+  --ledger-art-height: 100px;
+  /* This pose curls low in its source window; remove the empty space above it. */
+  margin-top: -35px;
+}
+
 /* Each source window and outline includes the entire fox and its own props. */
 
 .ledger-fox-art-accounts[data-fox-pose="1"] {
