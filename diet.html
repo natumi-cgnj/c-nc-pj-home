@@ -25,7 +25,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .tab-bar button.active{color:var(--diet-accent)}
 .tab-bar button.active::before{content:"";position:absolute;left:36%;right:36%;top:0;height:1px;background:#C69A42}
 .nutrition-wrap{width:100%;max-width:1120px;margin:0 auto;padding:18px clamp(16px,4vw,32px) 16px}
-.nutrition-log{position:relative;margin-top:12px;border-top:1px solid var(--diet-rule)}
+.nutrition-log{position:relative;margin-top:12px;border-top:1px solid rgba(176,138,90,.28)}
+.nutrition-fox{position:absolute;right:34px;bottom:100%;width:120px;height:50px;object-fit:contain;object-position:center bottom;filter:url("#diet-fox-ink");opacity:.35;pointer-events:none;user-select:none;mix-blend-mode:multiply}
+@media(max-width:359px){.nutrition-fox{right:28px;width:104px;height:44px}}
 .calorie-add{appearance:none;-webkit-appearance:none;position:absolute;right:0;top:0;padding:14px 0;border:0;border-radius:0;background:none;color:var(--diet-accent);font-family:inherit;font-size:11px;font-weight:500;line-height:18px;letter-spacing:.25px;text-align:right;cursor:pointer}
 .calorie-fold{border:0;background:none}
 .calorie-fold summary{display:flex;align-items:center;gap:5px;list-style:none;width:max-content;max-width:calc(100% - 84px);padding:14px 0;font-size:10px;line-height:18px;color:#aaa59e;letter-spacing:.45px;cursor:pointer}
@@ -109,6 +111,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 </style>
 </head>
 <body>
+<svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute;pointer-events:none;overflow:hidden">
+  <defs>
+    <filter id="diet-fox-ink" x="0" y="0" width="1" height="1" color-interpolation-filters="sRGB">
+      <feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -.2126 -.7152 -.0722 0 1" result="fox-darkness"/>
+      <feComposite in="fox-darkness" in2="SourceAlpha" operator="in" result="fox-strokes"/>
+      <feComponentTransfer in="fox-strokes" result="fox-ink-mask"><feFuncA type="linear" slope="3" intercept="0"/></feComponentTransfer>
+      <feFlood flood-color="#B08A5A" result="fox-theme-yellow"/>
+      <feComposite in="fox-theme-yellow" in2="fox-ink-mask" operator="in"/>
+    </filter>
+  </defs>
+</svg>
 <div class="top-bar"><a class="back-btn" href="index.html?p=2">← Home</a><h1>DIET</h1><span class="world-label" id="worldLabel"></span></div>
 <div id="viewNutrition" class="view active">
   <section class="nutrition-wrap">
@@ -127,6 +140,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     </div>
     <div class="nutrition-card" id="nutritionRows"></div>
     <div class="nutrition-log">
+      <img class="nutrition-fox" src="assets/diet/fox-bowl-v1.webp" width="120" height="50" alt="" aria-hidden="true" decoding="async">
       <details class="calorie-fold">
         <summary>热量记录 <span class="calorie-count" id="calorieCount"></span></summary>
         <div id="calorieHistory"></div>

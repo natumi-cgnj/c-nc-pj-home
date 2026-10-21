@@ -1,0 +1,11 @@
+Built-in image_gen tool; reference: assets/ledger/fox-accounts-v1.webp
+
+Use case: illustration-story
+Asset type: one transparent UI ornament for the nutrition page of a quiet personal journal app.
+Primary request: Draw ONE Patrick fox in a new eating pose, in the exact same delicate golden monochrome line-art character style as the reference. The reference is a character/style sheet only, not the composition to reproduce.
+Subject: the same adult fox with a wavy curled forelock, clever relaxed eyes, pointed ears, fluffy neck ruff, little waistcoat and an enormous fluffy tail. He is comfortably lying down with a small plain round food bowl held naturally between his two front paws, nose near the bowl, a small spoon resting beside the bowl. His body lies low and his large tail stretches out to the right along the same baseline. A cozy, faintly mischievous expression; readable animal anatomy and paws.
+Style/medium: elegant fine ink outlines, restrained fur strokes, clean narrow line weight matching the reference, no solid filled areas, no shading, no gradients, no colored fur fills. Draw only the outlines in uniform muted golden-brown #B08A5A; all areas between strokes, including inside the body and bowl, must be transparent.
+Composition/framing: a single complete fox and bowl, wide horizontal silhouette around 2.4:1, full tail and both ears inside the image with a small transparent margin. Designed to sit on a horizontal CSS divider; do NOT draw the divider or any ground line. No surrounding objects beyond the bowl and spoon. Keep the head and bowl readable when the image is displayed about 110 pixels wide.
+Scene/backdrop: genuinely transparent alpha background.
+Constraints: exactly one fox; keep the reference identity, curled hair, face proportions and soft large tail; natural connected paws and limbs; no human hands, extra legs, text, labels, watermark, frames, checkerboard or background color.
+
