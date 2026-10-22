@@ -14,7 +14,7 @@
     { id: 'surplus7000', name: '三日结余', days: 3, rule: 'surplusTotal', limit: 7000, condition: '三天累计差额达到 7,000 円（进账－支出）', reward: 10 },
     { id: 'pantry', name: '库存饮食', days: 1, rule: 'manualDaily', condition: '一天的食物全部来自家里库存，不额外购买', reward: 10 },
     { id: 'cnBalances', name: '余额确认', days: 0, rule: 'manualOnce', condition: '确认支付宝和微信余额', reward: 10 },
-    { id: 'listNine', name: '三日上架', days: 3, rule: 'manualDaily', condition: '连续三天，每天挂出三件物品', reward: 10 },
+    { id: 'listNine', name: '三日上架', days: 3, rule: 'manualDaily', checkOnCurrentDay: true, condition: '连续三天，每天挂出三件物品', reward: 10 },
     { id: 'rollbahnFive', name: '五本 Rollbahn', days: 0, rule: 'manualOnce', condition: '挂出五本 Rollbahn', reward: 10 },
     { id: 'noSnacks', name: '零食休假', days: 3, rule: 'manualDaily', condition: '连续三天不购买零食', reward: 10 },
     { id: 'reconcile', name: '收支清查', days: 0, rule: 'manualOnce', condition: '补记并清查最近的收支', reward: 10 },

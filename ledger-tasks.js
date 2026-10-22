@@ -60,7 +60,7 @@
         '<span class="ledger-task-hint">点击继续 · ' + (index + 1) + ' / ' + story.lines.length + '</span></button>';
     } else {
       output += '<div class="ledger-task-brief"><p class="ledger-task-condition">' + esc(entry.condition) + '</p>' +
-        '<p class="ledger-task-note">' + (entry.days ? date(model.addDay(model.dayKey(), 1)) + ' 04:00 开始 · ' + entry.days + ' 天' : '接受后即可进行 · 不设截止日') + ' · 完成 +' + entry.reward + ' 积分</p></div>' +
+        '<p class="ledger-task-note">' + (entry.days ? (entry.checkOnCurrentDay ? '接受当天开始' : date(model.addDay(model.dayKey(), 1)) + ' 04:00 开始') + ' · ' + entry.days + ' 天' : '接受后即可进行 · 不设截止日') + ' · 完成 +' + entry.reward + ' 积分</p></div>' +
         '<div class="ledger-task-actions">' + button('accept', '接受', offer.attemptId, false, 'ledger-task-primary') +
           button('return', '下次再说', offer.attemptId) + '</div>';
     }
@@ -79,14 +79,14 @@
       if (entry.rule === 'positiveDaily') detail = '进账 ' + amount(row.stats.income) + ' · 支出 ' + amount(row.stats.spent);
       if (entry.rule === 'budgetTotal') detail = '支出 ' + amount(row.stats.spent) + ' 円';
       var label = row.key === 'once' ? '确认完成' : date(row.key) + ' · 第 ' + row.index + ' 天';
-      var stateText = row.checked ? '已打卡' : row.ended ? '打卡' : row.key > model.dayKey() ? '未开始' : '进行中';
+      var stateText = row.checked ? '已打卡' : row.checkable ? '打卡' : row.key > model.dayKey() ? '未开始' : '进行中';
       return '<div class="ledger-task-check-row"><span><span class="ledger-task-check-date">' + label + '</span>' +
         (detail ? '<span class="ledger-task-check-detail">' + detail + '</span>' : '') + '</span>' +
-        '<button type="button" class="ledger-task-check' + (row.checked ? ' checked' : '') + '" data-task-action="check" data-task-key="' + row.key + '" data-task-attempt="' + esc(active.attemptId) + '" data-task-world="' + context.worldId + '" aria-label="' + esc(label + '：' + stateText) + '" aria-pressed="' + row.checked + '"' + (!row.ended ? ' disabled' : '') + '><span aria-hidden="true">' + (row.checked ? '●' : '○') + '</span> ' + stateText + '</button></div>';
+        '<button type="button" class="ledger-task-check' + (row.checked ? ' checked' : '') + '" data-task-action="check" data-task-key="' + row.key + '" data-task-attempt="' + esc(active.attemptId) + '" data-task-world="' + context.worldId + '" aria-label="' + esc(label + '：' + stateText) + '" aria-pressed="' + row.checked + '"' + (!row.checkable ? ' disabled' : '') + '><span aria-hidden="true">' + (row.checked ? '●' : '○') + '</span> ' + stateText + '</button></div>';
     }).join('') + '</div>';
     output += '<div class="ledger-task-actions">' + button('finish', '完成任务 · +' + entry.reward, active.attemptId, !summary.ready, 'ledger-task-primary') +
       button('return', '放回任务池', active.attemptId) + '</div>';
-    output += '<p class="ledger-task-note">' + (entry.days ? '日本时间 04:00 换日，结束后可补打卡。' : '完成实际事项后打卡，再结算积分。') + '</p>';
+    output += '<p class="ledger-task-note">' + (entry.days ? (entry.checkOnCurrentDay ? '日本时间 04:00 换日，完成当天事项后即可打卡，也可补打卡。' : '日本时间 04:00 换日，结束后可补打卡。') : '完成实际事项后打卡，再结算积分。') + '</p>';
     return output;
   }
   function render(options) {

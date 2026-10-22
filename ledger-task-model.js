@@ -52,6 +52,16 @@
         Number.isFinite(active.acceptedAt) && active.acceptedAt > 0 && validDay(active.startsOn)) {
       result.active = { taskId: active.taskId, attemptId: active.attemptId, worldId: id,
         acceptedAt: active.acceptedAt, startsOn: active.startsOn, checks: {} };
+      // Action-based daily tasks count the acceptance day. Repair an untouched
+      // old next-day schedule without moving any date already checked off.
+      if (task(active.taskId).checkOnCurrentDay) {
+        var acceptedDay = dayKey(active.acceptedAt);
+        if (active.checkInVersion !== 1 && active.startsOn === addDay(acceptedDay, 1) &&
+            !dates(result.active).some(function (key) { return active.checks && active.checks[key] === true; })) {
+          result.active.startsOn = acceptedDay;
+        }
+        result.active.checkInVersion = 1;
+      }
       dates(result.active).forEach(function (key) {
         if (active.checks && active.checks[key] === true) result.active.checks[key] = true;
       });
@@ -119,7 +129,8 @@
     var entry = task(group.offer.taskId), time = new Date(now == null ? Date.now() : now).getTime();
     if (!Number.isFinite(time)) return result(state, false, 'date');
     group.active = { taskId: entry.id, attemptId: group.offer.attemptId, worldId: id, acceptedAt: time,
-      startsOn: addDay(dayKey(time), entry.days ? 1 : 0), checks: {} };
+      startsOn: addDay(dayKey(time), entry.days && !entry.checkOnCurrentDay ? 1 : 0), checks: {} };
+    if (entry.checkOnCurrentDay) group.active.checkInVersion = 1;
     group.offer = null;
     return result(state, true);
   }
@@ -152,11 +163,14 @@
     group.offer = null;
     return result(state, true, 'returned');
   }
+  function canCheck(entry, key, today) {
+    return key === 'once' || key < today || !!entry.checkOnCurrentDay && key === today;
+  }
   function check(value, id, key, wallet, now, expected) {
     var state = normalize(value, id), group = state.worlds[id], active = group && group.active;
     if (!active || active.attemptId !== expected) return result(state, false, 'stale');
     var entry = task(active.taskId), keys = dates(active), today = dayKey(now);
-    if (keys.indexOf(key) < 0 || key !== 'once' && key >= today) return result(state, false, 'not-ended');
+    if (keys.indexOf(key) < 0 || !canCheck(entry, key, today)) return result(state, false, 'not-ended');
     if (active.checks[key]) {
       delete active.checks[key];
       return result(state, true);
@@ -174,10 +188,11 @@
     var entry = task(active.taskId), keys = dates(active), today = dayKey(now);
     var rows = keys.map(function (key, index) {
       return { key: key, index: index + 1, checked: !!active.checks[key], ended: key === 'once' || key < today,
+        checkable: canCheck(entry, key, today),
         stats: key === 'once' ? null : stats(wallet, key, key) };
     });
     return { task: entry, rows: rows, startsOn: active.startsOn, endsOn: entry.days ? keys[keys.length - 1] : '',
-      ready: rows.every(function (row) { return row.ended && row.checked; }),
+      ready: rows.every(function (row) { return row.checkable && row.checked; }),
       totals: entry.days ? stats(wallet, active.startsOn, keys[keys.length - 1] < today ? keys[keys.length - 1] : today) : null };
   }
   function finish(value, id, wallet, now, expected) {

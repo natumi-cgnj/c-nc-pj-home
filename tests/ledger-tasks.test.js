@@ -164,6 +164,117 @@ test('only ended dates accept daily check-ins, with delayed backfill and undo', 
   assert.equal(model.progress(checked(state, {}, '2027-01-01T20:00:00Z'), 'sacramento', {}, endedAt).ready, true);
 });
 
+test('daily listings start on acceptance day in every world and support same-day check and undo', () => {
+  for (const id of catalog.worlds) {
+    const initial = active('listNine', id);
+    const summary = model.progress(initial, id, {}, acceptedAt);
+    assert.equal(summary.startsOn, '2026-10-20');
+    assert.equal(summary.endsOn, '2026-10-22');
+    assert.deepEqual(summary.rows.map(row => row.checkable), [true, false, false]);
+    assert.equal(summary.rows[0].ended, false);
+    assert.equal(model.check(initial, id, '2026-10-21', {}, acceptedAt, 'attempt-one').ok, false);
+    const response = model.check(initial, id, '2026-10-20', {}, acceptedAt, 'attempt-one');
+    assert.equal(response.ok, true);
+    assert.equal(worldState(response.state, id).active.checks['2026-10-20'], true);
+    assert.equal(model.finish(response.state, id, {}, acceptedAt, 'attempt-one').reason, 'incomplete');
+    const undone = model.check(response.state, id, '2026-10-20', {}, acceptedAt, 'attempt-one');
+    assert.equal(undone.ok, true);
+    assert.deepEqual(worldState(undone.state, id).active.checks, {});
+    assert.equal(worldState(model.normalize(undone.state), id).active.startsOn, '2026-10-20');
+  }
+});
+
+test('the screenshot save is repaired on read and persists only after a successful check-in', () => {
+  const now = '2026-10-22T12:17:00Z'; // Oct 22, 21:17 JST, matching the screenshot.
+  const state = model.accept(offered('listNine', 'fox'), 'fox', now, 'attempt-one').state;
+  const old = worldState(state, 'fox').active;
+  old.startsOn = '2026-10-23';
+  delete old.checkInVersion;
+  state.worlds.palace = worldState(active('noSnacks', 'palace'), 'palace');
+  state.worlds.heist.receipts['earlier/task'] = { worldId: 'heist', points: 10, finishedOn: '2026-10-20' };
+  const original = JSON.stringify(state);
+  const summary = model.progress(state, 'fox', {}, now);
+  assert.equal(summary.startsOn, '2026-10-22');
+  assert.equal(summary.endsOn, '2026-10-24');
+  assert.deepEqual(summary.rows.map(row => row.checkable), [true, false, false]);
+  assert.equal(JSON.stringify(state), original, 'reading must not modify the saved object');
+  const response = model.check(state, 'fox', '2026-10-22', {}, now, 'attempt-one');
+  assert.equal(response.ok, true);
+  assert.equal(worldState(response.state, 'fox').active.startsOn, '2026-10-22');
+  assert.equal(worldState(response.state, 'fox').active.checks['2026-10-22'], true);
+  assert.deepEqual(worldState(response.state, 'palace'), worldState(state, 'palace'));
+  assert.equal(model.points(response.state, 'heist'), 10);
+  assert.deepEqual(model.normalize(JSON.parse(JSON.stringify(response.state))), response.state);
+});
+
+test('old listing check dates stay fixed even if the only previous check is undone', () => {
+  const initial = active('listNine', 'fox');
+  const old = worldState(initial, 'fox').active;
+  old.startsOn = '2026-10-21';
+  old.checks['2026-10-21'] = true;
+  delete old.checkInVersion;
+  const migrated = model.normalize(initial);
+  assert.equal(worldState(migrated, 'fox').active.startsOn, '2026-10-21');
+  assert.equal(worldState(migrated, 'fox').active.checks['2026-10-21'], true);
+  const undone = model.check(migrated, 'fox', '2026-10-21', {}, endedAt, 'attempt-one');
+  assert.equal(undone.ok, true);
+  assert.equal(worldState(model.normalize(undone.state), 'fox').active.startsOn, '2026-10-21');
+  assert.deepEqual(worldState(model.normalize(undone.state), 'fox').active.checks, {});
+});
+
+test('listing dates roll over at Japan 04:00 and the third completed day can settle immediately', () => {
+  const state = model.accept(offered('listNine'), 'sacramento', '2026-10-20T18:59:59Z', 'attempt-one').state;
+  assert.equal(worldState(state).active.startsOn, '2026-10-20');
+  assert.equal(model.check(state, 'sacramento', '2026-10-21', {}, '2026-10-20T18:59:59Z', 'attempt-one').ok, false);
+  assert.equal(model.check(state, 'sacramento', '2026-10-21', {}, '2026-10-20T19:00:00Z', 'attempt-one').ok, true);
+  const finalDay = '2026-10-22T12:00:00Z';
+  const ready = checked(state, {}, finalDay);
+  assert.equal(model.progress(ready, 'sacramento', {}, finalDay).ready, true);
+  assert.equal(model.progress(ready, 'sacramento', {}, finalDay).rows[2].ended, false);
+  const response = model.finish(ready, 'sacramento', {}, finalDay, 'attempt-one');
+  assert.equal(response.ok, true);
+  assert.equal(model.points(response.state, 'sacramento'), 10);
+  assert.equal(model.finish(response.state, 'sacramento', {}, finalDay, 'attempt-one').ok, false);
+  for (const id of ['budget2000', 'surplus7000', 'dailyPositive', 'noSnacks', 'food1500', 'pantry']) {
+    const fullDay = active(id);
+    const summary = model.progress(fullDay, 'sacramento', {}, '2026-10-21T12:00:00Z');
+    assert.equal(summary.startsOn, '2026-10-21');
+    assert.equal(summary.rows[0].checkable, false, id + ' still requires the full day');
+    assert.equal(model.check(fullDay, 'sacramento', '2026-10-21', {}, '2026-10-21T12:00:00Z', 'attempt-one').reason, 'not-ended');
+  }
+});
+
+test('the listing page enables today and a click saves the repaired date and check without touching money', () => {
+  const now = new Date('2026-10-22T12:17:00Z').getTime();
+  const state = model.accept(offered('listNine', 'fox'), 'fox', now, 'attempt-one').state;
+  state.worlds.fox.active.startsOn = '2026-10-23';
+  delete state.worlds.fox.active.checkInVersion;
+  const original = JSON.stringify(state), money = JSON.stringify({ accounts: { mercari: { balance: 1234 } } });
+  const data = new Map([[model.storageKey, original], ['wallet_accounts_v1', money]]), writes = [];
+  const target = { classList: { add() {} }, innerHTML: '', contains() { return true; } };
+  const storage = { getItem(key) { return data.has(key) ? data.get(key) : null; }, setItem(key, value) { writes.push(key); data.set(key, value); } };
+  const win = { LedgerTaskModel: model, LedgerTaskCatalog: catalog, localStorage: storage };
+  class FixedDate extends Date { static now() { return now; } }
+  vm.runInNewContext(fs.readFileSync('ledger-tasks.js', 'utf8'), { window: win, Date: FixedDate, document: { getElementById() { return target; } } });
+  const context = { worldId: 'fox', wallet: { stage: { worlds: [] } } };
+  win.LedgerTasks.render(context);
+  assert.deepEqual(writes, [], 'rendering cannot write repaired data to storage');
+  assert.equal(data.get(model.storageKey), original);
+  const todayButton = target.innerHTML.match(/<button[^>]*data-task-key="2026-10-22"[^>]*>/)[0];
+  const futureButton = target.innerHTML.match(/<button[^>]*data-task-key="2026-10-23"[^>]*>/)[0];
+  assert.doesNotMatch(todayButton, / disabled/);
+  assert.match(futureButton, / disabled/);
+  const attrs = { 'data-task-action': 'check', 'data-task-key': '2026-10-22', 'data-task-attempt': 'attempt-one', 'data-task-world': 'fox' };
+  const control = { disabled: false, getAttribute(name) { return attrs[name]; } };
+  target.onclick({ target: { closest() { return control; } } });
+  assert.deepEqual(writes, [model.storageKey]);
+  const saved = JSON.parse(data.get(model.storageKey));
+  assert.equal(saved.worlds.fox.active.startsOn, '2026-10-22');
+  assert.equal(saved.worlds.fox.active.checks['2026-10-22'], true);
+  assert.equal(data.get('wallet_accounts_v1'), money);
+  assert.match(target.innerHTML, /data-task-key="2026-10-22"[^>]*aria-pressed="true"/);
+});
+
 test('two thousand means total expenditure across three days, never per day or net spending', () => {
   const wallet = financial([['2026-10-21', 5000, 800], ['2026-10-22', 5000, 700], ['2026-10-23', 5000, 500]]);
   wallet.expenseBooks[0].records.push({ date: '2026-10-20', type: 'expense', amount: 999999 });
