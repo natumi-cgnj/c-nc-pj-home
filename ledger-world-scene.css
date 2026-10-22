@@ -40,8 +40,9 @@ body[data-ledger-world="fox"] .ledger-world-scene::before{
   right:-18px;
   width:clamp(142px,24vw,220px);
   aspect-ratio:220 / 230;
-  background:url("assets/ledger/fox-tail-mark-v2.svg") center / contain no-repeat;
-  opacity:.26;
+  background:url("assets/ledger/fox-tail-mark-v3.webp") center / contain no-repeat;
+  filter:url("#ledger-fox-ink");
+  opacity:.3;
 }
 body[data-ledger-world="fox"] .ledger-world-scene::after{
   bottom:22px;
