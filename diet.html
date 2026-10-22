@@ -10,6 +10,10 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="apple-touch-icon.png">
 <link rel="icon" href="favicon.ico">
+<link rel="stylesheet" href="ledger-characters.css?v=20261023-world-art1">
+<link rel="stylesheet" href="ledger-fox.css?v=20261023-world-art1">
+<link rel="stylesheet" href="ledger-world-scene.css?v=20261023-fluffy-tail1">
+<link rel="stylesheet" href="diet-body.css?v=20261023-body1">
 <style>
 html{height:100%;overflow:hidden;--diet-accent:#9B7D41;--diet-ink:#66625e;--diet-rule:#efede9}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -151,7 +155,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 </div>
 <div id="viewBody" class="view" aria-label="身体状况"></div>
 
-<div id="viewDraft" class="view"></div>
+<div id="viewDraft" class="view" aria-label="饮食世界"></div>
 
 <div class="modal-bg" id="calorieModal" onclick="if(event.target===this)closeMealModal('calorieModal')">
   <div class="modal">
@@ -184,14 +188,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 </div>
 
 <nav class="tab-bar" aria-label="DIET">
-  <button type="button" onclick="switchMealTab('viewBody',this)">身体</button>
-  <button type="button" onclick="switchMealTab('viewDraft',this)">世界</button>
-  <button type="button" class="active" onclick="switchMealTab('viewNutrition',this)">营养</button>
+  <button type="button" data-diet-tab="body" onclick="switchMealTab('viewBody',this)">身体</button>
+  <button type="button" data-diet-tab="world" onclick="switchMealTab('viewDraft',this)">世界</button>
+  <button type="button" data-diet-tab="nutrition" class="active" onclick="switchMealTab('viewNutrition',this)">营养</button>
 </nav>
 <div class="toast" id="toast"></div>
 <script src="world-context.js?v=20261019-diet-split1"></script>
-<script src="cloud-sync.js?v=20261019-diet-split1"></script>
+<script src="cloud-sync.js?v=20261023-body1"></script>
 <script src="app-back.js?v=20261010-home-return2"></script>
+<script src="body-model.js?v=20261023-body1"></script>
+<script src="diet-body.js?v=20261023-body1"></script>
+<script src="diet-world.js?v=20261023-body1"></script>
 <script>
 'use strict';
 if(window.__LIMINAL_REDIRECTING)throw new Error('Redirecting to cloud login');
@@ -229,7 +236,7 @@ function nutritionDayDate(day){const parts=String(day||'').split('-').map(Number
 function shiftNutritionDay(delta){if(!nutritionSelectedDate)nutritionSelectedDate=workdayKey();const date=nutritionDayDate(nutritionSelectedDate);date.setDate(date.getDate()+delta);const next=dateKey(date),today=workdayKey();nutritionSelectedDate=next>today?today:next;renderNutritionChecklist();}
 function cycleNutrition(itemId){if(!nutritionSelectedDate)nutritionSelectedDate=workdayKey();const store=getNutritionStore();store.days[nutritionSelectedDate]=store.days[nutritionSelectedDate]||{};const current=Math.max(0,Math.min(2,Number(store.days[nutritionSelectedDate][itemId])||0));store.days[nutritionSelectedDate][itemId]=(current+1)%3;writeJson(NUTRITION_KEY,store);renderNutritionChecklist();}
 function renderNutritionChecklist(){if(!nutritionSelectedDate)nutritionSelectedDate=workdayKey();const today=workdayKey();if(nutritionSelectedDate>today)nutritionSelectedDate=today;const store=getNutritionStore(),day=store.days[nutritionSelectedDate]||{},dateEl=document.getElementById('nutritionDate'),rowsEl=document.getElementById('nutritionRows'),nextEl=document.getElementById('nutritionNext');if(!dateEl||!rowsEl)return;dateEl.textContent=nutritionSelectedDate===today?'今天 · '+nutritionSelectedDate:nutritionSelectedDate;if(nextEl)nextEl.disabled=nutritionSelectedDate>=today;const stats=calorieStatsForDay(nutritionSelectedDate),intakeEl=document.getElementById('nutritionIntake'),burnEl=document.getElementById('nutritionBurn'),netEl=document.getElementById('nutritionNet');if(intakeEl)intakeEl.textContent=stats.intake;if(burnEl)burnEl.textContent=stats.burn;if(netEl)netEl.textContent=(stats.net<0?'−':'')+Math.abs(stats.net);const labels=['未覆盖','有一点','够了'];rowsEl.innerHTML=NUTRITION_ITEMS.map(item=>{const state=Math.max(0,Math.min(2,Number(day[item.id])||0));return'<div class="nutrition-row"><div class="nutrition-copy"><div class="nutrition-name">'+esc(item.name)+'</div><div class="nutrition-source">'+esc(item.source)+'</div></div><button class="nutrition-state s'+state+'" type="button" aria-label="'+esc(item.name)+'：'+labels[state]+'" title="'+labels[state]+'" onclick="cycleNutrition(\''+item.id+'\')"></button></div>';}).join('');}
-function switchMealTab(viewId,button){if(['viewNutrition','viewBody','viewDraft'].indexOf(viewId)<0)return;document.querySelectorAll('.view').forEach(view=>view.classList.toggle('active',view.id===viewId));document.querySelectorAll('.tab-bar button').forEach(item=>item.classList.remove('active'));if(button)button.classList.add('active');document.getElementById('worldLabel').textContent=viewId==='viewDraft'?'':'REALITY';if(viewId==='viewNutrition')refreshDiet();}
+function switchMealTab(viewId,button){if(['viewNutrition','viewBody','viewDraft'].indexOf(viewId)<0)return;document.querySelectorAll('.view').forEach(view=>view.classList.toggle('active',view.id===viewId));document.querySelectorAll('.tab-bar button').forEach(item=>{const active=item===button;item.classList.toggle('active',active);item.setAttribute('aria-current',active?'page':'false');});document.getElementById('worldLabel').textContent=viewId==='viewDraft'?'':'REALITY';const hash={viewBody:'body',viewDraft:'world',viewNutrition:'nutrition'}[viewId];if(location.hash!=='#'+hash)history.replaceState(null,'','#'+hash);refreshDiet();}
 function openCalorieModal(){const today=workdayKey(),first=document.querySelector('#calorieTypeGroup button[data-value="intake"]');document.getElementById('calorieDate').value=today;document.getElementById('calorieDate').max=today;document.getElementById('calorieDetail').value='';document.getElementById('calorieAmount').value='';document.getElementById('calorieSteps').value='';calorieStepsDate=null;pickCalorieType(first);document.getElementById('calorieModal').classList.add('show');}
 function closeMealModal(id){document.getElementById(id).classList.remove('show');}
 function pickCalorieType(button){
@@ -279,11 +286,12 @@ function saveCalorieRecord(){
 }
 function deleteCalorieRecord(id){const log=getCalorieLog();log.records=log.records.filter(record=>record.id!==id);writeJson(CALORIE_KEY,log);renderCalorieLedger();renderNutritionChecklist();}
 function showToast(message){const toast=document.getElementById('toast');toast.textContent=message;toast.style.display='block';clearTimeout(toast._timer);toast._timer=setTimeout(()=>toast.style.display='none',1800);}
-function refreshDiet(){renderNutritionChecklist();renderCalorieLedger();}
-document.getElementById('worldLabel').textContent='REALITY';
-refreshDiet();
+function refreshDiet(){renderNutritionChecklist();renderCalorieLedger();if(document.getElementById('viewBody').classList.contains('active')&&window.DietBody)DietBody.render();if(document.getElementById('viewDraft').classList.contains('active')&&window.DietWorld)DietWorld.render();}
+function applyDietHash(){const name=location.hash.slice(1),tab=['body','world','nutrition'].includes(name)?name:'nutrition';switchMealTab({body:'viewBody',world:'viewDraft',nutrition:'viewNutrition'}[tab],document.querySelector('[data-diet-tab="'+tab+'"]'));}
+applyDietHash();
+window.addEventListener('hashchange',applyDietHash);
 window.addEventListener('liminal-cloud-ready',refreshDiet);
-window.addEventListener('storage',function(event){if(!event.key||event.key===CALORIE_KEY||event.key===NUTRITION_KEY)refreshDiet();});
+window.addEventListener('storage',function(event){if(!event.key||[CALORIE_KEY,NUTRITION_KEY,'body_log_db','diet_world_state_v1','wallet_accounts_v1'].includes(event.key))refreshDiet();});
 window.addEventListener('pageshow',refreshDiet);
 </script>
 </body>

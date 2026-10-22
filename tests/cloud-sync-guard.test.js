@@ -121,6 +121,10 @@ class FakeQuery {
     this.limitCount = value;
     return this;
   }
+  range(from, to) {
+    this.rangeSpec = [from, to];
+    return this;
+  }
   insert(payload) {
     this.action = 'insert';
     this.payload = payload;
@@ -162,6 +166,7 @@ class FakeQuery {
         rows.sort((left, right) => String(left[field]).localeCompare(String(right[field])) * direction);
       }
       if (this.limitCount !== null) rows = rows.slice(0, this.limitCount);
+      if (this.rangeSpec) rows = rows.slice(this.rangeSpec[0], this.rangeSpec[1] + 1);
       return { data: single ? (rows[0] || null) : rows, error: null };
     }
     if (this.action === 'insert') {
@@ -403,7 +408,7 @@ async function testLedgerTasksStaySeparateFromFinancialData() {
   assert.deepEqual(currentRow(env, 'wallet_accounts_v1').state_data, finances, 'task writes preserve financial data');
   assert.deepEqual(currentRow(env, legacyKey).state_data, legacyState, 'the original task save remains intact during upgrade');
   const reload = makeEnvironment({ pathname: '/ledger.html', remoteValue: {}, localValue: {},
-    remoteStates: { [key]: changed, wallet_accounts_v1: finances } });
+    remoteStates: { [key]: changed, wallet_accounts_v1: finances }, alreadyReloaded: true });
   await reload.window.CloudSync.whenReady();
   assert.deepEqual(JSON.parse(reload.localStorage.getItem(key)), changed, 'another device restores the task progress');
 }
@@ -428,6 +433,28 @@ async function testConcurrentWriteUsesCompareAndSwap() {
     'a newer concurrent cloud write must survive the stale device update');
   assert.deepEqual(JSON.parse(env.localStorage.getItem('daily_db')), otherDeviceEdit,
     'the losing device should pull the winning cloud value instead of overwriting it');
+}
+
+async function testDietBodyAndWorldSyncIndependently() {
+  const body = { version: 1, settings: { targetWeight: null, cycleLength: null }, weights: [], periods: [], repairs: [] };
+  const world = { version: 1, activeWorldId: 'fox' };
+  const wallet = { version: 1, stage: { activeWorldId: 'sacramento', worlds: [{ id: 'fox', title: 'Patrick狐狐' }] }, accounts: {} };
+  const nutrition = { version: 1, days: { '2026-10-22': { protein: 2 } } };
+  const remoteStates = { body_log_db: body, diet_world_state_v1: world, wallet_accounts_v1: wallet, nutrition_check_db: nutrition };
+  const env = makeEnvironment({ pathname: '/diet.html', remoteValue: {}, localValue: {}, remoteStates, alreadyReloaded: true });
+  await env.window.CloudSync.whenReady();
+  for (const [key, value] of Object.entries(remoteStates)) assert.deepEqual(JSON.parse(env.localStorage.getItem(key)), value, key + ' restores on diet');
+  const changed = { ...body, repairs: [{ id: 'test', location: '测试事项', status: 'pending', startedOn: '2026-10-22' }] };
+  env.localStorage.setItem('body_log_db', JSON.stringify(changed));
+  env.localStorage.setItem('diet_world_state_v1', JSON.stringify({ version: 1, activeWorldId: 'palace' }));
+  await env.window.CloudSync.syncNow();
+  assert.deepEqual(currentRow(env, 'body_log_db').state_data, changed);
+  assert.equal(currentRow(env, 'diet_world_state_v1').state_data.activeWorldId, 'palace');
+  assert.deepEqual(currentRow(env, 'wallet_accounts_v1').state_data, wallet, 'diet does not change ledger accounts or world');
+  assert.deepEqual(currentRow(env, 'nutrition_check_db').state_data, nutrition, 'body saves preserve nutrition');
+  const reload = makeEnvironment({ pathname: '/diet.html', remoteValue: {}, localValue: {}, remoteStates: { ...remoteStates, body_log_db: changed }, alreadyReloaded: true });
+  await reload.window.CloudSync.whenReady();
+  assert.deepEqual(JSON.parse(reload.localStorage.getItem('body_log_db')), changed, 'another device restores body records');
 }
 
 async function testFullSnapshotCanBeRestoredSafely() {
@@ -490,13 +517,20 @@ async function main() {
   await testStartupShrinkIsBlocked();
   await testUnrelatedPageDataIsNotPushed();
   await testLedgerTasksStaySeparateFromFinancialData();
+  await testDietBodyAndWorldSyncIndependently();
   await testConcurrentWriteUsesCompareAndSwap();
   await testFullSnapshotCanBeRestoredSafely();
   await testActivityMergeAfterCloudPull();
   console.log('cloud-sync guard behavior: ok');
 }
 
-main().catch(error => {
+const watchdog = setTimeout(() => {
+  console.error('cloud-sync guard tests did not finish');
+  process.exitCode = 1;
+}, 15000);
+main().then(() => clearTimeout(watchdog)).catch(error => {
+  clearTimeout(watchdog);
   console.error(error);
   process.exitCode = 1;
 });
+

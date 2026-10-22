@@ -1,0 +1,68 @@
+.body-wrap{max-width:860px;margin:0 auto;padding:25px clamp(20px,4vw,32px) 40px}
+.body-page-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px}
+.body-page-title{font-size:12px;font-weight:500;letter-spacing:.5px}
+.body-date{font-size:9px;color:#aaa59f;font-variant-numeric:tabular-nums}
+.body-section{padding:0 0 26px;margin-bottom:24px;border-bottom:1px solid var(--diet-rule)}
+.body-section:last-child{border:0;margin-bottom:0}
+.body-section-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:17px}
+.body-section h2{font-size:12px;font-weight:500;letter-spacing:.3px}
+.body-link{border:0;background:none;padding:7px 0 7px 8px;color:var(--diet-accent);font-family:inherit;font-size:11px;line-height:1.4;cursor:pointer;touch-action:manipulation}
+.body-link.muted{color:#aaa59f}
+.body-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.body-metric-label{font-size:9px;line-height:1.5;color:#aaa59f;margin-bottom:7px}
+.body-metric-value{font-size:25px;line-height:1.2;font-weight:300;letter-spacing:-.3px;font-variant-numeric:tabular-nums}
+.body-metric-value small{font-size:9px;font-weight:400;color:#aaa59f;letter-spacing:0;margin-left:3px}
+.body-metric-note{font-size:9px;line-height:1.6;color:#aaa59f;margin-top:6px;min-height:14px}
+.body-goal-button{display:block;width:100%;text-align:left;padding:0;border:0;background:none;color:inherit;font:inherit;cursor:pointer}
+.body-empty{font-size:10px;color:#aaa59f;line-height:1.8;padding:15px 0 2px}
+.body-weight-chart{display:block;width:100%;height:94px;margin-top:18px;overflow:visible}
+.body-chart-dates{display:flex;justify-content:space-between;color:#b4afa8;font-size:9px;font-variant-numeric:tabular-nums;margin-top:1px}
+.body-history{margin-top:12px}
+.body-history summary{font-size:10px;line-height:2;color:#a9a39a;cursor:pointer;width:max-content;max-width:100%}
+.body-record{display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid #f5f3f0;padding:12px 0;font-size:11px}
+.body-record-copy{min-width:0;overflow-wrap:anywhere}
+.body-record-date{font-size:9px;color:#aaa59f;margin-bottom:4px;font-variant-numeric:tabular-nums}
+.body-record-note{font-size:10px;color:#a49e95;line-height:1.6;margin-top:4px;white-space:pre-wrap}
+.body-period-status{font-size:21px;font-weight:300;line-height:1.35;margin:2px 0 7px}
+.body-period-status span{font-size:11px;font-weight:400;color:#b6919a;margin-left:7px}
+.body-period-copy{font-size:10px;line-height:1.8;color:#aaa59f}
+.body-period-actions{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:12px}
+.body-period-actions .body-link{padding-left:0}
+.body-repair-count{font-size:10px;font-weight:400;color:#b4afa8;margin-left:8px}
+.body-repair{width:100%;display:block;text-align:left;border:0;border-top:1px solid var(--diet-rule);background:none;padding:17px 0;font-family:inherit;color:inherit;cursor:pointer;touch-action:manipulation}
+.body-repair:first-child{border-top:0;padding-top:0}
+.body-repair-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.body-repair-name{font-size:12px;font-weight:500;overflow-wrap:anywhere}
+.body-status{font-size:9px;white-space:nowrap;color:#a48b68}
+.body-status.booked{color:#7d8b96}.body-status.ongoing{color:#a88c62}.body-status.done{color:#87977f}
+.body-repair-detail{font-size:11px;line-height:1.7;margin-top:7px;white-space:pre-wrap;overflow-wrap:anywhere}
+.body-repair-next{font-size:10px;line-height:1.7;color:#9b9285;margin-top:6px;overflow-wrap:anywhere}
+.body-repair-meta{font-size:9px;color:#b1aaa0;line-height:1.7;margin-top:7px;font-variant-numeric:tabular-nums}
+.body-repair-meta.appointment{color:#8b7764}
+.body-modal select,.body-modal textarea{display:block;width:100%;padding:10px 12px;border:1px solid #e4e4e4;border-radius:8px;background:#fff;color:#555;font-family:inherit;outline:none}
+.body-modal textarea{min-height:72px;resize:vertical}
+.modal.body-modal input,.modal.body-modal select,.modal.body-modal textarea{font-family:inherit;font-size:16px;line-height:1.4}
+.body-modal input:focus,.body-modal select:focus,.body-modal textarea:focus{border-color:#cbb58c}
+.body-modal .body-field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.body-modal .body-field-row>div{min-width:0}
+.body-modal input[type=date]{min-width:0;min-height:43px;-webkit-appearance:none}
+.body-field-hint{font-size:10px;color:#aaa59f;line-height:1.6;margin-top:6px}
+.body-form-error{color:#a67567;font-size:11px;line-height:1.6;white-space:pre-wrap;margin-top:14px}
+.body-delete{display:block;margin:18px auto 0;padding:8px 16px;border:0;background:none;color:#b59a91;font-family:inherit;font-size:11px;line-height:1.5;cursor:pointer}
+.body-modal .body-modal-kicker{font-size:9px;letter-spacing:1.7px;color:#b5ab9b;margin-bottom:7px}
+.modal.body-modal h2{font-weight:500;color:var(--diet-ink)}
+.body-modal .modal-save{background:#aa8c56}
+.body-link:focus-visible,.body-goal-button:focus-visible,.body-repair:focus-visible{outline:1px solid var(--diet-accent);outline-offset:4px}
+.diet-world-board{position:relative;z-index:1;display:flex;flex-direction:column;min-height:100%;max-width:1120px;margin:0 auto;padding:25px clamp(20px,4vw,32px) 60px}
+.diet-world-head{display:flex;align-items:center;justify-content:space-between;font-size:10px;color:#aaa59f}
+.diet-world-spacer{height:clamp(160px,40vh,440px);flex-shrink:0}
+.diet-world-stage{display:flex;justify-content:center;align-items:center;min-height:150px}
+.diet-world-stage .asset-stage-current{display:grid;grid-template-rows:100px auto;justify-items:center;align-items:center;gap:12px;border:0;background:none;color:var(--diet-ink);font-family:inherit;max-width:100%;cursor:pointer}
+.diet-world-stage .asset-summary-label{font-size:12px;line-height:1.6;font-weight:500;overflow-wrap:anywhere;text-align:center}
+.diet-world-placeholder{height:100px}
+.diet-world-stage .ledger-fox-art{filter:url("#diet-fox-ink")}
+body[data-ledger-world="fox"] .ledger-world-scene::before{filter:url("#diet-fox-ink")}
+.diet-world-option{display:flex;width:100%;gap:12px;align-items:center;border:0;border-bottom:1px solid var(--diet-rule);background:none;padding:18px 0;font-family:inherit;font-size:12px;line-height:1.6;color:var(--diet-ink);text-align:left;cursor:pointer}
+.diet-world-option span:first-child{color:#a58c60;font-size:10px;width:14px;flex-shrink:0}
+@media(min-width:900px){.body-wrap{padding-top:30px}.body-page-head{margin-bottom:36px}.body-section{padding-bottom:32px;margin-bottom:30px}.body-weight-chart{height:120px}.diet-world-spacer{height:380px}}
+@media(max-width:359px){.body-wrap{padding-left:16px;padding-right:16px}.body-metric-value{font-size:22px}.body-metrics{gap:8px}}

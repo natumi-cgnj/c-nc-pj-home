@@ -29,7 +29,7 @@
   const STATE_KEYS = [
     'daily_db', 'daily_presets', 'gacha_st', 'bean_st', 'habit_db', 'story_db',
     'bjd_db3', 'techo_db2', 'techo_archive_db', 'shop_db', 'event_db', 'event_presets', 'dungeon_db',
-    'kitchen_db', 'kitchen_project_categories_v1', 'kitchen_activity_merge_v1', 'meal_log_db', 'calorie_log_db', 'meal_companion_db', 'nutrition_check_db',
+    'kitchen_db', 'kitchen_project_categories_v1', 'kitchen_activity_merge_v1', 'meal_log_db', 'calorie_log_db', 'meal_companion_db', 'nutrition_check_db', 'body_log_db', 'diet_world_state_v1',
     'recipe_salad_db', 'recipe_project_config', 'recipe_salad_db__world__cbi', 'recipe_project_config__world__cbi',
     'activity_db', 'cinema_db', 'stationery_db', 'doll_db2', 'merch_db', 'wallet_db', 'wallet_accounts_v1', 'ledger_world_tasks_v1', 'ledger_world_tasks_v2',
     'home_modules', 'home_lines', 'home_skins', 'home_skin_custom', 'home_wardrobe_tabs',
@@ -60,7 +60,7 @@
     'wallet.html': ['wallet_db', 'home_character_runtime', 'home_character_action_packs', 'shared_diary_db', 'cbi_db', 'omniverse_world_context'],
     'dungeon.html': ['dungeon_db', 'daily_db'],
     'kitchen.html': ['kitchen_db', 'kitchen_project_categories_v1', 'activity_db', 'kitchen_activity_merge_v1'],
-    'diet.html': ['calorie_log_db', 'nutrition_check_db', 'omniverse_world_context'],
+    'diet.html': ['calorie_log_db', 'nutrition_check_db', 'body_log_db', 'diet_world_state_v1', 'wallet_accounts_v1', 'omniverse_world_context'],
     'meals.html': ['meal_log_db', 'meal_companion_db', 'recipe_salad_db', 'recipe_project_config', 'recipe_salad_db__world__cbi', 'recipe_project_config__world__cbi', 'omniverse_world_context'],
     'recipe.html': ['recipe_salad_db', 'recipe_project_config', 'recipe_salad_db__world__cbi', 'recipe_project_config__world__cbi', 'omniverse_world_context'],
     'study.html': ['study_db'],
@@ -553,6 +553,7 @@
       habit_db: '间隔打卡', story_db: '剧情', cbi_contact_db: 'CBI 状态与聊天入口', bjd_db3: 'BJD', techo_db2: '手账',
       shop_db: '商城', event_db: '旧活动存档', event_presets: '旧活动模板',
       dungeon_db: '副本库存', kitchen_db: 'ACTIVITY', kitchen_project_categories_v1: 'ACTIVITY 分组', kitchen_activity_merge_v1: 'ACTIVITY 迁移记录', meal_log_db: '现实餐食', calorie_log_db: '卡路里记录', meal_companion_db: '世界饮食陪伴', nutrition_check_db: '营养覆盖',
+      body_log_db: '身体记录', diet_world_state_v1: '饮食世界',
       recipe_salad_db: '夹缝空间菜谱', recipe_salad_db__world__cbi: 'CBI 菜谱', activity_db: '旧活动归档',
       cinema_db: '影视', stationery_db: '文具', 'shortcut-order': '首页快捷入口排序', home_custom_shortcuts: '首页快捷入口',
       wallet_db: '记账', home_modules: '房间连接', home_lines: '首页台词',
@@ -1099,3 +1100,4 @@
     });
   }
 })();
+

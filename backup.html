@@ -78,7 +78,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <div class="confirm-title">确认恢复数据？</div><div class="confirm-msg" id="confirmMsg"></div>
 <div class="confirm-btns"><button class="cbtn-cancel" onclick="hideConfirm()">取消</button><button class="cbtn-danger" onclick="runConfirmedRestore()">覆盖恢复</button></div>
 </div></div>
-<script src="cloud-sync.js?v=20261021-world-events2"></script>
+<script src="cloud-sync.js?v=20261023-body1"></script>
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
@@ -136,6 +136,9 @@ const SYS=[
 {key:'meal_log_db',name:'\u73B0\u5B9E\u9910\u98DF',color:'#E8B96A',desc:d=>{if(!d||!d.days)return'-';return Object.values(d.days).reduce((n,day)=>n+Object.values(day||{}).reduce((m,list)=>m+(Array.isArray(list)?list.length:0),0),0)+'\u6761';}},
 {key:'calorie_log_db',name:'\u5361\u8DEF\u91CC\u8BB0\u5F55',color:'#C69A42',desc:d=>{if(!d||!Array.isArray(d.records))return'-';return d.records.length+'\u7B14';}},
 {key:'meal_companion_db',name:'\u4E16\u754C\u996E\u98DF\u966A\u4F34',color:'#A88E54',desc:d=>{if(!d||!d.worlds)return'-';return Object.keys(d.worlds).length+'\u4E2A\u4E16\u754C';}},
+{key:'nutrition_check_db',name:'营养覆盖',color:'#A88E54',desc:d=>{return d&&d.days?Object.keys(d.days).length+'天记录':'-';}},
+{key:'body_log_db',name:'身体记录',color:'#AA8C56',desc:d=>{if(!d)return'-';return (d.weights||[]).length+'笔体重 · '+(d.periods||[]).length+'次经期 · '+(d.repairs||[]).length+'项修缮';}},
+{key:'diet_world_state_v1',name:'饮食世界',color:'#87977F',desc:d=>d&&d.activeWorldId?'已选择世界':'-'},
 {key:'recipe_salad_db',name:'\u5939\u7F1D\u7A7A\u95F4\u83DC\u8C31',color:'#5BA66B',desc:d=>{if(!d||!d.items)return'-';return Object.values(d.items).filter(x=>x.status==='collected').length+'/18';}},
 {key:'recipe_project_config',name:'\u5939\u7F1D\u7A7A\u95F4\u83DC\u8C31\u8BBE\u7F6E',color:'#6B8AFF',desc:d=>d&&d.name?d.name:'\u9ED8\u8BA4'},
 {key:'recipe_salad_db__world__cbi',name:'CBI \u83DC\u8C31',color:'#B49A61',desc:d=>{if(!d||!d.items)return'\u5C1A\u672A\u5EFA\u7ACB';return Object.keys(d.items).length+'\u5F20';}},
@@ -245,3 +248,4 @@ renderSys();showLast();CloudSync.whenReady().then(loadSnapshots).catch(()=>loadS
 </script>
 </body>
 </html>
+
