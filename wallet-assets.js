@@ -775,14 +775,26 @@
     return '<span class="ledger-card-art ledger-fox-art ledger-fox-art-' + page + ' ledger-fox-world-art" data-fox-pose="' + (index % 6 + 1) + '" aria-hidden="true"></span>';
   }
 
+  var sacramentoWorldArtIndex = null;
+  function sacramentoWorldDecoration() {
+    // Pick once per page load so task clicks and background rerenders stay still.
+    if (sacramentoWorldArtIndex === null) sacramentoWorldArtIndex = Math.floor(Math.random() * 12);
+    var index = sacramentoWorldArtIndex;
+    var page = index < 6 ? 'accounts' : 'records';
+    var characters = ['cho', 'lisbon', 'jane', 'rigsby', 'vanpelt', 'milo'];
+    return '<span class="ledger-card-art ledger-card-art-' + page + ' ledger-sacramento-world-art" data-character="' + characters[index % 6] + '" aria-hidden="true"></span>';
+  }
+
   function renderStage(state) {
     var target = document.getElementById('assetStageSummary');
     if (!target) return;
     var current = state.stage.worlds.find(function (world) { return world.id === state.stage.activeWorldId; });
     document.body.dataset.ledgerWorld = current.id;
-    var decoration = current.id === 'fox' && document.getElementById('ledgerTabWorld')
-      ? dailyFoxDecoration()
-      : '';
+    var decoration = '';
+    if (document.getElementById('ledgerTabWorld')) {
+      if (current.id === 'fox') decoration = dailyFoxDecoration();
+      if (current.id === 'sacramento') decoration = sacramentoWorldDecoration();
+    }
     target.innerHTML = '<button class="asset-stage-current" type="button" data-stage-open aria-label="选择或编辑世界">' + decoration + '<span class="asset-summary-label">' + esc(current.title) + '</span></button>';
     target.querySelector('[data-stage-open]').addEventListener('click', openStageSelector);
     renderStageWorldList(state);
@@ -1444,5 +1456,3 @@
     storageKey: STORAGE_KEY
   });
 })(window);
-
-

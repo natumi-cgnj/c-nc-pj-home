@@ -97,6 +97,10 @@ body:is([data-ledger-world="sacramento"], [data-ledger-world="fox"]) :is(#assetA
 .ledger-card-art:is([data-character="lisbon"], [data-character="vanpelt"]) { --character-x: 50%; }
 .ledger-card-art:is([data-character="jane"], [data-character="milo"]) { --character-x: 100%; }
 
+.ledger-sacramento-world-art {
+  --ledger-art-height: 100px;
+}
+
 .ledger-card-art-records:is([data-character="rigsby"], [data-character="vanpelt"], [data-character="milo"]) {
   --character-y: -1.1674418605;
 }

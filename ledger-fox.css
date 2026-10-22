@@ -20,9 +20,11 @@
   background-image: url("assets/ledger/fox-records-v1.webp");
 }
 
-/* The daily fox keeps the world selector company, below the story. */
-body[data-ledger-world="fox"] #viewDraft .asset-stage-current {
-  flex-direction: column;
+/* A fixed art row gives both illustrated worlds the same title baseline. */
+body:is([data-ledger-world="sacramento"], [data-ledger-world="fox"]) #viewDraft .asset-stage-current {
+  display: grid;
+  grid-template-rows: 100px auto;
+  justify-items: center;
   gap: 12px;
 }
 
