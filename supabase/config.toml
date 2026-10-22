@@ -1,0 +1,7 @@
+[functions.claude-bridge]
+verify_jwt = false
+# claude-bridge validates the bearer token with Supabase Auth itself.
+
+[functions.claude-result]
+verify_jwt = false
+# claude-result validates its expiring per-run callback token itself.

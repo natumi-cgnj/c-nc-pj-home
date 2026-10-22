@@ -94,6 +94,7 @@
 
   window.CloudSync = {
     whenReady: () => readyPromise,
+    invokeFunction: (name, body) => readyPromise.then(() => supabase.functions.invoke(name, { body })),
     syncNow: () => readyPromise.then(() => syncAllNow()),
     createSnapshot: reason => readyPromise.then(() => createFullSnapshot(reason || 'manual')),
     listSnapshots: limit => readyPromise.then(() => listFullSnapshots(limit)),
@@ -1100,4 +1101,3 @@
     });
   }
 })();
-

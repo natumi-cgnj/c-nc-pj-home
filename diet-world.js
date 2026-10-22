@@ -53,7 +53,7 @@
     try {
       const value = state(), current = value.list.find(x => x.id === value.active);
       document.body.dataset.ledgerWorld = current.id;
-      target.innerHTML = '<div class="ledger-world-scene" aria-hidden="true"></div><div class="diet-world-board"><div class="diet-world-head"><span>世界</span><button type="button" class="body-link muted" data-diet-world-open>切换</button></div><div class="diet-world-spacer" aria-label="任务小剧情"><p class="body-empty" style="text-align:center;padding-top:32px">暂无</p></div><div class="diet-world-stage"><button type="button" class="asset-stage-current" data-diet-world-open aria-label="选择世界，当前' + esc(current.title) + '">' + art(current.id) + '<span class="asset-summary-label">' + esc(current.title) + '</span></button></div></div>';
+      target.innerHTML = '<div class="ledger-world-scene" aria-hidden="true"></div><div class="diet-world-board"><div class="diet-world-head"><span>世界</span><div style="display:flex;align-items:center;gap:16px"><a href="claude.html" class="body-link muted" style="text-decoration:none">Claude 连接</a><button type="button" class="body-link muted" data-diet-world-open>切换</button></div></div><div class="diet-world-spacer" aria-label="任务小剧情"><p class="body-empty" style="text-align:center;padding-top:32px">暂无</p></div><div class="diet-world-stage"><button type="button" class="asset-stage-current" data-diet-world-open aria-label="选择世界，当前' + esc(current.title) + '">' + art(current.id) + '<span class="asset-summary-label">' + esc(current.title) + '</span></button></div></div>';
     } catch (error) { target.innerHTML = '<div class="body-wrap"><p class="body-empty">世界暂时无法读取，请刷新后重试。</p></div>'; }
   }
   function close() {

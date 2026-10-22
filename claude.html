@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Claude 连接 · C-NC</title>
+<link rel="icon" href="favicon.ico">
+<link rel="stylesheet" href="claude-connection.css?v=20261023-bridge1">
+</head>
+<body>
+<header class="top-bar"><a href="index.html?p=2">← Home</a><h1>C-NC</h1><span>CLAUDE</span></header>
+<main>
+  <div class="page-heading"><div><p class="eyebrow">CONNECTION</p><h2>Claude 连接试验</h2></div><span class="connection-state" id="connectionState" role="status">正在读取</span></div>
+  <p class="intro">用现有 Claude 订阅测试云端连接。</p>
+  <p class="notice" id="pageNotice" role="status" aria-live="polite"></p>
+
+  <details class="setup" id="setupDetails" open>
+    <summary>设置连接</summary>
+    <section class="setup-step" aria-labelledby="createTaskTitle">
+      <div class="step-heading"><span>01</span><h3 id="createTaskTitle">创建 Claude 云端任务</h3></div>
+      <p>在 Claude Code 中新建任务，选择 <strong>natumi-cgnj/c-nc-pj-home</strong> 仓库，触发方式选择 <strong>API</strong>。</p>
+      <div class="inline-actions"><a href="https://claude.ai/code/routines" target="_blank" rel="noopener noreferrer">打开 Claude Code ↗</a><button id="copyPrompt" type="button" disabled>复制任务说明</button></div>
+      <details class="prompt-details"><summary>查看任务说明</summary><textarea id="routinePrompt" aria-label="Claude 云端任务说明" readonly rows="8"></textarea></details>
+      <p class="hint">在任务环境的 Allowed domains 中加入 <code>lbxjshaiffklmalcxiif.supabase.co</code>，用于送回测试结果。</p>
+    </section>
+    <section class="setup-step" aria-labelledby="saveConnectionTitle">
+      <div class="step-heading"><span>02</span><h3 id="saveConnectionTitle">保存任务连接</h3></div>
+      <p>将任务 API 触发器中的 Fire URL 和 Token 填在这里。</p>
+      <form id="connectionForm" autocomplete="off">
+        <label for="fireUrl">Fire URL</label>
+        <input id="fireUrl" name="fire_url" type="url" required maxlength="300" placeholder="https://api.anthropic.com/v1/claude_code/routines/…/fire" autocapitalize="none" spellcheck="false" autocomplete="off">
+        <label for="fireToken">Token</label>
+        <input id="fireToken" name="fire_token" type="password" required maxlength="2100" placeholder="任务专用 Token" autocomplete="new-password" autocapitalize="none" spellcheck="false">
+        <p class="hint">Token 保存在你的账号后端，保存后输入框会清空。</p>
+        <p class="form-error" id="connectionError" role="alert"></p>
+        <button class="primary" id="saveConnection" type="submit" disabled>保存连接</button>
+      </form>
+    </section>
+  </details>
+
+  <section class="test-section" aria-labelledby="testTitle">
+    <div class="step-heading"><span>03</span><h3 id="testTitle">发送连接测试</h3></div>
+    <p class="test-copy">发送内容：<q>请只回复：C-NC 连接测试成功。</q></p>
+    <button class="primary" id="testConnection" type="button" disabled>发送测试</button>
+    <p class="hint">使用 Claude 订阅额度。云端任务完成后，回复会显示在下方。</p>
+    <div id="testResults" class="results" aria-live="polite"><p class="empty">还没有测试记录</p></div>
+    <button class="text-action" id="refreshConnection" type="button" disabled>刷新状态</button>
+  </section>
+</main>
+<script src="cloud-sync.js?v=20261023-bridge1"></script>
+<script src="app-back.js?v=20261010-home-return2"></script>
+<script src="claude-connection.js?v=20261023-bridge1"></script>
+</body>
+</html>
