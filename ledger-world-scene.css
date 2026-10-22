@@ -40,7 +40,7 @@ body[data-ledger-world="fox"] .ledger-world-scene::before{
   right:-18px;
   width:clamp(142px,24vw,220px);
   aspect-ratio:220 / 230;
-  background:url("assets/ledger/fox-tail-mark-v1.svg") center / contain no-repeat;
+  background:url("assets/ledger/fox-tail-mark-v2.svg") center / contain no-repeat;
   opacity:.26;
 }
 body[data-ledger-world="fox"] .ledger-world-scene::after{
@@ -48,7 +48,7 @@ body[data-ledger-world="fox"] .ledger-world-scene::after{
   left:8px;
   width:116px;
   height:184px;
-  background:url("assets/ledger/fox-pawprints-mark-v1.svg") center / contain no-repeat;
+  background:url("assets/ledger/fox-pawprints-mark-v2.svg") center / contain no-repeat;
   opacity:.17;
 }
 @media(max-width:480px){
