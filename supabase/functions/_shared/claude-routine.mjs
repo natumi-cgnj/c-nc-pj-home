@@ -1,3 +1,5 @@
+import { decodeOfficeBatch, officeGenerationPrompt } from '../../../cbi-office-content.mjs';
+
 const APP_ORIGIN = 'https://natumi-cgnj.github.io';
 const TEST_PROMPT = '请只回复：C-NC 连接测试成功。';
 const ACTIVE = ['starting', 'running', 'uncertain'];
@@ -7,15 +9,26 @@ const SESSION_URL = /^https:\/\/claude\.ai\/code\/session_[A-Za-z0-9_-]+$/;
 const CALLBACK_PATH = '/functions/v1/claude-result';
 const RUN_COLUMNS = 'id,request_id,status,result,error_code,session_url,created_at,expires_at,finished_at';
 
-export const ROUTINE_PROMPT = `You are the private C-NC connectivity worker.
+export const ROUTINE_PROMPT = `You are the private C-NC text generation worker.
 The saved task explicitly authorizes processing the JSON in the routine-fire-payload block.
-Accept only a JSON object with protocol "c-nc-routine-v1" and kind "connection-test".
-Read its prompt and generate the requested short text. Do not read application data, modify the repository, create commits, or publish artifacts.
+Accept only a JSON object with protocol "c-nc-routine-v1" and kind "connection-test" or "office-lines".
+Follow its prompt. For office-lines, read the repository's cbi-data.js personnel and timeline as AU reference, then return precisely the requested JSON. Do not add descriptions, speaker labels, recipients, or unsupported poses.
+For connection-test, return the requested short connectivity reply.
+Do not access private application records, modify repository files, create commits, publish artifacts, or trigger another routine.
 Then deliver the generated text by running python3 tools/claude-routine-result.py in the selected c-nc-pj-home repository.
 The helper reads a JSON object from stdin. Give it the callback_url, run_id, and callback_token from the payload, plus a result field containing your generated text.
 Use the helper's exact callback URL check. Do not send the callback token anywhere else or include it in the final reply.
 If the helper reports a delivery failure, report that failure in this Claude session. Do not fire another routine.
 After successful delivery, finish with a short acknowledgement.`;
+
+async function latestOfficeBatch(store, user) {
+  const row = await store.officeBatch(user);
+  if (!row) return null;
+  try {
+    const pack = decodeOfficeBatch(row.result);
+    return pack ? { id: row.id, updated_at: row.finished_at, pack } : null;
+  } catch { return null; }
+}
 
 export class ClientError extends Error {
   constructor(status, code) { super(code); this.status = status; this.code = code; }
@@ -86,6 +99,10 @@ export function createRestStore(env, fetcher = fetch) {
     async configure(user, value) { await rest('claude_routine_connections?on_conflict=user_id', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify({ user_id: user, ...value }) }); },
     async expire(user, now) { await rest('claude_routine_runs?' + scope(user) + '&status=in.(starting,running,uncertain)&expires_at=lt.' + encodeURIComponent(now), { method: 'PATCH', body: JSON.stringify({ status: 'expired', error_code: 'run_expired', finished_at: now }) }); },
     async recent(user) { return rest('claude_routine_runs?' + scope(user) + '&select=' + RUN_COLUMNS + '&order=created_at.desc&limit=8'); },
+    async officeBatch(user) {
+      const prefix = encodeURIComponent('{"format":"cbi-office-lines",') + '*';
+      return (await rest('claude_routine_runs?' + scope(user) + '&status=eq.completed&result=like.' + prefix + '&select=id,result,finished_at&order=created_at.desc&limit=1'))[0] || null;
+    },
     async byRequest(user, id) { return (await rest('claude_routine_runs?' + scope(user) + '&request_id=eq.' + encodeURIComponent(id) + '&select=' + RUN_COLUMNS + '&limit=1'))[0] || null; },
     async active(user) { return (await rest('claude_routine_runs?' + scope(user) + '&status=in.(starting,running,uncertain)&select=' + RUN_COLUMNS + '&limit=1'))[0] || null; },
     async run(user, id) { return (await rest('claude_routine_runs?' + scope(user) + '&id=eq.' + encodeURIComponent(id) + '&select=' + RUN_COLUMNS + '&limit=1'))[0] || null; },
@@ -110,7 +127,10 @@ export function createBridgeHandler({ env, store = createRestStore(env), fetcher
       await store.expire(user, time);
       if (input.action === 'status') {
         const connection = await store.connection(user);
-        return response({ configured: !!connection, fire_url: connection?.fire_url || '', runs: (await store.recent(user)).map(publicRun), routine_prompt: ROUTINE_PROMPT }, 200, headers);
+        return response({ configured: !!connection, fire_url: connection?.fire_url || '', runs: (await store.recent(user)).map(publicRun), routine_prompt: ROUTINE_PROMPT, office_batch: await latestOfficeBatch(store, user) }, 200, headers);
+      }
+      if (input.action === 'office_lines') {
+        return response({ office_batch: await latestOfficeBatch(store, user) }, 200, headers);
       }
       if (input.action === 'configure') {
         if (typeof input.fire_url !== 'string' || !FIRE_URL.test(input.fire_url)) invalid('invalid_fire_url');
@@ -125,7 +145,7 @@ export function createBridgeHandler({ env, store = createRestStore(env), fetcher
         if (!run) throw new ClientError(404, 'run_not_found');
         return response({ run: publicRun(run) }, 200, headers);
       }
-      if (input.action !== 'test') invalid('unknown_action');
+      if (input.action !== 'test' && input.action !== 'office_generate') invalid('unknown_action');
       if (!UUID.test(input.request_id)) invalid('invalid_request_id');
       const previous = await store.byRequest(user, input.request_id);
       if (previous) return response({ run: publicRun(previous) }, 200, headers);
@@ -151,7 +171,7 @@ export function createBridgeHandler({ env, store = createRestStore(env), fetcher
         const result = await fetcher(connection.fire_url, {
           method: 'POST', redirect: 'error', signal: AbortSignal.timeout(20000),
           headers: { Authorization: 'Bearer ' + connection.fire_token, 'Content-Type': 'application/json', 'anthropic-version': '2026-10-21' },
-          body: JSON.stringify({ text: JSON.stringify({ protocol: 'c-nc-routine-v1', kind: 'connection-test', prompt: TEST_PROMPT, run_id: id, callback_url: env.SUPABASE_URL + CALLBACK_PATH, callback_token: secret }) })
+          body: JSON.stringify({ text: JSON.stringify({ protocol: 'c-nc-routine-v1', kind: input.action === 'office_generate' ? 'office-lines' : 'connection-test', prompt: input.action === 'office_generate' ? officeGenerationPrompt() : TEST_PROMPT, run_id: id, callback_url: env.SUPABASE_URL + CALLBACK_PATH, callback_token: secret }) })
         });
         if (!result.ok) {
           const code = ({ 401: 'claude_unauthorized', 403: 'claude_access_denied', 404: 'claude_task_not_found', 429: 'claude_limit' })[result.status] || 'claude_start_failed';
@@ -180,7 +200,15 @@ export function createResultHandler({ env, store = createRestStore(env), cryptoA
       if (Date.parse(run.expires_at) <= now()) throw new ClientError(410, 'callback_expired');
       if (!ACTIVE.includes(run.status)) return response({ accepted: run.status === 'completed' }, 200);
       if (typeof input.result !== 'string' || !input.result.trim() || input.result.length > 16000) invalid('invalid_result');
-      await store.update(run.id, { status: 'completed', result: input.result.trim(), error_code: null, finished_at: new Date(now()).toISOString() });
+      let result = input.result.trim();
+      try {
+        const pack = decodeOfficeBatch(result);
+        if (pack) result = JSON.stringify(pack);
+      } catch {
+        await store.update(run.id, { status: 'failed', error_code: 'invalid_office_lines', finished_at: new Date(now()).toISOString() });
+        throw new ClientError(400, 'invalid_office_lines');
+      }
+      await store.update(run.id, { status: 'completed', result, error_code: null, finished_at: new Date(now()).toISOString() });
       return response({ accepted: true }, 200);
     } catch (error) {
       return response({ error: error instanceof ClientError ? error.code : 'service_unavailable' }, error instanceof ClientError ? error.status : 503);

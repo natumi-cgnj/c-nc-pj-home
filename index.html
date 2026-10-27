@@ -1149,6 +1149,7 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
 <script src="character-runtime.js?v=20260914-cbi-sleep2"></script>
 <script src="cbi-weather.js?v=20260903-cbi-weather2"></script>
 <script src="cbi-office-scene.js?v=20261027-seated1"></script>
+<script src="cbi-office-lines.js?v=20261027-cloud1"></script>
 <script src="cbi-scene-lighting.js?v=20261027-seated1"></script>
 <script src="cbi-data.js?v=20260929-room-storage1"></script>
 <script>
@@ -1365,7 +1366,9 @@ function onCbiStaffTap(charId,event){
   if(!currentCbiDuty)renderCbiDutyRoster();
   var assignment=currentCbiDuty&&currentCbiDuty.assignments[charId];
   if(!assignment)return;
-  var pool=CBI_STAFF_OFFICE_LINES[charId]||[];
+  if(assignment.location!=='office'){showTip(cbiPresenceTip(charId,assignment));return;}
+  var generated=window.CBIOfficeLines?CBIOfficeLines.getPool(charId):[];
+  var pool=generated.length?generated:(CBI_STAFF_OFFICE_LINES[charId]||[]);
   var bubble=document.getElementById('bubble-'+charId);
   var charEl=document.getElementById('char-'+charId);
   var statusEl=document.getElementById('status-'+charId);
@@ -1764,7 +1767,8 @@ function positionBubbleAtCharacter(bubble,charEl,wrap){
 function showBubble(id){
   const lp=id==='neal'?NEAL_BY_ZONE:id==='jane'?JANE_BY_ZONE:WILL_BY_ZONE;
   const zone=charZone[id]||id;
-  const pool=lp[zone]||lp[id]||[];
+  const generated=id==='jane'&&window.CBIOfficeLines?CBIOfficeLines.getPool(id):[];
+  const pool=generated.length?generated:(lp[zone]||lp[id]||[]);
   const charEl=document.getElementById('char-'+id);
   const room=charEl.parentElement;
   if(!pool.length||!charEl||!room)return;

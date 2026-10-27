@@ -1126,3 +1126,14 @@ Bottom left Rigsby, in muted blue #7496AE: same short tousled hair, shirt and ti
 
 Keep each head and torso about the SAME SIZE as its reference counterpart. Preserve all six character designs. Top figures fit inside x=0..512,512..1024,1024..1536 and y=75..470, flat lower crop at y=470. Bottom figures fit the same columns and y=535..932, flat lower crop at y=932. Absolutely NO surrounding motion marks, floating curls, detached fragments, sweat drops, decorations, scraps, scene background, shadows, haze, colored glow, gray wash, rectangular background patches, captions, numbers or interface. Remove the reference horizontal baselines: the website supplies its own line directly below the cutouts. Only intentional lines belonging to the characters and their single props. Clean and controlled, not sketchy. Keep the linework as visible and crisp as the reference, with restrained pale ink. White interiors of faces/clothes are okay but all surrounding canvas must be genuinely transparent.
 ```
+
+
+## 2026-10-27｜云端台词接入办公室人物气泡
+
+- 执行者：Codex
+- 分支：`claude-office-integration-20261027` → `main`，基于 `57cbcb4`；提交见本条所在提交。
+- 用户目标：Claude 输出应适配现有坐姿与短气泡，不含对象括号或详细动作，并实际出现在主页人物点击中。
+- 实际改动：新增共享 `cbi-office-content.mjs` 格式与坐姿校验；连接页新增“生成并用于办公室”和新版任务说明复制入口；桥接服务增加显式 `office_generate` 与只读 `office_lines`，回传校验后在既有运行记录中保存规范 JSON。主页在登录与页面返回时读取所属账号最新有效批次，五个人物点击优先显示其短状态 `s` 和台词 `m`。旧文本试写保留为测试记录，不当作可用台词。
+- 验证：29 项连接、回传、账号隔离、格式拒绝、请求复用、首页五人点击、世界与地点过滤、办公室图层和存档保护检查通过。隔离桌面预览验证生成入口、批次展示、返回主页及 Jane 的实际气泡；预览使用独立 mock 账号与明确标注的测试文本，未启动额外 Claude 任务。截图检查时仅延长预览副本的气泡停留并停用过渡，正式页面仍保持原有气泡时长和动画。
+- 遗留：现有 Claude 云端任务须更新为页面复制的新版通用任务说明，随后由用户点击新生成入口完成真实新批次。未将助手编写或改造的样本伪装成 Claude 新结果。
+- 请勿误改：不改场景图片、人物坐姿、实际排班、睡眠、世界关系、财务数据、存档键、云同步格式或数据库权限；人物点击与读页面只读取已生成内容，不自动消耗 Claude 额度。

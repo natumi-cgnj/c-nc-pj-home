@@ -1,6 +1,14 @@
 # Claude subscription connection trial
 
-The trial sends only the fixed text “请只回复：C-NC 连接测试成功。” from an authenticated C-NC account to a Claude Code cloud task. It stores the returned text as a separate connection test. It does not send existing ledger, body, character, or conversation records.
+The authenticated C-NC page has a fixed connectivity test and an explicit office-dialogue generation action. The latter asks for the existing seated office scene's short status (`s`) and direct dialogue (`m`), using only the repository's static AU reference. It does not send existing ledger, body, character, or conversation records. Opening the homepage or clicking characters never starts a Claude run.
+
+## Office dialogue
+
+Copy the updated worker instructions from the page into the existing Claude cloud task once, retaining its repository and API trigger. Click “生成并用于办公室” to request two lines per character. The worker follows the per-run prompt and returns JSON with `format: cbi-office-lines`, `version: 1`, `scene: office-seated`, and the five `characters` pools. Each line has only `s` and `m`; allowed short statuses are enumerated in `cbi-office-content.mjs`. Stage-direction parentheses, recipient labels, extra descriptions and unsupported postures are rejected.
+
+The callback validates and normalizes a valid batch into the existing run result. Authenticated reads retrieve the newest validated batch for that user, independently of the eight-entry recent-test list. No new table, client database grant, localStorage record, or cloud-sync migration is introduced. Previous prose samples remain test records and are never installed as dialogue.
+
+The homepage loads the saved batch after cloud sign-in and on page return. Existing click handlers prefer it only for present characters in the CBI office; Jane's home/sleep lines and other worlds keep their existing paths. A failed load retains the built-in dialogue. The visual scene and the runtime's whereabouts do not change.
 
 ## What runs where
 
@@ -31,7 +39,7 @@ The Claude API is experimental. Cloud runs are asynchronous. A successful trigge
 
 ## Validation
 
-Run `node --test tests/claude-routine.test.mjs tests/claude-connection.test.js tests/cloud-sync-guard.test.js` for authentication, isolation, callback verification, concurrency, timeout behavior, frontend retry handling, and existing storage guards. Confirm anonymous requests to the deployed functions are denied and client database roles have no table privileges before account setup.
+Run `node --test tests/claude-routine.test.mjs tests/claude-connection.test.js tests/cbi-office-lines.test.mjs tests/cbi-office-scene.test.js tests/cloud-sync-guard.test.js` for authentication, isolation, callback verification, content validation, homepage click rendering, concurrency, timeout behavior, frontend retry handling, and existing storage guards. Confirm anonymous requests to the deployed functions are denied and client database roles have no table privileges before account setup.
 
 Official references:
 

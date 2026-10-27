@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { webcrypto } from 'node:crypto';
 import { createBridgeHandler, createResultHandler, createRestStore } from '../supabase/functions/_shared/claude-routine.mjs';
+import { OFFICE_IDS, OFFICE_STATES, validateOfficeBatch, decodeOfficeBatch } from '../cbi-office-content.mjs';
 
 const U1 = '11111111-1111-4111-8111-111111111111';
 const U2 = '22222222-2222-4222-8222-222222222222';
@@ -20,6 +21,7 @@ class Store {
   async configure(user, value) { this.writes++; this.connections.set(user, copy(value)); }
   async expire(user, now) { for (const run of this.runs) if (run.user_id === user && ['starting', 'running', 'uncertain'].includes(run.status) && run.expires_at < now) Object.assign(run, { status: 'expired', error_code: 'run_expired' }); }
   async recent(user) { return this.runs.filter(x => x.user_id === user).slice().reverse().slice(0, 8).map(copy); }
+  async officeBatch(user) { return copy(this.runs.slice().reverse().find(x => x.user_id === user && x.status === 'completed' && x.result?.startsWith('{"format":"cbi-office-lines",')) || null); }
   async byRequest(user, id) { return copy(this.runs.find(x => x.user_id === user && x.request_id === id) || null); }
   async active(user) { return copy(this.runs.find(x => x.user_id === user && ['starting', 'running', 'uncertain'].includes(x.status)) || null); }
   async run(user, id) { return copy(this.runs.find(x => x.user_id === user && x.id === id) || null); }
@@ -170,4 +172,66 @@ test('server REST adapter scopes reads and handles empty successful writes', asy
   assert.ok(!calls[2].url.includes('callback_hash'));
   assert.equal(calls[0].options.headers.Authorization, 'Bearer user1');
   assert.equal(calls[1].options.headers.Authorization, 'Bearer server-only-test-key');
+});
+
+function officePack() {
+  return { format: 'cbi-office-lines', version: 1, scene: 'office-seated',
+    characters: Object.fromEntries(OFFICE_IDS.map(id => [id, [{ s: OFFICE_STATES[id][0], m: '这份资料我还想再看一遍。' }]])) };
+}
+
+test('office generation returns a validated batch to the same account without another model call', async () => {
+  const e = environment();
+  const started = await send(e.bridge, { action: 'office_generate', request_id: REQUEST1 });
+  assert.equal(e.calls.length, 1);
+  const payload = e.calls[0].payload;
+  assert.equal(payload.kind, 'office-lines');
+  assert.match(payload.prompt, /固定坐姿/);
+  assert.match(payload.prompt, /不要详细动作/);
+  const pack = officePack();
+  const raw = '```json\n' + JSON.stringify(pack, null, 2) + '\n```';
+  assert.equal((await send(e.result, { ...payload, result: raw }, { token: null, origin: null })).data.accepted, true);
+  const read = await send(e.bridge, { action: 'office_lines' });
+  assert.deepEqual(read.data.office_batch.pack, pack);
+  assert.equal(read.data.office_batch.id, started.data.run.id);
+  assert.equal(e.calls.length, 1, 'reading and clicking must not consume another Claude run');
+  assert.equal((await send(e.bridge, { action: 'office_lines' }, { token: 'user2' })).data.office_batch, null);
+  assert.equal((await send(e.bridge, { action: 'office_lines' }, { token: null })).status, 401);
+  const again = await send(e.bridge, { action: 'office_generate', request_id: REQUEST1 });
+  assert.equal(again.data.run.id, started.data.run.id);
+  assert.equal(e.calls.length, 1);
+});
+
+test('unsupported poses, stage directions and extra descriptions cannot replace usable dialogue', async () => {
+  for (const alter of [p => { p.characters.jane[0].s = '研究咖啡机'; },
+    p => { p.characters.cho[0].m = '（对Rigsby）第三页。'; },
+    p => { p.characters.lisbon[0].description = '站起来去打印机旁。'; },
+    p => { p.characters.vanpelt[0].m = 'Van Pelt：查好了。'; }]) {
+    const e = environment();
+    e.store.runs.push({ id: U2, user_id: U1, status: 'completed', result: JSON.stringify(officePack()), created_at: '2026-10-22T00:00:00Z' });
+    await send(e.bridge, { action: 'office_generate', request_id: REQUEST1 });
+    const pack = officePack(); alter(pack);
+    assert.throws(() => validateOfficeBatch(pack), /invalid_office_lines/);
+    assert.equal((await send(e.result, { ...e.calls[0].payload, result: JSON.stringify(pack) }, { token: null, origin: null })).status, 400);
+    assert.equal(e.store.runs.at(-1).status, 'failed');
+    assert.equal((await send(e.bridge, { action: 'office_lines' })).data.office_batch.id, U2);
+  }
+});
+
+test('old prose tests do not become office dialogue and newer connectivity tests do not hide the batch', async () => {
+  const e = environment();
+  await start(e);
+  await send(e.result, { ...e.calls[0].payload, result: '【Jane】状态描述：去了茶水间。' }, { token: null, origin: null });
+  assert.equal((await send(e.bridge, { action: 'office_lines' })).data.office_batch, null);
+  const pack = officePack();
+  e.store.runs.push({ id: U2, user_id: U1, status: 'completed', result: JSON.stringify(pack) });
+  for (let i = 0; i < 12; i++) e.store.runs.push({ id: String(i), user_id: U1, status: 'completed', result: 'C-NC 连接测试成功。' });
+  assert.deepEqual((await send(e.bridge, { action: 'office_lines' })).data.office_batch.pack, pack);
+  assert.equal(decodeOfficeBatch('C-NC 连接测试成功。'), null);
+  const calls = [];
+  const db = createRestStore({ ...env, SUPABASE_SERVICE_ROLE_KEY: 'test-only' }, async url => { calls.push(url); return Response.json([]); });
+  await db.officeBatch(U1);
+  const url = new globalThis.URL(calls[0]);
+  assert.equal(url.searchParams.get('user_id'), 'eq.' + U1);
+  assert.equal(url.searchParams.get('status'), 'eq.completed');
+  assert.equal(url.searchParams.get('result'), 'like.{"format":"cbi-office-lines",*');
 });
