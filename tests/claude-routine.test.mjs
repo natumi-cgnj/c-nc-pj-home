@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { webcrypto } from 'node:crypto';
 import { createBridgeHandler, createResultHandler, createRestStore } from '../supabase/functions/_shared/claude-routine.mjs';
-import { OFFICE_IDS, OFFICE_STATES, validateOfficeBatch, decodeOfficeBatch } from '../cbi-office-content.mjs';
+import { OFFICE_IDS, OFFICE_STATES, validateOfficeBatch, decodeOfficeBatch, officePeriod } from '../cbi-office-content.mjs';
 
 const U1 = '11111111-1111-4111-8111-111111111111';
 const U2 = '22222222-2222-4222-8222-222222222222';
@@ -26,7 +26,7 @@ class Store {
   async active(user) { return copy(this.runs.find(x => x.user_id === user && ['starting', 'running', 'uncertain'].includes(x.status)) || null); }
   async run(user, id) { return copy(this.runs.find(x => x.user_id === user && x.id === id) || null); }
   async insert(value) {
-    if (await this.byRequest(value.user_id, value.request_id) || await this.active(value.user_id)) { const error = new Error('Conflict'); error.dbCode = '23505'; throw error; }
+    if (this.runs.some(row => row.user_id === value.user_id && (row.request_id === value.request_id || ['starting', 'running', 'uncertain'].includes(row.status)))) { const error = new Error('Conflict'); error.dbCode = '23505'; throw error; }
     this.writes++; this.runs.push(copy(value)); return copy(value);
   }
   async update(id, value) { const row = this.runs.find(x => x.id === id && ['starting', 'running', 'uncertain'].includes(x.status)); if (row) { this.writes++; Object.assign(row, copy(value)); return [copy(row)]; } return []; }
@@ -234,4 +234,53 @@ test('old prose tests do not become office dialogue and newer connectivity tests
   assert.equal(url.searchParams.get('user_id'), 'eq.' + U1);
   assert.equal(url.searchParams.get('status'), 'eq.completed');
   assert.equal(url.searchParams.get('result'), 'like.{"format":"cbi-office-lines",*');
+});
+
+test('automatic entry is deduplicated across tabs, callbacks become visible, and the next period starts once', async () => {
+  const e = environment();
+  const replies = await Promise.all(Array.from({ length: 8 }, () => send(e.bridge, { action: 'office_auto' })));
+  assert.equal(e.calls.length, 1);
+  assert.equal(new Set(replies.map(x => x.data.run.id)).size, 1);
+  assert.equal(e.calls[0].payload.kind, 'office-lines');
+  assert.equal(replies[0].data.auto.pending, true);
+  assert.equal(replies[0].data.auto.period_key, '2026-10-22:night');
+  const pack = officePack();
+  await send(e.result, { ...e.calls[0].payload, result: JSON.stringify(pack) }, { token: null, origin: null });
+  const ready = await send(e.bridge, { action: 'office_auto' });
+  assert.equal(ready.data.auto.pending, false);
+  assert.deepEqual(ready.data.office_batch.pack, pack);
+  assert.equal(e.calls.length, 1);
+  e.advance(4 * 3600000);
+  const morning = await send(e.bridge, { action: 'office_auto' });
+  assert.equal(morning.data.auto.period_key, '2026-10-23:morning');
+  assert.equal(e.calls.length, 2);
+  assert.notEqual(morning.data.run.id, ready.data.run.id);
+  assert.deepEqual(morning.data.office_batch.pack, pack, 'old content remains available while the next batch runs');
+});
+
+test('manual fresh content satisfies the period and failed automatic starts do not repeatedly spend quota', async () => {
+  const e = environment();
+  await start(e);
+  await send(e.result, { ...e.calls[0].payload, result: JSON.stringify(officePack()) }, { token: null, origin: null });
+  const fresh = await send(e.bridge, { action: 'office_auto' });
+  assert.equal(fresh.data.up_to_date, true);
+  assert.equal(e.calls.length, 1);
+  const failed = environment(async () => new Response('', { status: 401 }));
+  for (let i = 0; i < 10; i++) assert.equal((await send(failed.bridge, { action: 'office_auto' })).data.run.status, 'failed');
+  assert.equal(failed.calls.length, 1);
+  const uncertain = environment(async () => { throw new Error('uncertain'); });
+  await send(uncertain.bridge, { action: 'office_auto' }); uncertain.advance(16 * 60000);
+  assert.equal((await send(uncertain.bridge, { action: 'office_auto' })).data.run.status, 'expired');
+  assert.equal(uncertain.calls.length, 1);
+  assert.equal((await send(e.bridge, { action: 'office_auto' }, { token: 'user2' })).data.configured, false);
+  assert.equal((await send(e.bridge, { action: 'office_auto' }, { token: null })).status, 401);
+});
+
+test('four Japan-time periods retain the night across midnight and the 04:00 workday boundary', () => {
+  const key = value => officePeriod(Date.parse(value)).key;
+  assert.equal(key('2026-10-27T22:00:00+09:00'), '2026-10-27:night');
+  assert.equal(key('2026-10-28T00:00:00+09:00'), '2026-10-27:night');
+  assert.equal(key('2026-10-28T04:00:00+09:00'), '2026-10-27:night');
+  assert.equal(key('2026-10-28T05:59:59+09:00'), '2026-10-27:night');
+  for (const [hour, slot] of [[6, 'morning'], [11, 'day'], [17, 'evening'], [22, 'night']]) assert.equal(key('2026-10-28T' + String(hour).padStart(2, '0') + ':00:00+09:00'), '2026-10-28:' + slot);
 });

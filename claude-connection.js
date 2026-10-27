@@ -35,7 +35,7 @@
     el('copyPrompt').disabled = !el('routinePrompt').value;
     el('copyOfficePrompt').disabled = !el('routinePrompt').value;
     el('generateOfficeLines').disabled = !ready || !configured || busy || active;
-    el('generateOfficeLines').textContent = active ? '等待云端回复' : '生成并用于办公室';
+    el('generateOfficeLines').textContent = active ? '等待云端回复' : '立即更新';
     el('testConnection').textContent = active ? '等待云端回复' : '发送测试';
     const success = runs[0]?.status === 'completed';
     el('connectionState').textContent = !ready ? '正在读取' : active ? '正在测试' : success ? '连接成功' : configured ? '已设置 · 待测试' : '尚未设置';
@@ -67,9 +67,9 @@
       return '<article class="test-result ' + status + '"><div class="test-result-head"><span>' + esc(date) + '</span><strong>' + label + '</strong></div>' + (office || '<p class="test-result-body">' + esc(copy) + '</p>') + link + '</article>';
     }).join('') : '<p class="empty">还没有测试记录</p>';
     const batch = global.CBIOfficeLines?.getBatch();
-    el('officeState').textContent = batch ? '当前已用于办公室：五名成员，共 ' + Object.values(batch.pack.characters).reduce((n, pool) => n + pool.length, 0) + ' 条。' : '尚未生成可用于办公室的云端台词。';
+    el('officeState').textContent = batch ? '办公室自动更新中 · 当前五名成员，共 ' + Object.values(batch.pack.characters).reduce((n, pool) => n + pool.length, 0) + ' 条。' : '首次配置完成后，进入办公室即可自动准备台词。';
     const officeRun = runs.find(run => run.id === lastOfficeRun);
-    if (officeRun?.status === 'completed') el('officeNotice').textContent = decode(officeRun) ? '已更新，回到主页点击办公室里的人物即可看到。' : '这次回传仍是普通试写文本，未用于办公室。请复制新版任务说明替换到 Claude 后，再点“生成并用于办公室”。';
+    if (officeRun?.status === 'completed') el('officeNotice').textContent = decode(officeRun) ? '已更新，回到主页点击办公室里的人物即可看到。' : '这次回传仍是普通试写文本，未用于办公室。请复制新版任务说明替换到 Claude 后，再点“立即更新”。';
     else if (officeRun && ['failed', 'expired'].includes(officeRun.status)) el('officeNotice').textContent = message(officeRun.error_code);
     controls();
   }

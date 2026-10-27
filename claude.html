@@ -50,10 +50,10 @@
 
   <section class="office-section" aria-labelledby="officeTitle">
     <div class="step-heading"><span>04</span><h3 id="officeTitle">办公室台词</h3></div>
-    <p class="test-copy">为现在的五个人物坐姿生成短状态和台词。生成成功后，回到主页点击人物即可看到。</p>
+    <p class="test-copy">进入办公室后会自动准备当前时段的台词，清晨、白天、傍晚和夜间分别更新。回传后直接用于人物气泡。</p>
     <p class="hint">首次使用这一项时，将下面复制的任务说明替换到现有 Claude 云端任务中。</p>
     <div class="inline-actions"><button id="copyOfficePrompt" type="button" disabled>复制云端任务说明</button><a href="https://claude.ai/code/routines" target="_blank" rel="noopener noreferrer">打开云端任务 ↗</a></div>
-    <button class="primary" id="generateOfficeLines" type="button" disabled>生成并用于办公室</button>
+    <button class="primary" id="generateOfficeLines" type="button" disabled>立即更新</button>
     <p class="notice" id="officeNotice" role="status" aria-live="polite"></p>
     <p class="hint" id="officeState">正在读取办公室台词</p>
     <a class="text-action" href="index.html">返回主页</a>
@@ -61,7 +61,7 @@
 </main>
 <script src="cloud-sync.js?v=20261023-bridge1"></script>
 <script src="app-back.js?v=20261010-home-return2"></script>
-<script src="cbi-office-lines.js?v=20261027-cloud1"></script>
-<script src="claude-connection.js?v=20261027-office1"></script>
+<script src="cbi-office-lines.js?v=20261027-auto1"></script>
+<script src="claude-connection.js?v=20261027-auto1"></script>
 </body>
 </html>

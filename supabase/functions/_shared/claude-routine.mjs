@@ -1,4 +1,4 @@
-import { decodeOfficeBatch, officeGenerationPrompt } from '../../../cbi-office-content.mjs';
+import { decodeOfficeBatch, officeGenerationPrompt, officePeriod } from '../../../cbi-office-content.mjs';
 
 const APP_ORIGIN = 'https://natumi-cgnj.github.io';
 const TEST_PROMPT = '请只回复：C-NC 连接测试成功。';
@@ -41,6 +41,11 @@ const equal = (a, b) => {
 };
 export async function digest(value, cryptoApi = globalThis.crypto) {
   return Array.from(new Uint8Array(await cryptoApi.subtle.digest('SHA-256', new TextEncoder().encode(value)))).map(x => x.toString(16).padStart(2, '0')).join('');
+}
+async function autoRequestId(user, period, cryptoApi) {
+  const hex = await digest('cbi-office-auto-v1:' + user + ':' + period.key, cryptoApi);
+  const variant = ((parseInt(hex[16], 16) & 3) | 8).toString(16);
+  return hex.slice(0, 8) + '-' + hex.slice(8, 12) + '-5' + hex.slice(13, 16) + '-' + variant + hex.slice(17, 20) + '-' + hex.slice(20, 32);
 }
 function publicRun(row) {
   if (!row) return null;
@@ -125,6 +130,17 @@ export function createBridgeHandler({ env, store = createRestStore(env), fetcher
       if (!user) throw new ClientError(401, 'sign_in_required');
       const input = await body(req), time = new Date(now()).toISOString();
       await store.expire(user, time);
+      const automatic = input.action === 'office_auto' ? officePeriod(now()) : null;
+      let officeBatch = automatic ? await latestOfficeBatch(store, user) : null;
+      const runResponse = async (run, extra = {}) => {
+        const data = { run: publicRun(run), ...extra };
+        if (automatic) {
+          if (run?.status === 'completed') officeBatch = await latestOfficeBatch(store, user);
+          data.office_batch = officeBatch;
+          data.auto = { period_key: automatic.key, next_refresh_at: automatic.nextAt, pending: !!run && ACTIVE.includes(run.status) };
+        }
+        return response(data, 200, headers);
+      };
       if (input.action === 'status') {
         const connection = await store.connection(user);
         return response({ configured: !!connection, fire_url: connection?.fire_url || '', runs: (await store.recent(user)).map(publicRun), routine_prompt: ROUTINE_PROMPT, office_batch: await latestOfficeBatch(store, user) }, 200, headers);
@@ -145,14 +161,19 @@ export function createBridgeHandler({ env, store = createRestStore(env), fetcher
         if (!run) throw new ClientError(404, 'run_not_found');
         return response({ run: publicRun(run) }, 200, headers);
       }
-      if (input.action !== 'test' && input.action !== 'office_generate') invalid('unknown_action');
+      if (input.action !== 'test' && input.action !== 'office_generate' && !automatic) invalid('unknown_action');
+      if (automatic) input.request_id = await autoRequestId(user, automatic, cryptoApi);
       if (!UUID.test(input.request_id)) invalid('invalid_request_id');
       const previous = await store.byRequest(user, input.request_id);
-      if (previous) return response({ run: publicRun(previous) }, 200, headers);
+      if (previous) return runResponse(previous);
+      if (automatic && officeBatch && Date.parse(officeBatch.updated_at) >= Date.parse(automatic.startAt)) return runResponse(null, { up_to_date: true });
       const connection = await store.connection(user);
-      if (!connection) throw new ClientError(409, 'not_configured');
+      if (!connection) {
+        if (automatic) return runResponse(null, { configured: false });
+        throw new ClientError(409, 'not_configured');
+      }
       const active = await store.active(user);
-      if (active) return response({ run: publicRun(active), reused: true }, 200, headers);
+      if (active) return runResponse(active, { reused: true });
       const recent = await store.recent(user);
       if (recent.filter(x => Date.parse(x.created_at) > now() - 15 * 60000).length >= 3) throw new ClientError(429, 'test_rate_limit');
       const id = cryptoApi.randomUUID(), secret = Array.from(cryptoApi.getRandomValues(new Uint8Array(32))).map(x => x.toString(16).padStart(2, '0')).join('');
@@ -163,7 +184,7 @@ export function createBridgeHandler({ env, store = createRestStore(env), fetcher
         if (error.dbCode !== '23505') throw error;
         const existing = await store.byRequest(user, input.request_id) || await store.active(user);
         if (!existing) throw error;
-        return response({ run: publicRun(existing), reused: true }, 200, headers);
+        return runResponse(existing, { reused: true });
       }
       // One attempt only: a timeout can mean the paid/subscription run started.
       // The same request_id always returns this row rather than firing again.
@@ -171,7 +192,7 @@ export function createBridgeHandler({ env, store = createRestStore(env), fetcher
         const result = await fetcher(connection.fire_url, {
           method: 'POST', redirect: 'error', signal: AbortSignal.timeout(20000),
           headers: { Authorization: 'Bearer ' + connection.fire_token, 'Content-Type': 'application/json', 'anthropic-version': '2026-10-21' },
-          body: JSON.stringify({ text: JSON.stringify({ protocol: 'c-nc-routine-v1', kind: input.action === 'office_generate' ? 'office-lines' : 'connection-test', prompt: input.action === 'office_generate' ? officeGenerationPrompt() : TEST_PROMPT, run_id: id, callback_url: env.SUPABASE_URL + CALLBACK_PATH, callback_token: secret }) })
+          body: JSON.stringify({ text: JSON.stringify({ protocol: 'c-nc-routine-v1', kind: input.action === 'test' ? 'connection-test' : 'office-lines', prompt: input.action === 'test' ? TEST_PROMPT : officeGenerationPrompt(automatic?.slot), run_id: id, callback_url: env.SUPABASE_URL + CALLBACK_PATH, callback_token: secret }) })
         });
         if (!result.ok) {
           const code = ({ 401: 'claude_unauthorized', 403: 'claude_access_denied', 404: 'claude_task_not_found', 429: 'claude_limit' })[result.status] || 'claude_start_failed';
@@ -182,7 +203,7 @@ export function createBridgeHandler({ env, store = createRestStore(env), fetcher
           await store.update(id, { status: session ? 'running' : 'uncertain', session_url: session, error_code: session ? null : 'claude_unknown_response' });
         }
       } catch { await store.update(id, { status: 'uncertain', error_code: 'claude_start_uncertain' }); }
-      return response({ run: publicRun(await store.run(user, id) || run) }, 200, headers);
+      return runResponse(await store.run(user, id) || run);
     } catch (error) {
       return response({ error: error instanceof ClientError ? error.code : 'service_unavailable' }, error instanceof ClientError ? error.status : 503, headers);
     }

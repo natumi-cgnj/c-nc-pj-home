@@ -1,14 +1,18 @@
 # Claude subscription connection trial
 
-The authenticated C-NC page has a fixed connectivity test and an explicit office-dialogue generation action. The latter asks for the existing seated office scene's short status (`s`) and direct dialogue (`m`), using only the repository's static AU reference. It does not send existing ledger, body, character, or conversation records. Opening the homepage or clicking characters never starts a Claude run.
+The authenticated C-NC page has a fixed connectivity test and office-dialogue generation. Opening a visible CBI office with at least one member present automatically prepares the current period's short status (`s`) and direct dialogue (`m`), using only the repository's static AU reference. It does not send existing ledger, body, character, or conversation records. Character clicks use saved content and never start a Claude run.
 
 ## Office dialogue
 
-Copy the updated worker instructions from the page into the existing Claude cloud task once, retaining its repository and API trigger. Click “生成并用于办公室” to request two lines per character. The worker follows the per-run prompt and returns JSON with `format: cbi-office-lines`, `version: 1`, `scene: office-seated`, and the five `characters` pools. Each line has only `s` and `m`; allowed short statuses are enumerated in `cbi-office-content.mjs`. Stage-direction parentheses, recipient labels, extra descriptions and unsupported postures are rejected.
+Copy the worker instructions from the page into the existing Claude cloud task once, retaining its repository and API trigger. After this initial setup, normal office use prepares four lines per character automatically; “立即更新” remains an optional manual refresh. The worker follows the per-run prompt and returns JSON with `format: cbi-office-lines`, `version: 1`, `scene: office-seated`, and the five `characters` pools. Each line has only `s` and `m`; allowed short statuses are enumerated in `cbi-office-content.mjs`. Stage-direction parentheses, recipient labels, extra descriptions and unsupported postures are rejected.
 
 The callback validates and normalizes a valid batch into the existing run result. Authenticated reads retrieve the newest validated batch for that user, independently of the eight-entry recent-test list. No new table, client database grant, localStorage record, or cloud-sync migration is introduced. Previous prose samples remain test records and are never installed as dialogue.
 
-The homepage loads the saved batch after cloud sign-in and on page return. Existing click handlers prefer it only for present characters in the CBI office; Jane's home/sleep lines and other worlds keep their existing paths. A failed load retains the built-in dialogue. The visual scene and the runtime's whereabouts do not change.
+The homepage loads the saved batch after cloud sign-in and on page return. When the office is visible and someone is present, `office_auto` ensures one batch per Japan-time period (06:00, 11:00, 17:00, 22:00). The night remains one period across midnight and 04:00. A server-derived request ID scoped to the account and period deduplicates reloads, devices and uncertain starts; a sufficiently recent manually generated batch also satisfies that period. Failed or expired automatic starts are not blindly repeated in the same period.
+
+The page checks a pending run every four seconds and installs the callback result without navigation. Once ready, a local timer checks for the next period without polling the server each minute. Hidden pages and empty offices do not start new automatic work. A cloud task already launched continues after the page closes; new periods begin on office entry or while the visible office remains open, rather than from a separate always-on scheduler.
+
+Existing click handlers prefer the saved batch only for present characters in the CBI office; Jane's home/sleep lines and other worlds keep their existing paths. Old dialogue remains available while a new batch runs or a load fails. The visual scene and the runtime's whereabouts do not change.
 
 ## What runs where
 
