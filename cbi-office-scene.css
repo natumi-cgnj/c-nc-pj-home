@@ -1,0 +1,31 @@
+.cbi-office-canvas{
+  position:absolute;inset:0;display:block;width:100%;height:100%;
+  object-fit:contain;pointer-events:none;user-select:none;z-index:1
+}
+.cbi-office-canvas[hidden]{display:none}
+.cbi-office.cbi-modules-ready .cbi-office-scene{visibility:hidden}
+.cbi-office.cbi-modules-ready .char-sprite:not(.is-present){display:none!important}
+.cbi-office.cbi-modules-ready .char-sprite{
+  background:transparent;filter:none;transform:none!important;
+  border:0;border-radius:7px;min-height:0;padding:0
+}
+.cbi-office.cbi-modules-ready .char-sprite img,
+.cbi-office.cbi-modules-ready .char-sprite .character-skin-img{display:none!important}
+.cbi-office.cbi-modules-ready .char-sprite:focus-visible{
+  outline:1px solid rgba(232,185,106,.48);outline-offset:2px
+}
+.cbi-office.cbi-modules-ready #char-jane{
+  left:19.4%!important;top:18.1%!important;width:7.4%;height:18.3%
+}
+.cbi-office.cbi-modules-ready #char-rigsby{
+  left:19.4%;top:37%;width:6.1%;height:20.5%
+}
+.cbi-office.cbi-modules-ready #char-vanpelt{
+  left:34.2%;top:38.8%;width:6.2%;height:18.7%
+}
+.cbi-office.cbi-modules-ready #char-lisbon{
+  left:18.4%;top:59.1%;width:6.3%;height:18.3%
+}
+.cbi-office.cbi-modules-ready #char-cho{
+  left:33.1%;top:60.1%;width:8.4%;height:19.1%
+}

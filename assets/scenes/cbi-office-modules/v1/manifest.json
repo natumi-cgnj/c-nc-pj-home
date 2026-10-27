@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "width": 1672,
+  "height": 941,
+  "empty": "empty.png",
+  "occupants": {
+    "jane": {
+      "src": "jane.png",
+      "x": 315,
+      "y": 158,
+      "width": 130,
+      "height": 186
+    },
+    "rigsby": {
+      "src": "rigsby.png",
+      "x": 299,
+      "y": 345,
+      "width": 143,
+      "height": 207
+    },
+    "vanpelt": {
+      "src": "vanpelt.png",
+      "x": 568,
+      "y": 362,
+      "width": 128,
+      "height": 190
+    },
+    "lisbon": {
+      "src": "lisbon.png",
+      "x": 289,
+      "y": 554,
+      "width": 135,
+      "height": 184
+    },
+    "cho": {
+      "src": "cho.png",
+      "x": 550,
+      "y": 564,
+      "width": 163,
+      "height": 185
+    }
+  },
+  "approvedFull": "approved-full.png",
+  "approvedSha256": "0f77aa261d6620e2c97a75d2d4a990e83c73ff8e77d44cf2b3be1ee18e41853b"
+}

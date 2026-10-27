@@ -749,6 +749,7 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
 .world-option-label{font-size:13px;font-weight:600}.world-option-desc{display:block;font-size:10px;color:#aaa;margin-top:3px;line-height:1.45}
 
 </style>
+<link rel="stylesheet" href="cbi-office-scene.css?v=20261027-seated1">
 </head>
 <body>
 <div class="home-pager" id="homePager">
@@ -918,6 +919,7 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
   <div class="room-box cbi-office" id="roomCbiOffice" data-room-id="cbi" data-character-id="jane">
     <div class="room-inner">
       <img class="cbi-office-scene" data-cbi-scene="office" width="1672" height="940" alt="" aria-hidden="true" decoding="async">
+      <canvas class="cbi-office-canvas" id="cbiOfficeCanvas" width="1672" height="941" aria-hidden="true" hidden></canvas>
       <div class="cbi-office-window"></div>
       <a class="cbi-desk cbi-desk-boss cbi-status-target" href="contact.html" aria-label="设置 Boss 状态"></a><div class="cbi-boss-mug"></div>
       <button class="cbi-snack-basket cbi-status-target" type="button" onclick="openCbiStorage('snacks',event)" aria-label="查看办公桌旁的零食筐" title="零食筐"></button>
@@ -1146,7 +1148,8 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script src="character-runtime.js?v=20260914-cbi-sleep2"></script>
 <script src="cbi-weather.js?v=20260903-cbi-weather2"></script>
-<script src="cbi-scene-lighting.js?v=20261007-scenereturn2"></script>
+<script src="cbi-office-scene.js?v=20261027-seated1"></script>
+<script src="cbi-scene-lighting.js?v=20261027-seated1"></script>
 <script src="cbi-data.js?v=20260929-room-storage1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
@@ -1279,6 +1282,7 @@ function renderCbiDutyRoster(){
   var banner=document.getElementById('cgBanner');
   if(banner)banner.setAttribute('aria-label','查看当前场景');
   currentCbiDuty=CharacterRuntime.getCbiPresenceRoster(now);
+  if(window.CBIOfficeScene)CBIOfficeScene.updateRoster(currentCbiDuty,now);
   Object.keys(CBI_STAFF_NAMES).forEach(function(id){
     var element=document.getElementById('char-'+id);
     if(!element)return;

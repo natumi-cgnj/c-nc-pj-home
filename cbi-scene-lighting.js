@@ -24,6 +24,7 @@
 
   function update(locationId, slot, retryPending) {
     if (SLOTS.indexOf(slot) < 0) slot = 'morning';
+    if (locationId === 'office' && global.CBIOfficeScene) global.CBIOfficeScene.setTime(slot);
     var source = getSceneSource(locationId, slot);
     if (!source || !global.document) return;
     var image = global.document.querySelector('[data-cbi-scene="' + locationId + '"]');
