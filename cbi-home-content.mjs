@@ -33,6 +33,17 @@ const object = value => !!value && typeof value === 'object' && !Array.isArray(v
 const exactKeys = (value, keys) => object(value) && Object.keys(value).length === keys.length && keys.every(key => Object.hasOwn(value, key));
 const invalid = () => { throw new Error('invalid_home_lines'); };
 
+export const HOME_CASE_STATES = {
+  bedroom_read: { label: '看书，琢磨案情', fallback: '这页没翻？嗯，我在想另一件事。' },
+  living_read: { label: '抱着鲨鱼看书，琢磨案情', fallback: '书没问题。有问题的是那段说辞。' },
+  living_tv: { label: '开着电视，琢磨案情', fallback: '我听着呢。不过我在想的不是电视里这个人。' },
+  kitchen_meal: { label: '边吃饭边琢磨案情', fallback: '我在吃。只是有句话，换个顺序听就不一样了。' }
+};
+
+export function homeStateLabel(activity, topic) {
+  return (topic === 'case' && HOME_CASE_STATES[activity]?.label) || HOME_STATES[activity]?.label || '';
+}
+
 export function validateHomeBatch(value) {
   if (!exactKeys(value, ['format', 'version', 'scene', 'spaces']) || value.format !== HOME_FORMAT ||
       value.version !== 1 || value.scene !== 'home-jane' || !exactKeys(value.spaces, Object.keys(HOME_SPACES))) invalid();
@@ -41,11 +52,13 @@ export function validateHomeBatch(value) {
     const entries = value.spaces[space];
     if (!Array.isArray(entries) || entries.length < ids.length || entries.length > 12) invalid();
     spaces[space] = entries.map(line => {
-      if (!exactKeys(line, ['activity', 'm']) || !ids.includes(line.activity) || typeof line.m !== 'string') invalid();
+      if (!(exactKeys(line, ['activity', 'm']) || exactKeys(line, ['activity', 'm', 'topic'])) ||
+          !ids.includes(line.activity) || typeof line.m !== 'string' ||
+          (Object.hasOwn(line, 'topic') && (line.topic !== 'case' || !HOME_CASE_STATES[line.activity]))) invalid();
       const m = line.m.trim();
       if (!m || [...m].length > 90 || /[()（）\r\n\u0000-\u001f]/.test(m) ||
           /^(?:Jane|Patrick|Milo|Boss|旁白|台词)\s*[：:]/i.test(m)) invalid();
-      return { activity: line.activity, m };
+      return { activity: line.activity, m, ...(line.topic === 'case' ? { topic: 'case' } : {}) };
     });
     if (!ids.every(id => spaces[space].some(line => line.activity === id))) invalid();
   }
@@ -62,7 +75,26 @@ export function decodeHomeBatch(text) {
 }
 
 export const homePeriod = officePeriod;
-export const HOME_ACTIVITY_INTERVAL = 20 * 60000;
+const MINUTE = 60000;
+// Duration bands have independent weights; dialogue multiplicity never changes activity odds.
+const long = [[105, 135, .65], [60, 75, .15], [180, 240, .20]];
+export const HOME_ACTIVITY_TIMING = {
+  bedroom_read: { weight: 15, bands: long, cooldown: 0 },
+  living_read: { weight: 15, bands: long, cooldown: 0 },
+  living_tv: { weight: 17, bands: long, cooldown: 0 },
+  bedroom_tea: { weight: 7, bands: [[30, 60, .7], [65, 100, .3]], cooldown: 90 },
+  bedroom_wardrobe: { weight: 2, bands: [[15, 30, 1]], cooldown: 360 },
+  bedroom_bedside: { weight: 4, bands: [[15, 30, .8], [35, 60, .2]], cooldown: 90 },
+  living_clutter: { weight: 2, bands: [[10, 25, 1]], cooldown: 180 },
+  living_manga: { weight: 5, bands: [[25, 50, .7], [60, 90, .3]], cooldown: 180 },
+  kitchen_fridge: { weight: 2, bands: [[5, 15, 1]], cooldown: 90 },
+  kitchen_meal: { weight: 5, bands: [[30, 60, .8], [65, 90, .2]], cooldown: 180 },
+  kitchen_kettle: { weight: 3, bands: [[15, 30, 1]], cooldown: 120 },
+  bathroom_brush: { weight: 2, bands: [[15, 30, 1]], cooldown: 360 },
+  bathroom_shower: { weight: 2, bands: [[30, 60, .85], [65, 90, .15]], cooldown: 480 },
+  bathroom_occupied: { weight: 1, bands: [[10, 25, 1]], cooldown: 180 }
+};
+export const HOME_SLEEP_POSE_TIMING = { min: 180, max: 240, changeChance: .55 };
 
 function unit(seed) {
   let hash = 2166136261;
@@ -77,10 +109,66 @@ export function homeContext(presence, now = Date.now()) {
   if (presence.sleeping && presence.sleep?.sleeping) {
     return { sleeping: true, space: presence.sleep.roomId === 'natumi' ? 'living' : 'bedroom', sleep: presence.sleep };
   }
-  const bucket = Math.floor(Number(now) / HOME_ACTIVITY_INTERVAL);
-  const roll = unit('cbi-home-room:' + bucket);
-  const space = roll < .35 ? 'bedroom' : roll < .75 ? 'living' : roll < .90 ? 'kitchen' : 'bathroom';
-  return { sleeping: false, space, bucket, nextAt: (bucket + 1) * HOME_ACTIVITY_INTERVAL };
+  now = Number(now);
+  if (!Number.isFinite(now)) now = Date.now();
+  const date = new Date(now);
+  date.setHours(4, 0, 0, 0);
+  if (date.getTime() > now) date.setDate(date.getDate() - 1);
+  const suppliedStart = Number(presence.homeStartAt);
+  const anchor = Number.isFinite(suppliedStart) && suppliedStart > 0 && suppliedStart <= now ? suppliedStart : date.getTime();
+  const seed = 'cbi-home-v2:' + anchor;
+  const lastEnd = {};
+  let startAt = anchor, index = 0, previous = '';
+  while (true) {
+    const key = seed + ':' + index;
+    const hour = new Date(startAt).getHours();
+    const night = hour >= 22 || hour < 6;
+    const mealTime = (hour >= 7 && hour < 10) || (hour >= 11 && hour < 14) || (hour >= 18 && hour < 21);
+    const weights = Object.entries(HOME_ACTIVITY_TIMING).map(([activity, rule]) => {
+      let weight = activity === previous || startAt < (lastEnd[activity] || 0) + rule.cooldown * MINUTE ? 0 : rule.weight;
+      if (activity === 'kitchen_meal') weight *= mealTime ? 4 : .12;
+      if (activity === 'bathroom_brush' || activity === 'bathroom_shower') weight *= hour < 11 || hour >= 18 ? 1 : .08;
+      if (night) weight *= ['bedroom_read', 'living_read', 'living_tv', 'bedroom_tea'].includes(activity) ? 1.6 : .25;
+      return [activity, weight];
+    });
+    const activity = weighted(weights, key + ':activity');
+    const rule = HOME_ACTIVITY_TIMING[activity];
+    const band = weighted(rule.bands.map((band, i) => [i, band[2]]), key + ':band');
+    const [min, max] = rule.bands[band];
+    const durationMinutes = min + Math.floor(unit(key + ':minutes') * (max - min + 1));
+    const nextAt = startAt + durationMinutes * MINUTE;
+    if (now < nextAt) {
+      const topic = HOME_CASE_STATES[activity] && unit(key + ':case') < (night ? .15 : presence.restDay ? .4 : .3) ? 'case' : 'daily';
+      return { sleeping: false, space: HOME_STATES[activity].space, activity, topic, startAt, nextAt, durationMinutes, key };
+    }
+    lastEnd[activity] = nextAt;
+    previous = activity;
+    startAt = nextAt;
+    index++;
+  }
+}
+
+function weighted(entries, seed) {
+  let roll = unit(seed) * entries.reduce((total, entry) => total + entry[1], 0);
+  for (const [value, weight] of entries) { roll -= weight; if (roll < 0) return value; }
+  return entries[entries.length - 1][0];
+}
+
+function sleepPose(sleep, now) {
+  const poses = ['bedroom_sleep_back', 'bedroom_sleep_side', 'bedroom_sleep_diagonal'];
+  let pose = Math.floor(unit(sleep.nightKey + ':pose-start') * poses.length);
+  let startAt = Number(sleep.startAt), opportunity = 0, nextAt;
+  if (!Number.isFinite(startAt)) startAt = Number(now);
+  do {
+    const key = sleep.nightKey + ':pose-opportunity:' + opportunity;
+    nextAt = startAt + (HOME_SLEEP_POSE_TIMING.min + Math.floor(unit(key + ':wait') *
+      (HOME_SLEEP_POSE_TIMING.max - HOME_SLEEP_POSE_TIMING.min + 1))) * MINUTE;
+    if (Number(now) < nextAt) break;
+    if (unit(key + ':change') < HOME_SLEEP_POSE_TIMING.changeChance) pose = (pose + 1 + Math.floor(unit(key + ':pose') * 2)) % poses.length;
+    startAt = nextAt;
+    opportunity++;
+  } while (true);
+  return { activity: poses[pose], nextAt };
 }
 
 export function selectHomeFrame(presence, now = Date.now(), pack = null) {
@@ -88,19 +176,17 @@ export function selectHomeFrame(presence, now = Date.now(), pack = null) {
   if (!context) return { activity: null, space: null, mode: 'away', lines: [], key: 'away' };
   if (context.sleeping) {
     const sleep = context.sleep;
-    const poses = ['bedroom_sleep_back', 'bedroom_sleep_side', 'bedroom_sleep_diagonal'];
-    const cycle = Math.floor(Math.max(0, Number(now) - sleep.startAt) / (90 * 60000));
+    const pose = sleepPose(sleep, now);
     const activity = sleep.placeId === 'living_sofa_bed' ? 'living_sleep' : sleep.placeId === 'bedroom_sofa'
-      ? 'bedroom_sleep_chair' : poses[Math.floor(unit(sleep.nightKey + ':' + cycle) * poses.length)];
-    return { ...context, activity, mode: 'sleep', lines: [], key: 'sleep:' + activity };
+      ? 'bedroom_sleep_chair' : pose.activity;
+    return { ...context, activity, nextAt: pose.nextAt, mode: 'sleep', lines: [], key: 'sleep:' + sleep.nightKey + ':' + activity };
   }
-  const ids = HOME_SPACES[context.space];
-  const pool = pack?.spaces?.[context.space] || ids.map(activity => ({ activity, m: HOME_STATES[activity].fallback }));
-  const selected = pool[Math.floor(unit('cbi-home-state:' + context.bucket + ':' + context.space) * pool.length)];
-  const state = HOME_STATES[selected.activity];
-  const lines = pool.filter(line => line.activity === selected.activity).map(line => ({ s: state.label, m: line.m }));
-  return { ...context, activity: selected.activity, mode: state.private ? 'private' : 'awake', lines,
-    key: context.bucket + ':' + selected.activity };
+  const state = HOME_STATES[context.activity];
+  const pool = (pack?.spaces?.[context.space] || []).filter(line => line.activity === context.activity &&
+    (line.topic || 'daily') === context.topic);
+  const fallback = context.topic === 'case' ? HOME_CASE_STATES[context.activity].fallback : state.fallback;
+  const lines = (pool.length ? pool : [{ m: fallback }]).map(line => ({ s: homeStateLabel(context.activity, context.topic), m: line.m }));
+  return { ...context, mode: state.private ? 'private' : 'awake', lines };
 }
 
 export function homeGenerationPrompt(slot = '') {
@@ -111,6 +197,7 @@ export function homeGenerationPrompt(slot = '') {
 先读取仓库 cbi-data.js 中已确认的 AU 人物档案与关系阶段，以及 cbi-home-content.mjs 的现有动作表。Milo 是男性正式组长；不得套用原剧关系或擅自推进感情阶段。Jane 是轻巧、机灵、会绕弯的成年人，表达克制自然，不作心理咨询式安慰，不说教、不评价用户效率，不每句调情或提茶。
 程序决定他是否在家、是否睡着，以及当前在哪个空间。你只在各空间已经有图片的动作中选择 activity 并为它配一句 m；不得移动到其他房间、创造新姿势、醒来、上班、睡着或控制其他人的行为。当前素材：${JSON.stringify(states)}。
 bedroom 与 living 各八条，kitchen 与 bathroom 各六条。每个空间中的每个动作至少出现一次，可按时段自然选择重复次数。每条 activity 对应的 m 必须与图中动作吻合：看电视时电视开着，看书时注意力在书上；看杂物不表示已经整理或搬动，翻漫画不捏造具体书名与剧情；开冰箱不虚构里面的具体食物；煮的是水。洗澡只有完全遮挡的浴帘和“洗澡中”牌，上厕所只有“使用中”牌且人物隐藏：这两种只给门内传来的一句简短回应，不描写身体或过程。刷牙只能是能在间隙说的短句。睡眠由既有程序处理，此次不要输出睡眠动作或睡着的人说话。
+Jane 每月有不固定的8—10天留在家里。休息也偶尔会琢磨案情，不是全天都在工作。各动作至少保留一句普通生活台词；另外 bedroom_read、living_read、living_tv、kitchen_meal 各至少一条加上 "topic":"case"，用一句自然回应体现他看着书、电视开着或吃饭时在想案子。只用同一张现有图，不新增卷宗、写字、通话或任何画面里没有的动作；普通看书台词仍然专注于书，case 台词才可走神想案子。不得编造新案件、证据、嫌疑人身份或案情结论，只说推敲说辞、回想顺序等含蓄的思考。其他 activity 不带 topic。普通条目仍只含 activity、m；case 条目恰好含 activity、m、topic。
 m 是 Jane 对点击他的 Milo 直接说的话，不替 Milo 写反应，不写括号中的“对某某说”、姓名前缀、详细动作、旁白、内心说明或换行。建议15—40字，最多90字；私人使用中可以更短，不带圆括号。不要擅自断言 Milo 做过饭、现在坐在旁边或去了哪里，不自创案件线索或实物所有权变化。
-只输出合法 JSON，顶层恰好为 format、version、scene、spaces。format="cbi-home-lines"，version=1，scene="home-jane"。spaces 恰好含 bedroom、living、kitchen、bathroom，各为上述条数的数组。数组每项恰好为 {"activity":"现有动作ID","m":"一句台词"}。不输出 Markdown 或解释。`;
+只输出合法 JSON，顶层恰好为 format、version、scene、spaces。format="cbi-home-lines"，version=1，scene="home-jane"。spaces 恰好含 bedroom、living、kitchen、bathroom，各为上述条数的数组。普通条目为 {"activity":"现有动作ID","m":"一句台词"}，研究案情条目为 {"activity":"上述允许的动作ID","m":"一句台词","topic":"case"}。不输出 Markdown 或解释。`;
 }

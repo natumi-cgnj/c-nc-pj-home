@@ -187,7 +187,7 @@ test('CBI live presence keeps the same workday until 04:00', () => {
   assert.equal(beforeReset.date, '2026-09-02');
   assert.equal(afterReset.date, '2026-09-03');
   assert.equal(beforeReset.assignments.jane.location, 'home');
-  assert.equal(beforeReset.assignments.jane.mode, 'off_duty');
+  assert.ok(['off_duty', 'rest_day'].includes(beforeReset.assignments.jane.mode));
 });
 
 test('CBI arrivals follow character tendencies and Jane sometimes starts near noon', () => {
@@ -211,7 +211,8 @@ test('CBI arrivals follow character tendencies and Jane sometimes starts near no
 
 test('Jane is at home outside her shift and never follows the selected page', () => {
   const { runtime } = loadRuntime({}, 'cbi');
-  const date = '2026-09-02';
+  const rest = runtime.getCbiRestCalendar('2026-09').days.jane;
+  const date = Array.from({ length: 28 }, (_, i) => '2026-09-' + String(i + 1).padStart(2, '0')).find(date => !rest.includes(date));
   const shift = runtime._internal.getCbiShift(date, 'jane');
   const before = runtime.getCbiCharacterPresence('jane', new Date(shift.arrivalAt - 60000));
   const arrived = runtime.getCbiCharacterPresence('jane', new Date(shift.arrivalAt + 60000));
@@ -222,6 +223,77 @@ test('Jane is at home outside her shift and never follows the selected page', ()
   assert.equal(arrived.location, 'office');
   assert.equal(after.location, 'home');
   assert.equal(after.mode, 'off_duty');
+});
+
+test('monthly rest dates are stable, scattered, exact in count and half shared by Van Pelt and Rigsby', () => {
+  const { runtime, localStorage } = loadRuntime({}, 'cbi');
+  const { runtime: otherDevice } = loadRuntime({}, 'cbi');
+  const janeCounts = new Set(), weekdays = new Set();
+  for (let year = 2026; year <= 2028; year++) for (let month = 1; month <= 12; month++) {
+    const key = year + '-' + String(month).padStart(2, '0');
+    const calendar = runtime.getCbiRestCalendar(key);
+    assert.equal(JSON.stringify(calendar), JSON.stringify(otherDevice.getCbiRestCalendar(key)));
+    assert.equal(JSON.stringify(calendar), JSON.stringify(runtime.getCbiRestCalendar(key + '-15')));
+    assert.ok(calendar.days.jane.length >= 8 && calendar.days.jane.length <= 10);
+    janeCounts.add(calendar.days.jane.length);
+    for (const id of ['cho', 'lisbon', 'vanpelt', 'rigsby']) assert.equal(calendar.days[id].length, 4);
+    assert.equal(calendar.days.rigsby.filter(date => calendar.days.vanpelt.includes(date)).length, 2);
+    for (const dates of Object.values(calendar.days)) {
+      assert.equal(new Set(dates).size, dates.length);
+      for (const date of dates) {
+        const parsed = new Date(date + 'T12:00:00');
+        assert.equal(parsed.getMonth() + 1, month);
+        weekdays.add(parsed.getDay());
+      }
+    }
+    calendar.days.jane.length = 0;
+    assert.ok(runtime.getCbiRestCalendar(key).days.jane.length >= 8, 'callers cannot edit cached calendars');
+  }
+  assert.deepEqual([...janeCounts].sort((a, b) => a - b), [8, 9, 10]);
+  assert.equal(weekdays.size, 7);
+  assert.equal(localStorage.getItem('cbi_db'), null, 'rest schedules need no storage migration or writes');
+});
+
+test('rest days propagate into live home/office/away presence and never become staffing fallbacks', () => {
+  const { runtime } = loadRuntime({}, 'cbi');
+  let janeHomeDays = 0;
+  const calendar = runtime.getCbiRestCalendar('2026-10');
+  for (let day = 1; day <= 31; day++) {
+    const date = '2026-10-' + String(day).padStart(2, '0');
+    const roster = runtime.getCbiPresenceRoster(new Date(2026, 9, day, 12));
+    const duty = roster.duty;
+    assert.equal(duty.office.length + duty.field.length + duty.rest.length, 5);
+    for (const id of ['jane', 'cho', 'lisbon', 'vanpelt', 'rigsby']) {
+      if (!calendar.days[id].includes(date)) continue;
+      const status = roster.assignments[id];
+      assert.equal(status.mode, 'rest_day'); assert.equal(status.restDay, true);
+      assert.equal(status.location, id === 'jane' ? 'home' : 'away');
+      assert.ok(!roster.office.includes(id)); assert.ok(!duty.office.includes(id)); assert.ok(!duty.field.includes(id));
+      if (id === 'jane') { janeHomeDays++; assert.ok(status.homeStartAt < new Date(2026, 9, day, 12).getTime()); }
+    }
+  }
+  assert.equal(janeHomeDays, calendar.days.jane.length);
+  const restDay = Number(calendar.days.jane[0].slice(-2));
+  const evening = runtime.getCbiCharacterPresence('jane', new Date(2026, 9, restDay, 22));
+  const midnight = runtime.getCbiCharacterPresence('jane', new Date(2026, 9, restDay + 1, 1, 30));
+  assert.equal(midnight.date, evening.date);
+  assert.equal(midnight.location, 'home');
+  assert.equal(midnight.mode, 'rest_day');
+  assert.equal(midnight.sleeping, true);
+});
+
+test('explicit dispatch can call a resting person in, while a deployment leaves unselected rest days intact', () => {
+  const { runtime, localStorage } = loadRuntime({}, 'cbi');
+  const date = runtime.getCbiRestCalendar('2026-10').days.jane[0];
+  runtime.addUserEvent({ title: '临时到岗', date, companions: ['jane'], assignment: 'office' }, 'cbi');
+  assert.equal(runtime.getCbiDutyRoster(date, 'day').assignments.jane.mode, 'office');
+  assert.equal(runtime.getCbiDutyRoster(date, 'day').assignments.jane.manual, true);
+  localStorage.setItem('cbi_db', JSON.stringify({work: {deployments: {[date]: {bossMode:'office', fieldAgents:[]}}}}));
+  assert.equal(runtime.getCbiDutyRoster(date, 'day').assignments.jane.mode, 'rest_day', 'deployment precedence is retained, without calling unselected people in');
+  localStorage.setItem('cbi_db', JSON.stringify({work: {deployments: {[date]: {bossMode:'office', fieldAgents:['jane']}}}}));
+  assert.equal(runtime.getCbiDutyRoster(date, 'day').assignments.jane.mode, 'field');
+  const shift = runtime._internal.getCbiShift(date, 'jane');
+  assert.equal(runtime.getCbiCharacterPresence('jane', new Date(shift.arrivalAt + 60000)).location, 'away');
 });
 
 test('Jane sleeps at home on a stable nightly timeline instead of drawing awake dialogue', () => {

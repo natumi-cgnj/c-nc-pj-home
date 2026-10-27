@@ -63,6 +63,7 @@ test('home uses the configured worker, persists its own batch and deduplicates e
   assert.equal(payload.kind, 'office-lines', 'existing saved routines accept this content channel');
   assert.equal(payload.content_type, 'home-states');
   assert.ok(payload.prompt.includes('cbi-home-lines'));
+  assert.ok(payload.prompt.includes('"topic":"case"'));
   assert.ok(payload.prompt.includes('bathroom_occupied'));
   assert.equal((await send(e.result, { ...payload, result: JSON.stringify(homePack()) }, { token: null, origin: null })).status, 200);
   assert.deepEqual((await send(e.bridge, { action: 'home_lines' })).data.home_batch.pack, homePack());
@@ -81,6 +82,19 @@ test('home uses the configured worker, persists its own batch and deduplicates e
   const office = await send(e.bridge, { action: 'office_auto' });
   assert.notEqual(office.data.run.id, next.data.run.id, 'home and office have separate period request IDs');
   assert.equal(e.calls.length, 3);
+});
+
+test('home callbacks preserve supported case-thinking variants and reject unsupported topics', async () => {
+  const e = environment();
+  await send(e.bridge, { action: 'home_auto' });
+  const pack = homePack();
+  pack.spaces.living.push({ activity: 'living_tv', m: '我在想那段说辞。', topic: 'case' });
+  assert.equal((await send(e.result, { ...e.calls[0].payload, result: JSON.stringify(pack) }, { token: null, origin: null })).status, 200);
+  assert.deepEqual((await send(e.bridge, { action: 'home_lines' })).data.home_batch.pack, pack);
+  await send(e.bridge, { action: 'home_generate', request_id: REQUEST2 });
+  const bad = homePack(); bad.spaces.bathroom.push({ activity: 'bathroom_shower', m: '还要一会。', topic: 'case' });
+  assert.equal((await send(e.result, { ...e.calls[1].payload, result: JSON.stringify(bad) }, { token: null, origin: null })).data.error, 'invalid_home_lines');
+  assert.deepEqual((await send(e.bridge, { action: 'home_lines' })).data.home_batch.pack, pack);
 });
 
 test('invalid home poses cannot replace a valid home batch, and plain tests do not hide it', async () => {

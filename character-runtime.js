@@ -1317,6 +1317,48 @@
     return low + Math.floor(stableScheduleUnit(seed) * (high - low + 1));
   }
 
+  // New monthly rest calendars use an avalanched hash without changing existing shift/sleep seeds.
+  const cbiRestCalendars = new Map();
+  function cbiRestUnit(seed) {
+    let hash = Math.floor(stableScheduleUnit(seed) * 4294967296);
+    hash = Math.imul(hash ^ (hash >>> 16), 0x85ebca6b);
+    hash = Math.imul(hash ^ (hash >>> 13), 0xc2b2ae35);
+    return ((hash ^ (hash >>> 16)) >>> 0) / 4294967296;
+  }
+
+  function getCbiRestCalendar(dateValue) {
+    const month = String(dateValue || dayKey()).slice(0, 7);
+    if (!/^\d{4}-\d{2}$/.test(month) || Number(month.slice(5)) < 1 || Number(month.slice(5)) > 12) return null;
+    if (!cbiRestCalendars.has(month)) {
+      const count = new Date(Number(month.slice(0, 4)), Number(month.slice(5)), 0).getDate();
+      const dates = Array.from({ length: count }, function (_, i) { return month + '-' + String(i + 1).padStart(2, '0'); });
+      function pick(pool, amount, salt) {
+        return pool.slice().sort(function (a, b) {
+          return cbiRestUnit('cbi-rest-v1|' + salt + '|' + a) - cbiRestUnit('cbi-rest-v1|' + salt + '|' + b);
+        }).slice(0, amount).sort();
+      }
+      const days = {};
+      days.jane = pick(dates, 8 + Math.floor(cbiRestUnit('cbi-rest-count|' + month) * 3), 'jane');
+      days.cho = pick(dates, 4, 'cho');
+      days.lisbon = pick(dates, 4, 'lisbon');
+      days.vanpelt = pick(dates, 4, 'vanpelt');
+      const shared = pick(days.vanpelt, 2, 'couple-shared');
+      days.rigsby = shared.concat(pick(dates.filter(function (date) { return days.vanpelt.indexOf(date) < 0; }), 2, 'rigsby')).sort();
+      cbiRestCalendars.set(month, { month: month, days: days });
+      if (cbiRestCalendars.size > 24) cbiRestCalendars.delete(cbiRestCalendars.keys().next().value);
+    }
+    return JSON.parse(JSON.stringify(cbiRestCalendars.get(month)));
+  }
+
+  function isCbiRestDay(charId, dateStr) {
+    const calendar = getCbiRestCalendar(dateStr);
+    return !!(calendar && calendar.days[charId] && calendar.days[charId].indexOf(dateStr) >= 0);
+  }
+
+  function cbiRestAssignment(charId) {
+    return { mode: 'rest_day', title: charId === 'jane' ? '今天在家休息' : '今天休息', source: 'monthly-rest', manual: false, restDay: true };
+  }
+
   function cbiDateAtMinute(dateStr, minute) {
     const parts = String(dateStr || '').split('-').map(Number);
     if (parts.length !== 3 || parts.some(function (value) { return !Number.isFinite(value); })) return new Date(NaN);
@@ -1526,6 +1568,7 @@
       date: dateStr,
       bossMode: ['office', 'temporary_field', 'full_field'].indexOf(deployment.bossMode) >= 0 ? deployment.bossMode : 'office',
       fieldAgents: fieldAgents,
+      returnedAgents: Array.isArray(deployment.returnedAgents) ? deployment.returnedAgents.filter(function (id) { return SCHEDULE_CHARACTERS.cbi.indexOf(id) >= 0; }) : [],
       mealLead: SCHEDULE_CHARACTERS.cbi.indexOf(deployment.mealLead) >= 0 ? deployment.mealLead : '',
       approvedBudget: Math.max(0, Math.floor(Number(deployment.approvedBudget) || 0)),
       returnedAt: String(deployment.returnedAt || '')
@@ -1540,6 +1583,10 @@
       const assignments = {};
       SCHEDULE_CHARACTERS.cbi.forEach(function (charId) {
         const isField = deployment.fieldAgents.indexOf(charId) >= 0;
+        if (!isField && deployment.returnedAgents.indexOf(charId) < 0 && isCbiRestDay(charId, date)) {
+          assignments[charId] = cbiRestAssignment(charId);
+          return;
+        }
         assignments[charId] = {
           mode: isField ? 'field' : 'office',
           title: isField
@@ -1555,6 +1602,7 @@
         assignments: assignments,
         office: SCHEDULE_CHARACTERS.cbi.filter(function (charId) { return assignments[charId].mode === 'office'; }),
         field: SCHEDULE_CHARACTERS.cbi.filter(function (charId) { return assignments[charId].mode === 'field'; }),
+        rest: SCHEDULE_CHARACTERS.cbi.filter(function (charId) { return assignments[charId].mode === 'rest_day'; }),
         deployment: deployment
       };
     }
@@ -1565,6 +1613,10 @@
     SCHEDULE_CHARACTERS.cbi.forEach(function (charId) {
       if (manual[charId]) {
         assignments[charId] = manual[charId];
+        return;
+      }
+      if (isCbiRestDay(charId, date)) {
+        assignments[charId] = cbiRestAssignment(charId);
         return;
       }
       const fieldProbability = CBI_FIELD_PROBABILITY[charId];
@@ -1598,7 +1650,7 @@
     let office = SCHEDULE_CHARACTERS.cbi.filter(function (charId) { return assignments[charId].mode === 'office'; });
     if (!office.length) {
       const fallback = SCHEDULE_CHARACTERS.cbi.filter(function (charId) {
-        return !assignments[charId].manual;
+        return !assignments[charId].manual && assignments[charId].mode !== 'rest_day';
       }).sort(function (a, b) {
         return CBI_FIELD_PROBABILITY[a] - CBI_FIELD_PROBABILITY[b];
       })[0];
@@ -1614,7 +1666,8 @@
       period: period,
       assignments: assignments,
       office: office,
-      field: SCHEDULE_CHARACTERS.cbi.filter(function (charId) { return assignments[charId].mode === 'field'; })
+      field: SCHEDULE_CHARACTERS.cbi.filter(function (charId) { return assignments[charId].mode === 'field'; }),
+      rest: SCHEDULE_CHARACTERS.cbi.filter(function (charId) { return assignments[charId].mode === 'rest_day'; })
     };
   }
 
@@ -1629,7 +1682,13 @@
       const baseAssignment = duty.assignments[charId] || { mode: 'office', title: '办公室值班', manual: false };
       const shift = getCbiShift(date, charId);
       let live;
-      if (currentTime < shift.arrivalAt) {
+      if (baseAssignment.mode === 'rest_day') {
+        live = {
+          mode: 'rest_day', location: charId === 'jane' ? 'home' : 'away', title: baseAssignment.title,
+          startAt: cbiDateAtMinute(date, DAY_START_HOUR * 60).getTime(),
+          endAt: cbiDateAtMinute(addCalendarDays(date, 1), DAY_START_HOUR * 60).getTime()
+        };
+      } else if (currentTime < shift.arrivalAt) {
         live = {
           mode: 'not_arrived',
           location: charId === 'jane' ? 'home' : 'away',
@@ -1674,6 +1733,10 @@
         if (sleep.sleeping) {
           live.awakeTitle = live.title;
           live.title = sleep.status;
+        } else {
+          // Anchor the awake sequence to waking/returning, so midnight and a new dialogue batch never reroll it.
+          live.homeStartAt = live.mode === 'off_duty' ? shift.departureAt
+            : getCbiJaneSleepStatus(cbiDateAtMinute(date, 6 * 60)).endAt;
         }
       }
       assignments[charId] = Object.assign({}, baseAssignment, live, {
@@ -1780,6 +1843,7 @@
     getUnavailableCharacters: getUnavailableCharacters,
     getCbiManualAssignments: getCbiManualAssignments,
     getCbiDutyRoster: getCbiDutyRoster,
+    getCbiRestCalendar: getCbiRestCalendar,
     getCbiPresenceRoster: getCbiPresenceRoster,
     getCbiCharacterPresence: getCbiCharacterPresence,
     getCbiJaneSleepStatus: getCbiJaneSleepStatus,

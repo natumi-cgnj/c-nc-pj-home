@@ -448,6 +448,13 @@ test('CBI room follows Jane shift boundaries once per phase and keeps manual ove
   assert.equal(context.syncCbiLocationToJaneShift(new Date(2026, 8, 23, 21, 0)), true);
   assert.equal(activeLocation, 'home', 'after work should return home');
   assert.equal(resets, 3);
+  status = { date: '2026-09-24', mode: 'rest_day' };
+  activeLocation = 'office';
+  assert.equal(context.syncCbiLocationToJaneShift(new Date(2026, 8, 24, 12)), true);
+  assert.equal(activeLocation, 'home', 'a rest day opens at home even during office hours');
+  activeLocation = 'office';
+  assert.equal(context.syncCbiLocationToJaneShift(new Date(2026, 8, 24, 13)), false);
+  assert.equal(activeLocation, 'office', 'a manual office visit remains possible on his rest day');
   assert.match(index, /setInterval\(function\(\)\{syncCbiLocationToJaneShift\(new Date\(\)\);\}, 30000\)/);
   assert.match(index, /CloudSync\.whenReady\(\)\.then\(function\(\)\{startCbiAutoLocation\(\);applyWorldView\(\);\}\)/);
 });

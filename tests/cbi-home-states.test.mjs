@@ -3,7 +3,7 @@ import test from 'node:test';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
-import { HOME_SPACES, HOME_STATES, HOME_ACTIVITY_INTERVAL, validateHomeBatch, decodeHomeBatch, selectHomeFrame, homePeriod } from '../cbi-home-content.mjs';
+import { HOME_SPACES, HOME_STATES, HOME_CASE_STATES, HOME_ACTIVITY_TIMING, validateHomeBatch, decodeHomeBatch, selectHomeFrame, homePeriod, homeGenerationPrompt } from '../cbi-home-content.mjs';
 import scene from '../cbi-home-scene.js';
 
 const root = new URL('../', import.meta.url);
@@ -45,14 +45,90 @@ test('awake activity and dialogue share the same space, stay stable on refresh, 
   assert.deepEqual(selectHomeFrame(presence, now + 1000, pack), first);
   const seen = new Set();
   for (let index = 0; index < 1200; index++) {
-    const frame = selectHomeFrame(presence, now + index * HOME_ACTIVITY_INTERVAL, pack);
+    const frame = selectHomeFrame(presence, now + index * 20 * 60000, pack);
     assert.ok(HOME_SPACES[frame.space].includes(frame.activity));
-    assert.ok(frame.lines.every(line => line.s === HOME_STATES[frame.activity].label));
+    assert.ok(frame.lines.every(line => line.s === (frame.topic === 'case' ? HOME_CASE_STATES[frame.activity].label : HOME_STATES[frame.activity].label)));
     seen.add(frame.activity);
   }
   assert.deepEqual([...seen].sort(), Object.values(HOME_SPACES).flat().sort());
   assert.equal(selectHomeFrame({ location: 'office' }, now, pack).activity, null);
   assert.equal(selectHomeFrame({ location: 'away' }, now, pack).activity, null);
+});
+
+test('awake sessions respect weighted duration bands, cooldowns, midnight and dialogue-independent timing', () => {
+  const seen = new Set(), longBands = [0, 0, 0];
+  let longCount = 0;
+  for (let day = 1; day <= 100; day++) {
+    const anchor = new Date(2026, 9, day, 7).getTime();
+    const presence = { location: 'home', sleeping: false, restDay: true, homeStartAt: anchor };
+    const recent = {};
+    let previous = '';
+    for (let at = anchor; at < anchor + 20 * 3600000;) {
+      const frame = selectHomeFrame(presence, at, pack), rule = HOME_ACTIVITY_TIMING[frame.activity];
+      assert.ok(rule.bands.some(([min, max]) => frame.durationMinutes >= min && frame.durationMinutes <= max));
+      assert.notEqual(frame.activity, previous);
+      if (recent[frame.activity]) assert.ok(frame.startAt >= recent[frame.activity] + rule.cooldown * 60000);
+      const extraLines = structuredClone(pack); extraLines.spaces[frame.space].push(extraLines.spaces[frame.space][0]);
+      assert.equal(selectHomeFrame(presence, at, extraLines).activity, frame.activity);
+      assert.equal(selectHomeFrame(presence, at, extraLines).nextAt, frame.nextAt);
+      assert.equal(selectHomeFrame(presence, frame.nextAt - 1).key, frame.key);
+      assert.equal(selectHomeFrame(presence, frame.nextAt).startAt, frame.nextAt);
+      seen.add(frame.activity); recent[frame.activity] = frame.nextAt; previous = frame.activity;
+      if (['bedroom_read', 'living_read', 'living_tv'].includes(frame.activity)) {
+        longCount++;
+        longBands[frame.durationMinutes <= 75 ? 1 : frame.durationMinutes >= 180 ? 2 : 0]++;
+      }
+      at = frame.nextAt;
+    }
+  }
+  assert.equal(seen.size, 14);
+  assert.ok(longBands[0] / longCount > .55 && longBands[0] / longCount < .75, 'two hours is the usual reading/TV band');
+  assert.ok(longBands[1] > 0 && longBands[2] > 0, 'shorter and longer sessions both occur');
+});
+
+test('case-thinking variants reuse supported images and isolate their text from leisure and legacy batches', () => {
+  const mixed = structuredClone(pack);
+  for (const activity of Object.keys(HOME_CASE_STATES)) mixed.spaces[HOME_STATES[activity].space].push({ activity, m: '我在想那段说辞。', topic: 'case' });
+  assert.deepEqual(validateHomeBatch(mixed), mixed);
+  for (const activity of ['bathroom_shower', 'kitchen_kettle']) {
+    const bad = structuredClone(pack); bad.spaces[HOME_STATES[activity].space][0] = { activity, m: '研究案情', topic: 'case' };
+    assert.throws(() => validateHomeBatch(bad), /invalid_home_lines/);
+  }
+  const seen = new Set();
+  for (let day = 1; day <= 80; day++) {
+    const homeStartAt = new Date(2026, 10, day, 7).getTime();
+    const presence = { location: 'home', restDay: true, homeStartAt };
+    for (let at = homeStartAt; at < homeStartAt + 16 * 3600000;) {
+      const frame = selectHomeFrame(presence, at, mixed);
+      if (frame.topic === 'case') {
+        seen.add(frame.activity);
+        assert.equal(frame.lines[0].m, '我在想那段说辞。');
+        assert.equal(selectHomeFrame(presence, at, pack).lines[0].m, HOME_CASE_STATES[frame.activity].fallback);
+      } else assert.equal(frame.lines[0].m, '这是云端为这个动作准备的一句台词。');
+      at = frame.nextAt;
+    }
+  }
+  assert.deepEqual([...seen].sort(), Object.keys(HOME_CASE_STATES).sort());
+  assert.match(homeGenerationPrompt('day'), /topic.*case/);
+});
+
+test('bed sleep poses get a probabilistic opportunity only after each three-to-four-hour wait', () => {
+  let changed = 0, retained = 0;
+  for (let night = 0; night < 120; night++) {
+    const startAt = new Date(2026, 9, night + 1, 23).getTime();
+    const presence = { location: 'home', sleeping: true, sleep: { sleeping: true, placeId: 'bedroom_bed', roomId: 'jane', nightKey: 'night-' + night, startAt } };
+    let at = startAt, frame = selectHomeFrame(presence, at, pack);
+    for (let opportunity = 0; opportunity < 3; opportunity++) {
+      const elapsed = (frame.nextAt - at) / 60000;
+      assert.ok(elapsed >= 180 && elapsed <= 240);
+      assert.equal(selectHomeFrame(presence, frame.nextAt - 1, pack).activity, frame.activity);
+      const next = selectHomeFrame(presence, frame.nextAt, pack);
+      if (frame.activity === next.activity) retained++; else changed++;
+      assert.deepEqual(selectHomeFrame(presence, frame.nextAt + 1000, pack), next);
+      at = frame.nextAt; frame = next;
+    }
+  }
+  assert.ok(changed / (changed + retained) > .45 && changed / (changed + retained) < .65);
 });
 
 test('nightly sleep has absolute priority, preserves its location, and never emits awake dialogue', () => {

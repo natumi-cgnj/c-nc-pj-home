@@ -68,7 +68,7 @@
         + pack.characters[id].map(line => '<p class="office-line"><span>' + esc(line.s) + '</span><span>' + esc(line.m) + '</span></p>').join('') + '</section>').join('') : '';
       const homeNames = { bedroom: '卧室', living: '客厅', kitchen: '厨房', bathroom: '浴室' };
       const home = homePack ? Object.entries(homePack.spaces).map(([space, lines]) => '<section class="office-character"><h4>' + homeNames[space] + '</h4>'
-        + lines.map(line => '<p class="office-line"><span>' + esc(global.CBIHomeLines.describe(line.activity)) + '</span><span>' + esc(line.m) + '</span></p>').join('') + '</section>').join('') : '';
+        + lines.map(line => '<p class="office-line"><span>' + esc(global.CBIHomeLines.describe(line.activity, line.topic)) + '</span><span>' + esc(line.m) + '</span></p>').join('') + '</section>').join('') : '';
       const label = pack ? '已用于办公室' : homePack ? '已用于家中' : STATUS[status];
       return '<article class="test-result ' + status + '"><div class="test-result-head"><span>' + esc(date) + '</span><strong>' + label + '</strong></div>' + (office || home || '<p class="test-result-body">' + esc(copy) + '</p>') + link + '</article>';
     }).join('') : '<p class="empty">还没有测试记录</p>';

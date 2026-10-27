@@ -410,7 +410,8 @@ function renderDutyPreview(wrap, ds) {
   }
   panel.innerHTML = '<div class="duty-preview-title">CBI · DAY SHIFT</div>' +
     '<div class="duty-row"><strong>办公室</strong><span>' + names(duty.office) + '</span></div>' +
-    '<div class="duty-row"><strong>外勤</strong><span>' + names(duty.field) + '</span></div>';
+    '<div class="duty-row"><strong>外勤</strong><span>' + names(duty.field) + '</span></div>' +
+    '<div class="duty-row"><strong>休息</strong><span>' + names(duty.rest || []) + '</span></div>';
   wrap.appendChild(panel);
 }
 
@@ -456,10 +457,13 @@ function updateCbiDeploymentControls() {
   if (WORLD_ID !== 'cbi') return;
   var mode = getCbiBossMode();
   var field = selectedDeploymentAgents();
+  var rest = CharacterRuntime.getCbiDutyRoster(selectedDate, 'day').rest || [];
+  rest = rest.filter(function (id) { return field.indexOf(id) < 0; });
   document.getElementById('cbiAgentLabel').textContent = mode === 'office' ? '派去外勤的人员' : '陪 Boss 外勤的人员';
   document.getElementById('cbiDeployNote').textContent = mode === 'office'
-    ? (field.length ? field.length + ' 人外勤，Boss 留守办公室。' : '今天全员在办公室；也可以临时改成外勤。')
-    : (field.length ? 'Boss 与 ' + field.map(function (id) { return CHAR_META[id].name; }).join('、') + ' 一起外勤。' : 'Boss 单独外勤，其他人留守办公室。');
+    ? (field.length ? field.length + ' 人外勤，Boss 留守办公室。' : '在班成员留守办公室；也可以临时改成外勤。')
+    : (field.length ? 'Boss 与 ' + field.map(function (id) { return CHAR_META[id].name; }).join('、') + ' 一起外勤。' : 'Boss 单独外勤，在班成员留守办公室。');
+  if (rest.length) document.getElementById('cbiDeployNote').textContent += ' ' + rest.map(function (id) { return CHAR_META[id].name; }).join('、') + ' 今天休息；若选入外勤则按调度出勤。';
 }
 
 function renderCbiDeployment(ds) {

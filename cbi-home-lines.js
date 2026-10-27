@@ -2,7 +2,7 @@
   'use strict';
   if (global.__LIMINAL_REDIRECTING) return;
   let batch = null, owner = '', pending = null, rules = null, timer = null, waiting = false, nextAutoAt = 0;
-  const content = import('./cbi-home-content.mjs?v=20261028-home1').then(value => { rules = value; return value; });
+  const content = import('./cbi-home-content.mjs?v=20261028-rhythm1').then(value => { rules = value; return value; });
   content.catch(() => {});
   const identity = () => global.CloudSync?.user?.id || '';
   function sameOwner() {
@@ -58,7 +58,7 @@
   function getBatch() { sameOwner(); return batch; }
   global.CBIHomeLines = { refresh, accept, getBatch, ready: content,
     decode: text => rules ? rules.decodeHomeBatch(text) : null,
-    describe: id => rules?.HOME_STATES[id]?.label || '' };
+    describe: (id, topic) => rules?.homeStateLabel(id, topic) || '' };
   if (global.CloudSync) global.CloudSync.whenReady().then(refresh).catch(() => {});
   global.addEventListener('pageshow', refresh);
   global.document.addEventListener('visibilitychange', () => { if (!global.document.hidden) refresh(); else schedule(); });

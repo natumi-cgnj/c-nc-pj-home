@@ -1149,12 +1149,12 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
 <script src="activity-migration.js?v=20261008-merge1"></script>
 <script src="cloud-sync.js?v=20261019-diet-split1"></script>
 <script src="app-back.js?v=20261010-home-return2"></script>
-<script src="character-runtime.js?v=20260914-cbi-sleep2"></script>
+<script src="character-runtime.js?v=20261028-rest1"></script>
 <script src="cbi-weather.js?v=20260903-cbi-weather2"></script>
 <script src="cbi-office-scene.js?v=20261027-seated1"></script>
 <script src="cbi-office-lines.js?v=20261027-auto1"></script>
-<script src="cbi-home-lines.js?v=20261028-home1"></script>
-<script src="cbi-home-scene.js?v=20261028-home1"></script>
+<script src="cbi-home-lines.js?v=20261028-rhythm1"></script>
+<script src="cbi-home-scene.js?v=20261028-rhythm1"></script>
 <script src="cbi-scene-lighting.js?v=20261028-home1"></script>
 <script src="cbi-data.js?v=20260929-room-storage1"></script>
 <script>
@@ -1232,7 +1232,7 @@ function positionCbiOfficeJane(){
 
 function cbiPresenceEta(status){
   if(!status||!status.endAt)return'';
-  if(status.mode==='office'||status.mode==='off_duty')return'';
+  if(status.mode==='office'||status.mode==='off_duty'||status.mode==='rest_day')return'';
   if(status.mode==='not_arrived'){
     var diff=status.endAt-Date.now();
     if(status.charId==='jane'&&status.shift&&status.shift.lateArrival)return'中午左右会来';
@@ -3959,7 +3959,7 @@ function getCbiAutoLocationPhase(nowValue) {
   var now = nowValue instanceof Date ? nowValue : new Date(nowValue || Date.now());
   var status = CharacterRuntime.getCbiCharacterPresence('jane', now);
   if (!status || !status.date) return null;
-  var phase = status.mode === 'not_arrived' ? 'before' : (status.mode === 'off_duty' ? 'after' : 'work');
+  var phase = status.mode === 'rest_day' ? 'rest' : status.mode === 'not_arrived' ? 'before' : (status.mode === 'off_duty' ? 'after' : 'work');
   return {
     key: status.date + ':' + phase,
     phase: phase,

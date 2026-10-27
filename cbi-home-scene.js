@@ -11,7 +11,7 @@
     [27,657],[179,116],[180,102]];
   const state = { rules: null, assets: null, loading: null, frame: null, drawn: '', images: {},
     pending: {}, retry: {}, raw: null, mask: null, error: '', drawCount: 0, failedAt: 0 };
-  const content = import('./cbi-home-content.mjs?v=20261028-home1').then(rules => { state.rules = rules; return rules; });
+  const content = import('./cbi-home-content.mjs?v=20261028-rhythm1').then(rules => { state.rules = rules; return rules; });
   content.catch(() => {});
   function active() {
     const context = global.WorldContext;
@@ -129,7 +129,7 @@
     const box = state.assets.manifest.activities[frame.activity].target;
     Object.assign(target.style, { left: box.x / 1672 * 100 + '%', top: box.y / 941 * 100 + '%', width: box.width / 1672 * 100 + '%', height: box.height / 941 * 100 + '%' });
     target.dataset.homeActivity = frame.activity;
-    target.setAttribute('aria-label', 'Jane · ' + state.rules.HOME_STATES[frame.activity].label);
+    target.setAttribute('aria-label', 'Jane · ' + state.rules.homeStateLabel(frame.activity, frame.topic));
   }
   function paint() {
     if (!state.assets || !state.frame || !active()) return false;
@@ -162,7 +162,7 @@
     const presence = global.CharacterRuntime.getCbiCharacterPresence('jane', now);
     const pack = global.CBIHomeLines?.getBatch()?.pack || null;
     const frame = { ...state.rules.selectHomeFrame(presence, now.getTime(), pack), slot: slot || slotAt(now) };
-    if (state.frame && (state.frame.activity !== frame.activity || state.frame.mode !== frame.mode)) {
+    if (state.frame && (state.frame.key !== frame.key || state.frame.activity !== frame.activity || state.frame.mode !== frame.mode)) {
       global.document.getElementById('bubble-jane')?.classList.remove('show');
     }
     state.frame = frame;
