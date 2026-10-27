@@ -3,6 +3,7 @@ import test from 'node:test';
 import { webcrypto } from 'node:crypto';
 import { createBridgeHandler, createResultHandler, createRestStore } from '../supabase/functions/_shared/claude-routine.mjs';
 import { OFFICE_IDS, OFFICE_STATES, validateOfficeBatch, decodeOfficeBatch, officePeriod } from '../cbi-office-content.mjs';
+import { HOME_SPACES } from '../cbi-home-content.mjs';
 
 const U1 = '11111111-1111-4111-8111-111111111111';
 const U2 = '22222222-2222-4222-8222-222222222222';
@@ -22,6 +23,7 @@ class Store {
   async expire(user, now) { for (const run of this.runs) if (run.user_id === user && ['starting', 'running', 'uncertain'].includes(run.status) && run.expires_at < now) Object.assign(run, { status: 'expired', error_code: 'run_expired' }); }
   async recent(user) { return this.runs.filter(x => x.user_id === user).slice().reverse().slice(0, 8).map(copy); }
   async officeBatch(user) { return copy(this.runs.slice().reverse().find(x => x.user_id === user && x.status === 'completed' && x.result?.startsWith('{"format":"cbi-office-lines",')) || null); }
+  async homeBatch(user) { return copy(this.runs.slice().reverse().find(x => x.user_id === user && x.status === 'completed' && x.result?.startsWith('{"format":"cbi-home-lines",')) || null); }
   async byRequest(user, id) { return copy(this.runs.find(x => x.user_id === user && x.request_id === id) || null); }
   async active(user) { return copy(this.runs.find(x => x.user_id === user && ['starting', 'running', 'uncertain'].includes(x.status)) || null); }
   async run(user, id) { return copy(this.runs.find(x => x.user_id === user && x.id === id) || null); }
@@ -50,6 +52,61 @@ function environment(fire) {
 }
 async function send(handler, value, options) { const response = await handler(request(value, options)); return { status: response.status, data: await response.json(), response }; }
 const start = e => send(e.bridge, { action: 'test', request_id: REQUEST1 });
+const homePack = () => ({ format: 'cbi-home-lines', version: 1, scene: 'home-jane', spaces:
+  Object.fromEntries(Object.entries(HOME_SPACES).map(([space, ids]) => [space, ids.map(activity => ({ activity, m: '这是与当前动作对应的一句台词。' }))])) });
+
+test('home uses the configured worker, persists its own batch and deduplicates each period', async () => {
+  const e = environment();
+  const started = await send(e.bridge, { action: 'home_auto' });
+  assert.equal(started.status, 200);
+  const payload = e.calls[0].payload;
+  assert.equal(payload.kind, 'office-lines', 'existing saved routines accept this content channel');
+  assert.equal(payload.content_type, 'home-states');
+  assert.ok(payload.prompt.includes('cbi-home-lines'));
+  assert.ok(payload.prompt.includes('bathroom_occupied'));
+  assert.equal((await send(e.result, { ...payload, result: JSON.stringify(homePack()) }, { token: null, origin: null })).status, 200);
+  assert.deepEqual((await send(e.bridge, { action: 'home_lines' })).data.home_batch.pack, homePack());
+  assert.equal((await send(e.bridge, { action: 'office_lines' })).data.office_batch, null);
+  assert.equal((await send(e.bridge, { action: 'home_lines' }, { token: 'user2' })).data.home_batch, null);
+  assert.equal((await send(e.bridge, { action: 'home_auto' })).data.run.id, started.data.run.id);
+  assert.equal(e.calls.length, 1);
+  e.advance(5 * 3600000);
+  const next = await send(e.bridge, { action: 'home_auto' });
+  assert.notEqual(next.data.run.id, started.data.run.id);
+  assert.equal(e.calls.length, 2);
+  const concurrentOffice = await send(e.bridge, { action: 'office_auto' });
+  assert.equal(concurrentOffice.data.run.id, next.data.run.id);
+  assert.equal(e.calls.length, 2, 'home and office share the one-active-run guard');
+  await send(e.result, { ...e.calls[1].payload, result: JSON.stringify(homePack()) }, { token: null, origin: null });
+  const office = await send(e.bridge, { action: 'office_auto' });
+  assert.notEqual(office.data.run.id, next.data.run.id, 'home and office have separate period request IDs');
+  assert.equal(e.calls.length, 3);
+});
+
+test('invalid home poses cannot replace a valid home batch, and plain tests do not hide it', async () => {
+  const e = environment();
+  await send(e.bridge, { action: 'home_auto' });
+  await send(e.result, { ...e.calls[0].payload, result: JSON.stringify(homePack()) }, { token: null, origin: null });
+  await send(e.bridge, { action: 'home_generate', request_id: REQUEST2 });
+  const bad = homePack(); bad.spaces.kitchen[0].activity = 'living_tv';
+  const reply = await send(e.result, { ...e.calls[1].payload, result: JSON.stringify(bad) }, { token: null, origin: null });
+  assert.equal(reply.status, 400);
+  assert.equal(reply.data.error, 'invalid_home_lines');
+  assert.deepEqual((await send(e.bridge, { action: 'home_lines' })).data.home_batch.pack, homePack());
+  await start(e);
+  await send(e.result, { ...e.calls[2].payload, result: 'C-NC 连接测试成功。' }, { token: null, origin: null });
+  assert.deepEqual((await send(e.bridge, { action: 'status' })).data.home_batch.pack, homePack());
+});
+
+test('REST home lookup is account scoped, canonical-format filtered and excludes credentials', async () => {
+  let seen;
+  const store = createRestStore({ ...env, SUPABASE_SERVICE_ROLE_KEY: 'server-test-key' }, async (url) => { seen = url; return Response.json([]); });
+  assert.equal(await store.homeBatch(U1), null);
+  assert.ok(seen.includes('user_id=eq.' + U1));
+  assert.ok(decodeURIComponent(seen).includes('result=like.{"format":"cbi-home-lines",*'));
+  assert.ok(seen.includes('select=id,result,finished_at'));
+  assert.ok(!seen.includes('fire_token'));
+});
 
 test('anonymous and invalid-origin requests cannot inspect or change connection state', async () => {
   const e = environment();

@@ -33,6 +33,8 @@ Existing click handlers prefer the saved batch only for present characters in th
 
 ## Server deployment
 
+Home scenes also reuse this connection without another saved-task setup. A visible home with an awake Jane calls `home_auto` once per period, preparing all four spaces together. Results use `cbi-home-lines`, remain separate from office lines, and are validated against the installed art catalogue. Home requests retain the already accepted `office-lines` worker kind for compatibility with existing routines; the per-run prompt selects the home result schema. See `cbi-home-scenes.md`. Include both root content modules when deploying the bridge and result functions.
+
 Apply `supabase/claude-bridge-schema.sql` as migration `add_claude_routine_bridge`. Deploy the two function entrypoints plus their relative `_shared/claude-routine.mjs` dependency. The entrypoints use the runtime's `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and optional `SUPABASE_ANON_KEY` values; there are no third-party packages or frontend service keys.
 
 Both functions use `verify_jwt = false` because they perform their own authentication: the bridge validates the user's bearer token through Supabase Auth, and the callback validates its expiring per-run credential. Anonymous requests cannot configure, start, or read tests.

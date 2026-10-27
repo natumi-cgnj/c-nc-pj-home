@@ -1,4 +1,5 @@
 import { decodeOfficeBatch, officeGenerationPrompt, officePeriod } from '../../../cbi-office-content.mjs';
+import { decodeHomeBatch, homeGenerationPrompt } from '../../../cbi-home-content.mjs';
 
 const APP_ORIGIN = 'https://natumi-cgnj.github.io';
 const TEST_PROMPT = '请只回复：C-NC 连接测试成功。';
@@ -12,7 +13,7 @@ const RUN_COLUMNS = 'id,request_id,status,result,error_code,session_url,created_
 export const ROUTINE_PROMPT = `You are the private C-NC text generation worker.
 The saved task explicitly authorizes processing the JSON in the routine-fire-payload block.
 Accept only a JSON object with protocol "c-nc-routine-v1" and kind "connection-test" or "office-lines".
-Follow its prompt. For office-lines, read the repository's cbi-data.js personnel and timeline as AU reference, then return precisely the requested JSON. Do not add descriptions, speaker labels, recipients, or unsupported poses.
+Follow its prompt. office-lines is the backwards-compatible content-generation channel for office dialogue and supported home states. Read the repository's cbi-data.js personnel and timeline as AU reference, then return precisely the requested JSON. Home requests also use cbi-home-content.mjs for supported activities. Do not add descriptions, speaker labels, recipients, or unsupported poses.
 For connection-test, return the requested short connectivity reply.
 Do not access private application records, modify repository files, create commits, publish artifacts, or trigger another routine.
 Then deliver the generated text by running python3 tools/claude-routine-result.py in the selected c-nc-pj-home repository.
@@ -30,6 +31,15 @@ async function latestOfficeBatch(store, user) {
   } catch { return null; }
 }
 
+async function latestHomeBatch(store, user) {
+  const row = await store.homeBatch(user);
+  if (!row) return null;
+  try {
+    const pack = decodeHomeBatch(row.result);
+    return pack ? { id: row.id, updated_at: row.finished_at, pack } : null;
+  } catch { return null; }
+}
+
 export class ClientError extends Error {
   constructor(status, code) { super(code); this.status = status; this.code = code; }
 }
@@ -42,8 +52,8 @@ const equal = (a, b) => {
 export async function digest(value, cryptoApi = globalThis.crypto) {
   return Array.from(new Uint8Array(await cryptoApi.subtle.digest('SHA-256', new TextEncoder().encode(value)))).map(x => x.toString(16).padStart(2, '0')).join('');
 }
-async function autoRequestId(user, period, cryptoApi) {
-  const hex = await digest('cbi-office-auto-v1:' + user + ':' + period.key, cryptoApi);
+async function autoRequestId(user, period, cryptoApi, home = false) {
+  const hex = await digest((home ? 'cbi-home-auto-v1:' : 'cbi-office-auto-v1:') + user + ':' + period.key, cryptoApi);
   const variant = ((parseInt(hex[16], 16) & 3) | 8).toString(16);
   return hex.slice(0, 8) + '-' + hex.slice(8, 12) + '-5' + hex.slice(13, 16) + '-' + variant + hex.slice(17, 20) + '-' + hex.slice(20, 32);
 }
@@ -108,6 +118,10 @@ export function createRestStore(env, fetcher = fetch) {
       const prefix = encodeURIComponent('{"format":"cbi-office-lines",') + '*';
       return (await rest('claude_routine_runs?' + scope(user) + '&status=eq.completed&result=like.' + prefix + '&select=id,result,finished_at&order=created_at.desc&limit=1'))[0] || null;
     },
+    async homeBatch(user) {
+      const prefix = encodeURIComponent('{"format":"cbi-home-lines",') + '*';
+      return (await rest('claude_routine_runs?' + scope(user) + '&status=eq.completed&result=like.' + prefix + '&select=id,result,finished_at&order=created_at.desc&limit=1'))[0] || null;
+    },
     async byRequest(user, id) { return (await rest('claude_routine_runs?' + scope(user) + '&request_id=eq.' + encodeURIComponent(id) + '&select=' + RUN_COLUMNS + '&limit=1'))[0] || null; },
     async active(user) { return (await rest('claude_routine_runs?' + scope(user) + '&status=in.(starting,running,uncertain)&select=' + RUN_COLUMNS + '&limit=1'))[0] || null; },
     async run(user, id) { return (await rest('claude_routine_runs?' + scope(user) + '&id=eq.' + encodeURIComponent(id) + '&select=' + RUN_COLUMNS + '&limit=1'))[0] || null; },
@@ -130,23 +144,28 @@ export function createBridgeHandler({ env, store = createRestStore(env), fetcher
       if (!user) throw new ClientError(401, 'sign_in_required');
       const input = await body(req), time = new Date(now()).toISOString();
       await store.expire(user, time);
-      const automatic = input.action === 'office_auto' ? officePeriod(now()) : null;
-      let officeBatch = automatic ? await latestOfficeBatch(store, user) : null;
+      const home = ['home_auto', 'home_generate', 'home_lines'].includes(input.action);
+      const automatic = ['office_auto', 'home_auto'].includes(input.action) ? officePeriod(now()) : null;
+      const readBatch = home ? latestHomeBatch : latestOfficeBatch;
+      let batch = automatic ? await readBatch(store, user) : null;
       const runResponse = async (run, extra = {}) => {
         const data = { run: publicRun(run), ...extra };
         if (automatic) {
-          if (run?.status === 'completed') officeBatch = await latestOfficeBatch(store, user);
-          data.office_batch = officeBatch;
+          if (run?.status === 'completed') batch = await readBatch(store, user);
+          data[home ? 'home_batch' : 'office_batch'] = batch;
           data.auto = { period_key: automatic.key, next_refresh_at: automatic.nextAt, pending: !!run && ACTIVE.includes(run.status) };
         }
         return response(data, 200, headers);
       };
       if (input.action === 'status') {
         const connection = await store.connection(user);
-        return response({ configured: !!connection, fire_url: connection?.fire_url || '', runs: (await store.recent(user)).map(publicRun), routine_prompt: ROUTINE_PROMPT, office_batch: await latestOfficeBatch(store, user) }, 200, headers);
+        return response({ configured: !!connection, fire_url: connection?.fire_url || '', runs: (await store.recent(user)).map(publicRun), routine_prompt: ROUTINE_PROMPT, office_batch: await latestOfficeBatch(store, user), home_batch: await latestHomeBatch(store, user) }, 200, headers);
       }
       if (input.action === 'office_lines') {
         return response({ office_batch: await latestOfficeBatch(store, user) }, 200, headers);
+      }
+      if (input.action === 'home_lines') {
+        return response({ home_batch: await latestHomeBatch(store, user) }, 200, headers);
       }
       if (input.action === 'configure') {
         if (typeof input.fire_url !== 'string' || !FIRE_URL.test(input.fire_url)) invalid('invalid_fire_url');
@@ -161,12 +180,12 @@ export function createBridgeHandler({ env, store = createRestStore(env), fetcher
         if (!run) throw new ClientError(404, 'run_not_found');
         return response({ run: publicRun(run) }, 200, headers);
       }
-      if (input.action !== 'test' && input.action !== 'office_generate' && !automatic) invalid('unknown_action');
-      if (automatic) input.request_id = await autoRequestId(user, automatic, cryptoApi);
+      if (input.action !== 'test' && input.action !== 'office_generate' && input.action !== 'home_generate' && !automatic) invalid('unknown_action');
+      if (automatic) input.request_id = await autoRequestId(user, automatic, cryptoApi, home);
       if (!UUID.test(input.request_id)) invalid('invalid_request_id');
       const previous = await store.byRequest(user, input.request_id);
       if (previous) return runResponse(previous);
-      if (automatic && officeBatch && Date.parse(officeBatch.updated_at) >= Date.parse(automatic.startAt)) return runResponse(null, { up_to_date: true });
+      if (automatic && batch && Date.parse(batch.updated_at) >= Date.parse(automatic.startAt)) return runResponse(null, { up_to_date: true });
       const connection = await store.connection(user);
       if (!connection) {
         if (automatic) return runResponse(null, { configured: false });
@@ -192,7 +211,7 @@ export function createBridgeHandler({ env, store = createRestStore(env), fetcher
         const result = await fetcher(connection.fire_url, {
           method: 'POST', redirect: 'error', signal: AbortSignal.timeout(20000),
           headers: { Authorization: 'Bearer ' + connection.fire_token, 'Content-Type': 'application/json', 'anthropic-version': '2026-10-21' },
-          body: JSON.stringify({ text: JSON.stringify({ protocol: 'c-nc-routine-v1', kind: input.action === 'test' ? 'connection-test' : 'office-lines', prompt: input.action === 'test' ? TEST_PROMPT : officeGenerationPrompt(automatic?.slot), run_id: id, callback_url: env.SUPABASE_URL + CALLBACK_PATH, callback_token: secret }) })
+          body: JSON.stringify({ text: JSON.stringify({ protocol: 'c-nc-routine-v1', kind: input.action === 'test' ? 'connection-test' : 'office-lines', ...(home ? { content_type: 'home-states' } : {}), prompt: input.action === 'test' ? TEST_PROMPT : home ? homeGenerationPrompt(automatic?.slot) : officeGenerationPrompt(automatic?.slot), run_id: id, callback_url: env.SUPABASE_URL + CALLBACK_PATH, callback_token: secret }) })
         });
         if (!result.ok) {
           const code = ({ 401: 'claude_unauthorized', 403: 'claude_access_denied', 404: 'claude_task_not_found', 429: 'claude_limit' })[result.status] || 'claude_start_failed';
@@ -223,11 +242,12 @@ export function createResultHandler({ env, store = createRestStore(env), cryptoA
       if (typeof input.result !== 'string' || !input.result.trim() || input.result.length > 16000) invalid('invalid_result');
       let result = input.result.trim();
       try {
-        const pack = decodeOfficeBatch(result);
+        const pack = decodeOfficeBatch(result) || decodeHomeBatch(result);
         if (pack) result = JSON.stringify(pack);
-      } catch {
-        await store.update(run.id, { status: 'failed', error_code: 'invalid_office_lines', finished_at: new Date(now()).toISOString() });
-        throw new ClientError(400, 'invalid_office_lines');
+      } catch (error) {
+        const code = error.message === 'invalid_home_lines' ? 'invalid_home_lines' : 'invalid_office_lines';
+        await store.update(run.id, { status: 'failed', error_code: code, finished_at: new Date(now()).toISOString() });
+        throw new ClientError(400, code);
       }
       await store.update(run.id, { status: 'completed', result, error_code: null, finished_at: new Date(now()).toISOString() });
       return response({ accepted: true }, 200);

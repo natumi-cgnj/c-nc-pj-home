@@ -1,0 +1,395 @@
+{
+  "version": 1,
+  "width": 1672,
+  "height": 941,
+  "base": "assets/scenes/cbi-home.webp",
+  "activities": {
+    "bedroom_read": {
+      "patches": [
+        {
+          "src": "bedroom_read.webp",
+          "x": 259,
+          "y": 151,
+          "width": 129,
+          "height": 182
+        }
+      ],
+      "target": {
+        "x": 259,
+        "y": 151,
+        "width": 129,
+        "height": 182
+      }
+    },
+    "bedroom_tea": {
+      "patches": [
+        {
+          "src": "bedroom_tea.webp",
+          "x": 340,
+          "y": 269,
+          "width": 150,
+          "height": 219
+        }
+      ],
+      "target": {
+        "x": 340,
+        "y": 269,
+        "width": 150,
+        "height": 219
+      }
+    },
+    "bedroom_wardrobe": {
+      "patches": [
+        {
+          "src": "bedroom_wardrobe.webp",
+          "x": 206,
+          "y": 292,
+          "width": 115,
+          "height": 205
+        }
+      ],
+      "target": {
+        "x": 206,
+        "y": 292,
+        "width": 115,
+        "height": 205
+      }
+    },
+    "bedroom_bedside": {
+      "patches": [
+        {
+          "src": "bedroom_bedside.webp",
+          "x": 524,
+          "y": 262,
+          "width": 125,
+          "height": 211
+        }
+      ],
+      "target": {
+        "x": 524,
+        "y": 262,
+        "width": 125,
+        "height": 211
+      }
+    },
+    "bedroom_sleep_back": {
+      "patches": [
+        {
+          "src": "bedroom_sleep_back.webp",
+          "x": 513,
+          "y": 191,
+          "width": 231,
+          "height": 222
+        }
+      ],
+      "target": {
+        "x": 513,
+        "y": 191,
+        "width": 231,
+        "height": 222
+      }
+    },
+    "bedroom_sleep_side": {
+      "patches": [
+        {
+          "src": "bedroom_sleep_side.webp",
+          "x": 513,
+          "y": 191,
+          "width": 232,
+          "height": 222
+        }
+      ],
+      "target": {
+        "x": 513,
+        "y": 191,
+        "width": 232,
+        "height": 222
+      }
+    },
+    "bedroom_sleep_diagonal": {
+      "patches": [
+        {
+          "src": "bedroom_sleep_diagonal.webp",
+          "x": 513,
+          "y": 191,
+          "width": 232,
+          "height": 222
+        }
+      ],
+      "target": {
+        "x": 513,
+        "y": 191,
+        "width": 232,
+        "height": 222
+      }
+    },
+    "bedroom_sleep_chair": {
+      "patches": [
+        {
+          "src": "bedroom_sleep_chair.webp",
+          "x": 244,
+          "y": 158,
+          "width": 143,
+          "height": 173
+        }
+      ],
+      "target": {
+        "x": 244,
+        "y": 158,
+        "width": 143,
+        "height": 173
+      }
+    },
+    "living_tv": {
+      "patches": [
+        {
+          "src": "living_tv-0.webp",
+          "x": 801,
+          "y": 214,
+          "width": 249,
+          "height": 253
+        },
+        {
+          "src": "living_tv-1.webp",
+          "x": 1370,
+          "y": 211,
+          "width": 78,
+          "height": 186
+        }
+      ],
+      "target": {
+        "x": 801,
+        "y": 214,
+        "width": 249,
+        "height": 253
+      }
+    },
+    "living_read": {
+      "patches": [
+        {
+          "src": "living_read-0.webp",
+          "x": 805,
+          "y": 216,
+          "width": 232,
+          "height": 255
+        },
+        {
+          "src": "living_read-1.webp",
+          "x": 1369,
+          "y": 212,
+          "width": 79,
+          "height": 185
+        }
+      ],
+      "target": {
+        "x": 805,
+        "y": 216,
+        "width": 232,
+        "height": 255
+      }
+    },
+    "living_clutter": {
+      "patches": [
+        {
+          "src": "living_clutter.webp",
+          "x": 978,
+          "y": 166,
+          "width": 152,
+          "height": 171
+        }
+      ],
+      "target": {
+        "x": 978,
+        "y": 166,
+        "width": 152,
+        "height": 171
+      }
+    },
+    "living_manga": {
+      "patches": [
+        {
+          "src": "living_manga.webp",
+          "x": 1372,
+          "y": 329,
+          "width": 102,
+          "height": 258
+        }
+      ],
+      "target": {
+        "x": 1372,
+        "y": 329,
+        "width": 102,
+        "height": 258
+      }
+    },
+    "living_sleep": {
+      "patches": [
+        {
+          "src": "living_sleep.webp",
+          "x": 805,
+          "y": 210,
+          "width": 231,
+          "height": 259
+        }
+      ],
+      "target": {
+        "x": 805,
+        "y": 210,
+        "width": 231,
+        "height": 259
+      }
+    },
+    "kitchen_fridge": {
+      "patches": [
+        {
+          "src": "kitchen_fridge.webp",
+          "x": 1382,
+          "y": 468,
+          "width": 142,
+          "height": 235
+        }
+      ],
+      "target": {
+        "x": 1382,
+        "y": 468,
+        "width": 142,
+        "height": 235
+      }
+    },
+    "kitchen_meal": {
+      "patches": [
+        {
+          "src": "kitchen_meal.webp",
+          "x": 1133,
+          "y": 467,
+          "width": 175,
+          "height": 201
+        }
+      ],
+      "target": {
+        "x": 1133,
+        "y": 467,
+        "width": 175,
+        "height": 201
+      }
+    },
+    "kitchen_kettle": {
+      "patches": [
+        {
+          "src": "kitchen_kettle.webp",
+          "x": 1254,
+          "y": 576,
+          "width": 174,
+          "height": 166
+        }
+      ],
+      "target": {
+        "x": 1254,
+        "y": 576,
+        "width": 174,
+        "height": 166
+      }
+    },
+    "bathroom_brush": {
+      "patches": [
+        {
+          "src": "bathroom_brush.webp",
+          "x": 296,
+          "y": 527,
+          "width": 107,
+          "height": 182
+        }
+      ],
+      "target": {
+        "x": 296,
+        "y": 527,
+        "width": 107,
+        "height": 182
+      }
+    },
+    "bathroom_shower": {
+      "patches": [
+        {
+          "src": "bathroom_shower.webp",
+          "x": 28,
+          "y": 489,
+          "width": 369,
+          "height": 319
+        }
+      ],
+      "target": {
+        "x": 332,
+        "y": 505,
+        "width": 66,
+        "height": 67
+      }
+    },
+    "bathroom_occupied": {
+      "patches": [
+        {
+          "src": "bathroom_occupied.webp",
+          "x": 330,
+          "y": 504,
+          "width": 67,
+          "height": 65
+        }
+      ],
+      "target": {
+        "x": 332,
+        "y": 505,
+        "width": 66,
+        "height": 67
+      }
+    }
+  },
+  "windows": {
+    "day": [
+      {
+        "src": "window-day-0.webp",
+        "x": 344,
+        "y": 127,
+        "width": 215,
+        "height": 80
+      },
+      {
+        "src": "window-day-1.webp",
+        "x": 888,
+        "y": 127,
+        "width": 282,
+        "height": 80
+      }
+    ],
+    "evening": [
+      {
+        "src": "window-evening-0.webp",
+        "x": 344,
+        "y": 127,
+        "width": 215,
+        "height": 80
+      },
+      {
+        "src": "window-evening-1.webp",
+        "x": 888,
+        "y": 127,
+        "width": 282,
+        "height": 80
+      }
+    ],
+    "night": [
+      {
+        "src": "window-night-0.webp",
+        "x": 344,
+        "y": 127,
+        "width": 215,
+        "height": 80
+      },
+      {
+        "src": "window-night-1.webp",
+        "x": 888,
+        "y": 127,
+        "width": 282,
+        "height": 80
+      }
+    ]
+  }
+}

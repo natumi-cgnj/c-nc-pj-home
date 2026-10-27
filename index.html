@@ -750,6 +750,7 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
 
 </style>
 <link rel="stylesheet" href="cbi-office-scene.css?v=20261027-seated1">
+<link rel="stylesheet" href="cbi-home-scene.css?v=20261028-home1">
 </head>
 <body>
 <div class="home-pager" id="homePager">
@@ -798,6 +799,8 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
 
 <div class="apt-wrap" id="aptWrap">
   <img class="cbi-home-scene" data-cbi-scene="home" width="1672" height="941" alt="Boss 家：左上卧室、左下卫生间，右侧客厅与厨房" draggable="false" decoding="async">
+  <canvas class="cbi-home-canvas" id="cbiHomeCanvas" width="1672" height="941" aria-hidden="true" hidden></canvas>
+  <button class="cbi-home-activity-target" id="cbiHomeActivityTarget" type="button" onclick="onCbiHomeActivityTap(event)" aria-label="查看 Jane 的居家状态" hidden></button>
   <button class="cbi-location-trigger cbi-home-trigger cbi-scene-switch" type="button" onclick="toggleCbiLocation(event)" aria-label="当前在家，切换到办公室" title="切换到办公室">Home ⇄</button>
   <!-- TOP BRANCH STACK: new rooms added here overlap instead of expanding the map -->
   <div class="branch-stack branch-top has-active-room" data-branch="top">
@@ -1150,7 +1153,9 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
 <script src="cbi-weather.js?v=20260903-cbi-weather2"></script>
 <script src="cbi-office-scene.js?v=20261027-seated1"></script>
 <script src="cbi-office-lines.js?v=20261027-auto1"></script>
-<script src="cbi-scene-lighting.js?v=20261027-seated1"></script>
+<script src="cbi-home-lines.js?v=20261028-home1"></script>
+<script src="cbi-home-scene.js?v=20261028-home1"></script>
+<script src="cbi-scene-lighting.js?v=20261028-home1"></script>
 <script src="cbi-data.js?v=20260929-room-storage1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
@@ -1246,6 +1251,7 @@ function cbiPresenceTip(charId,status){
 
 function renderCbiHomePresence(){
   if(getActiveWorldId()!=='cbi'||getActiveLocationId()!=='home'||!window.CharacterRuntime)return;
+  if(window.CBIHomeScene)CBIHomeScene.refresh();
   var status=CharacterRuntime.getCbiCharacterPresence('jane',new Date());
   var jane=document.getElementById('char-jane');
   var away=document.getElementById('away-jane');
@@ -1787,6 +1793,31 @@ function showBubble(id){
   bubble.classList.add('show');
   bubbleTimers[id]=setTimeout(()=>bubble.classList.remove('show'),4500);
 }
+function onCbiHomeActivityTap(event){
+  if(event)event.stopPropagation();
+  return showCbiHomeActivityBubble();
+}
+function showCbiHomeActivityBubble(){
+  if(getActiveWorldId()!=='cbi'||getActiveLocationId()!=='home'||!window.CBIHomeScene)return false;
+  const frame=CBIHomeScene.current();
+  if(!frame||!frame.activity)return false;
+  if(frame.mode==='sleep')return showCbiJaneSleepBubble(CharacterRuntime.getCbiCharacterPresence('jane',new Date()));
+  if(!frame.lines.length)return false;
+  const line=pickCbiLine(frame.lines);
+  const bubble=document.getElementById('bubble-jane');
+  const target=document.getElementById('cbiHomeActivityTarget');
+  const wrap=getActiveMapWrap();
+  if(!bubble||!target||target.hidden||!wrap)return false;
+  if(bubble.parentElement!==wrap)wrap.appendChild(bubble);
+  document.getElementById('status-jane').textContent=line.s;
+  document.getElementById('msg-jane').textContent=line.m;
+  positionBubbleAtCharacter(bubble,target,wrap);
+  if(bubbleTimers.jane)clearTimeout(bubbleTimers.jane);
+  bubble.style.zIndex=++bubbleZCounter;
+  bubble.classList.add('show');
+  bubbleTimers.jane=setTimeout(function(){bubble.classList.remove('show');},4500);
+  return true;
+}
 function showCbiJaneSleepBubble(status){
   const sleep=status&&status.sleep;
   const charEl=document.getElementById('char-jane');
@@ -1796,7 +1827,8 @@ function showCbiJaneSleepBubble(status){
   if(bubble.parentElement!==wrap)wrap.appendChild(bubble);
   document.getElementById('status-jane').textContent=sleep.status||'';
   document.getElementById('msg-jane').textContent=sleep.detail||'';
-  const sleepTarget=document.querySelector('[data-cbi-sleep-place="'+sleep.placeId+'"]');
+  const homeTarget=document.getElementById('cbiHomeActivityTarget');
+  const sleepTarget=homeTarget&&!homeTarget.hidden?homeTarget:document.querySelector('[data-cbi-sleep-place="'+sleep.placeId+'"]');
   positionBubbleAtCharacter(bubble,sleepTarget&&!sleepTarget.hidden?sleepTarget:charEl,wrap);
   if(bubbleTimers.jane)clearTimeout(bubbleTimers.jane);
   bubble.style.zIndex=++bubbleZCounter;
@@ -1807,6 +1839,7 @@ function showCbiJaneSleepBubble(status){
 function onCharTap(id,e){
   e.stopPropagation();
   if(!isLiminalWorld()&&id==='jane'&&getActiveLocationId()==='home'&&window.CharacterRuntime){
+    if(window.CBIHomeScene&&showCbiHomeActivityBubble())return;
     var presence=CharacterRuntime.getCbiCharacterPresence('jane',new Date());
     if(showCbiJaneSleepBubble(presence))return;
   }

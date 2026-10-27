@@ -56,12 +56,18 @@
     <button class="primary" id="generateOfficeLines" type="button" disabled>立即更新</button>
     <p class="notice" id="officeNotice" role="status" aria-live="polite"></p>
     <p class="hint" id="officeState">正在读取办公室台词</p>
+  </section>
+  <section class="office-section" aria-labelledby="homeTitle">
+    <div class="step-heading"><span>05</span><h3 id="homeTitle">居家状态与台词</h3></div>
+    <p class="test-copy">Jane 在家且醒着时，会沿用现有连接自动准备卧室、客厅、厨房和浴室的状态与台词。清晨、白天、傍晚、夜间各准备一批，回传后按画面中的动作使用。</p>
+    <p class="hint">动作约二十分钟切换一次，刷新不重抽；睡着时沿用既有睡眠描述。洗澡与使用中的画面隐藏人物。已连接办公室任务即可使用。</p>
     <a class="text-action" href="index.html">返回主页</a>
   </section>
 </main>
 <script src="cloud-sync.js?v=20261023-bridge1"></script>
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script src="cbi-office-lines.js?v=20261027-auto1"></script>
-<script src="claude-connection.js?v=20261027-auto1"></script>
+<script src="cbi-home-lines.js?v=20261028-home1"></script>
+<script src="claude-connection.js?v=20261028-home1"></script>
 </body>
 </html>

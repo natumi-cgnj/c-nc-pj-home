@@ -60,7 +60,7 @@ function createHarness(options = {}) {
     querySelector: selector => scenes[/="(.*?)"/.exec(selector)[1]] || null
   };
   const context = vm.createContext({
-    Date: ClockDate, CustomEvent, document, localStorage, addEventListener,
+    Date: ClockDate, CustomEvent, document, localStorage, addEventListener, rememberHomeModuleReturn() {},
     dispatchEvent: event => dispatch(event.type, event),
     setInterval: callback => intervals.push(callback),
     location: { href: 'index.html' },

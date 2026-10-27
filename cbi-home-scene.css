@@ -1,0 +1,7 @@
+.cbi-home-canvas{display:none;position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}
+body[data-world-id="cbi"][data-world-location="home"] .apt-wrap.cbi-home-ready .cbi-home-canvas{display:block}
+body[data-world-id="cbi"][data-world-location="home"] .apt-wrap.cbi-home-ready .cbi-home-scene{visibility:hidden}
+body[data-world-id="cbi"][data-world-location="home"] .apt-wrap.cbi-home-ready #char-jane{visibility:hidden!important;pointer-events:none!important}
+.cbi-home-activity-target{display:none;position:absolute;z-index:16;min-width:44px;min-height:44px;padding:0;border:0;border-radius:5px;background:transparent;touch-action:manipulation;cursor:pointer;pointer-events:auto;-webkit-tap-highlight-color:transparent}
+body[data-world-id="cbi"][data-world-location="home"] .apt-wrap.cbi-home-ready .cbi-home-activity-target:not([hidden]){display:block}
+.cbi-home-activity-target:focus-visible{outline:1px solid rgba(91,166,107,.5);outline-offset:1px}
