@@ -2,10 +2,10 @@
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Story">
-<title>Story</title>
+<meta name="apple-mobile-web-app-title" content="World Files">
+<title>World Files · Liminal Space</title>
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="apple-touch-icon.png">
 <style>
@@ -98,16 +98,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .reward-box .reward-text{font-size:13px;color:#5BA66B;margin-bottom:16px}
 .reward-box button{padding:10px 32px;border:1px solid #e0e0e0;border-radius:10px;background:#fff;font-size:13px;cursor:pointer;font-family:inherit}
 </style>
+<link rel="stylesheet" href="world-files.css?v=20261028-files1">
+<script src="world-files.js?v=20261028-files1" defer></script>
 </head>
-<body>
+<body class="world-files-page world-files-liminal" data-files-world="liminal">
 
 <div class="top-bar">
   <a class="back" id="backBtn" href="index.html?p=5">&larr; Home</a>
-  <h1 id="pageTitle">STORY</h1>
+  <h1 id="pageTitle">WORLD FILES</h1>
   <div></div>
 </div>
 
-<div id="mainContent"></div>
+<main class="world-files-content">
+  <div data-world-files-switcher></div>
+  <div id="mainContent"></div>
+</main>
 
 <div class="dialogue-screen" id="diaScreen" onclick="nextLine()">
   <div class="dia-header">
@@ -135,6 +140,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   </div>
 </div>
 
+<script src="world-context.js?v=20260913-cbi-room-label1"></script>
 <script src="cloud-sync.js?v=20260914-home-badge1"></script>
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script>
@@ -407,7 +413,7 @@ function updateBack(){
   const title=document.getElementById('pageTitle');
   if(currentView==='chapters'){
     btn.href='index.html';btn.onclick=null;
-    title.textContent='STORY';
+    title.textContent='WORLD FILES';
   }else if(currentView==='episodes'){
     btn.href='#';btn.onclick=(e)=>{e.preventDefault();currentView='chapters';render();};
     title.textContent=selectedChapter?selectedChapter.num:'STORY';

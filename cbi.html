@@ -2,63 +2,31 @@
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="CBI Files">
-<title>CBI Files</title>
+<meta name="apple-mobile-web-app-title" content="World Files">
+<title>World Files · CBI</title>
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="favicon.ico">
-<style>
-html{scrollbar-gutter:stable}
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-:root{--ink:#343434;--muted:#aaa;--line:#e9e5dc;--paper:#fffdf8;--folder:#c6a763;--folder-soft:#f6f0e2;--danger:#a95f5f}
-body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;background:#FAFAFA;color:var(--ink);min-height:100vh;min-height:100dvh}
-button,input,textarea,select{font:inherit}
-button{cursor:pointer}
-.top-bar{height:58px;display:grid;grid-template-columns:82px minmax(0,1fr) 82px;align-items:center;padding:0 16px;padding-top:env(safe-area-inset-top,0);border-bottom:1px solid #eee;background:rgba(255,255,255,.94);position:sticky;top:0;z-index:40;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
-.top-action{border:0;background:none;color:#aaa;font-size:12px;padding:8px 2px;text-align:left}.top-action.right{text-align:right}.top-action:active{color:#555}
-.top-title{text-align:center;min-width:0}.top-title strong{display:block;font-size:11px;letter-spacing:1.7px;text-transform:uppercase;color:#777;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.top-title span{display:block;font-size:8px;color:#c2b79c;letter-spacing:1px;margin-top:2px}
-.view{display:none}.view.active{display:block}
-.content{width:min(760px,100%);margin:0 auto;padding:20px 18px 70px}
-.masthead{text-align:center;padding:15px 0 20px}.masthead h1{font-size:17px;font-weight:600;letter-spacing:2.6px;text-transform:uppercase;color:#565656}.masthead p{font-size:9px;letter-spacing:1.2px;color:#c0b28f;margin-top:5px}
-.eyebrow{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:#b3a175;margin-bottom:7px}
-.current-card{width:100%;border:1px solid #e4dcc9;border-radius:13px;background:linear-gradient(135deg,#fffdf9,#faf6ec);padding:18px;text-align:left;box-shadow:0 5px 18px rgba(74,61,34,.045);min-height:132px;position:relative;overflow:hidden}
-.current-card::after{content:'';position:absolute;right:-20px;bottom:-28px;width:100px;height:100px;border:1px solid rgba(167,137,75,.12);border-radius:50%}.current-card:active{background:#f8f2e5}
-.case-code{font-size:10px;font-weight:700;letter-spacing:1.1px;color:#ad8f50}.case-title{font-size:18px;font-weight:600;color:#333;margin:8px 0 5px;line-height:1.35}.case-summary{font-size:11px;color:#888;line-height:1.65;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.case-meta{font-size:9px;color:#bbb;margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}.current-progress{height:5px;border-radius:4px;background:#eee7d9;overflow:hidden;margin-top:12px}.current-progress span{display:block;height:100%;border-radius:4px;background:#b79958}
-.empty-current{display:flex;flex-direction:column;justify-content:center;min-height:94px}.empty-current .case-title{color:#aaa;letter-spacing:1px;font-size:15px}.empty-current .case-summary{color:#ccc}
-.quick-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px}.quick-card{border:1px solid #eee9df;border-radius:11px;background:#fff;padding:15px 9px;text-align:center;color:#777;min-width:0}.quick-card:active{background:#faf7ef}.quick-icon{font-size:16px;color:#b69a5c;margin-bottom:7px}.quick-name{font-size:10px;font-weight:600;letter-spacing:.5px}.quick-count{font-size:8px;color:#ccc;margin-top:3px}
-.section-head{display:flex;align-items:center;justify-content:space-between;margin:22px 2px 9px}.section-title{font-size:10px;font-weight:600;color:#999;letter-spacing:1.1px;text-transform:uppercase}.small-btn{border:1px solid #e5dfd2;background:#fff;color:#a68c55;border-radius:7px;font-size:10px;padding:6px 10px}.small-btn:active{background:#f8f3e8}
-.list{display:flex;flex-direction:column;gap:7px}.row-card{width:100%;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;border:1px solid #eee;background:#fff;border-radius:10px;padding:13px 14px;text-align:left}.row-card:active{background:#fafafa}.row-main{min-width:0}.row-title{font-size:13px;font-weight:600;color:#444;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.row-sub{font-size:10px;color:#aaa;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.row-side{font-size:9px;color:#c2aa72;text-align:right;white-space:nowrap}.board-section{margin-top:20px}.board-section:first-child{margin-top:0}.board-label{font-size:9px;color:#aaa;letter-spacing:1.1px;text-transform:uppercase;margin:0 2px 8px}.board-label span{color:#c2aa72;margin-left:5px}.row-card.focused{border-color:#dfcfa8;background:#fffdf7}.row-card.closed{opacity:.72}
-.empty-list{border:1px dashed #ddd6c8;border-radius:11px;padding:34px 16px;text-align:center;color:#c3b9a3;font-size:11px;line-height:1.7;background:rgba(255,253,248,.5)}
-.view-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:6px 0 16px}.view-heading h2{font-size:18px;font-weight:600;letter-spacing:.4px}.view-heading p{font-size:10px;color:#bbb;margin-top:4px}.add-btn{border:0;border-radius:9px;background:#3d3d3d;color:#fff;padding:9px 13px;font-size:11px;white-space:nowrap}.add-btn:active{opacity:.75}
-.detail-sheet{background:var(--paper);border:1px solid #e8e0d0;border-radius:14px;padding:20px;box-shadow:0 6px 24px rgba(60,50,30,.035)}
-.detail-code{font-size:10px;color:#aa8b4d;font-weight:700;letter-spacing:1.2px}.detail-title{font-size:23px;line-height:1.35;margin:7px 0 9px}.detail-meta{display:flex;flex-wrap:wrap;gap:6px;font-size:9px;color:#999}.pill{padding:3px 7px;background:#f3efe7;border-radius:5px}.detail-section{padding-top:17px;margin-top:17px;border-top:1px solid #ece6da}.detail-section h3{font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:#b19a67;margin-bottom:7px}.detail-section p{font-size:12px;line-height:1.85;color:#5f5f5f;white-space:pre-wrap;overflow-wrap:anywhere}.detail-section .muted{color:#c2bbae}.tag-list{display:flex;gap:5px;flex-wrap:wrap}.tag{font-size:10px;padding:4px 8px;border-radius:6px;background:#f2eee6;color:#777}
-.detail-actions{display:flex;gap:8px;margin-top:20px}.detail-actions button{flex:1;border-radius:9px;padding:10px;border:1px solid #e2dbcd;background:#fff;color:#777;font-size:11px}.detail-actions .danger{color:var(--danger);border-color:#ecd5d5}
-.case-progress-panel{padding-top:17px;margin-top:17px;border-top:1px solid #ece6da}.case-progress-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.case-progress-title{font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:#b19a67}.case-progress-focus{font-size:8px;padding:3px 7px;border-radius:5px;background:#f5eedf;color:#9a7733}.case-progress-track{height:7px;border-radius:5px;background:#eee9df;overflow:hidden;margin-top:10px}.case-progress-fill{height:100%;border-radius:5px;background:#b79958}.case-progress-meta{display:flex;justify-content:space-between;font-size:9px;color:#aaa;margin-top:5px}.case-scene{display:flex;align-items:flex-start;gap:9px;padding:9px 0;border-bottom:1px solid #f0ece4}.case-scene:last-child{border-bottom:0}.case-scene-avatar{width:30px;height:30px;border-radius:50%;background:#eee;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:10px;color:#777;flex:0 0 auto}.case-scene-avatar img{width:100%;height:100%;object-fit:cover;object-position:top}.case-scene-main{flex:1;min-width:0}.case-scene-name{font-size:10px;font-weight:600;color:#666}.case-scene-line{font-size:11px;line-height:1.65;color:#777;margin-top:2px}.case-scene-delta{font-size:9px;color:#ad8f50;white-space:nowrap}.case-progress-controls{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:11px}.case-progress-action{display:block;width:100%;border:1px solid #d8c38f;background:#fffaf0;color:#866a30;border-radius:9px;padding:10px;font-size:11px;text-align:center;text-decoration:none}.case-progress-action.primary{background:#343434;color:#fff;border-color:#343434}.case-progress-action:disabled{background:#f2f2f2;color:#bbb;border-color:#e8e8e8;cursor:default}.case-progress-note{font-size:10px;color:#aaa;line-height:1.6;margin-top:9px}
-.timeline-toolbar{display:flex;gap:7px;flex-wrap:wrap;margin:-5px 0 16px}.timeline-toolbar button{border:1px solid #e5dfd2;background:#fff;color:#927744;border-radius:8px;padding:8px 11px;font-size:10px}.timeline-toolbar button.primary{background:#3d3d3d;border-color:#3d3d3d;color:#fff}.timeline{position:relative;padding-left:18px}.timeline::before{content:'';position:absolute;left:5px;top:5px;bottom:5px;width:1px;background:#e4dac3}.timeline-year{position:relative;margin:19px 0 8px;color:#b5a27a;font-family:Georgia,"Times New Roman",serif;font-size:15px;letter-spacing:1px}.timeline-year:first-child{margin-top:0}.timeline-year::before{content:'';position:absolute;width:9px;height:9px;border-radius:50%;background:#FAFAFA;border:2px solid #b79958;left:-18px;top:4px}.timeline-item{position:relative;background:#fff;border:1px solid #eee8db;border-radius:11px;padding:14px;margin-bottom:9px;box-shadow:0 4px 14px rgba(66,55,32,.025)}.timeline-item::before{content:'';position:absolute;width:7px;height:7px;border-radius:50%;background:#b79958;left:-17px;top:18px;box-shadow:0 0 0 4px #FAFAFA}.timeline-item.case::before{background:#657481}.timeline-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.timeline-code{font-size:9px;color:#ab8c4d;font-weight:700;letter-spacing:.7px}.timeline-type{display:inline-block;padding:3px 6px;border-radius:5px;background:#f4efe4;color:#a1844d;margin-right:6px}.timeline-item.case .timeline-type{background:#edf0f2;color:#657481}.timeline-title{font-size:14px;font-weight:600;color:#454545;line-height:1.45;margin-top:8px}.timeline-status{font-size:11px;color:#707070;line-height:1.75;margin-top:6px;white-space:pre-wrap}.timeline-continuity{margin-top:9px;padding:8px 10px;border-left:2px solid #d6c291;background:#fcfaf5;color:#887b61;font-size:10px;line-height:1.7;white-space:pre-wrap}.timeline-people{display:flex;gap:5px;flex-wrap:wrap;margin-top:9px}.timeline-person{font-size:9px;padding:3px 6px;border-radius:5px;background:#f5f5f5;color:#999}.timeline-actions{display:flex;justify-content:flex-end;gap:6px;margin-top:10px}.timeline-actions button{border:1px solid #e7e1d5;background:#fff;color:#8f7a54;border-radius:7px;padding:6px 9px;font-size:9px}.timeline-actions button.danger{color:var(--danger);border-color:#ecd5d5}
-.modal-bg{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.3);display:none;align-items:flex-end;justify-content:center;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}.modal-bg.show{display:flex}
-.modal{width:min(580px,100%);max-height:90dvh;overflow:auto;background:#fff;border-radius:18px 18px 0 0;padding:20px 18px calc(22px + env(safe-area-inset-bottom,0));box-shadow:0 -12px 50px rgba(0,0,0,.12)}
-.modal h2{font-size:15px;margin-bottom:14px}.field{margin-top:12px}.field label{display:block;font-size:9px;font-weight:600;color:#aaa;letter-spacing:.6px;margin:0 0 5px 2px}.field input,.field textarea,.field select{width:100%;border:1px solid #e7e3db;border-radius:8px;background:#fafafa;color:#333;padding:10px 11px;font-size:12px;outline:none}.field input:focus,.field textarea:focus,.field select:focus{border-color:#cdb986;background:#fff}.field textarea{min-height:76px;resize:vertical;line-height:1.6}.field textarea.long{min-height:150px}
-.field-row{display:grid;grid-template-columns:1fr 1fr;gap:9px}.modal-actions{display:flex;gap:8px;margin-top:18px}.modal-actions button{flex:1;border:0;border-radius:9px;padding:11px;font-size:12px}.btn-cancel{background:#f1f1f1;color:#888}.btn-save{background:#383838;color:#fff}
-.confirm-bg{position:fixed;inset:0;z-index:130;background:rgba(0,0,0,.3);display:none;align-items:center;justify-content:center;padding:20px}.confirm-bg.show{display:flex}.confirm{width:min(320px,100%);background:#fff;border-radius:14px;padding:22px;text-align:center}.confirm p{font-size:13px;line-height:1.7;color:#555}.confirm-actions{display:flex;gap:8px;margin-top:17px}.confirm-actions button{flex:1;border:0;border-radius:8px;padding:10px;font-size:11px}.confirm-actions .yes{background:var(--danger);color:#fff}
-.toast{position:fixed;bottom:18%;left:50%;transform:translate(-50%,10px);z-index:160;background:rgba(35,35,35,.9);color:#fff;border-radius:9px;padding:10px 18px;font-size:11px;opacity:0;pointer-events:none;transition:.25s;white-space:nowrap}.toast.show{opacity:1;transform:translate(-50%,0)}
-@media(min-width:700px){.content{padding-top:28px}.modal-bg{align-items:center;padding:24px}.modal{border-radius:16px;max-height:86dvh}.quick-grid{gap:12px}.quick-card{padding:18px}.current-card{padding:22px}.detail-sheet{padding:26px}}
-</style>
+<link rel="stylesheet" href="cbi-files.css?v=20261028-files1">
+<link rel="stylesheet" href="world-files.css?v=20261028-files1">
+<script src="world-files.js?v=20261028-files1" defer></script>
 </head>
-<body>
+<body class="world-files-page world-files-cbi" data-files-world="cbi">
 <header class="top-bar">
   <button class="top-action" id="backAction" type="button" onclick="handleBack()">← Home</button>
-  <div class="top-title"><strong id="topTitle">CBI · Sacramento</strong><span>California Bureau of Investigation</span></div>
+  <div class="top-title"><strong id="topTitle">WORLD FILES</strong><span>California Bureau of Investigation</span></div>
   <button class="top-action right" id="topRight" type="button"></button>
 </header>
 
 <main>
   <section class="view active" id="viewHome"><div class="content">
+    <div data-world-files-switcher></div>
     <div class="masthead"><h1>CBI · Sacramento</h1><p>CALIFORNIA BUREAU OF INVESTIGATION</p></div>
-    <details class="detail-section" id="cbiCurrentCanon" style="margin:0 0 22px;padding:12px 0;border-bottom:1px solid #ece6da">
-      <summary style="font-size:12px;color:#8c7853;cursor:pointer">当前设定 · META／2006二周目</summary>
-      <div id="cbiCanonBody" style="font-size:12px;line-height:1.85;color:#666;padding-top:9px"></div>
+    <details class="canon-summary" id="cbiCurrentCanon">
+      <summary>当前设定 · META／2006二周目</summary>
+      <div id="cbiCanonBody"></div>
     </details>
     <div class="eyebrow">Current Case</div>
     <button class="current-card" id="currentCaseCard" type="button"></button>
@@ -175,7 +143,7 @@ function persist(message){
 }
 
 function setTop(title,rightLabel,rightAction){
-  document.getElementById('topTitle').textContent=title||'CBI · Sacramento';
+  document.getElementById('topTitle').textContent=title||'WORLD FILES';
   var right=document.getElementById('topRight');
   right.textContent=rightLabel||'';
   right.onclick=rightAction||null;
@@ -188,7 +156,7 @@ function showView(viewId,options){
   document.querySelectorAll('.view').forEach(function(view){view.classList.toggle('active',view.id===viewId);});
   currentView=viewId;
   document.getElementById('backAction').textContent=viewId==='viewHome'?'← Home':'← 返回';
-  if(viewId==='viewHome')setTop('CBI · Sacramento');
+  if(viewId==='viewHome')setTop('WORLD FILES');
   if(viewId==='viewCases')setTop('CASE BOARD','＋',openCaseEditor);
   if(viewId==='viewPersonnel')setTop('PERSONNEL','＋',openPersonEditor);
   if(viewId==='viewTimeline')setTop('TIMELINE','＋',openTimelineEditor);
