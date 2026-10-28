@@ -26,7 +26,7 @@
   ];
   var state = {
     frame: null, assets: null, loading: null, failedAt: 0, paintedKey: '',
-    rawCanvas: null, roomMask: null, drawCount: 0, error: ''
+    rawCanvas: null, roomMask: null, drawCount: 0, error: '', windowPending: {}, windowRetry: {}
   };
 
   function normalizeSlot(slot) {
@@ -104,6 +104,7 @@
   }
 
   function isOfficeActive() {
+    if (global.__HOME_SCENE_BOOTING) return false;
     var context = global.WorldContext;
     if (context && typeof context.getActiveWorldId === 'function' &&
         typeof context.getActiveLocationId === 'function') {
@@ -181,25 +182,35 @@
         state.roomMask = makeRoomMask(manifest.width, manifest.height);
         state.assets = { manifest: manifest, base: images[0], people: {}, windows: {} };
         IDS.forEach(function (id, index) { state.assets.people[id] = images[index + 1]; });
-        // Window crops are optional enhancements; they cannot blank the scene.
-        ['day', 'evening', 'night'].forEach(function (slot) {
-          loadImage('window-' + slot + '.png').then(function (image) {
-            state.assets.windows[slot] = image;
-            if (state.frame && state.frame.slot === slot) {
-              state.paintedKey = '';
-              paint();
-            }
-          }).catch(function () {});
-        });
         return state.assets;
       });
     }).catch(function (error) {
       state.failedAt = Date.now();
       state.error = error.message;
       state.loading = null;
+      fallback();
       throw error;
     });
     return state.loading;
+  }
+
+  function fallback() {
+    if (!state.paintedKey && isOfficeActive() && global.CBISceneLighting && global.CBISceneLighting.showFallback) {
+      global.CBISceneLighting.showFallback('office', state.frame ? state.frame.slot : getTimeSlot());
+    }
+  }
+  function ensureWindow(slot) {
+    if (slot === 'morning' || state.assets.windows[slot]) return Promise.resolve();
+    if (state.windowPending[slot]) return state.windowPending[slot];
+    if (state.windowRetry[slot] && Date.now() < state.windowRetry[slot]) return Promise.resolve();
+    state.windowPending[slot] = loadImage('window-' + slot + '.png').then(function (image) {
+      state.assets.windows[slot] = image;
+      if (state.frame && state.frame.slot === slot) paint();
+    }).catch(function (error) {
+      state.windowRetry[slot] = Date.now() + 30000;
+      if (state.frame && state.frame.slot === slot) { state.error = error.message; fallback(); }
+    }).finally(function () { delete state.windowPending[slot]; });
+    return state.windowPending[slot];
   }
 
   function paintWindow(ctx, frame, assets) {
@@ -269,6 +280,7 @@
     if (!room || !canvas || state.paintedKey === state.frame.key) return false;
     var assets = state.assets;
     var frame = state.frame;
+    if (frame.slot !== 'morning' && !assets.windows[frame.slot]) return false;
     var manifest = assets.manifest;
     var raw = state.rawCanvas.getContext('2d', { willReadFrequently: true });
     raw.clearRect(0, 0, manifest.width, manifest.height);
@@ -287,13 +299,15 @@
     paintWindow(ctx, frame, assets);
     paintNightScreens(ctx, frame);
     state.paintedKey = frame.key;
-    state.drawCount++;
+    state.drawCount++; state.error = '';
     canvas.dataset.timeSlot = frame.slot;
     canvas.dataset.presenceMask = String(frame.mask);
     canvas.hidden = false;
     room.dataset.officeTimeSlot = frame.slot;
     room.dataset.officePresenceMask = String(frame.mask);
     room.classList.add('cbi-modules-ready');
+    var wrap = global.document.getElementById('cbiOfficeWrap') || room;
+    wrap.dataset.sceneState = 'ready'; wrap.setAttribute('aria-busy', 'false');
     syncActorTargets(frame);
     return true;
   }
@@ -302,8 +316,9 @@
     var slot = typeof nowOrSlot === 'string' ? nowOrSlot : getTimeSlot(nowOrSlot);
     state.frame = getFrame(roster, slot);
     if (!global.document || !isOfficeActive()) return state.frame;
-    if (state.assets) paint();
-    else ensureAssets().then(paint).catch(function () {});
+    var prepare = function () { ensureWindow(state.frame.slot); paint(); };
+    if (state.assets) prepare();
+    else ensureAssets().then(prepare).catch(function () {});
     return state.frame;
   }
 
@@ -337,7 +352,7 @@
     global.document.addEventListener('visibilitychange', function () {
       if (global.document.visibilityState === 'visible') refresh();
     });
-    ['pageshow', 'omniverse:worldchange', 'omniverse:locationchange', 'liminal-cloud-ready'].forEach(function (event) {
+    ['home-scene-entry-ready', 'pageshow', 'omniverse:worldchange', 'omniverse:locationchange', 'liminal-cloud-ready'].forEach(function (event) {
       global.addEventListener(event, function () { refresh(); });
     });
     global.addEventListener('storage', function (event) {

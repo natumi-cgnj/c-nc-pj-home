@@ -10,4 +10,6 @@ CBIOfficeScene.updateRoster 使用已有 CharacterRuntime.getCbiPresenceRoster�
 
 场景仅在人物组合或时段变化时重绘。返回页面、重新显示、切换世界/地点与云端恢复都会读取现有状态。素材未加载成功时保留原场景；模块就绪后，旧站立图仅作透明点击区域，原有对话与空工位状态入口继续工作。
 
+首次进入先由 `home-scene-entry.js` 等待存档与现有地点阶段确定，再加载当前场景。办公室只请求当前时段的窗景，底图、人物模块及该窗景齐全后一次显示完整画布；正常合成时不再同时请求旧整张底图。首次合成失败才加载并显示当前时段的旧图，之后已有完整画面时继续保留该画面。详细入口与备用图规则见 `cbi-home-scenes.md` 的 Complete first frame。
+
 相关检查：node --test tests/cbi-office-scene.test.js。另已对素材执行全员在场重建、槽位外像素不变及 32 种组合独立性验证。

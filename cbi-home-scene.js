@@ -20,10 +20,11 @@
   const LAMP_GLOW_GAIN = [.65,.35,.04], LAMP_GLOW_LIFT = [15,7,0];
   const LAMP_SHADE_GAIN = [.4,.23,-.08], LAMP_SHADE_LIFT = [18,6,-5];
   const state = { rules: null, assets: null, loading: null, frame: null, drawn: '', images: {},
-    pending: {}, retry: {}, raw: null, mask: null, error: '', drawCount: 0, failedAt: 0 };
+    pending: {}, retry: {}, windowPending: {}, windowRetry: {}, raw: null, mask: null, error: '', drawCount: 0, failedAt: 0 };
   const content = import('./cbi-home-content.mjs?v=20261028-dialogue1').then(rules => { state.rules = rules; return rules; });
   content.catch(() => {});
   function active() {
+    if (global.__HOME_SCENE_BOOTING) return false;
     const context = global.WorldContext;
     if (context) return context.getActiveWorldId() === 'cbi' && context.getActiveLocationId('cbi') === 'home';
     const body = global.document?.body;
@@ -121,15 +122,26 @@
       state.raw = global.document.createElement('canvas'); state.raw.width = 1672; state.raw.height = 941;
       state.mask = makeMask(); state.error = '';
       state.assets = { manifest, base, windows: {} };
-      for (const slot of ['day', 'evening', 'night']) {
-        Promise.all((manifest.windows[slot] || []).map(box => loadImage(box.src))).then(images => {
-          state.assets.windows[slot] = images;
-          if (state.frame?.slot === slot) { state.drawn = ''; paint(); }
-        }).catch(() => {});
-      }
       return state.assets;
-    }).catch(error => { state.error = error.message; state.failedAt = Date.now(); state.loading = null; throw error; });
+    }).catch(error => { failFrame(error); state.failedAt = Date.now(); state.loading = null; throw error; });
     return state.loading;
+  }
+  function failFrame(error) {
+    state.error = error.message;
+    if (!state.drawn && active()) global.CBISceneLighting?.showFallback?.('home', state.frame?.slot || slotAt());
+  }
+  function windowsReady(slot) {
+    return !(state.assets.manifest.windows[slot] || []).length || !!state.assets.windows[slot];
+  }
+  function ensureWindows(slot) {
+    if (windowsReady(slot)) return Promise.resolve();
+    if (state.windowPending[slot]) return state.windowPending[slot];
+    if (state.windowRetry[slot] && Date.now() < state.windowRetry[slot]) return Promise.resolve();
+    state.windowPending[slot] = Promise.all(state.assets.manifest.windows[slot].map(box => loadImage(box.src)))
+      .then(images => { state.assets.windows[slot] = images; if (state.frame?.slot === slot) paint(); })
+      .catch(error => { state.windowRetry[slot] = Date.now() + 30000; if (state.frame?.slot === slot) failFrame(error); })
+      .finally(() => { delete state.windowPending[slot]; });
+    return state.windowPending[slot];
   }
   function ensureActivity(id) {
     if (!id || state.images[id]) return Promise.resolve();
@@ -139,8 +151,8 @@
       const image = await loadImage(box.src);
       if (image.naturalWidth !== box.width || image.naturalHeight !== box.height) throw new Error('Home patch differs');
       return image;
-    })).then(images => { state.images[id] = images; state.error = ''; state.drawn = ''; paint(); })
-      .catch(error => { state.error = error.message; state.retry[id] = Date.now() + 30000; })
+    })).then(images => { state.images[id] = images; paint(); })
+      .catch(error => { state.retry[id] = Date.now() + 30000; if (state.frame?.activity === id) failFrame(error); })
       .finally(() => { delete state.pending[id]; });
     return state.pending[id];
   }
@@ -180,6 +192,7 @@
     const canvas = global.document.getElementById('cbiHomeCanvas'), wrap = global.document.getElementById('aptWrap');
     if (!canvas || !wrap) return false;
     const frame = state.frame, loaded = !frame.activity || !!state.images[frame.activity];
+    if (!loaded || !windowsReady(frame.slot)) return false;
     const key = frame.key + ':' + frame.slot + ':' + loaded;
     syncTarget(frame, loaded);
     if (state.drawn === key) return false;
@@ -193,10 +206,11 @@
     if (frame.slot === 'night' && loaded && ['living_tv', 'living_read'].includes(frame.activity)) {
       ctx.save(); trace(ctx, [[1380,222],[1436,307],[1435,384],[1378,301]]); ctx.clip(); ctx.drawImage(state.raw, 0, 0); ctx.restore();
     }
-    state.drawn = key; state.drawCount++;
+    state.drawn = key; state.drawCount++; state.error = '';
     canvas.hidden = false; canvas.dataset.homeActivity = loaded ? frame.activity || '' : '';
     canvas.dataset.timeSlot = frame.slot; wrap.classList.add('cbi-home-ready');
     canvas.dataset.homeLamps = lampRooms(frame, frame.slot).join(' ');
+    wrap.dataset.sceneState = 'ready'; wrap.setAttribute('aria-busy', 'false');
     wrap.dataset.homeSpace = frame.space || ''; wrap.dataset.homeMode = frame.mode;
     return true;
   }
@@ -211,7 +225,7 @@
       global.document.getElementById('bubble-jane')?.classList.remove('show');
     }
     state.frame = frame;
-    const next = () => { paint(); return ensureActivity(state.frame.activity); };
+    const next = () => { ensureWindows(state.frame.slot); ensureActivity(state.frame.activity); paint(); };
     if (state.assets) next(); else ensureAssets().then(next).catch(() => {});
     return state.frame;
   }
@@ -226,7 +240,7 @@
     global.document.addEventListener('DOMContentLoaded', () => refresh(), { once: true });
     global.document.addEventListener('visibilitychange', () => { if (!global.document.hidden) resume(); });
     global.addEventListener('pageshow', resume);
-    ['omniverse:worldchange', 'omniverse:locationchange', 'liminal-cloud-ready', 'cbi-home-lines-change'].forEach(name => global.addEventListener(name, () => refresh()));
+    ['home-scene-entry-ready', 'omniverse:worldchange', 'omniverse:locationchange', 'liminal-cloud-ready', 'cbi-home-lines-change'].forEach(name => global.addEventListener(name, () => refresh()));
     global.addEventListener('storage', event => { if (event.key === null || event.key === 'omniverse_world_context' || String(event.key).startsWith('schedule_')) refresh(); });
     global.setInterval(() => { if (!global.document.hidden) refresh(); }, 10000);
   }

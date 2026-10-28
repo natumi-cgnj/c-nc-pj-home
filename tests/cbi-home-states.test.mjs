@@ -209,7 +209,7 @@ test('night sleep lights only the actual sleeping room and leaves the other lamp
   assert.deepEqual(scene.lampRooms({ mode: 'away', activity: null }, 'night'), []);
 });
 
-async function setup() {
+async function setup(options = {}) {
   let user = 'owner', world = 'cbi', location = 'home', presence = { location: 'home', sleeping: false };
   let clock = Date.parse('2026-10-28T10:00:00+09:00'), waiting = true, latest = { id: 'home-batch', pack }, failRead = false;
   const calls = [], listeners = {}, timers = new Map(); let serial = 0;
@@ -217,7 +217,7 @@ async function setup() {
   class CustomEvent { constructor(type) { this.type = type; } }
   const document = { hidden: false, body: { dataset: {} }, addEventListener: (name, fn) => { listeners[name] = fn; } };
   Object.defineProperties(document.body.dataset, { worldId: { get: () => world }, worldLocation: { get: () => location } });
-  const window = { document, addEventListener: (name, fn) => { listeners[name] = fn; }, dispatchEvent: event => listeners[event.type]?.(),
+  const window = { document, __HOME_SCENE_BOOTING: options.booting === true, addEventListener: (name, fn) => { listeners[name] = fn; }, dispatchEvent: event => listeners[event.type]?.(),
     CharacterRuntime: { getCbiCharacterPresence: () => presence },
     CloudSync: { get user() { return { id: user }; }, whenReady: async () => {}, invokeFunction: async (_, body) => {
       calls.push(body);
@@ -240,6 +240,15 @@ test('automatic home content reads saved batches between generation periods and 
   await h.tick(60000); assert.equal(h.calls.length, count + 1); assert.equal(h.calls.at(-1).action, 'home_lines');
   await h.tick(3600000); assert.equal(h.calls.length, count + 2); assert.equal(h.calls.at(-1).action, 'home_auto');
   h.setUser('another-owner'); assert.equal(h.window.CBIHomeLines.getBatch(), null);
+});
+
+test('home generation waits for entry and starts immediately once the saved location is settled', async () => {
+  const h = await setup({ booting: true });
+  assert.equal(h.calls.length, 0);
+  h.window.__HOME_SCENE_BOOTING = false;
+  await h.listeners['home-scene-entry-ready']();
+  assert.equal(h.calls.length, 1);
+  assert.equal(h.calls[0].action, 'home_auto');
 });
 
 test('an already-open device installs another device’s batch without starting an extra cloud generation', async () => {

@@ -14,7 +14,7 @@
     return global.document.body.dataset.worldId === 'cbi' && global.document.body.dataset.worldLocation === 'home';
   }
   function canGenerate() {
-    if (!atHome() || global.document.hidden) return false;
+    if (global.__HOME_SCENE_BOOTING || !atHome() || global.document.hidden) return false;
     const presence = global.CharacterRuntime?.getCbiCharacterPresence?.('jane', new Date());
     return presence?.location === 'home' && !presence.sleeping;
   }
@@ -39,6 +39,7 @@
     return batch;
   }
   async function refresh(options = {}) {
+    if (global.__HOME_SCENE_BOOTING) return null;
     if (pending) return pending;
     if (!global.CloudSync) return null;
     pending = (async () => {
@@ -64,5 +65,5 @@
   if (global.CloudSync) global.CloudSync.whenReady().then(refresh).catch(() => {});
   global.addEventListener('pageshow', refresh);
   global.document.addEventListener('visibilitychange', () => { if (!global.document.hidden) refresh(); else schedule(); });
-  ['omniverse:worldchange', 'omniverse:locationchange', 'liminal-cloud-ready'].forEach(name => global.addEventListener(name, refresh));
+  ['home-scene-entry-ready', 'omniverse:worldchange', 'omniverse:locationchange', 'liminal-cloud-ready'].forEach(name => global.addEventListener(name, refresh));
 })(window);

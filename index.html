@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="Home">
 <meta name="mobile-web-app-capable" content="yes">
 <title>Home</title>
+<script src="home-scene-entry.js?v=20261029-entry1"></script>
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="apple-touch-icon.png">
 <link rel="icon" href="favicon.ico">
@@ -15,6 +16,8 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;background:#FAFAFA;color:#1a1a1a;height:100dvh;overflow:hidden;margin:0;padding:0}
+.home-scene-booting #worldHeader,.home-scene-booting #cgBanner,.home-scene-booting #aptWrap,.home-scene-booting #cbiOfficeWrap{visibility:hidden}
+body[data-world-id="cbi"] [data-scene-state="pending"]{visibility:hidden}
 /* ── Horizontal pager (mobile) ── */
 .home-pager{display:flex;width:100vw;height:100dvh;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .home-pager::-webkit-scrollbar{display:none}
@@ -797,7 +800,7 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
   </div>
 </div>
 
-<div class="apt-wrap" id="aptWrap">
+<div class="apt-wrap" id="aptWrap" data-scene-state="pending">
   <img class="cbi-home-scene" data-cbi-scene="home" width="1672" height="941" alt="Boss 家：左上卧室、左下卫生间，右侧客厅与厨房" draggable="false" decoding="async">
   <canvas class="cbi-home-canvas" id="cbiHomeCanvas" width="1672" height="941" aria-hidden="true" hidden></canvas>
   <button class="cbi-home-activity-target" id="cbiHomeActivityTarget" type="button" onclick="onCbiHomeActivityTap(event)" aria-label="查看 Jane 的居家状态" hidden></button>
@@ -917,7 +920,7 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
   </div>
 </div>
 
-<div class="cbi-office-wrap" id="cbiOfficeWrap" hidden>
+<div class="cbi-office-wrap" id="cbiOfficeWrap" data-scene-state="pending" hidden>
   <button class="cbi-location-trigger cbi-scene-switch" type="button" onclick="toggleCbiLocation(event)" aria-label="当前在办公室，切换到家" title="切换到家">Office ⇄</button>
   <div class="room-box cbi-office" id="roomCbiOffice" data-room-id="cbi" data-character-id="jane">
     <div class="room-inner">
@@ -1151,11 +1154,11 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script src="character-runtime.js?v=20261028-rest1"></script>
 <script src="cbi-weather.js?v=20260903-cbi-weather2"></script>
-<script src="cbi-office-scene.js?v=20261027-seated1"></script>
-<script src="cbi-office-lines.js?v=20261028-stories1"></script>
-<script src="cbi-home-lines.js?v=20261028-dialogue1"></script>
-<script src="cbi-home-scene.js?v=20261029-window2"></script>
-<script src="cbi-scene-lighting.js?v=20261029-lamps1"></script>
+<script src="cbi-office-scene.js?v=20261029-entry1"></script>
+<script src="cbi-office-lines.js?v=20261029-entry1"></script>
+<script src="cbi-home-lines.js?v=20261029-entry1"></script>
+<script src="cbi-home-scene.js?v=20261029-entry1"></script>
+<script src="cbi-scene-lighting.js?v=20261029-entry1"></script>
 <script src="cbi-data.js?v=20260929-room-storage1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
@@ -2056,6 +2059,7 @@ function setCGImageSource(image,src){
   image.setAttribute('src',src||'');
 }
 function initCG(){
+  if(window.__HOME_SCENE_BOOTING)return;
   const current=getCurrentCG(new Date());
   currentCGPeriodKey=current.periodKey;
   const banner=document.getElementById('cgBanner');
@@ -4316,7 +4320,9 @@ if(typeof ResizeObserver==='function'){
 }else{
   window.addEventListener('resize',realignCbiHomeJane);
 }
-if(window.CloudSync&&typeof CloudSync.whenReady==='function'){
+if(window.HomeSceneEntry){
+  HomeSceneEntry.start();
+}else if(window.CloudSync&&typeof CloudSync.whenReady==='function'){
   CloudSync.whenReady().then(function(){startCbiAutoLocation();applyWorldView();}).catch(function(){startCbiAutoLocation();});
 }else{
   startCbiAutoLocation();

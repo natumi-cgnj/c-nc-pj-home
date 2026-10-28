@@ -44,7 +44,7 @@ function createHarness(options = {}) {
         if (name === 'src') { this.complete = false; this.requests.push(value); }
       },
       removeAttribute(name) { this[name] = null; },
-      load() { this.complete = true; this.naturalWidth = 1672; },
+      load() { this.complete = true; this.naturalWidth = 1672; this.onload?.(); },
       fail() { this.complete = true; this.naturalWidth = 0; }
     };
   }
@@ -70,9 +70,11 @@ function createHarness(options = {}) {
     dispatchEvent: event => dispatch(event.type, event),
     setInterval: callback => intervals.push(callback),
     location: { href: 'index.html' },
-    Image: class { constructor() { throw new Error('Map loads must belong to the displayed image'); } }
+    Image: class { constructor() { throw new Error('Map loads must belong to the displayed image'); } },
+    __HOME_SCENE_BOOTING: options.booting === true
   });
   context.window = context;
+  if (options.renderer) context[locationId === 'home' ? 'CBIHomeScene' : 'CBIOfficeScene'] = options.renderer;
   vm.runInContext(worldContextSource, context);
   vm.runInContext(source, context);
   vm.runInContext(index.match(/function getCGSlot\(now\)\{[\s\S]*?\n\}/)[0], context);
@@ -250,4 +252,35 @@ test('CBI maps and CGs choose Japan night on devices in different time zones', (
     ], { cwd: process.cwd(), env: { ...process.env, TZ: zone }, encoding: 'utf8' });
     assert.equal(result, 'night', zone);
   }
+});
+
+test('healthy compositors own startup without downloading a competing full background', () => {
+  for (const location of ['home', 'office']) {
+    const calls = [];
+    const h = createHarness({ location, renderer: { setTime: slot => calls.push(slot), getState: () => ({ error: '', drawn: '' }) } });
+    assert.deepEqual(calls, ['night']);
+    assert.equal(h.scenes[location].src, null);
+    assert.deepEqual(h.scenes[location].requests, []);
+  }
+});
+
+test('entry does not select a stored old scene until the saved context and shift are ready', () => {
+  const calls = [];
+  const h = createHarness({ booting: true, renderer: { setTime: slot => calls.push(slot), getState: () => ({ error: '' }) } });
+  assert.deepEqual(calls, []); assert.equal(h.scenes.home.src, null);
+  h.context.__HOME_SCENE_BOOTING = false; h.dispatch('home-scene-entry-ready');
+  assert.deepEqual(calls, ['night']); assert.equal(h.scenes.home.src, null);
+});
+
+test('a failed first composition reveals only a loaded current fallback, and a late fallback cannot replace a finished canvas', () => {
+  let error = '';
+  const h = createHarness({ renderer: { setTime() {}, getState: () => ({ error, drawn: '' }) } });
+  const wrap = { dataset: { sceneState: 'pending' }, setAttribute(name,value) { this[name] = value; } };
+  h.document.getElementById = () => wrap;
+  error = 'module unavailable'; h.api.update('home', 'night');
+  assert.equal(wrap.dataset.sceneState, 'pending');
+  assert.equal(h.scenes.home.src, h.api.getSceneSource('home', 'night'));
+  h.scenes.home.load(); assert.equal(wrap.dataset.sceneState, 'fallback');
+  h.api.update('home', 'morning'); wrap.dataset.sceneState = 'ready';
+  h.scenes.home.load(); assert.equal(wrap.dataset.sceneState, 'ready');
 });

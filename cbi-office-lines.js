@@ -14,7 +14,7 @@
     return global.document.body.dataset.worldId === 'cbi' && global.document.body.dataset.worldLocation === 'office';
   }
   function canGenerate() {
-    if (!atOffice() || global.document.hidden) return false;
+    if (global.__HOME_SCENE_BOOTING || !atOffice() || global.document.hidden) return false;
     const runtime = global.CharacterRuntime;
     if (!runtime) return false;
     const now = new Date();
@@ -40,6 +40,7 @@
     return batch;
   }
   async function refresh() {
+    if (global.__HOME_SCENE_BOOTING) return null;
     if (pending) return pending;
     if (!global.CloudSync) return null;
     pending = (async () => {
@@ -68,6 +69,7 @@
     getBatch: () => { sameOwner(); return batch; } };
   if (global.CloudSync) global.CloudSync.whenReady().then(refresh).catch(() => {});
   global.addEventListener('pageshow', refresh);
+  global.addEventListener('home-scene-entry-ready', refresh);
   global.document.addEventListener('visibilitychange', () => { if (!global.document.hidden) refresh(); else schedule(); });
   global.addEventListener('omniverse:worldchange', refresh);
   global.addEventListener('omniverse:locationchange', refresh);

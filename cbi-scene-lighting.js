@@ -24,9 +24,19 @@
   }
 
   function update(locationId, slot, retryPending) {
+    if (global.__HOME_SCENE_BOOTING) return;
     if (SLOTS.indexOf(slot) < 0) slot = 'morning';
-    if (locationId === 'office' && global.CBIOfficeScene) global.CBIOfficeScene.setTime(slot);
-    if (locationId === 'home' && global.CBIHomeScene) global.CBIHomeScene.setTime(slot);
+    var renderer = locationId === 'office' ? global.CBIOfficeScene : locationId === 'home' ? global.CBIHomeScene : null;
+    if (renderer) {
+      renderer.setTime(slot);
+      var state = renderer.getState ? renderer.getState() : null;
+      // The compositor owns the first visible frame; do not download/show a competing full map.
+      if (!state || !state.error || state.drawn) return;
+    }
+    showFallback(locationId, slot, retryPending);
+  }
+
+  function showFallback(locationId, slot, retryPending) {
     var source = getSceneSource(locationId, slot);
     if (!source || !global.document) return;
     var image = global.document.querySelector('[data-cbi-scene="' + locationId + '"]');
@@ -35,6 +45,14 @@
     var failed = image.complete && image.naturalWidth === 0;
     var interrupted = retryPending && !image.complete;
     image.dataset.timeSlot = slot;
+    var wrap = global.document.getElementById && global.document.getElementById(locationId === 'home' ? 'aptWrap' : 'cbiOfficeWrap');
+    var reveal = function () {
+      if (image.getAttribute('src') === source && wrap && wrap.dataset.sceneState !== 'ready') {
+        wrap.dataset.sceneState = 'fallback'; wrap.setAttribute('aria-busy', 'false');
+      }
+    };
+    image.onload = reveal;
+    if (image.complete && image.naturalWidth > 0 && sameSource) reveal();
     if (sameSource && !failed && !interrupted) return;
     // The displayed image owns its request. Navigation cannot strand a separate
     // preloader or let an old load callback put a daylight frame back on screen.
@@ -43,7 +61,7 @@
   }
 
   function refresh(now, retryPending) {
-    if (!global.document) return;
+    if (!global.document || global.__HOME_SCENE_BOOTING) return;
     var locations = [];
     var body = global.document.body;
     var context = global.WorldContext;
@@ -57,7 +75,7 @@
     });
   }
 
-  var api = { getSceneSource: getSceneSource, getTimeSlot: getTimeSlot, update: update, refresh: refresh };
+  var api = { getSceneSource: getSceneSource, getTimeSlot: getTimeSlot, update: update, refresh: refresh, showFallback: showFallback };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   global.CBISceneLighting = api;
 
@@ -70,7 +88,7 @@
       if (global.document.visibilityState === 'visible') refresh(null, true);
     });
     global.addEventListener('pageshow', function () { refresh(null, true); });
-    ['omniverse:worldchange', 'omniverse:locationchange', 'liminal-cloud-ready'].forEach(function (event) {
+    ['home-scene-entry-ready', 'omniverse:worldchange', 'omniverse:locationchange', 'liminal-cloud-ready'].forEach(function (event) {
       global.addEventListener(event, function () { refresh(); });
     });
     global.addEventListener('storage', function (event) {

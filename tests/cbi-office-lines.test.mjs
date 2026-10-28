@@ -27,7 +27,7 @@ async function setup(options = {}) {
   };
   const document = { body: { dataset: {} }, hidden: false, getElementById: el, addEventListener: (name, fn) => { listeners[name] = fn; } };
   Object.defineProperties(document.body.dataset, { worldId: { get: () => world }, worldLocation: { get: () => location } });
-  const window = { document, addEventListener: (name, fn) => { listeners[name] = fn; },
+  const window = { document, __HOME_SCENE_BOOTING: options.booting === true, addEventListener: (name, fn) => { listeners[name] = fn; },
     CharacterRuntime: { getCbiCharacterPresence: id => ({ location: allAway || id === away ? 'away' : 'office' }) },
     CloudSync: { get user() { return { id: user }; }, whenReady: () => Promise.resolve(),
       invokeFunction: async (_, body) => { calls.push(body); return options.invoke ? options.invoke(body, clock) : { data: { office_batch: result, auto: { pending: false, next_refresh_at: officePeriod(clock).nextAt } } }; } } };
@@ -68,6 +68,15 @@ test('office lines stay out of home, other worlds, absent characters and another
   h.setWorld('cbi'); h.setAway('jane'); assert.equal(api.getPool('jane').length, 0);
   h.setAway(''); h.setUser('different-owner'); assert.equal(api.getPool('jane').length, 0);
   h.setResult(null); await api.refresh(); assert.equal(api.getBatch(), null);
+});
+
+test('office generation waits for entry and starts immediately after its location is settled', async () => {
+  const h = await setup({ booting: true });
+  assert.equal(h.calls.length, 0);
+  h.window.__HOME_SCENE_BOOTING = false;
+  await h.listeners['home-scene-entry-ready']();
+  assert.equal(h.calls.length, 1);
+  assert.equal(h.calls[0].action, 'office_auto');
 });
 
 test('a pre-continuity batch stays in history but current clicks use familiar built-in lines', async () => {
