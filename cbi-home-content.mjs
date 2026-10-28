@@ -190,7 +190,9 @@ export function selectHomeFrame(presence, now = Date.now(), pack = null) {
     (line.topic || 'daily') === context.topic);
   const fallback = context.topic === 'case' ? HOME_CASE_STATES[context.activity].fallback : state.fallback;
   const lines = (pool.length ? pool : [{ m: fallback }]).map(line => ({ s: homeStateLabel(context.activity, context.topic), m: line.m }));
-  return { ...context, mode: state.private ? 'private' : 'awake', lines };
+  // One shared utterance for this activity session. Device-local clicks must not reroll it.
+  const line = lines[Math.floor(unit(context.key + ':' + context.topic + ':dialogue') * lines.length)];
+  return { ...context, mode: state.private ? 'private' : 'awake', lines, line };
 }
 
 export function homeGenerationPrompt(slot = '') {

@@ -56,6 +56,34 @@ test('awake activity and dialogue share the same space, stay stable on refresh, 
   assert.equal(selectHomeFrame({ location: 'away' }, now, pack).activity, null);
 });
 
+test('independent devices and repeated clicks share one utterance for the same activity and batch', () => {
+  const pool = structuredClone(pack);
+  for (const [space, ids] of Object.entries(HOME_SPACES)) {
+    pool.spaces[space] = ids.flatMap(activity => [
+      ...['daily', ...(HOME_CASE_STATES[activity] ? ['case'] : [])].flatMap(topic =>
+        ['一', '二'].map(n => ({ activity, m: activity + '的第' + n + '句话。', ...(topic === 'case' ? { topic } : {}) })))
+    ]);
+  }
+  validateHomeBatch(pool);
+  let different = false, previous = '';
+  for (let day = 1; day <= 30; day++) {
+    const homeStartAt = new Date(2026, 9, day, 7).getTime();
+    const presence = { location: 'home', restDay: true, homeStartAt };
+    for (let at = homeStartAt; at < homeStartAt + 15 * 3600000;) {
+      const desktop = selectHomeFrame(presence, at, pool);
+      const phone = selectHomeFrame(structuredClone(presence), at + 1000, structuredClone(pool));
+      assert.deepEqual(desktop.line, phone.line);
+      assert.ok(desktop.lines.some(line => line.m === desktop.line.m));
+      assert.deepEqual(selectHomeFrame(presence, desktop.nextAt - 1, pool).line, desktop.line);
+      const selected = desktop.line.m.match(/第(.)句/)[1];
+      if (previous && selected !== previous) different = true;
+      previous = selected;
+      at = desktop.nextAt;
+    }
+  }
+  assert.equal(different, true, 'new activity sessions still draw varied utterances');
+});
+
 test('awake sessions respect weighted duration bands, cooldowns, midnight and dialogue-independent timing', () => {
   const seen = new Set(), longBands = [0, 0, 0];
   let longCount = 0;
@@ -155,7 +183,7 @@ test('lighting changes room and person consistently while leaving exterior white
 
 async function setup() {
   let user = 'owner', world = 'cbi', location = 'home', presence = { location: 'home', sleeping: false };
-  let clock = Date.parse('2026-10-28T10:00:00+09:00'), waiting = true;
+  let clock = Date.parse('2026-10-28T10:00:00+09:00'), waiting = true, latest = { id: 'home-batch', pack }, failRead = false;
   const calls = [], listeners = {}, timers = new Map(); let serial = 0;
   class ClockDate extends Date { constructor(...args) { super(...(args.length ? args : [clock])); } static now() { return clock; } }
   class CustomEvent { constructor(type) { this.type = type; } }
@@ -164,23 +192,43 @@ async function setup() {
   const window = { document, addEventListener: (name, fn) => { listeners[name] = fn; }, dispatchEvent: event => listeners[event.type]?.(),
     CharacterRuntime: { getCbiCharacterPresence: () => presence },
     CloudSync: { get user() { return { id: user }; }, whenReady: async () => {}, invokeFunction: async (_, body) => {
-      calls.push(body); return { data: { home_batch: { id: 'home-batch', pack }, auto: { pending: waiting, next_refresh_at: homePeriod(clock).nextAt } } };
+      calls.push(body);
+      if (failRead && body.action === 'home_lines') return { error: new Error('offline') };
+      return { data: { home_batch: latest, auto: { pending: waiting, next_refresh_at: homePeriod(clock).nextAt } } };
     } } };
   const context = vm.createContext({ window, document, Date: ClockDate, CustomEvent,
     setTimeout: (fn, ms) => { const id = ++serial; timers.set(id, { fn, due: clock + ms }); return id; }, clearTimeout: id => timers.delete(id) });
   vm.runInContext(source, context, { filename: fileURLToPath(new URL('cbi-home-lines.js', root)), importModuleDynamically: vm.constants.USE_MAIN_CONTEXT_DEFAULT_LOADER });
   await window.CBIHomeLines.ready; await window.CBIHomeLines.refresh(); await settle();
   return { window, context, calls, listeners, document, setUser: x => { user = x; }, setWorld: x => { world = x; }, setLocation: x => { location = x; }, setPresence: x => { presence = x; }, setWaiting: x => { waiting = x; },
+    setBatch: value => { latest = value; }, setReadFailure: value => { failRead = value; },
     async tick(ms) { clock += ms; for (const [id,t] of [...timers]) if (t.due <= clock) { timers.delete(id); t.fn(); } await settle(); await settle(); } };
 }
 
-test('automatic home content polls only pending runs, reuses the period and clears on account change', async () => {
+test('automatic home content reads saved batches between generation periods and clears on account change', async () => {
   const h = await setup();
   assert.equal(h.calls[0].action, 'home_auto'); assert.equal(h.window.CBIHomeLines.getBatch().id, 'home-batch');
   h.setWaiting(false); await h.tick(4000); const count = h.calls.length;
-  await h.tick(60000); assert.equal(h.calls.length, count);
-  await h.tick(3600000); assert.equal(h.calls.length, count + 1);
+  await h.tick(60000); assert.equal(h.calls.length, count + 1); assert.equal(h.calls.at(-1).action, 'home_lines');
+  await h.tick(3600000); assert.equal(h.calls.length, count + 2); assert.equal(h.calls.at(-1).action, 'home_auto');
   h.setUser('another-owner'); assert.equal(h.window.CBIHomeLines.getBatch(), null);
+});
+
+test('an already-open device installs another device’s batch without starting an extra cloud generation', async () => {
+  const h = await setup(); h.setWaiting(false); await h.tick(4000);
+  const starts = h.calls.filter(call => call.action === 'home_auto').length;
+  const next = structuredClone(pack); next.spaces.living[0].m = '这是另一端已取得的新台词。';
+  h.setBatch({ id: 'new-shared-batch', pack: next });
+  await h.tick(60000);
+  assert.equal(h.window.CBIHomeLines.getBatch().id, 'new-shared-batch');
+  assert.equal(h.window.CBIHomeLines.getBatch().pack.spaces.living[0].m, '这是另一端已取得的新台词。');
+  assert.equal(h.calls.at(-1).action, 'home_lines');
+  assert.equal(h.calls.filter(call => call.action === 'home_auto').length, starts);
+  h.setReadFailure(true); await h.tick(60000);
+  assert.equal(h.window.CBIHomeLines.getBatch().id, 'new-shared-batch');
+  h.setReadFailure(false); await h.tick(60000);
+  assert.equal(h.calls.at(-1).action, 'home_lines', 'a failed read must not move the generation deadline');
+  assert.equal(h.calls.filter(call => call.action === 'home_auto').length, starts);
 });
 
 test('sleeping, absent, hidden and other-location pages do not launch home model work', async () => {
@@ -198,9 +246,9 @@ test('clicks display the selected image state and matching text without a cloud 
   const h = await setup(), elements = new Map(), wrap = { appendChild() {} };
   const el = id => { if (!elements.has(id)) elements.set(id, { hidden: false, textContent: '', parentElement: wrap, style: {}, classList: { add() {}, remove() {} } }); return elements.get(id); };
   h.document.getElementById = el;
-  Object.assign(h.context, { CBIHomeScene: { current: () => ({ activity: 'kitchen_kettle', mode: 'awake', lines: [{ s: HOME_STATES.kitchen_kettle.label, m: '水快好了。' }] }) },
+  Object.assign(h.context, { CBIHomeScene: { current: () => ({ activity: 'kitchen_kettle', mode: 'awake', line: { s: HOME_STATES.kitchen_kettle.label, m: '水快好了。' }, lines: [{ s: HOME_STATES.kitchen_kettle.label, m: '另一句未选中的台词。' }, { s: HOME_STATES.kitchen_kettle.label, m: '水快好了。' }] }) },
     getActiveWorldId: () => 'cbi', getActiveLocationId: () => 'home', getActiveMapWrap: () => wrap,
-    pickCbiLine: lines => lines[0], positionBubbleAtCharacter() {}, bubbleTimers: {}, bubbleZCounter: 0 });
+    pickCbiLine: () => { throw new Error('home clicks must not reroll dialogue'); }, positionBubbleAtCharacter() {}, bubbleTimers: {}, bubbleZCounter: 0 });
   h.window.CBIHomeScene = h.context.CBIHomeScene;
   vm.runInContext(html.match(/function showCbiHomeActivityBubble\([^]*?\n\}/)[0], h.context);
   const count = h.calls.length;

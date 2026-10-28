@@ -11,7 +11,7 @@
     [27,657],[179,116],[180,102]];
   const state = { rules: null, assets: null, loading: null, frame: null, drawn: '', images: {},
     pending: {}, retry: {}, raw: null, mask: null, error: '', drawCount: 0, failedAt: 0 };
-  const content = import('./cbi-home-content.mjs?v=20261028-meta1').then(rules => { state.rules = rules; return rules; });
+  const content = import('./cbi-home-content.mjs?v=20261028-dialogue1').then(rules => { state.rules = rules; return rules; });
   content.catch(() => {});
   function active() {
     const context = global.WorldContext;
@@ -162,7 +162,7 @@
     const presence = global.CharacterRuntime.getCbiCharacterPresence('jane', now);
     const pack = global.CBIHomeLines?.getBatch()?.pack || null;
     const frame = { ...state.rules.selectHomeFrame(presence, now.getTime(), pack), slot: slot || slotAt(now) };
-    if (state.frame && (state.frame.key !== frame.key || state.frame.activity !== frame.activity || state.frame.mode !== frame.mode)) {
+    if (state.frame && (state.frame.key !== frame.key || state.frame.activity !== frame.activity || state.frame.mode !== frame.mode || state.frame.line?.m !== frame.line?.m)) {
       global.document.getElementById('bubble-jane')?.classList.remove('show');
     }
     state.frame = frame;
