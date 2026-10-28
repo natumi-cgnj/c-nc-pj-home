@@ -78,7 +78,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <div class="confirm-title">确认恢复数据？</div><div class="confirm-msg" id="confirmMsg"></div>
 <div class="confirm-btns"><button class="cbtn-cancel" onclick="hideConfirm()">取消</button><button class="cbtn-danger" onclick="runConfirmedRestore()">覆盖恢复</button></div>
 </div></div>
-<script src="cloud-sync.js?v=20261023-body1"></script>
+<script src="cloud-sync.js?v=20261028-stories1"></script>
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
@@ -113,6 +113,7 @@ const SYS=[
 {key:'bean_st',name:'\u8C46\u53F6',color:'#8B6914',desc:d=>{if(!d)return'-';return'\u8C46'+(d.coffee||0)+' \u53F6'+(d.tea||0);}},
 {key:'habit_db',name:'\u4E60\u60EF',color:'#5A7247',desc:d=>{if(!d)return'-';return(d.habits||[]).length+'\u4E2A';}},
 {key:'story_db',name:'\u5267\u60C5',color:'#9C6ADE',desc:d=>{if(!d)return'-';return(d.completedEps||[]).length+'\u6BB5';}},
+{key:'jane_world_files_v1',name:'Jane世界档案',color:'#A09177',desc:d=>{if(!d)return'-';return Object.keys(d.worlds||{}).length+'个世界 '+Object.values(d.worlds||{}).reduce((n,w)=>n+(w.entries||[]).filter(e=>!e.deleted).length,0)+'段剧情';}},
 {key:'cbi_db',name:'CBI\u6848\u5377',color:'#B49A61',desc:d=>{if(!d)return'-';return(d.cases||[]).length+'\u4EFD\u6848\u5B97 '+(d.personnel||[]).length+'\u4EFD\u4EBA\u7269\u6863\u6848';}},
 {key:'cbi_contact_db',name:'CBI\u72B6\u6001\u4E0E\u804A\u5929\u5165\u53E3',color:'#A88E54',desc:d=>{if(!d)return'-';return(d.statusHistory||[]).length+'\u6761\u72B6\u6001 '+Object.values(d.chatLinks||{}).filter(Boolean).length+'\u4E2A\u4F1A\u8BDD\u5165\u53E3';}},
 {key:'bjd_db3',name:'BJD',color:'#6B8AFF',desc:d=>{if(!d)return'-';return(d.entries||[]).length+'\u6761';}},

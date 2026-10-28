@@ -1,6 +1,6 @@
 # Claude subscription connection trial
 
-The authenticated C-NC page has a fixed connectivity test and office-dialogue generation. Opening a visible CBI office with at least one member present automatically prepares the current period's short status (`s`) and direct dialogue (`m`), using only the repository's static AU reference. It does not send existing ledger, body, character, or conversation records. Character clicks use saved content and never start a Claude run.
+The authenticated C-NC page has a fixed connectivity test and office-dialogue generation. Opening a visible CBI office with at least one member present automatically prepares the current period's short status (`s`) and direct dialogue (`m`), using the current account's saved Sacramento story context plus repository fallbacks. User-authorized world canon and opted-in story entries are supplied in the per-run prompt. Only the CBI story columns (historical personnel, timeline and case narrative) supplement Sacramento; ledger, body, runtime and conversation records are excluded. Character clicks use saved content and never start a Claude run.
 
 ## Office dialogue
 
@@ -54,3 +54,16 @@ Official references:
 - https://code.claude.com/docs/en/routines
 
 Current dialogue also includes `continuity: "meta-2006-ten-years-v1"`. Both prompts embed the same current META/2006 relationship context, including ten shared years; `cbi-data.js` early biographies remain historical. Old structured batches can be read as history but are filtered out of active clicks. Automatic deduplication includes continuity, allowing one corrective batch within an existing period while preserving the active-run guard and rate limit. Include `cbi-current-canon.mjs` with both content modules in each function deployment. The existing saved task still works because the per-run prompt specifies this context and format.
+
+
+## Editable world archives
+
+WORLD FILES now opens `world-files.html`. The five stable IDs match the diet/ledger stages: `meta`, `sacramento`, `palace`, `fox`, and `heist`. Display titles follow existing stage titles. This archive selection is independent of the homepage's `liminal`/`cbi` scene selection; the Liminal chapter save is retained separately. The Claude connection shortcut moved from DIET into WORLD FILES.
+
+`jane_world_files_v1` uses the existing account-scoped `user_state` sync and history protection. Editors save canon and story entries, including an explicit include-in-generation flag and reversible removal. `CloudSync.syncKey` flushes only the requested page-owned key, propagates write failures, and retains the existing compare-and-swap protection. Save confirmation checks `archive_revision` from the authenticated bridge; a temporarily unsynced auxiliary CBI history must not falsely invalidate the world archive's successful save.
+
+The bridge reads saved records server-side by the authenticated user, selects one world, and hashes a canonical snapshot. `canon_revision` binds new batches to that snapshot. `story_context` reports archive/context revisions without returning story bodies; `world_lines` reads the latest validated world batch; `world_generate` explicitly starts a new vignette; `world_auto` prepares one batch per visible world's existing Japan-time period. Empty new worlds skip generation. Existing configured workers retain the `office-lines` channel with per-request `content_type: world-lines`; no task reconfiguration is required.
+
+Office and home prompts include saved Sacramento context and its revision. A revised archive may trigger one replacement within the same period; old results remain in history and are marked stale for active display. The automatic request namespace contains account, world/type, period and context revision. A pending run's `result` stores a small `c-nc-generation-context` binding (type/world/revision only), hidden by `publicRun` until completion. Callback verification rejects a different result type, world, or revision before installation. Completed results overwrite the pending binding. No schema change or client grant is added.
+
+Diet and ledger world views display their own saved vignette, alongside existing static ledger tasks. Visible pages prepare batches; hidden views do not start model work. WORLD FILES can generate explicitly, and a generated vignette becomes canonical only when the user saves it into the story archive. The global one-active-run guard, three-starts-per-fifteen-minutes limit, callback expiry and original office/home image and timing constraints remain in force.

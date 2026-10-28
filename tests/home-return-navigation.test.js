@@ -237,7 +237,7 @@ test('a cached main Home entry also restores a module hint before a browser pops
   assert.equal(home.storage.has('liminal_module_home_return_v1'), false);
 });
 
-for (const [open, module] of [['openWorldFiles', '/story.html'], ['openSuitcase', '/suitcase.html']]) {
+for (const [open, module] of [['openWorldFiles', '/world-files.html'], ['openSuitcase', '/suitcase.html']]) {
   test(`the room ${open} button also records main Home as its return destination`, () => {
     const home = fixture({ url: 'https://example.test/index.html?p=4&world=cbi' });
     const start = index.indexOf('function openWorldFiles(){');

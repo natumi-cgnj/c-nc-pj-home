@@ -196,7 +196,7 @@ test('world and CBI data participate in cloud sync and full backup', () => {
     assert.match(cloud, new RegExp(`'${key}'`));
     assert.match(backup, new RegExp(`key:'${key}'`));
   }
-  assert.match(cloud, /'cbi\.html': \['cbi_db', 'wallet_db',[^\]]*'omniverse_world_context'\]/);
+  assert.match(cloud, /'cbi\.html': \['jane_world_files_v1', 'cbi_db', 'wallet_db',[^\]]*'omniverse_world_context'\]/);
   assert.match(cloud, /'home_custom_shortcuts'/);
   assert.match(cloud, /'index\.html': \[[^\]]*'home_custom_shortcuts'/);
   assert.match(backup, /key:'home_custom_shortcuts'/);
@@ -365,7 +365,7 @@ test('recent liminal outing costs live in the outing tab rather than treasury', 
 test('desktop CBI splits the archive row between world files and suitcase', () => {
   assert.match(index, /id="worldFilesBlock"/);
   assert.match(index, /class="db-label">WORLD FILES</);
-  assert.match(index, /WorldContext\.getRoute\('story','story\.html'\)/);
+  assert.match(index, /var href='world-files\.html'/);
   assert.match(index, /\.db-world-files\{grid-column:1\/-1/);
   assert.match(index, /id="suitcaseBlock" onclick="openSuitcase\(\)"/);
   assert.match(index, /body\[data-world-id="cbi"\] \.db-world-files\{grid-column:auto\}/);

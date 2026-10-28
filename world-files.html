@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>World Files · Jane</title>
+<link rel="icon" href="favicon.ico">
+<link rel="stylesheet" href="cbi-files.css?v=20261028-stories1">
+<link rel="stylesheet" href="world-files.css?v=20261028-files1">
+<link rel="stylesheet" href="world-story.css?v=20261028-stories1">
+</head>
+<body class="world-files-page">
+<header class="top-bar">
+  <a class="top-action" href="index.html">← Home</a>
+  <div class="top-title"><strong>WORLD FILES</strong></div>
+  <a class="top-action right" href="claude.html">Claude 连接</a>
+</header>
+<main class="world-files-content">
+  <details class="files-world-picker" id="storyWorldPicker">
+    <summary class="files-world-summary"><span class="files-world-current"><span class="files-world-eyebrow">JANE'S WORLDLINES</span><span class="files-world-name" id="storyWorldName">正在读取</span></span><span class="files-world-toggle">切换世界 ⌄</span></summary>
+    <div class="files-world-options" id="storyWorldOptions" role="group" aria-label="选择剧情世界"></div>
+  </details>
+  <div class="story-heading"><h1 id="storyHeading">世界档案</h1><p id="storySubtitle">各自的故事，各自的记忆。</p></div>
+  <a class="story-cbi-link" id="storyCbiLink" href="cbi.html" hidden>CBI 案宗 · 人物 · 时间轴 ↗</a>
+  <nav class="story-tabs" aria-label="世界档案栏目">
+    <button type="button" data-story-tab="canon" aria-pressed="true">世界设定</button>
+    <button type="button" data-story-tab="entries" aria-pressed="false">剧情档案</button>
+    <button type="button" data-story-tab="moment" aria-pressed="false">日常片段</button>
+  </nav>
+  <p class="story-notice" id="storyNotice" role="status" aria-live="polite">正在读取已保存的世界档案。</p>
+  <section id="storyCanonPanel">
+    <div class="story-section-head"><span>CONTINUITY</span><button type="button" class="story-text-button" id="editStoryCanon" disabled>编辑设定</button></div>
+    <p class="story-hint">保存后的本世界设定与选中的剧情，会作为 Claude 生成状态和台词的依据。</p>
+    <div id="storyCanonRead"></div>
+    <form id="storyCanonForm" hidden>
+      <div id="storyCanonFields"></div>
+      <div class="story-form-actions"><button type="button" id="cancelStoryCanon">取消</button><button class="primary" type="submit">保存并同步</button></div>
+    </form>
+  </section>
+  <section id="storyEntriesPanel" hidden>
+    <div class="story-section-head"><span>STORY ARCHIVE</span><button type="button" class="story-text-button" id="addStoryEntry" disabled>＋ 补一段剧情</button></div>
+    <p class="story-hint">只收已经确认的经历。每段可以单独选择是否用于生成。</p>
+    <div id="storyEntries"></div>
+    <details class="story-trash" id="storyTrash" hidden><summary>已移除的记录</summary><div id="storyTrashList"></div></details>
+  </section>
+  <section id="storyMomentPanel" hidden>
+    <div class="story-section-head"><span>DAILY MOMENT</span><button type="button" class="story-text-button" id="generateStoryMoment" disabled>生成一段日常</button></div>
+    <p class="story-hint">生成片段单独保存；收进剧情档案并保存后，才成为后续的剧情依据。</p>
+    <p class="story-notice" id="storyGenerationNotice" role="status" aria-live="polite"></p>
+    <article class="story-moment" id="storyMoment"></article>
+    <button class="story-text-button" id="archiveStoryMoment" type="button" hidden>收进剧情档案 ↗</button>
+  </section>
+</main>
+<div class="modal-bg" id="storyEntryModal" role="dialog" aria-modal="true" aria-labelledby="storyEntryHeading">
+  <form class="modal" id="storyEntryForm">
+    <h2 id="storyEntryHeading">补一段剧情</h2>
+    <div class="field"><label for="storyEntryTitle">标题</label><input id="storyEntryTitle" maxlength="120" required autocomplete="off"></div>
+    <div class="field"><label for="storyEntryWhen">发生时间／章节（选填）</label><input id="storyEntryWhen" maxlength="100" placeholder="原世界某年／回到2006之后"></div>
+    <div class="field"><label for="storyEntryBody">发生了什么</label><textarea id="storyEntryBody" class="long" maxlength="50000" required></textarea></div>
+    <label class="story-include"><input id="storyEntryInclude" type="checkbox" checked> 用于后续状态与台词生成</label>
+    <p class="story-notice" id="storyEntryNotice" role="status"></p>
+    <div class="story-form-actions"><button type="button" id="removeStoryEntry" class="danger" hidden>移除</button><button type="button" id="cancelStoryEntry">取消</button><button class="primary" type="submit">保存并同步</button></div>
+  </form>
+</div>
+<script src="world-context.js?v=20260913-cbi-room-label1"></script>
+<script src="cloud-sync.js?v=20261028-stories1"></script>
+<script src="app-back.js?v=20261010-home-return2"></script>
+<script type="module" src="world-files-app.mjs?v=20261028-stories1"></script>
+</body>
+</html>

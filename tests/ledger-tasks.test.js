@@ -426,7 +426,7 @@ test('task storage stays separate from money and the UI always scopes actions by
   const backup = fs.readFileSync('backup.html', 'utf8');
   const ui = fs.readFileSync('ledger-tasks.js', 'utf8');
   assert.match(cloud, /const STATE_KEYS = \[[\s\S]*?'ledger_world_tasks_v1'/);
-  assert.match(cloud, /'ledger.html': \['wallet_accounts_v1', 'ledger_world_tasks_v1', 'ledger_world_tasks_v2', 'omniverse_world_context'\]/);
+  assert.match(cloud, /'ledger.html': \['jane_world_files_v1', 'wallet_accounts_v1', 'ledger_world_tasks_v1', 'ledger_world_tasks_v2', 'omniverse_world_context'\]/);
   assert.match(backup, /key:'ledger_world_tasks_v1'/);
   assert.match(backup, /key:'ledger_world_tasks_v2'/);
   assert.equal(model.storageKey, 'ledger_world_tasks_v2');

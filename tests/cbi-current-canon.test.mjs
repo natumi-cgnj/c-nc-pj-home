@@ -36,5 +36,5 @@ test('current continuity is visible alongside preserved historical personnel, wi
   assert.match(html,/原世界早期状态/);
   assert.match(html,/cbi-canon-view\.mjs/);
   const view=fs.readFileSync(new URL('../cbi-canon-view.mjs',import.meta.url),'utf8');
-  assert.doesNotMatch(view,/localStorage|CBIData\.save|invokeFunction/);
+  assert.doesNotMatch(view,/localStorage\.setItem|localStorage\.removeItem|CBIData\.save|invokeFunction/);
 });

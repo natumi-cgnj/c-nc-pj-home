@@ -11,11 +11,12 @@
 <link rel="icon" href="favicon.ico">
 <link rel="stylesheet" href="cbi-files.css?v=20261028-files1">
 <link rel="stylesheet" href="world-files.css?v=20261028-files1">
-<script src="world-files.js?v=20261028-files1" defer></script>
+<link rel="stylesheet" href="world-story.css?v=20261028-stories1">
+<script src="world-files.js?v=20261028-stories1" defer></script>
 </head>
 <body class="world-files-page world-files-cbi" data-files-world="cbi">
 <header class="top-bar">
-  <button class="top-action" id="backAction" type="button" onclick="handleBack()">← Home</button>
+  <button class="top-action" id="backAction" type="button" onclick="handleBack()">← World Files</button>
   <div class="top-title"><strong id="topTitle">WORLD FILES</strong><span>California Bureau of Investigation</span></div>
   <button class="top-action right" id="topRight" type="button"></button>
 </header>
@@ -26,6 +27,7 @@
     <div class="masthead"><h1>CBI · Sacramento</h1><p>CALIFORNIA BUREAU OF INVESTIGATION</p></div>
     <details class="canon-summary" id="cbiCurrentCanon">
       <summary>当前设定 · META／2006二周目</summary>
+      <a class="story-text-button" href="world-files.html?world=sacramento">编辑世界设定 ↗</a>
       <div id="cbiCanonBody"></div>
     </details>
     <div class="eyebrow">Current Case</div>
@@ -110,7 +112,7 @@
 <div class="toast" id="toast"></div>
 
 <script src="world-context.js?v=20260913-cbi-room-label1"></script>
-<script src="cloud-sync.js?v=20260914-home-badge1"></script>
+<script src="cloud-sync.js?v=20261028-stories1"></script>
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script src="cbi-data.js?v=20260927-checkin-categories1"></script>
 <script src="character-runtime.js?v=20261028-rest1"></script>
@@ -155,7 +157,7 @@ function showView(viewId,options){
   if(!options.replace)viewStack.push(currentView);
   document.querySelectorAll('.view').forEach(function(view){view.classList.toggle('active',view.id===viewId);});
   currentView=viewId;
-  document.getElementById('backAction').textContent=viewId==='viewHome'?'← Home':'← 返回';
+  document.getElementById('backAction').textContent=viewId==='viewHome'?'← World Files':'← 返回';
   if(viewId==='viewHome')setTop('WORLD FILES');
   if(viewId==='viewCases')setTop('CASE BOARD','＋',openCaseEditor);
   if(viewId==='viewPersonnel')setTop('PERSONNEL','＋',openPersonEditor);
@@ -166,7 +168,7 @@ function showView(viewId,options){
 }
 
 function handleBack(){
-  if(currentView==='viewHome'){location.href='index.html?p=5';return;}
+  if(currentView==='viewHome'){location.href='world-files.html?world=sacramento';return;}
   var previous=viewStack.pop()||'viewHome';
   showView(previous,{replace:true,force:true});
 }
@@ -313,7 +315,8 @@ function renderPersonDetail(){
   var item=db.personnel.find(function(entry){return entry.id===detailPersonId;});
   if(!item){handleBack();return;}
   document.getElementById('personDetail').innerHTML='<div class="detail-code">PERSONNEL FILE</div><h1 class="detail-title">'+esc(item.name||'未命名人物')+'</h1><div class="detail-meta"><span class="pill">'+esc((window.CBICurrentCanon&&window.CBICurrentCanon.roles[item.id])||item.role||'身份未填写')+'</span></div>'
-    +(window.CBICurrentCanon?detailSection('当前关系 · 保留十年共同经历',window.CBICurrentCanon.people[item.id]||window.CBICurrentCanon.facts.join('\n')):'')
+    +(window.CBICurrentCanon&&window.CBICurrentCanon.userRelationships?detailSection('用户保存的当前关系',window.CBICurrentCanon.userRelationships):'')
+    +(window.CBICurrentCanon?detailSection(window.CBICurrentCanon.userRelationships?'原世界关系参考':'当前关系 · 保留十年共同经历',window.CBICurrentCanon.people[item.id]||window.CBICurrentCanon.facts.join('\n')):'')
     +detailSection('原世界早期身份',item.role)+detailSection('原世界早期履历',item.profile)+detailSection('早期年龄与时间线',item.timeline)+detailSection('原世界早期能力',item.abilities)+detailSection('关系的来路',item.relationships)+detailSection('原世界早期状态',item.longTermStatus)
     +'<div class="detail-actions"><button type="button" onclick="openPersonEditor(\''+esc(item.id)+'\')">编辑档案</button><button class="danger" type="button" onclick="requestDeletePerson(\''+esc(item.id)+'\')">删除</button></div>';
 }
@@ -433,6 +436,6 @@ if(window.CharacterRuntime)CharacterRuntime.init();
 renderAll();
 if(location.hash==='#case-board')showView('viewCases',{replace:true,force:true});
 </script>
-<script type="module" src="cbi-canon-view.mjs?v=20261028-meta1"></script>
+<script type="module" src="cbi-canon-view.mjs?v=20261028-stories1"></script>
 </body>
 </html>

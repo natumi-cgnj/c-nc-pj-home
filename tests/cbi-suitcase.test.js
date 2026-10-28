@@ -88,7 +88,7 @@ test('homepage exposes a CBI-only half-width suitcase card', () => {
   assert.match(index, /id="mobileSuitcaseBlock"[^>]*onclick="openSuitcase\(\)"/);
   assert.match(index, /id="suitcaseBlock"[^>]*onclick="openSuitcase\(\)"/);
   assert.match(index, /SUITCASE[\s\S]*?FROM OSAKA/);
-  assert.match(index, /getActiveWorldId\(\)==='cbi'\?'FROM SACRAMENTO'/);
+  assert.ok(index.includes("JANE'S WORLDLINES"));
   assert.match(index, /body\[data-world-id="cbi"\] \.mobile-suitcase\{display:flex\}/);
   assert.match(index, /body\[data-world-id="cbi"\] \.db-suitcase\{display:flex\}/);
   assert.match(index, /window\.location\.href='suitcase\.html'/);

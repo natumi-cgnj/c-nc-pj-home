@@ -35,19 +35,20 @@
     'home_modules', 'home_lines', 'home_skins', 'home_skin_custom', 'home_wardrobe_tabs',
     'home_skin_daily', 'home_cg_library', 'home_cg_period', 'shortcut-order', 'home_custom_shortcuts',
     'home_character_runtime', 'home_character_action_packs', 'shared_diary_db',
-    'omniverse_world_context', 'cbi_db', 'cbi_contact_db',
+    'omniverse_world_context', 'cbi_db', 'cbi_contact_db', 'jane_world_files_v1',
     'memo_db', 'study_db', 'organize_db', 'artist_db', 'music_db', 'reading_db',
     'schedule_packs', 'schedule_user_events'
   ];
   const PAGE_KEYS = {
-    'index.html': ['habit_db', 'wallet_db', 'memo_db', 'home_modules', 'home_lines', 'home_skins', 'home_skin_custom', 'home_wardrobe_tabs', 'home_skin_daily', 'home_cg_library', 'home_cg_period', 'shortcut-order', 'home_custom_shortcuts', 'home_character_runtime', 'home_character_action_packs', 'shared_diary_db', 'schedule_packs', 'schedule_user_events', 'omniverse_world_context', 'cbi_db'],
+    'index.html': ['habit_db', 'wallet_db', 'memo_db', 'home_modules', 'home_lines', 'home_skins', 'home_skin_custom', 'home_wardrobe_tabs', 'home_skin_daily', 'home_cg_library', 'home_cg_period', 'shortcut-order', 'home_custom_shortcuts', 'home_character_runtime', 'home_character_action_packs', 'shared_diary_db', 'schedule_packs', 'schedule_user_events', 'omniverse_world_context', 'cbi_db', 'jane_world_files_v1'],
     'schedule.html': ['schedule_packs', 'schedule_user_events', 'home_character_runtime', 'home_character_action_packs', 'omniverse_world_context', 'cbi_db'],
     'daily.html': ['daily_db', 'daily_presets', 'gacha_st', 'bean_st', 'habit_db', 'cbi_db', 'omniverse_world_context'],
     'gacha.html': ['gacha_st'],
     'habit.html': ['habit_db', 'bean_st'],
     'shop.html': ['shop_db', 'bean_st', 'daily_db', 'cbi_db', 'home_skins', 'home_skin_custom', 'home_skin_daily', 'omniverse_world_context'],
     'story.html': ['story_db', 'gacha_st', 'daily_db'],
-    'cbi.html': ['cbi_db', 'wallet_db', 'schedule_packs', 'schedule_user_events', 'home_character_runtime', 'omniverse_world_context'],
+    'world-files.html': ['jane_world_files_v1', 'wallet_accounts_v1', 'cbi_db', 'omniverse_world_context'],
+    'cbi.html': ['jane_world_files_v1', 'cbi_db', 'wallet_db', 'schedule_packs', 'schedule_user_events', 'home_character_runtime', 'omniverse_world_context'],
     'contact.html': ['cbi_contact_db', 'home_character_runtime', 'schedule_packs', 'schedule_user_events', 'omniverse_world_context', 'cbi_db'],
     'suitcase.html': ['cbi_db', 'omniverse_world_context'],
     'world-empty.html': ['omniverse_world_context'],
@@ -56,11 +57,11 @@
     'techo.html': ['techo_archive_db', 'stationery_db'],
     'event.html': ['activity_db'],
     'cinema.html': ['cinema_db'],
-    'ledger.html': ['wallet_accounts_v1', 'ledger_world_tasks_v1', 'ledger_world_tasks_v2', 'omniverse_world_context'],
+    'ledger.html': ['jane_world_files_v1', 'wallet_accounts_v1', 'ledger_world_tasks_v1', 'ledger_world_tasks_v2', 'omniverse_world_context'],
     'wallet.html': ['wallet_db', 'home_character_runtime', 'home_character_action_packs', 'shared_diary_db', 'cbi_db', 'omniverse_world_context'],
     'dungeon.html': ['dungeon_db', 'daily_db'],
     'kitchen.html': ['kitchen_db', 'kitchen_project_categories_v1', 'activity_db', 'kitchen_activity_merge_v1'],
-    'diet.html': ['calorie_log_db', 'nutrition_check_db', 'body_log_db', 'diet_world_state_v1', 'wallet_accounts_v1', 'omniverse_world_context'],
+    'diet.html': ['jane_world_files_v1', 'calorie_log_db', 'nutrition_check_db', 'body_log_db', 'diet_world_state_v1', 'wallet_accounts_v1', 'omniverse_world_context'],
     'meals.html': ['meal_log_db', 'meal_companion_db', 'recipe_salad_db', 'recipe_project_config', 'recipe_salad_db__world__cbi', 'recipe_project_config__world__cbi', 'omniverse_world_context'],
     'recipe.html': ['recipe_salad_db', 'recipe_project_config', 'recipe_salad_db__world__cbi', 'recipe_project_config__world__cbi', 'omniverse_world_context'],
     'study.html': ['study_db'],
@@ -96,6 +97,7 @@
     whenReady: () => readyPromise,
     invokeFunction: (name, body) => readyPromise.then(() => supabase.functions.invoke(name, { body })),
     syncNow: () => readyPromise.then(() => syncAllNow()),
+    syncKey: key => readyPromise.then(() => syncKeyNow(key)),
     createSnapshot: reason => readyPromise.then(() => createFullSnapshot(reason || 'manual')),
     listSnapshots: limit => readyPromise.then(() => listFullSnapshots(limit)),
     restoreSnapshot: stateKey => readyPromise.then(() => restoreFullSnapshot(stateKey)),
@@ -554,7 +556,7 @@
       habit_db: '间隔打卡', story_db: '剧情', cbi_contact_db: 'CBI 状态与聊天入口', bjd_db3: 'BJD', techo_db2: '手账',
       shop_db: '商城', event_db: '旧活动存档', event_presets: '旧活动模板',
       dungeon_db: '副本库存', kitchen_db: 'ACTIVITY', kitchen_project_categories_v1: 'ACTIVITY 分组', kitchen_activity_merge_v1: 'ACTIVITY 迁移记录', meal_log_db: '现实餐食', calorie_log_db: '卡路里记录', meal_companion_db: '世界饮食陪伴', nutrition_check_db: '营养覆盖',
-      body_log_db: '身体记录', diet_world_state_v1: '饮食世界',
+      body_log_db: '身体记录', diet_world_state_v1: '饮食世界', jane_world_files_v1: 'Jane 世界档案',
       recipe_salad_db: '夹缝空间菜谱', recipe_salad_db__world__cbi: 'CBI 菜谱', activity_db: '旧活动归档',
       cinema_db: '影视', stationery_db: '文具', 'shortcut-order': '首页快捷入口排序', home_custom_shortcuts: '首页快捷入口',
       wallet_db: '记账', home_modules: '房间连接', home_lines: '首页台词',
@@ -839,6 +841,20 @@
       syncBusy = false;
     }
     await pullRemoteChanges();
+  }
+
+  async function syncKeyNow(key) {
+    if (!STATE_KEYS.includes(key) || !currentPageKeys().includes(key) || !currentUser) throw new Error('invalid_sync_key');
+    for (let attempt = 0; syncBusy && attempt < 100; attempt++) await new Promise(resolve => setTimeout(resolve, 100));
+    if (syncBusy) throw new Error('sync_busy');
+    syncBusy = true;
+    try {
+      const value = readLocalValue(key);
+      if (value === undefined) throw new Error('missing_local_state');
+      const result = await writeRemoteSafely(key, value, { reason: 'explicit-world-save' });
+      writeMeta();
+      return result;
+    } finally { syncBusy = false; }
   }
 
   async function uploadDataUrl(dataUrl, relativePath) {

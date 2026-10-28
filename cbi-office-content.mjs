@@ -16,7 +16,7 @@ const exactKeys = (value, keys) => object(value) && Object.keys(value).length ==
 const invalid = () => { throw new Error('invalid_office_lines'); };
 
 export function validateOfficeBatch(value) {
-  if (!(exactKeys(value, ['format', 'version', 'scene', 'characters']) || exactKeys(value, ['format', 'version', 'scene', 'characters', 'continuity'])) ||
+  if (!object(value) || !exactKeys(Object.fromEntries(Object.entries(value).filter(([key]) => key !== 'canon_revision')), Object.hasOwn(value,'continuity') ? ['format','version','scene','characters','continuity'] : ['format','version','scene','characters']) || (Object.hasOwn(value,'canon_revision') && !/^[a-f0-9]{64}$/.test(value.canon_revision)) ||
       (Object.hasOwn(value, 'continuity') && value.continuity !== CBI_CONTINUITY) || value.format !== OFFICE_FORMAT ||
       value.version !== 1 || value.scene !== 'office-seated' || !exactKeys(value.characters, OFFICE_IDS)) invalid();
   const characters = {};
@@ -32,7 +32,7 @@ export function validateOfficeBatch(value) {
     });
   }
   return { format: OFFICE_FORMAT, version: 1, scene: 'office-seated', characters,
-    ...(value.continuity ? { continuity: value.continuity } : {}) };
+    ...(value.continuity ? { continuity: value.continuity } : {}), ...(value.canon_revision ? {canon_revision:value.canon_revision} : {}) };
 }
 
 // Plain connectivity replies remain valid test results, but cannot become dialogue.

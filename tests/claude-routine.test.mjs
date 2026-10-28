@@ -5,6 +5,7 @@ import { webcrypto } from 'node:crypto';
 import { createBridgeHandler, createResultHandler, createRestStore } from '../supabase/functions/_shared/claude-routine.mjs';
 import { OFFICE_IDS, OFFICE_STATES, validateOfficeBatch, decodeOfficeBatch, officePeriod } from '../cbi-office-content.mjs';
 import { HOME_SPACES } from '../cbi-home-content.mjs';
+import { normalizeWorldFiles, normalizeArchive, storySnapshot, storyRevision } from '../world-story-content.mjs';
 
 const U1 = '11111111-1111-4111-8111-111111111111';
 const U2 = '22222222-2222-4222-8222-222222222222';
@@ -17,7 +18,7 @@ const env = { SUPABASE_URL: 'https://lbxjshaiffklmalcxiif.supabase.co' };
 const copy = value => value == null ? value : structuredClone(value);
 
 class Store {
-  connections = new Map(); runs = []; writes = 0;
+  connections = new Map(); runs = []; writes = 0; stories = new Map(); cbiStories = new Map();
   async userForToken(token) { return ({ user1: U1, user2: U2 })[token] || null; }
   async connection(user) { return copy(this.connections.get(user) || null); }
   async configure(user, value) { this.writes++; this.connections.set(user, copy(value)); }
@@ -25,6 +26,9 @@ class Store {
   async recent(user) { return this.runs.filter(x => x.user_id === user).slice().reverse().slice(0, 8).map(copy); }
   async officeBatch(user) { return copy(this.runs.slice().reverse().find(x => x.user_id === user && x.status === 'completed' && x.result?.startsWith('{"format":"cbi-office-lines",')) || null); }
   async homeBatch(user) { return copy(this.runs.slice().reverse().find(x => x.user_id === user && x.status === 'completed' && x.result?.startsWith('{"format":"cbi-home-lines",')) || null); }
+  async worldFiles(user) {return copy(this.stories.get(user)||null);}
+  async cbiStory(user) {return copy(this.cbiStories.get(user)||null);}
+  async worldBatch(user,world) {return copy(this.runs.slice().reverse().find(x=>x.user_id===user&&x.status==='completed'&&x.result?.startsWith(JSON.stringify({format:'jane-world-lines',version:1,world}).slice(0,-1)+','))||null);}
   async byRequest(user, id) { return copy(this.runs.find(x => x.user_id === user && x.request_id === id) || null); }
   async active(user) { return copy(this.runs.find(x => x.user_id === user && ['starting', 'running', 'uncertain'].includes(x.status)) || null); }
   async run(user, id) { return copy(this.runs.find(x => x.user_id === user && x.id === id) || null); }
@@ -375,4 +379,72 @@ test('four Japan-time periods retain the night across midnight and the 04:00 wor
   assert.equal(key('2026-10-28T04:00:00+09:00'), '2026-10-27:night');
   assert.equal(key('2026-10-28T05:59:59+09:00'), '2026-10-27:night');
   for (const [hour, slot] of [[6, 'morning'], [11, 'day'], [17, 'evening'], [22, 'night']]) assert.equal(key('2026-10-28T' + String(hour).padStart(2, '0') + ':00:00+09:00'), '2026-10-28:' + slot);
+});
+
+
+const validOfficePack=()=>({format:'cbi-office-lines',version:1,scene:'office-seated',continuity:CBI_CONTINUITY,characters:Object.fromEntries(OFFICE_IDS.map(id=>[id,[{s:OFFICE_STATES[id][0],m:'熟悉的日常。'}]]))});
+const savedWorld=(id,setting)=>({version:1,activeWorldId:id,worlds:{[id]:{canon:{setting,current:'当前剧情已由用户确认。',relationships:'熟悉且信任。',memories:'只记得本世界。',voice:'保留Jane自己的判断。'},entries:[]}}});
+const generatedWorld=(world,revision)=>({format:'jane-world-lines',version:1,world,canon_revision:revision,title:'日常',scene:'Jane看向你，先笑了一下。',lines:[{s:'看向你',m:'你这个表情，我记得。'},{s:'闲聊',m:'好吧，给我一个提示。'}]});
+async function revisionFor(e,world){return (await send(e.bridge,{action:'story_context',world_id:world})).data.context_revision;}
+
+test('saved private world canon feeds office and home; another world and financial columns never enter their prompts',async()=>{
+ const e=environment();e.store.stories.set(U1,{...savedWorld('sacramento','CURRENT_SAC_CANON'),worlds:{...savedWorld('sacramento','CURRENT_SAC_CANON').worlds,fox:savedWorld('fox','OTHER_WORLD_SECRET').worlds.fox}});
+ e.store.cbiStories.set(U1,{personnel:[{name:'Jane',relationships:'CONFIRMED_HISTORY'}],cases:[{title:'CASE_STORY',body:'STORY_BODY',budget:'MONEY_SECRET'}],funding:{private:'MONEY_SECRET'}});
+ await send(e.bridge,{action:'office_auto'});
+ const first=e.calls[0].payload;
+ assert.ok(first.prompt.includes('CURRENT_SAC_CANON'));assert.ok(first.prompt.includes('CONFIRMED_HISTORY'));assert.ok(first.prompt.includes('STORY_BODY'));
+ assert.ok(!first.prompt.includes('OTHER_WORLD_SECRET'));assert.ok(!first.prompt.includes('MONEY_SECRET'));
+ const revision=await revisionFor(e,'sacramento');
+ const pack=validOfficePack();pack.canon_revision=revision;
+ assert.equal((await send(e.result,{...first,result:JSON.stringify(pack)},{token:null,origin:null})).status,200);
+ const office=(await send(e.bridge,{action:'office_lines'})).data.office_batch;
+ assert.equal(office.stale,false);
+ await send(e.bridge,{action:'home_auto'});
+ assert.ok(e.calls[1].payload.prompt.includes('CURRENT_SAC_CANON'));
+ const hp=homePack();hp.canon_revision=revision;
+ assert.equal((await send(e.result,{...e.calls[1].payload,result:JSON.stringify(hp)},{token:null,origin:null})).status,200);
+ assert.equal((await send(e.bridge,{action:'home_lines'})).data.home_batch.stale,false);
+});
+
+test('editing saved canon replaces a batch once within the period while preserving old history and run binding',async()=>{
+ const e=environment();e.store.stories.set(U1,savedWorld('sacramento','before'));
+ const first=await send(e.bridge,{action:'office_auto'}),oldRevision=await revisionFor(e,'sacramento');
+ assert.equal(first.data.run.result,null,'pending run binding is not a generated result');
+ const firstPack=validOfficePack();firstPack.canon_revision=oldRevision;
+ await send(e.result,{...e.calls[0].payload,result:JSON.stringify(firstPack)},{token:null,origin:null});
+ e.store.stories.set(U1,savedWorld('sacramento','after'));
+ assert.equal((await send(e.bridge,{action:'office_lines'})).data.office_batch.stale,true);
+ const next=await send(e.bridge,{action:'office_auto'});
+ assert.notEqual(next.data.run.id,first.data.run.id);assert.equal(e.calls.length,2);
+ assert.equal((await send(e.bridge,{action:'office_auto'})).data.run.id,next.data.run.id);assert.equal(e.calls.length,2);
+ const rejected=await send(e.result,{...e.calls[1].payload,result:JSON.stringify(firstPack)},{token:null,origin:null});
+ assert.equal(rejected.status,400);assert.equal(e.store.runs[0].status,'completed');
+});
+
+test('each supported world has its own prompt, saved output and account scope; generated text never edits canon',async()=>{
+ const e=environment();const raw=savedWorld('fox','FOX_ONLY');raw.worlds.palace=savedWorld('palace','PALACE_ONLY').worlds.palace;e.store.stories.set(U1,raw);
+ const before=copy(raw),revision=await revisionFor(e,'fox');
+ const started=await send(e.bridge,{action:'world_auto',world_id:'fox'});
+ assert.equal(started.status,200);assert.equal(e.calls[0].payload.kind,'office-lines');assert.equal(e.calls[0].payload.content_type,'world-lines');
+ assert.ok(e.calls[0].payload.prompt.includes('FOX_ONLY'));assert.ok(!e.calls[0].payload.prompt.includes('PALACE_ONLY'));
+ const pack=generatedWorld('fox',revision);
+ assert.equal((await send(e.result,{...e.calls[0].payload,result:JSON.stringify(pack)},{token:null,origin:null})).status,200);
+ assert.deepEqual((await send(e.bridge,{action:'world_lines',world_id:'fox'})).data.world_batch.pack,pack);
+ assert.equal((await send(e.bridge,{action:'world_lines',world_id:'palace'})).data.world_batch,null);
+ assert.equal((await send(e.bridge,{action:'world_lines',world_id:'fox'},{token:'user2'})).data.world_batch,null);
+ assert.deepEqual(e.store.stories.get(U1),before);
+ await send(e.bridge,{action:'world_auto',world_id:'fox'});assert.equal(e.calls.length,1);
+});
+
+test('unknown or unconfigured worlds and unsynced revisions never spend a cloud run; mismatched callbacks fail',async()=>{
+ const e=environment();
+ assert.equal((await send(e.bridge,{action:'world_auto',world_id:'liminal'})).status,400);
+ assert.equal((await send(e.bridge,{action:'world_auto',world_id:'palace'})).data.needs_story,true);
+ e.store.stories.set(U1,savedWorld('fox','hello'));
+ assert.equal((await send(e.bridge,{action:'world_generate',world_id:'fox',request_id:REQUEST1,canon_revision:'0'.repeat(64)})).data.error,'story_not_synced');
+ assert.equal(e.calls.length,0);
+ await send(e.bridge,{action:'world_generate',world_id:'fox',request_id:REQUEST1});
+ const wrong=generatedWorld('palace',await revisionFor(e,'fox'));
+ assert.equal((await send(e.result,{...e.calls[0].payload,result:JSON.stringify(wrong)},{token:null,origin:null})).data.error,'invalid_world_lines');
+ assert.equal((await send(e.bridge,{action:'world_lines',world_id:'fox'})).data.world_batch,null);
 });

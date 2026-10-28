@@ -46,7 +46,7 @@ export function homeStateLabel(activity, topic) {
 }
 
 export function validateHomeBatch(value) {
-  if (!(exactKeys(value, ['format', 'version', 'scene', 'spaces']) || exactKeys(value, ['format', 'version', 'scene', 'spaces', 'continuity'])) ||
+  if (!object(value) || !exactKeys(Object.fromEntries(Object.entries(value).filter(([key]) => key !== 'canon_revision')), Object.hasOwn(value,'continuity') ? ['format','version','scene','spaces','continuity'] : ['format','version','scene','spaces']) || (Object.hasOwn(value,'canon_revision') && !/^[a-f0-9]{64}$/.test(value.canon_revision)) ||
       (Object.hasOwn(value, 'continuity') && value.continuity !== CBI_CONTINUITY) || value.format !== HOME_FORMAT ||
       value.version !== 1 || value.scene !== 'home-jane' || !exactKeys(value.spaces, Object.keys(HOME_SPACES))) invalid();
   const spaces = {};
@@ -65,7 +65,7 @@ export function validateHomeBatch(value) {
     if (!ids.every(id => spaces[space].some(line => line.activity === id))) invalid();
   }
   return { format: HOME_FORMAT, version: 1, scene: 'home-jane', spaces,
-    ...(value.continuity ? { continuity: value.continuity } : {}) };
+    ...(value.continuity ? { continuity: value.continuity } : {}), ...(value.canon_revision ? {canon_revision:value.canon_revision} : {}) };
 }
 
 export function decodeHomeBatch(text) {

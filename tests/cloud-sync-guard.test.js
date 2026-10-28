@@ -511,6 +511,22 @@ async function testActivityMergeAfterCloudPull() {
   assert.equal(JSON.parse(second.localStorage.getItem('kitchen_db')).length, 2);
 }
 
+async function testWorldFilesExplicitSyncIsScopedAndRecoverable() {
+  const key='jane_world_files_v1',original={version:1,activeWorldId:'fox',worlds:{fox:{canon:{setting:'before'},entries:[]}}};
+  const finance={version:1,accounts:{cash:{balance:1234}}};
+  const env=makeEnvironment({pathname:'/world-files.html',remoteValue:{},localValue:{},remoteStates:{[key]:original,wallet_accounts_v1:finance},localStates:{[key]:original,wallet_accounts_v1:finance}});
+  await env.window.CloudSync.whenReady();
+  const changed=clone(original);changed.worlds.fox.canon.setting='after';
+  env.localStorage.setItem(key,JSON.stringify(changed));
+  await env.window.CloudSync.syncKey(key);
+  assert.deepEqual(currentRow(env,key).state_data,changed);
+  assert.deepEqual(currentRow(env,'wallet_accounts_v1').state_data,finance);
+  await assert.rejects(env.window.CloudSync.syncKey('calorie_log_db'),/invalid_sync_key/);
+  const second=makeEnvironment({pathname:'/world-files.html',remoteValue:{},localValue:{},remoteStates:{[key]:changed},alreadyReloaded:true});
+  await second.window.CloudSync.whenReady();
+  assert.deepEqual(JSON.parse(second.localStorage.getItem(key)),changed);
+}
+
 async function main() {
   await testStatusBadgeOnlyAppearsOnHomepage();
   await testNormalWriteCreatesHistory();
@@ -521,6 +537,7 @@ async function main() {
   await testConcurrentWriteUsesCompareAndSwap();
   await testFullSnapshotCanBeRestoredSafely();
   await testActivityMergeAfterCloudPull();
+  await testWorldFilesExplicitSyncIsScopedAndRecoverable();
   console.log('cloud-sync guard behavior: ok');
 }
 
