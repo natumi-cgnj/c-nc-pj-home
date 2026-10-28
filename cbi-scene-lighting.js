@@ -8,7 +8,8 @@
   var SLOTS = ['morning', 'day', 'evening', 'night'];
 
   function getTimeSlot(now) {
-    var hour = (now || new Date()).getHours();
+    // CBI periods follow the same Japan clock as generated content on every device.
+    var hour = new Date((now || new Date()).getTime() + 9 * 3600000).getUTCHours();
     if (hour >= 6 && hour < 11) return 'morning';
     if (hour >= 11 && hour < 17) return 'day';
     if (hour >= 17 && hour < 22) return 'evening';

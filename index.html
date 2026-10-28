@@ -1154,8 +1154,8 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
 <script src="cbi-office-scene.js?v=20261027-seated1"></script>
 <script src="cbi-office-lines.js?v=20261028-stories1"></script>
 <script src="cbi-home-lines.js?v=20261028-dialogue1"></script>
-<script src="cbi-home-scene.js?v=20261028-dialogue1"></script>
-<script src="cbi-scene-lighting.js?v=20261028-home1"></script>
+<script src="cbi-home-scene.js?v=20261029-lamps1"></script>
+<script src="cbi-scene-lighting.js?v=20261029-lamps1"></script>
 <script src="cbi-data.js?v=20260929-room-storage1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
@@ -1976,6 +1976,7 @@ function writeCGContextJson(baseKey,contextId,value){
   localStorage.setItem(baseKey,JSON.stringify({version:2,contexts}));
 }
 function getCGSlot(now){
+  if(window.WorldContext?.getActiveWorldId()==='cbi'&&window.CBISceneLighting)return CBISceneLighting.getTimeSlot(now);
   const h=(now||new Date()).getHours();
   if(h>=6&&h<11)return'morning';
   if(h>=11&&h<17)return'day';
@@ -1990,6 +1991,11 @@ function updateCbiSceneLighting(now){
 function getCGPeriodKey(now){
   const date=new Date(now||Date.now());
   const slot=getCGSlot(date);
+  if(window.WorldContext?.getActiveWorldId()==='cbi'){
+    const japan=new Date(date.getTime()+9*3600000);
+    if(slot==='night'&&japan.getUTCHours()<6)japan.setUTCDate(japan.getUTCDate()-1);
+    return japan.getUTCFullYear()+'-'+String(japan.getUTCMonth()+1).padStart(2,'0')+'-'+String(japan.getUTCDate()).padStart(2,'0')+':'+slot;
+  }
   if(slot==='night'&&date.getHours()<6)date.setDate(date.getDate()-1);
   const y=date.getFullYear(),m=String(date.getMonth()+1).padStart(2,'0'),d=String(date.getDate()).padStart(2,'0');
   return y+'-'+m+'-'+d+':'+slot;

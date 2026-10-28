@@ -181,6 +181,34 @@ test('lighting changes room and person consistently while leaving exterior white
   assert.ok(pixels[4] < 120);
 });
 
+test('night sleep lights only the actual sleeping room and leaves the other lamp off', () => {
+  const now = Date.parse('2026-10-29T00:30:00+09:00');
+  const pixelAt = (pixels, x, y) => [...pixels.slice((y * 1672 + x) * 4, (y * 1672 + x) * 4 + 3)];
+  for (const [placeId, roomId, lamp] of [
+    ['bedroom_bed', 'jane', 'bedroom'], ['bedroom_sofa', 'jane', 'bedroom'],
+    ['living_sofa_bed', 'natumi', 'living']
+  ]) {
+    const presence = { location: 'home', sleeping: true, sleep: { sleeping: true, placeId, roomId, nightKey: '2026-10-28', startAt: now - 3600000 } };
+    const frame = selectHomeFrame(presence, now, pack);
+    assert.deepEqual(scene.lampRooms(frame, 'night'), [lamp]);
+    assert.deepEqual(scene.lampRooms(frame, 'day'), []);
+    const pixels = new Uint8ClampedArray(1672 * 941 * 4).fill(180);
+    const mask = new Uint8Array(1672 * 941).fill(255);
+    mask[225 * 1672 + 480] = 0;
+    scene.applyLightingPixels(pixels, mask, 'night', frame);
+    for (const [room, x, y] of [['bedroom',480,207],['living',1415,398]]) {
+      const rgb = pixelAt(pixels, x, y);
+      if (room === lamp) assert.ok(rgb[0] > rgb[1] && rgb[1] > rgb[2] && rgb[0] > 200, 'whole active shade has warm light');
+      else assert.ok(rgb[0] < rgb[2] && rgb[0] < 100, 'inactive shade stays in cool night lighting');
+    }
+    assert.deepEqual(pixelAt(pixels, 480,225), [180,180,180], 'lamp light respects the room mask');
+    if (lamp === 'bedroom') {
+      assert.ok(Math.abs(pixelAt(pixels,480,203)[0] - pixelAt(pixels,480,211)[0]) <= 3, 'the shade stays lit above and below the window edge');
+    }
+  }
+  assert.deepEqual(scene.lampRooms({ mode: 'away', activity: null }, 'night'), []);
+});
+
 async function setup() {
   let user = 'owner', world = 'cbi', location = 'home', presence = { location: 'home', sleeping: false };
   let clock = Date.parse('2026-10-28T10:00:00+09:00'), waiting = true, latest = { id: 'home-batch', pack }, failRead = false;

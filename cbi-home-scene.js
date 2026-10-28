@@ -9,6 +9,14 @@
   const OUTLINE = [[187,79],[253,79],[253,93],[1353,93],[1353,78],[1430,78],[1442,100],
     [1440,135],[1656,657],[1655,765],[1650,879],[43,879],[26,800],[28,768],[55,768],
     [27,657],[179,116],[180,102]];
+  const BEDROOM_LAMP = [[479,188],[483,188],[485,194],[492,196],[497,201],[499,208],
+    [495,215],[488,219],[474,220],[467,217],[462,211],[462,202],[468,196],[476,194]];
+  const LAMPS = {
+    bedroom: { x: 480, y: 235, rx: 170, ry: 155, shade: [480,207,18,13], bounds: [255,110,745,490] },
+    living: { x: 1415, y: 425, rx: 165, ry: 190, shade: [1415,398,18,15], bounds: [785,210,1590,695] }
+  };
+  const LAMP_GLOW_GAIN = [.65,.35,.04], LAMP_GLOW_LIFT = [15,7,0];
+  const LAMP_SHADE_GAIN = [.4,.23,-.08], LAMP_SHADE_LIFT = [18,6,-5];
   const state = { rules: null, assets: null, loading: null, frame: null, drawn: '', images: {},
     pending: {}, retry: {}, raw: null, mask: null, error: '', drawCount: 0, failedAt: 0 };
   const content = import('./cbi-home-content.mjs?v=20261028-dialogue1').then(rules => { state.rules = rules; return rules; });
@@ -21,7 +29,7 @@
   }
   function slotAt(now) {
     if (global.CBISceneLighting) return global.CBISceneLighting.getTimeSlot(now);
-    const hour = (now || new Date()).getHours();
+    const hour = new Date((now || new Date()).getTime() + 9 * 3600000).getUTCHours();
     return hour >= 6 && hour < 11 ? 'morning' : hour >= 11 && hour < 17 ? 'day' : hour >= 17 && hour < 22 ? 'evening' : 'night';
   }
   function url(src) { return (src.startsWith('assets/') ? src : ROOT + src) + '?v=' + VERSION; }
@@ -58,7 +66,33 @@
     const pixels = ctx.getImageData(0, 0, 1672, 941).data;
     return Uint8Array.from({ length: 1672 * 941 }, (_, index) => pixels[index * 4 + 3]);
   }
-  function applyLightingPixels(pixels, mask, slot) {
+  function lampRooms(frame, slot) {
+    if (slot !== 'night' || !frame?.activity) return [];
+    if (frame.mode === 'sleep') return [frame.activity === 'living_sleep' ? 'living' : 'bedroom'];
+    return ['bedroom', 'living'];
+  }
+  function applyLampPixels(pixels, mask, room) {
+    const lamp = LAMPS[room], width = 1672;
+    const [left, top, right, bottom] = lamp.bounds, [sx, sy, srx, sry] = lamp.shade;
+    for (let y = Math.max(top, lamp.y - lamp.ry); y < Math.min(bottom, lamp.y + lamp.ry); y++) {
+      for (let x = Math.max(left, lamp.x - lamp.rx); x < Math.min(right, lamp.x + lamp.rx); x++) {
+        const p = y * width + x, alpha = mask[p] / 255;
+        if (!alpha) continue;
+        const distance = ((x - lamp.x) / lamp.rx) ** 2 + ((y - lamp.y) / lamp.ry) ** 2;
+        if (distance >= 1) continue;
+        const glow = (1 - distance) ** 2 * alpha;
+        const shadeDistance = ((x - sx) / srx) ** 2 + ((y - sy) / sry) ** 2;
+        const shade = Math.max(0, Math.min(1, (1 - shadeDistance) * 12)) * alpha;
+        const index = p * 4;
+        for (let channel = 0; channel < 3; channel++) {
+          const value = pixels[index + channel];
+          const warm = value + (value * LAMP_GLOW_GAIN[channel] + LAMP_GLOW_LIFT[channel]) * glow;
+          pixels[index + channel] = warm + (warm * LAMP_SHADE_GAIN[channel] + LAMP_SHADE_LIFT[channel]) * shade;
+        }
+      }
+    }
+  }
+  function applyLightingPixels(pixels, mask, slot, frame) {
     if (slot === 'morning' || !LIGHT[slot]) return pixels;
     const tables = LIGHT[slot][0].map((gain, channel) => Uint8ClampedArray.from({ length: 256 }, (_, value) => value * gain + LIGHT[slot][1][channel]));
     for (let index = 0, p = 0; index < pixels.length; index += 4, p++) {
@@ -69,6 +103,7 @@
         pixels[index + channel] = original + (tables[channel][original] - original) * alpha;
       }
     }
+    lampRooms(frame, slot).forEach(room => applyLampPixels(pixels, mask, room));
     return pixels;
   }
   function ensureAssets() {
@@ -112,6 +147,11 @@
     if (!images) return;
     state.assets.manifest.windows[frame.slot].forEach((box, index) => {
       ctx.save(); ctx.beginPath(); ctx.rect(box.x, box.y, box.width, box.height);
+      if (index === 0) {
+        // The bedside lamp stands in front of the window, including its upper shade.
+        BEDROOM_LAMP.forEach((point, i) => i ? ctx.lineTo(...point) : ctx.moveTo(...point));
+        ctx.closePath();
+      }
       if (frame.activity === 'living_clutter' && index === 1) {
         // The crouching head is in front of the rear window.
         [[1034,176],[1048,176],[1062,182],[1068,193],[1067,204],[1060,214],
@@ -142,7 +182,7 @@
     const raw = state.raw.getContext('2d', { willReadFrequently: true });
     raw.clearRect(0, 0, 1672, 941); raw.drawImage(state.assets.base, 0, 0);
     if (frame.activity && loaded) state.assets.manifest.activities[frame.activity].patches.forEach((box, index) => raw.drawImage(state.images[frame.activity][index], box.x, box.y));
-    const pixels = raw.getImageData(0, 0, 1672, 941); applyLightingPixels(pixels.data, state.mask, frame.slot);
+    const pixels = raw.getImageData(0, 0, 1672, 941); applyLightingPixels(pixels.data, state.mask, frame.slot, frame);
     if (canvas.width !== 1672) canvas.width = 1672;
     if (canvas.height !== 941) canvas.height = 941;
     const ctx = canvas.getContext('2d'); ctx.putImageData(pixels, 0, 0); paintWindows(ctx, frame);
@@ -152,6 +192,7 @@
     state.drawn = key; state.drawCount++;
     canvas.hidden = false; canvas.dataset.homeActivity = loaded ? frame.activity || '' : '';
     canvas.dataset.timeSlot = frame.slot; wrap.classList.add('cbi-home-ready');
+    canvas.dataset.homeLamps = lampRooms(frame, frame.slot).join(' ');
     wrap.dataset.homeSpace = frame.space || ''; wrap.dataset.homeMode = frame.mode;
     return true;
   }
@@ -171,15 +212,17 @@
     return state.frame;
   }
   const api = { ready: content, refresh, current: refresh, whenReady: ensureAssets,
-    validateManifest, applyLightingPixels,
+    validateManifest, applyLightingPixels, lampRooms,
     getState: () => ({ ready: !!state.assets, frame: state.frame, drawn: state.drawn, drawCount: state.drawCount, error: state.error }),
     setTime: slot => refresh(null, slot) };
   global.CBIHomeScene = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (global.document) {
+    const resume = () => { state.drawn = ''; refresh(); };
     global.document.addEventListener('DOMContentLoaded', () => refresh(), { once: true });
-    global.document.addEventListener('visibilitychange', () => { if (!global.document.hidden) refresh(); });
-    ['pageshow', 'omniverse:worldchange', 'omniverse:locationchange', 'liminal-cloud-ready', 'cbi-home-lines-change'].forEach(name => global.addEventListener(name, () => refresh()));
+    global.document.addEventListener('visibilitychange', () => { if (!global.document.hidden) resume(); });
+    global.addEventListener('pageshow', resume);
+    ['omniverse:worldchange', 'omniverse:locationchange', 'liminal-cloud-ready', 'cbi-home-lines-change'].forEach(name => global.addEventListener(name, () => refresh()));
     global.addEventListener('storage', event => { if (event.key === null || event.key === 'omniverse_world_context' || String(event.key).startsWith('schedule_')) refresh(); });
     global.setInterval(() => { if (!global.document.hidden) refresh(); }, 10000);
   }
