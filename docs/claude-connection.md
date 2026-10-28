@@ -52,3 +52,5 @@ Official references:
 - https://support.claude.com/en/articles/15036540-use-the-claude-agent-sdk-with-your-claude-plan
 - https://platform.claude.com/docs/en/api/claude-code/routines-fire
 - https://code.claude.com/docs/en/routines
+
+Current dialogue also includes `continuity: "meta-2006-ten-years-v1"`. Both prompts embed the same current META/2006 relationship context, including ten shared years; `cbi-data.js` early biographies remain historical. Old structured batches can be read as history but are filtered out of active clicks. Automatic deduplication includes continuity, allowing one corrective batch within an existing period while preserving the active-run guard and rate limit. Include `cbi-current-canon.mjs` with both content modules in each function deployment. The existing saved task still works because the per-run prompt specifies this context and format.

@@ -1,3 +1,4 @@
+import { CBI_CONTINUITY } from '../cbi-current-canon.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import fs from 'node:fs';
@@ -8,7 +9,7 @@ import { OFFICE_IDS, OFFICE_STATES, officePeriod } from '../cbi-office-content.m
 const root = new URL('../', import.meta.url);
 const source = fs.readFileSync(new URL('cbi-office-lines.js', root), 'utf8');
 const html = fs.readFileSync(new URL('index.html', root), 'utf8');
-const pack = { format: 'cbi-office-lines', version: 1, scene: 'office-seated', characters: Object.fromEntries(OFFICE_IDS.map(id => [id, [{ s: OFFICE_STATES[id][0], m: '这是云端为' + id + '生成的短句。' }]])) };
+const pack = { format: 'cbi-office-lines', version: 1, scene: 'office-seated', continuity: CBI_CONTINUITY, characters: Object.fromEntries(OFFICE_IDS.map(id => [id, [{ s: OFFICE_STATES[id][0], m: '这是云端为' + id + '生成的短句。' }]])) };
 const settle = () => new Promise(resolve => setImmediate(resolve));
 
 async function setup(options = {}) {
@@ -67,6 +68,20 @@ test('office lines stay out of home, other worlds, absent characters and another
   h.setWorld('cbi'); h.setAway('jane'); assert.equal(api.getPool('jane').length, 0);
   h.setAway(''); h.setUser('different-owner'); assert.equal(api.getPool('jane').length, 0);
   h.setResult(null); await api.refresh(); assert.equal(api.getBatch(), null);
+});
+
+test('a pre-continuity batch stays in history but current clicks use familiar built-in lines', async () => {
+  const h = await setup(), legacy = structuredClone(pack);
+  delete legacy.continuity;
+  h.setResult({id:'early-history',pack:legacy}); await h.window.CBIOfficeLines.refresh();
+  assert.equal(h.window.CBIOfficeLines.getBatch().id,'early-history');
+  for (const id of ['lisbon','vanpelt']) {
+    const lines=h.window.CBIOfficeLines.getPool(id);
+    assert.ok(lines.length>0);
+    assert.notEqual(lines[0].m,legacy.characters[id][0].m);
+    assert.ok(lines.every(line=>OFFICE_STATES[id].includes(line.s)));
+  }
+  h.setAway('lisbon'); assert.equal(h.window.CBIOfficeLines.getPool('lisbon').length,0);
 });
 
 test('entry and period changes prepare lines automatically, retaining the old batch while pending', async () => {

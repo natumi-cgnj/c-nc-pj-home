@@ -1,4 +1,5 @@
 import { officePeriod } from './cbi-office-content.mjs';
+import { CBI_CONTINUITY, currentCanonPrompt } from './cbi-current-canon.mjs';
 
 export const HOME_FORMAT = 'cbi-home-lines';
 export const HOME_SPACES = {
@@ -45,7 +46,8 @@ export function homeStateLabel(activity, topic) {
 }
 
 export function validateHomeBatch(value) {
-  if (!exactKeys(value, ['format', 'version', 'scene', 'spaces']) || value.format !== HOME_FORMAT ||
+  if (!(exactKeys(value, ['format', 'version', 'scene', 'spaces']) || exactKeys(value, ['format', 'version', 'scene', 'spaces', 'continuity'])) ||
+      (Object.hasOwn(value, 'continuity') && value.continuity !== CBI_CONTINUITY) || value.format !== HOME_FORMAT ||
       value.version !== 1 || value.scene !== 'home-jane' || !exactKeys(value.spaces, Object.keys(HOME_SPACES))) invalid();
   const spaces = {};
   for (const [space, ids] of Object.entries(HOME_SPACES)) {
@@ -62,7 +64,8 @@ export function validateHomeBatch(value) {
     });
     if (!ids.every(id => spaces[space].some(line => line.activity === id))) invalid();
   }
-  return { format: HOME_FORMAT, version: 1, scene: 'home-jane', spaces };
+  return { format: HOME_FORMAT, version: 1, scene: 'home-jane', spaces,
+    ...(value.continuity ? { continuity: value.continuity } : {}) };
 }
 
 export function decodeHomeBatch(text) {
@@ -182,7 +185,8 @@ export function selectHomeFrame(presence, now = Date.now(), pack = null) {
     return { ...context, activity, nextAt: pose.nextAt, mode: 'sleep', lines: [], key: 'sleep:' + sleep.nightKey + ':' + activity };
   }
   const state = HOME_STATES[context.activity];
-  const pool = (pack?.spaces?.[context.space] || []).filter(line => line.activity === context.activity &&
+  const currentPack = pack?.continuity === CBI_CONTINUITY ? pack : null;
+  const pool = (currentPack?.spaces?.[context.space] || []).filter(line => line.activity === context.activity &&
     (line.topic || 'daily') === context.topic);
   const fallback = context.topic === 'case' ? HOME_CASE_STATES[context.activity].fallback : state.fallback;
   const lines = (pool.length ? pool : [{ m: fallback }]).map(line => ({ s: homeStateLabel(context.activity, context.topic), m: line.m }));
@@ -194,10 +198,11 @@ export function homeGenerationPrompt(slot = '') {
   const states = Object.fromEntries(Object.entries(HOME_SPACES).map(([space, ids]) => [space,
     ids.map(id => ({ activity: id, state: HOME_STATES[id].label }))]));
   return `为 C-NC 中 Jane 在 Boss 家的现有场景生成${time}的随机状态与台词。这个兼容的 office-lines 内容生成通道现已支持家中图片；本次目标是 home-jane，而不是办公室。
-先读取仓库 cbi-data.js 中已确认的 AU 人物档案与关系阶段，以及 cbi-home-content.mjs 的现有动作表。Milo 是男性正式组长；不得套用原剧关系或擅自推进感情阶段。Jane 是轻巧、机灵、会绕弯的成年人，表达克制自然，不作心理咨询式安慰，不说教、不评价用户效率，不每句调情或提茶。
+${currentCanonPrompt()}
+读取 cbi-home-content.mjs 的现有动作表。Milo 是男性正式组长；不得套用原剧关系，当前感情以共同十年后的关系为准，不倒退到初识也不擅自添加婚恋名分。Jane 是轻巧、机灵、会绕弯的成年人，表达克制自然，不作心理咨询式安慰，不说教、不评价用户效率，不每句调情或提茶。
 程序决定他是否在家、是否睡着，以及当前在哪个空间。你只在各空间已经有图片的动作中选择 activity 并为它配一句 m；不得移动到其他房间、创造新姿势、醒来、上班、睡着或控制其他人的行为。当前素材：${JSON.stringify(states)}。
 bedroom 与 living 各八条，kitchen 与 bathroom 各六条。每个空间中的每个动作至少出现一次，可按时段自然选择重复次数。每条 activity 对应的 m 必须与图中动作吻合：看电视时电视开着，看书时注意力在书上；看杂物不表示已经整理或搬动，翻漫画不捏造具体书名与剧情；开冰箱不虚构里面的具体食物；煮的是水。洗澡只有完全遮挡的浴帘和“洗澡中”牌，上厕所只有“使用中”牌且人物隐藏：这两种只给门内传来的一句简短回应，不描写身体或过程。刷牙只能是能在间隙说的短句。睡眠由既有程序处理，此次不要输出睡眠动作或睡着的人说话。
 Jane 每月有不固定的8—10天留在家里。休息也偶尔会琢磨案情，不是全天都在工作。各动作至少保留一句普通生活台词；另外 bedroom_read、living_read、living_tv、kitchen_meal 各至少一条加上 "topic":"case"，用一句自然回应体现他看着书、电视开着或吃饭时在想案子。只用同一张现有图，不新增卷宗、写字、通话或任何画面里没有的动作；普通看书台词仍然专注于书，case 台词才可走神想案子。不得编造新案件、证据、嫌疑人身份或案情结论，只说推敲说辞、回想顺序等含蓄的思考。其他 activity 不带 topic。普通条目仍只含 activity、m；case 条目恰好含 activity、m、topic。
 m 是 Jane 对点击他的 Milo 直接说的话，不替 Milo 写反应，不写括号中的“对某某说”、姓名前缀、详细动作、旁白、内心说明或换行。建议15—40字，最多90字；私人使用中可以更短，不带圆括号。不要擅自断言 Milo 做过饭、现在坐在旁边或去了哪里，不自创案件线索或实物所有权变化。
-只输出合法 JSON，顶层恰好为 format、version、scene、spaces。format="cbi-home-lines"，version=1，scene="home-jane"。spaces 恰好含 bedroom、living、kitchen、bathroom，各为上述条数的数组。普通条目为 {"activity":"现有动作ID","m":"一句台词"}，研究案情条目为 {"activity":"上述允许的动作ID","m":"一句台词","topic":"case"}。不输出 Markdown 或解释。`;
+只输出合法 JSON，顶层恰好为 format、version、scene、spaces、continuity。format="cbi-home-lines"，version=1，scene="home-jane"，continuity="${CBI_CONTINUITY}"。spaces 恰好含 bedroom、living、kitchen、bathroom，各为上述条数的数组。普通条目为 {"activity":"现有动作ID","m":"一句台词"}，研究案情条目为 {"activity":"上述允许的动作ID","m":"一句台词","topic":"case"}。不输出 Markdown 或解释。`;
 }

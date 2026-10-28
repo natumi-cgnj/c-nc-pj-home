@@ -1,3 +1,4 @@
+import { CBI_CONTINUITY } from '../cbi-current-canon.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import fs from 'node:fs';
@@ -7,7 +8,7 @@ import { HOME_SPACES, HOME_STATES, HOME_CASE_STATES, HOME_ACTIVITY_TIMING, valid
 import scene from '../cbi-home-scene.js';
 
 const root = new URL('../', import.meta.url);
-const pack = { format: 'cbi-home-lines', version: 1, scene: 'home-jane', spaces:
+const pack = { format: 'cbi-home-lines', version: 1, scene: 'home-jane', continuity: CBI_CONTINUITY, spaces:
   Object.fromEntries(Object.entries(HOME_SPACES).map(([space, ids]) => [space, ids.map(activity => ({ activity, m: '这是云端为这个动作准备的一句台词。' }))])) };
 const source = fs.readFileSync(new URL('cbi-home-lines.js', root), 'utf8');
 const html = fs.readFileSync(new URL('index.html', root), 'utf8');

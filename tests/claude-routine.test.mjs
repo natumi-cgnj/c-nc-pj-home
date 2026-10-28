@@ -1,3 +1,4 @@
+import { CBI_CONTINUITY } from '../cbi-current-canon.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { webcrypto } from 'node:crypto';
@@ -52,7 +53,7 @@ function environment(fire) {
 }
 async function send(handler, value, options) { const response = await handler(request(value, options)); return { status: response.status, data: await response.json(), response }; }
 const start = e => send(e.bridge, { action: 'test', request_id: REQUEST1 });
-const homePack = () => ({ format: 'cbi-home-lines', version: 1, scene: 'home-jane', spaces:
+const homePack = () => ({ format: 'cbi-home-lines', version: 1, scene: 'home-jane', continuity: CBI_CONTINUITY, spaces:
   Object.fromEntries(Object.entries(HOME_SPACES).map(([space, ids]) => [space, ids.map(activity => ({ activity, m: '这是与当前动作对应的一句台词。' }))])) });
 
 test('home uses the configured worker, persists its own batch and deduplicates each period', async () => {
@@ -246,7 +247,7 @@ test('server REST adapter scopes reads and handles empty successful writes', asy
 });
 
 function officePack() {
-  return { format: 'cbi-office-lines', version: 1, scene: 'office-seated',
+  return { format: 'cbi-office-lines', version: 1, scene: 'office-seated', continuity: CBI_CONTINUITY,
     characters: Object.fromEntries(OFFICE_IDS.map(id => [id, [{ s: OFFICE_STATES[id][0], m: '这份资料我还想再看一遍。' }]])) };
 }
 
@@ -345,6 +346,26 @@ test('manual fresh content satisfies the period and failed automatic starts do n
   assert.equal(uncertain.calls.length, 1);
   assert.equal((await send(e.bridge, { action: 'office_auto' }, { token: 'user2' })).data.configured, false);
   assert.equal((await send(e.bridge, { action: 'office_auto' }, { token: null })).status, 401);
+});
+
+test('a fresh early-history batch is automatically replaced once for the current continuity', async () => {
+  for (const home of [false,true]) {
+    const e=environment(), old=home?homePack():officePack(); delete old.continuity;
+    await start(e);
+    await send(e.result,{...e.calls[0].payload,result:JSON.stringify(old)},{token:null,origin:null});
+    const first=await send(e.bridge,{action:home?'home_auto':'office_auto'});
+    assert.equal(e.calls.length,2,'recent legacy text must not satisfy the corrected continuity');
+    const payload=e.calls[1].payload;
+    assert.ok(payload.prompt.includes('十年'));
+    assert.ok(payload.prompt.includes(CBI_CONTINUITY));
+    assert.ok(payload.prompt.includes('高维'));
+    const current=home?homePack():officePack();
+    await send(e.result,{...payload,result:JSON.stringify(current)},{token:null,origin:null});
+    const again=await send(e.bridge,{action:home?'home_auto':'office_auto'});
+    assert.equal(again.data.run.id,first.data.run.id);
+    assert.equal(e.calls.length,2,'reloads must not rerun a completed continuity upgrade');
+    assert.equal(again.data[home?'home_batch':'office_batch'].pack.continuity,CBI_CONTINUITY);
+  }
 });
 
 test('four Japan-time periods retain the night across midnight and the 04:00 workday boundary', () => {

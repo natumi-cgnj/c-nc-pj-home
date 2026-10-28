@@ -11,7 +11,7 @@
     [27,657],[179,116],[180,102]];
   const state = { rules: null, assets: null, loading: null, frame: null, drawn: '', images: {},
     pending: {}, retry: {}, raw: null, mask: null, error: '', drawCount: 0, failedAt: 0 };
-  const content = import('./cbi-home-content.mjs?v=20261028-rhythm1').then(rules => { state.rules = rules; return rules; });
+  const content = import('./cbi-home-content.mjs?v=20261028-meta1').then(rules => { state.rules = rules; return rules; });
   content.catch(() => {});
   function active() {
     const context = global.WorldContext;

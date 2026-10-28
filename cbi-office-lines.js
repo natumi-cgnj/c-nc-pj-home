@@ -2,7 +2,7 @@
   'use strict';
   if (global.__LIMINAL_REDIRECTING) return;
   let batch = null, owner = '', pending = null, rules = null, timer = null, waiting = false, nextAutoAt = 0;
-  const content = import('./cbi-office-content.mjs?v=20261027-auto1').then(value => { rules = value; return value; });
+  const content = import('./cbi-office-content.mjs?v=20261028-meta1').then(value => { rules = value; return value; });
   content.catch(() => {});
   const identity = () => global.CloudSync?.user?.id || '';
   function sameOwner() {
@@ -61,7 +61,7 @@
     if (!batch || !atOffice()) return [];
     const presence = global.CharacterRuntime?.getCbiCharacterPresence?.(id, new Date());
     if (presence && presence.location !== 'office') return [];
-    return batch.pack.characters[id] || [];
+    return batch.pack.continuity === rules.CBI_CONTINUITY ? batch.pack.characters[id] || [] : rules.OFFICE_FAMILIAR_FALLBACK[id] || [];
   }
   global.CBIOfficeLines = { refresh, accept, getPool, ready: content,
     decode: text => rules ? rules.decodeOfficeBatch(text) : null,

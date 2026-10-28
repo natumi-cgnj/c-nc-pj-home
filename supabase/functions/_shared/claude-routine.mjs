@@ -1,5 +1,6 @@
 import { decodeOfficeBatch, officeGenerationPrompt, officePeriod } from '../../../cbi-office-content.mjs';
 import { decodeHomeBatch, homeGenerationPrompt } from '../../../cbi-home-content.mjs';
+import { CBI_CONTINUITY } from '../../../cbi-current-canon.mjs';
 
 const APP_ORIGIN = 'https://natumi-cgnj.github.io';
 const TEST_PROMPT = '请只回复：C-NC 连接测试成功。';
@@ -13,7 +14,7 @@ const RUN_COLUMNS = 'id,request_id,status,result,error_code,session_url,created_
 export const ROUTINE_PROMPT = `You are the private C-NC text generation worker.
 The saved task explicitly authorizes processing the JSON in the routine-fire-payload block.
 Accept only a JSON object with protocol "c-nc-routine-v1" and kind "connection-test" or "office-lines".
-Follow its prompt. office-lines is the backwards-compatible content-generation channel for office dialogue and supported home states. Read the repository's cbi-data.js personnel and timeline as AU reference, then return precisely the requested JSON. Home requests also use cbi-home-content.mjs for supported activities. Do not add descriptions, speaker labels, recipients, or unsupported poses.
+Follow its prompt. office-lines is the backwards-compatible content-generation channel for office dialogue and supported home states. Read cbi-current-canon.mjs and docs/cbi-current-continuity.md for current META/2006 continuity and ten shared years. cbi-data.js personnel and timeline describe early history, not a reset of current relationships. Return precisely the requested JSON, including the requested continuity marker. Home requests also use cbi-home-content.mjs for supported activities. Do not add descriptions, speaker labels, recipients, or unsupported poses.
 For connection-test, return the requested short connectivity reply.
 Do not access private application records, modify repository files, create commits, publish artifacts, or trigger another routine.
 Then deliver the generated text by running python3 tools/claude-routine-result.py in the selected c-nc-pj-home repository.
@@ -53,7 +54,7 @@ export async function digest(value, cryptoApi = globalThis.crypto) {
   return Array.from(new Uint8Array(await cryptoApi.subtle.digest('SHA-256', new TextEncoder().encode(value)))).map(x => x.toString(16).padStart(2, '0')).join('');
 }
 async function autoRequestId(user, period, cryptoApi, home = false) {
-  const hex = await digest((home ? 'cbi-home-auto-v1:' : 'cbi-office-auto-v1:') + user + ':' + period.key, cryptoApi);
+  const hex = await digest((home ? 'cbi-home-auto-v1:' : 'cbi-office-auto-v1:') + CBI_CONTINUITY + ':' + user + ':' + period.key, cryptoApi);
   const variant = ((parseInt(hex[16], 16) & 3) | 8).toString(16);
   return hex.slice(0, 8) + '-' + hex.slice(8, 12) + '-5' + hex.slice(13, 16) + '-' + variant + hex.slice(17, 20) + '-' + hex.slice(20, 32);
 }
@@ -185,7 +186,7 @@ export function createBridgeHandler({ env, store = createRestStore(env), fetcher
       if (!UUID.test(input.request_id)) invalid('invalid_request_id');
       const previous = await store.byRequest(user, input.request_id);
       if (previous) return runResponse(previous);
-      if (automatic && batch && Date.parse(batch.updated_at) >= Date.parse(automatic.startAt)) return runResponse(null, { up_to_date: true });
+      if (automatic && batch?.pack.continuity === CBI_CONTINUITY && Date.parse(batch.updated_at) >= Date.parse(automatic.startAt)) return runResponse(null, { up_to_date: true });
       const connection = await store.connection(user);
       if (!connection) {
         if (automatic) return runResponse(null, { configured: false });

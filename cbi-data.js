@@ -47,6 +47,8 @@
       '下班前，Van Pelt又检查了一次「{item}」有没有好好收好。'
     ]
   };
+  // These are the original world's early biographies, not the current relationship state.
+  // Current META / 2006 second-loop continuity and ten shared years live in cbi-current-canon.mjs.
   var CANON_PERSONNEL = [
     {
       id: 'boss',
