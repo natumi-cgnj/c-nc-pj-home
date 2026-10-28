@@ -11,6 +11,8 @@
     [27,657],[179,116],[180,102]];
   const BEDROOM_LAMP = [[479,188],[483,188],[485,194],[492,196],[497,201],[499,208],
     [495,215],[488,219],[474,220],[467,217],[462,211],[462,202],[468,196],[476,194]];
+  const BEDROOM_HEADBOARD = [[528,185],[545,182],[579,178],[617,176],[656,177],
+    [696,181],[731,189],[737,194],[737,291],[528,291]];
   const LAMPS = {
     bedroom: { x: 480, y: 235, rx: 170, ry: 155, shade: [480,207,18,13], bounds: [255,110,745,490] },
     living: { x: 1415, y: 425, rx: 165, ry: 190, shade: [1415,398,18,15], bounds: [785,210,1590,695] }
@@ -148,9 +150,11 @@
     state.assets.manifest.windows[frame.slot].forEach((box, index) => {
       ctx.save(); ctx.beginPath(); ctx.rect(box.x, box.y, box.width, box.height);
       if (index === 0) {
-        // The bedside lamp stands in front of the window, including its upper shade.
-        BEDROOM_LAMP.forEach((point, i) => i ? ctx.lineTo(...point) : ctx.moveTo(...point));
-        ctx.closePath();
+        // Foreground furniture keeps the live room lighting, not the old window crop's lamp glow.
+        [BEDROOM_LAMP, BEDROOM_HEADBOARD].forEach(points => {
+          points.forEach((point, i) => i ? ctx.lineTo(...point) : ctx.moveTo(...point));
+          ctx.closePath();
+        });
       }
       if (frame.activity === 'living_clutter' && index === 1) {
         // The crouching head is in front of the rear window.
