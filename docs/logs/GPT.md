@@ -1271,3 +1271,17 @@ Keep each head and torso about the SAME SIZE as its reference counterpart. Prese
 - 页面核对：820px桌面与390px手机宽度下，隔离账号故意延迟存档和原图onload；存档未定时0个场景请求，存档原办公室经既有排班确定回家后直接准备居家夜景。两个加载顺序均从0帧直接到1个完整夜景，只请求基础图、夜间两窗及当前睡姿；正常情况下家中／办公室旧图src均未设置。检查再次打开、pageshow恢复无新增图片请求、办公室只加载当前夜窗、夹缝切换正常，以及睡姿失败后实际夜景备用图能显示。截图使用标注的fixture与真实渲染脚本，没有真实账号或模型请求。
 - 遗留：首次等待会短暂保留房间区域空白，时长取决于存档及所需素材加载；两端需刷新一次加载新入口。未做手机真机验证。
 - 请勿误改：不更换任何图片，不改人物比例、床头／灯罩／蹲姿遮挡、灯位、日本时间、排班、休息日、睡眠、动作时长或稳定台词选择；不改存档键、业务数据、数据库、云端函数或Claude任务配置。docs/DECISIONS.md与docs/SYSTEM_BLUEPRINT.md不纳入推送。
+
+
+## 2026-10-29｜恢复 Claude 自动台词的已登录档案读取
+
+- 执行者：Codex
+- 分支：`codex/claude-auto-refresh-20261029` → `main`，基于 `1848314`；提交见本条所在提交。旧工作树的git指针失效，重新克隆最新main后在独立分支施工，未改旧目录。
+- 用户目标：排查并修复当前Claude没有生成新随机台词的问题。
+- 实际取证：只读云端任务元数据，最近居家成功批次为10月28日18:03日本时间，之后尚无新任务。今日日志的当次查询有49个bridge请求返回503；数据库日志明确为permission denied for table user_state。service_role可读私有routine表，但对user_state无SELECT权限，authenticated已有SELECT权限。v8接入WORLD FILES后用routine服务身份读剧情，因而在建立Claude任务前中断；不是本轮首页等待素材造成。
+- 涉及文件：`supabase/functions/_shared/claude-routine.mjs`、`tests/claude-routine.test.mjs`、`docs/claude-connection.md`、本日志。
+- 修正：通过已验证账号的当前请求bearer读取两个既有故事状态键，继续按Auth返回的user_id过滤，并让原有authenticated权限与RLS生效。缺少bearer时直接拒绝，不降级为服务身份；token只在请求内传递，不落库、不返回、不进入Claude提示词。连接及任务表仍使用原私有服务身份。办公室、居家、世界生成、状态与故事版本查询都共用这条读档路径，不更改任务说明、频率、配额或数据权限。
+- 验证：62项桥接／回传、故事版本、账号隔离、居家与办公室台词、入口检查通过。新增真实REST适配层回归模拟service_role被user_state拒绝、登录账号可读的权限组合，覆盖全部8类需要故事上下文的路由，以及无token拒绝、两账号并发与跨账号RLS拒绝；原回传绑定与限流检查仍通过。生产只读回滚事务以authenticated及所属账号claims验证：可见自身故事状态1条、其他账号0条；未读取故事正文或凭证。JS语法与diff检查通过。
+- 部署：claude-bridge／claude-result均为v9 ACTIVE；保持原verify_jwt=false及函数内部账号／回传认证，匿名HTTP分别返回401 sign_in_required和401 invalid_callback。未改数据库、grants或RLS。已核对Supabase当前Auth上下文文档及变更摘要，项目安全检查中私有routine表无客户端策略是既有设计，未扩大访问。
+- 遗留：截至部署后首次检查，还没有新的真实用户批次，不能把测试fixture称作Claude新结果；新批次由用户正常返回可见且符合原条件的页面后自动启动。无需重新配置Claude，不要求手动生成或复制新任务说明。
+- 请勿误改：保留已有档案、财务与业务存档、图片、夜景与灯位、单帧加载、排班、睡眠、活动时长、稳定台词选择及四时段自动规则；不授予服务身份整张user_state的读取权限，不泄露token。docs/DECISIONS.md与docs/SYSTEM_BLUEPRINT.md不纳入推送。

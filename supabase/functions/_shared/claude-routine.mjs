@@ -42,9 +42,9 @@ async function latestHomeBatch(store, user, context = null) {
   } catch { return null; }
 }
 
-async function savedContext(store, user, world, cryptoApi) {
-  const raw = await store.worldFiles?.(user) || {};
-  const cbi = world === 'sacramento' ? await store.cbiStory?.(user) || null : null;
+async function savedContext(store, user, world, cryptoApi, accessToken) {
+  const raw = await store.worldFiles?.(user, accessToken) || {};
+  const cbi = world === 'sacramento' ? await store.cbiStory?.(user, accessToken) || null : null;
   const snapshot = storySnapshot(world, raw, cbi);
   return { ...snapshot, revision: await storyRevision(snapshot, cryptoApi), archiveRevision: await storyRevision(storySnapshot(world, raw), cryptoApi) };
 }
@@ -131,6 +131,14 @@ export function createRestStore(env, fetcher = fetch) {
     return raw ? JSON.parse(raw) : [];
   }
   const scope = user => 'user_id=eq.' + encodeURIComponent(user);
+  async function userState(user, key, accessToken) {
+    if (typeof accessToken !== 'string' || !accessToken) throw new ClientError(401, 'sign_in_required');
+    // Saved app data keeps its existing authenticated-user grants and RLS.
+    // Do not read it with the privileged routine-table identity or grant that role broader access.
+    return (await rest('user_state?' + scope(user) + '&state_key=eq.' + encodeURIComponent(key) + '&select=state_data&limit=1', {
+      headers: { apikey: env.SUPABASE_ANON_KEY || serviceKey, Authorization: 'Bearer ' + accessToken }
+    }))[0]?.state_data || null;
+  }
   return {
     async userForToken(token) {
       const res = await fetcher(base + '/auth/v1/user', { headers: { apikey: env.SUPABASE_ANON_KEY || serviceKey, Authorization: 'Bearer ' + token }, signal: AbortSignal.timeout(10000) });
@@ -149,8 +157,8 @@ export function createRestStore(env, fetcher = fetch) {
       const prefix = encodeURIComponent('{"format":"cbi-home-lines",') + '*';
       return (await rest('claude_routine_runs?' + scope(user) + '&status=eq.completed&result=like.' + prefix + '&select=id,result,finished_at&order=created_at.desc&limit=1'))[0] || null;
     },
-    async worldFiles(user) { return (await rest('user_state?' + scope(user) + '&state_key=eq.' + WORLD_FILES_KEY + '&select=state_data&limit=1'))[0]?.state_data || null; },
-    async cbiStory(user) { return (await rest('user_state?' + scope(user) + '&state_key=eq.cbi_db&select=state_data&limit=1'))[0]?.state_data || null; },
+    async worldFiles(user, accessToken) { return userState(user, WORLD_FILES_KEY, accessToken); },
+    async cbiStory(user, accessToken) { return userState(user, 'cbi_db', accessToken); },
     async worldBatch(user, world) {
       const prefix = encodeURIComponent(JSON.stringify({format:'jane-world-lines',version:1,world}).slice(0,-1) + ',') + '*';
       return (await rest('claude_routine_runs?' + scope(user) + '&status=eq.completed&result=like.' + prefix + '&select=id,result,finished_at&order=created_at.desc&limit=1'))[0] || null;
@@ -179,7 +187,7 @@ export function createBridgeHandler({ env, store = createRestStore(env), fetcher
       if (typeof input.action !== 'string') invalid('unknown_action');
       await store.expire(user, time);
       const contextCache = new Map();
-      const readContext = world => { if (!contextCache.has(world)) contextCache.set(world, savedContext(store, user, world, cryptoApi)); return contextCache.get(world); };
+      const readContext = world => { if (!contextCache.has(world)) contextCache.set(world, savedContext(store, user, world, cryptoApi, auth[1])); return contextCache.get(world); };
       const worldMode = ['world_auto', 'world_generate', 'world_lines', 'story_context'].includes(input.action);
       if (worldMode && !validStoryWorld(input.world_id)) invalid('invalid_story_world');
       const home = ['home_auto', 'home_generate', 'home_lines'].includes(input.action);

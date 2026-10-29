@@ -250,6 +250,26 @@ test('server REST adapter scopes reads and handles empty successful writes', asy
   assert.equal(calls[1].options.headers.Authorization, 'Bearer server-only-test-key');
 });
 
+test('saved-state REST reads use each caller token and never fall back to the routine-table identity', async () => {
+  const calls = [];
+  const db = createRestStore({ ...env, SUPABASE_SERVICE_ROLE_KEY: 'server-only-test-key', SUPABASE_ANON_KEY: 'public-test-key' }, async (url, options) => {
+    calls.push({ url, options });
+    const query = new globalThis.URL(url).searchParams;
+    const token = options.headers.Authorization;
+    const owner = token === 'Bearer user1' ? U1 : token === 'Bearer user2' ? U2 : null;
+    if (!owner) return Response.json({ code: '42501', message: 'permission denied for table user_state' }, { status: 403 });
+    return Response.json(query.get('user_id') === 'eq.' + owner ? [{ state_data: { owner, key: query.get('state_key') } }] : []);
+  });
+  await assert.rejects(db.worldFiles(U1), /sign_in_required/);
+  assert.equal(calls.length, 0, 'a missing session must not attempt a privileged state read');
+  const [first, second] = await Promise.all([db.worldFiles(U1, 'user1'), db.cbiStory(U2, 'user2')]);
+  assert.equal(first.owner, U1); assert.equal(first.key, 'eq.jane_world_files_v1');
+  assert.equal(second.owner, U2); assert.equal(second.key, 'eq.cbi_db');
+  assert.ok(calls.every(call => call.options.headers.apikey === 'public-test-key'));
+  assert.deepEqual(calls.map(call => call.options.headers.Authorization), ['Bearer user1', 'Bearer user2']);
+  assert.equal(await db.worldFiles(U2, 'user1'), null, 'RLS still rejects a different account');
+});
+
 function officePack() {
   return { format: 'cbi-office-lines', version: 1, scene: 'office-seated', continuity: CBI_CONTINUITY,
     characters: Object.fromEntries(OFFICE_IDS.map(id => [id, [{ s: OFFICE_STATES[id][0], m: '这份资料我还想再看一遍。' }]])) };
@@ -447,4 +467,34 @@ test('unknown or unconfigured worlds and unsynced revisions never spend a cloud 
  const wrong=generatedWorld('palace',await revisionFor(e,'fox'));
  assert.equal((await send(e.result,{...e.calls[0].payload,result:JSON.stringify(wrong)},{token:null,origin:null})).data.error,'invalid_world_lines');
  assert.equal((await send(e.bridge,{action:'world_lines',world_id:'fox'})).data.world_batch,null);
+});
+
+test('all story-dependent bridge routes work when user_state denies the service role but permits the signed-in owner', async () => {
+  for (const action of ['status','office_lines','home_lines','story_context','world_lines','office_auto','home_auto','world_auto']) {
+    const e = environment(), reads = [];
+    const raw = savedWorld('sacramento', 'SAC_CURRENT'); raw.worlds.fox = savedWorld('fox', 'FOX_CURRENT').worlds.fox;
+    const db = createRestStore({ ...env, SUPABASE_SERVICE_ROLE_KEY: 'server-only-test-key', SUPABASE_ANON_KEY: 'public-test-key' }, async (url, options) => {
+      const query = new globalThis.URL(url).searchParams;
+      reads.push({ query, headers: options.headers });
+      if (options.headers.Authorization !== 'Bearer user1') return Response.json({ code: '42501', message: 'permission denied for table user_state' }, { status: 403 });
+      assert.equal(query.get('user_id'), 'eq.' + U1);
+      assert.equal(options.headers.apikey, 'public-test-key');
+      const state = query.get('state_key') === 'eq.jane_world_files_v1' ? raw : { personnel: [{ name: 'Jane', relationships: 'KNOWN_HISTORY' }], funding: { private: 'MONEY_SECRET' } };
+      return Response.json([{ state_data: state }]);
+    });
+    e.store.worldFiles = (user, token) => db.worldFiles(user, token);
+    e.store.cbiStory = (user, token) => db.cbiStory(user, token);
+    const worldMode = ['story_context','world_lines','world_auto'].includes(action);
+    const result = await send(e.bridge, { action, ...(worldMode ? { world_id: 'fox' } : {}), user_id: U2 });
+    assert.equal(result.status, 200, action);
+    assert.ok(reads.length > 0, action + ' must read the saved context');
+    assert.ok(reads.every(read => read.headers.Authorization === 'Bearer user1'));
+    assert.ok(!JSON.stringify(result.data).includes('server-only-test-key'));
+    if (action.endsWith('_auto')) {
+      assert.equal(e.calls.length, 1, action + ' must reach Claude after the context read');
+      assert.ok(e.calls[0].payload.prompt.includes(worldMode ? 'FOX_CURRENT' : 'SAC_CURRENT'));
+      assert.ok(!e.calls[0].payload.prompt.includes('MONEY_SECRET'));
+      assert.ok(!JSON.stringify(e.calls[0].payload).includes('Bearer user1'));
+    } else assert.equal(e.calls.length, 0);
+  }
 });
