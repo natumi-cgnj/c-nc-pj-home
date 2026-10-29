@@ -18,13 +18,17 @@ function createHarness() {
 
   const state = { worldId: 'liminal', locationId: 'apartment' };
   const localStorage = new MemoryStorage();
+  const window = { WorldContext: { getActiveWorldId: () => state.worldId } };
   const context = vm.createContext({
+    window,
     console,
     localStorage,
     getActiveWorldId: () => state.worldId,
     getActiveLocationId: () => state.locationId,
     showTip: () => {}
   });
+  vm.runInContext(fs.readFileSync('cbi-scene-lighting.js', 'utf8'), context);
+  context.CBISceneLighting = window.CBISceneLighting;
   const exports = [
     'getCurrentCG',
     'getCGDismissedStorageKey',
@@ -37,8 +41,8 @@ function createHarness() {
 
 test('CBI banners follow both location and time of day', () => {
   const { state, cg } = createHarness();
-  const noon = new Date('2026-08-23T12:00:00Z');
-  const night = new Date('2026-08-23T23:00:00Z');
+  const noon = new Date('2026-08-23T12:00:00+09:00');
+  const night = new Date('2026-08-23T23:00:00+09:00');
 
   state.worldId = 'cbi';
   state.locationId = 'office';

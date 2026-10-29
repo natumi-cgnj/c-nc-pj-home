@@ -91,6 +91,8 @@
   let deviceDeferred = false;
   let snapshotPromise = null;
   const assetCache = new Map();
+  const imageRequests = new WeakMap();
+  const remoteNotifications = new Map();
   const deviceId = getDeviceId();
 
   window.CloudSync = {
@@ -163,6 +165,7 @@
       window.dispatchEvent(new CustomEvent('liminal-cloud-ready'));
       observeCloudImages(document);
       startObservers();
+      notifyRemoteChanges();
       scanLocalChanges();
       scheduleArchivePrune();
     } catch (error) {
@@ -280,10 +283,29 @@
   }
 
   function applyRemote(key, row) {
-    localStorage.setItem(key, JSON.stringify(row.state_data));
+    const oldValue = localStorage.getItem(key);
+    const newValue = JSON.stringify(row.state_data);
+    localStorage.setItem(key, newValue);
     const hash = hashValue(row.state_data);
     lastSeen.set(key, hash);
     updateMeta(key, row.updated_at, hash);
+    if (oldValue !== newValue) {
+      const previous = remoteNotifications.get(key);
+      remoteNotifications.set(key, { oldValue: previous ? previous.oldValue : oldValue, newValue });
+    }
+  }
+
+  function notifyRemoteChanges() {
+    // setItem does not emit storage in its own document. Reuse the modules'
+    // existing storage listeners, after the complete sync batch is installed.
+    const notifications = [...remoteNotifications];
+    remoteNotifications.clear();
+    for (const [key, values] of notifications) {
+      if (values.oldValue === values.newValue) continue;
+      window.dispatchEvent(new StorageEvent('storage', {
+        key, ...values, storageArea: localStorage, url: location.href
+      }));
+    }
   }
 
   function snapshotBaseline(bootLocal) {
@@ -694,6 +716,7 @@
       }
     }
     writeMeta();
+    notifyRemoteChanges();
     return results;
   }
 
@@ -761,6 +784,7 @@
       console.error('Cloud push failed:', error);
       setBadge('同步失败 · 点此重试', 'error', () => syncAllNow());
     } finally {
+      notifyRemoteChanges();
       pendingPushes.delete(key);
       pushTimers.delete(key);
       syncBusy = false;
@@ -815,6 +839,7 @@
       console.error('Cloud pull failed:', error);
       setBadge('离线 · 使用本机数据', 'error');
     } finally {
+      notifyRemoteChanges();
       syncBusy = false;
     }
   }
@@ -838,6 +863,7 @@
       setBadge('同步失败 · 云端未被覆盖', 'error', () => syncAllNow());
       return;
     } finally {
+      notifyRemoteChanges();
       syncBusy = false;
     }
     await pullRemoteChanges();
@@ -854,7 +880,7 @@
       const result = await writeRemoteSafely(key, value, { reason: 'explicit-world-save' });
       writeMeta();
       return result;
-    } finally { syncBusy = false; }
+    } finally { notifyRemoteChanges(); syncBusy = false; }
   }
 
   async function uploadDataUrl(dataUrl, relativePath) {
@@ -928,26 +954,33 @@
   }
 
   async function resolveCloudImage(img) {
-    if (img.dataset.cloudResolving === '1') return;
     const raw = img.getAttribute('src');
     if (!raw || !raw.startsWith('cloud://')) return;
+    if (img.dataset.cloudResolving === raw) return;
     const path = raw.slice('cloud://'.length);
-    img.dataset.cloudResolving = '1';
+    const request = {};
+    imageRequests.set(img, request);
+    img.dataset.cloudResolving = raw;
     img.dataset.cloudPath = raw;
     try {
-      let signed = assetCache.get(path);
+      const cached = assetCache.get(path);
+      let signed = cached && cached.expiresAt > Date.now() ? cached.url : null;
       if (!signed) {
+        const expiresAt = Date.now() + 55 * 60 * 1000;
         const { data, error } = await supabase.storage.from('user-assets').createSignedUrl(path, 3600);
         if (error) throw error;
         signed = `${data.signedUrl}${data.signedUrl.includes('?') ? '&' : '?'}v=${Date.now()}`;
-        assetCache.set(path, signed);
+        assetCache.set(path, { url: signed, expiresAt });
       }
-      img.src = signed;
+      if (imageRequests.get(img) === request && img.getAttribute('src') === raw) img.src = signed;
     } catch (error) {
       console.warn('Could not load cloud image:', error);
-      img.alt = '照片加载失败';
+      if (imageRequests.get(img) === request && img.getAttribute('src') === raw) img.alt = '照片加载失败';
     } finally {
-      delete img.dataset.cloudResolving;
+      if (imageRequests.get(img) === request) {
+        imageRequests.delete(img);
+        delete img.dataset.cloudResolving;
+      }
     }
   }
 

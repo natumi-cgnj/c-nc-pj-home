@@ -318,7 +318,7 @@ test('CBI check-ins use one repeatable grouped list while commissions and action
   assert.match(daily, /type:'count',\s*interval:1/);
   assert.match(daily, /if\(IS_CBI_HABITS\)\{if\(h\.salary\)rewardParts\.push\('点数 \+'/);
   assert.match(daily, /cbiDailyDb\.work\.salary=\(cbiDailyDb\.work\.salary\|\|0\)\+salary/);
-  assert.match(daily, /if\(utility\)utility\.remove\(\)/);
+  assert.match(daily, /if\(utility\)\{utility\.textContent='编辑';utility\.onclick=openHabitSectionManager;/);
   assert.doesNotMatch(cbiWork, /utility\.textContent = '卷宗'|backup\.html/);
   assert.match(cbiWork, /id="cbiActionDifficulty"/);
   assert.match(cbiWork, /快速 · 15 点/);
@@ -337,19 +337,18 @@ test('CBI check-ins use one repeatable grouped list while commissions and action
   assert.match(cbiWork, /data-tab="habits">打卡<\/div>/);
 });
 
-test('CBI wallet owns funding, investigation, progress and logs but no deployment editor', () => {
+test('CBI wallet owns reimbursements and allowances while preserving the archive and deployment boundaries', () => {
   const cbiWallet = fs.readFileSync('cbi-wallet.js', 'utf8');
-  for (const label of ['记账', '经费', '调查', '进度', '日志']) {
+  for (const label of ['记账', '报销', '商城']) {
     assert.match(cbiWallet, new RegExp(`>${label}<`));
   }
-  assert.match(cbiWallet, /allocateCaseFund/);
-  assert.match(cbiWallet, /createInvestigationRequest/);
-  assert.match(cbiWallet, /approveInvestigation/);
-  assert.match(cbiWallet, /setCaseFocus/);
+  assert.match(cbiWallet, /allocateAllowance/);
+  assert.match(cbiWallet, /refreshWishRequests/);
+  assert.match(cbiWallet, /approveWish/);
   assert.doesNotMatch(cbiWallet, /今日调度|值班|bossMode|fieldAgents|cbiDeployment/);
   assert.doesNotMatch(cbiWallet, /schedule\.html/);
   assert.doesNotMatch(cbi, /function fundMajorCase|批准 ¥'\+cost/);
-  assert.match(cbi, /wallet\.html#investigation/);
+  assert.match(cbi, /CBIData\.advanceMajorCaseDay\(db,caseId,/);
   assert.doesNotMatch(cbi, /item\.id!==id&&item\.status==='active'/);
 });
 

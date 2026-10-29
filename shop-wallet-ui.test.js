@@ -133,7 +133,7 @@ test('every page that writes CBI data loads the current schema cache version', (
 test('every page that loads the wallet runtime uses the current character cache version', () => {
   for (const page of ['index.html', 'cbi.html', 'schedule.html', 'wallet.html']) {
     const html = fs.readFileSync(page, 'utf8');
-    assert.match(html, /character-runtime\.js\?v=20260913-cbi-sleep1/, page);
+    assert.match(html, /character-runtime\.js\?v=20261028-rest1/, page);
   }
 });
 
@@ -144,7 +144,14 @@ test('cloud sync keeps running everywhere while its status badge stays on Home',
     'meals.html', 'music.html', 'organize.html', 'reading.html', 'recipe.html', 'schedule.html',
     'shop.html', 'story.html', 'study.html', 'wallet.html', 'world-empty.html'
   ];
-  pages.forEach(page => assert.match(fs.readFileSync(page, 'utf8'), /cloud-sync\.js\?v=20260914-home-badge1/, page));
+  pages.forEach(page => {
+    const html = fs.readFileSync(page, 'utf8');
+    if (page === 'event.html') {
+      assert.match(html, /location\.replace\('kitchen\.html'\+location\.search\+location\.hash\)/);
+      return; // The retired entry redirects to the synced ACTIVITY page.
+    }
+    assert.match(html, /cloud-sync\.js\?v=20261029-audit1/, page);
+  });
   assert.match(cloudSync, /function showsCloudBadge\(\)[\s\S]*?=== 'index\.html'/);
   assert.match(cloudSync, /if \(!showsCloudBadge\(\)\) \{[\s\S]*?return;/);
 });

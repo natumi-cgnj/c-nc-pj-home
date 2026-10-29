@@ -16,13 +16,16 @@ function inlineScript(file = 'meals.html') {
   return scripts[0][1];
 }
 
-function loadMeals(worldId, localStorage = new MemoryStorage(), file = 'meals.html') {
+function loadMeals(worldId, localStorage = new MemoryStorage(), file = 'meals.html', clock) {
   const elements = new Map();
   const listeners = new Map();
   const views = [];
   const tabs = [];
   const calorieTypes = [];
+  const intervals = [];
+  const location = { hash: '' };
   const document = {
+    addEventListener(name, callback) { listeners.set(name, callback); },
     querySelector(selector) {
       const type = selector.match(/^#calorieTypeGroup button\[data-value="([^"]+)"\]$/);
       return type ? calorieTypes.find(button => button.dataset.value === type[1]) || null : null;
@@ -44,6 +47,7 @@ function loadMeals(worldId, localStorage = new MemoryStorage(), file = 'meals.ht
           max: '',
           dataset: {},
           style: {},
+          setAttribute(name, value) { this[name] = value; },
           classList: {
             add(...names) { names.forEach(name => classes.add(name)); },
             remove(...names) { names.forEach(name => classes.delete(name)); },
@@ -78,13 +82,20 @@ function loadMeals(worldId, localStorage = new MemoryStorage(), file = 'meals.ht
   }
   const WorldContext = { getActiveWorldId: () => worldId };
   const window = { WorldContext, __LIMINAL_REDIRECTING: false, addEventListener(name, callback) { listeners.set(name, callback); } };
+  class ClockDate extends Date {
+    constructor(...args) { super(...(args.length ? args : [clock.now])); }
+    static now() { return new Date(clock.now).getTime(); }
+  }
   const context = vm.createContext({
     window,
     WorldContext,
     document,
     localStorage,
     console,
-    Date,
+    Date: clock ? ClockDate : Date,
+    Intl,
+    location,
+    history: { replaceState(_state, _title, hash) { location.hash = hash; } },
     JSON,
     Math,
     Object,
@@ -93,11 +104,45 @@ function loadMeals(worldId, localStorage = new MemoryStorage(), file = 'meals.ht
     Number,
     Set,
     setTimeout,
-    clearTimeout
+    clearTimeout,
+    setInterval(callback) { intervals.push(callback); return intervals.length; }
   });
   vm.runInContext(inlineScript(file), context, { filename: file + ':inline' });
-  return { context, document, elements, localStorage, listeners, views, tabs, calorieTypes };
+  return { context, document, elements, localStorage, listeners, views, tabs, calorieTypes, intervals };
 }
+
+test('DIET follows Japan 04:00 on an open page and preserves a deliberately selected history day', () => {
+  const clock = { now: '2026-10-29T03:59:59+09:00' };
+  const app = loadMeals('cbi', new MemoryStorage(), 'diet.html', clock);
+  assert.equal(app.elements.get('nutritionDate').textContent, '今天 · 2026-10-28');
+  clock.now = '2026-10-29T04:00:01+09:00';
+  app.listeners.get('pageshow')();
+  assert.equal(app.elements.get('nutritionDate').textContent, '今天 · 2026-10-29');
+  app.context.cycleNutrition('protein');
+  assert.equal(JSON.parse(app.localStorage.getItem('nutrition_check_db')).days['2026-10-29'].protein, 1);
+  app.context.shiftNutritionDay(-2);
+  clock.now = '2026-10-30T04:00:01+09:00';
+  app.listeners.get('visibilitychange')();
+  assert.equal(app.elements.get('nutritionDate').textContent, '2026-10-27');
+  app.context.cycleNutrition('calcium');
+  assert.equal(JSON.parse(app.localStorage.getItem('nutrition_check_db')).days['2026-10-27'].calcium, 1);
+});
+
+test('DIET rolls the current day before a first click after suspension and keeps a calorie draft intact', () => {
+  const clock = { now: '2026-10-29T03:59:59+09:00' };
+  const app = loadMeals('cbi', new MemoryStorage(), 'diet.html', clock);
+  app.context.openCalorieModal();
+  app.elements.get('calorieDetail').value = '未保存的餐食';
+  app.elements.get('calorieAmount').value = '321';
+  clock.now = '2026-10-29T04:00:01+09:00';
+  app.context.cycleNutrition('protein');
+  assert.equal(JSON.parse(app.localStorage.getItem('nutrition_check_db')).days['2026-10-29'].protein, 1);
+  for (const refresh of app.intervals) refresh();
+  assert.equal(app.elements.get('calorieDetail').value, '未保存的餐食');
+  assert.equal(app.elements.get('calorieAmount').value, '321');
+  assert.equal(app.elements.get('calorieDate').value, '2026-10-28', 'an explicit draft date is not silently reassigned');
+  assert.equal(app.elements.get('calorieModal').classList.contains('show'), true);
+});
 
 test('actual meals survive a world switch while companion layers remain separate', () => {
   const storage = new MemoryStorage();
@@ -138,7 +183,8 @@ test('DIET combines nutrition and calories beside body and world pages while leg
   const backup = fs.readFileSync('backup.html', 'utf8');
   assert.match(html, /<h1>DIET<\/h1>/);
   assert.match(html, /id="viewNutrition" class="view active"/);
-  assert.match(html, /<div id="viewDraft" class="view"><\/div>/);
+  assert.match(html, /<div id="viewDraft" class="view"/);
+  assert.match(html, /src="diet-world\.js\?v=/);
   assert.match(html, /id="viewBody" class="view"/);
   assert.match(html, /switchMealTab\('viewNutrition'/);
   assert.match(html, /switchMealTab\('viewDraft'/);
@@ -148,7 +194,10 @@ test('DIET combines nutrition and calories beside body and world pages while leg
   assert.match(legacy, /id="viewMeals" class="view active"/);
   assert.doesNotMatch(legacy, /viewNutrition|viewCalories|nutrition_check_db|calorie_log_db/);
   assert.doesNotMatch(html, /减脂目标|增重目标|每日限额/);
-  assert.match(cloudSync, /'diet\.html': \['calorie_log_db', 'nutrition_check_db', 'omniverse_world_context'\]/);
+  const dietKeys = cloudSync.match(/'diet\.html': \[([^\]]+)\]/)[1];
+  for (const key of ['calorie_log_db', 'nutrition_check_db', 'body_log_db', 'diet_world_state_v1', 'wallet_accounts_v1', 'omniverse_world_context']) {
+    assert.ok(dietKeys.includes("'" + key + "'"), key + ' participates in DIET sync');
+  }
   assert.match(cloudSync, /'meals\.html': \['meal_log_db', 'meal_companion_db'/);
   assert.match(backup, /key:'calorie_log_db'/);
   assert.match(cloudSync, /const STATE_KEYS = \[[\s\S]*?'nutrition_check_db'/);

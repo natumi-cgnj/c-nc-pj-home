@@ -212,7 +212,7 @@ class FakeSupabase {
       from: () => ({
         upload: async () => ({ error: null }),
         remove: async () => ({ error: null }),
-        createSignedUrl: async () => ({ data: { signedUrl: 'https://example.invalid/image' }, error: null })
+        createSignedUrl: async path => this.signer ? this.signer(path) : ({ data: { signedUrl: 'https://example.invalid/image' }, error: null })
       })
     };
   }
@@ -248,6 +248,13 @@ function makeEnvironment({ remoteValue, localValue, pathname = '/daily.html', lo
   const document = new FakeDocument();
   const intervals = [];
   const storageListeners = [];
+  const events = [];
+  const observers = [];
+  let clock = Date.now();
+  class ClockDate extends Date {
+    constructor(...args) { super(...(args.length ? args : [clock])); }
+    static now() { return clock; }
+  }
   const location = {
     pathname,
     search: '',
@@ -263,7 +270,10 @@ function makeEnvironment({ remoteValue, localValue, pathname = '/daily.html', lo
     addEventListener(type, handler) {
       if (type === 'storage') storageListeners.push(handler);
     },
-    dispatchEvent() {}
+    dispatchEvent(event) {
+      events.push(event);
+      if (event.type === 'storage') storageListeners.forEach(handler => handler(event));
+    }
   };
   const context = {
     window,
@@ -279,7 +289,7 @@ function makeEnvironment({ remoteValue, localValue, pathname = '/daily.html', lo
     Promise,
     Map,
     Set,
-    Date,
+    Date: ClockDate,
     Math,
     JSON,
     Object,
@@ -292,7 +302,11 @@ function makeEnvironment({ remoteValue, localValue, pathname = '/daily.html', lo
     CustomEvent: class CustomEvent {
       constructor(type) { this.type = type; }
     },
+    StorageEvent: class StorageEvent {
+      constructor(type, options) { this.type = type; Object.assign(this, options); }
+    },
     MutationObserver: class MutationObserver {
+      constructor(callback) { observers.push(callback); }
       observe() {}
     },
     setTimeout,
@@ -304,7 +318,81 @@ function makeEnvironment({ remoteValue, localValue, pathname = '/daily.html', lo
     clearInterval() {}
   };
   vm.runInNewContext(source, context, { filename: 'cloud-sync.js' });
-  return { context, window, document, localStorage, db, intervals, storageListeners };
+  return { context, window, document, localStorage, db, intervals, storageListeners, events, observers,
+    advance(amount) { clock += amount; } };
+}
+
+async function testRemotePullNotifiesOpenModulesAfterTheWholeBatch() {
+  const before = { accounts: { mercari: { balance: 123 } } };
+  const tasks = { version: 2, worlds: { fox: { offer: null } } };
+  const env = makeEnvironment({ pathname: '/ledger.html', remoteValue: {}, localValue: {},
+    localStates: { wallet_accounts_v1: before, ledger_world_tasks_v2: tasks },
+    remoteStates: { wallet_accounts_v1: before, ledger_world_tasks_v2: tasks } });
+  await env.window.CloudSync.whenReady();
+  const after = { accounts: { mercari: { balance: 456 } } };
+  const newTasks = { version: 2, worlds: { fox: { offer: { taskId: 'test' } } } };
+  const observed = [];
+  env.window.addEventListener('storage', event => {
+    observed.push({ key: event.key, oldValue: event.oldValue, newValue: event.newValue,
+      wallet: JSON.parse(env.localStorage.getItem('wallet_accounts_v1')),
+      tasks: JSON.parse(env.localStorage.getItem('ledger_world_tasks_v2')) });
+  });
+  for (const [key, value] of Object.entries({ wallet_accounts_v1: after, ledger_world_tasks_v2: newTasks })) {
+    Object.assign(currentRow(env, key), { state_data: value, updated_at: '2026-10-29T12:00:00Z' });
+  }
+  await env.intervals[1]();
+  assert.deepEqual(observed.map(event => event.key).sort(), ['ledger_world_tasks_v2', 'wallet_accounts_v1']);
+  for (const event of observed) {
+    assert.deepEqual(event.wallet, after, 'listeners see a complete remote batch');
+    assert.deepEqual(event.tasks, newTasks);
+  }
+  const walletEvent = observed.find(event => event.key === 'wallet_accounts_v1');
+  assert.deepEqual(JSON.parse(walletEvent.oldValue), before);
+  assert.deepEqual(JSON.parse(walletEvent.newValue), after);
+  assert.equal(archiveRows(env, '__history__:').length, 0, 'reading another device must not write history or echo data back');
+}
+
+function cloudImage(path) {
+  return { dataset: {}, src: 'cloud://u1/' + path, alt: '',
+    getAttribute(name) { return name === 'src' ? this.src : null; },
+    matches() { return this.src.startsWith('cloud://'); }, querySelectorAll() { return []; } };
+}
+const settleImages = () => new Promise(resolve => setImmediate(resolve));
+
+async function testCloudImageLateRequestCannotReplaceTheCurrentPhoto() {
+  const env = makeEnvironment({ remoteValue: {}, localValue: {} });
+  await env.window.CloudSync.whenReady();
+  let finishOld;
+  env.db.signer = path => path.endsWith('old.jpg') ? new Promise(resolve => { finishOld = resolve; }) :
+    Promise.resolve({ data: { signedUrl: 'https://example.invalid/new.jpg' }, error: null });
+  const image = cloudImage('old.jpg');
+  env.observers[0]([{ type: 'attributes', target: image }]);
+  image.src = 'cloud://u1/new.jpg';
+  env.observers[0]([{ type: 'attributes', target: image }]);
+  await settleImages();
+  finishOld({ data: { signedUrl: 'https://example.invalid/old.jpg' }, error: null });
+  await settleImages();
+  assert.match(image.src, /\/new\.jpg\?/, 'a slow previous photo must not replace the newly selected one');
+}
+
+async function testExpiredCloudImageUrlsAreSignedAgain() {
+  const env = makeEnvironment({ remoteValue: {}, localValue: {} });
+  await env.window.CloudSync.whenReady();
+  let requests = 0;
+  env.db.signer = async () => ({ data: { signedUrl: 'https://example.invalid/photo-' + (++requests) }, error: null });
+  const first = cloudImage('photo.jpg');
+  env.observers[0]([{ type: 'attributes', target: first }]);
+  await settleImages();
+  const cached = cloudImage('photo.jpg');
+  env.observers[0]([{ type: 'attributes', target: cached }]);
+  await settleImages();
+  assert.equal(requests, 1, 'a fresh signed URL is reused');
+  env.advance(3601000);
+  const later = cloudImage('photo.jpg');
+  env.observers[0]([{ type: 'attributes', target: later }]);
+  await settleImages();
+  assert.equal(requests, 2, 'an expired signed URL is refreshed during a long-running session');
+  assert.match(later.src, /photo-2\?/);
 }
 
 function currentRow(env, key = 'daily_db') {
@@ -528,6 +616,9 @@ async function testWorldFilesExplicitSyncIsScopedAndRecoverable() {
 }
 
 async function main() {
+  await testRemotePullNotifiesOpenModulesAfterTheWholeBatch();
+  await testCloudImageLateRequestCannotReplaceTheCurrentPhoto();
+  await testExpiredCloudImageUrlsAreSignedAgain();
   await testStatusBadgeOnlyAppearsOnHomepage();
   await testNormalWriteCreatesHistory();
   await testStartupShrinkIsBlocked();

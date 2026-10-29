@@ -1,3 +1,4 @@
+html{scrollbar-gutter:stable}
 :root{--ink:#66625e;--muted:#aaa39a;--accent:#a68b59;--rule:#efede9}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{background:#fff;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;line-height:1.7}

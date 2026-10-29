@@ -50,6 +50,8 @@ function fixture(state, sharedStorage) {
   window.closeModal = id => { modalCalls.push(['close', id]); nodes.get(id).classList.remove('show'); };
   const context = vm.createContext({ window, document, Date: ClockDate, Intl });
   vm.runInContext(recurring, context);
+  vm.runInContext(fs.readFileSync('ledger-task-catalog.js', 'utf8'), context);
+  vm.runInContext(fs.readFileSync('ledger-task-model.js', 'utf8'), context);
   vm.runInContext(source, context);
   return { window, storage, writes, nodes, modalCalls, confirmations, toasts, expenseCards, timers,
     flushTimers() { const queued = [...timers.values()]; timers.clear(); queued.forEach(item => item.callback()); }, time(value) { now = value; }, render() { window.WalletAssets.render(); },
