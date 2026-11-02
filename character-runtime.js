@@ -1016,7 +1016,6 @@
   };
   const CBI_JANE_SLEEP_PLACES = [
     { id: 'bedroom_bed', roomId: 'jane', label: '卧室的床', x: 0.72, y: 0.46 },
-    { id: 'bedroom_sofa', roomId: 'jane', label: '卧室的沙发', x: 0.10, y: 0.55 },
     { id: 'living_sofa_bed', roomId: 'natumi', label: '客厅的沙发床', x: 0.18, y: 0.58 }
   ];
   const CBI_JANE_NIGHTMARE_CHANCE = 0.05;
@@ -1406,7 +1405,8 @@
     const startAt = cbiDateAtMinute(nightKey, bedtimeMinute).getTime();
     const endAt = nextShift.arrivalAt - wakeLead * 60000;
     const placeRoll = stableScheduleUnit('cbi-jane-sleep-place|' + nightKey);
-    const place = CBI_JANE_SLEEP_PLACES[placeRoll < 0.45 ? 0 : (placeRoll < 0.73 ? 1 : 2)];
+    // Former bedroom-sofa nights now use the bed; existing bed/sofa-bed nights stay put.
+    const place = CBI_JANE_SLEEP_PLACES[placeRoll < 0.73 ? 0 : 1];
     const bossPresent = stableScheduleUnit('cbi-jane-sleep-boss|' + nightKey) < 0.64;
     const sleeping = currentTime >= startAt && currentTime < endAt;
     const base = {

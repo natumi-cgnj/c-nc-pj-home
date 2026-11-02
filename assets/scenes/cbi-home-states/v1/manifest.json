@@ -123,23 +123,6 @@
         "height": 222
       }
     },
-    "bedroom_sleep_chair": {
-      "patches": [
-        {
-          "src": "bedroom_sleep_chair.webp",
-          "x": 244,
-          "y": 158,
-          "width": 143,
-          "height": 173
-        }
-      ],
-      "target": {
-        "x": 244,
-        "y": 158,
-        "width": 143,
-        "height": 173
-      }
-    },
     "living_tv": {
       "patches": [
         {

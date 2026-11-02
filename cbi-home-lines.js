@@ -2,7 +2,7 @@
   'use strict';
   if (global.__LIMINAL_REDIRECTING) return;
   let batch = null, owner = '', pending = null, rules = null, timer = null, waiting = false, nextAutoAt = 0;
-  const content = import('./cbi-home-content.mjs?v=20261028-dialogue1').then(value => { rules = value; return value; });
+  const content = import('./cbi-home-content.mjs?v=20261103-sleep2').then(value => { rules = value; return value; });
   content.catch(() => {});
   const identity = () => global.CloudSync?.user?.id || '';
   function sameOwner() {

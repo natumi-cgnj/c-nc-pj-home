@@ -26,7 +26,6 @@ export const HOME_STATES = {
   bedroom_sleep_back: { space: 'bedroom', label: '在床上仰卧睡着', sleep: true },
   bedroom_sleep_side: { space: 'bedroom', label: '在床上侧卧睡着', sleep: true },
   bedroom_sleep_diagonal: { space: 'bedroom', label: '在床上斜卧睡着', sleep: true },
-  bedroom_sleep_chair: { space: 'bedroom', label: '在卧室沙发上睡着', sleep: true },
   living_sleep: { space: 'living', label: '抱着鲨鱼在沙发床睡着', sleep: true }
 };
 
@@ -110,7 +109,10 @@ function unit(seed) {
 export function homeContext(presence, now = Date.now()) {
   if (!presence || presence.location !== 'home') return null;
   if (presence.sleeping && presence.sleep?.sleeping) {
-    return { sleeping: true, space: presence.sleep.roomId === 'natumi' ? 'living' : 'bedroom', sleep: presence.sleep };
+    const living = presence.sleep.placeId === 'living_sofa_bed';
+    const sleep = living ? presence.sleep : { ...presence.sleep, placeId: 'bedroom_bed',
+      placeLabel: '卧室的床', roomId: 'jane', x: .72, y: .46 };
+    return { sleeping: true, space: living ? 'living' : 'bedroom', sleep };
   }
   now = Number(now);
   if (!Number.isFinite(now)) now = Date.now();
@@ -180,8 +182,7 @@ export function selectHomeFrame(presence, now = Date.now(), pack = null) {
   if (context.sleeping) {
     const sleep = context.sleep;
     const pose = sleepPose(sleep, now);
-    const activity = sleep.placeId === 'living_sofa_bed' ? 'living_sleep' : sleep.placeId === 'bedroom_sofa'
-      ? 'bedroom_sleep_chair' : pose.activity;
+    const activity = sleep.placeId === 'living_sofa_bed' ? 'living_sleep' : pose.activity;
     return { ...context, activity, nextAt: pose.nextAt, mode: 'sleep', lines: [], key: 'sleep:' + sleep.nightKey + ':' + activity };
   }
   const state = HOME_STATES[context.activity];

@@ -18,7 +18,10 @@ test('all approved activity assets exist and every state has native in-canvas bo
   await scene.ready;
   const manifest = JSON.parse(fs.readFileSync(new URL('assets/scenes/cbi-home-states/v1/manifest.json', root)));
   scene.validateManifest(manifest, { HOME_STATES });
-  assert.equal(Object.keys(manifest.activities).length, 19);
+  assert.equal(Object.keys(manifest.activities).length, 18);
+  assert.equal(HOME_STATES.bedroom_sleep_chair, undefined);
+  assert.equal(manifest.activities.bedroom_sleep_chair, undefined);
+  assert.equal(fs.existsSync(new URL('assets/scenes/cbi-home-states/v1/bedroom_sleep_chair.webp', root)), false);
   for (const item of Object.values(manifest.activities)) for (const patch of item.patches) {
     assert.ok(fs.existsSync(new URL('assets/scenes/cbi-home-states/v1/' + patch.src, root)));
   }
@@ -160,17 +163,43 @@ test('bed sleep poses get a probabilistic opportunity only after each three-to-f
   assert.ok(changed / (changed + retained) > .45 && changed / (changed + retained) < .65);
 });
 
-test('nightly sleep has absolute priority, preserves its location, and never emits awake dialogue', () => {
+test('nightly sleep uses only the bed or living sofa bed, including legacy bedroom-sofa input', () => {
   const now = Date.parse('2026-10-28T01:00:00+09:00');
   for (const [placeId, roomId, allowed] of [
     ['bedroom_bed', 'jane', ['bedroom_sleep_back','bedroom_sleep_side','bedroom_sleep_diagonal']],
-    ['bedroom_sofa', 'jane', ['bedroom_sleep_chair']], ['living_sofa_bed', 'natumi', ['living_sleep']]
+    ['bedroom_sofa', 'jane', ['bedroom_sleep_back','bedroom_sleep_side','bedroom_sleep_diagonal']],
+    ['living_sofa_bed', 'natumi', ['living_sleep']]
   ]) {
     const presence = { location: 'home', sleeping: true, sleep: { sleeping: true, placeId, roomId, nightKey: '2026-10-27', startAt: now - 3600000 } };
     const frame = selectHomeFrame(presence, now, pack);
     assert.ok(allowed.includes(frame.activity)); assert.equal(frame.mode, 'sleep'); assert.deepEqual(frame.lines, []);
+    assert.equal(frame.sleep.placeId, placeId === 'living_sofa_bed' ? 'living_sofa_bed' : 'bedroom_bed');
+    assert.equal(frame.space, placeId === 'living_sofa_bed' ? 'living' : 'bedroom');
+    if (placeId === 'bedroom_sofa') {
+      assert.equal(frame.sleep.placeLabel, '卧室的床');
+      assert.equal(frame.sleep.roomId, 'jane');
+      assert.equal(frame.sleep.x, .72); assert.equal(frame.sleep.y, .46);
+    }
     assert.deepEqual(selectHomeFrame(presence, now + 1000, pack), frame);
   }
+});
+
+test('nightly runtime selects only the two supported sleep places throughout the year', () => {
+  const context = vm.createContext({ window: {} });
+  vm.runInContext(fs.readFileSync(new URL('character-runtime.js', root), 'utf8'), context);
+  const seen = new Set();
+  for (let day = 0; day < 366; day++) {
+    const now = new Date(2026, 0, day + 1, 2).getTime();
+    const status = context.window.CharacterRuntime.getCbiJaneSleepStatus(now);
+    assert.equal(status.sleeping, true);
+    assert.ok(['bedroom_bed', 'living_sofa_bed'].includes(status.placeId));
+    const frame = selectHomeFrame({ location: 'home', sleeping: true, sleep: status }, now);
+    assert.equal(frame.sleep.placeId, status.placeId);
+    assert.equal(frame.space, status.placeId === 'living_sofa_bed' ? 'living' : 'bedroom');
+    assert.equal(HOME_STATES[frame.activity].sleep, true);
+    seen.add(status.placeId);
+  }
+  assert.deepEqual([...seen].sort(), ['bedroom_bed', 'living_sofa_bed']);
 });
 
 test('lighting changes room and person consistently while leaving exterior white pixels untouched', () => {

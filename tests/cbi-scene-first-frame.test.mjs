@@ -97,10 +97,11 @@ test('late home windows and actors cannot publish an obsolete first frame after 
   assert.equal(h.api.getState().drawCount, 0);
   await h.release(name => name.startsWith('window-day'));
   assert.equal(h.api.getState().drawCount, 0);
-  await h.release(name => name === 'bedroom_sleep_chair.webp');
+  await h.release(name => /^bedroom_sleep_(back|side|diagonal)\.webp$/.test(name));
   assert.equal(h.api.getState().drawCount, 1);
   assert.equal(h.nodes.cbiHomeCanvas.dataset.timeSlot, 'day');
-  assert.equal(h.nodes.cbiHomeCanvas.dataset.homeActivity, 'bedroom_sleep_chair');
+  assert.match(h.nodes.cbiHomeCanvas.dataset.homeActivity, /^bedroom_sleep_(back|side|diagonal)$/);
+  assert.ok(h.requests.every(request => request.name !== 'bedroom_sleep_chair.webp'));
 });
 
 test('office waits for its selected window and does not fetch the other periods', async () => {
