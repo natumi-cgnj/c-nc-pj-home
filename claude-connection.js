@@ -14,13 +14,14 @@
     claude_start_uncertain: '启动请求没有得到确认。正在等待结果，不会重复发送。', claude_unknown_response: 'Claude 返回了未识别的启动结果，正在等待回传。',
     run_expired: '还没有收到回复。可打开 Claude 查看这次任务是否完成，以及回传步骤有没有成功。', service_unavailable: '连接服务暂时不可用，已填写的内容仍在，请稍后重试。',
     invalid_office_lines: '这批台词不符合当前坐姿或气泡格式，未用于办公室。请更新云端任务说明后再试。',
-    invalid_home_lines: '这批居家状态或台词不符合已有图片，保留上一批内容。'
+    invalid_home_lines: '这批居家状态或台词不符合已有图片，保留上一批内容。',
+    invalid_state_lines: '这批台词与对应人物状态或句数不符，未用于当前气泡。'
   };
   const NAMES = { jane: 'Jane', cho: 'Cho', rigsby: 'Rigsby', lisbon: 'Lisbon', vanpelt: 'Van Pelt' };
   let configured = false, ready = false, authenticated = false, busy = false, timer = null, runs = [], lastRequest = null, refreshing = false, lastOfficeRun = '';
-  const lastOfficeRequests = { request: null };
   function decode(run) { try { return global.CBIOfficeLines?.decode(run.result) || null; } catch { return null; } }
   function decodeHome(run) { try { return global.CBIHomeLines?.decode(run.result) || null; } catch { return null; } }
+  function decodeState(run) { try { return global.CBIStateLines?.decode(run.result) || null; } catch { return null; } }
   function message(code) { return ERRORS[code] || '这次操作没有完成，请刷新状态后重试。'; }
   function requestId() {
     if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
@@ -64,18 +65,21 @@
       const status = Object.hasOwn(STATUS, run.status) ? run.status : 'uncertain';
       const pack = run.status === 'completed' ? decode(run) : null;
       const homePack = run.status === 'completed' ? decodeHome(run) : null;
+      const statePack = run.status === 'completed' ? decodeState(run) : null;
+      const stateCards = statePack ? statePack.states.map(state => '<section class="office-character"><h4>' + esc(NAMES[state.character]) + ' · ' + esc(global.CBIStateLines.describe(state.state, statePack.scene)) + '</h4>'
+        + state.lines.map(m => '<p class="office-line"><span>' + esc(m) + '</span></p>').join('') + '</section>').join('') : '';
       const office = pack ? Object.keys(NAMES).map(id => '<section class="office-character"><h4>' + NAMES[id] + '</h4>'
         + pack.characters[id].map(line => '<p class="office-line"><span>' + esc(line.s) + '</span><span>' + esc(line.m) + '</span></p>').join('') + '</section>').join('') : '';
       const homeNames = { bedroom: '卧室', living: '客厅', kitchen: '厨房', bathroom: '浴室' };
       const home = homePack ? Object.entries(homePack.spaces).map(([space, lines]) => '<section class="office-character"><h4>' + homeNames[space] + '</h4>'
         + lines.map(line => '<p class="office-line"><span>' + esc(global.CBIHomeLines.describe(line.activity, line.topic)) + '</span><span>' + esc(line.m) + '</span></p>').join('') + '</section>').join('') : '';
-      const label = pack ? '已用于办公室' : homePack ? '已用于家中' : STATUS[status];
-      return '<article class="test-result ' + status + '"><div class="test-result-head"><span>' + esc(date) + '</span><strong>' + label + '</strong></div>' + (office || home || '<p class="test-result-body">' + esc(copy) + '</p>') + link + '</article>';
+      const label = statePack ? '已保存状态台词' : pack ? '办公室台词记录' : homePack ? '居家台词记录' : STATUS[status];
+      return '<article class="test-result ' + status + '"><div class="test-result-head"><span>' + esc(date) + '</span><strong>' + label + '</strong></div>' + (stateCards || office || home || '<p class="test-result-body">' + esc(copy) + '</p>') + link + '</article>';
     }).join('') : '<p class="empty">还没有测试记录</p>';
     const batch = global.CBIOfficeLines?.getBatch();
-    el('officeState').textContent = batch ? '办公室自动更新中 · 当前五名成员，共 ' + Object.values(batch.pack.characters).reduce((n, pool) => n + pool.length, 0) + ' 条。' : '首次配置完成后，进入办公室即可自动准备台词。';
+    el('officeState').textContent = batch?.pack?.format === 'cbi-state-lines' ? '当前状态共 ' + batch.pack.states.reduce((n, state) => n + state.lines.length, 0) + ' 句台词。' : '进入办公室后，按在场人物的当前状态自动准备台词。';
     const officeRun = runs.find(run => run.id === lastOfficeRun);
-    if (officeRun?.status === 'completed') el('officeNotice').textContent = decode(officeRun) ? '已更新，回到主页点击办公室里的人物即可看到。' : '这次回传仍是普通试写文本，未用于办公室。请复制新版任务说明替换到 Claude 后，再点“立即更新”。';
+    if (officeRun?.status === 'completed') el('officeNotice').textContent = decodeState(officeRun) ? '这批状态台词已保存，返回主页后按对应状态使用。' : decode(officeRun) ? '已保存办公室台词记录。' : '这次回传未成为可用的状态台词，请查看云端任务结果。';
     else if (officeRun && ['failed', 'expired'].includes(officeRun.status)) el('officeNotice').textContent = message(officeRun.error_code);
     controls();
   }
@@ -131,9 +135,10 @@
     if (busy || !configured) return;
     busy = true; controls(); el('officeNotice').textContent = '';
     try {
-      if (!lastOfficeRequests.request) lastOfficeRequests.request = requestId();
-      const data = await call({ action: 'office_generate', request_id: lastOfficeRequests.request });
-      lastOfficeRequests.request = null;
+      await global.CBIStateLines.ready;
+      if (!global.CBIStateLines.context('office')) { el('officeNotice').textContent = '当前没有在办公室的人物。有人在场时会按各自状态自动准备台词。'; return; }
+      const data = await global.CBIOfficeLines.refresh({ manual: true });
+      if (!data) throw new Error('service_unavailable');
       if (data.run) { lastOfficeRun = data.run.id; runs = [data.run, ...runs.filter(x => x.id !== data.run.id)].slice(0, 8); }
       renderResults();
       if (data.run?.status === 'completed') await refresh();

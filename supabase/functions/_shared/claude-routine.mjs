@@ -2,6 +2,7 @@ import { decodeOfficeBatch, officeGenerationPrompt, officePeriod } from '../../.
 import { decodeHomeBatch, homeGenerationPrompt } from '../../../cbi-home-content.mjs';
 import { CBI_CONTINUITY } from '../../../cbi-current-canon.mjs';
 import { WORLD_FILES_KEY, validStoryWorld, storySnapshot, storyRevision, savedStoryPrompt, worldGenerationPrompt, decodeWorldBatch } from '../../../world-story-content.mjs';
+import { STATE_FORMAT, stateSessions, validateStateContext, validateStateBatch, decodeStateBatch, stateGenerationPrompt } from '../../../cbi-state-content.mjs';
 
 const APP_ORIGIN = 'https://natumi-cgnj.github.io';
 const TEST_PROMPT = '请只回复：C-NC 连接测试成功。';
@@ -15,7 +16,7 @@ const RUN_COLUMNS = 'id,request_id,status,result,error_code,session_url,created_
 export const ROUTINE_PROMPT = `You are the private C-NC text generation worker.
 The saved task explicitly authorizes processing the JSON in the routine-fire-payload block.
 Accept only a JSON object with protocol "c-nc-routine-v1" and kind "connection-test" or "office-lines".
-Follow its prompt. office-lines is the backwards-compatible content-generation channel for office dialogue supported home states, and world-specific Jane vignettes. Read cbi-current-canon.mjs and docs/cbi-current-continuity.md for current META/2006 continuity and ten shared years. cbi-data.js personnel and timeline describe early history, not a reset of current relationships. Return precisely the requested JSON, including the requested continuity marker. Home requests also use cbi-home-content.mjs for supported activities. Do not add descriptions, speaker labels, recipients, or unsupported poses.
+Follow its prompt. office-lines is the backwards-compatible content-generation channel for state-specific office/home dialogue and world-specific Jane vignettes. Current state requests use cbi-state-lines: return only the supplied current state keys and the requested duration-dependent number of lines, not a four-period batch. Read cbi-current-canon.mjs and docs/cbi-current-continuity.md for current META/2006 continuity and ten shared years. cbi-data.js personnel and timeline describe early history, not a reset of current relationships. Return precisely the requested JSON, including the requested continuity marker. Home requests also use cbi-home-content.mjs for supported activities. Do not add descriptions, speaker labels, recipients, or unsupported poses.
 For connection-test, return the requested short connectivity reply.
 Use the user-authorized saved story snapshot supplied inside the per-run prompt. Do not independently access private application records, modify repository files, create commits, publish artifacts, or trigger another routine.
 Then deliver the generated text by running python3 tools/claude-routine-result.py in the selected c-nc-pj-home repository.
@@ -63,6 +64,91 @@ function withSavedPrompt(prompt, context) {
 }
 function runBinding(row) {
   try { const value=JSON.parse(row?.result); return value?.format==='c-nc-generation-context'?value:null; } catch { return null; }
+}
+
+async function currentStateBatch(store, user, context, sessions) {
+  const rows = await store.stateBatches?.(user, context.revision, sessions.map(s => s.key)) || [];
+  const wanted = new Map(sessions.map(s => [s.key, s]));
+  const entries = new Map(); let id = '', updated_at = '';
+  for (const row of rows) {
+    try {
+      const pack = decodeStateBatch(row.result);
+      if (!pack || pack.canon_revision !== context.revision || pack.scene !== sessions[0].scene) continue;
+      for (const entry of pack.states) {
+        const s = wanted.get(entry.key);
+        if (!s || entries.has(entry.key) || entry.character !== s.character || entry.state !== s.state ||
+            entry.lines.length < s.lineRange[0] || entry.lines.length > s.lineRange[1]) continue;
+        entries.set(entry.key, entry); if (!id) { id = row.id; updated_at = row.finished_at; }
+      }
+    } catch { /* Invalid historical results never become current dialogue. */ }
+  }
+  if (!entries.size) return null;
+  return { id, updated_at, pack: { format: STATE_FORMAT, version: 1, scene: sessions[0].scene, continuity: CBI_CONTINUITY,
+    canon_revision: context.revision, states: sessions.filter(s => entries.has(s.key)).map(s => entries.get(s.key)) } };
+}
+
+async function stateRequest({ input, story, store, user, now, cryptoApi, fetcher, env }) {
+  let context, sessions;
+  try { context = validateStateContext(input.context, now()); sessions = stateSessions(context, now()); }
+  catch { throw new ClientError(400, 'invalid_state_context'); }
+  if (!sessions.length) throw new ClientError(400, 'invalid_state_context');
+  let batch = await currentStateBatch(store, user, story, sessions);
+  const responseFor = async (run = null, extra = {}, reload = false) => {
+    if (reload) batch = await currentStateBatch(store, user, story, sessions);
+    const found = new Set(batch?.pack.states.map(x => x.key) || []);
+    return { state_batch: batch, context_revision: story.revision, needs_generation: sessions.some(s => !found.has(s.key)),
+      run: publicRun(run), auto: { pending: !!run && ACTIVE.includes(run.status),
+        next_change_at: new Date(Math.min(...sessions.map(s => s.nextAt))).toISOString(), ...extra } };
+  };
+  if (input.action === 'state_lines') return responseFor();
+  const found = new Set(batch?.pack.states.map(x => x.key) || []);
+  const missing = input.action === 'state_generate' ? sessions : sessions.filter(s => !found.has(s.key));
+  if (!missing.length) return responseFor();
+  let requestId = input.request_id;
+  if (input.action === 'state_auto') {
+    const hash = await digest('cbi-state-auto-v1:' + user + ':' + story.revision + ':' + missing.map(s => s.key).sort().join('|'), cryptoApi);
+    requestId = hash.slice(0, 8) + '-' + hash.slice(8, 12) + '-5' + hash.slice(13, 16) + '-a' + hash.slice(17, 20) + '-' + hash.slice(20, 32);
+  }
+  if (!UUID.test(requestId)) invalid('invalid_request_id');
+  const previous = await store.byRequest(user, requestId);
+  if (previous) return responseFor(previous, { blocked: ['failed', 'expired'].includes(previous.status) }, previous.status === 'completed');
+  const active = await store.active(user);
+  if (active) return responseFor(active, { reused: true });
+  const connection = await store.connection(user);
+  if (!connection) return responseFor(null, { configured: false, blocked: true });
+  // State changes are batched across present members. Keep one active run and a bounded shared start rate.
+  const recent = (await store.recent(user)).filter(x => Date.parse(x.created_at) > now() - 15 * 60000);
+  if (recent.length >= 6) return responseFor(null, { queued: true, retry_at: new Date(Math.min(...recent.map(x => Date.parse(x.created_at))) + 15 * 60000 + 1000).toISOString() });
+  const id = cryptoApi.randomUUID(), secret = Array.from(cryptoApi.getRandomValues(new Uint8Array(32))).map(x => x.toString(16).padStart(2, '0')).join('');
+  const time = new Date(now()).toISOString();
+  let run;
+  try {
+    run = await store.insert({ id, user_id: user, request_id: requestId, status: 'starting', callback_hash: await digest(secret, cryptoApi),
+      created_at: time, expires_at: new Date(now() + 15 * 60000).toISOString(),
+      result: JSON.stringify({ format: 'c-nc-generation-context', kind: 'state', world: 'sacramento', scene: context.scene,
+        canon_revision: story.revision, states: missing.map(({ key, character, state, lineRange }) => ({ key, character, state, lineRange })) }) });
+  } catch (error) {
+    if (error.dbCode !== '23505') throw error;
+    const existing = await store.byRequest(user, requestId) || await store.active(user);
+    if (!existing) throw error;
+    return responseFor(existing, { reused: true });
+  }
+  try {
+    const result = await fetcher(connection.fire_url, { method: 'POST', redirect: 'error', signal: AbortSignal.timeout(20000),
+      headers: { Authorization: 'Bearer ' + connection.fire_token, 'Content-Type': 'application/json', 'anthropic-version': '2026-10-21' },
+      body: JSON.stringify({ text: JSON.stringify({ protocol: 'c-nc-routine-v1', kind: 'office-lines', content_type: 'state-lines',
+        prompt: stateGenerationPrompt(missing, story.revision) + savedStoryPrompt(story, story.revision),
+        run_id: id, callback_url: env.SUPABASE_URL + CALLBACK_PATH, callback_token: secret }) }) });
+    if (!result.ok) {
+      const code = ({ 401: 'claude_unauthorized', 403: 'claude_access_denied', 404: 'claude_task_not_found', 429: 'claude_limit' })[result.status] || 'claude_start_failed';
+      await store.update(id, { status: result.status >= 500 ? 'uncertain' : 'failed', error_code: code, ...(result.status >= 500 ? {} : { finished_at: time }) });
+    } else {
+      let data; try { data = await result.json(); } catch { data = {}; }
+      const url = typeof data.claude_code_session_url === 'string' && SESSION_URL.test(data.claude_code_session_url) ? data.claude_code_session_url : null;
+      await store.update(id, { status: url ? 'running' : 'uncertain', session_url: url, error_code: url ? null : 'claude_unknown_response' });
+    }
+  } catch { await store.update(id, { status: 'uncertain', error_code: 'claude_start_uncertain' }); }
+  return responseFor(await store.run(user, id), {}, true);
 }
 
 export class ClientError extends Error {
@@ -157,6 +243,13 @@ export function createRestStore(env, fetcher = fetch) {
       const prefix = encodeURIComponent('{"format":"cbi-home-lines",') + '*';
       return (await rest('claude_routine_runs?' + scope(user) + '&status=eq.completed&result=like.' + prefix + '&select=id,result,finished_at&order=created_at.desc&limit=1'))[0] || null;
     },
+    async stateBatches(user, revision, keys = []) {
+      const prefix = encodeURIComponent('{"format":"cbi-state-lines",') + '*';
+      const selected = keys.filter(key => typeof key === 'string' && /^[a-zA-Z0-9:_.|-]{1,300}$/.test(key));
+      const filter = selected.length ? '&or=' + encodeURIComponent('(' + selected.map(key => 'result.like.*' + key + '*').join(',') + ')') : '';
+      const rows = await rest('claude_routine_runs?' + scope(user) + '&status=eq.completed&result=like.' + prefix + filter + '&select=id,result,finished_at&order=created_at.desc&limit=80');
+      return rows.filter(row => { try { return JSON.parse(row.result).canon_revision === revision; } catch { return false; } });
+    },
     async worldFiles(user, accessToken) { return userState(user, WORLD_FILES_KEY, accessToken); },
     async cbiStory(user, accessToken) { return userState(user, 'cbi_db', accessToken); },
     async worldBatch(user, world) {
@@ -189,11 +282,13 @@ export function createBridgeHandler({ env, store = createRestStore(env), fetcher
       const contextCache = new Map();
       const readContext = world => { if (!contextCache.has(world)) contextCache.set(world, savedContext(store, user, world, cryptoApi, auth[1])); return contextCache.get(world); };
       const worldMode = ['world_auto', 'world_generate', 'world_lines', 'story_context'].includes(input.action);
+      const stateMode = ['state_auto', 'state_generate', 'state_lines'].includes(input.action);
       if (worldMode && !validStoryWorld(input.world_id)) invalid('invalid_story_world');
       const home = ['home_auto', 'home_generate', 'home_lines'].includes(input.action);
       const world = worldMode ? input.world_id : 'sacramento';
-      const story = worldMode || input.action.startsWith('office_') || input.action.startsWith('home_') ? await readContext(world) : null;
+      const story = worldMode || stateMode || input.action.startsWith('office_') || input.action.startsWith('home_') ? await readContext(world) : null;
       if (input.canon_revision != null && (!/^[a-f0-9]{64}$/.test(input.canon_revision) || input.canon_revision !== story?.revision)) throw new ClientError(409, 'story_not_synced');
+      if (stateMode) return response(await stateRequest({ input, story, store, user, now, cryptoApi, fetcher, env }), 200, headers);
       const automatic = ['office_auto', 'home_auto', 'world_auto'].includes(input.action) ? officePeriod(now()) : null;
       const readBatch = worldMode ? (store,user) => latestWorldBatch(store,user,world,story) : home ? (store,user) => latestHomeBatch(store,user,story) : (store,user) => latestOfficeBatch(store,user,story);
       let batch = automatic ? await readBatch(store, user) : null;
@@ -294,15 +389,16 @@ export function createResultHandler({ env, store = createRestStore(env), cryptoA
       if (typeof input.result !== 'string' || !input.result.trim() || input.result.length > 16000) invalid('invalid_result');
       let result = input.result.trim();
       try {
-        const pack = decodeOfficeBatch(result) || decodeHomeBatch(result) || decodeWorldBatch(result);
+        const pack = decodeStateBatch(result) || decodeOfficeBatch(result) || decodeHomeBatch(result) || decodeWorldBatch(result);
         const binding=runBinding(run);
         if(binding){
-          const expected={office:'cbi-office-lines',home:'cbi-home-lines',world:'jane-world-lines'}[binding.kind];
-          if(!pack||pack.format!==expected||(binding.kind==='world'&&pack.world!==binding.world)||(binding.canon_revision&&pack.canon_revision!==binding.canon_revision))throw new Error(binding.kind==='world'?'invalid_world_lines':binding.kind==='home'?'invalid_home_lines':'invalid_office_lines');
+          const expected={office:'cbi-office-lines',home:'cbi-home-lines',world:'jane-world-lines',state:STATE_FORMAT}[binding.kind];
+          if(!pack||pack.format!==expected||(binding.kind==='world'&&pack.world!==binding.world)||(binding.kind==='state'&&pack.scene!==binding.scene)||(binding.canon_revision&&pack.canon_revision!==binding.canon_revision))throw new Error(binding.kind==='state'?'invalid_state_lines':binding.kind==='world'?'invalid_world_lines':binding.kind==='home'?'invalid_home_lines':'invalid_office_lines');
+          if (binding.kind === 'state') validateStateBatch(pack, binding.states);
         }
         if (pack) result = JSON.stringify(pack);
       } catch (error) {
-        const code = ['invalid_world_lines','invalid_home_lines'].includes(error.message) ? error.message : 'invalid_office_lines';
+        const code = ['invalid_world_lines','invalid_home_lines','invalid_state_lines'].includes(error.message) ? error.message : 'invalid_office_lines';
         await store.update(run.id, { status: 'failed', error_code: code, finished_at: new Date(now()).toISOString() });
         throw new ClientError(400, code);
       }

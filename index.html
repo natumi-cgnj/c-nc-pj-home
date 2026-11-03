@@ -1155,9 +1155,8 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
 <script src="character-runtime.js?v=20261103-sleep2"></script>
 <script src="cbi-weather.js?v=20260903-cbi-weather2"></script>
 <script src="cbi-office-scene.js?v=20261029-entry1"></script>
-<script src="cbi-office-lines.js?v=20261029-entry1"></script>
-<script src="cbi-home-lines.js?v=20261103-sleep2"></script>
-<script src="cbi-home-scene.js?v=20261103-sleep2"></script>
+<script src="cbi-state-lines.js?v=20261103-state1"></script>
+<script src="cbi-home-scene.js?v=20261103-state1"></script>
 <script src="cbi-scene-lighting.js?v=20261029-entry1"></script>
 <script src="cbi-data.js?v=20260929-room-storage1"></script>
 <script>
@@ -1387,7 +1386,7 @@ function onCbiStaffTap(charId,event){
     showTip(CBI_STAFF_NAMES[charId]+' · '+(assignment.mode==='office'?'办公室':'外勤'));
     return;
   }
-  var line=pickCbiLine(pool);
+  var line=window.CBIOfficeLines?.getLine?.(charId)||pickCbiLine(pool);
   if(bubble.parentElement!==wrap)wrap.appendChild(bubble);
   statusEl.textContent=line.s||'';
   messageEl.textContent=line.m||'';
@@ -1781,7 +1780,7 @@ function showBubble(id){
   const charEl=document.getElementById('char-'+id);
   const room=charEl.parentElement;
   if(!pool.length||!charEl||!room)return;
-  let line=isLiminalWorld()?pool[Math.floor(Math.random()*pool.length)]:pickCbiLine(pool);
+  let line=isLiminalWorld()?pool[Math.floor(Math.random()*pool.length)]:(window.CBIOfficeLines?.getLine?.(id)||pickCbiLine(pool));
   // habit reminder 30%
   if(isLiminalWorld()&&id!=='will'){try{const hdb=JSON.parse(localStorage.getItem('habit_db')||'{}');if(hdb.habits&&hdb.records){const sh=new Date();sh.setHours(sh.getHours()-4);const dn=hdb.habits.filter(h=>{if(h.type!=='daily')return false;const iv=h.interval||1;for(let i=0;i<365;i++){const d2=new Date(sh);d2.setDate(d2.getDate()-i);const dk=d2.getFullYear()+'-'+String(d2.getMonth()+1).padStart(2,'0')+'-'+String(d2.getDate()).padStart(2,'0');if(hdb.records[dk]&&hdb.records[dk][h.id]&&Number(hdb.records[dk][h.id].value)>0)return i>=iv;}return true;}).map(h=>h.name);if(dn.length&&Math.random()<0.3){const hab=dn[Math.floor(Math.random()*dn.length)];if(id==='neal')line={s:'提醒你',m:"Hey, 你是不是该"+hab+"了？Don\u0027t put it off."};else line={s:'提醒你',m:'根据记录，你已经超过预定间隔没有'+hab+'了。这不是建议，是数据。'};}}}catch(e){}}
   const bubble=document.getElementById('bubble-'+id);

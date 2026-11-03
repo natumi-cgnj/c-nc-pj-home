@@ -6,6 +6,7 @@ import { createBridgeHandler, createResultHandler, createRestStore } from '../su
 import { OFFICE_IDS, OFFICE_STATES, validateOfficeBatch, decodeOfficeBatch, officePeriod } from '../cbi-office-content.mjs';
 import { HOME_SPACES } from '../cbi-home-content.mjs';
 import { normalizeWorldFiles, normalizeArchive, storySnapshot, storyRevision } from '../world-story-content.mjs';
+import { stateSessions, validateStateBatch, OFFICE_ACTIVITY_STATES } from '../cbi-state-content.mjs';
 
 const U1 = '11111111-1111-4111-8111-111111111111';
 const U2 = '22222222-2222-4222-8222-222222222222';
@@ -26,6 +27,7 @@ class Store {
   async recent(user) { return this.runs.filter(x => x.user_id === user).slice().reverse().slice(0, 8).map(copy); }
   async officeBatch(user) { return copy(this.runs.slice().reverse().find(x => x.user_id === user && x.status === 'completed' && x.result?.startsWith('{"format":"cbi-office-lines",')) || null); }
   async homeBatch(user) { return copy(this.runs.slice().reverse().find(x => x.user_id === user && x.status === 'completed' && x.result?.startsWith('{"format":"cbi-home-lines",')) || null); }
+  async stateBatches(user, revision) { return this.runs.slice().reverse().filter(x => x.user_id === user && x.status === 'completed' && x.result?.startsWith('{"format":"cbi-state-lines",') && x.result.includes(revision)).map(copy); }
   async worldFiles(user) {return copy(this.stories.get(user)||null);}
   async cbiStory(user) {return copy(this.cbiStories.get(user)||null);}
   async worldBatch(user,world) {return copy(this.runs.slice().reverse().find(x=>x.user_id===user&&x.status==='completed'&&x.result?.startsWith(JSON.stringify({format:'jane-world-lines',version:1,world}).slice(0,-1)+','))||null);}
@@ -497,4 +499,163 @@ test('all story-dependent bridge routes work when user_state denies the service 
       assert.ok(!JSON.stringify(e.calls[0].payload).includes('Bearer user1'));
     } else assert.equal(e.calls.length, 0);
   }
+});
+
+const STATE_NOW = Date.parse('2026-10-23T10:00:00+09:00');
+const officeContext = (characters = ['cho'], startAt = STATE_NOW - 40 * 60000) => ({ scene: 'office', characters:
+  characters.map(character => ({ character, startAt, endAt: STATE_NOW + 8 * 3600000, returned: '' })) });
+function stateResult(e, payload = e.calls.at(-1).payload, edit = () => {}) {
+  const binding = JSON.parse(e.store.runs.find(x => x.id === payload.run_id).result);
+  const pack = { format: 'cbi-state-lines', version: 1, scene: binding.scene, continuity: CBI_CONTINUITY, canon_revision: binding.canon_revision,
+    states: binding.states.map(s => ({ key: s.key, character: s.character, state: s.state,
+      lines: Array.from({length:s.lineRange[0]},(_,i)=>s.character+'在这个状态下的第'+(i+1)+'句独立回应。') })) };
+  edit(pack); return { ...payload, result: JSON.stringify(pack) };
+}
+function stateEnvironment() { const e=environment(); e.advance(8*3600000); return e; }
+
+test('state dialogue spans clock periods and generates only after the actual state changes', async () => {
+  const e=stateEnvironment(); let context;
+  for(let ago=15;ago<=100;ago++) {
+    const c=officeContext(['cho'],STATE_NOW-ago*60000), s=stateSessions(c,STATE_NOW)[0];
+    if(s.nextAt>STATE_NOW+65*60000) {context=c;break;}
+  }
+  assert.ok(context);
+  const first=stateSessions(context,STATE_NOW)[0];
+  await send(e.bridge,{action:'state_auto',context});
+  assert.equal(e.calls.length,1);
+  assert.equal(e.calls[0].payload.content_type,'state-lines');
+  assert.ok(e.calls[0].payload.prompt.includes(first.status));
+  assert.ok(!e.calls[0].payload.prompt.includes('每人恰好四条'));
+  assert.equal((await send(e.result,stateResult(e),{token:null,origin:null})).status,200);
+  e.advance(65*60000);
+  const repeated=await send(e.bridge,{action:'state_auto',context});
+  assert.equal(e.calls.length,1,'11:00 does not rerun a continuing state');
+  assert.equal(repeated.data.state_batch.pack.states[0].key,first.key);
+  e.advance(first.nextAt-(STATE_NOW+65*60000)+1);
+  const next=await send(e.bridge,{action:'state_auto',context});
+  assert.equal(e.calls.length,2);
+  assert.notEqual(next.data.run.id,repeated.data.run?.id);
+  assert.notEqual(JSON.parse(e.store.runs.at(-1).result).states[0].key,first.key);
+});
+
+test('office requests batch changed members and preserve the other current state pools', async () => {
+  const e=stateEnvironment(), context=officeContext(['cho','rigsby']);
+  await send(e.bridge,{action:'state_auto',context});
+  assert.equal((await send(e.result,stateResult(e),{token:null,origin:null})).status,200);
+  const changed=copy(context); changed.characters[1].startAt=STATE_NOW; changed.characters[1].returned='field';
+  const started=await send(e.bridge,{action:'state_auto',context:changed});
+  const binding=JSON.parse(e.store.runs.at(-1).result);
+  assert.deepEqual(binding.states.map(s=>s.character),['rigsby']);
+  assert.equal(binding.states[0].state,'field_return');
+  assert.deepEqual(binding.states[0].lineRange,[1,2]);
+  assert.equal(started.data.state_batch.pack.states[0].character,'cho');
+  assert.equal((await send(e.result,stateResult(e),{token:null,origin:null})).status,200);
+  const saved=await send(e.bridge,{action:'state_lines',context:changed});
+  assert.deepEqual(saved.data.state_batch.pack.states.map(s=>s.character),['cho','rigsby']);
+  assert.equal(e.calls.length,2);
+});
+
+test('state requests reject arbitrary labels, duplicate actors and stale timing before spending a run', async () => {
+  const e=stateEnvironment();
+  for(const context of [
+    {...officeContext(),prompt:'invent something'},
+    officeContext(['cho','cho']),
+    officeContext(['unknown']),
+    officeContext(['cho'],STATE_NOW-72*3600000),
+    {scene:'home',startAt:STATE_NOW-3600000,endAt:STATE_NOW-1,restDay:true},
+    {scene:'home',startAt:STATE_NOW-3600000,endAt:STATE_NOW+3600000,restDay:true,sleeping:true}
+  ]) assert.equal((await send(e.bridge,{action:'state_auto',context})).status,400);
+  assert.equal(e.calls.length,0);
+  assert.equal((await send(e.bridge,{action:'state_auto',context:officeContext()},{token:null})).status,401);
+});
+
+test('state callbacks are bound to the actor, session, scene, story and duration line budget', async () => {
+  for(const edit of [p=>{p.states[0].key+=':other';},p=>{p.states[0].character='jane';},p=>{p.scene='home';},
+    p=>{p.canon_revision='f'.repeat(64);},p=>{p.states[0].lines=[];},p=>{p.states[0].lines.push(p.states[0].lines[0]);},
+    p=>{p.states[0].state='field_return';}]) {
+    const e=stateEnvironment(); await send(e.bridge,{action:'state_auto',context:officeContext()});
+    const result=await send(e.result,stateResult(e,undefined,edit),{token:null,origin:null});
+    assert.equal(result.status,400);
+    assert.equal(result.data.error,'invalid_state_lines');
+    assert.equal((await send(e.bridge,{action:'state_lines',context:officeContext()})).data.state_batch,null);
+  }
+  const e=stateEnvironment(); await send(e.bridge,{action:'state_auto',context:officeContext(['rigsby'],STATE_NOW)});
+  const tooMany=stateResult(e,undefined,p=>{p.states[0].lines=['第一句。','第二句。','第三句。'];});
+  assert.equal((await send(e.result,tooMany,{token:null,origin:null})).status,400);
+});
+
+test('late state results stay in history and cannot fill a newer session or another account', async () => {
+  const e=stateEnvironment(), before=officeContext(['rigsby'],STATE_NOW), after=officeContext(['rigsby'],STATE_NOW-30*60000);
+  await send(e.bridge,{action:'state_auto',context:before});
+  const old=e.calls[0].payload;
+  assert.equal((await send(e.bridge,{action:'state_auto',context:after})).data.auto.reused,true);
+  assert.equal(e.calls.length,1);
+  assert.equal((await send(e.result,stateResult(e,old),{token:null,origin:null})).status,200);
+  assert.equal((await send(e.bridge,{action:'state_lines',context:after})).data.state_batch,null);
+  assert.equal((await send(e.bridge,{action:'state_lines',context:before},{token:'user2'})).data.state_batch,null);
+  await send(e.bridge,{action:'state_auto',context:after}); assert.equal(e.calls.length,2);
+});
+
+test('current state prompts use saved selected Sacramento stories and replace revised canon', async () => {
+  const e=stateEnvironment(), files=normalizeWorldFiles({}), archive=normalizeArchive({},'sacramento');
+  archive.canon.current='这是当前状态必须承接的已保存剧情。';
+  archive.entries=[{id:'included',title:'选中',when:'',body:'只在本世界使用的共同记忆。',include:true},{id:'excluded',title:'未选中',when:'',body:'这句不能发送。',include:false}];
+  files.worlds.sacramento=archive; files.worlds.fox=normalizeArchive({canon:{current:'另一个世界的私事。'}},'fox');
+  e.store.stories.set(U1,files);
+  const context=officeContext();
+  await send(e.bridge,{action:'state_auto',context});
+  const payload=e.calls[0].payload;
+  assert.ok(payload.prompt.includes(archive.canon.current)); assert.ok(payload.prompt.includes('只在本世界使用的共同记忆。'));
+  assert.ok(!payload.prompt.includes('这句不能发送。')); assert.ok(!payload.prompt.includes('另一个世界的私事。'));
+  await send(e.result,stateResult(e),{token:null,origin:null});
+  files.worlds.sacramento.canon.current='已经修正过的现在。';
+  const changed=await send(e.bridge,{action:'state_auto',context});
+  assert.equal(changed.data.state_batch,null);
+  assert.equal(e.calls.length,2);
+  assert.ok(e.calls[1].payload.prompt.includes('已经修正过的现在。'));
+});
+
+test('state cache REST lookup scopes the account, format and story version without reading secrets', async () => {
+  let seen;
+  const store=createRestStore({...env,SUPABASE_SERVICE_ROLE_KEY:'server-test-key'},async url=>{seen=decodeURIComponent(url);return Response.json([]);});
+  assert.deepEqual(await store.stateBatches(U1,'a'.repeat(64),['cbi-state-v1:office:cho:session']),[]);
+  assert.ok(seen.includes('user_id=eq.'+U1)); assert.ok(seen.includes('cbi-state-lines'));
+  assert.ok(seen.includes('cbi-state-v1:office:cho:session'));
+  assert.ok(!seen.includes('fire_token'));
+});
+
+test('home state requests generate only the current action with its own duration budget', async () => {
+  const e=stateEnvironment(), context={scene:'home',startAt:STATE_NOW-2*3600000,endAt:STATE_NOW+10*3600000,restDay:true};
+  const sessions=stateSessions(context,STATE_NOW);
+  const started=await send(e.bridge,{action:'state_auto',context});
+  assert.equal(started.status,200);
+  const binding=JSON.parse(e.store.runs.at(-1).result);
+  assert.equal(binding.scene,'home');assert.equal(binding.states.length,1);
+  assert.equal(binding.states[0].key,sessions[0].key);
+  assert.ok(e.calls[0].payload.prompt.includes('"activity":"'+sessions[0].activity+'"'));
+  assert.ok(!e.calls[0].payload.prompt.includes('bedroom 与 living 各八条'));
+  assert.equal((await send(e.result,stateResult(e),{token:null,origin:null})).status,200);
+  const read=await send(e.bridge,{action:'state_lines',context});
+  assert.equal(read.data.state_batch.pack.scene,'home');
+  assert.equal(read.data.state_batch.pack.states[0].state,sessions[0].state);
+  assert.equal((await send(e.bridge,{action:'state_lines',context:officeContext()})).data.state_batch,null);
+});
+
+test('state rate limits queue work and failed automatic starts do not loop', async () => {
+  const e=stateEnvironment(),context=officeContext();
+  for(let i=0;i<6;i++){
+    const request_id='88888888-8888-4888-8888-'+String(i).padStart(12,'0');
+    await send(e.bridge,{action:'state_generate',context,request_id});
+    await send(e.result,stateResult(e),{token:null,origin:null});
+  }
+  const limited=await send(e.bridge,{action:'state_generate',context,request_id:'99999999-9999-4999-8999-999999999999'});
+  assert.equal(limited.status,200);assert.equal(limited.data.auto.queued,true);
+  assert.ok(Date.parse(limited.data.auto.retry_at)>STATE_NOW);assert.equal(e.calls.length,6);
+  e.advance(16*60000);
+  assert.equal((await send(e.bridge,{action:'state_generate',context,request_id:'99999999-9999-4999-8999-999999999999'})).status,200);
+  assert.equal(e.calls.length,7);
+  const failed=environment(async()=>new Response('',{status:400}));failed.advance(8*3600000);
+  await send(failed.bridge,{action:'state_auto',context});
+  const repeat=await send(failed.bridge,{action:'state_auto',context});
+  assert.equal(repeat.data.auto.blocked,true);assert.equal(failed.calls.length,1);
 });

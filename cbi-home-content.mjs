@@ -116,17 +116,16 @@ export function homeContext(presence, now = Date.now()) {
   }
   now = Number(now);
   if (!Number.isFinite(now)) now = Date.now();
-  const date = new Date(now);
-  date.setHours(4, 0, 0, 0);
-  if (date.getTime() > now) date.setDate(date.getDate() - 1);
+  const local = new Date(now + 9 * 3600000 - 4 * 3600000);
+  const dayStart = Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate(), 4) - 9 * 3600000;
   const suppliedStart = Number(presence.homeStartAt);
-  const anchor = Number.isFinite(suppliedStart) && suppliedStart > 0 && suppliedStart <= now ? suppliedStart : date.getTime();
+  const anchor = Number.isFinite(suppliedStart) && suppliedStart > 0 && suppliedStart <= now ? suppliedStart : dayStart;
   const seed = 'cbi-home-v2:' + anchor;
   const lastEnd = {};
   let startAt = anchor, index = 0, previous = '';
   while (true) {
     const key = seed + ':' + index;
-    const hour = new Date(startAt).getHours();
+    const hour = new Date(startAt + 9 * 3600000).getUTCHours();
     const night = hour >= 22 || hour < 6;
     const mealTime = (hour >= 7 && hour < 10) || (hour >= 11 && hour < 14) || (hour >= 18 && hour < 21);
     const weights = Object.entries(HOME_ACTIVITY_TIMING).map(([activity, rule]) => {
