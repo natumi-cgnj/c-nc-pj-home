@@ -6,6 +6,7 @@
     morning: [[1, 1, 1], [0, 0, 0]], day: [[.98, 1, 1.02], [1, 1, 0]],
     evening: [[.92, .855, .80], [3, 1, 0]], night: [[.43, .46, .54], [3, 4, 7]]
   };
+  const MAIN_LIGHT = [[.96, .95, .92], [9, 9, 10]];
   const OUTLINE = [[187,79],[253,79],[253,93],[1353,93],[1353,78],[1430,78],[1442,100],
     [1440,135],[1656,657],[1655,765],[1650,879],[43,879],[26,800],[28,768],[55,768],
     [27,657],[179,116],[180,102]];
@@ -69,10 +70,12 @@
     const pixels = ctx.getImageData(0, 0, 1672, 941).data;
     return Uint8Array.from({ length: 1672 * 941 }, (_, index) => pixels[index * 4 + 3]);
   }
+  function mainLightsOn(frame, slot) {
+    return slot === 'night' && !!frame?.activity && frame.mode !== 'sleep' && frame.mode !== 'away';
+  }
   function lampRooms(frame, slot) {
-    if (slot !== 'night' || !frame?.activity) return [];
-    if (frame.mode === 'sleep') return [frame.activity === 'living_sleep' ? 'living' : 'bedroom'];
-    return ['bedroom', 'living'];
+    if (slot !== 'night' || !frame?.activity || frame.mode !== 'sleep') return [];
+    return [frame.activity === 'living_sleep' ? 'living' : 'bedroom'];
   }
   function applyLampPixels(pixels, mask, room) {
     const lamp = LAMPS[room], width = 1672;
@@ -97,7 +100,10 @@
   }
   function applyLightingPixels(pixels, mask, slot, frame) {
     if (slot === 'morning' || !LIGHT[slot]) return pixels;
-    const tables = LIGHT[slot][0].map((gain, channel) => Uint8ClampedArray.from({ length: 256 }, (_, value) => value * gain + LIGHT[slot][1][channel]));
+    // Indoor main lights brighten the assembled room and Jane together; window
+    // crops are drawn afterwards and keep their actual nighttime appearance.
+    const light = mainLightsOn(frame, slot) ? MAIN_LIGHT : LIGHT[slot];
+    const tables = light[0].map((gain, channel) => Uint8ClampedArray.from({ length: 256 }, (_, value) => value * gain + light[1][channel]));
     for (let index = 0, p = 0; index < pixels.length; index += 4, p++) {
       const alpha = mask[p] / 255;
       if (!alpha) continue;
@@ -210,6 +216,7 @@
     canvas.hidden = false; canvas.dataset.homeActivity = loaded ? frame.activity || '' : '';
     canvas.dataset.timeSlot = frame.slot; wrap.classList.add('cbi-home-ready');
     canvas.dataset.homeLamps = lampRooms(frame, frame.slot).join(' ');
+    canvas.dataset.homeMainLights = mainLightsOn(frame, frame.slot) ? 'on' : 'off';
     wrap.dataset.sceneState = 'ready'; wrap.setAttribute('aria-busy', 'false');
     wrap.dataset.homeSpace = frame.space || ''; wrap.dataset.homeMode = frame.mode;
     return true;
@@ -234,7 +241,7 @@
     return state.frame;
   }
   const api = { ready: content, refresh, current: refresh, whenReady: ensureAssets,
-    validateManifest, applyLightingPixels, lampRooms,
+    validateManifest, applyLightingPixels, lampRooms, mainLightsOn,
     getState: () => ({ ready: !!state.assets, frame: state.frame, drawn: state.drawn, drawCount: state.drawCount, error: state.error }),
     setTime: slot => refresh(null, slot) };
   global.CBIHomeScene = api;

@@ -86,6 +86,27 @@ test('home and office canvases switch to night at 19:00 and show night at 21:30 
   }
 });
 
+test('night wake, sleep and absence switch main lights and bedside lamps on the same canvas', async () => {
+  const h = fixture();
+  h.setPresence({ location: 'home', sleeping: false });
+  await h.start(); await h.release(() => true); await h.release(() => true);
+  assert.equal(h.nodes.cbiHomeCanvas.dataset.homeMainLights, 'on');
+  assert.equal(h.nodes.cbiHomeCanvas.dataset.timeSlot, 'night');
+  for (const [placeId, roomId, lamp] of [['bedroom_bed','jane','bedroom'], ['living_sofa_bed','natumi','living']]) {
+    h.setPresence({ location: 'home', sleeping: true, sleep: { sleeping: true, placeId, roomId,
+      nightKey: '2026-10-28', startAt: Date.parse('2026-10-29T01:00:00+09:00') } });
+    h.api.refresh(); await h.release(() => true);
+    assert.equal(h.nodes.cbiHomeCanvas.dataset.homeMainLights, 'off');
+    assert.equal(h.nodes.cbiHomeCanvas.dataset.homeLamps, lamp);
+    assert.equal(h.nodes.cbiHomeCanvas.dataset.timeSlot, 'night');
+  }
+  h.setPresence({ location: 'away' }); h.api.refresh();
+  assert.equal(h.nodes.cbiHomeCanvas.dataset.homeMainLights, 'off');
+  assert.equal(h.nodes.cbiHomeCanvas.dataset.homeLamps, '');
+  h.setPresence({ location: 'home', sleeping: false }); h.api.refresh(); await h.release(() => true);
+  assert.equal(h.nodes.cbiHomeCanvas.dataset.homeMainLights, 'on');
+});
+
 for (const windowsFirst of [false,true]) test('home publishes one complete frame with ' + (windowsFirst ? 'windows' : 'actor') + ' arriving first', async () => {
   const h = fixture(); await h.start();
   await h.release(name => name === 'cbi-home.webp');

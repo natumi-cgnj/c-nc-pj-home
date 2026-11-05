@@ -279,7 +279,7 @@ test('rest days propagate into live home/office/away presence and never become s
   assert.equal(midnight.date, evening.date);
   assert.equal(midnight.location, 'home');
   assert.equal(midnight.mode, 'rest_day');
-  assert.equal(midnight.sleeping, true);
+  assert.equal(midnight.sleeping, runtime.getCbiJaneSleepStatus(new Date(2026, 9, restDay + 1, 1, 30)).sleeping);
 });
 
 test('explicit dispatch can call a resting person in, while a deployment leaves unselected rest days intact', () => {
@@ -298,7 +298,7 @@ test('explicit dispatch can call a resting person in, while a deployment leaves 
 
 test('Jane sleeps at home on a stable nightly timeline instead of drawing awake dialogue', () => {
   const { runtime } = loadRuntime({}, 'cbi');
-  const now = new Date(2026, 8, 13, 1, 30);
+  const now = new Date(2026, 8, 13, 5, 0);
   const first = runtime.getCbiCharacterPresence('jane', now);
   const repeated = runtime.getCbiCharacterPresence('jane', now);
 
@@ -313,14 +313,14 @@ test('Jane sleeps at home on a stable nightly timeline instead of drawing awake 
   assert.equal(first.sleep.bossPresent, repeated.sleep.bossPresent);
 });
 
-test('Jane rotates between both bedroom sleep spots and the living-room sofa bed', () => {
+test('Jane rotates between the bedroom bed and the living-room sofa bed', () => {
   const { runtime } = loadRuntime({}, 'cbi');
   const places = new Set();
   const bossPresence = new Set();
   const phases = new Set();
 
   for (let day = 1; day <= 60; day++) {
-    const sleep = runtime.getCbiJaneSleepStatus(new Date(2026, 7, day, 1, 30));
+    const sleep = runtime.getCbiJaneSleepStatus(new Date(2026, 7, day, 5));
     assert.equal(sleep.sleeping, true);
     places.add(sleep.placeId);
     bossPresence.add(sleep.bossPresent);
@@ -329,11 +329,36 @@ test('Jane rotates between both bedroom sleep spots and the living-room sofa bed
     }
   }
 
-  assert.deepEqual([...places].sort(), ['bedroom_bed', 'bedroom_sofa', 'living_sofa_bed']);
+  assert.deepEqual([...places].sort(), ['bedroom_bed', 'living_sofa_bed']);
   assert.deepEqual([...bossPresence].sort(), [false, true]);
   for (const phase of ['settling', 'light', 'deep', 'dreaming', 'waking']) {
     assert.equal(phases.has(phase), true, phase + ' should appear across the sampled nights');
   }
+});
+
+test('Jane usually falls asleep at 02:00–03:30, with one stable bedtime across midnight and the 04:00 day change', () => {
+  const { runtime } = loadRuntime({}, 'cbi');
+  const MINUTE = 60000;
+  let usual = 0, early = 0, late = 0;
+  for (let day = 1; day <= 365; day++) {
+    const evening = new Date(2026, 0, day, 21, 30);
+    const sleep = runtime.getCbiJaneSleepStatus(evening);
+    assert.equal(sleep.sleeping, false);
+    const midnight = new Date(2026, 0, day + 1).getTime();
+    const minute = (sleep.startAt - midnight) / MINUTE;
+    if (minute >= 120 && minute <= 210) usual++;
+    else if (minute >= 75 && minute < 120) early++;
+    else if (minute > 210 && minute <= 240) late++;
+    else assert.fail('unexpected bedtime: ' + minute);
+    assert.equal(runtime.getCbiJaneSleepStatus(midnight).startAt, sleep.startAt);
+    assert.equal(runtime.getCbiJaneSleepStatus(new Date(2026, 0, day + 1, 4)).startAt, sleep.startAt);
+    assert.equal(runtime.getCbiJaneSleepStatus(sleep.startAt - 1).sleeping, false);
+    assert.equal(runtime.getCbiJaneSleepStatus(sleep.startAt).sleeping, true);
+    assert.equal(runtime.getCbiCharacterPresence('jane', new Date(sleep.startAt + MINUTE)).sleeping, true);
+    assert.equal(runtime.getCbiJaneSleepStatus(sleep.endAt).sleeping, false);
+  }
+  assert.ok(usual >= 365 * .85 && usual <= 365 * .95, usual + ' usual nights');
+  assert.ok(early > 0 && late > 0, 'occasional earlier and later nights remain possible');
 });
 
 test('Jane nightmare phase remains possible but rare in the second-loop timeline', () => {

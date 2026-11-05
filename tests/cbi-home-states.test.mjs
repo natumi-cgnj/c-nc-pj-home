@@ -189,7 +189,7 @@ test('nightly runtime selects only the two supported sleep places throughout the
   vm.runInContext(fs.readFileSync(new URL('character-runtime.js', root), 'utf8'), context);
   const seen = new Set();
   for (let day = 0; day < 366; day++) {
-    const now = new Date(2026, 0, day + 1, 2).getTime();
+    const now = new Date(2026, 0, day + 1, 5).getTime();
     const status = context.window.CharacterRuntime.getCbiJaneSleepStatus(now);
     assert.equal(status.sleeping, true);
     assert.ok(['bedroom_bed', 'living_sofa_bed'].includes(status.placeId));
@@ -236,6 +236,29 @@ test('night sleep lights only the actual sleeping room and leaves the other lamp
     }
   }
   assert.deepEqual(scene.lampRooms({ mode: 'away', activity: null }, 'night'), []);
+});
+
+test('awake night activities use bright main lights, while sleeping and empty homes stay dark', () => {
+  const awake = { activity: 'living_read', mode: 'awake' };
+  const asleep = { activity: 'living_sleep', mode: 'sleep' };
+  const empty = { activity: null, mode: 'away' };
+  for (const activity of Object.keys(HOME_STATES).filter(id => !HOME_STATES[id].sleep)) {
+    const frame = { activity, mode: HOME_STATES[activity].private ? 'private' : 'awake' };
+    assert.equal(scene.mainLightsOn(frame, 'night'), true, activity);
+    assert.equal(scene.mainLightsOn(frame, 'day'), false, activity);
+  }
+  for (const frame of [asleep, empty]) assert.equal(scene.mainLightsOn(frame, 'night'), false);
+  const samples = [awake, asleep, empty].map(frame => {
+    const pixels = new Uint8ClampedArray([255,255,255,255,180,180,180,255,180,180,180,255]);
+    scene.applyLightingPixels(pixels, new Uint8Array([0,255,255]), 'night', frame);
+    assert.deepEqual([...pixels.slice(0,4)], [255,255,255,255]);
+    assert.deepEqual([...pixels.slice(4,8)], [...pixels.slice(8,12)], 'people and furniture share ambient light');
+    return [...pixels.slice(4,7)];
+  });
+  assert.ok(samples[0].every(channel => channel >= 170), 'main lights keep the room readable');
+  assert.ok(samples[0][0] >= samples[0][1] && samples[0][1] >= samples[0][2], 'awake indoor light stays warm');
+  assert.deepEqual(samples[1], samples[2]);
+  assert.ok(samples[1].every(channel => channel < 110), 'sleep and absence retain the dim night base');
 });
 
 async function setup(options = {}) {

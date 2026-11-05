@@ -1316,7 +1316,7 @@
     return low + Math.floor(stableScheduleUnit(seed) * (high - low + 1));
   }
 
-  // New monthly rest calendars use an avalanched hash without changing existing shift/sleep seeds.
+  // New calendars and timing choices use an avalanched draw; existing shift/place seeds stay stable.
   const cbiRestCalendars = new Map();
   function cbiRestUnit(seed) {
     let hash = Math.floor(stableScheduleUnit(seed) * 4294967296);
@@ -1399,7 +1399,10 @@
     const currentTime = now.getTime();
     const nightKey = cbiJaneSleepNightKey(now);
     const wakeDate = addCalendarDays(nightKey, 1);
-    const bedtimeMinute = stableScheduleInteger('cbi-jane-sleep-start|' + nightKey, 1365, 1475);
+    const bedtimeRoll = cbiRestUnit('cbi-jane-sleep-window|' + nightKey);
+    // Most nights end around 02:00–03:30, with occasional earlier or later sleep.
+    const bedtimeWindow = bedtimeRoll < 0.90 ? [1560, 1650] : bedtimeRoll < 0.97 ? [1515, 1559] : [1651, 1680];
+    const bedtimeMinute = bedtimeWindow[0] + Math.floor(cbiRestUnit('cbi-jane-late-sleep-start|' + nightKey) * (bedtimeWindow[1] - bedtimeWindow[0] + 1));
     const wakeLead = stableScheduleInteger('cbi-jane-sleep-wake|' + nightKey, 55, 100);
     const nextShift = getCbiShift(wakeDate, 'jane');
     const startAt = cbiDateAtMinute(nightKey, bedtimeMinute).getTime();
