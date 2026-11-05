@@ -92,8 +92,8 @@ test('both maps and CGs use the same four periods at every exact boundary', () =
   const { api, getCGSlot } = createHarness();
   const boundaries = [
     [0, 0, 'night'], [5, 59, 'night'], [6, 0, 'morning'], [10, 59, 'morning'],
-    [11, 0, 'day'], [16, 59, 'day'], [17, 0, 'evening'], [21, 59, 'evening'],
-    [22, 0, 'night'], [23, 59, 'night']
+    [11, 0, 'day'], [16, 59, 'day'], [17, 0, 'evening'], [18, 59, 'evening'],
+    [19, 0, 'night'], [21, 30, 'night'], [22, 0, 'night'], [23, 59, 'night']
   ];
   for (const [hour, minute, expected] of boundaries) {
     const now = japanDate(2026, 9, 7, hour, minute);
@@ -177,12 +177,12 @@ test('visibility resume corrects a daylight snapshot while the homepage clock is
   assert.equal(fixture.scenes.home.src, fixture.api.getSceneSource('home', 'night'));
 });
 
-test('returning across 22:00 replaces the evening URL immediately and deduplicates clock ticks', () => {
-  const fixture = createHarness({ now: japanDate(2026, 9, 7, 21, 59) });
+test('returning across 19:00 replaces the evening URL immediately and deduplicates clock ticks', () => {
+  const fixture = createHarness({ now: japanDate(2026, 9, 7, 18, 59) });
   assert.equal(fixture.scenes.home.src, fixture.api.getSceneSource('home', 'evening'));
   fixture.openSuitcase();
   fixture.dispatch('pagehide', { persisted: true });
-  fixture.setNow(japanDate(2026, 9, 7, 22, 0));
+  fixture.setNow(japanDate(2026, 9, 7, 19, 0));
   fixture.dispatch('pageshow', { persisted: true });
   assert.equal(fixture.scenes.home.src, fixture.api.getSceneSource('home', 'night'));
   fixture.tick();
@@ -247,10 +247,41 @@ test('CBI maps and CGs choose Japan night on devices in different time zones', (
   assert.equal(context.getCGPeriodKey(now), '2026-10-28:night');
   assert.equal(context.getCGPeriodKey(new Date('2026-10-29T06:00:00+09:00')), '2026-10-29:morning');
   for (const zone of ['Asia/Tokyo', 'UTC', 'America/Los_Angeles']) {
-    const result = execFileSync(process.execPath, ['-e',
-      "const lighting=require('./cbi-scene-lighting.js');process.stdout.write(lighting.getTimeSlot(new Date('2026-10-29T00:30:00+09:00')))"
-    ], { cwd: process.cwd(), env: { ...process.env, TZ: zone }, encoding: 'utf8' });
-    assert.equal(result, 'night', zone);
+    for (const time of ['2026-11-05T19:00:00+09:00', '2026-11-05T21:30:00+09:00', '2026-11-06T00:30:00+09:00']) {
+      const result = execFileSync(process.execPath, ['-e',
+        "const lighting=require('./cbi-scene-lighting.js');process.stdout.write(lighting.getTimeSlot(new Date(process.argv[1])))", time
+      ], { cwd: process.cwd(), env: { ...process.env, TZ: zone }, encoding: 'utf8' });
+      assert.equal(result, 'night', zone + ' ' + time);
+    }
+  }
+});
+
+test('21:30 selects night for office and CG fallbacks without the shared lighting helper', () => {
+  const office = require('../cbi-office-scene.js');
+  const { context, getCGSlot } = createHarness();
+  const times = [
+    ['2026-11-05T18:59:59+09:00', 'evening'],
+    ['2026-11-05T19:00:00+09:00', 'night'],
+    ['2026-11-05T21:30:00+09:00', 'night']
+  ];
+  delete context.CBISceneLighting;
+  for (const [time, slot] of times) {
+    const now = new Date(time);
+    assert.equal(office.getTimeSlot(now), slot);
+    assert.equal(getCGSlot(now), slot);
+  }
+});
+
+test('the visible page switches both rooms to night at 19:00 and keeps that period across midnight', () => {
+  for (const location of ['home', 'office']) {
+    const calls = [];
+    const fixture = createHarness({ location, now: japanDate(2026, 10, 5, 18, 59),
+      renderer: { setTime: slot => calls.push(slot), getState: () => ({ error: '' }) } });
+    assert.equal(calls.at(-1), 'evening');
+    fixture.setNow(japanDate(2026, 10, 5, 19, 0)); fixture.tick();
+    assert.equal(calls.at(-1), 'night');
+    assert.equal(fixture.context.getCGPeriodKey(japanDate(2026, 10, 5, 21, 30)), '2026-11-05:night');
+    assert.equal(fixture.context.getCGPeriodKey(japanDate(2026, 10, 6, 0, 30)), '2026-11-05:night');
   }
 });
 

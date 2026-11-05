@@ -33,7 +33,7 @@
   function slotAt(now) {
     if (global.CBISceneLighting) return global.CBISceneLighting.getTimeSlot(now);
     const hour = new Date((now || new Date()).getTime() + 9 * 3600000).getUTCHours();
-    return hour >= 6 && hour < 11 ? 'morning' : hour >= 11 && hour < 17 ? 'day' : hour >= 17 && hour < 22 ? 'evening' : 'night';
+    return hour >= 6 && hour < 11 ? 'morning' : hour >= 11 && hour < 17 ? 'day' : hour >= 17 && hour < 19 ? 'evening' : 'night';
   }
   function url(src) { return (src.startsWith('assets/') ? src : ROOT + src) + '?v=' + VERSION; }
   function loadImage(src) {

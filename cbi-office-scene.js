@@ -35,10 +35,10 @@
 
   function getTimeSlot(now) {
     if (global.CBISceneLighting) return global.CBISceneLighting.getTimeSlot(now);
-    var hour = (now || new Date()).getHours();
+    var hour = new Date((now || new Date()).getTime() + 9 * 3600000).getUTCHours();
     if (hour >= 6 && hour < 11) return 'morning';
     if (hour >= 11 && hour < 17) return 'day';
-    if (hour >= 17 && hour < 22) return 'evening';
+    if (hour >= 17 && hour < 19) return 'evening';
     return 'night';
   }
 

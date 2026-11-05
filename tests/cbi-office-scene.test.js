@@ -23,7 +23,7 @@ function pngDimensions(name) {
 function fixture(options = {}) {
   let activeWorld = 'cbi', activeLocation = 'office';
   let currentRoster = roster(options.mask ?? 31);
-  let now = new Date(2026, 9, 27, 10, 59);
+  let now = new Date('2026-10-27T10:59:00+09:00');
   const events = {}, requests = [], fetches = [], nodes = {}, desks = {};
   function element() {
     const classes = new Set();
@@ -132,9 +132,9 @@ test('atlas modules are disjoint and native resolution, and pin the approved gre
   overlapping.occupants.cho = { ...overlapping.occupants.lisbon, src: 'cho.png' };
   assert.throws(() => scene.validateManifest(overlapping), /Overlapping/);
 });
-test('all time boundaries follow the existing homepage clock', () => {
-  for (const [hour, minute] of [[0, 0], [5, 59], [6, 0], [10, 59], [11, 0], [16, 59], [17, 0], [21, 59], [22, 0]]) {
-    const now = new Date(2026, 9, 27, hour, minute);
+test('all time boundaries follow the homepage Japan clock', () => {
+  for (const [hour, minute] of [[0, 0], [5, 59], [6, 0], [10, 59], [11, 0], [16, 59], [17, 0], [18, 59], [19, 0], [21, 30], [22, 0]]) {
+    const now = new Date(Date.UTC(2026, 10, 5, hour - 9, minute));
     assert.equal(scene.getTimeSlot(now), lighting.getTimeSlot(now));
   }
 });
@@ -193,7 +193,7 @@ test('page return, boundaries, cloud restore, and errands refresh the live roste
   h.api.refresh();
   await h.loaded();
   assert.equal(h.api.getState().frame.slot, 'morning');
-  h.setNow(new Date(2026, 9, 27, 11, 0));
+  h.setNow(new Date('2026-10-27T11:00:00+09:00'));
   h.setRoster(roster(5));
   h.dispatch('visibilitychange');
   assert.equal(h.api.getState().frame.mask, 5);
@@ -203,7 +203,7 @@ test('page return, boundaries, cloud restore, and errands refresh the live roste
   h.dispatch('omniverse:locationchange');
   assert.equal(h.api.getState().frame.mask, 5);
   h.setLocation('office');
-  h.setNow(new Date(2026, 9, 27, 22, 0));
+  h.setNow(new Date('2026-10-27T19:00:00+09:00'));
   h.dispatch('pageshow');
   assert.equal(h.api.getState().frame.mask, 0);
   assert.equal(h.api.getState().frame.slot, 'night');

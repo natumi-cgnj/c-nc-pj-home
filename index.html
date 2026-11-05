@@ -1154,10 +1154,10 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script src="character-runtime.js?v=20261103-sleep2"></script>
 <script src="cbi-weather.js?v=20260903-cbi-weather2"></script>
-<script src="cbi-office-scene.js?v=20261029-entry1"></script>
+<script src="cbi-office-scene.js?v=20261105-night19"></script>
 <script src="cbi-state-lines.js?v=20261103-state1"></script>
-<script src="cbi-home-scene.js?v=20261103-state1"></script>
-<script src="cbi-scene-lighting.js?v=20261029-entry1"></script>
+<script src="cbi-home-scene.js?v=20261105-night19"></script>
+<script src="cbi-scene-lighting.js?v=20261105-night19"></script>
 <script src="cbi-data.js?v=20260929-room-storage1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
@@ -1926,14 +1926,14 @@ const CBI_CG_SLOT_META={
   office:{
     morning:{label:'清晨',range:'06:00–10:59',builtins:[{id:'cbi-office-day',name:'CBI办公室 · 白日',src:'assets/cg/cbi/office-day.webp',tag:'',weight:1}]},
     day:{label:'白天',range:'11:00–16:59',builtins:[{id:'cbi-office-day',name:'CBI办公室 · 白日',src:'assets/cg/cbi/office-day.webp',tag:'',weight:1}]},
-    evening:{label:'傍晚',range:'17:00–21:59',builtins:[{id:'cbi-office-night',name:'CBI办公室 · 深夜',src:'assets/cg/cbi/office-night.webp',tag:'',weight:1}]},
-    night:{label:'夜间',range:'22:00–次日 05:59',builtins:[{id:'cbi-office-night',name:'CBI办公室 · 深夜',src:'assets/cg/cbi/office-night.webp',tag:'',weight:1}]}
+    evening:{label:'傍晚',range:'17:00–18:59',builtins:[{id:'cbi-office-night',name:'CBI办公室 · 深夜',src:'assets/cg/cbi/office-night.webp',tag:'',weight:1}]},
+    night:{label:'夜间',range:'19:00–次日 05:59',builtins:[{id:'cbi-office-night',name:'CBI办公室 · 深夜',src:'assets/cg/cbi/office-night.webp',tag:'',weight:1}]}
   },
   home:{
     morning:{label:'清晨',range:'06:00–10:59',builtins:[{id:'cbi-home-day',name:'Living Room · 晨光',src:'assets/cg/cbi/home-day.webp',tag:'おはよう',weight:1}]},
     day:{label:'白天',range:'11:00–16:59',builtins:[{id:'cbi-home-day',name:'Living Room · 晨光',src:'assets/cg/cbi/home-day.webp',tag:'',weight:1}]},
-    evening:{label:'傍晚',range:'17:00–21:59',builtins:[{id:'cbi-home-night',name:'Living Room · 夜景',src:'assets/cg/cbi/home-night.webp',tag:'',weight:1}]},
-    night:{label:'夜间',range:'22:00–次日 05:59',builtins:[{id:'cbi-home-night',name:'Living Room · 夜景',src:'assets/cg/cbi/home-night.webp',tag:'おやすみ',weight:1}]}
+    evening:{label:'傍晚',range:'17:00–18:59',builtins:[{id:'cbi-home-night',name:'Living Room · 夜景',src:'assets/cg/cbi/home-night.webp',tag:'',weight:1}]},
+    night:{label:'夜间',range:'19:00–次日 05:59',builtins:[{id:'cbi-home-night',name:'Living Room · 夜景',src:'assets/cg/cbi/home-night.webp',tag:'おやすみ',weight:1}]}
   }
 };
 let currentCGPeriodKey='';
@@ -1978,11 +1978,13 @@ function writeCGContextJson(baseKey,contextId,value){
   localStorage.setItem(baseKey,JSON.stringify({version:2,contexts}));
 }
 function getCGSlot(now){
-  if(window.WorldContext?.getActiveWorldId()==='cbi'&&window.CBISceneLighting)return CBISceneLighting.getTimeSlot(now);
-  const h=(now||new Date()).getHours();
+  const cbi=window.WorldContext?.getActiveWorldId()==='cbi';
+  if(cbi&&window.CBISceneLighting)return CBISceneLighting.getTimeSlot(now);
+  const date=now||new Date();
+  const h=cbi?new Date(date.getTime()+9*3600000).getUTCHours():date.getHours();
   if(h>=6&&h<11)return'morning';
   if(h>=11&&h<17)return'day';
-  if(h>=17&&h<22)return'evening';
+  if(h>=17&&h<(cbi?19:22))return'evening';
   return'night';
 }
 function updateCbiSceneLighting(now){

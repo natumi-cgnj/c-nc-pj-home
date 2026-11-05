@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = new URL('../', import.meta.url);
 const settle = () => new Promise(resolve => setImmediate(resolve));
-function fixture(location = 'home', booting = false) {
+function fixture(location = 'home', booting = false, withoutLighting = false) {
   const home = location === 'home', nodes = {}, events = {}, requests = [], fallbacks = [];
   const manifest = JSON.parse(fs.readFileSync(new URL(home ? 'assets/scenes/cbi-home-states/v1/manifest.json' : 'assets/scenes/cbi-office-modules/v1/manifest.json', root)));
   const dimensions = home ? { 'cbi-home.webp': [1672,941] } : { 'empty.png': [1672,941] };
@@ -36,7 +36,8 @@ function fixture(location = 'home', booting = false) {
   nodes.aptWrap.dataset.sceneState = nodes.cbiOfficeWrap.dataset.sceneState = 'pending';
   let slot = 'night', presence = { location: 'home', sleeping: true,
     sleep: { sleeping: true, placeId: 'living_sofa_bed', roomId: 'natumi', nightKey: '2026-10-28', startAt: Date.parse('2026-10-28T23:45:00+09:00') } };
-  class ClockDate extends Date { constructor(...args) { super(...(args.length ? args : ['2026-10-29T01:35:00+09:00'])); } }
+  let now = '2026-10-29T01:35:00+09:00';
+  class ClockDate extends Date { constructor(...args) { super(...(args.length ? args : [now])); } }
   class Image {
     set src(url) {
       const name = url.split('/').at(-1).split('?')[0], size = dimensions[name];
@@ -55,11 +56,12 @@ function fixture(location = 'home', booting = false) {
       getCbiPresenceRoster: () => ({ assignments: Object.fromEntries(['jane','rigsby','vanpelt','lisbon','cho'].map(id => [id,{ location: 'office' }])) }) }
   });
   context.window = context;
+  if (withoutLighting) delete context.CBISceneLighting;
   const file = home ? 'cbi-home-scene.js' : 'cbi-office-scene.js';
   vm.runInContext(fs.readFileSync(new URL(file, root), 'utf8'), context,
     { filename: fileURLToPath(new URL(file, root)), importModuleDynamically: vm.constants.USE_MAIN_CONTEXT_DEFAULT_LOADER });
   const api = home ? context.CBIHomeScene : context.CBIOfficeScene;
-  return { api, nodes, context, requests, fallbacks, setSlot: value => { slot = value; }, setPresence: value => { presence = value; },
+  return { api, nodes, context, requests, fallbacks, setNow: value => { now = value; }, setSlot: value => { slot = value; }, setPresence: value => { presence = value; },
     async start() { if (api.ready) await api.ready; api.refresh(); await settle(); },
     async release(predicate, fail = false) {
       for (const request of requests) if (!request.released && predicate(request.name)) {
@@ -68,6 +70,21 @@ function fixture(location = 'home', booting = false) {
       await settle();
     }, dispatch(name) { for (const fn of events[name] || []) fn(); } };
 }
+
+test('home and office canvases switch to night at 19:00 and show night at 21:30 without the lighting helper', async () => {
+  for (const location of ['home', 'office']) {
+    const h = fixture(location, false, true);
+    h.setNow('2026-11-05T18:59:59+09:00');
+    await h.start(); await h.release(() => true); await h.release(() => true);
+    const canvas = h.nodes[location === 'home' ? 'cbiHomeCanvas' : 'cbiOfficeCanvas'];
+    assert.equal(canvas.dataset.timeSlot, 'evening');
+    for (const time of ['2026-11-05T19:00:00+09:00', '2026-11-05T21:30:00+09:00']) {
+      h.setNow(time); h.api.refresh(); await h.release(() => true);
+      assert.equal(canvas.dataset.timeSlot, 'night');
+      assert.equal(h.api.getState().frame.slot, 'night');
+    }
+  }
+});
 
 for (const windowsFirst of [false,true]) test('home publishes one complete frame with ' + (windowsFirst ? 'windows' : 'actor') + ' arriving first', async () => {
   const h = fixture(); await h.start();
