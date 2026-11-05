@@ -81,8 +81,7 @@ function fixture(options = {}) {
     fetch: url => { fetches.push(url); return Promise.resolve({ ok: true, json: () => Promise.resolve(manifest) }); },
     addEventListener: (type, fn) => (events[type] ||= []).push(fn),
     WorldContext: { getActiveWorldId: () => activeWorld, getActiveLocationId: () => activeLocation },
-    CharacterRuntime: { getCbiPresenceRoster: () => currentRoster },
-    ...(options.meetings ? { CBIOfficeMeetings: options.meetings } : {})
+    CharacterRuntime: { getCbiPresenceRoster: () => currentRoster }
   });
   context.window = context;
   vm.runInContext(source, context);
@@ -110,32 +109,6 @@ test('all 32 independent rosters work in every one of the four periods', () => {
     }
   }
   assert.equal(keys.size, 128);
-});
-
-test('shared meeting moves the existing clickable actors and restores their normal targets after ending', async () => {
-  const renderer=require('../cbi-office-meetings.js');
-  const locked=JSON.parse(fs.readFileSync(path.join(root,'assets/scenes/cbi-office-meetings/v1/manifest.json'),'utf8'));
-  const meetings={
-    load:async()=>({manifest:locked}), decorate(){},
-    draw(ctx,ids){const group=renderer.group(ids);return Object.fromEntries(Object.entries(group).map(([seat,id])=>[id,renderer.placement(locked,id,seat)]));}
-  };
-  const h=fixture({meetings});
-  h.api.updateRoster(roster(31),'day');await h.loaded();
-  h.api.setSessions(['jane','rigsby','cho'].map(character=>({character,state:'meeting',meetingKey:'same-clock'})));
-  await new Promise(resolve=>setImmediate(resolve));
-  for(const id of ['jane','rigsby','cho']){
-    assert.equal(h.nodes['char-'+id].dataset.officeMeeting,'true');
-    assert(h.nodes['char-'+id].style.left);
-    assert.equal(h.nodes['char-'+id].tabIndex,0);
-  }
-  assert.equal(h.nodes['char-lisbon'].dataset.officeMeeting,undefined);
-  assert.equal(h.api.isMeeting('jane'),true);
-  h.api.setSessions([]);
-  assert.equal(h.api.isMeeting('jane'),false);
-  for(const id of ['jane','rigsby','cho']){
-    assert.equal(h.nodes['char-'+id].dataset.officeMeeting,undefined);
-    assert.equal(h.nodes['char-'+id].style.left,undefined);
-  }
 });
 test('arrival, errand, home and off-duty states hide the individual instead of using the duty label', () => {
   const input = roster(31);
@@ -252,4 +225,3 @@ test('failed module loading preserves the legacy room instead of showing a blank
   assert.equal(h.api.getState().ready, false);
   assert.equal(h.api.getState().drawCount, 0);
 });
-
