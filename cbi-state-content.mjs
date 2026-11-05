@@ -8,7 +8,7 @@ const MINUTE = 60000, HOUR = 60 * MINUTE, JST = 9 * HOUR;
 const staff = ['cho', 'rigsby', 'lisbon', 'vanpelt'];
 const rule = (label, min, max, weight, ids = STATE_IDS, cooldown = 30) => ({ label, min, max, weight, ids, cooldown });
 
-// All office states fit the existing seated art. Travel and returns come from actual presence windows.
+// Individual activities use workstation art. A shared meeting owns its three seats.
 export const OFFICE_ACTIVITY_STATES = {
   focused_work: rule('认真工作', 60, 120, 18, staff),
   writing_report: rule('写报告', 45, 95, 14, staff),
@@ -40,6 +40,7 @@ export const OFFICE_ACTIVITY_STATES = {
   noticing_inconsistency: rule('琢磨一处不对劲', 25, 60, 12, ['jane']),
   watching_office: rule('安静观察办公室', 15, 35, 7, ['jane']),
   finishing_work: rule('整理今天的工作', 10, 25, 3, staff),
+  meeting: rule('三人案情讨论', 20, 35, 0),
   field_return: rule('刚从外勤回来', 8, 18, 0),
   errand_return: rule('办完事回到办公室', 5, 12, 0),
   arriving: rule('刚到办公室', 5, 12, 0)
@@ -157,12 +158,44 @@ export function validateStateContext(value, now = Date.now()) {
 }
 export function stateSessions(context, now = Date.now()) {
   const c = validateStateContext(context, now);
-  return (c.scene === 'home' ? [selectHomeSession(c, now)] : c.characters.map(x => selectOfficeSession(x.character, x, now))).filter(Boolean);
+  if (c.scene === 'home') return [selectHomeSession(c, now)].filter(Boolean);
+  const meeting = selectOfficeMeeting(c.characters, now);
+  return c.characters.map(x => meeting?.participants.includes(x.character)
+    ? descriptor('office', x.character, 'meeting', meeting.key, meeting.startAt, meeting.endAt,
+      {status: OFFICE_ACTIVITY_STATES.meeting.label, participants: meeting.participants, meetingKey: meeting.key})
+    : selectOfficeSession(x.character, x, now)).filter(Boolean);
+}
+
+export function selectOfficeMeeting(characters, now = Date.now()) {
+  const anchor = dayAnchor(now);
+  let startAt = anchor + int('meeting-v1:'+anchor+':first', 210, 300) * MINUTE;
+  for (let index = 0; startAt <= now && index < 12; index++) {
+    const key = 'shared-meeting-v1:'+anchor+':'+index;
+    const endAt = startAt + int(key+':duration', 20, 35) * MINUTE;
+    if (now < endAt) {
+      // Selection is independent of page/device and of later arrivals.
+      const participants = STATE_IDS.slice().sort((a,b) =>
+        stateUnit(key+':'+a)-stateUnit(key+':'+b) || STATE_IDS.indexOf(a)-STATE_IDS.indexOf(b)).slice(0,3)
+        .sort((a,b)=>STATE_IDS.indexOf(a)-STATE_IDS.indexOf(b));
+      const ready = participants.every(id => characters.some(x => x.character === id &&
+        x.startAt + 8 * MINUTE <= startAt && x.endAt >= endAt));
+      return ready ? {key,startAt,endAt,participants} : null;
+    }
+    startAt = endAt + int(key+':gap', 150, 270) * MINUTE;
+  }
+  return null;
 }
 
 export function stateFallback(session) {
   if (session.scene === 'home') return (session.topic === 'case' ? HOME_CASE_STATES[session.activity]?.fallback : HOME_STATES[session.activity]?.fallback) || '等一下，我还在这里。';
   const id = session.character;
+  if (session.state === 'meeting') return ({
+    jane:'你也过来看看。我想听听你怎么看这处不对劲。',
+    cho:'先把时间顺序对齐。你看这一段。',
+    rigsby:'我把这几处摆在一起了。你看看有没有漏掉的。',
+    lisbon:'先把能确认的部分说清楚。你也听听。',
+    vanpelt:'这两份记录还对不上，我正在核对。你看这里。'
+  })[id];
   if (session.state === 'field_return' || session.state === 'errand_return') return ({ jane: '回来了。你看起来倒不怎么意外。', cho: '回来了。我先把记录核对一遍。', rigsby: '刚回来。让我先把手边的记录放好。', lisbon: '回来了。记录整理好后我再跟你说。', vanpelt: '回来了。我先核对一下带回来的资料。' })[id];
   if (['short_break', 'resting_eyes', 'clearing_thoughts', 'quiet_chat', 'sharing_observation'].includes(session.state)) return ({ jane: '你再看一会儿，我的休息就要变成表演了。', cho: '歇几分钟。', rigsby: '总算能让脑子歇一下了。', lisbon: '让我歇一会儿。你也坐一下？', vanpelt: '我正在休息。没有偷偷继续看工作。' })[id];
   if (session.state === 'arriving') return ({ jane: '我来了。先别把所有问题一起递过来。', cho: '我到了。先看手边的记录。', rigsby: '早。我先看看今天手边的事。', lisbon: '我到了。先把手边的工作理一下。', vanpelt: '我到了。我先看看今天要核对的内容。' })[id];
@@ -219,13 +252,17 @@ export function sessionLine(session, pool, now = Date.now()) {
 export function stateGenerationPrompt(sessions, revision) {
   const scene = sessions[0].scene;
   const targets = sessions.map(s => ({ key: s.key, character: s.character, state: s.state, status: s.status,
-    duration_minutes: Math.round(s.durationMinutes), line_count: s.lineRange, ...(s.activity ? { activity: s.activity, topic: s.topic } : {}) }));
+    duration_minutes: Math.round(s.durationMinutes), line_count: s.lineRange,
+    ...(s.participants ? {participants:s.participants,meeting_key:s.meetingKey} : {}),
+    ...(s.activity ? { activity: s.activity, topic: s.topic } : {}) }));
   return `为 C-NC 中已经确定的当前人物状态配台词。${currentCanonPrompt()}
-本次场景：${scene === 'office' ? '办公室，Jane在沙发上，其他人在各自工位，保持现有坐姿' : 'Boss家里，Jane的现有动作图片'}。
+本次场景：${scene === 'office' ? '办公室。meeting状态的三人一起坐在会议桌边讨论案情；其他角色保持原来的工位或沙发坐姿。只有participants内的角色参加这次会议' : 'Boss家里，Jane的现有动作图片'}。
 本次状态由程序决定，以下每项的key、character、state均须原样返回。只为这些当前状态生成，不能改状态、持续时间、到岗、外勤或睡眠。目标：${JSON.stringify(targets)}。
 line_count是每项允许的最少和最多句数。长状态生成2—4句不同内容，短状态少一些；每句都能单独显示，不写成必须连续读的对话。认真工作时可以简短回应、说起推敲中的细节或暂时没想通的地方；外勤/办事回来只给1—2句简短报告、感慨或吐槽，不凭空添加发现、嫌疑人、证据、案情结论。其他状态不能声称刚从外勤回来。工作与休息都保持人物自己的节奏，不每句工作汇报，也不每句玩笑或调情。
 家里的台词须对应当前activity和topic。普通看书/电视就围绕当下生活，case才可在看书/电视/吃饭时琢磨案子；不补出图中没有的道具和动作。洗澡/使用中仅从门内简短回应，刷牙为能在间隙说的短句。不得输出睡眠台词。
+meeting台词承接同一场三人讨论，角色可以对Milo说起桌上的记录、回应同席同伴的推敲、请Milo一起看。只提participants内的同席者，不把开会说成独自在工位，不编出新证据、嫌疑人或案件进展。
 Milo是男性组长。Jane轻巧、机灵、会绕弯，有主体性，不写成心理咨询式安慰；Cho简短准确有冷幽默；Rigsby有专业能力；Lisbon认真有主见；Van Pelt聪明认真。表达承接共同十年，不倒退到初识，不擅自添加婚恋名分。
 每句直接对点击人物的Milo说，15—45字为宜，最多90字；不替Milo回复，不含括号、旁白、姓名前缀、换行。不要把同一句换词重复，不每句提茶/食物/Boss。缺失的共同往事不编成事实。
 仅返回合法JSON：{"format":"${STATE_FORMAT}","version":1,"scene":"${scene}","continuity":"${CBI_CONTINUITY}","canon_revision":"${revision}","states":[{"key":"原key","character":"原character","state":"原state","lines":["一句直接台词"]}]}。states恰好包含本次所有目标，每项只有key、character、state、lines，不输出Markdown或额外字段。`;
 }
+

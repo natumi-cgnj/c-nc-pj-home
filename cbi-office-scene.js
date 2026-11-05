@@ -26,7 +26,8 @@
   ];
   var state = {
     frame: null, assets: null, loading: null, failedAt: 0, paintedKey: '',
-    rawCanvas: null, roomMask: null, drawCount: 0, error: '', windowPending: {}, windowRetry: {}
+    rawCanvas: null, roomMask: null, drawCount: 0, error: '', windowPending: {}, windowRetry: {},
+    roster: null, meeting: null, meetingAssets: null, meetingLoading: null, meetingFailedAt: 0, meetingCanvas: null, targets: {}
   };
 
   function normalizeSlot(slot) {
@@ -42,7 +43,7 @@
     return 'night';
   }
 
-  function getFrame(roster, slot) {
+  function getFrame(roster, slot, meeting) {
     var assignments = roster && roster.assignments || {};
     var present = [];
     var absent = [];
@@ -56,7 +57,11 @@
       }
     });
     slot = normalizeSlot(slot);
-    return { mask: mask, slot: slot, present: present, absent: absent, key: mask + ':' + slot };
+    var active = meeting && Array.isArray(meeting.ids) && meeting.ids.length === 3 &&
+      new Set(meeting.ids).size === 3 && meeting.ids.every(function (id) { return present.indexOf(id) >= 0; }) ? meeting : null;
+    return { mask: mask, slot: slot, present: present, absent: absent,
+      deskPresent: present.filter(function (id) { return !active || active.ids.indexOf(id) < 0; }),
+      meeting: active, key: mask + ':' + slot + (active ? ':' + active.key : '') };
   }
 
   function validateManifest(manifest) {
@@ -220,7 +225,7 @@
     ctx.beginPath();
     ctx.rect(WINDOW.x, WINDOW.y, WINDOW.width, WINDOW.height);
     // Jane's head is in front of the window, never part of its sky replacement.
-    if (frame.present.indexOf('jane') >= 0) {
+    if (frame.deskPresent.indexOf('jane') >= 0) {
       var head = [[347,171],[359,170],[367,172],[372,176],[375,182],[374,189],
         [372,194],[371,199],[366,205],[361,209],[352,207],[347,202],
         [343,198],[339,195],[337,190],[338,183],[339,178],[343,174]];
@@ -241,7 +246,7 @@
       ctx.save();
       trace(ctx, SCREENS[id]);
       ctx.clip();
-      if (frame.present.indexOf(id) >= 0) {
+      if (frame.deskPresent.indexOf(id) >= 0) {
         ctx.drawImage(state.rawCanvas, 0, 0);
       } else {
         ctx.fillStyle = '#101721';
@@ -260,6 +265,19 @@
       element.setAttribute('aria-label', NAMES[id]);
       element.setAttribute('role', 'button');
       element.tabIndex = present ? 0 : -1;
+      var target = state.targets[id];
+      ['left','top','width','height','z-index'].forEach(function (name) {
+        var value = target && ({left:target.x/1672*100+'%',top:target.y/941*100+'%',
+          width:target.width/1672*100+'%',height:Math.min(100,target.height)/941*100+'%',
+          'z-index':target.seat==='near'?'25':'24'})[name];
+        if (element.style.setProperty) {
+          if (value) element.style.setProperty(name,value,'important');
+          else element.style.removeProperty(name);
+        } else if (value) element.style[name]=value;
+        else delete element.style[name];
+      });
+      if (target) element.dataset.officeMeeting = 'true';
+      else delete element.dataset.officeMeeting;
       if (id === 'jane') element.style.display = present ? '' : 'none';
       if (!element.dataset.officeKeyboard) {
         element.dataset.officeKeyboard = '1';
@@ -281,15 +299,24 @@
     var assets = state.assets;
     var frame = state.frame;
     if (frame.slot !== 'morning' && !assets.windows[frame.slot]) return false;
+    if (global.CBIOfficeMeetings && !state.meetingAssets) {
+      ensureMeetings();
+      if (frame.meeting || !state.meetingFailedAt) return false;
+    }
     var manifest = assets.manifest;
     var raw = state.rawCanvas.getContext('2d', { willReadFrequently: true });
     raw.clearRect(0, 0, manifest.width, manifest.height);
     raw.drawImage(assets.base, 0, 0);
-    frame.present.forEach(function (id) {
+    frame.deskPresent.forEach(function (id) {
       var item = manifest.occupants[id];
       // Native pixel coordinates retain the approved face and body proportions.
       raw.drawImage(assets.people[id], item.x, item.y);
     });
+    state.targets = {};
+    if (state.meetingAssets) {
+      global.CBIOfficeMeetings.decorate(raw,state.meetingAssets);
+      if (frame.meeting) state.targets = global.CBIOfficeMeetings.draw(raw,frame.meeting.ids,state.meetingAssets,state.meetingCanvas);
+    }
     var pixels = raw.getImageData(0, 0, manifest.width, manifest.height);
     applyLightingPixels(pixels.data, state.roomMask, frame.slot);
     if (canvas.width !== manifest.width) canvas.width = manifest.width;
@@ -314,12 +341,46 @@
 
   function updateRoster(roster, nowOrSlot) {
     var slot = typeof nowOrSlot === 'string' ? nowOrSlot : getTimeSlot(nowOrSlot);
-    state.frame = getFrame(roster, slot);
+    if (global.CBIStateLines && global.CBIStateLines.getSessions) {
+      state.meeting=meetingFromSessions(global.CBIStateLines.getSessions('office'));
+    }
+    state.roster = roster;
+    state.frame = getFrame(roster, slot, state.meeting);
     if (!global.document || !isOfficeActive()) return state.frame;
     var prepare = function () { ensureWindow(state.frame.slot); paint(); };
     if (state.assets) prepare();
     else ensureAssets().then(prepare).catch(function () {});
     return state.frame;
+  }
+
+  function ensureMeetings() {
+    if (state.meetingAssets || state.meetingLoading || !global.CBIOfficeMeetings) return;
+    if (state.meetingFailedAt && Date.now()-state.meetingFailedAt<30000) return;
+    state.meetingLoading = global.CBIOfficeMeetings.load().then(function (assets) {
+      state.meetingAssets=assets;
+      state.meetingFailedAt=0;
+      state.meetingCanvas=global.document.createElement('canvas');
+      state.meetingCanvas.width=1672;state.meetingCanvas.height=941;
+      state.paintedKey='';paint();
+    }).catch(function (error) {
+      state.error=error.message;state.meetingFailedAt=Date.now();
+      // Keep a complete seated-office fallback while an unavailable asset retries.
+      if (state.frame && !state.paintedKey) state.frame=getFrame(state.roster,state.frame.slot,null);
+      paint();
+    }).finally(function () { state.meetingLoading=null; });
+  }
+
+  function meetingFromSessions(sessions) {
+    var together = (sessions || []).filter(function (s) { return s.state === 'meeting'; });
+    return together.length === 3 && together.every(function (s) { return s.meetingKey === together[0].meetingKey; })
+      ? {key:together[0].meetingKey,ids:together.map(function (s) { return s.character; })} : null;
+  }
+
+  function setSessions(sessions) {
+    var next=meetingFromSessions(sessions);
+    if ((next && next.key || '') === (state.meeting && state.meeting.key || '')) return;
+    state.meeting=next;
+    if (state.roster && state.frame) updateRoster(state.roster,state.frame.slot);
   }
 
   function refresh(now, slot) {
@@ -343,7 +404,8 @@
     ids: IDS.slice(), slots: SLOTS.slice(), getFrame: getFrame, getTimeSlot: getTimeSlot,
     validateManifest: validateManifest, applyLightingPixels: applyLightingPixels,
     updateRoster: updateRoster, refresh: refresh, setTime: function (slot) { return refresh(null, normalizeSlot(slot)); },
-    whenReady: ensureAssets, getState: getState
+    whenReady: ensureAssets, getState: getState, setSessions: setSessions,
+    isMeeting: function (id) { return !!(state.frame && state.frame.meeting && state.frame.meeting.ids.indexOf(id) >= 0); }
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   global.CBIOfficeScene = api;
@@ -361,3 +423,4 @@
     });
   }
 })(typeof window !== 'undefined' ? window : globalThis);
+

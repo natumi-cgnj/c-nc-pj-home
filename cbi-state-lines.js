@@ -8,7 +8,7 @@
   const clock = () => (global.Date || Date).now();
   const doc = global.document;
   const ready = Promise.all([
-    import('./cbi-state-content.mjs?v=20261103-state1'),
+    import('./cbi-state-content.mjs?v=20261105-meeting1'),
     import('./cbi-home-content.mjs?v=20261103-state1'),
     import('./cbi-office-content.mjs?v=20261103-state1')
   ]).then(([state, home, office]) => { rules = state; homeRules = home; officeRules = office; return state; });
@@ -40,6 +40,7 @@
     }
   }
   function syncStates(snap, scene) {
+    if (scene === 'office') global.CBIOfficeScene?.setSessions?.(snap?.sessions || []);
     const current = new Map((snap?.sessions || []).map(s => [s.character, s.key]));
     for (const id of rules.STATE_IDS) {
       const key = scene + ':' + id, value = current.get(id) || '';
@@ -150,6 +151,7 @@
     return latest?.pack.scene === scene ? latest : history[scene] || null;
   }
   global.CBIStateLines = { ready, refresh, accept, getPool, getLine, getSession,
+    getSessions: scene => snapshot(scene)?.sessions || [],
     decode: source => rules?.decodeStateBatch(source) || null,
     describe: (state, scene) => scene === 'office' ? rules?.OFFICE_ACTIVITY_STATES[state]?.label || '' :
       homeRules?.homeStateLabel(state?.replace(/\.case$/, ''), state?.endsWith('.case') ? 'case' : 'daily') || '',
@@ -176,3 +178,4 @@
   });
   ready.then(() => { if (global.CloudSync) return global.CloudSync.whenReady().then(resume); }).catch(() => {});
 })(window);
+

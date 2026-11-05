@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CBI 办公室开会</title>
+<link rel="stylesheet" href="cbi-office-scene.css?v=20261105-lock1">
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f7f3ed;color:#362d26;font:15px/1.5 system-ui,sans-serif}
+main{max-width:1500px;margin:auto;padding:18px}h1{font-size:23px;margin:0 0 12px}
+.controls{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:12px;align-items:center}
+button,select{font:inherit;border:1px solid #c3b29c;background:#fffdf9;color:inherit;padding:8px 12px;border-radius:6px}
+button{cursor:pointer}button[aria-pressed=true]{background:#4b3b2f;color:#fff}
+.cbi-office{position:relative;aspect-ratio:1672/941;background:#fff;border-radius:8px;overflow:hidden}
+.char-sprite{position:absolute;cursor:pointer;z-index:20}
+.char-sprite:focus-visible{outline:2px solid #a55824}
+#previewBubble{position:absolute;z-index:50;max-width:260px;background:#fffaf1;border:1px solid #b79875;border-radius:8px;padding:10px 13px;box-shadow:0 3px 15px #41270f20}
+#previewBubble[hidden]{display:none}.status{display:block;font-size:12px;color:#8c623a;margin-bottom:3px}
+details{margin-top:14px}summary{cursor:pointer}details img{display:block;width:100%;height:auto;margin-top:10px}
+#sceneStatus{min-height:1.5em;margin:8px 0;color:#65564a}
+@media(max-width:600px){main{padding:10px}h1{font-size:20px}button,select{font-size:13px;padding:7px}.cbi-office{min-width:0}#previewBubble{font-size:12px;max-width:200px}}
+</style>
+<body data-world-id="cbi" data-world-location="office">
+<main>
+ <h1>CBI 办公室开会</h1>
+ <div class="controls">
+  <select id="group" aria-label="参会组合"></select>
+  <select id="lighting" aria-label="光照"><option value="morning">清晨</option><option value="day">白天</option><option value="evening">傍晚</option><option value="night">夜间</option></select>
+  <button id="normal" aria-pressed="false">日常办公</button>
+  <button id="meeting" aria-pressed="true">三人讨论</button>
+ </div>
+ <section id="cbiOfficeWrap">
+  <div class="cbi-office" id="roomCbiOffice">
+   <canvas class="cbi-office-canvas" id="cbiOfficeCanvas" width="1672" height="941" hidden></canvas>
+   <div class="char-sprite" id="char-jane"></div><div class="char-sprite" id="char-rigsby"></div>
+   <div class="char-sprite" id="char-vanpelt"></div><div class="char-sprite" id="char-lisbon"></div><div class="char-sprite" id="char-cho"></div>
+   <div id="previewBubble" role="status" hidden><span class="status" id="bubbleStatus"></span><span id="bubbleText"></span></div>
+  </div>
+ </section>
+ <p id="sceneStatus" aria-live="polite">正在载入办公室。</p>
+ <details><summary>查看五人固定尺寸母版</summary><img src="assets/scenes/cbi-office-meetings/v1/scale-reference.webp" alt="Rigsby、Jane、Cho、Van Pelt 和 Lisbon 使用同一座面基线的固定尺寸"></details>
+</main>
+<script src="cbi-office-meetings.js?v=20261105-lock1"></script>
+<script src="cbi-office-scene.js?v=20261105-meeting1"></script>
+<script type="module">
+import {stateFallback} from './cbi-state-content.mjs?v=20261105-meeting1';
+const ids=['jane','rigsby','vanpelt','lisbon','cho'],names={jane:'Jane',rigsby:'Rigsby',vanpelt:'Van Pelt',lisbon:'Lisbon',cho:'Cho'};
+const groups=[['jane','rigsby','cho'],['jane','rigsby','vanpelt'],['jane','rigsby','lisbon'],['jane','vanpelt','lisbon'],['jane','vanpelt','cho'],['jane','lisbon','cho'],['rigsby','vanpelt','lisbon'],['rigsby','vanpelt','cho'],['rigsby','lisbon','cho'],['vanpelt','lisbon','cho']];
+const el=id=>document.getElementById(id);
+const roster={assignments:Object.fromEntries(ids.map(id=>[id,{location:'office'}]))};
+let active=true,timer;
+for(let i=0;i<groups.length;i++)el('group').add(new Option(groups[i].map(id=>names[id]).join(' · '),String(i)));
+el('group').value='7';
+function refresh(){
+ const selected=groups[Number(el('group').value)];
+ CBIOfficeScene.setSessions(active?selected.map(character=>({character,state:'meeting',meetingKey:'preview-'+selected.join('-')})):[]);
+ CBIOfficeScene.updateRoster(roster,el('lighting').value);
+ el('normal').setAttribute('aria-pressed',String(!active));el('meeting').setAttribute('aria-pressed',String(active));
+ el('previewBubble').hidden=true;
+ el('sceneStatus').textContent=active?selected.map(id=>names[id]).join('、')+' 在讨论案情。点人物可以说话。':'五个人在各自原位。点人物可以说话。';
+}
+el('group').onchange=()=>{active=true;refresh();};el('lighting').onchange=refresh;
+el('normal').onclick=()=>{active=false;refresh();};el('meeting').onclick=()=>{active=true;refresh();};
+for(const id of ids)el('char-'+id).onclick=()=>{
+ const state=CBIOfficeScene.isMeeting(id)?'meeting':'focused_work';
+ el('bubbleStatus').textContent=names[id]+' · '+(state==='meeting'?'三人案情讨论':'办公');
+ el('bubbleText').textContent=stateFallback({scene:'office',character:id,state});
+ const p=el('char-'+id).getBoundingClientRect(),room=el('roomCbiOffice').getBoundingClientRect();
+ const bubble=el('previewBubble');bubble.hidden=false;
+ bubble.style.left=Math.max(3,Math.min(room.width-205,p.left-room.left+p.width/2-90))+'px';
+ bubble.style.top=Math.max(4,p.top-room.top-65)+'px';
+ clearTimeout(timer);timer=setTimeout(()=>{bubble.hidden=true;},7000);
+};
+await CBIOfficeScene.whenReady();refresh();
+</script>
+</body>
+</html>

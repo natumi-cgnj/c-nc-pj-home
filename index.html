@@ -1154,8 +1154,9 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script src="character-runtime.js?v=20261103-sleep2"></script>
 <script src="cbi-weather.js?v=20260903-cbi-weather2"></script>
-<script src="cbi-office-scene.js?v=20261029-entry1"></script>
-<script src="cbi-state-lines.js?v=20261103-state1"></script>
+<script src="cbi-office-meetings.js?v=20261105-lock1"></script>
+<script src="cbi-office-scene.js?v=20261105-meeting1"></script>
+<script src="cbi-state-lines.js?v=20261105-meeting1"></script>
 <script src="cbi-home-scene.js?v=20261103-state1"></script>
 <script src="cbi-scene-lighting.js?v=20261029-entry1"></script>
 <script src="cbi-data.js?v=20260929-room-storage1"></script>
@@ -1301,7 +1302,7 @@ function renderCbiDutyRoster(){
       element.classList.remove('cbi-jane-sleeping');
       delete element.dataset.sleepPlace;
       element.style.display=present?'':'none';
-      if(present)positionCbiOfficeJane();
+      if(present&&!window.CBIOfficeScene?.isMeeting(id))positionCbiOfficeJane();
     }else{
       element.classList.toggle('is-present',present);
     }
@@ -1309,8 +1310,9 @@ function renderCbiDutyRoster(){
     if(!present&&bubble)bubble.classList.remove('show');
     var desk=document.querySelector('[data-cbi-desk="'+id+'"]');
     if(desk){
-      desk.classList.toggle('is-vacant',!present);
-      desk.setAttribute('aria-label',cbiPresenceTip(id,assignment));
+      var discussing=window.CBIOfficeScene?.isMeeting(id);
+      desk.classList.toggle('is-vacant',!present||discussing);
+      desk.setAttribute('aria-label',discussing?CBI_STAFF_NAMES[id]+' · 在会议桌边讨论案情':cbiPresenceTip(id,assignment));
     }
   });
 }
@@ -1365,6 +1367,7 @@ function closeCbiStorage(event){
 function onCbiDeskTap(charId,event){
   if(event)event.stopPropagation();
   if(!window.CharacterRuntime)return;
+  if(window.CBIOfficeScene?.isMeeting(charId)){showTip(CBI_STAFF_NAMES[charId]+'在会议桌边讨论案情');return;}
   var status=CharacterRuntime.getCbiCharacterPresence(charId,new Date());
   showTip(cbiPresenceTip(charId,status));
 }
@@ -4329,3 +4332,4 @@ if(window.HomeSceneEntry){
 
 </script>
 </body></html>
+

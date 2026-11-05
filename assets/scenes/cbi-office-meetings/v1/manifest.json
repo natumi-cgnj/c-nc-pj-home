@@ -1,0 +1,157 @@
+{
+  "version": 1,
+  "width": 1672,
+  "height": 941,
+  "people": {
+    "rigsby": {
+      "src": "rigsby.png",
+      "front": "rigsby-front.png",
+      "width": 125,
+      "height": 188,
+      "anchor": [
+        99,
+        126
+      ],
+      "facing": "left",
+      "chair": false,
+      "sha256": "75d2f0a6e2b52c89d6bf3b9a5750bf459863072ac78ebf97305d2ff8e833b502"
+    },
+    "jane": {
+      "src": "jane.png",
+      "front": "jane-front.png",
+      "width": 112,
+      "height": 180,
+      "anchor": [
+        84,
+        120
+      ],
+      "facing": "left",
+      "chair": false,
+      "sha256": "2b2eeaf29d9d834a842756a7639548c051f25f3afb400597e62c542bcc4f3824"
+    },
+    "cho": {
+      "src": "cho.png",
+      "front": "cho-front.png",
+      "width": 122,
+      "height": 193,
+      "anchor": [
+        41,
+        119
+      ],
+      "facing": "right",
+      "chair": true,
+      "sha256": "125f053cb801e018b96bfccdf42168d3a1541bb91625005f3c2fa9ed5e79bf89"
+    },
+    "vanpelt": {
+      "src": "vanpelt.png",
+      "front": "vanpelt-front.png",
+      "width": 101,
+      "height": 175,
+      "anchor": [
+        69,
+        115
+      ],
+      "facing": "left",
+      "chair": false,
+      "sha256": "7ed1b00ac534c56f09b2a9bb92358fad459ea5eae11700b984fb5be3c2696102"
+    },
+    "lisbon": {
+      "src": "lisbon.png",
+      "front": "lisbon-front.png",
+      "width": 110,
+      "height": 165,
+      "anchor": [
+        87,
+        113
+      ],
+      "facing": "left",
+      "chair": false,
+      "sha256": "a9c173f91e269c2d75b71525c29d5d113f5ae6cc142c07f45551559c06b540ff"
+    }
+  },
+  "seats": {
+    "far": {
+      "x": 1005,
+      "y": 535,
+      "facing": "left"
+    },
+    "near": {
+      "x": 1024,
+      "y": 638,
+      "facing": "left"
+    },
+    "left": {
+      "x": 746,
+      "y": 581,
+      "facing": "right"
+    }
+  },
+  "props": [
+    {
+      "src": "table-white.png",
+      "x": 796,
+      "y": 481,
+      "width": 51,
+      "height": 45
+    },
+    {
+      "src": "table-red.png",
+      "x": 924,
+      "y": 446,
+      "width": 43,
+      "height": 43
+    },
+    {
+      "src": "table-blue.png",
+      "x": 886,
+      "y": 618,
+      "width": 44,
+      "height": 44
+    }
+  ],
+  "away": {
+    "cho": {
+      "src": "away-cho.png",
+      "x": 589,
+      "y": 577,
+      "width": 103,
+      "height": 158
+    },
+    "vanpelt": {
+      "src": "away-vanpelt.png",
+      "x": 589,
+      "y": 386,
+      "width": 96,
+      "height": 153
+    },
+    "lisbon": {
+      "src": "away-lisbon.png",
+      "x": 293,
+      "y": 571,
+      "width": 105,
+      "height": 161
+    }
+  },
+  "chairs": {
+    "vanpelt": {
+      "src": "chair-left.png",
+      "width": 104,
+      "height": 155,
+      "anchor": [
+        50,
+        80
+      ],
+      "facing": "right"
+    },
+    "lisbon": {
+      "src": "chair-left.png",
+      "width": 104,
+      "height": 155,
+      "anchor": [
+        50,
+        80
+      ],
+      "facing": "right"
+    }
+  }
+}
