@@ -113,6 +113,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   .nutrition-log{margin-top:8px}
 }
 </style>
+<link rel="stylesheet" href="record-periods.css?v=20261107-periods1">
 <link rel="stylesheet" href="world-story.css?v=20261028-stories1">
 </head>
 <body>
@@ -201,6 +202,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <script src="body-model.js?v=20261023-body1"></script>
 <script src="diet-body.js?v=20261023-body1"></script>
 <script src="diet-world.js?v=20261028-stories1-20261023-bridge1"></script>
+<script src="record-periods.js?v=20261107-periods1"></script>
 <script>
 'use strict';
 if(window.__LIMINAL_REDIRECTING)throw new Error('Redirecting to cloud login');
@@ -234,7 +236,20 @@ function getCalorieLog(){const data=readJson(CALORIE_KEY,{version:1,records:[]})
 function calorieStatsForDay(day){return getCalorieLog().records.reduce((total,record)=>{if(record.date!==day)return total;const kcal=Math.max(0,Math.round(Number(record.kcal)||0));if(record.type==='burn')total.burn+=kcal;else total.intake+=kcal;total.net=total.intake-total.burn;return total;},{intake:0,burn:0,net:0});}
 function isStepRecord(record){return record.type==='burn'&&record.source==='wechat_steps';}
 function stepCalories(steps){return Math.round(steps*STEP_KCAL_PER_THOUSAND/1000);}
-function renderCalorieLedger(){const log=getCalorieLog();const records=log.records.slice().sort((left,right)=>String(right.date||'').localeCompare(String(left.date||''))||(Number(right.createdAt)||0)-(Number(left.createdAt)||0));document.getElementById('calorieCount').textContent=records.length?'· '+records.length+' 笔':'';document.getElementById('calorieHistory').innerHTML=records.length?records.map(record=>{const burn=record.type==='burn',steps=isStepRecord(record),kind=steps?'steps':burn?'burn':'intake',kcal=Math.max(0,Math.round(Number(record.kcal)||0));return'<div class="calorie-row"><span class="calorie-date">'+esc(record.date||'—')+'</span><span class="calorie-kind '+kind+'">'+(steps?'步':burn?'运动':'吃')+'</span><span class="calorie-detail">'+esc(record.detail||'—')+'</span><span class="calorie-amount '+kind+'">'+(burn?'−':'+')+kcal+' kcal</span><button class="calorie-delete" type="button" aria-label="删除" onclick="deleteCalorieRecord(\''+record.id+'\')">×</button></div>';}).join(''):'<div class="calorie-empty">还没有记录</div>';}
+function renderCalorieLedger(){
+  const log=getCalorieLog();
+  const records=log.records.slice().sort((left,right)=>String(right.date||'').localeCompare(String(left.date||''))||(Number(right.createdAt)||0)-(Number(left.createdAt)||0));
+  const target=document.getElementById('calorieHistory'),periods=window.RecordPeriods,opened=periods?periods.capture(target):[];
+  document.getElementById('calorieCount').textContent=records.length?'· '+records.length+' 笔':'';
+  function renderRecord(record){
+    const burn=record.type==='burn',steps=isStepRecord(record),kind=steps?'steps':burn?'burn':'intake',kcal=Math.max(0,Math.round(Number(record.kcal)||0));
+    return'<div class="calorie-row"><span class="calorie-date">'+esc(record.date||'—')+'</span><span class="calorie-kind '+kind+'">'+(steps?'步':burn?'运动':'吃')+'</span><span class="calorie-detail">'+esc(record.detail||'—')+'</span><span class="calorie-amount '+kind+'">'+(burn?'−':'+')+kcal+' kcal</span><button class="calorie-delete" type="button" aria-label="删除" onclick="deleteCalorieRecord(\''+record.id+'\')">×</button></div>';
+  }
+  target.innerHTML=periods?'<div class="record-period-actions"><button class="record-period-start" type="button" onclick="openCaloriePeriod()">开始新一段</button></div>'+periods.renderHistory({records,starts:log.recordPeriodStarts,today:workdayKey(),key:'diet',mode:'calorie',renderRecord}):
+    records.length?records.map(renderRecord).join(''):'<div class="calorie-empty">还没有记录</div>';
+  if(periods)periods.restore(target,opened);
+}
+function openCaloriePeriod(){if(window.RecordPeriods)window.RecordPeriods.open('diet',renderCalorieLedger);}
 function getNutritionStore(){const data=readJson(NUTRITION_KEY,{version:1,days:{}});data.version=1;data.days=data.days&&typeof data.days==='object'?data.days:{};return data;}
 function nutritionDayDate(day){const parts=String(day||'').split('-').map(Number);return new Date(parts[0]||1970,(parts[1]||1)-1,parts[2]||1,12,0,0,0);}
 function shiftNutritionDay(delta){const today=syncNutritionDay(),date=nutritionDayDate(nutritionSelectedDate);date.setDate(date.getDate()+delta);const next=dateKey(date);nutritionSelectedDate=next>today?today:next;renderNutritionChecklist();}

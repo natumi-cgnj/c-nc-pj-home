@@ -1,0 +1,36 @@
+.record-period-actions{display:flex;align-items:center;justify-content:space-between;gap:16px;border-bottom:1px solid #efede9}
+.record-period-start{appearance:none;border:0;background:none;padding:12px 0;font:inherit;font-size:11px;color:#aaa49c;cursor:pointer;white-space:nowrap}
+.record-period-start:hover,.record-period-start:focus-visible{color:var(--account-color,var(--diet-accent,#9b7d41))}
+.record-period{border-top:1px solid #efede9}
+.record-period-heading{display:flex;align-items:center;gap:16px;padding:18px 0;font-size:11px;font-weight:400;color:#847d73;list-style:none}
+summary.record-period-heading{cursor:pointer}
+summary.record-period-heading::-webkit-details-marker{display:none}
+.record-period-heading:focus-visible{outline:1px solid #c9bba6;outline-offset:2px}
+.record-period-copy{display:flex;flex:1;min-width:0;flex-direction:column;gap:7px}
+.record-period-range{font-size:11px;font-variant-numeric:tabular-nums;line-height:1.5;overflow-wrap:anywhere}
+.record-period-count{font-size:10px;color:#b4ada4;line-height:1.5}
+.record-period-totals{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px 20px;color:var(--account-color,var(--diet-accent,#9b7d41));font-size:11px;font-variant-numeric:tabular-nums;line-height:1.6}
+.record-period-totals>span{white-space:nowrap}
+.record-period-chevron{width:5px;height:5px;flex:0 0 5px;margin-right:3px;border-right:1px solid #b8b0a6;border-bottom:1px solid #b8b0a6;transform:rotate(45deg)}
+.record-period[open]>.record-period-heading .record-period-chevron{transform:rotate(225deg)}
+.record-period-empty{padding:18px 0 28px;font-size:11px;color:#bbb;text-align:center}
+.record-period-actions .asset-static-add{flex:1;text-align:left;border:0}
+.nutrition-log .record-period-actions{justify-content:flex-end;border:0}
+.nutrition-log .record-period-start{font-size:10px;padding:2px 0 12px}
+.calorie-fold .record-period-heading{width:auto;max-width:none;gap:12px;padding:16px 0}
+.calorie-fold .record-period-heading::after{content:none}
+.calorie-fold .record-period-current>.record-period-heading{padding-top:0}
+.record-period-modal{display:none;position:fixed;inset:0;z-index:220;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.3)}
+.record-period-modal.show{display:flex}
+.record-period-help{font-size:12px;line-height:1.8;color:#999;margin-bottom:16px}
+.record-period-error{font-size:11px;line-height:1.7;color:#a06f62;min-height:20px;margin:8px 0}
+.record-period-existing-label{font-size:10px;color:#aaa;margin:14px 0 4px}
+.record-period-boundary{display:flex;justify-content:space-between;align-items:center;gap:16px;border-bottom:1px solid #f1eeea;padding:9px 0;font-size:11px;color:#888}
+.record-period-boundary button{border:0;background:none;padding:6px 0;font:inherit;font-size:10px;color:#aaa;cursor:pointer}
+@media(max-width:599px){
+  .record-period-heading{gap:10px}
+  .record-period-totals{flex-direction:column;gap:3px;align-items:flex-end;font-size:10px}
+  .record-period-range{font-size:10px}
+  .record-period-count{font-size:9px}
+}
+@media(min-width:700px){.record-period-modal{align-items:center;padding:28px}}

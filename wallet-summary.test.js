@@ -50,6 +50,7 @@ function fixture(state, sharedStorage) {
   window.closeModal = id => { modalCalls.push(['close', id]); nodes.get(id).classList.remove('show'); };
   const context = vm.createContext({ window, document, Date: ClockDate, Intl });
   vm.runInContext(recurring, context);
+  vm.runInContext(fs.readFileSync('record-periods.js', 'utf8'), context);
   vm.runInContext(fs.readFileSync('ledger-task-catalog.js', 'utf8'), context);
   vm.runInContext(fs.readFileSync('ledger-task-model.js', 'utf8'), context);
   vm.runInContext(source, context);
@@ -75,6 +76,32 @@ test('currency totals stay separate and the goal converts yuan to yen at the fix
   assert.deepEqual([...app.nodes.get('assetAccountSummary').innerHTML.matchAll(/class="asset-summary-label">([^<]+)</g)].map(match => match[1]), ['CNY共计', 'JPY合算', '目标金额', '当前还差']);
   assert.deepEqual([...app.storage], before);
   assert.deepEqual(app.writes, []);
+});
+
+test('all six book details share record periods while account and goal saves preserve the cutoffs', () => {
+  const state = { accounts: {jpBank:{balance:1000}}, recordPeriodStarts:['2026-11-01'],
+    expenseBooks:Array.from({length:6},(_,i)=>({id:'book'+(i+1),records:[
+      {id:'old'+i,date:'2026-10-20',amount:100+i,type:'expense',note:'旧段'},
+      {id:'new'+i,date:'2026-11-07',amount:200+i,type:'income',note:'新段'}
+    ]})) };
+  const app=fixture(state);
+  app.time('2026-11-07T15:00:00+09:00');
+  app.render();
+  const amounts=app.expenseAmounts();
+  for(let i=1;i<=6;i++) {
+    app.window.WalletAssets.openExpenseDetail('book'+i);
+    const detail=app.nodes.get('assetExpenseDetail').innerHTML;
+    assert.match(detail,new RegExp('data-record-period="ledger:book'+i+':first"'));
+    assert.match(detail,/record-period-current/);
+    assert.match(detail,/2026-10-20/);
+    assert.match(detail,/2026-11-07/);
+  }
+  assert.equal(app.writes.length,0);
+  app.nodes.get('assetGoalAmount').value='20000000';
+  app.window.WalletAssets.saveGoal();
+  assert.deepEqual(app.stored().recordPeriodStarts,state.recordPeriodStarts);
+  assert.deepEqual(app.stored().expenseBooks.map(x=>x.records),state.expenseBooks.map(x=>x.records));
+  assert.deepEqual(app.expenseAmounts(),amounts);
 });
 
 test('unknown, zero and negative balances retain their meanings without floating point sum drift', () => {

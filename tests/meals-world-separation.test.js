@@ -107,9 +107,33 @@ function loadMeals(worldId, localStorage = new MemoryStorage(), file = 'meals.ht
     clearTimeout,
     setInterval(callback) { intervals.push(callback); return intervals.length; }
   });
+  if (file === 'diet.html') vm.runInContext(fs.readFileSync('record-periods.js', 'utf8'), context);
   vm.runInContext(inlineScript(file), context, { filename: file + ':inline' });
   return { context, document, elements, localStorage, listeners, views, tabs, calorieTypes, intervals };
 }
+
+test('DIET folds historical periods, preserves every food and step record and refreshes remote cutoffs', () => {
+  const log={version:1,recordPeriodStarts:['2026-11-07'],records:[
+    {id:'food',date:'2026-10-20',type:'intake',kcal:1400,detail:'午餐'},
+    {id:'walk',date:'2026-10-20',type:'burn',source:'wechat_steps',steps:5000,kcal:150,detail:'微信步数 5,000 步'}
+  ]};
+  const storage=new MemoryStorage({calorie_log_db:JSON.stringify(log)});
+  const app=loadMeals('cbi',storage,'diet.html',{now:'2026-11-07T15:00:00+09:00'});
+  const before=storage.getItem('calorie_log_db');
+  let history=app.elements.get('calorieHistory').innerHTML;
+  assert.match(history,/2026-11-07 起/);
+  assert.match(history,/<details class="record-period" data-record-period="diet:first">/);
+  assert.match(history,/记录 1 天 · 2 笔/);
+  assert.match(history,/摄入 1,400 kcal/);
+  assert.match(history,/消耗 150 kcal/);
+  assert.equal(storage.getItem('calorie_log_db'),before);
+  storage.setItem('calorie_log_db',JSON.stringify({...log,recordPeriodStarts:[]}));
+  app.listeners.get('storage')({key:'calorie_log_db'});
+  history=app.elements.get('calorieHistory').innerHTML;
+  assert.doesNotMatch(history,/<details class="record-period"/);
+  assert.match(history,/午餐/);
+  assert.match(history,/微信步数 5,000 步/);
+});
 
 test('DIET follows Japan 04:00 on an open page and preserves a deliberately selected history day', () => {
   const clock = { now: '2026-10-29T03:59:59+09:00' };

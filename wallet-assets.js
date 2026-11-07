@@ -407,6 +407,7 @@
       if (!saved || typeof saved !== 'object') return value;
       value.goalJPY = normalizeGoal(saved.goalJPY);
       value.expenseBooks = normalizeExpenseBooks(saved.expenseBooks);
+      if (Array.isArray(saved.recordPeriodStarts)) value.recordPeriodStarts = saved.recordPeriodStarts.slice();
       value.stage = normalizeStage(saved.stage);
       // Retain the retired manual-income field without counting it or migrating it into records.
       if (Object.prototype.hasOwnProperty.call(saved, 'monthlyIncomeJPY')) value.monthlyIncomeJPY = saved.monthlyIncomeJPY;
@@ -617,6 +618,18 @@
     records.sort(function (left, right) {
       return right.record.date.localeCompare(left.record.date) || right.index - left.index;
     });
+    var periods = global.RecordPeriods;
+    var opened = periods ? periods.capture(target) : [];
+    function renderRecord(record) {
+      var label = record.type === 'income' ? '进账' : '支出';
+      var sign = record.type === 'income' ? '+' : '−';
+      return '<button class="asset-static-row" type="button" data-expense-record="' + esc(record.id) + '" aria-label="编辑' + esc(record.note || label) + '">' +
+        '<span><span class="asset-static-name">' + esc(record.note || label) + '</span><span class="asset-static-confirmed">' + esc(record.date.replace(/-/g, '.')) + '</span></span>' +
+        '<span class="asset-static-amount">' + sign + esc(formatBalance(record.amount, 'JPY')) + '</span></button>';
+    }
+    var history = periods ? periods.renderHistory({ records: records.map(function (entry) { return entry.record; }), starts: state.recordPeriodStarts,
+      today: today, key: 'ledger:' + book.id, mode: 'money', renderRecord: renderRecord }) :
+      (records.length ? records.map(function (entry) { return renderRecord(entry.record); }).join('') : '<div class="asset-static-empty">暂无记录</div>');
     target.innerHTML =
       '<div class="asset-detail-toolbar">' +
         '<button class="asset-detail-back" type="button" data-expense-back>' + navigationLabels(state).record + '</button>' +
@@ -624,15 +637,13 @@
           '<div class="asset-detail-total"><span class="asset-detail-currency">JPY</span>' + esc(formatBalance(expenseTotal(book, today.slice(0, 7) + '-01', today), 'JPY')) + '</div></div>' +
         '<button class="asset-detail-edit" type="button" data-expense-settings>设置</button>' +
       '</div>' +
-      '<button class="asset-static-add" type="button" data-expense-add>＋ 记一笔</button>' +
-      '<div class="asset-static-list">' + (records.length ? records.map(function (entry) {
-        var record = entry.record;
-        var label = record.type === 'income' ? '进账' : '支出';
-        var sign = record.type === 'income' ? '+' : '−';
-        return '<button class="asset-static-row" type="button" data-expense-record="' + esc(record.id) + '" aria-label="编辑' + esc(record.note || label) + '">' +
-          '<span><span class="asset-static-name">' + esc(record.note || label) + '</span><span class="asset-static-confirmed">' + esc(record.date.replace(/-/g, '.')) + '</span></span>' +
-          '<span class="asset-static-amount">' + sign + esc(formatBalance(record.amount, 'JPY')) + '</span></button>';
-      }).join('') : '<div class="asset-static-empty">暂无记录</div>') + '</div>';
+      '<div class="record-period-actions"><button class="asset-static-add" type="button" data-expense-add>＋ 记一笔</button>' +
+        (periods ? '<button class="record-period-start" type="button" data-expense-period>开始新一段</button>' : '') + '</div>' +
+      '<div class="asset-static-list">' + history + '</div>';
+    if (periods) {
+      periods.restore(target, opened);
+      target.querySelector('[data-expense-period]').addEventListener('click', function () { periods.open('ledger', render); });
+    }
     target.querySelector('[data-expense-back]').addEventListener('click', closeExpenseDetail);
     target.querySelector('[data-expense-settings]').addEventListener('click', function () { openExpenseBook(book.id); });
     target.querySelector('[data-expense-add]').addEventListener('click', function () { openExpenseRecord(); });
