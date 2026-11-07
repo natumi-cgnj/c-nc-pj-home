@@ -589,6 +589,7 @@ body[data-world-id="cbi"] .cbi-office,body[data-world-id="cbi"] .cbi-office .roo
 /* Desk base */
 .cbi-desk{position:absolute;width:5.2%;height:16.5%;border-radius:2px;background:rgba(232,185,106,.08);border:0}
 .cbi-status-target{-webkit-appearance:none;appearance:none;padding:0;font:inherit;color:inherit;cursor:pointer}
+.cbi-status-target:disabled{cursor:default}
 .cbi-status-target:focus-visible{outline:1px solid rgba(232,185,106,.34);outline-offset:2px}
 .cbi-desk::after{content:'';position:absolute;border-radius:1px;background:rgba(232,185,106,.12)}
 /* Boss desk – upper right of the team, angled toward both the bullpen and Jane */
@@ -1310,7 +1311,8 @@ function renderCbiDutyRoster(){
     var desk=document.querySelector('[data-cbi-desk="'+id+'"]');
     if(desk){
       desk.classList.toggle('is-vacant',!present);
-      desk.setAttribute('aria-label',cbiPresenceTip(id,assignment));
+      desk.disabled=!!present;
+      desk.setAttribute('aria-label',present?CBI_STAFF_NAMES[id]+(id==='jane'?' 的沙发':' 的工位'):cbiPresenceTip(id,assignment));
     }
   });
 }
@@ -1366,6 +1368,7 @@ function onCbiDeskTap(charId,event){
   if(event)event.stopPropagation();
   if(!window.CharacterRuntime)return;
   var status=CharacterRuntime.getCbiCharacterPresence(charId,new Date());
+  if(!status||status.location==='office')return;
   showTip(cbiPresenceTip(charId,status));
 }
 
