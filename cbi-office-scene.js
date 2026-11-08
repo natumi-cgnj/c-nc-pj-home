@@ -12,6 +12,7 @@
     evening: { gain: [0.92, 0.855, 0.80], lift: [3, 1, 0] },
     night: { gain: [0.29, 0.34, 0.46], lift: [2, 4, 7] }
   };
+  var MAIN_LIGHT = { gain: [0.96, 0.95, 0.92], lift: [9, 9, 10] };
   var WINDOW = { x: 290, y: 128, width: 276, height: 75 };
   var SCREENS = {
     rigsby: [[432, 375], [454, 400], [454, 440], [432, 421]],
@@ -84,8 +85,12 @@
 
   // Apply light after assembling the scene, so people and furniture share it.
   // The white margin is not part of the room and must never become a dark box.
-  function applyLightingPixels(pixels, roomMask, slot) {
-    var light = LIGHTING[normalizeSlot(slot)];
+  function mainLightsOn(frame, slot) {
+    return slot === 'night' && !!frame && frame.present.length > 0;
+  }
+
+  function applyLightingPixels(pixels, roomMask, slot, frame) {
+    var light = mainLightsOn(frame, slot) ? MAIN_LIGHT : LIGHTING[normalizeSlot(slot)];
     if (slot === 'morning' || !light) return pixels;
     var tables = light.gain.map(function (gain, channel) {
       var table = new Uint8ClampedArray(256);
@@ -291,7 +296,7 @@
       raw.drawImage(assets.people[id], item.x, item.y);
     });
     var pixels = raw.getImageData(0, 0, manifest.width, manifest.height);
-    applyLightingPixels(pixels.data, state.roomMask, frame.slot);
+    applyLightingPixels(pixels.data, state.roomMask, frame.slot, frame);
     if (canvas.width !== manifest.width) canvas.width = manifest.width;
     if (canvas.height !== manifest.height) canvas.height = manifest.height;
     var ctx = canvas.getContext('2d');
@@ -301,6 +306,7 @@
     state.paintedKey = frame.key;
     state.drawCount++; state.error = '';
     canvas.dataset.timeSlot = frame.slot;
+    canvas.dataset.officeMainLights = mainLightsOn(frame, frame.slot) ? 'on' : 'off';
     canvas.dataset.presenceMask = String(frame.mask);
     canvas.hidden = false;
     room.dataset.officeTimeSlot = frame.slot;
@@ -341,7 +347,7 @@
 
   var api = {
     ids: IDS.slice(), slots: SLOTS.slice(), getFrame: getFrame, getTimeSlot: getTimeSlot,
-    validateManifest: validateManifest, applyLightingPixels: applyLightingPixels,
+    validateManifest: validateManifest, applyLightingPixels: applyLightingPixels, mainLightsOn: mainLightsOn,
     updateRoster: updateRoster, refresh: refresh, setTime: function (slot) { return refresh(null, normalizeSlot(slot)); },
     whenReady: ensureAssets, getState: getState
   };

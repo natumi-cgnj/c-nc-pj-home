@@ -138,18 +138,62 @@ test('all time boundaries follow the homepage Japan clock', () => {
     assert.equal(scene.getTimeSlot(now), lighting.getTimeSlot(now));
   }
 });
-test('lighting keeps the margin white and green irises green in all four periods', () => {
+test('lighting keeps the margin white and green irises green with lights on or off in all four periods', () => {
   for (const slot of scene.slots) {
-    const pixels = new Uint8ClampedArray([255, 255, 255, 255, 71, 99, 39, 255, 93, 118, 53, 255]);
-    const before = Array.from(pixels);
-    scene.applyLightingPixels(pixels, new Uint8Array([0, 255, 255]), slot);
-    assert.deepEqual(Array.from(pixels.subarray(0, 4)), [255, 255, 255, 255]);
-    for (const offset of [4, 8]) {
-      assert.ok(pixels[offset + 1] > pixels[offset], slot);
-      assert.ok(pixels[offset + 1] > pixels[offset + 2], slot);
+    for (const mask of [0, 1, 31]) {
+      const pixels = new Uint8ClampedArray([255, 255, 255, 255, 71, 99, 39, 255, 93, 118, 53, 255]);
+      const before = Array.from(pixels);
+      scene.applyLightingPixels(pixels, new Uint8Array([0, 255, 255]), slot, scene.getFrame(roster(mask), slot));
+      assert.deepEqual(Array.from(pixels.subarray(0, 4)), [255, 255, 255, 255]);
+      for (const offset of [4, 8]) {
+        assert.ok(pixels[offset + 1] > pixels[offset], slot);
+        assert.ok(pixels[offset + 1] > pixels[offset + 2], slot);
+      }
+      if (slot === 'morning') assert.deepEqual(Array.from(pixels), before);
     }
-    if (slot === 'morning') assert.deepEqual(Array.from(pixels), before);
   }
+});
+test('night main lights illuminate the occupied room while an empty office keeps its dark lighting', () => {
+  const source = [255, 255, 255, 255, 120, 110, 90, 255];
+  const mask = new Uint8Array([0, 255]);
+  const empty = new Uint8ClampedArray(source);
+  scene.applyLightingPixels(empty, mask, 'night', scene.getFrame(roster(0), 'night'));
+  for (const id of scene.ids) {
+    const frame = scene.getFrame(roster(1 << scene.ids.indexOf(id)), 'night');
+    const occupied = new Uint8ClampedArray(source);
+    scene.applyLightingPixels(occupied, mask, 'night', frame);
+    assert.equal(scene.mainLightsOn(frame, 'night'), true, id);
+    for (const channel of [4, 5, 6]) assert.ok(occupied[channel] > source[channel] * 0.85, id);
+    assert.ok(occupied[4] + occupied[5] + occupied[6] > (empty[4] + empty[5] + empty[6]) * 2, id);
+    assert.deepEqual(Array.from(occupied.subarray(0, 4)), source.slice(0, 4));
+  }
+  assert.equal(scene.mainLightsOn(scene.getFrame(roster(0), 'night'), 'night'), false);
+  for (const slot of ['morning', 'day', 'evening']) {
+    const occupied = new Uint8ClampedArray(source), unoccupied = new Uint8ClampedArray(source);
+    scene.applyLightingPixels(occupied, mask, slot, scene.getFrame(roster(31), slot));
+    scene.applyLightingPixels(unoccupied, mask, slot, scene.getFrame(roster(0), slot));
+    assert.deepEqual(occupied, unoccupied, slot);
+  }
+});
+test('night arrival and the last departure switch main lights without changing the night windows or reloading artwork', async () => {
+  const h = fixture({ mask: 1 });
+  h.api.updateRoster(roster(1), 'night');
+  await h.loaded();
+  const canvas = h.nodes.cbiOfficeCanvas, requests = h.requests.length;
+  assert.equal(canvas.dataset.officeMainLights, 'on');
+  assert.equal(canvas.dataset.timeSlot, 'night');
+  assert.ok(canvas.draws.some(([name]) => name === 'window-night.png'));
+  for (const mask of [0, 16, 31, 0, 1]) {
+    h.api.updateRoster(roster(mask), 'night');
+    assert.equal(canvas.dataset.officeMainLights, mask ? 'on' : 'off');
+    assert.equal(canvas.dataset.timeSlot, 'night');
+    assert.equal(h.api.getState().frame.mask, mask);
+  }
+  assert.equal(h.requests.length, requests);
+  assert.ok(h.requests.every(url => !/window-(day|evening)/.test(url)));
+  const draws = h.api.getState().drawCount;
+  h.api.updateRoster(roster(1), 'night');
+  assert.equal(h.api.getState().drawCount, draws);
 });
 test('the real homepage roster handler drives the scene and replaces standing portraits', async () => {
   const h = fixture({ mask: 31 });
