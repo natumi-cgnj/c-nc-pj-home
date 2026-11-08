@@ -6,7 +6,7 @@
 })(typeof window !== 'undefined' ? window : globalThis, function (root) {
   'use strict';
 
-  var KEYS = { ledger: 'wallet_accounts_v1', diet: 'calorie_log_db' };
+  var KEYS = { ledger: 'wallet_accounts_v1', diet: 'calorie_log_db', suitcase: 'cbi_db' };
   var editor = null, returnFocus = null, afterChange = null, activeScope = '';
 
   function validDay(day) {
@@ -73,10 +73,11 @@
   function renderHistory(options) {
     if (!options.records.length && !starts(options.starts).length) return '<div class="record-period-empty">暂无记录</div>';
     return group(options.records, options.starts, options.today).map(function (entry) {
-      var rows = entry.records.map(options.renderRecord).join('') || '<div class="record-period-empty">本段还没有记录</div>';
-      if (entry.current) return '<section class="record-period-current"><div class="record-period-heading">' + summary(entry, options.mode) + '</div>' + rows + '</section>';
+      var rows = (options.renderRecords ? options.renderRecords(entry.records) : entry.records.map(options.renderRecord).join('')) || '<div class="record-period-empty">本段还没有记录</div>';
+      var heading = options.renderSummary ? options.renderSummary(entry) : summary(entry, options.mode);
+      if (entry.current) return '<section class="record-period-current"><div class="record-period-heading">' + heading + '</div>' + rows + '</section>';
       return '<details class="record-period" data-record-period="' + esc(options.key + ':' + entry.key) + '">' +
-        '<summary class="record-period-heading">' + summary(entry, options.mode) + '<span class="record-period-chevron" aria-hidden="true"></span></summary>' + rows + '</details>';
+        '<summary class="record-period-heading">' + heading + '<span class="record-period-chevron" aria-hidden="true"></span></summary>' + rows + '</details>';
     }).join('');
   }
   function capture(target) {
@@ -99,15 +100,32 @@
   }
   function recordsFor(log, scope) {
     if (scope === 'diet') return Array.isArray(log.records) ? log.records : [];
+    if (scope === 'suitcase') {
+      var suitcase = root.CBIData.normalize(log).work.suitcase;
+      var cleanup = Array.isArray(suitcase.cleanupLog) ? suitcase.cleanupLog : [];
+      var items = Array.isArray(suitcase.items) ? suitcase.items : [];
+      return cleanup.map(function (entry) { return { date: root.CBIData.workDayKey(entry.at) }; }).concat(
+        items.filter(function (item) { return item.status === 'collected'; }).map(function (item) {
+          return { date: item.broughtOn || root.CBIData.workDayKey(item.redeemedAt || item.createdAt) };
+        }));
+    }
     var books = Array.isArray(log.expenseBooks) ? log.expenseBooks : [];
     return ['book1', 'book2', 'book3', 'book4', 'book5', 'book6'].flatMap(function (id) {
       var book = books.find(function (entry) { return entry && entry.id === id; });
       return book && Array.isArray(book.records) ? book.records : [];
     });
   }
+  function periodStore(log, scope) {
+    if (scope !== 'suitcase') return log;
+    if (!log.work || !log.work.suitcase || typeof log.work.suitcase !== 'object' || Array.isArray(log.work.suitcase)) throw new Error('请先记录一次清出或带来物品');
+    return log.work.suitcase;
+  }
+  function scopeToday(scope) {
+    return scope === 'suitcase' && root.CBIData ? root.CBIData.workDayKey(new Date()) : today();
+  }
   function setBoundary(scope, day, remove) {
-    var log = read(scope), boundaries = starts(log.recordPeriodStarts);
-    if (!validDay(day) || day > today()) throw new Error('请选择今天或之前的有效日期');
+    var log = read(scope), store = periodStore(log, scope), boundaries = starts(store.recordPeriodStarts);
+    if (!validDay(day) || day > scopeToday(scope)) throw new Error('请选择今天或之前的有效日期');
     if (remove) boundaries = boundaries.filter(function (value) { return value !== day; });
     else {
       if (boundaries.indexOf(day) >= 0) throw new Error('这一天已经是新一段的起点');
@@ -115,7 +133,7 @@
       boundaries = starts(boundaries.concat(day));
     }
     // Only presentation metadata changes. Keep every record, account and unknown field verbatim.
-    log.recordPeriodStarts = boundaries;
+    store.recordPeriodStarts = boundaries;
     root.localStorage.setItem(KEYS[scope], JSON.stringify(log));
     return boundaries;
   }
@@ -128,14 +146,14 @@
   }
   function error(message) { editor.querySelector('[data-period-error]').textContent = message; }
   function existing() {
-    var boundaries = starts(read(activeScope).recordPeriodStarts);
+    var boundaries = starts(periodStore(read(activeScope), activeScope).recordPeriodStarts);
     editor.querySelector('[data-period-existing]').innerHTML = boundaries.length ?
       '<div class="record-period-existing-label">已有分界</div>' + boundaries.slice().reverse().map(function (day) {
         return '<div class="record-period-boundary"><span>' + day + ' 起</span><button type="button" data-period-remove="' + day + '">取消分界</button></div>';
       }).join('') : '';
   }
   function open(scope, onChange) {
-    try { read(scope); } catch (failure) { if (root.showToast) root.showToast('无法读取记录，请刷新后重试'); return; }
+    try { periodStore(read(scope), scope); } catch (failure) { if (root.showToast) root.showToast(failure.message || '无法读取记录，请刷新后重试'); return; }
     var doc = root.document;
     if (!editor) {
       editor = doc.createElement('div');
@@ -170,7 +188,7 @@
     returnFocus = doc.activeElement; activeScope = scope; afterChange = onChange;
     editor.querySelector('[data-period-help]').textContent = scope === 'ledger' ?
       '六本账本一起分段。所选日期前的记录收成小结，仍可展开查看和修改。' : '所选日期前的记录收成小结，仍可展开查看。';
-    var input = doc.getElementById('recordPeriodDate'); input.value = today(); input.max = today();
+    var input = doc.getElementById('recordPeriodDate'); input.value = scopeToday(scope); input.max = scopeToday(scope);
     error(''); existing();
     if (typeof root.openModal === 'function') root.openModal(editor.id);
     else editor.classList.add('show');

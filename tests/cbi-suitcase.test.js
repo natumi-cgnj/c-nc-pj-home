@@ -7,7 +7,7 @@ const source = fs.readFileSync('cbi-data.js', 'utf8');
 const index = fs.readFileSync('index.html', 'utf8');
 const suitcase = fs.readFileSync('suitcase.html', 'utf8');
 const cloud = fs.readFileSync('cloud-sync.js', 'utf8');
-const cbiDataPages = ['cbi.html', 'daily.html', 'dynamics.html', 'schedule.html', 'shop.html', 'wallet.html', 'suitcase.html'];
+const cbiDataPages = ['index.html', 'cbi.html', 'daily.html', 'dynamics.html', 'schedule.html', 'shop.html', 'wallet.html', 'suitcase.html'];
 
 function makeStorage(seed) {
   const values = new Map(Object.entries(seed || {}));
@@ -141,6 +141,95 @@ test('suitcase page exposes four direct size taps, inventory redemption, collect
 test('every page that can save CBI data loads the suitcase-aware data model', () => {
   for (const page of cbiDataPages) {
     const html = fs.readFileSync(page, 'utf8');
-    assert.match(html, /cbi-data\.js\?v=20260927-checkin-categories1/, page);
+    assert.match(html, /cbi-data\.js\?v=20261108-suitcase-periods1/, page);
   }
+});
+
+function historyFixture() {
+  const storage=makeStorage();
+  const nodes=new Map();
+  const document={getElementById(id){
+    if(!nodes.has(id))nodes.set(id,{innerHTML:'',textContent:'',querySelectorAll(){return []}});
+    return nodes.get(id);
+  }};
+  const context=vm.createContext({console,Date,Math,JSON,localStorage:storage,document});
+  context.window=context;
+  vm.runInContext(source,context);
+  vm.runInContext(fs.readFileSync('record-periods.js','utf8'),context);
+  const start=suitcase.indexOf("  var COLLAPSED_KEY=");
+  const end=suitcase.indexOf('\n  function render(){',start);
+  vm.runInContext(suitcase.slice(start,end),context);
+  return {context,storage,nodes,html:()=>nodes.get('historyList').innerHTML};
+}
+
+test('one aggregated history row displays its date, details and points without a day disclosure', () => {
+  const h=historyFixture(),db=h.context.CBIData.emptyDB();
+  db.work.suitcase.cleanupLog=Array.from({length:17},(_,i)=>({id:'clean'+i,size:'small',points:2,at:'2026-11-02T12:00:00Z'}));
+  db.work.suitcase.points=417;
+  h.context.renderHistory(db.work.suitcase);
+  assert.match(h.html(),/class="history-entry history-single"><span class="history-date">11 \/ 2<\/span>[\s\S]*清出 · 小 ×17[\s\S]*\+34/);
+  assert.doesNotMatch(h.html(),/<details class="history-group"/);
+  assert.match(h.html(),/记录 1 天/);
+  assert.match(h.html(),/清出 17 件 · 带来 0 件/);
+  assert.equal(h.nodes.get('historyCount').textContent,17);
+  assert.equal(db.work.suitcase.points,417);
+});
+
+test('a mixed day keeps its disclosure, while a single collected item stays directly editable', () => {
+  const h=historyFixture(),db=h.context.CBIData.emptyDB();
+  db.work.suitcase.cleanupLog=[{id:'medium',size:'medium',points:5,at:'2026-10-26T12:00:00Z'},{id:'small',size:'small',points:2,at:'2026-10-26T13:00:00Z'}];
+  db.work.suitcase.items=[{id:'kept',name:'旧本子',series:'My Stuff',note:'原备注',image:'',status:'collected',broughtOn:'2026-10-24',redeemedCost:8,createdAt:'2026-10-24T12:00:00Z'}];
+  h.context.renderHistory(db.work.suitcase);
+  assert.equal((h.html().match(/<details class="history-group"/g)||[]).length,1);
+  assert.match(h.html(),/data-record-period="suitcase-day:2026-10-26"/);
+  assert.match(h.html(),/清出 · 中/);
+  assert.match(h.html(),/清出 · 小/);
+  assert.match(h.html(),/<button class="history-entry history-single" type="button" data-item="kept"><span class="history-date">10 \/ 24<\/span>/);
+  assert.match(h.html(),/带来 · 旧本子/);
+  assert.match(h.html(),/获得 7 PT · 使用 8 PT/);
+});
+
+test('suitcase period cutoffs preserve points, items, cleanup history and the rest of the raw CBI save', () => {
+  const h=historyFixture(),data=h.context.CBIData,db=data.emptyDB();
+  db.work.suitcase.points=417;
+  db.work.suitcase.cleanupLog=[{id:'old',size:'small',points:2,at:'2026-10-20T12:00:00Z'}];
+  db.work.suitcase.items=[{id:'inventory',name:'保留物品',status:'inventory',cost:10,createdAt:'2026-10-20T12:00:00Z'},
+    {id:'kept',name:'已带来物品',status:'collected',cost:8,redeemedCost:8,broughtOn:'2026-10-21',createdAt:'2026-10-21T12:00:00Z'}];
+  data.save(db);
+  const original=JSON.parse(h.storage.getItem('cbi_db'));
+  original.customField={keep:true};
+  h.storage.setItem('cbi_db',JSON.stringify(original));
+  h.context.RecordPeriods.setBoundary('suitcase','2026-11-08');
+  const saved=JSON.parse(h.storage.getItem('cbi_db'));
+  const expected=JSON.parse(JSON.stringify(original));
+  expected.work.suitcase.recordPeriodStarts=['2026-11-08'];
+  assert.deepEqual(saved,expected);
+  h.context.renderHistory(data.load().work.suitcase);
+  assert.match(h.html(),/2026-11-08 起/);
+  assert.match(h.html(),/data-record-period="suitcase:first"/);
+  assert.match(h.html(),/记录 2 天/);
+  assert.match(h.html(),/清出 1 件 · 带来 1 件/);
+  assert.match(h.html(),/获得 2 PT · 使用 8 PT/);
+  const cleanup=data.recordSuitcaseCleanup(data.load(),'medium',new Date('2026-11-08T12:00:00Z'));
+  data.save(cleanup.db);
+  assert.equal(data.load().work.suitcase.points,422);
+  assert.deepEqual(Array.from(data.load().work.suitcase.recordPeriodStarts),['2026-11-08']);
+  const redeemed=data.redeemSuitcaseItem(data.load(),'inventory',new Date('2026-11-08T13:00:00Z'));
+  data.save(redeemed.db);
+  assert.equal(data.load().work.suitcase.points,412);
+  assert.deepEqual(Array.from(data.load().work.suitcase.recordPeriodStarts),['2026-11-08']);
+  h.context.RecordPeriods.setBoundary('suitcase','2026-11-08',true);
+  assert.deepEqual(Array.from(data.load().work.suitcase.recordPeriodStarts),[]);
+  assert.equal(data.load().work.suitcase.points,412);
+  assert.equal(data.load().work.suitcase.cleanupLog.length,2);
+});
+
+test('legacy collected items qualify for a period without rewriting their original fields', () => {
+  const h=historyFixture(),db=h.context.CBIData.emptyDB();
+  db.work.suitcase.items=[{id:'legacy',name:'旧物品',img:'old-image.jpg',broughtOn:'2026-10-20',createdAt:'2026-10-20T12:00:00Z'}];
+  h.storage.setItem('cbi_db',JSON.stringify(db));
+  h.context.RecordPeriods.setBoundary('suitcase','2026-11-08');
+  const stored=JSON.parse(h.storage.getItem('cbi_db'));
+  assert.deepEqual(stored.work.suitcase.items,db.work.suitcase.items);
+  assert.deepEqual(stored.work.suitcase.recordPeriodStarts,['2026-11-08']);
 });

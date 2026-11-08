@@ -514,13 +514,17 @@
 
   function normalizeSuitcase(value) {
     var source = value && typeof value === 'object' ? value : {};
-    return {
+    var suitcase = {
       points: Math.max(0, Math.floor(number(source.points, 0))),
       cleanupLog: Array.isArray(source.cleanupLog) ? source.cleanupLog.map(normalizeSuitcaseCleanup) : [],
       items: Array.isArray(source.items)
         ? source.items.map(normalizeSuitcaseItem).filter(function (item) { return item.name || item.image; })
         : []
     };
+    if (Array.isArray(source.recordPeriodStarts)) suitcase.recordPeriodStarts = Array.from(new Set(source.recordPeriodStarts.filter(function (day) {
+      return typeof day === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(day) && !isNaN(Date.parse(day + 'T12:00:00Z')) && new Date(day + 'T12:00:00Z').toISOString().slice(0, 10) === day;
+    }))).sort();
+    return suitcase;
   }
 
   function recordSuitcaseCleanup(value, size, nowValue) {

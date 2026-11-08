@@ -22,12 +22,18 @@ body{min-height:100vh;min-height:100dvh;padding-bottom:36px;background:#fafafa;c
 .item-edit{display:flex;align-items:center;gap:10px}.item-copy{min-width:0;flex:1}.item-thumb{width:38px;height:38px;flex:0 0 38px;border-radius:7px;background:#f6f5f2;object-fit:cover}.item-note.no-name{margin-top:0}
 .history-group summary{display:flex;align-items:center;gap:8px;padding:10px 12px;list-style:none;cursor:pointer}.history-group summary::-webkit-details-marker{display:none}.history-date{flex:1;color:#999;font-size:10px}.history-entry{display:grid;width:100%;grid-template-columns:minmax(0,1fr) auto;gap:9px;align-items:center;padding:11px 12px;border:0;border-top:1px solid #f3f3f1;background:#fff;text-align:left}.history-entry[data-item]{cursor:pointer}.history-copy{min-width:0}.history-name{display:block;overflow:hidden;color:#555;font-size:11px;line-height:1.45;text-overflow:ellipsis;white-space:nowrap}.history-meta{display:block;margin-top:3px;overflow:hidden;color:#bbb;font-size:8px;line-height:1.4;text-overflow:ellipsis;white-space:nowrap}.history-delta{color:#7d9f82;font-size:10px;font-variant-numeric:tabular-nums}.history-delta.spend{color:#b09a78}
 .history-main{display:flex;min-width:0;align-items:center;gap:9px}.history-thumb{width:32px;height:32px;flex:0 0 32px;border-radius:6px;background:#f6f5f2;object-fit:cover}
+.history-entry.history-single{grid-template-columns:max-content minmax(0,1fr) auto;margin-bottom:9px;border:1px solid #eaeae7;border-radius:11px}.history-single .history-date{min-width:58px;white-space:nowrap}
+.history-period-tools{margin:0 14px;display:flex;justify-content:flex-end}.history-period-tools .record-period-start{font-size:10px;padding:0 0 10px}
+.history .record-period-heading{gap:8px;padding:14px 12px}.history .record-period-totals{flex-direction:column;align-items:flex-end;gap:4px;font-size:9px;color:#92846d}.history .record-period-range{font-size:10px}.history .record-period-count{font-size:9px}.history .record-period{margin-bottom:9px;border:1px solid #eaeae7;border-radius:11px;background:#fff;overflow:hidden}.history .record-period>summary{padding:13px 12px}.history .record-period>.history-single,.history .record-period>.history-group{margin-left:8px;margin-right:8px}
+.record-period-modal .modal{width:min(100%,480px);max-height:85dvh;overflow:auto;padding:20px;border-radius:16px 16px 0 0;background:#fff}.record-period-modal h2{font-size:15px;font-weight:500;margin-bottom:16px;color:#555}.record-period-modal label{display:block;margin:12px 0 6px;font-size:12px;color:#999}.record-period-modal input{width:100%;padding:10px 12px;border:1px solid #e0e0db;border-radius:8px;color:#555;background:#fff}.record-period-modal .btn-row{display:flex;gap:8px;margin-top:20px}.record-period-modal .btn{flex:1;border:0;border-radius:10px;padding:12px;font-size:13px;cursor:pointer}.record-period-modal .btn-cancel{color:#888;background:#f2f1ef}.record-period-modal .btn-primary{background:#4f4b45;color:#fff}
+.history .record-period>.history-single{width:calc(100% - 16px)}
 .empty{padding:25px 18px;border:1px dashed #deded9;border-radius:11px;color:#c2c2bd;font-size:10px;line-height:1.7;text-align:center}.empty-add{display:block;margin:11px auto 0;padding:7px 11px;border:1px solid #ddd8cf;border-radius:8px;background:#fff;color:#94866e;font-size:9px;cursor:pointer}
 .sheet-overlay{position:fixed;inset:0;z-index:80;display:none;align-items:flex-end;justify-content:center;background:rgba(35,33,29,.22)}.sheet-overlay.show{display:flex}.sheet{width:min(100%,560px);max-height:88dvh;overflow:auto;padding:16px 18px calc(20px + env(safe-area-inset-bottom,0));border-radius:16px 16px 0 0;background:#fff;box-shadow:0 -10px 30px rgba(0,0,0,.08)}.sheet-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:17px}.sheet-title{color:#999;font-size:10px;letter-spacing:1.5px}.sheet-close{padding:3px;border:0;background:none;color:#bbb;font-size:18px;cursor:pointer}.field{margin-bottom:12px}.field label{display:block;margin:0 0 6px 2px;color:#aaa;font-size:9px;letter-spacing:.6px}.field input{width:100%;height:42px;padding:0 11px;border:1px solid #e7e7e3;border-radius:9px;outline:none;background:#fff;color:#444;font-size:12px}.field input:focus{border-color:#cfc6b5}.field input::placeholder{color:#cececa}.field-grid{display:grid;grid-template-columns:1fr 96px;gap:9px}.sheet-actions{display:flex;align-items:center;justify-content:flex-end;gap:9px;margin-top:17px}.sheet-btn{min-width:66px;padding:9px 13px;border:1px solid #ddd9d1;border-radius:8px;background:#fff;color:#888;font-size:10px;cursor:pointer}.sheet-btn.primary{border-color:#4f4b45;background:#4f4b45;color:#fff}.sheet-btn.danger{margin-right:auto;border-color:#eadfdc;color:#b98579}.sheet-btn[hidden]{display:none}
 .image-field{display:flex;align-items:center;gap:10px}.field .image-picker{position:relative;display:flex;width:72px;height:72px;margin:0;align-items:center;justify-content:center;overflow:hidden;border:1px dashed #dcd9d2;border-radius:9px;background:#faf9f7;color:#aaa;cursor:pointer}.image-picker img{width:100%;height:100%;object-fit:cover}.image-picker .image-placeholder{font-size:9px;letter-spacing:0}.image-picker.has-image{border-style:solid}.image-picker.has-image .image-placeholder{display:none}.image-remove{padding:6px 9px;border:1px solid #e5e2dc;border-radius:7px;background:#fff;color:#aaa;font-size:9px;cursor:pointer}.image-remove[hidden]{display:none}
 @media(max-width:350px){.size-button.xlarge{width:45px;height:45px}.size-button.large{width:49px;height:49px}.size-button.medium{width:53px;height:53px}.size-button.small{width:57px;height:57px}}
 @media(min-width:700px){.view{margin-top:18px;border:1px solid #eeeeec;border-radius:12px;background:#fff;overflow:hidden}.top-bar{padding-top:0}.point-panel,.inventory,.collection,.history{margin-right:18px;margin-left:18px}}
 </style>
+<link rel="stylesheet" href="record-periods.css?v=20261108-suitcase-periods1">
 </head>
 <body>
 <header class="top-bar">
@@ -53,6 +59,7 @@ body{min-height:100vh;min-height:100dvh;padding-bottom:36px;background:#fafafa;c
   </section>
 
   <div class="section-label"><span>HISTORY</span><span class="section-count" id="historyCount"></span></div>
+  <div class="history-period-tools"><button class="record-period-start" type="button" id="startHistoryPeriod">开始新一段</button></div>
   <div class="history" id="historyList"></div>
 </main>
 
@@ -81,7 +88,8 @@ body{min-height:100vh;min-height:100dvh;padding-bottom:36px;background:#fafafa;c
 <script src="world-context.js?v=20260920-suitcase2"></script>
 <script src="cloud-sync.js?v=20261029-audit1"></script>
 <script src="app-back.js?v=20261010-home-return2"></script>
-<script src="cbi-data.js?v=20260927-checkin-categories1"></script>
+<script src="cbi-data.js?v=20261108-suitcase-periods1"></script>
+<script src="record-periods.js?v=20261108-suitcase-periods1"></script>
 <script>
 (function(){
   'use strict';
@@ -157,25 +165,45 @@ body{min-height:100vh;min-height:100dvh;padding-bottom:36px;background:#fafafa;c
     return entries.sort(function(left,right){if(left.date!==right.date)return right.date.localeCompare(left.date);return String(right.at).localeCompare(String(left.at))});
   }
 
-  function renderHistory(state){
-    var entries=historyEntries(state);var groups={};
+  function historyRow(entry,day){
+    var date=day?'<span class="history-date">'+escapeHtml(displayDay(day))+'</span>':'';
+    var classes='history-entry'+(day?' history-single':'');
+    if(entry.kind==='cleanup'){
+      var size=SIZE_META[entry.size]||SIZE_META.small;
+      return '<div class="'+classes+'">'+date+'<span class="history-copy"><span class="history-name">清出 · '+size.label+(entry.count>1?' ×'+entry.count:'')+'</span></span><span class="history-delta">+'+entry.delta+'</span></div>';
+    }
+    var item=entry.item;var meta=[item.series||'未分栏',item.note].filter(Boolean).join(' · ');
+    var thumb=item.image?'<img class="history-thumb" src="'+escapeHtml(item.image)+'" alt="">':'';var historyName=item.name?'带来 · '+escapeHtml(item.name):'带来';
+    return '<button class="'+classes+'" type="button" data-item="'+escapeHtml(item.id)+'">'+date+'<span class="history-main">'+thumb+'<span class="history-copy"><span class="history-name">'+historyName+'</span>'+(meta?'<span class="history-meta">'+escapeHtml(meta)+'</span>':'')+'</span></span>'+(entry.delta?'<span class="history-delta spend">'+entry.delta+'</span>':'<span></span>')+'</button>';
+  }
+
+  function historyDays(entries){
+    var groups={};
     entries.forEach(function(entry){(groups[entry.date]||(groups[entry.date]=[])).push(entry)});
     var keys=Object.keys(groups).sort().reverse();
-    el('historyCount').textContent=(state.cleanupLog.length+state.items.filter(function(item){return item.status==='collected'}).length)||'';
-    if(!keys.length){el('historyList').innerHTML='<div class="empty">—</div>';return}
-    el('historyList').innerHTML=keys.map(function(key,index){
+    return keys.map(function(key){
+      if(groups[key].length===1)return historyRow(groups[key][0],key);
       var eventCount=groups[key].reduce(function(sum,entry){return sum+(entry.kind==='cleanup'?entry.count:1)},0);
-      var rows=groups[key].map(function(entry){
-        if(entry.kind==='cleanup'){
-          var size=SIZE_META[entry.size]||SIZE_META.small;
-          return '<div class="history-entry"><span class="history-copy"><span class="history-name">清出 · '+size.label+(entry.count>1?' ×'+entry.count:'')+'</span></span><span class="history-delta">+'+entry.delta+'</span></div>';
-        }
-        var item=entry.item;var meta=[item.series||'未分栏',item.note].filter(Boolean).join(' · ');
-        var thumb=item.image?'<img class="history-thumb" src="'+escapeHtml(item.image)+'" alt="">':'';var historyName=item.name?'带来 · '+escapeHtml(item.name):'带来';
-        return '<button class="history-entry" type="button" data-item="'+escapeHtml(item.id)+'"><span class="history-main">'+thumb+'<span class="history-copy"><span class="history-name">'+historyName+'</span>'+(meta?'<span class="history-meta">'+escapeHtml(meta)+'</span>':'')+'</span></span>'+(entry.delta?'<span class="history-delta spend">'+entry.delta+'</span>':'<span></span>')+'</button>';
-      }).join('');
-      return '<details class="history-group" '+(index===0?'open':'')+'><summary><span class="history-date">'+displayDay(key)+'</span><span class="history-total">'+eventCount+'</span><span class="history-caret">⌄</span></summary>'+rows+'</details>';
+      return '<details class="history-group" data-record-period="suitcase-day:'+escapeHtml(key)+'"><summary><span class="history-date">'+escapeHtml(displayDay(key))+'</span><span class="history-total">'+eventCount+'</span><span class="history-caret">⌄</span></summary>'+groups[key].map(function(entry){return historyRow(entry)}).join('')+'</details>';
     }).join('');
+  }
+
+  function historyPeriodSummary(period){
+    var sum={cleared:0,brought:0,earned:0,spent:0};
+    period.records.forEach(function(entry){
+      if(entry.kind==='cleanup'){sum.cleared+=entry.count;sum.earned+=entry.delta}
+      else{sum.brought++;sum.spent+=Math.max(0,-entry.delta)}
+    });
+    var range=period.to?(period.from===period.to?period.from:period.from+' — '+period.to):(period.from?period.from+' 起':'本段');
+    return '<span class="record-period-copy"><span class="record-period-range">'+escapeHtml(range)+'</span><span class="record-period-count">'+(period.current?'本段 · ':'')+'记录 '+period.recordedDays+' 天</span></span>'+
+      '<span class="record-period-totals"><span>清出 '+sum.cleared+' 件 · 带来 '+sum.brought+' 件</span><span>获得 '+sum.earned+' PT · 使用 '+sum.spent+' PT</span></span>';
+  }
+
+  function renderHistory(state){
+    var entries=historyEntries(state),target=el('historyList'),periods=window.RecordPeriods,opened=periods?periods.capture(target):[];
+    el('historyCount').textContent=(state.cleanupLog.length+state.items.filter(function(item){return item.status==='collected'}).length)||'';
+    target.innerHTML=periods?periods.renderHistory({records:entries,starts:state.recordPeriodStarts,today:CBIData.workDayKey(new Date()),key:'suitcase',renderRecords:historyDays,renderSummary:historyPeriodSummary}):(entries.length?historyDays(entries):'<div class="empty">—</div>');
+    if(periods)periods.restore(target,opened);
   }
 
   function render(){
@@ -240,6 +268,7 @@ body{min-height:100vh;min-height:100dvh;padding-bottom:36px;background:#fafafa;c
   document.querySelectorAll('[data-cleanup]').forEach(function(button){button.addEventListener('click',function(){recordCleanup(button.dataset.cleanup)})});
   el('addItem').addEventListener('click',function(){openEditor('')});el('inventoryList').addEventListener('click',handleListClick);el('collectionList').addEventListener('click',handleListClick);
   el('historyList').addEventListener('click',function(event){var item=event.target.closest('[data-item]');if(item)openEditor(item.dataset.item)});
+  el('startHistoryPeriod').addEventListener('click',function(){if(window.RecordPeriods)RecordPeriods.open('suitcase',render)});
   el('itemImage').addEventListener('change',function(){itemImageSelected(this)});el('removeItemImage').addEventListener('click',removeItemImage);
   el('itemForm').addEventListener('submit',saveItem);el('deleteItem').addEventListener('click',deleteItem);el('closeSheet').addEventListener('click',closeEditor);el('cancelItem').addEventListener('click',closeEditor);
   el('itemSheet').addEventListener('click',function(event){if(event.target===el('itemSheet'))closeEditor()});document.addEventListener('keydown',function(event){if(event.key==='Escape')closeEditor()});window.addEventListener('storage',function(event){if(event.key===CBIData.STORAGE_KEY)render()});
