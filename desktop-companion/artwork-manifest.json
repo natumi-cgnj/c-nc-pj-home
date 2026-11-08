@@ -1,0 +1,628 @@
+{
+  "version": 1,
+  "character": "jane",
+  "format": "transparent-png",
+  "image_count": 25,
+  "default_image": "png/20_office_observing.png",
+  "states": {
+    "home": {
+      "bedroom_tea": "png/00_tea.png",
+      "bedroom_read": "png/01_bedroom_read.png",
+      "living_read": "png/02_living_read.png",
+      "living_tv": "png/03_living_tv.png",
+      "bedroom_wardrobe": "png/04_wardrobe.png",
+      "bedroom_bedside": "png/05_bedside.png",
+      "living_clutter": "png/06_clutter.png",
+      "living_manga": "png/07_manga.png",
+      "kitchen_fridge": "png/08_fridge.png",
+      "kitchen_meal": "png/09_meal.png",
+      "kitchen_kettle": "png/10_kettle.png",
+      "bathroom_brush": "png/11_brush.png",
+      "bathroom_shower": "png/12_private.png",
+      "bathroom_occupied": "png/12_private.png",
+      "bedroom_sleep_back": "png/13_sleep_back.png",
+      "bedroom_sleep_side": "png/14_sleep_side.png",
+      "bedroom_sleep_diagonal": "png/15_sleep_diagonal.png",
+      "living_sleep": "png/16_living_sleep.png"
+    },
+    "office": {
+      "short_break": "png/00_tea.png",
+      "reading_casefile": "png/17_office_casefile.png",
+      "reviewing_statement": "png/17_office_casefile.png",
+      "rereading_notes": "png/17_office_casefile.png",
+      "checking_details": "png/17_office_casefile.png",
+      "thinking_case": "png/18_office_thinking.png",
+      "sofa_case_thinking": "png/18_office_thinking.png",
+      "noticing_inconsistency": "png/18_office_thinking.png",
+      "reviewing_interview": "png/18_office_thinking.png",
+      "eyes_closed_thinking": "png/19_office_eyes_closed.png",
+      "resting_eyes": "png/19_office_eyes_closed.png",
+      "clearing_thoughts": "png/19_office_eyes_closed.png",
+      "watching_office": "png/20_office_observing.png",
+      "waiting_response": "png/20_office_observing.png",
+      "quiet_chat": "png/21_office_chat.png",
+      "sharing_observation": "png/21_office_chat.png",
+      "arriving": "png/22_office_arrival.png",
+      "field_return": "png/22_office_arrival.png",
+      "errand_return": "png/22_office_arrival.png",
+      "tracing_timeline": "png/24_office_planning.png",
+      "planning_next_step": "png/24_office_planning.png"
+    },
+    "home_case": {
+      "bedroom_read.case": "png/01_bedroom_read.png",
+      "living_read.case": "png/02_living_read.png",
+      "living_tv.case": "png/03_living_tv.png",
+      "kitchen_meal.case": "png/09_meal.png"
+    },
+    "presence": {
+      "away": "png/23_away.png"
+    }
+  },
+  "images": [
+    {
+      "id": "00_tea",
+      "label": "喝茶",
+      "file": "png/00_tea.png",
+      "states": [
+        "bedroom_tea",
+        "short_break"
+      ],
+      "width": 1024,
+      "height": 1536,
+      "alpha_extrema": [
+        0,
+        254
+      ],
+      "bounds": [
+        79,
+        14,
+        953,
+        1529
+      ],
+      "size_bytes": 2488969,
+      "sha256": "e7bd03411a4c6c8a18aa977f9ced12330dcd173d25747ab9df4cf94b89779e26"
+    },
+    {
+      "id": "01_bedroom_read",
+      "label": "卧室看书",
+      "file": "png/01_bedroom_read.png",
+      "states": [
+        "bedroom_read"
+      ],
+      "width": 1024,
+      "height": 1536,
+      "alpha_extrema": [
+        0,
+        254
+      ],
+      "bounds": [
+        79,
+        12,
+        975,
+        1528
+      ],
+      "size_bytes": 2514478,
+      "sha256": "cd3f677efe7b3cb17581ba68ae024c63fd816f9d463bbf698948748cdc60a5bf"
+    },
+    {
+      "id": "02_living_read",
+      "label": "抱鲨鱼看书",
+      "file": "png/02_living_read.png",
+      "states": [
+        "living_read"
+      ],
+      "width": 1496,
+      "height": 1051,
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "bounds": [
+        2,
+        9,
+        1494,
+        1046
+      ],
+      "size_bytes": 2444283,
+      "sha256": "3736e8bb7c0e489fc77df1a0de3e6cf519ca44b841cf1612d38ee64cf6f74729"
+    },
+    {
+      "id": "03_living_tv",
+      "label": "看电视",
+      "file": "png/03_living_tv.png",
+      "states": [
+        "living_tv"
+      ],
+      "width": 1536,
+      "height": 1024,
+      "alpha_extrema": [
+        0,
+        254
+      ],
+      "bounds": [
+        114,
+        14,
+        1422,
+        1016
+      ],
+      "size_bytes": 2497095,
+      "sha256": "e94b3a60471ecb3a8f52d195fe208b83d3a7698bb34f00420cd30d2f959221e2"
+    },
+    {
+      "id": "04_wardrobe",
+      "label": "挑衣服",
+      "file": "png/04_wardrobe.png",
+      "states": [
+        "bedroom_wardrobe"
+      ],
+      "width": 1024,
+      "height": 1536,
+      "alpha_extrema": [
+        0,
+        254
+      ],
+      "bounds": [
+        150,
+        10,
+        800,
+        1526
+      ],
+      "size_bytes": 2028377,
+      "sha256": "0c9a3ea6ee606ffb94a0842c7359590ef834772decc5519fb848e0f65e6a92d2"
+    },
+    {
+      "id": "05_bedside",
+      "label": "坐在床尾",
+      "file": "png/05_bedside.png",
+      "states": [
+        "bedroom_bedside"
+      ],
+      "width": 1448,
+      "height": 1086,
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "bounds": [
+        106,
+        5,
+        1328,
+        1079
+      ],
+      "size_bytes": 1728575,
+      "sha256": "38ede4091b5656ebcfc8d70580e0b78e220b2a9ebc64e8b60f60bc6c7da227e9"
+    },
+    {
+      "id": "06_clutter",
+      "label": "看窗边杂物",
+      "file": "png/06_clutter.png",
+      "states": [
+        "living_clutter"
+      ],
+      "width": 1164,
+      "height": 1351,
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "bounds": [
+        40,
+        8,
+        1117,
+        1333
+      ],
+      "size_bytes": 2207479,
+      "sha256": "8e4c52ee36ff64a76d6c19b9976844da12d8f5b1889649b1825d24a1b8910cfc"
+    },
+    {
+      "id": "07_manga",
+      "label": "翻漫画",
+      "file": "png/07_manga.png",
+      "states": [
+        "living_manga"
+      ],
+      "width": 1024,
+      "height": 1536,
+      "alpha_extrema": [
+        0,
+        254
+      ],
+      "bounds": [
+        246,
+        11,
+        782,
+        1525
+      ],
+      "size_bytes": 1876943,
+      "sha256": "0fa5bc1ef0cddab13c78e2697b8b6d69e2eee57037dfd3953579942e664dda74"
+    },
+    {
+      "id": "08_fridge",
+      "label": "看看冰箱",
+      "file": "png/08_fridge.png",
+      "states": [
+        "kitchen_fridge"
+      ],
+      "width": 1024,
+      "height": 1536,
+      "alpha_extrema": [
+        0,
+        254
+      ],
+      "bounds": [
+        43,
+        52,
+        980,
+        1481
+      ],
+      "size_bytes": 2553850,
+      "sha256": "6f4a57080370c3233f8ddf3a3850170c7eabe214ba9a9feefe034bef71201341"
+    },
+    {
+      "id": "09_meal",
+      "label": "吃饭",
+      "file": "png/09_meal.png",
+      "states": [
+        "kitchen_meal"
+      ],
+      "width": 1024,
+      "height": 1536,
+      "alpha_extrema": [
+        0,
+        254
+      ],
+      "bounds": [
+        19,
+        11,
+        1006,
+        1526
+      ],
+      "size_bytes": 2526318,
+      "sha256": "28eee3927bc1b6d9122f4af9e6ee83ede6cc9b3e434798aa9f7c7cd7ce7ba70c"
+    },
+    {
+      "id": "10_kettle",
+      "label": "煮水泡茶",
+      "file": "png/10_kettle.png",
+      "states": [
+        "kitchen_kettle"
+      ],
+      "width": 1024,
+      "height": 1536,
+      "alpha_extrema": [
+        0,
+        254
+      ],
+      "bounds": [
+        128,
+        11,
+        850,
+        1517
+      ],
+      "size_bytes": 2087859,
+      "sha256": "124d0ef4a0a85cc94bb6bd2452101619140165af357d0d3fa100c986696e9cb9"
+    },
+    {
+      "id": "11_brush",
+      "label": "刷牙",
+      "file": "png/11_brush.png",
+      "states": [
+        "bathroom_brush"
+      ],
+      "width": 1024,
+      "height": 1536,
+      "alpha_extrema": [
+        0,
+        254
+      ],
+      "bounds": [
+        204,
+        8,
+        788,
+        1528
+      ],
+      "size_bytes": 1870807,
+      "sha256": "dac00832ae9f4ec5b4944833ccc11d1936272514d3761d08530cbb99d05103b6"
+    },
+    {
+      "id": "12_private",
+      "label": "浴室使用中",
+      "file": "png/12_private.png",
+      "states": [
+        "bathroom_shower",
+        "bathroom_occupied"
+      ],
+      "width": 1309,
+      "height": 1201,
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "bounds": [
+        103,
+        15,
+        1207,
+        1156
+      ],
+      "size_bytes": 2303286,
+      "sha256": "7a71ffb11f6eff848e8cff411e50a8df4db193e775bd986047a2c0a8e076f239"
+    },
+    {
+      "id": "13_sleep_back",
+      "label": "床上仰睡",
+      "file": "png/13_sleep_back.png",
+      "states": [
+        "bedroom_sleep_back"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "bounds": [
+        53,
+        16,
+        1182,
+        1251
+      ],
+      "size_bytes": 1799492,
+      "sha256": "3a1ac6a10435d2d120c258a2e163060ebaf6403cec5a2dfd2ed6eee3da06295c"
+    },
+    {
+      "id": "14_sleep_side",
+      "label": "床上侧睡",
+      "file": "png/14_sleep_side.png",
+      "states": [
+        "bedroom_sleep_side"
+      ],
+      "width": 1536,
+      "height": 1024,
+      "alpha_extrema": [
+        0,
+        254
+      ],
+      "bounds": [
+        29,
+        18,
+        1500,
+        1017
+      ],
+      "size_bytes": 2556371,
+      "sha256": "47db65bdadf5afdc7523137a1cac051b279f0d5344542d46540d3b6b777eb659"
+    },
+    {
+      "id": "15_sleep_diagonal",
+      "label": "床上斜睡",
+      "file": "png/15_sleep_diagonal.png",
+      "states": [
+        "bedroom_sleep_diagonal"
+      ],
+      "width": 1448,
+      "height": 1086,
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "bounds": [
+        46,
+        8,
+        1386,
+        1081
+      ],
+      "size_bytes": 2338057,
+      "sha256": "ca5626f97e4cbca47d931c5d46482cffce2df3ccc920054faed6a2e98b73af05"
+    },
+    {
+      "id": "16_living_sleep",
+      "label": "沙发床抱鲨鱼睡觉",
+      "file": "png/16_living_sleep.png",
+      "states": [
+        "living_sleep"
+      ],
+      "width": 1536,
+      "height": 1024,
+      "alpha_extrema": [
+        0,
+        254
+      ],
+      "bounds": [
+        31,
+        35,
+        1503,
+        1006
+      ],
+      "size_bytes": 2874572,
+      "sha256": "24ec3c30aa4ea2f0b25101667bf86b7adffce221e468bcbe97f26f973f004d08"
+    },
+    {
+      "id": "17_office_casefile",
+      "label": "阅读核对卷宗",
+      "file": "png/17_office_casefile.png",
+      "states": [
+        "reading_casefile",
+        "reviewing_statement",
+        "rereading_notes",
+        "checking_details"
+      ],
+      "width": 1024,
+      "height": 1536,
+      "alpha_extrema": [
+        0,
+        254
+      ],
+      "bounds": [
+        60,
+        13,
+        980,
+        1529
+      ],
+      "size_bytes": 2630946,
+      "sha256": "108d523eca16213bbb35fc22140a6107e2b8d7b91b613a9ea671dd537f6c2076"
+    },
+    {
+      "id": "18_office_thinking",
+      "label": "琢磨案情",
+      "file": "png/18_office_thinking.png",
+      "states": [
+        "thinking_case",
+        "sofa_case_thinking",
+        "noticing_inconsistency",
+        "reviewing_interview"
+      ],
+      "width": 1024,
+      "height": 1536,
+      "alpha_extrema": [
+        0,
+        254
+      ],
+      "bounds": [
+        27,
+        14,
+        1004,
+        1522
+      ],
+      "size_bytes": 2677226,
+      "sha256": "85260e60679851e1cd390590be1fac56b43c52d1b67b2e649afa02d6f3c6fc9f"
+    },
+    {
+      "id": "19_office_eyes_closed",
+      "label": "闭眼梳理思路",
+      "file": "png/19_office_eyes_closed.png",
+      "states": [
+        "eyes_closed_thinking",
+        "resting_eyes",
+        "clearing_thoughts"
+      ],
+      "width": 1312,
+      "height": 1199,
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "bounds": [
+        47,
+        11,
+        1264,
+        1193
+      ],
+      "size_bytes": 2074263,
+      "sha256": "4ffc349cb14cf3559fdaf641cf55fe2221e03cc16dafd261c5f8497f105355a1"
+    },
+    {
+      "id": "20_office_observing",
+      "label": "观察和等候",
+      "file": "png/20_office_observing.png",
+      "states": [
+        "watching_office",
+        "waiting_response"
+      ],
+      "width": 1024,
+      "height": 1536,
+      "alpha_extrema": [
+        0,
+        254
+      ],
+      "bounds": [
+        46,
+        11,
+        1011,
+        1531
+      ],
+      "size_bytes": 2589444,
+      "sha256": "87a097c30580303fac5f4cfa5b9f5f59737203ebf3c04029cf1dc9e3cbfaa4ef"
+    },
+    {
+      "id": "21_office_chat",
+      "label": "闲聊和分享观察",
+      "file": "png/21_office_chat.png",
+      "states": [
+        "quiet_chat",
+        "sharing_observation"
+      ],
+      "width": 1024,
+      "height": 1536,
+      "alpha_extrema": [
+        0,
+        254
+      ],
+      "bounds": [
+        9,
+        11,
+        1015,
+        1525
+      ],
+      "size_bytes": 2758656,
+      "sha256": "2df0b1a2e94ab30dd19e7aa014916400a9f034d1a495308064ee1cec91c1674c"
+    },
+    {
+      "id": "22_office_arrival",
+      "label": "到岗或回来",
+      "file": "png/22_office_arrival.png",
+      "states": [
+        "arriving",
+        "field_return",
+        "errand_return"
+      ],
+      "width": 1024,
+      "height": 1536,
+      "alpha_extrema": [
+        0,
+        254
+      ],
+      "bounds": [
+        183,
+        15,
+        781,
+        1527
+      ],
+      "size_bytes": 1866634,
+      "sha256": "d5bd2e464a8b158d267405d94b60ee485bce37774f8a18b3d26b7338fd5964fa"
+    },
+    {
+      "id": "23_away",
+      "label": "外勤或短暂离席",
+      "file": "png/23_away.png",
+      "states": [
+        "presence:away"
+      ],
+      "width": 1024,
+      "height": 1536,
+      "alpha_extrema": [
+        0,
+        254
+      ],
+      "bounds": [
+        268,
+        7,
+        788,
+        1531
+      ],
+      "size_bytes": 1820252,
+      "sha256": "c853877a74aad22ca302add94bd09a6df5cd34bdbf77232ebc35d50bfdc1ea20"
+    },
+    {
+      "id": "24_office_planning",
+      "label": "梳理线索和下一步",
+      "file": "png/24_office_planning.png",
+      "states": [
+        "tracing_timeline",
+        "planning_next_step"
+      ],
+      "width": 1024,
+      "height": 1536,
+      "alpha_extrema": [
+        0,
+        254
+      ],
+      "bounds": [
+        52,
+        10,
+        991,
+        1530
+      ],
+      "size_bytes": 2623401,
+      "sha256": "d27e4e62564c1e45fec2bf39a79a9acdd6675cd5193d0b2909bda3cc63c4c879"
+    }
+  ]
+}

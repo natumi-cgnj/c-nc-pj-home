@@ -1,0 +1,11 @@
+'use strict';
+const bridge = window.JaneDesktop, root = document.getElementById('companion'), img = document.getElementById('artwork');
+bridge.artwork('00_tea').then(data => { img.src = data; bridge.frame({ assetId: '00_tea', label: '离线 · 点击重试连接' }); });
+document.getElementById('connect').onclick = () => bridge.reconnect();
+img.ondblclick = () => bridge.openProgram();
+root.oncontextmenu = event => { event.preventDefault(); bridge.menu(); };
+root.onmousemove = () => bridge.hit(true);
+let pressed = false;
+img.onpointerdown = event => { if (event.button !== 0) return; pressed = true; img.setPointerCapture(event.pointerId); bridge.drag('start'); };
+img.onpointermove = () => { if (pressed) bridge.drag('move'); };
+img.onpointerup = img.onpointercancel = () => { if (pressed) { pressed = false; bridge.drag('end'); } };

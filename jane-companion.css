@@ -1,0 +1,8 @@
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#696050;user-select:none}
+#companion{position:relative;width:100vw;height:100vh;padding:12px 12px 30px;touch-action:none}
+#artwork{display:block;width:100%;height:100%;object-fit:contain;-webkit-user-drag:none;cursor:grab}
+#companion.dragging #artwork{cursor:grabbing}
+#caption{position:absolute;bottom:5px;left:50%;transform:translateX(-50%);max-width:calc(100% - 16px);padding:5px 9px;border:1px solid #ded8cb;border-radius:12px;background:rgba(255,253,246,.93);font-size:10px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;transition:opacity .12s;pointer-events:none}
+#companion.hover #caption,#companion:focus-within #caption{opacity:1}
+#setup{position:absolute;bottom:14px;left:10px;right:10px;padding:13px;border:1px solid #dfd8c9;border-radius:13px;background:rgba(255,253,247,.97);box-shadow:0 5px 22px #4f44321a;font-size:11px;text-align:center}
+#setup[hidden]{display:none}#setup p{margin:0 0 10px;line-height:1.7}#setup button{border:0;border-radius:8px;background:#817052;color:#fff;font:inherit;padding:8px 14px;cursor:pointer}
