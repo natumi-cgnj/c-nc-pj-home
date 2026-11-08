@@ -637,12 +637,12 @@
           '<div class="asset-detail-total"><span class="asset-detail-currency">JPY</span>' + esc(formatBalance(expenseTotal(book, today.slice(0, 7) + '-01', today), 'JPY')) + '</div></div>' +
         '<button class="asset-detail-edit" type="button" data-expense-settings>设置</button>' +
       '</div>' +
-      '<div class="record-period-actions"><button class="asset-static-add" type="button" data-expense-add>＋ 记一笔</button>' +
-        (periods ? '<button class="record-period-start" type="button" data-expense-period>开始新一段</button>' : '') + '</div>' +
+      '<button class="asset-static-add" type="button" data-expense-add>＋ 记一笔</button>' +
       '<div class="asset-static-list">' + history + '</div>';
     if (periods) {
       periods.restore(target, opened);
-      target.querySelector('[data-expense-period]').addEventListener('click', function () { periods.open('ledger', render); });
+      var archive = target.querySelector('[data-record-archive]');
+      if (archive) archive.addEventListener('click', function () { periods.open('ledger', render); });
     }
     target.querySelector('[data-expense-back]').addEventListener('click', closeExpenseDetail);
     target.querySelector('[data-expense-settings]').addEventListener('click', function () { openExpenseBook(book.id); });

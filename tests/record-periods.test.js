@@ -87,11 +87,12 @@ test('history rendering leaves the current period visible and defaults old perio
   const html=P.renderHistory({records:[{date:'2026-10-20',amount:100,type:'expense'}],starts:['2026-11-07'],today:'2026-11-07',key:'ledger:book1',mode:'money',renderRecord:()=>'<button data-edit>old detail</button>'});
   assert.match(html,/record-period-current/);
   assert.match(html,/2026-11-07 起/);
-  assert.match(html,/记录 0 天 · 0 笔/);
+  assert.match(html,/record-period-range">2026-11-07 起<\/span><\/span><button[^>]*data-record-archive>归档<\/button>/);
   assert.match(html,/本段还没有记录/);
   assert.match(html,/<details class="record-period" data-record-period="ledger:book1:first">/);
-  assert.match(html,/记录 1 天 · 1 笔/);
-  assert.match(html,/支出 100 円/);
+  assert.match(html,/record-period-range">2026-10-20/);
+  assert.equal((html.match(/data-record-archive/g)||[]).length,1);
+  assert.doesNotMatch(html,/record-period-count|record-period-totals|开始新一段/);
   assert.match(html,/<button data-edit>old detail<\/button><\/details>/);
   assert.doesNotMatch(html,/<details[^>]*\bopen/);
 });

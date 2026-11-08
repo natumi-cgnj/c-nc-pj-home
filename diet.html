@@ -113,7 +113,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   .nutrition-log{margin-top:8px}
 }
 </style>
-<link rel="stylesheet" href="record-periods.css?v=20261108-suitcase-simple2">
+<link rel="stylesheet" href="record-periods.css?v=20261108-archive-all3">
 <link rel="stylesheet" href="world-story.css?v=20261028-stories1">
 </head>
 <body>
@@ -202,7 +202,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <script src="body-model.js?v=20261023-body1"></script>
 <script src="diet-body.js?v=20261023-body1"></script>
 <script src="diet-world.js?v=20261028-stories1-20261023-bridge1"></script>
-<script src="record-periods.js?v=20261108-suitcase-simple2"></script>
+<script src="record-periods.js?v=20261108-archive-all3"></script>
 <script>
 'use strict';
 if(window.__LIMINAL_REDIRECTING)throw new Error('Redirecting to cloud login');
@@ -245,8 +245,9 @@ function renderCalorieLedger(){
     const burn=record.type==='burn',steps=isStepRecord(record),kind=steps?'steps':burn?'burn':'intake',kcal=Math.max(0,Math.round(Number(record.kcal)||0));
     return'<div class="calorie-row"><span class="calorie-date">'+esc(record.date||'—')+'</span><span class="calorie-kind '+kind+'">'+(steps?'步':burn?'运动':'吃')+'</span><span class="calorie-detail">'+esc(record.detail||'—')+'</span><span class="calorie-amount '+kind+'">'+(burn?'−':'+')+kcal+' kcal</span><button class="calorie-delete" type="button" aria-label="删除" onclick="deleteCalorieRecord(\''+record.id+'\')">×</button></div>';
   }
-  target.innerHTML=periods?'<div class="record-period-actions"><button class="record-period-start" type="button" onclick="openCaloriePeriod()">开始新一段</button></div>'+periods.renderHistory({records,starts:log.recordPeriodStarts,today:workdayKey(),key:'diet',mode:'calorie',renderRecord}):
+  target.innerHTML=periods?periods.renderHistory({records,starts:log.recordPeriodStarts,today:workdayKey(),key:'diet',mode:'calorie',renderRecord}):
     records.length?records.map(renderRecord).join(''):'<div class="calorie-empty">还没有记录</div>';
+  target.onclick=function(event){if(event.target.closest('[data-record-archive]'))openCaloriePeriod();};
   if(periods)periods.restore(target,opened);
 }
 function openCaloriePeriod(){if(window.RecordPeriods)window.RecordPeriods.open('diet',renderCalorieLedger);}

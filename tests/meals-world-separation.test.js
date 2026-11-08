@@ -123,9 +123,14 @@ test('DIET folds historical periods, preserves every food and step record and re
   let history=app.elements.get('calorieHistory').innerHTML;
   assert.match(history,/2026-11-07 起/);
   assert.match(history,/<details class="record-period" data-record-period="diet:first">/);
-  assert.match(history,/记录 1 天 · 2 笔/);
-  assert.match(history,/摄入 1,400 kcal/);
-  assert.match(history,/消耗 150 kcal/);
+  assert.match(history,/data-record-archive>归档<\/button>/);
+  assert.doesNotMatch(history,/record-period-count|record-period-totals|开始新一段/);
+  assert.match(history,/calorie-amount intake">\+1400 kcal/);
+  assert.match(history,/calorie-amount steps">−150 kcal/);
+  const archives=[];
+  app.context.window.RecordPeriods.open=scope=>archives.push(scope);
+  app.elements.get('calorieHistory').onclick({target:{closest:selector=>selector==='[data-record-archive]'?{}:null}});
+  assert.deepEqual(archives,['diet']);
   assert.equal(storage.getItem('calorie_log_db'),before);
   storage.setItem('calorie_log_db',JSON.stringify({...log,recordPeriodStarts:[]}));
   app.listeners.get('storage')({key:'calorie_log_db'});

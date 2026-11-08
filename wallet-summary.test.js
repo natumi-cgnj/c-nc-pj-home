@@ -88,6 +88,8 @@ test('all six book details share record periods while account and goal saves pre
   app.time('2026-11-07T15:00:00+09:00');
   app.render();
   const amounts=app.expenseAmounts();
+  const archives=[];
+  app.window.RecordPeriods.open=scope=>archives.push(scope);
   for(let i=1;i<=6;i++) {
     app.window.WalletAssets.openExpenseDetail('book'+i);
     const detail=app.nodes.get('assetExpenseDetail').innerHTML;
@@ -95,7 +97,11 @@ test('all six book details share record periods while account and goal saves pre
     assert.match(detail,/record-period-current/);
     assert.match(detail,/2026-10-20/);
     assert.match(detail,/2026-11-07/);
+    assert.match(detail,/data-record-archive>归档<\/button>/);
+    assert.doesNotMatch(detail,/record-period-count|record-period-totals|开始新一段/);
+    app.nodes.get('assetExpenseDetail').actions['[data-record-archive]']();
   }
+  assert.deepEqual(archives,Array(6).fill('ledger'));
   assert.equal(app.writes.length,0);
   app.nodes.get('assetGoalAmount').value='20000000';
   app.window.WalletAssets.saveGoal();

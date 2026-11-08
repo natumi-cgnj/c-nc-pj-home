@@ -62,19 +62,15 @@
     if (!entry.to) return entry.from ? entry.from + ' 起' : '本段';
     return entry.from === entry.to ? entry.from : entry.from + ' — ' + entry.to;
   }
-  function summary(entry, mode) {
-    var sum = totals(entry.records, mode), money = mode === 'money';
-    function number(value) { return value.toLocaleString('zh-CN'); }
-    return '<span class="record-period-copy"><span class="record-period-range">' + esc(range(entry)) + '</span>' +
-      '<span class="record-period-count">' + (entry.current ? '本段 · ' : '') + '记录 ' + entry.recordedDays + ' 天 · ' + entry.records.length + ' 笔</span></span>' +
-      '<span class="record-period-totals"><span>' + (money ? '进账 ' + number(sum.income) + ' 円' : '摄入 ' + number(sum.intake) + ' kcal') + '</span>' +
-      '<span>' + (money ? '支出 ' + number(sum.expense) + ' 円' : '消耗 ' + number(sum.burn) + ' kcal') + '</span></span>';
+  function summary(entry) {
+    return '<span class="record-period-copy"><span class="record-period-range">' + esc(range(entry)) + '</span></span>' +
+      (entry.current ? '<button class="record-period-archive" type="button" data-record-archive>归档</button>' : '');
   }
   function renderHistory(options) {
     if (!options.records.length && !starts(options.starts).length) return '<div class="record-period-empty">暂无记录</div>';
     return group(options.records, options.starts, options.today).map(function (entry) {
       var rows = (options.renderRecords ? options.renderRecords(entry.records) : entry.records.map(options.renderRecord).join('')) || '<div class="record-period-empty">本段还没有记录</div>';
-      var heading = options.renderSummary ? options.renderSummary(entry) : summary(entry, options.mode);
+      var heading = options.renderSummary ? options.renderSummary(entry) : summary(entry);
       if (entry.current) return '<section class="record-period-current"><div class="record-period-heading">' + heading + '</div>' + rows + '</section>';
       return '<details class="record-period" data-record-period="' + esc(options.key + ':' + entry.key) + '">' +
         '<summary class="record-period-heading">' + heading + '<span class="record-period-chevron" aria-hidden="true"></span></summary>' + rows + '</details>';
@@ -159,11 +155,11 @@
       editor = doc.createElement('div');
       editor.id = 'recordPeriodModal'; editor.className = 'modal-bg record-period-modal';
       editor.innerHTML = '<form class="modal" role="dialog" aria-modal="true" aria-labelledby="recordPeriodTitle">' +
-        '<h2 id="recordPeriodTitle">开始新一段</h2><p class="record-period-help" data-period-help></p>' +
+        '<h2 id="recordPeriodTitle">归档</h2><p class="record-period-help" data-period-help></p>' +
         '<label for="recordPeriodDate">新一段开始日期</label><input id="recordPeriodDate" type="date" required>' +
         '<p class="record-period-error" data-period-error role="alert"></p><div data-period-existing></div>' +
         '<div class="btn-row"><button type="button" class="btn btn-cancel" data-period-close>取消</button>' +
-        '<button type="submit" class="btn btn-primary">开始新一段</button></div></form>';
+        '<button type="submit" class="btn btn-primary">归档</button></div></form>';
       doc.body.appendChild(editor);
       editor.addEventListener('click', function (event) {
         if (event.target === editor || event.target.closest('[data-period-close]')) { close(); return; }
@@ -186,9 +182,6 @@
       });
     }
     returnFocus = doc.activeElement; activeScope = scope; afterChange = onChange;
-    var actionLabel = scope === 'suitcase' ? '归档' : '开始新一段';
-    editor.querySelector('#recordPeriodTitle').textContent = actionLabel;
-    editor.querySelector('button[type="submit"]').textContent = actionLabel;
     editor.querySelector('[data-period-help]').textContent = scope === 'ledger' ?
       '六本账本一起分段。所选日期前的记录收成小结，仍可展开查看和修改。' : '所选日期前的记录收成小结，仍可展开查看。';
     var input = doc.getElementById('recordPeriodDate'); input.value = scopeToday(scope); input.max = scopeToday(scope);
