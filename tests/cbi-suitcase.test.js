@@ -169,24 +169,25 @@ test('one aggregated history row displays its date, details and points without a
   h.context.renderHistory(db.work.suitcase);
   assert.match(h.html(),/class="history-entry history-single"><span class="history-date">11 \/ 2<\/span>[\s\S]*清出 · 小 ×17[\s\S]*\+34/);
   assert.doesNotMatch(h.html(),/<details class="history-group"/);
-  assert.match(h.html(),/记录 1 天/);
-  assert.match(h.html(),/清出 17 件 · 带来 0 件/);
+  assert.match(h.html(),/record-period-range">2026-11-02<\/span><\/span><button[^>]*data-archive-period>归档<\/button>/);
+  assert.doesNotMatch(h.html(),/record-period-count|record-period-totals|开始新一段/);
   assert.equal(h.nodes.get('historyCount').textContent,17);
   assert.equal(db.work.suitcase.points,417);
 });
 
-test('a mixed day keeps its disclosure, while a single collected item stays directly editable', () => {
+test('multiple sizes share one visible daily row and collected items stay directly editable', () => {
   const h=historyFixture(),db=h.context.CBIData.emptyDB();
-  db.work.suitcase.cleanupLog=[{id:'medium',size:'medium',points:5,at:'2026-10-26T12:00:00Z'},{id:'small',size:'small',points:2,at:'2026-10-26T13:00:00Z'}];
+  db.work.suitcase.cleanupLog=[{id:'medium',size:'medium',points:5,at:'2026-10-26T12:00:00Z'},
+    ...Array.from({length:9},(_,i)=>({id:'small'+i,size:'small',points:2,at:'2026-10-26T13:00:00Z'}))];
   db.work.suitcase.items=[{id:'kept',name:'旧本子',series:'My Stuff',note:'原备注',image:'',status:'collected',broughtOn:'2026-10-24',redeemedCost:8,createdAt:'2026-10-24T12:00:00Z'}];
   h.context.renderHistory(db.work.suitcase);
-  assert.equal((h.html().match(/<details class="history-group"/g)||[]).length,1);
-  assert.match(h.html(),/data-record-period="suitcase-day:2026-10-26"/);
-  assert.match(h.html(),/清出 · 中/);
-  assert.match(h.html(),/清出 · 小/);
+  assert.doesNotMatch(h.html(),/<details/);
+  assert.match(h.html(),/10 \/ 26<\/span>[\s\S]*清出 · 小×9 中×1[\s\S]*\+23/);
+  assert.equal((h.html().match(/class="history-entry history-single"/g)||[]).length,2);
   assert.match(h.html(),/<button class="history-entry history-single" type="button" data-item="kept"><span class="history-date">10 \/ 24<\/span>/);
   assert.match(h.html(),/带来 · 旧本子/);
-  assert.match(h.html(),/获得 7 PT · 使用 8 PT/);
+  assert.match(h.html(),/history-delta spend">-8/);
+  assert.doesNotMatch(h.html(),/record-period-count|record-period-totals/);
 });
 
 test('suitcase period cutoffs preserve points, items, cleanup history and the rest of the raw CBI save', () => {
@@ -207,9 +208,8 @@ test('suitcase period cutoffs preserve points, items, cleanup history and the re
   h.context.renderHistory(data.load().work.suitcase);
   assert.match(h.html(),/2026-11-08 起/);
   assert.match(h.html(),/data-record-period="suitcase:first"/);
-  assert.match(h.html(),/记录 2 天/);
-  assert.match(h.html(),/清出 1 件 · 带来 1 件/);
-  assert.match(h.html(),/获得 2 PT · 使用 8 PT/);
+  assert.match(h.html(),/2026-10-20 — 2026-10-21/);
+  assert.doesNotMatch(h.html(),/record-period-count|record-period-totals/);
   const cleanup=data.recordSuitcaseCleanup(data.load(),'medium',new Date('2026-11-08T12:00:00Z'));
   data.save(cleanup.db);
   assert.equal(data.load().work.suitcase.points,422);

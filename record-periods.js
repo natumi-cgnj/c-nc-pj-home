@@ -186,6 +186,9 @@
       });
     }
     returnFocus = doc.activeElement; activeScope = scope; afterChange = onChange;
+    var actionLabel = scope === 'suitcase' ? '归档' : '开始新一段';
+    editor.querySelector('#recordPeriodTitle').textContent = actionLabel;
+    editor.querySelector('button[type="submit"]').textContent = actionLabel;
     editor.querySelector('[data-period-help]').textContent = scope === 'ledger' ?
       '六本账本一起分段。所选日期前的记录收成小结，仍可展开查看和修改。' : '所选日期前的记录收成小结，仍可展开查看。';
     var input = doc.getElementById('recordPeriodDate'); input.value = scopeToday(scope); input.max = scopeToday(scope);
