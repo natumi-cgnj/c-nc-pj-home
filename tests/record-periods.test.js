@@ -92,7 +92,10 @@ test('history rendering leaves the current period visible and defaults old perio
   assert.match(html,/<details class="record-period" data-record-period="ledger:book1:first">/);
   assert.match(html,/record-period-range">2026-10-20/);
   assert.equal((html.match(/data-record-archive/g)||[]).length,1);
-  assert.doesNotMatch(html,/record-period-count|record-period-totals|开始新一段/);
+  assert.doesNotMatch(html.match(/<section class="record-period-current">[\s\S]*?<\/section>/)[0],/record-period-count|record-period-totals/);
+  assert.match(html,/record-period-count">记录 1 天 · 1 笔/);
+  assert.match(html,/record-period-totals"><span>进账 0 円<\/span><span>支出 100 円/);
+  assert.doesNotMatch(html,/开始新一段/);
   assert.match(html,/<button data-edit>old detail<\/button><\/details>/);
   assert.doesNotMatch(html,/<details[^>]*\bopen/);
 });

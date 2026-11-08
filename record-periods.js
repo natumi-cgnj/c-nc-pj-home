@@ -62,15 +62,21 @@
     if (!entry.to) return entry.from ? entry.from + ' 起' : '本段';
     return entry.from === entry.to ? entry.from : entry.from + ' — ' + entry.to;
   }
-  function summary(entry) {
-    return '<span class="record-period-copy"><span class="record-period-range">' + esc(range(entry)) + '</span></span>' +
-      (entry.current ? '<button class="record-period-archive" type="button" data-record-archive>归档</button>' : '');
+  function summary(entry, mode) {
+    var date = '<span class="record-period-range">' + esc(range(entry)) + '</span>';
+    if (entry.current) return '<span class="record-period-copy">' + date + '</span><button class="record-period-archive" type="button" data-record-archive>归档</button>';
+    var total = totals(entry.records, mode);
+    var amounts = mode === 'money'
+      ? '<span>进账 ' + total.income.toLocaleString('zh-CN') + ' 円</span><span>支出 ' + total.expense.toLocaleString('zh-CN') + ' 円</span>'
+      : '<span>摄入 ' + total.intake.toLocaleString('zh-CN') + ' kcal</span><span>消耗 ' + total.burn.toLocaleString('zh-CN') + ' kcal</span>';
+    return '<span class="record-period-copy">' + date + '<span class="record-period-count">记录 ' + entry.recordedDays + ' 天 · ' + entry.records.length + ' 笔</span></span>' +
+      '<span class="record-period-totals">' + amounts + '</span>';
   }
   function renderHistory(options) {
     if (!options.records.length && !starts(options.starts).length) return '<div class="record-period-empty">暂无记录</div>';
     return group(options.records, options.starts, options.today).map(function (entry) {
       var rows = (options.renderRecords ? options.renderRecords(entry.records) : entry.records.map(options.renderRecord).join('')) || '<div class="record-period-empty">本段还没有记录</div>';
-      var heading = options.renderSummary ? options.renderSummary(entry) : summary(entry);
+      var heading = options.renderSummary ? options.renderSummary(entry) : summary(entry, options.mode);
       if (entry.current) return '<section class="record-period-current"><div class="record-period-heading">' + heading + '</div>' + rows + '</section>';
       return '<details class="record-period" data-record-period="' + esc(options.key + ':' + entry.key) + '">' +
         '<summary class="record-period-heading">' + heading + '<span class="record-period-chevron" aria-hidden="true"></span></summary>' + rows + '</details>';

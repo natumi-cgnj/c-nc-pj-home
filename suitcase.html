@@ -24,7 +24,7 @@ body{min-height:100vh;min-height:100dvh;padding-bottom:36px;background:#fafafa;c
 .history-main{display:flex;min-width:0;align-items:center;gap:9px}.history-thumb{width:32px;height:32px;flex:0 0 32px;border-radius:6px;background:#f6f5f2;object-fit:cover}
 .history-entry.history-single{grid-template-columns:max-content minmax(0,1fr) auto;margin-bottom:9px;border:1px solid #eaeae7;border-radius:11px}.history-single .history-date{min-width:58px;white-space:nowrap}
 .history-archive{padding:4px 0 4px 12px;border:0;background:none;color:#aaa;font:inherit;font-size:10px;cursor:pointer}.history-single .history-name{white-space:normal;overflow-wrap:anywhere}
-.history .record-period-heading{gap:8px;padding:14px 12px}.history .record-period-range{font-size:10px}.history .record-period{margin-bottom:9px;border:1px solid #eaeae7;border-radius:11px;background:#fff;overflow:hidden}.history .record-period>summary{padding:13px 12px}.history .record-period>.history-single{margin-left:8px;margin-right:8px}
+.history .record-period-heading{gap:8px;padding:14px 12px}.history .record-period-range{font-size:10px}.history .record-period-count{font-size:9px}.history .record-period-totals{flex-direction:column;align-items:flex-end;gap:4px;font-size:9px;color:#92846d}.history .record-period{margin-bottom:9px;border:1px solid #eaeae7;border-radius:11px;background:#fff;overflow:hidden}.history .record-period>summary{padding:13px 12px}.history .record-period>.history-single{margin-left:8px;margin-right:8px}
 .record-period-modal .modal{width:min(100%,480px);max-height:85dvh;overflow:auto;padding:20px;border-radius:16px 16px 0 0;background:#fff}.record-period-modal h2{font-size:15px;font-weight:500;margin-bottom:16px;color:#555}.record-period-modal label{display:block;margin:12px 0 6px;font-size:12px;color:#999}.record-period-modal input{width:100%;padding:10px 12px;border:1px solid #e0e0db;border-radius:8px;color:#555;background:#fff}.record-period-modal .btn-row{display:flex;gap:8px;margin-top:20px}.record-period-modal .btn{flex:1;border:0;border-radius:10px;padding:12px;font-size:13px;cursor:pointer}.record-period-modal .btn-cancel{color:#888;background:#f2f1ef}.record-period-modal .btn-primary{background:#4f4b45;color:#fff}
 .history .record-period>.history-single{width:calc(100% - 16px)}
 .empty{padding:25px 18px;border:1px dashed #deded9;border-radius:11px;color:#c2c2bd;font-size:10px;line-height:1.7;text-align:center}.empty-add{display:block;margin:11px auto 0;padding:7px 11px;border:1px solid #ddd8cf;border-radius:8px;background:#fff;color:#94866e;font-size:9px;cursor:pointer}
@@ -33,7 +33,7 @@ body{min-height:100vh;min-height:100dvh;padding-bottom:36px;background:#fafafa;c
 @media(max-width:350px){.size-button.xlarge{width:45px;height:45px}.size-button.large{width:49px;height:49px}.size-button.medium{width:53px;height:53px}.size-button.small{width:57px;height:57px}}
 @media(min-width:700px){.view{margin-top:18px;border:1px solid #eeeeec;border-radius:12px;background:#fff;overflow:hidden}.top-bar{padding-top:0}.point-panel,.inventory,.collection,.history{margin-right:18px;margin-left:18px}}
 </style>
-<link rel="stylesheet" href="record-periods.css?v=20261108-archive-all3">
+<link rel="stylesheet" href="record-periods.css?v=20261108-archive-summary4">
 </head>
 <body>
 <header class="top-bar">
@@ -88,7 +88,7 @@ body{min-height:100vh;min-height:100dvh;padding-bottom:36px;background:#fafafa;c
 <script src="cloud-sync.js?v=20261029-audit1"></script>
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script src="cbi-data.js?v=20261108-suitcase-periods1"></script>
-<script src="record-periods.js?v=20261108-archive-all3"></script>
+<script src="record-periods.js?v=20261108-archive-summary4"></script>
 <script>
 (function(){
   'use strict';
@@ -198,8 +198,16 @@ body{min-height:100vh;min-height:100dvh;padding-bottom:36px;background:#fafafa;c
 
   function historyPeriodSummary(period){
     var range=period.to?(period.from===period.to?period.from:period.from+' — '+period.to):(period.from?period.from+' 起':'本段');
-    return '<span class="record-period-copy"><span class="record-period-range">'+escapeHtml(range)+'</span></span>'+
-      (period.current?'<button class="history-archive" type="button" data-archive-period>归档</button>':'');
+    var date='<span class="record-period-range">'+escapeHtml(range)+'</span>';
+    if(period.current)return '<span class="record-period-copy">'+date+'</span><button class="history-archive" type="button" data-archive-period>归档</button>';
+    var total=period.records.reduce(function(sum,entry){
+      if(entry.kind==='cleanup'){sum.cleanup+=entry.count;sum.earned+=entry.delta}
+      else{sum.items+=1;sum.spent+=Math.max(0,-entry.delta)}
+      return sum;
+    },{cleanup:0,items:0,earned:0,spent:0});
+    return '<span class="record-period-copy">'+date+'<span class="record-period-count">记录 '+period.recordedDays+' 天</span></span>'+
+      '<span class="record-period-totals"><span>清出 '+total.cleanup.toLocaleString('zh-CN')+' 件 · 带来 '+total.items.toLocaleString('zh-CN')+' 件</span>'+
+      '<span>获得 '+total.earned.toLocaleString('zh-CN')+' PT · 使用 '+total.spent.toLocaleString('zh-CN')+' PT</span></span>';
   }
 
   function renderHistory(state){

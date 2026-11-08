@@ -124,7 +124,10 @@ test('DIET folds historical periods, preserves every food and step record and re
   assert.match(history,/2026-11-07 起/);
   assert.match(history,/<details class="record-period" data-record-period="diet:first">/);
   assert.match(history,/data-record-archive>归档<\/button>/);
-  assert.doesNotMatch(history,/record-period-count|record-period-totals|开始新一段/);
+  assert.doesNotMatch(history.match(/<section class="record-period-current">[\s\S]*?<\/section>/)[0],/record-period-count|record-period-totals/);
+  assert.match(history,/record-period-count">记录 1 天 · 2 笔/);
+  assert.match(history,/record-period-totals"><span>摄入 1,400 kcal<\/span><span>消耗 150 kcal/);
+  assert.doesNotMatch(history,/开始新一段/);
   assert.match(history,/calorie-amount intake">\+1400 kcal/);
   assert.match(history,/calorie-amount steps">−150 kcal/);
   const archives=[];

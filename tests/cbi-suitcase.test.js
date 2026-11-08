@@ -188,6 +188,14 @@ test('multiple sizes share one visible daily row and collected items stay direct
   assert.match(h.html(),/带来 · 旧本子/);
   assert.match(h.html(),/history-delta spend">-8/);
   assert.doesNotMatch(h.html(),/record-period-count|record-period-totals/);
+  db.work.suitcase.recordPeriodStarts=['2026-11-08'];
+  h.context.renderHistory(db.work.suitcase);
+  assert.doesNotMatch(h.html().match(/<section class="record-period-current">[\s\S]*?<\/section>/)[0],/record-period-count|record-period-totals/);
+  assert.match(h.html(),/record-period-count">记录 2 天/);
+  assert.match(h.html(),/清出 10 件 · 带来 1 件/);
+  assert.match(h.html(),/获得 23 PT · 使用 8 PT/);
+  assert.match(h.html(),/清出 · 小×9 中×1/);
+  assert.doesNotMatch(h.html(),/<details class="history-group"/);
 });
 
 test('suitcase period cutoffs preserve points, items, cleanup history and the rest of the raw CBI save', () => {
@@ -209,7 +217,10 @@ test('suitcase period cutoffs preserve points, items, cleanup history and the re
   assert.match(h.html(),/2026-11-08 起/);
   assert.match(h.html(),/data-record-period="suitcase:first"/);
   assert.match(h.html(),/2026-10-20 — 2026-10-21/);
-  assert.doesNotMatch(h.html(),/record-period-count|record-period-totals/);
+  assert.doesNotMatch(h.html().match(/<section class="record-period-current">[\s\S]*?<\/section>/)[0],/record-period-count|record-period-totals/);
+  assert.match(h.html(),/record-period-count">记录 2 天/);
+  assert.match(h.html(),/清出 1 件 · 带来 1 件/);
+  assert.match(h.html(),/获得 2 PT · 使用 8 PT/);
   const cleanup=data.recordSuitcaseCleanup(data.load(),'medium',new Date('2026-11-08T12:00:00Z'));
   data.save(cleanup.db);
   assert.equal(data.load().work.suitcase.points,422);

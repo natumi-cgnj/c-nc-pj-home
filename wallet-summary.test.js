@@ -98,7 +98,10 @@ test('all six book details share record periods while account and goal saves pre
     assert.match(detail,/2026-10-20/);
     assert.match(detail,/2026-11-07/);
     assert.match(detail,/data-record-archive>归档<\/button>/);
-    assert.doesNotMatch(detail,/record-period-count|record-period-totals|开始新一段/);
+    assert.doesNotMatch(detail.match(/<section class="record-period-current">[\s\S]*?<\/section>/)[0],/record-period-count|record-period-totals/);
+    assert.match(detail,/record-period-count">记录 1 天 · 1 笔/);
+    assert.match(detail,new RegExp('record-period-totals"><span>进账 0 円</span><span>支出 '+(99+i)+' 円'));
+    assert.doesNotMatch(detail,/开始新一段/);
     app.nodes.get('assetExpenseDetail').actions['[data-record-archive]']();
   }
   assert.deepEqual(archives,Array(6).fill('ledger'));

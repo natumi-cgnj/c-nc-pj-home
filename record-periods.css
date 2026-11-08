@@ -7,6 +7,9 @@ summary.record-period-heading::-webkit-details-marker{display:none}
 .record-period-heading:focus-visible{outline:1px solid #c9bba6;outline-offset:2px}
 .record-period-copy{display:flex;flex:1;min-width:0;flex-direction:column;gap:7px}
 .record-period-range{font-size:11px;font-variant-numeric:tabular-nums;line-height:1.5;overflow-wrap:anywhere}
+.record-period-count{font-size:10px;color:#b4ada4;line-height:1.5}
+.record-period-totals{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px 20px;color:var(--account-color,var(--diet-accent,#9b7d41));font-size:11px;font-variant-numeric:tabular-nums;line-height:1.6}
+.record-period-totals>span{white-space:nowrap}
 .record-period-chevron{width:5px;height:5px;flex:0 0 5px;margin-right:3px;border-right:1px solid #b8b0a6;border-bottom:1px solid #b8b0a6;transform:rotate(45deg)}
 .record-period[open]>.record-period-heading .record-period-chevron{transform:rotate(225deg)}
 .record-period-empty{padding:18px 0 28px;font-size:11px;color:#bbb;text-align:center}
@@ -27,5 +30,7 @@ summary.record-period-heading::-webkit-details-marker{display:none}
 @media(max-width:599px){
   .record-period-heading{gap:10px}
   .record-period-range{font-size:10px}
+  .record-period-count{font-size:9px}
+  .record-period-totals{flex-direction:column;gap:3px;align-items:flex-end;font-size:10px}
 }
 @media(min-width:700px){.record-period-modal{align-items:center;padding:28px}}
