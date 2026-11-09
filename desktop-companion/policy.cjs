@@ -19,9 +19,9 @@ function clampBounds(bounds, area) {
     x: Math.round(Math.min(area.x + area.width - Math.min(40, bounds.width), Math.max(area.x - bounds.width + 40, bounds.x))),
     y: Math.round(Math.min(area.y + area.height - 40, Math.max(area.y, bounds.y))) };
 }
-function artworkSize(image, extent = 320) {
+function artworkSize(image, extent = 320, bubble = false) {
   const scale = extent / Math.max(image.width, image.height);
-  return { width: Math.ceil(image.width * scale) + 24, height: Math.ceil(image.height * scale) + 42 };
+  return { width: Math.ceil(image.width * scale) + 24, height: Math.ceil(image.height * scale) + 42 + (bubble ? 128 : 0) };
 }
 function preferences(value) {
   if (!value || typeof value !== 'object') return {};

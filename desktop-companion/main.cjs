@@ -13,7 +13,7 @@ function createCompanion(electron, options = {}) {
   const target = policy.pageURL(base);
   const fallbackPath = path.join(__dirname, 'offline.html'), fallback = pathToFileURL(fallbackPath).href;
   const partition = 'persist:jane-companion-v1';
-  let pet, loginWindow, tray, prefs = {}, quitting = false, drag = null, ignored = null, current;
+  let pet, loginWindow, tray, prefs = {}, quitting = false, drag = null, ignored = null, current, bubble = false;
   const imageCache = new Map();
   const prefsPath = () => path.join(app.getPath('userData'), 'companion-window.json');
   function save() { try { fs.mkdirSync(path.dirname(prefsPath()), { recursive: true }); fs.writeFileSync(prefsPath(), JSON.stringify(prefs)); } catch {} }
@@ -29,10 +29,10 @@ function createCompanion(electron, options = {}) {
   }
   function show() { if (pet && !pet.isDestroyed()) { pet.showInactive(); pet.webContents.send('jane:refresh'); } }
   function resize(image) {
-    const previous = pet.getBounds(), size = policy.artworkSize(image, prefs.extent || 320);
+    const previous = pet.getBounds(), size = policy.artworkSize(image, prefs.extent || 320, bubble);
     const desired = { x: previous.x + (previous.width - size.width) / 2, y: previous.y + previous.height - size.height, ...size };
     pet.setBounds(policy.clampBounds(desired, screen.getDisplayMatching(desired).workArea));
-    const placed = pet.getBounds(); prefs.position = { x: placed.x, y: placed.y };
+    const placed = pet.getBounds(); prefs.position = { x: placed.x, y: placed.y + (bubble ? 128 : 0) };
   }
   function openProgram() { return launcher.open(); }
   function login() {
@@ -56,6 +56,7 @@ function createCompanion(electron, options = {}) {
       { label: '双击打开', submenu: await launcher.menuItems() },
       { label: '登录同步账号', click: login },
       { label: '立即刷新状态', click: () => { show(); pet.loadURL(target); } },
+      ...(options.updates ? [{ label: '检查在线更新', click: () => options.updates.check(true) }] : []),
       { type: 'separator' },
       { label: '大小', submenu: [['小', 220], ['中', 320], ['大', 440]].map(([label, extent]) => ({ label, type: 'radio', checked: (prefs.extent || 320) === extent,
         click: () => { prefs.extent = extent; if (current) resize(current); save(); } })) },
@@ -68,7 +69,7 @@ function createCompanion(electron, options = {}) {
   async function showMenu(withWindow = true) { (await menu()).popup(withWindow ? { window: pet } : {}); }
   ipcMain.handle('jane:manifest', event => {
     if (!authorize(event)) throw new Error('Untrusted companion frame');
-    return { version: manifest.version, states: manifest.states, default_image: manifest.default_image,
+    return { version: manifest.version, nativeVersion: options.coreVersion || '0.1.2', dialogueInset: 128, onlineUpdates: !!options.updates, states: manifest.states, default_image: manifest.default_image,
       images: manifest.images.map(({ id, file, width, height }) => ({ id, file, width, height })) };
   });
   ipcMain.handle('jane:artwork', (event, id) => {
@@ -91,7 +92,8 @@ function createCompanion(electron, options = {}) {
   ipcMain.on('jane:frame', (event, value) => {
     if (!authorize(event) || !value || !policy.assetFile(manifest, value.assetId)) return;
     const image = manifest.images.find(image => image.id === value.assetId);
-    if (current?.id !== image.id) { current = image; resize(image); prefs.lastAsset = image.id; save(); }
+    const nextBubble = value.bubble === true;
+    if (current?.id !== image.id || nextBubble !== bubble) { bubble = nextBubble; current = image; resize(image); prefs.lastAsset = image.id; save(); }
     pet.setTitle('Jane · ' + String(value.label || '').replace(/[\u0000-\u001f]/g, ' ').slice(0, 100));
     tray?.setToolTip(pet.getTitle());
   });
@@ -102,7 +104,7 @@ function createCompanion(electron, options = {}) {
       const cursor = screen.getCursorScreenPoint(), desired = { ...drag.bounds,
         x: drag.bounds.x + cursor.x - drag.cursor.x, y: drag.bounds.y + cursor.y - drag.cursor.y };
       pet.setBounds(policy.clampBounds(desired, screen.getDisplayNearestPoint(cursor).workArea));
-    } else if (phase === 'end') { drag = null; const { x, y } = pet.getBounds(); prefs.position = { x, y }; save(); }
+    } else if (phase === 'end') { drag = null; const { x, y } = pet.getBounds(); prefs.position = { x, y: y + (bubble ? 128 : 0) }; save(); }
   });
   const ready = app.whenReady().then(() => {
     try { prefs = policy.preferences(JSON.parse(fs.readFileSync(prefsPath(), 'utf8'))); } catch {}
@@ -140,12 +142,3 @@ function createCompanion(electron, options = {}) {
   return { ready, getWindow: () => pet, authorize };
 }
 module.exports = { createCompanion };
-if (process.versions.electron) {
-  const electron = require('electron');
-  if (!electron.app.requestSingleInstanceLock()) electron.app.quit();
-  else {
-    const options = {};
-    if (!electron.app.isPackaged && /^http:\/\/(127\.0\.0\.1|localhost):\d+\/$/.test(process.env.JANE_COMPANION_DEV_URL || '')) options.baseURL = process.env.JANE_COMPANION_DEV_URL;
-    createCompanion(electron, options);
-  }
-}

@@ -15,6 +15,7 @@ test('native policy limits artwork and navigation, validates saved settings and 
   assert.deepEqual(policy.preferences({ extent: 999999, position: { x: 'bad', y: 1 } }), { extent: 320, onTop: true, lastAsset: '' });
   assert.deepEqual(policy.clampBounds({ x: -9999, y: -1, width: 300, height: 400 }, { x: -1920, y: 0, width: 1920, height: 1080 }), { x: -2180, y: 0, width: 300, height: 400 });
   assert.deepEqual(policy.artworkSize({ width: 1000, height: 500 }, 320), { width: 344, height: 202 });
+  assert.deepEqual(policy.artworkSize({ width: 1000, height: 500 }, 320, true), { width: 344, height: 330 });
 });
 
 function nativeFixture(directory) {
@@ -72,6 +73,15 @@ test('native shell validates IPC, preserves login and dragging, opens only the l
   const initial = pet.getBounds(); f.listeners.get('jane:drag')(valid, 'start'); f.cursor({ x: 550, y: 550 }); f.listeners.get('jane:drag')(valid, 'move'); f.listeners.get('jane:drag')(valid, 'end');
   assert.equal(pet.getBounds().x, initial.x + 50); assert.equal(pet.getBounds().y, initial.y + 50);
   assert.ok(JSON.parse(fs.readFileSync(path.join(directory, 'companion-window.json'))).position);
+  const resting = pet.getBounds();
+  f.listeners.get('jane:frame')(valid, { assetId: '00_tea', label: '在家', bubble: true });
+  assert.deepEqual(pet.getBounds(), { ...resting, y: resting.y - 128, height: resting.height + 128 }, 'speech leaves the artwork anchored');
+  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(directory, 'companion-window.json'))).position, { x: resting.x, y: resting.y });
+  f.listeners.get('jane:drag')(valid, 'start'); f.cursor({ x: 565, y: 560 }); f.listeners.get('jane:drag')(valid, 'move'); f.listeners.get('jane:drag')(valid, 'end');
+  const movedResting = { ...resting, x: resting.x + 15, y: resting.y + 10 };
+  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(directory, 'companion-window.json'))).position, { x: movedResting.x, y: movedResting.y }, 'quit with speech open retains the resting position');
+  f.listeners.get('jane:frame')(valid, { assetId: '00_tea', label: '在家', bubble: false });
+  assert.deepEqual(pet.getBounds(), movedResting, 'closing speech restores the window size');
   f.listeners.get('jane:login')(valid); const login = f.windows[1]; assert.equal(login.options.webPreferences.partition, pet.options.webPreferences.partition);
   assert.equal(login.options.webPreferences.preload, undefined);
   assert.equal(login.webContents.getURL(), policy.SITE_BASE + 'login.html?next=jane-companion.html');

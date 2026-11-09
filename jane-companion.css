@@ -6,3 +6,9 @@
 #companion.hover #caption,#companion:focus-within #caption{opacity:1}
 #setup{position:absolute;bottom:14px;left:10px;right:10px;padding:13px;border:1px solid #dfd8c9;border-radius:13px;background:rgba(255,253,247,.97);box-shadow:0 5px 22px #4f44321a;font-size:11px;text-align:center}
 #setup[hidden]{display:none}#setup p{margin:0 0 10px;line-height:1.7}#setup button{border:0;border-radius:8px;background:#817052;color:#fff;font:inherit;padding:8px 14px;cursor:pointer}
+#companion.speech-space{padding-top:140px}
+#speech{position:absolute;left:10px;right:10px;top:8px;max-height:118px;padding:13px 15px;border:1px solid #d8cdb9;border-radius:16px;background:rgba(255,253,247,.97);box-shadow:0 4px 15px #54452a15;cursor:default;touch-action:auto}
+#speech[hidden]{display:none}#speechState{padding-right:15px;color:#9a8562;font-size:10px;line-height:1.4}
+#speechLine{margin:7px 0 0;font-size:12px;line-height:1.65;max-height:72px;overflow:auto;overscroll-behavior:contain;overflow-wrap:anywhere;user-select:text}
+#speechLine:empty{display:none}#closeSpeech{position:absolute;right:7px;top:5px;border:0;background:transparent;color:#b1a28a;font:18px sans-serif;padding:0 3px;cursor:pointer}
+#companion.speech-space #caption{opacity:0}

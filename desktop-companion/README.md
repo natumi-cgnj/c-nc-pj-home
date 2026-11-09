@@ -1,6 +1,6 @@
 # Jane Companion
 
-Windows companion for the existing C-NC app. It displays the approved transparent artwork in a frameless, always-on-top Electron window. Drag to move, double-click to open the existing app, right-click for size/visibility controls. Windows forwards mouse moves while the transparent pixels let clicks pass through.
+Windows companion for the existing C-NC app. It displays the approved transparent artwork in a frameless, always-on-top Electron window. Single-click to see the current state and dialogue, drag to move, double-click to open the existing app, right-click for size/visibility and update controls. Windows forwards mouse moves while the transparent pixels let clicks pass through.
 
 ## Build
 
@@ -12,7 +12,7 @@ npm ci
 npm test
 node build.mjs win32 /absolute/path/to/Jane_Desktop_States_25
 node verify-package.mjs
-python3 package-windows.py "out/Jane Companion-win32-x64" /absolute/path/Jane_Companion_Windows_x64_v0.1.1.zip
+python3 package-windows.py "out/Jane Companion-win32-x64" /absolute/path/Jane_Companion_Windows_x64_v0.1.2.zip
 ```
 
 The portable output is `out/Jane Companion-win32-x64/`. Keep the whole directory together. The staging app can be launched with `npm start` after building. A development-only `JANE_COMPANION_DEV_URL=http://127.0.0.1:PORT/` override is accepted only for an unpackaged application; the packaged binary always opens the production origin.
@@ -35,6 +35,26 @@ The reader selects only `schedule_packs`, `schedule_user_events` and `cbi_db` fr
 
 Cloud reads repeat every 60 seconds. Activity boundaries are checked at least every 15 seconds, with additional refreshes on reconnect/resume. The main browser page need not remain open. Offline cached state is marked; without a verified account/cache, the companion asks to connect instead of asserting a live status.
 
+## Click to see status and dialogue
+
+A single click opens a small speech panel; a double-click cancels it and opens the selected installed app. Dragging cancels a pending single click. Closing the panel, pressing Esc or leaving it idle hides it. The native window grows above the character so the artwork remains anchored and transparent pixels still pass clicks through.
+
+The panel reads the existing `claude-bridge` `state_lines` action and validates its revision, session, scene, continuity and line count. It uses the same timed line selector as the original app. It never requests dialogue generation. With no current pool or no connection, it uses the shared state fallback. Sleeping shows status only; being away shows status and the remaining estimate. Account switches discard cached dialogue and pending results.
+
+## Online updates (0.1.2+)
+
+One initial replacement of the old portable package is required. Hosted HTML/CSS/dialogue changes then refresh automatically while the pet is idle (checked every five minutes). Core changes use a fixed HTTPS feed, `desktop-companion-update.json`, checked shortly after startup, every six hours and from the native `检查在线更新` menu. The user chooses `更新并重启`; their login profile, position and installed-app entrance remain in the existing user-data directory.
+
+The immutable bootstrap verifies Ed25519 signatures against the bundled public key and verifies each SHA-256 checksum. A strict eight-file whitelist, 1 MiB limit and minimum shell version bound the update. It stages a new core in user data, changes an atomic pointer and relaunches. Every startup verifies installed bytes; a failed boot or modified core falls back to the previous healthy core or the bundled one. No renderer can supply a feed URL, signing key, program path or executable update payload. The bootstrap, updater, public key, Electron runtime and artwork are deliberately outside the small-core update format; changing these still requires a new full package.
+
+After the final build, publish the matching signed feed with the source:
+
+```sh
+node make-update.mjs /absolute/private/path/Jane_Companion_Update_Signing_Private_Key.pem
+```
+
+The Ed25519 private signing key must be retained privately outside the repository. Never commit it, embed it in a download, or replace the pinned public key casually: existing installations need that exact key to verify future small-core updates. `make-update.mjs` self-verifies with the tracked public key and fails on a mismatch. The feed is versioned from `package.json`; bump the package version for a new core release. Approved images are already embedded and are not re-downloaded by the updater.
+
 ## Validation limits
 
-Node tests cover a month of real-runtime state comparisons, art mapping, sleep poses, read-only cloud selection, account races, cache handling, hit testing, IPC origin/frame checks, login redirect, dragging and installed-app launching. Browser QA uses an isolated fake account and the actual artwork. The Windows x64 package is cross-built and inspected; Windows-native shortcut activation and window focus still require checking on the user's computer. This build is unsigned.
+Node tests cover a month of real-runtime state comparisons, art mapping, sleep poses, read-only cloud selection, account races, cache handling, hit testing, IPC origin/frame checks, login redirect, dragging installed-app launching, speech/drag/double-click separation, dialogue account races, signed update staging and rollback. Browser QA uses an isolated fake account and the actual artwork. The Windows x64 package is cross-built and inspected; Windows-native shortcut activation, window focus and update/relaunch still require checking on the user's computer. This build is unsigned.
