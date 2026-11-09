@@ -39,7 +39,7 @@ export async function companionRequest({ input, user, store, now, cryptoApi, fet
   if (action === 'companion_list' || !state || !connection) return response();
   if (await store.active(user)) return response({ waiting: 'busy' });
   const queue = await store.companionQueue(user);
-  let message = queue.filter(x => x.status === 'queued').sort((a, b) => a.created_at.localeCompare(b.created_at))[0];
+  let message = queue.filter(x => x.status === 'queued').sort((a, b) => Number(b.kind === 'message') - Number(a.kind === 'message') || a.created_at.localeCompare(b.created_at))[0];
   if (action !== 'companion_auto' && !message) return response();
   const recent = await store.companionRecentRuns(user, new Date(at - 15 * 60000).toISOString());
   if (recent.length >= 6) return response({ waiting: 'busy' });

@@ -76,6 +76,12 @@ test('proactive letters deduplicate across devices and wait before another greet
   assert.equal((await f.reply()).status,200);await f.send('companion_auto');assert.equal(f.calls.length,1);
   f.advance(46*60000);await f.send('companion_auto');assert.equal(f.calls.length,2);
 });
+test('a manually sent message goes before an older automatic letter that lost the run gate',async()=>{
+  const f=fixture();
+  await f.store.companionInsert({id:B,user_id:A,dedupe_key:'older-letter',kind:'letter',user_text:'',status:'queued',created_at:'2026-11-10T01:00:00Z'});
+  await f.store.companionInsert({id:ID,user_id:A,dedupe_key:ID,kind:'message',user_text:'先接这条留言。',status:'queued',created_at:'2026-11-10T02:00:00Z'});
+  await f.send('companion_poll');assert.equal(JSON.parse(f.runs[0].result).message_id,ID);assert.equal(f.calls.length,1);
+});
 test('record snapshot covers six new ledgers and the new diet, excludes assets/old diet and uses the 04:00 workday',()=>{
   const f=fixture();f.inputs.wallet_accounts_v1.accounts={bank:{balance:99999999,note:'do not send'}};
   f.inputs.meal_log_db={private:'old diet'};f.inputs.calorie_log_db.records.push({id:'old',date:'2026-09-01',type:'intake',detail:'old meal',kcal:1});
