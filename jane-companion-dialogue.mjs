@@ -55,4 +55,4 @@ export function clickActions({ single, double, hide, setTimer = (fn, delay) => s
     doubleClick() { cancel(); hide(); double(); }, cancel };
 }
 
-export const COMPANION_UI_VERSION = '20261109-speech-updates1';
+export const COMPANION_UI_VERSION = '20261110-mailbox1';

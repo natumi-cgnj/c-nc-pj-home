@@ -10,10 +10,12 @@ function createCompanion(electron, options = {}) {
   const assetRoot = options.assetRoot || path.join(__dirname, 'assets');
   const manifest = JSON.parse(fs.readFileSync(path.join(assetRoot, 'manifest.json'), 'utf8'));
   const base = options.baseURL || policy.SITE_BASE;
-  const target = policy.pageURL(base);
+  const targetURL = new URL(policy.pageURL(base));
+  targetURL.searchParams.set('desktop', options.coreVersion || '0.1.3');
+  const target = targetURL.href;
   const fallbackPath = path.join(__dirname, 'offline.html'), fallback = pathToFileURL(fallbackPath).href;
   const partition = 'persist:jane-companion-v1';
-  let pet, loginWindow, tray, prefs = {}, quitting = false, drag = null, ignored = null, current, bubble = false;
+  let pet, loginWindow, tray, prefs = {}, quitting = false, drag = null, ignored = null, current, bubble = 0;
   const imageCache = new Map();
   const prefsPath = () => path.join(app.getPath('userData'), 'companion-window.json');
   function save() { try { fs.mkdirSync(path.dirname(prefsPath()), { recursive: true }); fs.writeFileSync(prefsPath(), JSON.stringify(prefs)); } catch {} }
@@ -28,11 +30,15 @@ function createCompanion(electron, options = {}) {
     if (next !== ignored) { ignored = next; pet.setIgnoreMouseEvents(next, { forward: true }); }
   }
   function show() { if (pet && !pet.isDestroyed()) { pet.showInactive(); pet.webContents.send('jane:refresh'); } }
+  function rememberPosition() {
+    const placed = pet.getBounds(), resting = policy.artworkSize(current, prefs.extent || 320);
+    prefs.position = { x: placed.x + Math.floor(placed.width / 2) - Math.floor(resting.width / 2), y: placed.y + bubble };
+  }
   function resize(image) {
     const previous = pet.getBounds(), size = policy.artworkSize(image, prefs.extent || 320, bubble);
-    const desired = { x: previous.x + (previous.width - size.width) / 2, y: previous.y + previous.height - size.height, ...size };
+    const desired = { x: previous.x + Math.floor(previous.width / 2) - Math.floor(size.width / 2), y: previous.y + previous.height - size.height, ...size };
     pet.setBounds(policy.clampBounds(desired, screen.getDisplayMatching(desired).workArea));
-    const placed = pet.getBounds(); prefs.position = { x: placed.x, y: placed.y + (bubble ? 128 : 0) };
+    rememberPosition();
   }
   function openProgram() { return launcher.open(); }
   function login() {
@@ -69,7 +75,7 @@ function createCompanion(electron, options = {}) {
   async function showMenu(withWindow = true) { (await menu()).popup(withWindow ? { window: pet } : {}); }
   ipcMain.handle('jane:manifest', event => {
     if (!authorize(event)) throw new Error('Untrusted companion frame');
-    return { version: manifest.version, nativeVersion: options.coreVersion || '0.1.2', dialogueInset: 128, onlineUpdates: !!options.updates, states: manifest.states, default_image: manifest.default_image,
+    return { version: manifest.version, nativeVersion: options.coreVersion || '0.1.3', dialogueInset: 128, messageInset: 360, onlineUpdates: !!options.updates, states: manifest.states, default_image: manifest.default_image,
       images: manifest.images.map(({ id, file, width, height }) => ({ id, file, width, height })) };
   });
   ipcMain.handle('jane:artwork', (event, id) => {
@@ -92,7 +98,7 @@ function createCompanion(electron, options = {}) {
   ipcMain.on('jane:frame', (event, value) => {
     if (!authorize(event) || !value || !policy.assetFile(manifest, value.assetId)) return;
     const image = manifest.images.find(image => image.id === value.assetId);
-    const nextBubble = value.bubble === true;
+    const nextBubble = value.conversation === true ? 360 : value.bubble === true ? 128 : 0;
     if (current?.id !== image.id || nextBubble !== bubble) { bubble = nextBubble; current = image; resize(image); prefs.lastAsset = image.id; save(); }
     pet.setTitle('Jane · ' + String(value.label || '').replace(/[\u0000-\u001f]/g, ' ').slice(0, 100));
     tray?.setToolTip(pet.getTitle());
@@ -104,7 +110,7 @@ function createCompanion(electron, options = {}) {
       const cursor = screen.getCursorScreenPoint(), desired = { ...drag.bounds,
         x: drag.bounds.x + cursor.x - drag.cursor.x, y: drag.bounds.y + cursor.y - drag.cursor.y };
       pet.setBounds(policy.clampBounds(desired, screen.getDisplayNearestPoint(cursor).workArea));
-    } else if (phase === 'end') { drag = null; const { x, y } = pet.getBounds(); prefs.position = { x, y: y + (bubble ? 128 : 0) }; save(); }
+    } else if (phase === 'end') { drag = null; rememberPosition(); save(); }
   });
   const ready = app.whenReady().then(() => {
     try { prefs = policy.preferences(JSON.parse(fs.readFileSync(prefsPath(), 'utf8'))); } catch {}

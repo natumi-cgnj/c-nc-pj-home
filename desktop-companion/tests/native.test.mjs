@@ -82,6 +82,13 @@ test('native shell validates IPC, preserves login and dragging, opens only the l
   assert.deepEqual(JSON.parse(fs.readFileSync(path.join(directory, 'companion-window.json'))).position, { x: movedResting.x, y: movedResting.y }, 'quit with speech open retains the resting position');
   f.listeners.get('jane:frame')(valid, { assetId: '00_tea', label: '在家', bubble: false });
   assert.deepEqual(pet.getBounds(), movedResting, 'closing speech restores the window size');
+  assert.equal(f.handles.get('jane:manifest')(valid).messageInset, 360);
+  f.listeners.get('jane:frame')(valid, { assetId: '00_tea', label: '在家', conversation: true });
+  assert.equal(pet.getBounds().height, movedResting.height + 360);
+  assert.equal(pet.getBounds().width, Math.max(movedResting.width, 300));
+  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(directory, 'companion-window.json'))).position, { x: movedResting.x, y: movedResting.y });
+  f.listeners.get('jane:frame')(valid, { assetId: '00_tea', label: '在家', conversation: false });
+  assert.deepEqual(pet.getBounds(), movedResting, 'message panel keeps the resting position, including narrow artwork');
   f.listeners.get('jane:login')(valid); const login = f.windows[1]; assert.equal(login.options.webPreferences.partition, pet.options.webPreferences.partition);
   assert.equal(login.options.webPreferences.preload, undefined);
   assert.equal(login.webContents.getURL(), policy.SITE_BASE + 'login.html?next=jane-companion.html');

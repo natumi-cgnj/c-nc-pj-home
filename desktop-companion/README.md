@@ -12,7 +12,7 @@ npm ci
 npm test
 node build.mjs win32 /absolute/path/to/Jane_Desktop_States_25
 node verify-package.mjs
-python3 package-windows.py "out/Jane Companion-win32-x64" /absolute/path/Jane_Companion_Windows_x64_v0.1.2.zip
+python3 package-windows.py "out/Jane Companion-win32-x64" /absolute/path/Jane_Companion_Windows_x64_v0.1.3.zip
 ```
 
 The portable output is `out/Jane Companion-win32-x64/`. Keep the whole directory together. The staging app can be launched with `npm start` after building. A development-only `JANE_COMPANION_DEV_URL=http://127.0.0.1:PORT/` override is accepted only for an unpackaged application; the packaged binary always opens the production origin.
@@ -31,7 +31,7 @@ The native shell loads `jane-companion.html` from the existing GitHub Pages site
 
 An isolated persistent Electron profile shares the existing `login.html` between the pet and its login window. The successful redirect is intercepted before the original app loads. No credentials are supplied by this repository. The public Supabase publishable key is the same one used by the existing app; authorization remains Supabase Auth and row-level security.
 
-The reader selects only `schedule_packs`, `schedule_user_events` and `cbi_db` from the signed-in owner's `user_state` rows. These raw inputs and an owner-scoped cache live only in the companion profile. The shared runtime definitions and deterministic selectors calculate activity locally. `CharacterRuntime.init`, the main app's cloud-sync layer, rewards, wallets, migrations and Claude generation are never initialized. Legacy schedule normalization may write to the isolated local copy; the companion never uploads application state. Account changes discard the previous user's inputs and ignore stale network responses.
+The reader selects only `schedule_packs`, `schedule_user_events` and `cbi_db` from the signed-in owner's `user_state` rows. These raw inputs and an owner-scoped cache live only in the companion profile. The shared runtime definitions and deterministic selectors calculate activity locally. `CharacterRuntime.init`, the main app's cloud-sync layer, rewards, wallets, migrations and the original main-page Claude auto-generation are never initialized. The separate mailbox starts only its own companion tasks. Legacy schedule normalization may write to the isolated local copy; the companion never uploads application state. Account changes discard the previous user's inputs and ignore stale network responses.
 
 Cloud reads repeat every 60 seconds. Activity boundaries are checked at least every 15 seconds, with additional refreshes on reconnect/resume. The main browser page need not remain open. Offline cached state is marked; without a verified account/cache, the companion asks to connect instead of asserting a live status.
 
@@ -40,6 +40,12 @@ Cloud reads repeat every 60 seconds. Activity boundaries are checked at least ev
 A single click opens a small speech panel; a double-click cancels it and opens the selected installed app. Dragging cancels a pending single click. Closing the panel, pressing Esc or leaving it idle hides it. The native window grows above the character so the artwork remains anchored and transparent pixels still pass clicks through.
 
 The panel reads the existing `claude-bridge` `state_lines` action and validates its revision, session, scene, continuity and line count. It uses the same timed line selector as the original app. It never requests dialogue generation. With no current pool or no connection, it uses the shared state fallback. Sleeping shows status only; being away shows status and the remaining estimate. Account switches discard cached dialogue and pending results.
+
+## Correspondence (0.1.3)
+
+The `留言` button opens an account-scoped mailbox. Messages are saved before the existing asynchronous Claude subscription routine is started; sleeping/away Jane defers replies. Completed replies persist, show unread badges, and can include the current state, conversation history and a bounded selection of shared new diet, six-ledger and SUITCASE records. Read [the mailbox specification](../docs/jane-companion-mailbox.md) for queue, context and privacy boundaries. The original CBI CHAT and application state remain separate.
+
+Existing 0.1.2 installations install the 0.1.3 core from `检查在线更新` → `更新并重启`, without downloading another full package. The hosted UI waits for the new native capability before starting automatic mail tasks. The Windows executable's bundled base version remains 0.1.2; the native manifest/update dialog reports the active core version.
 
 ## Online updates (0.1.2+)
 

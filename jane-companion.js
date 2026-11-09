@@ -1,11 +1,14 @@
-import { companionFrame, hitArtwork } from './jane-companion-state.mjs?v=20261109-speech-updates1';
-import { CompanionCloudReader } from './jane-companion-cloud.mjs?v=20261109-speech-updates1';
-import { CompanionDialogue, companionSpeechContext, clickActions, COMPANION_UI_VERSION } from './jane-companion-dialogue.mjs?v=20261109-speech-updates1';
+import { companionFrame, hitArtwork } from './jane-companion-state.mjs?v=20261110-mailbox1';
+import { CompanionCloudReader } from './jane-companion-cloud.mjs?v=20261110-mailbox1';
+import { CompanionDialogue, companionSpeechContext, clickActions, COMPANION_UI_VERSION } from './jane-companion-dialogue.mjs?v=20261110-mailbox1';
+
+import { createMailboxUI } from './jane-companion-mail-ui.mjs?v=20261110-mailbox1';
 
 const bridge = window.JaneDesktop;
 const root = document.getElementById('companion'), img = document.getElementById('artwork');
 const caption = document.getElementById('caption'), setup = document.getElementById('setup');
 const message = document.getElementById('setupMessage'), connect = document.getElementById('connect');
+const conversation = document.getElementById('conversation');
 const speech = document.getElementById('speech'), speechState = document.getElementById('speechState'), speechLine = document.getElementById('speechLine');
 
 async function start() {
@@ -14,14 +17,15 @@ async function start() {
     connect.textContent = '打开原程序'; connect.onclick = () => location.assign('index.html'); return;
   }
   const manifest = await bridge.manifest();
-  let cloud, dialogue, sync = 'connecting', hasSnapshot = false, prompted = false, timer, assetId = '', request = 0;
+  let cloud, dialogue, mailbox, sync = 'connecting', hasSnapshot = false, prompted = false, timer, assetId = '', request = 0;
   let currentFrame, speechTimer, speechRequest = 0, speechKey = '', versionTimer;
   let mask, maskWidth, maskHeight, dragging = false, moved = false, origin, lastDrag = 0;
   const neutral = { key: 'setup', assetId: '00_tea', label: '登录后同步 Jane 状态' };
   const opaque = (x, y) => (!setup.hidden && document.elementFromPoint(x, y)?.closest('#setup')) ||
     (!speech.hidden && document.elementFromPoint(x, y)?.closest('#speech')) ||
+    document.elementFromPoint(x, y)?.closest('#conversation,#mailButton') ||
     hitArtwork(mask, maskWidth, maskHeight, img.naturalWidth, img.naturalHeight, img.getBoundingClientRect(), x, y);
-  const nativeFrame = frame => bridge.frame({ ...frame, bubble: !speech.hidden });
+  const nativeFrame = frame => bridge.frame({ ...frame, bubble: !speech.hidden, conversation: !conversation.hidden });
   function closeSpeech() {
     speechRequest++; clearTimeout(speechTimer); speech.hidden = true; root.classList.remove('speech-space');
     if (currentFrame) nativeFrame(currentFrame);
@@ -41,17 +45,18 @@ async function start() {
     if (token !== speechRequest || speech.hidden || user !== cloud?.owner || frame.key !== currentFrame?.key) return;
     speechLine.textContent = dialogue?.line(current.session) || '';
   }
+  function closeMail() { mailbox?.close(); }
   function showSpeech() {
     if (!hasSnapshot || !setup.hidden) return;
     if (!speech.hidden) { closeSpeech(); return; }
-    speech.hidden = false; root.classList.toggle('speech-space', !!manifest.dialogueInset); nativeFrame(currentFrame);
+    closeMail(); speech.hidden = false; root.classList.toggle('speech-space', !!manifest.dialogueInset); nativeFrame(currentFrame);
     fillSpeech(); clearTimeout(speechTimer); speechTimer = setTimeout(closeSpeech, 15000);
   }
-  const actions = clickActions({ single: showSpeech, double: () => bridge.openProgram(), hide: closeSpeech });
+  const actions = clickActions({ single: () => mailbox?.unread ? mailbox.open() : showSpeech(), double: () => bridge.openProgram(), hide: () => { closeSpeech(); closeMail(); } });
   document.getElementById('closeSpeech').onclick = closeSpeech;
   speech.addEventListener('mouseenter', () => clearTimeout(speechTimer));
   speech.addEventListener('mouseleave', () => { speechTimer = setTimeout(closeSpeech, 8000); });
-  window.addEventListener('keydown', event => { if (event.key === 'Escape') closeSpeech(); });
+  window.addEventListener('keydown', event => { if (event.key === 'Escape') { closeSpeech(); closeMail(); } });
 
   async function paint(frame) {
     const token = ++request;
@@ -79,7 +84,7 @@ async function start() {
       try { frame = companionFrame(window.CharacterRuntime, manifest) || neutral; }
       catch { frame = neutral; }
     }
-    currentFrame = frame;
+    currentFrame = frame; mailbox?.render();
     if (!speech.hidden && speechKey !== frame.key) fillSpeech();
     paint(frame).catch(() => { caption.textContent = '图片暂时无法加载，右键重试'; });
     timer = setTimeout(render, Math.max(250, Math.min(15000, (frame.nextAt || Date.now() + 15000) - Date.now())));
@@ -87,7 +92,7 @@ async function start() {
   function status(value) {
     if (value === 'offline' && !hasSnapshot) value = 'unavailable';
     if (value === 'signed_out' || value === 'unavailable') { dialogue?.identity(); actions.cancel(); closeSpeech(); }
-    sync = value;
+    sync = value; mailbox?.identity();
     if (value === 'signed_out' || value === 'connecting' || value === 'unavailable') {
       if (value !== 'connecting' || !hasSnapshot) hasSnapshot = false;
       setup.hidden = false;
@@ -106,7 +111,7 @@ async function start() {
   });
   root.addEventListener('mouseleave', () => { if (!dragging) { root.classList.remove('hover'); bridge.hit(false); } });
   root.addEventListener('pointerdown', event => {
-    if (event.button !== 0 || event.target.closest('#setup,#speech') || !opaque(event.clientX, event.clientY)) return;
+    if (event.button !== 0 || event.target.closest('#setup,#speech,#conversation,#mailButton') || !opaque(event.clientX, event.clientY)) return;
     origin = { x: event.screenX, y: event.screenY }; moved = false; dragging = true;
     root.setPointerCapture(event.pointerId); bridge.drag('start');
   });
@@ -122,11 +127,11 @@ async function start() {
   }
   root.addEventListener('pointerup', end); root.addEventListener('pointercancel', end); window.addEventListener('blur', end);
   root.addEventListener('click', event => {
-    if (event.target.closest('#setup,#speech') || Date.now() - lastDrag < 550 || !opaque(event.clientX, event.clientY)) return;
+    if (event.target.closest('#setup,#speech,#conversation,#mailButton') || Date.now() - lastDrag < 550 || !opaque(event.clientX, event.clientY)) return;
     actions.click(event.detail);
   });
   root.addEventListener('dblclick', event => {
-    if (event.target.closest('#setup,#speech') || Date.now() - lastDrag < 550 || !opaque(event.clientX, event.clientY)) return;
+    if (event.target.closest('#setup,#speech,#conversation,#mailButton') || Date.now() - lastDrag < 550 || !opaque(event.clientX, event.clientY)) return;
     actions.doubleClick();
   });
   root.addEventListener('contextmenu', event => {
@@ -143,12 +148,17 @@ async function start() {
       onChange: () => { hasSnapshot = true; render(); }, onStatus: status });
     dialogue = new CompanionDialogue({ client, owner: () => cloud.owner });
     await cloud.start();
+    mailbox = createMailboxUI({ client, owner: () => cloud.owner, storage: localStorage, enabled: manifest.messageInset === 360,
+      context: () => ({ context: companionSpeechContext(window.CharacterRuntime)?.context || null, away: window.CharacterRuntime.getCbiCharacterPresence('jane', new Date())?.location === 'away' }),
+      ready: () => sync === 'connected', frame: () => currentFrame,
+      onPanel: open => { if (open) closeSpeech(); root.classList.toggle('chat-space', open); if (currentFrame) nativeFrame(currentFrame); },
+      onUpgrade: () => { closeSpeech(); speechRequest++; speech.hidden = false; root.classList.add('speech-space'); nativeFrame(currentFrame); speechState.textContent = '留言功能已准备好'; speechLine.textContent = '右键 Jane → 检查在线更新，更新并重启后即可留言。'; } });
     window.addEventListener('online', () => cloud.refresh());
     window.addEventListener('pageshow', () => { render(); cloud.refresh(); });
-    window.addEventListener('pagehide', event => { if (!event.persisted) { cloud.stop(); actions.cancel(); clearTimeout(timer); clearTimeout(speechTimer); clearInterval(versionTimer); } });
+    window.addEventListener('pagehide', event => { if (!event.persisted) { cloud.stop(); mailbox?.stop(); actions.cancel(); clearTimeout(timer); clearTimeout(speechTimer); clearInterval(versionTimer); } });
   } catch { status('unavailable'); }
   async function checkUI() {
-    if (dragging || !speech.hidden || !setup.hidden) return;
+    if (dragging || !speech.hidden || !conversation.hidden || !setup.hidden) return;
     try {
       const response = await fetch('jane-companion-version.json', { cache: 'no-store' });
       if (!response.ok) return;

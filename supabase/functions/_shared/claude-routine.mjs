@@ -3,6 +3,8 @@ import { decodeHomeBatch, homeGenerationPrompt } from '../../../cbi-home-content
 import { CBI_CONTINUITY } from '../../../cbi-current-canon.mjs';
 import { WORLD_FILES_KEY, validStoryWorld, storySnapshot, storyRevision, savedStoryPrompt, worldGenerationPrompt, decodeWorldBatch } from '../../../world-story-content.mjs';
 import { STATE_FORMAT, stateSessions, validateStateContext, validateStateBatch, decodeStateBatch, stateGenerationPrompt } from '../../../cbi-state-content.mjs';
+import { companionRequest, completeCompanion } from './claude-companion.mjs';
+import { RECORD_KEYS } from '../../../jane-companion-content.mjs';
 
 const APP_ORIGIN = 'https://natumi-cgnj.github.io';
 const TEST_PROMPT = '请只回复：C-NC 连接测试成功。';
@@ -252,6 +254,17 @@ export function createRestStore(env, fetcher = fetch) {
     },
     async worldFiles(user, accessToken) { return userState(user, WORLD_FILES_KEY, accessToken); },
     async cbiStory(user, accessToken) { return userState(user, 'cbi_db', accessToken); },
+    async companionInputs(user, accessToken) {
+      return Object.fromEntries(await Promise.all(RECORD_KEYS.map(async key => [key, await userState(user, key, accessToken)])));
+    },
+    async companionOne(user, id) { return (await rest('jane_companion_messages?' + scope(user) + '&id=eq.' + encodeURIComponent(id) + '&select=*&limit=1'))[0] || null; },
+    async companionHistory(user) { return rest('jane_companion_messages?' + scope(user) + '&select=*&order=created_at.desc&limit=60'); },
+    async companionLetters(user, since) { return rest('jane_companion_messages?' + scope(user) + '&kind=eq.letter&created_at=gte.' + encodeURIComponent(since) + '&select=created_at&order=created_at.desc&limit=8'); },
+    async companionQueue(user) { return rest('jane_companion_messages?' + scope(user) + '&status=in.(queued,running)&select=*&order=created_at.asc&limit=11'); },
+    async companionMentioned(user, since) { return rest('jane_companion_messages?' + scope(user) + '&status=eq.completed&created_at=gte.' + encodeURIComponent(since) + '&select=record_keys&limit=300'); },
+    async companionRecentRuns(user, since) { return rest('claude_routine_runs?' + scope(user) + '&created_at=gte.' + encodeURIComponent(since) + '&select=id&limit=6'); },
+    async companionInsert(value) { return (await rest('jane_companion_messages', { method: 'POST', body: JSON.stringify(value) }))[0]; },
+    async companionUpdate(user, id, value, status) { return rest('jane_companion_messages?' + scope(user) + '&id=eq.' + encodeURIComponent(id) + '&status=eq.' + encodeURIComponent(status), { method: 'PATCH', body: JSON.stringify(value) }); },
     async worldBatch(user, world) {
       const prefix = encodeURIComponent(JSON.stringify({format:'jane-world-lines',version:1,world}).slice(0,-1) + ',') + '*';
       return (await rest('claude_routine_runs?' + scope(user) + '&status=eq.completed&result=like.' + prefix + '&select=id,result,finished_at&order=created_at.desc&limit=1'))[0] || null;
@@ -281,6 +294,10 @@ export function createBridgeHandler({ env, store = createRestStore(env), fetcher
       await store.expire(user, time);
       const contextCache = new Map();
       const readContext = world => { if (!contextCache.has(world)) contextCache.set(world, savedContext(store, user, world, cryptoApi, auth[1])); return contextCache.get(world); };
+      if (['companion_send', 'companion_list', 'companion_poll', 'companion_auto'].includes(input.action)) {
+        return response(await companionRequest({ input, user, store, now, cryptoApi, fetcher, env, accessToken: auth[1],
+          getStory: () => readContext('sacramento'), digest, ClientError }), 200, headers);
+      }
       const worldMode = ['world_auto', 'world_generate', 'world_lines', 'story_context'].includes(input.action);
       const stateMode = ['state_auto', 'state_generate', 'state_lines'].includes(input.action);
       if (worldMode && !validStoryWorld(input.world_id)) invalid('invalid_story_world');
@@ -389,6 +406,12 @@ export function createResultHandler({ env, store = createRestStore(env), cryptoA
       if (typeof input.result !== 'string' || !input.result.trim() || input.result.length > 16000) invalid('invalid_result');
       let result = input.result.trim();
       try {
+        const companionBinding = runBinding(run);
+        if (companionBinding?.kind === 'companion') {
+          result = await completeCompanion({ source: result, binding: companionBinding, run, store, now });
+          await store.update(run.id, { status: 'completed', result, error_code: null, finished_at: new Date(now()).toISOString() });
+          return response({ accepted: true }, 200);
+        }
         const pack = decodeStateBatch(result) || decodeOfficeBatch(result) || decodeHomeBatch(result) || decodeWorldBatch(result);
         const binding=runBinding(run);
         if(binding){
@@ -398,7 +421,7 @@ export function createResultHandler({ env, store = createRestStore(env), cryptoA
         }
         if (pack) result = JSON.stringify(pack);
       } catch (error) {
-        const code = ['invalid_world_lines','invalid_home_lines','invalid_state_lines'].includes(error.message) ? error.message : 'invalid_office_lines';
+        const code = ['invalid_world_lines','invalid_home_lines','invalid_state_lines','invalid_companion_reply'].includes(error.message) ? error.message : 'invalid_office_lines';
         await store.update(run.id, { status: 'failed', error_code: code, finished_at: new Date(now()).toISOString() });
         throw new ClientError(400, code);
       }

@@ -21,7 +21,8 @@ function clampBounds(bounds, area) {
 }
 function artworkSize(image, extent = 320, bubble = false) {
   const scale = extent / Math.max(image.width, image.height);
-  return { width: Math.ceil(image.width * scale) + 24, height: Math.ceil(image.height * scale) + 42 + (bubble ? 128 : 0) };
+  const inset = bubble === 360 ? 360 : bubble ? 128 : 0;
+  return { width: Math.max(inset === 360 ? 300 : 0, Math.ceil(image.width * scale) + 24), height: Math.ceil(image.height * scale) + 42 + inset };
 }
 function preferences(value) {
   if (!value || typeof value !== 'object') return {};

@@ -1,14 +1,21 @@
 <!doctype html>
 <html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self'; img-src 'self' data:; connect-src 'self' https://lbxjshaiffklmalcxiif.supabase.co https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'">
-<title>Jane Companion</title><link rel="stylesheet" href="jane-companion.css?v=20261109-speech-updates1">
+<title>Jane Companion</title><link rel="stylesheet" href="jane-companion.css?v=20261110-mailbox1">
 </head><body>
 <main id="companion" aria-label="Jane 桌面小伴侣">
   <img id="artwork" alt="Jane" draggable="false">
   <div id="caption" role="status" aria-live="polite"></div>
   <section id="speech" hidden aria-label="Jane 的状态与台词"><button id="closeSpeech" type="button" aria-label="收起台词">×</button><div id="speechState"></div><p id="speechLine" aria-live="polite"></p></section>
+  <button id="mailButton" type="button" hidden>留言<span id="mailUnread" hidden></span></button>
+  <section id="conversation" hidden aria-label="和 Jane 的留言">
+    <header><div><strong>Jane</strong><span id="mailState"></span></div><button id="closeMail" type="button" aria-label="收起留言">×</button></header>
+    <div id="mailHistory" role="log" aria-live="polite"></div>
+    <p id="mailNotice" role="status"></p>
+    <form id="mailForm"><textarea id="mailText" rows="2" maxlength="2000" placeholder="给他留句话…" aria-label="给 Jane 的留言"></textarea><button id="sendMail" type="submit">发送</button></form>
+  </section>
   <section id="setup" hidden><p id="setupMessage"></p><button id="connect" type="button">登录同步</button></section>
 </main>
 <script src="character-runtime.js?v=20261105-late-sleep1"></script>
-<script type="module" src="jane-companion.js?v=20261109-speech-updates1"></script>
+<script type="module" src="jane-companion.js?v=20261110-mailbox1"></script>
 </body></html>
