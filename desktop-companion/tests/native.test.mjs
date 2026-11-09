@@ -18,7 +18,7 @@ test('native policy limits artwork and navigation, validates saved settings and 
 });
 
 function nativeFixture(directory) {
-  const windows = [], handles = new Map(), listeners = new Map(), opened = [], menus = [];
+  const windows = [], handles = new Map(), listeners = new Map(), opened = [], launched = [], menus = [];
   let cursor = { x: 500, y: 500 };
   class Window extends EventEmitter {
     constructor(options) {
@@ -42,16 +42,20 @@ function nativeFixture(directory) {
   class Tray extends EventEmitter { setToolTip(value) { this.tooltip = value; } }
   const electron = { app, BrowserWindow: Window, ipcMain: { handle: (name, cb) => handles.set(name, cb), on: (name, cb) => listeners.set(name, cb) },
     Menu: { buildFromTemplate(template) { menus.push(template); return { popup() {} }; } }, Tray, nativeImage: { createFromPath: () => ({ resize() { return this; } }) },
-    screen, shell: { openExternal: url => opened.push(url) }, session: { fromPartition: () => nativeSession }, powerMonitor: new EventEmitter() };
-  return { electron, windows, handles, listeners, opened, menus, nativeSession, cursor(value) { cursor = value; } };
+    screen, shell: { openExternal: url => opened.push(url), openPath: async file => { launched.push(file); return ''; }, readShortcutLink: () => ({ target: path.join(directory, 'installed.exe') }) },
+    dialog: { showMessageBox: async () => ({}), showOpenDialog: async () => ({ canceled: true }) },
+    session: { fromPartition: () => nativeSession }, powerMonitor: new EventEmitter() };
+  return { electron, windows, handles, listeners, opened, launched, menus, nativeSession, cursor(value) { cursor = value; } };
 }
 
-test('native shell exposes only its own companion frame, handles dragging and login, opens a fixed program URL', async t => {
+test('native shell validates IPC, preserves login and dragging, opens only the locally selected application', async t => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'jane-companion-test-'));
   t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
   const assets = path.join(directory, 'assets'); fs.mkdirSync(path.join(assets, 'png'), { recursive: true });
   fs.writeFileSync(path.join(assets, 'manifest.json'), JSON.stringify({ version: 1, states: {}, images: [{ id: '00_tea', file: 'png/00_tea.png', width: 1000, height: 1400 }] }));
   fs.writeFileSync(path.join(assets, 'png/00_tea.png'), 'fixture-png');
+  const installed = path.join(directory, '夹缝空间.lnk'); fs.writeFileSync(installed, 'fixture-shortcut');
+  fs.writeFileSync(path.join(directory, 'companion-window.json'), JSON.stringify({ programPath: installed }));
   const f = nativeFixture(directory), companion = main.createCompanion(f.electron, { assetRoot: assets }); await companion.ready;
   const pet = companion.getWindow(), valid = { sender: pet.webContents, senderFrame: pet.webContents.mainFrame };
   assert.equal(pet.options.transparent, true); assert.equal(pet.options.frame, false); assert.equal(pet.options.skipTaskbar, true);
@@ -63,7 +67,8 @@ test('native shell exposes only its own companion frame, handles dragging and lo
   assert.equal(f.handles.get('jane:manifest')(valid).images.length, 1);
   assert.match(f.handles.get('jane:artwork')(valid, '00_tea'), /^data:image\/png;base64,/);
   assert.throws(() => f.handles.get('jane:artwork')(valid, '../../private'), /Unknown/);
-  f.listeners.get('jane:open')(valid, 'https://evil.test'); assert.deepEqual(f.opened, [policy.SITE_BASE + 'index.html']);
+  await f.listeners.get('jane:open')(valid, 'https://evil.test'); assert.deepEqual(f.launched, [installed]); assert.deepEqual(f.opened, []);
+  await f.listeners.get('jane:open')({ sender: {}, senderFrame: valid.senderFrame }, installed); assert.deepEqual(f.launched, [installed]);
   const initial = pet.getBounds(); f.listeners.get('jane:drag')(valid, 'start'); f.cursor({ x: 550, y: 550 }); f.listeners.get('jane:drag')(valid, 'move'); f.listeners.get('jane:drag')(valid, 'end');
   assert.equal(pet.getBounds().x, initial.x + 50); assert.equal(pet.getBounds().y, initial.y + 50);
   assert.ok(JSON.parse(fs.readFileSync(path.join(directory, 'companion-window.json'))).position);
@@ -73,5 +78,5 @@ test('native shell exposes only its own companion frame, handles dragging and lo
   let prevented = false; login.webContents.emit('will-navigate', { preventDefault() { prevented = true; } }, policy.pageURL());
   assert.equal(prevented, true); assert.equal(pet.isVisible(), true); assert.deepEqual(pet.lastMessage, ['jane:refresh']);
   let blocked = false; pet.webContents.emit('will-navigate', { preventDefault() { blocked = true; } }, 'https://evil.test'); assert.equal(blocked, true);
-  f.listeners.get('jane:menu')(valid); f.menus.at(-1).find(item => item.label === '退出').click(); assert.equal(f.electron.app.quitRequested, true);
+  await f.listeners.get('jane:menu')(valid); f.menus.at(-1).find(item => item.label === '退出').click(); assert.equal(f.electron.app.quitRequested, true);
 });

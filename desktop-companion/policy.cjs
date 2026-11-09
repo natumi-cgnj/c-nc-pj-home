@@ -1,4 +1,5 @@
 'use strict';
+const path = require('node:path');
 const SITE_BASE = 'https://natumi-cgnj.github.io/c-nc-pj-home/';
 function pageURL(base = SITE_BASE) { return new URL('jane-companion.html', base).href; }
 function trustedPage(value, base = SITE_BASE, fallback = '') {
@@ -26,6 +27,11 @@ function preferences(value) {
   if (!value || typeof value !== 'object') return {};
   return { extent: [220, 320, 440].includes(value.extent) ? value.extent : 320,
     onTop: value.onTop !== false, lastAsset: typeof value.lastAsset === 'string' ? value.lastAsset : '',
-    ...(Number.isFinite(value.position?.x) && Number.isFinite(value.position?.y) ? { position: value.position } : {}) };
+    ...(Number.isFinite(value.position?.x) && Number.isFinite(value.position?.y) ? { position: value.position } : {}),
+    ...(programFile(value.programPath) ? { programPath: value.programPath } : {}),
+    ...(value.programMode === 'browser' ? { programMode: 'browser' } : {}) };
 }
-module.exports = { SITE_BASE, pageURL, trustedPage, assetFile, clampBounds, artworkSize, preferences };
+function programFile(value) {
+  return typeof value === 'string' && value.length <= 4096 && !/[\u0000-\u001f]/.test(value) && path.isAbsolute(value) && /\.(lnk|exe)$/i.test(value);
+}
+module.exports = { SITE_BASE, pageURL, trustedPage, assetFile, clampBounds, artworkSize, preferences, programFile };

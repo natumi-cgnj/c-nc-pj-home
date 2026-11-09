@@ -12,16 +12,22 @@ npm ci
 npm test
 node build.mjs win32 /absolute/path/to/Jane_Desktop_States_25
 node verify-package.mjs
-python3 package-windows.py "out/Jane Companion-win32-x64" /absolute/path/Jane_Companion_Windows_x64_v0.1.0.zip
+python3 package-windows.py "out/Jane Companion-win32-x64" /absolute/path/Jane_Companion_Windows_x64_v0.1.1.zip
 ```
 
 The portable output is `out/Jane Companion-win32-x64/`. Keep the whole directory together. The staging app can be launched with `npm start` after building. A development-only `JANE_COMPANION_DEV_URL=http://127.0.0.1:PORT/` override is accepted only for an unpackaged application; the packaged binary always opens the production origin.
+
+## Open the installed app
+
+The first double-click offers local Desktop and Start Menu shortcuts. Select the existing Liminal Space entrance once; subsequent double-clicks launch that same `.lnk` through `shell.openPath`. The original shortcut keeps its browser app ID, profile arguments and login context. Right-click → `双击打开` changes the entrance. Other shortcut folders and independent `.exe` programs are supported. The default browser is used only after the user explicitly chooses `使用网页版本`; a missing or failing installed entrance never silently falls back to the website.
+
+Shortcut discovery stays local, skips symlinks and has a bounded scan. Native menu callbacks alone choose the saved path. The renderer's open IPC ignores all arguments and cannot set a program path. We deliberately select `.lnk` files from directory listings rather than the Windows file picker, which may resolve a PWA shortcut to a browser proxy and discard its arguments. The executable picker rejects bare browser executables/proxies. Program choice, window preferences, app name and authentication partition remain stable across updates.
 
 Use `package-windows.py` for the download ZIP. It writes explicit directory entries and ordinary DOS file attributes, uses ASCII paths (`使用说明.txt` becomes `README.txt`), and avoids inherited Unix modes, extra fields, encryption and ZIP64. It checks paths, name collisions, entry flags and CRC before replacing the output. This is a compatibility measure; it does not diagnose or alter the user's local download/destination permissions. To validate a download, extract it into a fresh directory with an independent extractor and run `verify-package.mjs` on that extracted app.
 
 ## State and login
 
-The native shell loads `jane-companion.html` from the existing GitHub Pages site. A sandboxed preload exposes only manifest/artwork reads, validated window operations and a fixed original-app URL. It denies child frames, navigation outside the companion/login paths, new windows, downloads and permissions. Images are loaded by manifest ID, never an arbitrary path.
+The native shell loads `jane-companion.html` from the existing GitHub Pages site. A sandboxed preload exposes only manifest/artwork reads, validated window operations and a no-argument open action for the locally selected app (or the fixed original-app URL in explicit browser mode). It denies child frames, navigation outside the companion/login paths, new windows, downloads and permissions. Images are loaded by manifest ID, never an arbitrary path.
 
 An isolated persistent Electron profile shares the existing `login.html` between the pet and its login window. The successful redirect is intercepted before the original app loads. No credentials are supplied by this repository. The public Supabase publishable key is the same one used by the existing app; authorization remains Supabase Auth and row-level security.
 
@@ -31,4 +37,4 @@ Cloud reads repeat every 60 seconds. Activity boundaries are checked at least ev
 
 ## Validation limits
 
-Node tests cover a month of real-runtime state comparisons, art mapping, sleep poses, read-only cloud selection, account races, cache handling, hit testing, IPC origin/frame checks, login redirect and dragging. Browser QA uses an isolated fake account and the actual artwork. The Windows x64 package is cross-built and inspected; Windows-native click-through/DPI behavior and the user's real login still require a first run on Windows. This initial build is unsigned.
+Node tests cover a month of real-runtime state comparisons, art mapping, sleep poses, read-only cloud selection, account races, cache handling, hit testing, IPC origin/frame checks, login redirect, dragging and installed-app launching. Browser QA uses an isolated fake account and the actual artwork. The Windows x64 package is cross-built and inspected; Windows-native shortcut activation and window focus still require checking on the user's computer. This build is unsigned.

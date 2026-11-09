@@ -18,7 +18,7 @@ const manifest = JSON.parse(extractFile(archive, 'assets/manifest.json'));
 assert.deepEqual(manifest, approved);
 assert.equal(listPackage(archive).filter(name => /\/assets\/png\/.*\.png$/.test(name)).length, 25);
 for (const image of manifest.images) assert.equal(createHash('sha256').update(extractFile(archive, 'assets/' + image.file)).digest('hex'), image.sha256, image.id);
-for (const name of ['main.cjs', 'preload.cjs', 'policy.cjs', 'offline.html', 'offline.js']) assert.ok(extractFile(archive, name).equals(fs.readFileSync(path.join(root, name))), name + ' is current');
+for (const name of ['main.cjs', 'preload.cjs', 'policy.cjs', 'program-launcher.cjs', 'offline.html', 'offline.js']) assert.ok(extractFile(archive, name).equals(fs.readFileSync(path.join(root, name))), name + ' is current');
 assert.ok(extractFile(archive, 'offline.css').equals(fs.readFileSync(path.join(root, '../jane-companion.css'))));
 const pkg = JSON.parse(extractFile(archive, 'package.json'));
 console.log(JSON.stringify({ platform: 'win32-x64', version: pkg.version, approvedImages: 25, nativeSource: 'matches', runtime: 'complete', signed: false }));

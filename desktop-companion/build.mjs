@@ -20,7 +20,7 @@ for (const image of manifest.images) {
 }
 await fs.rm(stage, { recursive: true, force: true });
 await fs.mkdir(stage, { recursive: true });
-for (const name of ['main.cjs', 'preload.cjs', 'policy.cjs', 'offline.html', 'offline.js']) await fs.copyFile(path.join(root, name), path.join(stage, name));
+for (const name of ['main.cjs', 'preload.cjs', 'policy.cjs', 'program-launcher.cjs', 'offline.html', 'offline.js']) await fs.copyFile(path.join(root, name), path.join(stage, name));
 await fs.copyFile(path.join(root, '../jane-companion.css'), path.join(stage, 'offline.css'));
 await fs.copyFile(path.join(root, '../apple-touch-icon.png'), path.join(stage, 'icon.png'));
 await fs.mkdir(path.join(stage, 'assets'), { recursive: true });

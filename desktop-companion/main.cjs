@@ -3,9 +3,10 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const policy = require('./policy.cjs');
+const { createProgramLauncher } = require('./program-launcher.cjs');
 
 function createCompanion(electron, options = {}) {
-  const { app, BrowserWindow, ipcMain, Menu, Tray, nativeImage, screen, shell, session, powerMonitor } = electron;
+  const { app, BrowserWindow, ipcMain, Menu, Tray, nativeImage, screen, shell, session, powerMonitor, dialog } = electron;
   const assetRoot = options.assetRoot || path.join(__dirname, 'assets');
   const manifest = JSON.parse(fs.readFileSync(path.join(assetRoot, 'manifest.json'), 'utf8'));
   const base = options.baseURL || policy.SITE_BASE;
@@ -16,6 +17,7 @@ function createCompanion(electron, options = {}) {
   const imageCache = new Map();
   const prefsPath = () => path.join(app.getPath('userData'), 'companion-window.json');
   function save() { try { fs.mkdirSync(path.dirname(prefsPath()), { recursive: true }); fs.writeFileSync(prefsPath(), JSON.stringify(prefs)); } catch {} }
+  const launcher = createProgramLauncher({ app, shell, dialog, Menu, preferences: () => prefs, save, getWindow: () => pet });
   function authorize(event) {
     return !!pet && !pet.isDestroyed() && event.sender === pet.webContents && event.senderFrame === pet.webContents.mainFrame &&
       policy.trustedPage(event.senderFrame?.url || '', base, fallback);
@@ -32,7 +34,7 @@ function createCompanion(electron, options = {}) {
     pet.setBounds(policy.clampBounds(desired, screen.getDisplayMatching(desired).workArea));
     const placed = pet.getBounds(); prefs.position = { x: placed.x, y: placed.y };
   }
-  function openProgram() { return shell.openExternal(new URL('index.html', policy.SITE_BASE).href); }
+  function openProgram() { return launcher.open(); }
   function login() {
     if (loginWindow && !loginWindow.isDestroyed()) { loginWindow.focus(); return; }
     loginWindow = new BrowserWindow({ width: 470, height: 630, title: '登录现有账号 · Jane Companion', autoHideMenuBar: true,
@@ -48,9 +50,10 @@ function createCompanion(electron, options = {}) {
     loginWindow.on('closed', () => { loginWindow = null; });
     loginWindow.loadURL(new URL('login.html?next=jane-companion.html', base).href);
   }
-  function menu() {
+  async function menu() {
     const template = [
       { label: '打开程序', click: openProgram },
+      { label: '双击打开', submenu: await launcher.menuItems() },
       { label: '登录同步账号', click: login },
       { label: '立即刷新状态', click: () => { show(); pet.loadURL(target); } },
       { type: 'separator' },
@@ -62,6 +65,7 @@ function createCompanion(electron, options = {}) {
     ];
     return Menu.buildFromTemplate(template);
   }
+  async function showMenu(withWindow = true) { (await menu()).popup(withWindow ? { window: pet } : {}); }
   ipcMain.handle('jane:manifest', event => {
     if (!authorize(event)) throw new Error('Untrusted companion frame');
     return { version: manifest.version, states: manifest.states, default_image: manifest.default_image,
@@ -79,10 +83,10 @@ function createCompanion(electron, options = {}) {
     }
     return imageCache.get(id);
   });
-  ipcMain.on('jane:open', event => { if (authorize(event)) openProgram(); });
+  ipcMain.on('jane:open', event => { if (authorize(event)) return openProgram(); });
   ipcMain.on('jane:login', event => { if (authorize(event)) login(); });
   ipcMain.on('jane:reconnect', event => { if (authorize(event)) pet.loadURL(target); });
-  ipcMain.on('jane:menu', event => { if (authorize(event)) menu().popup({ window: pet }); });
+  ipcMain.on('jane:menu', event => { if (authorize(event)) return showMenu(); });
   ipcMain.on('jane:hit', (event, opaque) => { if (authorize(event) && !drag) hit(opaque === true); });
   ipcMain.on('jane:frame', (event, value) => {
     if (!authorize(event) || !value || !policy.assetFile(manifest, value.assetId)) return;
@@ -125,7 +129,7 @@ function createCompanion(electron, options = {}) {
     pet.on('blur', () => { drag = null; });
     pet.on('close', event => { if (!quitting) { event.preventDefault(); pet.hide(); } });
     tray = new Tray(nativeImage.createFromPath(path.join(__dirname, 'icon.png')).resize({ width: 24, height: 24 }));
-    tray.setToolTip('Jane Companion'); tray.on('click', show); tray.on('right-click', () => menu().popup());
+    tray.setToolTip('Jane Companion'); tray.on('click', show); tray.on('right-click', () => showMenu(false));
     powerMonitor.on('resume', () => pet.webContents.send('jane:refresh'));
     screen.on('display-removed', () => { resize(current); save(); });
     return pet.loadURL(target).catch(() => {});
