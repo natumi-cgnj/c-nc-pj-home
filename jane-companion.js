@@ -1,9 +1,9 @@
-import { companionFrame, hitArtwork } from './jane-companion-state.mjs?v=20261110-edge-labels1';
-import { CompanionCloudReader } from './jane-companion-cloud.mjs?v=20261110-edge-labels1';
-import { CompanionDialogue, companionSpeechContext, clickActions, COMPANION_UI_VERSION } from './jane-companion-dialogue.mjs?v=20261110-edge-labels1';
+import { companionFrame, hitArtwork } from './jane-companion-state.mjs?v=20261110-enter-send1';
+import { CompanionCloudReader } from './jane-companion-cloud.mjs?v=20261110-enter-send1';
+import { CompanionDialogue, companionSpeechContext, clickActions, COMPANION_UI_VERSION } from './jane-companion-dialogue.mjs?v=20261110-enter-send1';
 
-import { createMailboxUI } from './jane-companion-mail-ui.mjs?v=20261110-edge-labels1';
-import { applyCompanionLayout, createDockHover } from './jane-companion-layout.mjs?v=20261110-edge-labels1';
+import { createMailboxUI } from './jane-companion-mail-ui.mjs?v=20261110-enter-send1';
+import { applyCompanionLayout, createDockHover } from './jane-companion-layout.mjs?v=20261110-enter-send1';
 
 const bridge = window.JaneDesktop;
 const root = document.getElementById('companion'), img = document.getElementById('artwork');

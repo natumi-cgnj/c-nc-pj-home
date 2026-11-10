@@ -5,7 +5,7 @@ export function createMailboxUI({ client, owner, storage, context, ready, enable
   const panel = document.getElementById('conversation'), button = document.getElementById('mailButton'), unread = document.getElementById('mailUnread');
   const history = document.getElementById('mailHistory'), notice = document.getElementById('mailNotice'), status = document.getElementById('mailState');
   const textarea = document.getElementById('mailText'), submit = document.getElementById('sendMail');
-  let stopped = false, timer, sending = false;
+  let stopped = false, timer, sending = false, composing = false;
   const model = new CompanionMailbox({ client, owner, storage, context, onChange: render });
   function date(value) { const d = new Date(value); return Number.isFinite(d.getTime()) ? d.toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Tokyo' }) : ''; }
   function bubble(name, text, stamp, waiting = false) {
@@ -57,7 +57,13 @@ export function createMailboxUI({ client, owner, storage, context, ready, enable
   document.getElementById('mailForm').onsubmit = event => { event.preventDefault(); send(textarea.value); };
   document.getElementById('closeMail').onclick = close;
   button.onclick = () => panel.hidden ? open() : close();
-  textarea.addEventListener('keydown', event => { if (event.key === 'Enter' && (event.ctrlKey || event.metaKey) && !event.isComposing) { event.preventDefault(); send(textarea.value); } });
+  textarea.addEventListener('compositionstart', () => { composing = true; });
+  textarea.addEventListener('compositionend', () => { composing = false; });
+  textarea.addEventListener('keydown', event => {
+    if (event.key !== 'Enter' || event.shiftKey || composing || event.isComposing || event.keyCode === 229) return;
+    event.preventDefault();
+    if (!event.repeat) send(textarea.value);
+  });
   textarea.addEventListener('input', () => { if (model.identity()) model.write('text', textarea.value); });
   async function refresh(auto = true) {
     if (!stopped && enabled && ready() && model.identity()) await model.call(auto ? 'companion_auto' : 'companion_poll');

@@ -47,9 +47,13 @@ Core 0.1.5 anchors the artwork by its centre and bottom edge independently of it
 
 The `留言` button opens an account-scoped mailbox. Messages are saved before the existing asynchronous Claude subscription routine is started; sleeping/away Jane defers replies. Completed replies persist, show unread badges, and can include the current state, conversation history and a bounded selection of shared new diet, six-ledger and SUITCASE records. Read [the mailbox specification](../docs/jane-companion-mailbox.md) for queue, context and privacy boundaries. The original CBI CHAT and application state remain separate.
 
+Enter sends the current message; Shift+Enter inserts a new line. IME composition and candidate-confirmation keys do not send, and holding Enter cannot repeat-send a message. The send button and existing Ctrl/Cmd+Enter shortcuts remain available. This keyboard change is a hosted UI update; the native core stays at 0.1.5.
+
 Existing 0.1.2 installations install the 0.1.3 core from `检查在线更新` → `更新并重启`, without downloading another full package. The hosted UI waits for the new native capability before starting automatic mail tasks. The Windows executable's bundled base version remains 0.1.2; the native manifest/update dialog reports the active core version.
 
 The current 0.1.5 layout release is delivered through that same signed online update, from 0.1.2, 0.1.3 or 0.1.4. Clicking the character always opens status/dialogue; the dedicated side button opens correspondence. Selecting a control cancels any pending character single click, so a quickly opened mailbox stays open. The existing 0.1.2 full download remains a valid upgrade entrance and has not been rebuilt for this release.
+
+Each signed core bundle includes all eight current core files, rather than a delta from the previous version. Install only the latest offered version; intermediate releases are not required. The hosted page then loads the latest interface, including Enter-to-send, while retaining previous layout and interaction improvements.
 
 ## Online updates (0.1.2+)
 
