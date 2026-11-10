@@ -12,7 +12,7 @@ npm ci
 npm test
 node build.mjs win32 /absolute/path/to/Jane_Desktop_States_25
 node verify-package.mjs
-python3 package-windows.py "out/Jane Companion-win32-x64" /absolute/path/Jane_Companion_Windows_x64_v0.1.3.zip
+python3 package-windows.py "out/Jane Companion-win32-x64" /absolute/path/Jane_Companion_Windows_x64_v0.1.4.zip
 ```
 
 The portable output is `out/Jane Companion-win32-x64/`. Keep the whole directory together. The staging app can be launched with `npm start` after building. A development-only `JANE_COMPANION_DEV_URL=http://127.0.0.1:PORT/` override is accepted only for an unpackaged application; the packaged binary always opens the production origin.
@@ -41,11 +41,15 @@ A single click opens a small speech panel; a double-click cancels it and opens t
 
 The panel reads the existing `claude-bridge` `state_lines` action and validates its revision, session, scene, continuity and line count. It uses the same timed line selector as the original app. It never requests dialogue generation. With no current pool or no connection, it uses the shared state fallback. Sleeping shows status only; being away shows status and the remaining estimate. Account switches discard cached dialogue and pending results.
 
+Core 0.1.4 anchors the artwork by its centre and bottom edge. The hover-only status and `留言` row sits alongside that bottom edge: right of Jane on the monitor's left half, left of him on its right half. Crossing the transparent gap has a short hover grace period; empty window space continues passing clicks through. Speech stays above the character. Artwork, speech text/padding and mailbox controls share one scene scale for the three size settings. Speech grows to its content height, while native geometry reserves enough space and fits the whole scene within the current monitor's work area, including DPI-scaled and negative-coordinate displays. Opening a panel or changing sides preserves the artwork anchor; saved preferences retain the resting position across restart. Older hosted/offline pages retain the original inset layout until they advertise the new capability.
+
 ## Correspondence (0.1.3)
 
 The `留言` button opens an account-scoped mailbox. Messages are saved before the existing asynchronous Claude subscription routine is started; sleeping/away Jane defers replies. Completed replies persist, show unread badges, and can include the current state, conversation history and a bounded selection of shared new diet, six-ledger and SUITCASE records. Read [the mailbox specification](../docs/jane-companion-mailbox.md) for queue, context and privacy boundaries. The original CBI CHAT and application state remain separate.
 
 Existing 0.1.2 installations install the 0.1.3 core from `检查在线更新` → `更新并重启`, without downloading another full package. The hosted UI waits for the new native capability before starting automatic mail tasks. The Windows executable's bundled base version remains 0.1.2; the native manifest/update dialog reports the active core version.
+
+The current 0.1.4 layout release is also delivered through that same signed online update, from either 0.1.2 or 0.1.3. Clicking the character always opens status/dialogue; the dedicated hover button opens correspondence. Selecting a control cancels any pending character single click, so a quickly opened mailbox stays open. The existing 0.1.2 full download remains a valid upgrade entrance and has not been rebuilt for this release.
 
 ## Online updates (0.1.2+)
 

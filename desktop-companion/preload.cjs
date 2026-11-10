@@ -10,6 +10,11 @@ contextBridge.exposeInMainWorld('JaneDesktop', Object.freeze({
   menu: () => ipcRenderer.send('jane:menu'),
   hit: opaque => ipcRenderer.send('jane:hit', opaque === true),
   drag: phase => ipcRenderer.send('jane:drag', phase),
+  onLayout: callback => {
+    const listener = (_event, value) => callback(value);
+    ipcRenderer.on('jane:layout', listener);
+    return () => ipcRenderer.removeListener('jane:layout', listener);
+  },
   onRefresh: callback => {
     const listener = () => callback();
     ipcRenderer.on('jane:refresh', listener);

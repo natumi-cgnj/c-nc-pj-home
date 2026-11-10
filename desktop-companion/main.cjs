@@ -11,11 +11,12 @@ function createCompanion(electron, options = {}) {
   const manifest = JSON.parse(fs.readFileSync(path.join(assetRoot, 'manifest.json'), 'utf8'));
   const base = options.baseURL || policy.SITE_BASE;
   const targetURL = new URL(policy.pageURL(base));
-  targetURL.searchParams.set('desktop', options.coreVersion || '0.1.3');
+  targetURL.searchParams.set('desktop', options.coreVersion || '0.1.4');
   const target = targetURL.href;
   const fallbackPath = path.join(__dirname, 'offline.html'), fallback = pathToFileURL(fallbackPath).href;
   const partition = 'persist:jane-companion-v1';
   let pet, loginWindow, tray, prefs = {}, quitting = false, drag = null, ignored = null, current, bubble = 0;
+  let adaptive = false, anchor, layout, spokenHeight = 176;
   const imageCache = new Map();
   const prefsPath = () => path.join(app.getPath('userData'), 'companion-window.json');
   function save() { try { fs.mkdirSync(path.dirname(prefsPath()), { recursive: true }); fs.writeFileSync(prefsPath(), JSON.stringify(prefs)); } catch {} }
@@ -32,9 +33,23 @@ function createCompanion(electron, options = {}) {
   function show() { if (pet && !pet.isDestroyed()) { pet.showInactive(); pet.webContents.send('jane:refresh'); } }
   function rememberPosition() {
     const placed = pet.getBounds(), resting = policy.artworkSize(current, prefs.extent || 320);
-    prefs.position = { x: placed.x + Math.floor(placed.width / 2) - Math.floor(resting.width / 2), y: placed.y + bubble };
+    if (adaptive) {
+      prefs.artworkAnchor = { ...anchor };
+      prefs.position = { x: Math.round(anchor.x - resting.width / 2), y: Math.round(anchor.y - resting.height + 30) };
+    } else {
+      prefs.position = { x: placed.x + Math.floor(placed.width / 2) - Math.floor(resting.width / 2), y: placed.y + bubble };
+      anchor = { x: placed.x + placed.width / 2, y: placed.y + placed.height - 30 };
+      prefs.artworkAnchor = { ...anchor };
+    }
+  }
+  function arrange() {
+    const size = policy.artworkSize(current, prefs.extent || 320);
+    const area = screen.getDisplayMatching({ x: Math.round(anchor.x - size.width / 2), y: Math.round(anchor.y - size.height), ...size }).workArea;
+    layout = policy.companionLayout(current, prefs.extent || 320, anchor, area, { bubble: bubble === 128, conversation: bubble === 360, speechHeight: spokenHeight });
+    pet.setBounds(layout.bounds); pet.webContents.send('jane:layout', layout.view);
   }
   function resize(image) {
+    if (adaptive) { arrange(); rememberPosition(); return; }
     const previous = pet.getBounds(), size = policy.artworkSize(image, prefs.extent || 320, bubble);
     const desired = { x: previous.x + Math.floor(previous.width / 2) - Math.floor(size.width / 2), y: previous.y + previous.height - size.height, ...size };
     pet.setBounds(policy.clampBounds(desired, screen.getDisplayMatching(desired).workArea));
@@ -75,7 +90,7 @@ function createCompanion(electron, options = {}) {
   async function showMenu(withWindow = true) { (await menu()).popup(withWindow ? { window: pet } : {}); }
   ipcMain.handle('jane:manifest', event => {
     if (!authorize(event)) throw new Error('Untrusted companion frame');
-    return { version: manifest.version, nativeVersion: options.coreVersion || '0.1.3', dialogueInset: 128, messageInset: 360, onlineUpdates: !!options.updates, states: manifest.states, default_image: manifest.default_image,
+    return { version: manifest.version, nativeVersion: options.coreVersion || '0.1.4', dialogueInset: 128, messageInset: 360, sideLayout: 1, layout: adaptive ? layout.view : null, onlineUpdates: !!options.updates, states: manifest.states, default_image: manifest.default_image,
       images: manifest.images.map(({ id, file, width, height }) => ({ id, file, width, height })) };
   });
   ipcMain.handle('jane:artwork', (event, id) => {
@@ -99,18 +114,34 @@ function createCompanion(electron, options = {}) {
     if (!authorize(event) || !value || !policy.assetFile(manifest, value.assetId)) return;
     const image = manifest.images.find(image => image.id === value.assetId);
     const nextBubble = value.conversation === true ? 360 : value.bubble === true ? 128 : 0;
-    if (current?.id !== image.id || nextBubble !== bubble) { bubble = nextBubble; current = image; resize(image); prefs.lastAsset = image.id; save(); }
+    const nextAdaptive = value.sideLayout === true;
+    const nextHeight = Number.isFinite(value.speechHeight) ? Math.max(176, Math.min(512, Math.ceil(value.speechHeight))) : 176;
+    if (current?.id !== image.id || nextBubble !== bubble || nextAdaptive !== adaptive || nextHeight !== spokenHeight) {
+      if (adaptive && !nextAdaptive) {
+        // Offline/older hosted UI retains the original inset layout.
+        const size = policy.artworkSize(current, prefs.extent || 320);
+        pet.setBounds({ x: Math.round(anchor.x - size.width / 2), y: Math.round(anchor.y - size.height + 30), ...size });
+        bubble = 0;
+      }
+      adaptive = nextAdaptive; bubble = nextBubble; spokenHeight = nextHeight; current = image;
+      resize(image); prefs.lastAsset = image.id; save();
+    }
     pet.setTitle('Jane · ' + String(value.label || '').replace(/[\u0000-\u001f]/g, ' ').slice(0, 100));
     tray?.setToolTip(pet.getTitle());
   });
   ipcMain.on('jane:drag', (event, phase) => {
     if (!authorize(event)) return;
-    if (phase === 'start') { drag = { cursor: screen.getCursorScreenPoint(), bounds: pet.getBounds() }; hit(true); }
+    if (phase === 'start') { drag = { cursor: screen.getCursorScreenPoint(), bounds: pet.getBounds(), anchor: adaptive ? { ...layout.anchor } : null }; hit(true); }
     else if (phase === 'move' && drag) {
-      const cursor = screen.getCursorScreenPoint(), desired = { ...drag.bounds,
+      const cursor = screen.getCursorScreenPoint();
+      if (adaptive) {
+        anchor = { x: drag.anchor.x + cursor.x - drag.cursor.x, y: drag.anchor.y + cursor.y - drag.cursor.y };
+        arrange(); return;
+      }
+      const desired = { ...drag.bounds,
         x: drag.bounds.x + cursor.x - drag.cursor.x, y: drag.bounds.y + cursor.y - drag.cursor.y };
       pet.setBounds(policy.clampBounds(desired, screen.getDisplayNearestPoint(cursor).workArea));
-    } else if (phase === 'end') { drag = null; rememberPosition(); save(); }
+    } else if (phase === 'end') { if (adaptive && drag) anchor = { ...layout.anchor }; drag = null; rememberPosition(); save(); }
   });
   const ready = app.whenReady().then(() => {
     try { prefs = policy.preferences(JSON.parse(fs.readFileSync(prefsPath(), 'utf8'))); } catch {}
@@ -121,8 +152,10 @@ function createCompanion(electron, options = {}) {
     const area = screen.getPrimaryDisplay().workArea;
     current = manifest.images.find(image => image.id === prefs.lastAsset) || manifest.images[0];
     const size = policy.artworkSize(current, prefs.extent || 320);
-    const bounds = policy.clampBounds({ ...size, x: prefs.position?.x ?? area.x + area.width - size.width - 32,
-      y: prefs.position?.y ?? area.y + area.height - size.height - 24 }, area);
+    const desired = { ...size, x: prefs.position?.x ?? area.x + area.width - size.width - 32,
+      y: prefs.position?.y ?? area.y + area.height - size.height - 24 };
+    const bounds = policy.clampBounds(desired, screen.getDisplayMatching(desired).workArea);
+    anchor = prefs.artworkAnchor || { x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height - 30 };
     pet = new BrowserWindow({ ...bounds, title: 'Jane Companion', transparent: true, frame: false, backgroundColor: '#00000000',
       resizable: false, maximizable: false, minimizable: false, fullscreenable: false, skipTaskbar: true,
       alwaysOnTop: prefs.onTop !== false, hasShadow: false, show: false, icon: path.join(__dirname, 'icon.png'),
@@ -134,12 +167,13 @@ function createCompanion(electron, options = {}) {
       if (mainFrame && code !== -3 && pet.webContents.getURL() !== fallback) pet.loadFile(fallbackPath);
     });
     pet.once('ready-to-show', () => pet.showInactive());
-    pet.on('blur', () => { drag = null; });
+    pet.on('blur', () => { if (drag) { if (adaptive) anchor = { ...layout.anchor }; drag = null; rememberPosition(); save(); } });
     pet.on('close', event => { if (!quitting) { event.preventDefault(); pet.hide(); } });
     tray = new Tray(nativeImage.createFromPath(path.join(__dirname, 'icon.png')).resize({ width: 24, height: 24 }));
     tray.setToolTip('Jane Companion'); tray.on('click', show); tray.on('right-click', () => showMenu(false));
     powerMonitor.on('resume', () => pet.webContents.send('jane:refresh'));
-    screen.on('display-removed', () => { resize(current); save(); });
+    const displayChanged = () => { resize(current); if (adaptive) { anchor = { ...layout.anchor }; rememberPosition(); } save(); };
+    screen.on('display-removed', displayChanged); screen.on('display-metrics-changed', displayChanged);
     return pet.loadURL(target).catch(() => {});
   });
   app.on('before-quit', () => { quitting = true; });

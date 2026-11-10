@@ -1,8 +1,9 @@
-import { companionFrame, hitArtwork } from './jane-companion-state.mjs?v=20261110-mailbox1';
-import { CompanionCloudReader } from './jane-companion-cloud.mjs?v=20261110-mailbox1';
-import { CompanionDialogue, companionSpeechContext, clickActions, COMPANION_UI_VERSION } from './jane-companion-dialogue.mjs?v=20261110-mailbox1';
+import { companionFrame, hitArtwork } from './jane-companion-state.mjs?v=20261110-side-layout1';
+import { CompanionCloudReader } from './jane-companion-cloud.mjs?v=20261110-side-layout1';
+import { CompanionDialogue, companionSpeechContext, clickActions, COMPANION_UI_VERSION } from './jane-companion-dialogue.mjs?v=20261110-side-layout1';
 
-import { createMailboxUI } from './jane-companion-mail-ui.mjs?v=20261110-mailbox1';
+import { createMailboxUI } from './jane-companion-mail-ui.mjs?v=20261110-side-layout1';
+import { applyCompanionLayout, createDockHover } from './jane-companion-layout.mjs?v=20261110-side-layout1';
 
 const bridge = window.JaneDesktop;
 const root = document.getElementById('companion'), img = document.getElementById('artwork');
@@ -17,15 +18,22 @@ async function start() {
     connect.textContent = '打开原程序'; connect.onclick = () => location.assign('index.html'); return;
   }
   const manifest = await bridge.manifest();
+  const sideLayout = manifest.sideLayout === 1 && typeof bridge.onLayout === 'function';
+  const hover = createDockHover({ visible: value => root.classList.toggle('ui-visible', value) });
+  const removeLayout = sideLayout ? bridge.onLayout(view => applyCompanionLayout(root, view)) : null;
+  if (sideLayout && manifest.layout) applyCompanionLayout(root, manifest.layout);
   let cloud, dialogue, mailbox, sync = 'connecting', hasSnapshot = false, prompted = false, timer, assetId = '', request = 0;
   let currentFrame, speechTimer, speechRequest = 0, speechKey = '', versionTimer;
   let mask, maskWidth, maskHeight, dragging = false, moved = false, origin, lastDrag = 0;
   const neutral = { key: 'setup', assetId: '00_tea', label: '登录后同步 Jane 状态' };
   const opaque = (x, y) => (!setup.hidden && document.elementFromPoint(x, y)?.closest('#setup')) ||
     (!speech.hidden && document.elementFromPoint(x, y)?.closest('#speech')) ||
-    document.elementFromPoint(x, y)?.closest('#conversation,#mailButton') ||
+    document.elementFromPoint(x, y)?.closest('#conversation,#mailButton,#caption') ||
     hitArtwork(mask, maskWidth, maskHeight, img.naturalWidth, img.naturalHeight, img.getBoundingClientRect(), x, y);
-  const nativeFrame = frame => bridge.frame({ ...frame, bubble: !speech.hidden, conversation: !conversation.hidden });
+  const nativeFrame = frame => bridge.frame({ ...frame, bubble: !speech.hidden, conversation: !conversation.hidden, sideLayout,
+    speechHeight: !speech.hidden ? speech.offsetHeight : 176 });
+  const speechSize = new ResizeObserver(() => { if (sideLayout && !speech.hidden && currentFrame) nativeFrame(currentFrame); });
+  speechSize.observe(speech);
   function closeSpeech() {
     speechRequest++; clearTimeout(speechTimer); speech.hidden = true; root.classList.remove('speech-space');
     if (currentFrame) nativeFrame(currentFrame);
@@ -52,7 +60,7 @@ async function start() {
     closeMail(); speech.hidden = false; root.classList.toggle('speech-space', !!manifest.dialogueInset); nativeFrame(currentFrame);
     fillSpeech(); clearTimeout(speechTimer); speechTimer = setTimeout(closeSpeech, 15000);
   }
-  const actions = clickActions({ single: () => mailbox?.unread ? mailbox.open() : showSpeech(), double: () => bridge.openProgram(), hide: () => { closeSpeech(); closeMail(); } });
+  const actions = clickActions({ single: showSpeech, double: () => bridge.openProgram(), hide: () => { closeSpeech(); closeMail(); } });
   document.getElementById('closeSpeech').onclick = closeSpeech;
   speech.addEventListener('mouseenter', () => clearTimeout(speechTimer));
   speech.addEventListener('mouseleave', () => { speechTimer = setTimeout(closeSpeech, 8000); });
@@ -61,7 +69,7 @@ async function start() {
   async function paint(frame) {
     const token = ++request;
     caption.textContent = frame.label + (sync === 'offline' || sync === 'cached' ? ' · 离线缓存' : '');
-    root.title = frame.label + ' · 单击查看状态和台词，双击打开程序';
+    img.title = frame.label + ' · 单击查看状态和台词，双击打开程序'; caption.title = caption.textContent;
     if (frame.assetId === assetId) { nativeFrame(frame); return; }
     const data = await bridge.artwork(frame.assetId), loaded = new Image();
     loaded.src = data; await loaded.decode();
@@ -107,11 +115,12 @@ async function start() {
   root.addEventListener('mousemove', event => {
     if (dragging) return;
     const active = !!opaque(event.clientX, event.clientY);
-    root.classList.toggle('hover', active); bridge.hit(active);
+    root.classList.toggle('hover', active); hover.move(active); bridge.hit(active);
   });
-  root.addEventListener('mouseleave', () => { if (!dragging) { root.classList.remove('hover'); bridge.hit(false); } });
+  root.addEventListener('mouseleave', () => { if (!dragging) { root.classList.remove('hover'); hover.move(false); bridge.hit(false); } });
   root.addEventListener('pointerdown', event => {
-    if (event.button !== 0 || event.target.closest('#setup,#speech,#conversation,#mailButton') || !opaque(event.clientX, event.clientY)) return;
+    if (event.target.closest('#setup,#speech,#conversation,#dock')) { actions.cancel(); return; }
+    if (event.button !== 0 || !opaque(event.clientX, event.clientY)) return;
     origin = { x: event.screenX, y: event.screenY }; moved = false; dragging = true;
     root.setPointerCapture(event.pointerId); bridge.drag('start');
   });
@@ -120,18 +129,20 @@ async function start() {
     if (Math.hypot(event.screenX - origin.x, event.screenY - origin.y) > 4) moved = true;
     if (moved) { actions.cancel(); root.classList.add('dragging'); bridge.drag('move'); }
   });
-  function end() {
+  function end(event) {
     if (!dragging) return;
     dragging = false; if (moved) lastDrag = Date.now();
     root.classList.remove('dragging'); bridge.drag('end');
+    const active = Number.isFinite(event?.clientX) && Number.isFinite(event?.clientY) && !!opaque(event.clientX, event.clientY);
+    root.classList.toggle('hover', active); hover.move(active); bridge.hit(active);
   }
   root.addEventListener('pointerup', end); root.addEventListener('pointercancel', end); window.addEventListener('blur', end);
   root.addEventListener('click', event => {
-    if (event.target.closest('#setup,#speech,#conversation,#mailButton') || Date.now() - lastDrag < 550 || !opaque(event.clientX, event.clientY)) return;
+    if (event.target.closest('#setup,#speech,#conversation,#dock') || Date.now() - lastDrag < 550 || !opaque(event.clientX, event.clientY)) return;
     actions.click(event.detail);
   });
   root.addEventListener('dblclick', event => {
-    if (event.target.closest('#setup,#speech,#conversation,#mailButton') || Date.now() - lastDrag < 550 || !opaque(event.clientX, event.clientY)) return;
+    if (event.target.closest('#setup,#speech,#conversation,#dock') || Date.now() - lastDrag < 550 || !opaque(event.clientX, event.clientY)) return;
     actions.doubleClick();
   });
   root.addEventListener('contextmenu', event => {
@@ -151,11 +162,11 @@ async function start() {
     mailbox = createMailboxUI({ client, owner: () => cloud.owner, storage: localStorage, enabled: manifest.messageInset === 360,
       context: () => ({ context: companionSpeechContext(window.CharacterRuntime)?.context || null, away: window.CharacterRuntime.getCbiCharacterPresence('jane', new Date())?.location === 'away' }),
       ready: () => sync === 'connected', frame: () => currentFrame,
-      onPanel: open => { if (open) closeSpeech(); root.classList.toggle('chat-space', open); if (currentFrame) nativeFrame(currentFrame); },
+      onPanel: open => { if (open) { actions.cancel(); closeSpeech(); } root.classList.toggle('chat-space', open); if (currentFrame) nativeFrame(currentFrame); },
       onUpgrade: () => { closeSpeech(); speechRequest++; speech.hidden = false; root.classList.add('speech-space'); nativeFrame(currentFrame); speechState.textContent = '留言功能已准备好'; speechLine.textContent = '右键 Jane → 检查在线更新，更新并重启后即可留言。'; } });
     window.addEventListener('online', () => cloud.refresh());
     window.addEventListener('pageshow', () => { render(); cloud.refresh(); });
-    window.addEventListener('pagehide', event => { if (!event.persisted) { cloud.stop(); mailbox?.stop(); actions.cancel(); clearTimeout(timer); clearTimeout(speechTimer); clearInterval(versionTimer); } });
+    window.addEventListener('pagehide', event => { if (!event.persisted) { cloud.stop(); mailbox?.stop(); actions.cancel(); hover.stop(); speechSize.disconnect(); removeLayout?.(); clearTimeout(timer); clearTimeout(speechTimer); clearInterval(versionTimer); } });
   } catch { status('unavailable'); }
   async function checkUI() {
     if (dragging || !speech.hidden || !conversation.hidden || !setup.hidden) return;

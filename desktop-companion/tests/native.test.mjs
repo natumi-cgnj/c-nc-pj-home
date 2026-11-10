@@ -97,3 +97,37 @@ test('native shell validates IPC, preserves login and dragging, opens only the l
   let blocked = false; pet.webContents.emit('will-navigate', { preventDefault() { blocked = true; } }, 'https://evil.test'); assert.equal(blocked, true);
   await f.listeners.get('jane:menu')(valid); f.menus.at(-1).find(item => item.label === '退出').click(); assert.equal(f.electron.app.quitRequested, true);
 });
+
+test('adaptive native layout follows the artwork across monitor halves, scales speech and restores its saved foot anchor', async t => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'jane-layout-test-'));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const assets = path.join(directory, 'assets'); fs.mkdirSync(assets);
+  fs.writeFileSync(path.join(assets, 'manifest.json'), JSON.stringify({ version: 1, images: [{ id: '00_tea', file: 'png/00_tea.png', width: 1000, height: 1400 }] }));
+  fs.writeFileSync(path.join(directory, 'companion-window.json'), JSON.stringify({ extent: 320, artworkAnchor: { x: 650, y: 1040 }, position: { x: 524, y: 708 } }));
+  const f = nativeFixture(directory), companion = main.createCompanion(f.electron, { assetRoot: assets }); await companion.ready;
+  const pet = companion.getWindow(), valid = { sender: pet.webContents, senderFrame: pet.webContents.mainFrame };
+  const frame = extra => f.listeners.get('jane:frame')(valid, { assetId: '00_tea', label: '在家看书', sideLayout: true, ...extra });
+  const scene = () => { assert.equal(pet.lastMessage[0], 'jane:layout'); return pet.lastMessage[1]; };
+  const foot = () => { const v = scene(), b = pet.getBounds(); return { x: b.x + v.art.x + v.art.width / 2, y: b.y + v.art.y + v.art.height }; };
+  frame(); assert.equal(scene().side, 'right'); assert.deepEqual(foot(), { x: 650, y: 1040 });
+  f.listeners.get('jane:drag')(valid, 'start'); f.cursor({ x: 1000, y: 500 }); f.listeners.get('jane:drag')(valid, 'move');
+  assert.equal(scene().side, 'left'); assert.deepEqual(foot(), { x: 1150, y: 1040 }, 'window flips while art follows native pointer delta');
+  f.listeners.get('jane:drag')(valid, 'end');
+  const resting = foot(); frame({ bubble: true, speechHeight: 205 });
+  assert.deepEqual(foot(), resting); assert.ok(scene().speech.y >= 0);
+  assert.equal(scene().speech.height, 205); assert.equal(scene().speech.y + scene().speech.height, scene().art.y - 10);
+  await f.listeners.get('jane:menu')(valid);
+  f.menus.at(-1).find(item => item.label === '大小').submenu.find(item => item.label === '小').click();
+  assert.equal(scene().scale, 220 / 320); assert.equal(scene().speech.height, 205 * 220 / 320); assert.deepEqual(foot(), resting);
+  frame({ conversation: true }); assert.deepEqual(foot(), resting);
+  assert.equal(scene().conversation.y + scene().conversation.height + 8 * scene().scale, scene().dock.y);
+  const prefs = JSON.parse(fs.readFileSync(path.join(directory, 'companion-window.json')));
+  assert.deepEqual(prefs.artworkAnchor, resting, 'quitting with an open panel saves the art anchor, not the expanded window');
+  assert.equal(f.handles.get('jane:manifest')(valid).sideLayout, 1);
+  assert.deepEqual(f.handles.get('jane:manifest')(valid).layout, scene(), 'hosted UI reload receives current geometry without waiting for a changed state');
+  const next = nativeFixture(directory), resumed = main.createCompanion(next.electron, { assetRoot: assets }); await resumed.ready;
+  const nextPet = resumed.getWindow(); next.listeners.get('jane:frame')({ sender: nextPet.webContents, senderFrame: nextPet.webContents.mainFrame }, { assetId: '00_tea', sideLayout: true });
+  const view = nextPet.lastMessage[1], bounds = nextPet.getBounds();
+  assert.equal(view.scale, 220 / 320); assert.equal(bounds.x + view.art.x + view.art.width / 2, resting.x); assert.equal(bounds.y + view.art.y + view.art.height, resting.y);
+  frame({ sideLayout: false }); assert.equal(pet.getBounds().height, policy.artworkSize({ width: 1000, height: 1400 }, 220).height, 'offline/old UI keeps legacy layout');
+});
