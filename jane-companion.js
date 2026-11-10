@@ -1,9 +1,9 @@
-import { companionFrame, hitArtwork } from './jane-companion-state.mjs?v=20261110-side-layout1';
-import { CompanionCloudReader } from './jane-companion-cloud.mjs?v=20261110-side-layout1';
-import { CompanionDialogue, companionSpeechContext, clickActions, COMPANION_UI_VERSION } from './jane-companion-dialogue.mjs?v=20261110-side-layout1';
+import { companionFrame, hitArtwork } from './jane-companion-state.mjs?v=20261110-edge-labels1';
+import { CompanionCloudReader } from './jane-companion-cloud.mjs?v=20261110-edge-labels1';
+import { CompanionDialogue, companionSpeechContext, clickActions, COMPANION_UI_VERSION } from './jane-companion-dialogue.mjs?v=20261110-edge-labels1';
 
-import { createMailboxUI } from './jane-companion-mail-ui.mjs?v=20261110-side-layout1';
-import { applyCompanionLayout, createDockHover } from './jane-companion-layout.mjs?v=20261110-side-layout1';
+import { createMailboxUI } from './jane-companion-mail-ui.mjs?v=20261110-edge-labels1';
+import { applyCompanionLayout, createDockHover } from './jane-companion-layout.mjs?v=20261110-edge-labels1';
 
 const bridge = window.JaneDesktop;
 const root = document.getElementById('companion'), img = document.getElementById('artwork');
@@ -18,8 +18,8 @@ async function start() {
     connect.textContent = '打开原程序'; connect.onclick = () => location.assign('index.html'); return;
   }
   const manifest = await bridge.manifest();
-  const sideLayout = manifest.sideLayout === 1 && typeof bridge.onLayout === 'function';
-  const hover = createDockHover({ visible: value => root.classList.toggle('ui-visible', value) });
+  const sideLayout = [1, 2].includes(manifest.sideLayout) && typeof bridge.onLayout === 'function';
+  const hover = createDockHover({ enabled: !manifest.manualVisibility, visible: value => root.classList.toggle('ui-visible', value) });
   const removeLayout = sideLayout ? bridge.onLayout(view => applyCompanionLayout(root, view)) : null;
   if (sideLayout && manifest.layout) applyCompanionLayout(root, manifest.layout);
   let cloud, dialogue, mailbox, sync = 'connecting', hasSnapshot = false, prompted = false, timer, assetId = '', request = 0;
@@ -69,7 +69,7 @@ async function start() {
   async function paint(frame) {
     const token = ++request;
     caption.textContent = frame.label + (sync === 'offline' || sync === 'cached' ? ' · 离线缓存' : '');
-    img.title = frame.label + ' · 单击查看状态和台词，双击打开程序'; caption.title = caption.textContent;
+    img.title = manifest.manualVisibility ? '' : frame.label + ' · 单击查看状态和台词，双击打开程序'; caption.title = caption.textContent;
     if (frame.assetId === assetId) { nativeFrame(frame); return; }
     const data = await bridge.artwork(frame.assetId), loaded = new Image();
     loaded.src = data; await loaded.decode();

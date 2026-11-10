@@ -1,7 +1,7 @@
 // Native geometry uses monitor work-area coordinates; the page receives only
 // local rectangles. Text, padding and buttons are transformed as one scene.
 export function applyCompanionLayout(root, view) {
-  if (view?.version !== 1 || !['left', 'right'].includes(view.side) ||
+  if (![1, 2].includes(view?.version) || !['left', 'right'].includes(view.side) ||
       !Number.isFinite(view.scale) || view.scale <= 0 || view.scale > 2 ||
       !Number.isFinite(view.height) || view.height <= 0 ||
       !['art', 'dock', 'speech', 'conversation'].every(name => {
@@ -13,11 +13,15 @@ export function applyCompanionLayout(root, view) {
   }
   root.style.setProperty('--scene-scale', String(view.scale));
   root.style.setProperty('--speech-bottom', `${view.height - view.speech.y - view.speech.height}px`);
+  root.style.setProperty('--speech-logical-width', `${view.speech.width / view.scale}px`);
+  root.dataset.layoutVersion = String(view.version);
+  if (view.version === 2) root.classList.toggle('ui-visible', view.dockVisible !== false);
   root.dataset.side = view.side; root.classList.add('adaptive-layout');
   return true;
 }
 
-export function createDockHover({ visible, schedule = setTimeout, cancel = clearTimeout, delay = 240 }) {
+export function createDockHover({ visible, enabled = true, schedule = setTimeout, cancel = clearTimeout, delay = 240 }) {
+  if (!enabled) return { move() {}, stop() {} };
   let shown = false, timer = null;
   function show(value) { if (shown !== value) { shown = value; visible(value); } }
   return {

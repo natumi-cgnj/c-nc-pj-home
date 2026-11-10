@@ -26,38 +26,48 @@ function artworkSize(image, extent = 320, bubble = false) {
 }
 // All interface dimensions share a 320-unit scene. The artwork's centre/bottom
 // is independent of the transparent window, so changing sides never moves Jane.
-function companionLayout(image, extent, anchor, area, { bubble = false, conversation = false, speechHeight = 176 } = {}) {
+function companionLayout(image, extent, anchor, area, { bubble = false, conversation = false, speechHeight = 208, showLabels = true } = {}) {
   const limit = Math.max(image.width, image.height), width = 320 * image.width / limit, height = 320 * image.height / limit;
   const side = anchor.x < area.x + area.width / 2 ? 'right' : 'left';
-  const gap = 10, dockWidth = 280, dockHeight = 32, mailWidth = 300, mailHeight = 344;
-  const spokenHeight = Number.isFinite(speechHeight) ? Math.min(512, Math.max(176, speechHeight)) : 176;
+  const gap = 10, dockWidth = 180, dockHeight = 64, mailWidth = 300, mailHeight = 344;
+  const spokenHeight = Number.isFinite(speechHeight) ? Math.min(512, Math.max(208, speechHeight)) : 208;
   const beside = panelWidth => side === 'right' ? width / 2 + gap : -width / 2 - gap - panelWidth;
   const raw = {
     art: { x: -width / 2, y: -height, width, height },
     dock: { x: beside(dockWidth), y: -dockHeight, width: dockWidth, height: dockHeight },
-    speech: { x: -160, y: -height - gap - spokenHeight, width: 320, height: spokenHeight },
+    speech: { x: -width / 2, y: -height - gap - spokenHeight, width, height: spokenHeight },
     conversation: { x: beside(mailWidth), y: -dockHeight - 8 - mailHeight, width: mailWidth, height: mailHeight }
   };
-  const names = ['art', 'dock', ...(bubble ? ['speech'] : []), ...(conversation ? ['conversation'] : [])];
-  const left = Math.min(...names.map(name => raw[name].x)), right = Math.max(...names.map(name => raw[name].x + raw[name].width));
-  const top = Math.min(...names.map(name => raw[name].y));
+  const fitNames = ['art', 'dock', ...(bubble ? ['speech'] : []), ...(conversation ? ['conversation'] : [])];
+  const names = fitNames.filter(name => name !== 'dock' || showLabels);
+  const left = Math.min(...fitNames.map(name => raw[name].x)), right = Math.max(...fitNames.map(name => raw[name].x + raw[name].width));
+  const top = Math.min(...fitNames.map(name => raw[name].y));
   // Leave room for the chosen side even at the monitor midpoint. This avoids
   // a sideways nudge when a drag crosses the midpoint on a small/DPI-scaled screen.
   const scale = Math.min(extent / 320, (area.width - 16) / Math.max(right - left, 2 * Math.max(-left, right)), (area.height - 16) / -top);
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
-  const placed = { x: clamp(anchor.x, area.x + 8 - left * scale, area.x + area.width - 8 - right * scale),
+  // Only the artwork constrains its horizontal anchor. Wider panels shift
+  // inward independently, so opening text never pushes Jane off an edge.
+  const placed = { x: clamp(anchor.x, area.x + width * scale / 2, area.x + area.width - width * scale / 2),
     y: clamp(anchor.y, area.y + 8 - top * scale, area.y + area.height) };
-  const bounds = { x: Math.floor(placed.x + left * scale) - 8, y: Math.floor(placed.y + top * scale) - 8,
-    width: Math.ceil((right - left) * scale) + 16, height: Math.ceil(-top * scale) + 16 };
-  const local = rect => ({ x: placed.x + rect.x * scale - bounds.x, y: placed.y + rect.y * scale - bounds.y,
-    width: rect.width * scale, height: rect.height * scale });
-  return { bounds, anchor: placed, view: { version: 1, side, scale, width: bounds.width, height: bounds.height,
-    art: local(raw.art), dock: local(raw.dock), speech: local(raw.speech), conversation: local(raw.conversation) } };
+  const rects = Object.fromEntries(Object.entries(raw).map(([name, rect]) => {
+    const w = rect.width * scale, x = placed.x + rect.x * scale;
+    return [name, { x: name === 'art' ? x : clamp(x, area.x + 8, area.x + area.width - 8 - w),
+      y: placed.y + rect.y * scale, width: w, height: rect.height * scale }];
+  }));
+  const minX = Math.min(...names.map(name => rects[name].x)), maxX = Math.max(...names.map(name => rects[name].x + rects[name].width));
+  const minY = Math.min(...names.map(name => rects[name].y)), maxY = Math.max(...names.map(name => rects[name].y + rects[name].height));
+  const bounds = { x: Math.floor(minX) - 8, y: Math.floor(minY) - 8,
+    width: Math.ceil(maxX) - Math.floor(minX) + 16, height: Math.ceil(maxY) - Math.floor(minY) + 16 };
+  const local = rect => ({ ...rect, x: rect.x - bounds.x, y: rect.y - bounds.y });
+  return { bounds, anchor: placed, view: { version: 2, side, scale, dockVisible: showLabels !== false, width: bounds.width, height: bounds.height,
+    art: local(rects.art), dock: local(rects.dock), speech: local(rects.speech), conversation: local(rects.conversation) } };
 }
 function preferences(value) {
   if (!value || typeof value !== 'object') return {};
   return { extent: [220, 320, 440].includes(value.extent) ? value.extent : 320,
     onTop: value.onTop !== false, lastAsset: typeof value.lastAsset === 'string' ? value.lastAsset : '',
+    showLabels: value.showLabels !== false,
     ...(Number.isFinite(value.position?.x) && Number.isFinite(value.position?.y) ? { position: value.position } : {}),
     ...(Number.isFinite(value.artworkAnchor?.x) && Number.isFinite(value.artworkAnchor?.y) ? { artworkAnchor: { x: value.artworkAnchor.x, y: value.artworkAnchor.y } } : {}),
     ...(programFile(value.programPath) ? { programPath: value.programPath } : {}),

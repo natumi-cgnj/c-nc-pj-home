@@ -11,12 +11,12 @@ function createCompanion(electron, options = {}) {
   const manifest = JSON.parse(fs.readFileSync(path.join(assetRoot, 'manifest.json'), 'utf8'));
   const base = options.baseURL || policy.SITE_BASE;
   const targetURL = new URL(policy.pageURL(base));
-  targetURL.searchParams.set('desktop', options.coreVersion || '0.1.4');
+  targetURL.searchParams.set('desktop', options.coreVersion || '0.1.5');
   const target = targetURL.href;
   const fallbackPath = path.join(__dirname, 'offline.html'), fallback = pathToFileURL(fallbackPath).href;
   const partition = 'persist:jane-companion-v1';
   let pet, loginWindow, tray, prefs = {}, quitting = false, drag = null, ignored = null, current, bubble = 0;
-  let adaptive = false, anchor, layout, spokenHeight = 176;
+  let adaptive = false, anchor, layout, spokenHeight = 208;
   const imageCache = new Map();
   const prefsPath = () => path.join(app.getPath('userData'), 'companion-window.json');
   function save() { try { fs.mkdirSync(path.dirname(prefsPath()), { recursive: true }); fs.writeFileSync(prefsPath(), JSON.stringify(prefs)); } catch {} }
@@ -45,7 +45,7 @@ function createCompanion(electron, options = {}) {
   function arrange() {
     const size = policy.artworkSize(current, prefs.extent || 320);
     const area = screen.getDisplayMatching({ x: Math.round(anchor.x - size.width / 2), y: Math.round(anchor.y - size.height), ...size }).workArea;
-    layout = policy.companionLayout(current, prefs.extent || 320, anchor, area, { bubble: bubble === 128, conversation: bubble === 360, speechHeight: spokenHeight });
+    layout = policy.companionLayout(current, prefs.extent || 320, anchor, area, { bubble: bubble === 128, conversation: bubble === 360, speechHeight: spokenHeight, showLabels: prefs.showLabels !== false });
     pet.setBounds(layout.bounds); pet.webContents.send('jane:layout', layout.view);
   }
   function resize(image) {
@@ -81,6 +81,8 @@ function createCompanion(electron, options = {}) {
       { type: 'separator' },
       { label: '大小', submenu: [['小', 220], ['中', 320], ['大', 440]].map(([label, extent]) => ({ label, type: 'radio', checked: (prefs.extent || 320) === extent,
         click: () => { prefs.extent = extent; if (current) resize(current); save(); } })) },
+      { label: '显示状态／留言', type: 'checkbox', checked: prefs.showLabels !== false,
+        click: item => { prefs.showLabels = item.checked === true; if (adaptive) arrange(); save(); } },
       { label: '保持置顶', type: 'checkbox', checked: prefs.onTop !== false, click: item => { prefs.onTop = item.checked; pet.setAlwaysOnTop(item.checked); save(); } },
       { label: pet.isVisible() ? '暂时隐藏' : '显示 Jane', click: () => pet.isVisible() ? pet.hide() : show() },
       { type: 'separator' }, { label: '退出', click: () => { quitting = true; app.quit(); } }
@@ -90,7 +92,7 @@ function createCompanion(electron, options = {}) {
   async function showMenu(withWindow = true) { (await menu()).popup(withWindow ? { window: pet } : {}); }
   ipcMain.handle('jane:manifest', event => {
     if (!authorize(event)) throw new Error('Untrusted companion frame');
-    return { version: manifest.version, nativeVersion: options.coreVersion || '0.1.4', dialogueInset: 128, messageInset: 360, sideLayout: 1, layout: adaptive ? layout.view : null, onlineUpdates: !!options.updates, states: manifest.states, default_image: manifest.default_image,
+    return { version: manifest.version, nativeVersion: options.coreVersion || '0.1.5', dialogueInset: 128, messageInset: 360, sideLayout: 2, manualVisibility: true, layout: adaptive ? layout.view : null, onlineUpdates: !!options.updates, states: manifest.states, default_image: manifest.default_image,
       images: manifest.images.map(({ id, file, width, height }) => ({ id, file, width, height })) };
   });
   ipcMain.handle('jane:artwork', (event, id) => {
@@ -115,7 +117,7 @@ function createCompanion(electron, options = {}) {
     const image = manifest.images.find(image => image.id === value.assetId);
     const nextBubble = value.conversation === true ? 360 : value.bubble === true ? 128 : 0;
     const nextAdaptive = value.sideLayout === true;
-    const nextHeight = Number.isFinite(value.speechHeight) ? Math.max(176, Math.min(512, Math.ceil(value.speechHeight))) : 176;
+    const nextHeight = Number.isFinite(value.speechHeight) ? Math.max(208, Math.min(512, Math.ceil(value.speechHeight))) : 208;
     if (current?.id !== image.id || nextBubble !== bubble || nextAdaptive !== adaptive || nextHeight !== spokenHeight) {
       if (adaptive && !nextAdaptive) {
         // Offline/older hosted UI retains the original inset layout.

@@ -31,3 +31,10 @@
 #companion.adaptive-layout #speech{left:var(--speech-x);right:auto;top:auto;bottom:var(--speech-bottom);width:320px;max-height:none;transform:scale(var(--scene-scale));transform-origin:left bottom}
 #companion.adaptive-layout #speechLine{max-height:none;overflow:visible}
 #companion.adaptive-layout #conversation{inset:auto;left:var(--conversation-x);top:var(--conversation-y);width:300px;height:344px;transform:scale(var(--scene-scale));transform-origin:left top}
+
+/* 0.1.5+: two stable tags, with visibility chosen in the native menu. */
+#companion.adaptive-layout[data-layout-version="2"] #dock{width:180px;height:64px;flex-direction:column;align-items:flex-start;justify-content:flex-end;gap:6px;transition:none}
+#companion.adaptive-layout[data-layout-version="2"][data-side="left"] #dock{align-items:flex-end}
+#companion.adaptive-layout[data-layout-version="2"] #mailButton{order:0}
+#companion.adaptive-layout[data-layout-version="2"] #caption{order:1;flex:none;max-width:180px;transition:none}
+#companion.adaptive-layout[data-layout-version="2"] #speech{width:var(--speech-logical-width)}

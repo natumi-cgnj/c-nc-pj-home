@@ -1,7 +1,7 @@
 {
   "name": "jane-desktop-companion",
   "productName": "Jane Companion",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "private": true,
   "description": "Jane's desktop companion for C-NC",
   "author": "C-NC",

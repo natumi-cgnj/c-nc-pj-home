@@ -15,7 +15,7 @@ test('every approved pose and size fits small, DPI-scaled and negative-coordinat
     { x: 1920, y: -1200, width: 800, height: 1160 },
     { x: -640, y: 0, width: 640, height: 440 }
   ]) for (const image of images) for (const extent of [220, 320, 440]) {
-    for (const flags of [{}, { bubble: true }, { conversation: true }, { bubble: true, speechHeight: 235 }]) {
+    for (const flags of [{}, { bubble: true }, { conversation: true }, { bubble: true, speechHeight: 235 }, { showLabels: false }, { showLabels: false, bubble: true }]) {
       for (const ratio of [0, 0.25, 0.499, 0.501, 0.75, 1]) for (const bottom of [area.y + 20, area.y + area.height]) {
         const anchor = { x: area.x + area.width * ratio, y: bottom };
         const { bounds, view } = policy.companionLayout(image, extent, anchor, area, flags);
@@ -23,11 +23,24 @@ test('every approved pose and size fits small, DPI-scaled and negative-coordinat
         assert.ok(view.scale > 0 && view.scale <= extent / 320);
         near(view.art.y + view.art.height, view.dock.y + view.dock.height, 'foot line');
         if (flags.bubble) near(view.speech.y + view.speech.height, view.art.y - 10 * view.scale, 'speech above image');
-        for (const name of ['art', 'dock', ...(flags.bubble ? ['speech'] : []), ...(flags.conversation ? ['conversation'] : [])]) {
+        for (const name of ['art', ...(flags.showLabels === false ? [] : ['dock']), ...(flags.bubble ? ['speech'] : []), ...(flags.conversation ? ['conversation'] : [])]) {
           const r = view[name], label = `${image.id}/${extent}/${name}/${ratio}`;
           assert.ok(r.x >= 0 && r.y >= 0 && r.x + r.width <= bounds.width + 0.001 && r.y + r.height <= bounds.height + 0.001, label + ' inside native window');
-          assert.ok(bounds.x + r.x >= area.x && bounds.y + r.y >= area.y && bounds.x + r.x + r.width <= area.x + area.width + 0.001 && bounds.y + r.y + r.height <= area.y + area.height + 0.001, label + ' inside monitor work area');
+          assert.ok(bounds.x + r.x >= area.x - 0.001 && bounds.y + r.y >= area.y - 0.001 && bounds.x + r.x + r.width <= area.x + area.width + 0.001 && bounds.y + r.y + r.height <= area.y + area.height + 0.001, label + ' inside monitor work area');
         }
+      }
+    }
+  }
+});
+
+test('speech never exceeds the figure width and overlays do not push an edge-aligned figure inward', () => {
+  for (const area of [{ x: 0, y: 0, width: 1920, height: 1040 }, { x: -1280, y: -100, width: 1280, height: 680 }]) {
+    for (const image of images) for (const extent of [220, 320, 440]) for (const edge of ['left', 'right']) {
+      const anchor = { x: edge === 'left' ? area.x : area.x + area.width, y: area.y + area.height };
+      for (const flags of [{}, { bubble: true }, { conversation: true }, { bubble: true, showLabels: false }]) {
+        const { bounds, view } = policy.companionLayout(image, extent, anchor, area, flags);
+        near(bounds.x + view.art.x + (edge === 'right' ? view.art.width : 0), edge === 'left' ? area.x : area.x + area.width, 'figure touches ' + edge);
+        assert.ok(view.speech.width <= view.art.width + 0.001, 'speech is no wider than the image');
       }
     }
   }
@@ -62,10 +75,23 @@ test('side controls remain hidden until hover, allow crossing the transparent ga
   hover.move(true); hover.stop(); assert.deepEqual(changes, [true, false, true, false]);
 });
 
+test('manual visibility ignores incidental hovering and the native visibility value controls both tags', () => {
+  const changes = [], hover = createDockHover({ enabled: false, visible: value => changes.push(value), schedule: () => { throw Error('No hover timer in manual mode'); } });
+  for (const over of [true, false, true, false, true]) hover.move(over); hover.stop();
+  assert.deepEqual(changes, []);
+  const classes = new Set(), root = { style: { setProperty() {} }, dataset: {}, classList: { add: v => classes.add(v), toggle: (v, show) => show ? classes.add(v) : classes.delete(v) } };
+  const area = { x: 0, y: 0, width: 1920, height: 1040 }, anchor = { x: 300, y: 1000 };
+  for (const showLabels of [false, true, false]) {
+    const { view } = policy.companionLayout(images[0], 320, anchor, area, { showLabels });
+    applyCompanionLayout(root, view); assert.equal(classes.has('ui-visible'), showLabels); assert.equal(root.dataset.layoutVersion, '2');
+  }
+});
+
 test('renderer applies only finite native layout rectangles and one shared scale', () => {
-  const props = {}, classes = new Set(), root = { style: { setProperty: (key, value) => props[key] = value }, dataset: {}, classList: { add: value => classes.add(value) } };
+  const props = {}, classes = new Set(), root = { style: { setProperty: (key, value) => props[key] = value }, dataset: {}, classList: { add: value => classes.add(value), toggle: (v, show) => show ? classes.add(v) : classes.delete(v) } };
   const { view } = policy.companionLayout(images[0], 220, { x: 450, y: 900 }, { x: 0, y: 0, width: 1920, height: 1040 }, { bubble: true });
   assert.equal(applyCompanionLayout(root, view), true); assert.equal(props['--scene-scale'], String(220 / 320));
+  assert.equal(Number.parseFloat(props['--speech-logical-width']), view.speech.width / view.scale);
   assert.equal(root.dataset.side, 'right'); assert.ok(classes.has('adaptive-layout'));
   assert.equal(applyCompanionLayout(root, { ...view, scale: NaN }), false);
   assert.equal(applyCompanionLayout(root, { ...view, art: { ...view.art, x: '1px;display:none' } }), false);
