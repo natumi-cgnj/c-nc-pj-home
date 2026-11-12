@@ -24,25 +24,26 @@
 .ledger-task-check span{margin-right:3px}
 .ledger-task-action:focus-visible,.ledger-task-check:focus-visible,.ledger-task-dialogue:focus-visible{outline:1px solid #B08A5A;outline-offset:4px}
 @media(min-width:900px){.asset-stage-story.asset-task-story{min-height:360px;height:100%}.ledger-task-panel{max-width:540px}}
-/* Give tasks and daily moments their own full-width sections on small screens. */
+/* Keep the single dialogue/task surface readable and compact on small screens. */
 @media(max-width:899px){
-  .asset-stage-story.asset-task-story{height:auto;min-height:0;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:28px;padding:24px clamp(20px,4vw,36px)}
+  .asset-stage-story.asset-task-story{height:auto;min-height:0;flex-direction:column;align-items:stretch;justify-content:flex-start;padding:20px clamp(20px,4vw,36px)}
   .ledger-task-panel{max-width:none;min-width:0;flex:none}
-  .ledger-task-heading{gap:12px;margin-bottom:12px;font-size:10px}
+  .ledger-task-heading{gap:12px;margin-bottom:10px;font-size:10px}
   .ledger-task-heading>span{white-space:nowrap}
-  .ledger-task-title{margin-bottom:10px;font-size:14px;line-height:1.6}
+  .ledger-task-title{margin-bottom:8px;font-size:14px;line-height:1.5}
   .ledger-task-condition{font-size:12px}
-  .ledger-task-dialogue,.ledger-task-brief{min-height:0}
+  .ledger-task-dialogue{min-height:160px}
+  .ledger-task-brief{min-height:0}
   .ledger-task-speaker{font-size:11px}
-  .ledger-task-line{min-height:0;font-size:13px}
-  .ledger-task-checks{margin-top:12px}
-  .ledger-task-check-row{gap:16px;min-height:44px;padding:6px 0;border-bottom:1px solid #efede9}
+  .ledger-task-line{min-height:72px;font-size:13px}
+  .ledger-task-checks{margin-top:8px}
+  .ledger-task-check-row{gap:16px;min-height:44px;padding:0;border-bottom:1px solid #efede9}
   .ledger-task-check-row>span{min-width:0}
   .ledger-task-check-date{font-size:11px}
   .ledger-task-check-detail{font-size:10px}
   .ledger-task-check{min-height:44px;font-size:11px;white-space:nowrap}
-  .ledger-task-actions{flex-wrap:wrap;gap:8px 24px;margin-top:16px}
-  .ledger-task-action{min-height:44px;font-size:11px}
-  .ledger-task-note{margin-top:12px;font-size:10px;line-height:1.8}
-  .asset-stage-story.asset-task-story>.jane-world-moment{width:100%;max-width:none;min-width:0;flex:none;margin:0;padding:24px 0 0;border-top:1px solid #efede9}
+  .ledger-task-actions{flex-wrap:wrap;gap:4px 20px;margin-top:8px}
+  .ledger-task-action{min-height:40px;font-size:11px}
+  .ledger-task-note{margin-top:8px;font-size:10px;line-height:1.7}
+  .asset-stage-story.asset-task-story>.jane-world-moment{width:100%;max-width:none;min-width:0;flex:none;margin:0;padding:0}
 }

@@ -14,6 +14,12 @@
     const parent=document.getElementById('assetStageStory')||view.querySelector('.diet-world-spacer');
     if(!parent)return null;
     if(parent!==observedStory){storyObserver?.disconnect();observedStory=parent;storyObserver=new MutationObserver(()=>refresh());storyObserver.observe(parent,{childList:true});}
+    // Task events already own this space: one dialogue line, then the task brief.
+    // A second, expanded daily scene would interrupt that flow and stretch the page.
+    if(parent.querySelector('.ledger-task-panel')){
+      parent.querySelector('[data-jane-world-moment]')?.remove();
+      return null;
+    }
     let target=parent.querySelector('[data-jane-world-moment]');
     if(!target){target=document.createElement('div');target.className='jane-world-moment';target.dataset.janeWorldMoment='';parent.appendChild(target);}
     if(parent.classList.contains('diet-world-spacer'))parent.querySelector('.body-empty')?.remove();
