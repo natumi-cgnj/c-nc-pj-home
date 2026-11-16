@@ -12,7 +12,7 @@ npm ci
 npm test
 node build.mjs win32 /absolute/path/to/Jane_Desktop_States_25
 node verify-package.mjs
-python3 package-windows.py "out/Jane Companion-win32-x64" /absolute/path/Jane_Companion_Windows_x64_v0.1.6.zip
+python3 package-windows.py "out/Jane Companion-win32-x64" /absolute/path/Jane_Companion_Windows_x64_v0.1.7.zip
 ```
 
 The portable output is `out/Jane Companion-win32-x64/`. Keep the whole directory together. The staging app can be launched with `npm start` after building. A development-only `JANE_COMPANION_DEV_URL=http://127.0.0.1:PORT/` override is accepted only for an unpackaged application; the packaged binary always opens the production origin.
@@ -32,6 +32,8 @@ Right-click Jane or the tray icon → `开机自动启动`. Enable it once to sh
 The current-user entry points to the packaged `Jane Companion.exe` with no additional arguments, so it keeps working across signed core updates and starts the companion in its usual saved position. Double-click still opens the selected main app. This control is available in the packaged Windows app. If the portable app is moved, enable startup again from the new location to update its path. Registration errors are shown and the checkbox is restored to the actual Windows state.
 
 Core 0.1.6 uses the existing signed eight-file update format and can be installed directly from 0.1.2 or any later core; a full package replacement is unnecessary for this release. Automated tests cover registration, disabling, external changes and failure handling. Windows sign-in launching still requires a check on Windows.
+
+Core 0.1.7 fixes a false failure after enabling startup: Electron's legacy `openAtLogin` flag queries its default AppUserModelID registry value, while this companion writes the custom `Jane Companion` value. The menu now reads that value's current-user `launchItems` entry and its approval directly. It recognizes entries already saved by 0.1.6 without rewriting them; unrelated entries do not drive the checkbox. A missing entry list is treated as an unavailable read, and a real verification failure restores the actual state without claiming that Windows necessarily rejected the write.
 
 ## State and login
 

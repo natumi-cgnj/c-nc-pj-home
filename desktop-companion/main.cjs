@@ -12,8 +12,11 @@ function startupMenuItems(app, dialog, platform = process.platform) {
   const target = { path: app.getPath('exe'), args: [] }, name = 'Jane Companion';
   function enabled() {
     const settings = app.getLoginItemSettings(target);
-    const entry = settings.launchItems?.find(item => item.name === name && item.scope === 'user');
-    return settings.openAtLogin === true && (Array.isArray(settings.launchItems) ? entry?.enabled === true : settings.executableWillLaunchAtLogin !== false);
+    // openAtLogin only checks Electron's default AppUserModelID entry. Our
+    // custom Run value must be read directly, including its startup approval.
+    if (!Array.isArray(settings.launchItems)) throw Error('Startup entries unavailable');
+    const entry = settings.launchItems.find(item => item.name === name && item.scope === 'user');
+    return entry?.enabled === true;
   }
   let checked;
   try { checked = enabled(); }
@@ -28,7 +31,7 @@ function startupMenuItems(app, dialog, platform = process.platform) {
       } catch {
         try { item.checked = enabled(); } catch { item.checked = checked; }
         await dialog.showMessageBox({ type: 'error', title: 'Jane Companion', message: '未能更改开机启动设置',
-          detail: 'Windows 未保存这次更改，请稍后重试。', buttons: ['知道了'] });
+          detail: '无法确认这次更改是否生效，请稍后重试。', buttons: ['知道了'] });
       }
     }
   }];
@@ -40,7 +43,7 @@ function createCompanion(electron, options = {}) {
   const manifest = JSON.parse(fs.readFileSync(path.join(assetRoot, 'manifest.json'), 'utf8'));
   const base = options.baseURL || policy.SITE_BASE;
   const targetURL = new URL(policy.pageURL(base));
-  targetURL.searchParams.set('desktop', options.coreVersion || '0.1.6');
+  targetURL.searchParams.set('desktop', options.coreVersion || '0.1.7');
   const target = targetURL.href;
   const fallbackPath = path.join(__dirname, 'offline.html'), fallback = pathToFileURL(fallbackPath).href;
   const partition = 'persist:jane-companion-v1';
@@ -122,7 +125,7 @@ function createCompanion(electron, options = {}) {
   async function showMenu(withWindow = true) { (await menu()).popup(withWindow ? { window: pet } : {}); }
   ipcMain.handle('jane:manifest', event => {
     if (!authorize(event)) throw new Error('Untrusted companion frame');
-    return { version: manifest.version, nativeVersion: options.coreVersion || '0.1.6', dialogueInset: 128, messageInset: 360, sideLayout: 2, manualVisibility: true, layout: adaptive ? layout.view : null, onlineUpdates: !!options.updates, states: manifest.states, default_image: manifest.default_image,
+    return { version: manifest.version, nativeVersion: options.coreVersion || '0.1.7', dialogueInset: 128, messageInset: 360, sideLayout: 2, manualVisibility: true, layout: adaptive ? layout.view : null, onlineUpdates: !!options.updates, states: manifest.states, default_image: manifest.default_image,
       images: manifest.images.map(({ id, file, width, height }) => ({ id, file, width, height })) };
   });
   ipcMain.handle('jane:artwork', (event, id) => {

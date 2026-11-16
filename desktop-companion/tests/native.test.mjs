@@ -51,13 +51,15 @@ function nativeFixture(directory) {
 
 function startupFixture() {
   const executable = 'C:\\Users\\Milo\\Desktop\\Jane Companion\\Jane Companion.exe';
-  const writes = [], dialogs = [], state = { registered: false, approved: false };
+  const writes = [], dialogs = [], state = { registered: false, approved: false, defaultRegistered: false, extraItems: [] };
   const app = { isPackaged: true,
     getPath(key) { assert.equal(key, 'exe'); return executable; },
     getLoginItemSettings(target) {
       assert.deepEqual(target, { path: executable, args: [] });
-      return { openAtLogin: state.registered, executableWillLaunchAtLogin: state.registered && state.approved,
-        launchItems: state.registered ? [{ name: 'Jane Companion', scope: 'user', path: executable, args: [], enabled: state.approved }] : [] };
+      // Electron's openAtLogin queries the default AppUserModelID, even when
+      // setLoginItemSettings wrote a custom name. launchItems lists both.
+      const launchItems = [...(state.registered ? [{ name: 'Jane Companion', scope: 'user', path: executable, args: [], enabled: state.approved }] : []), ...state.extraItems];
+      return { openAtLogin: state.defaultRegistered, executableWillLaunchAtLogin: launchItems.some(item => item.enabled), launchItems };
     },
     setLoginItemSettings(value) {
       writes.push(value); state.registered = value.openAtLogin; state.approved = value.enabled;
@@ -85,6 +87,23 @@ test('startup reflects Task Manager changes and can explicitly enable a disabled
   f.state.approved = false; assert.equal(f.menu().checked, false, 'external disabling is not overwritten at startup or menu open');
 });
 
+test('startup recognizes an already-saved custom entry while the default openAtLogin flag is false', () => {
+  const f = startupFixture(); f.state.registered = true; f.state.approved = true;
+  assert.equal(f.app.getLoginItemSettings({ path: f.executable, args: [] }).openAtLogin, false);
+  assert.equal(f.menu().checked, true, 'a 0.1.6 registration survives the corrected read without another write');
+  assert.deepEqual(f.writes, []);
+});
+
+test('startup does not mistake another user or machine entry for the companion entry', async () => {
+  const f = startupFixture(); f.state.defaultRegistered = true;
+  f.state.extraItems = [{ name: 'electron.app.Other', scope: 'user', enabled: true }, { name: 'Jane Companion', scope: 'machine', enabled: true }];
+  assert.equal(f.menu().checked, false);
+  f.state.registered = true; f.state.approved = true;
+  const item = f.menu(); item.checked = false; await item.click(item);
+  assert.equal(f.menu().checked, false, 'disabling our entry succeeds even while another entry keeps the broad executable flag true');
+  assert.equal(f.state.extraItems.length, 2); assert.deepEqual(f.dialogs, []);
+});
+
 test('startup registration failures restore the OS setting and report the error', async () => {
   for (const write of [() => { throw Error('registry unavailable'); }, () => {}]) {
     const f = startupFixture(); f.app.setLoginItemSettings = write;
@@ -93,6 +112,12 @@ test('startup registration failures restore the OS setting and report the error'
   }
   const f = startupFixture(); f.app.getLoginItemSettings = () => { throw Error('registry unavailable'); };
   assert.equal(f.menu().enabled, false); assert.deepEqual(f.writes, []);
+  f.app.getLoginItemSettings = () => ({ openAtLogin: true, executableWillLaunchAtLogin: true });
+  assert.equal(f.menu().enabled, false, 'the legacy flags cannot verify our named entry without launchItems');
+  const failedRemoval = startupFixture(); failedRemoval.state.registered = true; failedRemoval.state.approved = true;
+  failedRemoval.app.setLoginItemSettings = () => {};
+  const item = failedRemoval.menu(); item.checked = false; await item.click(item);
+  assert.equal(item.checked, true); assert.equal(failedRemoval.dialogs.length, 1);
 });
 
 test('startup control is absent in development and on unsupported platforms', () => {
