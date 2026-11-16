@@ -12,7 +12,7 @@ npm ci
 npm test
 node build.mjs win32 /absolute/path/to/Jane_Desktop_States_25
 node verify-package.mjs
-python3 package-windows.py "out/Jane Companion-win32-x64" /absolute/path/Jane_Companion_Windows_x64_v0.1.5.zip
+python3 package-windows.py "out/Jane Companion-win32-x64" /absolute/path/Jane_Companion_Windows_x64_v0.1.6.zip
 ```
 
 The portable output is `out/Jane Companion-win32-x64/`. Keep the whole directory together. The staging app can be launched with `npm start` after building. A development-only `JANE_COMPANION_DEV_URL=http://127.0.0.1:PORT/` override is accepted only for an unpackaged application; the packaged binary always opens the production origin.
@@ -24,6 +24,14 @@ The first double-click offers local Desktop and Start Menu shortcuts. Select the
 Shortcut discovery stays local, skips symlinks and has a bounded scan. Native menu callbacks alone choose the saved path. The renderer's open IPC ignores all arguments and cannot set a program path. We deliberately select `.lnk` files from directory listings rather than the Windows file picker, which may resolve a PWA shortcut to a browser proxy and discard its arguments. The executable picker rejects bare browser executables/proxies. Program choice, window preferences, app name and authentication partition remain stable across updates.
 
 Use `package-windows.py` for the download ZIP. It writes explicit directory entries and ordinary DOS file attributes, uses ASCII paths (`使用说明.txt` becomes `README.txt`), and avoids inherited Unix modes, extra fields, encryption and ZIP64. It checks paths, name collisions, entry flags and CRC before replacing the output. This is a compatibility measure; it does not diagnose or alter the user's local download/destination permissions. To validate a download, extract it into a fresh directory with an independent extractor and run `verify-package.mjs` on that extracted app.
+
+## Start with Windows (0.1.6)
+
+Right-click Jane or the tray icon → `开机自动启动`. Enable it once to show the companion after Windows sign-in, or untick it to remove the startup entry. Opening or updating the companion never enables startup automatically. The menu reads the current Windows setting, including Task Manager's startup approval, rather than a separate saved checkbox.
+
+The current-user entry points to the packaged `Jane Companion.exe` with no additional arguments, so it keeps working across signed core updates and starts the companion in its usual saved position. Double-click still opens the selected main app. This control is available in the packaged Windows app. If the portable app is moved, enable startup again from the new location to update its path. Registration errors are shown and the checkbox is restored to the actual Windows state.
+
+Core 0.1.6 uses the existing signed eight-file update format and can be installed directly from 0.1.2 or any later core; a full package replacement is unnecessary for this release. Automated tests cover registration, disabling, external changes and failure handling. Windows sign-in launching still requires a check on Windows.
 
 ## State and login
 

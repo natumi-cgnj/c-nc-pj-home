@@ -5,13 +5,42 @@ const { pathToFileURL } = require('node:url');
 const policy = require('./policy.cjs');
 const { createProgramLauncher } = require('./program-launcher.cjs');
 
+// Query Windows each time the menu opens, including changes made in Task Manager.
+// The executable stays in the portable app; signed core updates live elsewhere.
+function startupMenuItems(app, dialog, platform = process.platform) {
+  if (platform !== 'win32' || !app.isPackaged || typeof app.getLoginItemSettings !== 'function' || typeof app.setLoginItemSettings !== 'function') return [];
+  const target = { path: app.getPath('exe'), args: [] }, name = 'Jane Companion';
+  function enabled() {
+    const settings = app.getLoginItemSettings(target);
+    const entry = settings.launchItems?.find(item => item.name === name && item.scope === 'user');
+    return settings.openAtLogin === true && (Array.isArray(settings.launchItems) ? entry?.enabled === true : settings.executableWillLaunchAtLogin !== false);
+  }
+  let checked;
+  try { checked = enabled(); }
+  catch { return [{ label: '开机自动启动（暂时不可用）', enabled: false }]; }
+  return [{ label: '开机自动启动', type: 'checkbox', checked,
+    click: async item => {
+      const requested = item.checked === true;
+      try {
+        app.setLoginItemSettings({ ...target, name, openAtLogin: requested, enabled: requested });
+        item.checked = enabled();
+        if (item.checked !== requested) throw Error('Startup setting was not saved');
+      } catch {
+        try { item.checked = enabled(); } catch { item.checked = checked; }
+        await dialog.showMessageBox({ type: 'error', title: 'Jane Companion', message: '未能更改开机启动设置',
+          detail: 'Windows 未保存这次更改，请稍后重试。', buttons: ['知道了'] });
+      }
+    }
+  }];
+}
+
 function createCompanion(electron, options = {}) {
   const { app, BrowserWindow, ipcMain, Menu, Tray, nativeImage, screen, shell, session, powerMonitor, dialog } = electron;
   const assetRoot = options.assetRoot || path.join(__dirname, 'assets');
   const manifest = JSON.parse(fs.readFileSync(path.join(assetRoot, 'manifest.json'), 'utf8'));
   const base = options.baseURL || policy.SITE_BASE;
   const targetURL = new URL(policy.pageURL(base));
-  targetURL.searchParams.set('desktop', options.coreVersion || '0.1.5');
+  targetURL.searchParams.set('desktop', options.coreVersion || '0.1.6');
   const target = targetURL.href;
   const fallbackPath = path.join(__dirname, 'offline.html'), fallback = pathToFileURL(fallbackPath).href;
   const partition = 'persist:jane-companion-v1';
@@ -78,6 +107,7 @@ function createCompanion(electron, options = {}) {
       { label: '登录同步账号', click: login },
       { label: '立即刷新状态', click: () => { show(); pet.loadURL(target); } },
       ...(options.updates ? [{ label: '检查在线更新', click: () => options.updates.check(true) }] : []),
+      ...startupMenuItems(app, dialog),
       { type: 'separator' },
       { label: '大小', submenu: [['小', 220], ['中', 320], ['大', 440]].map(([label, extent]) => ({ label, type: 'radio', checked: (prefs.extent || 320) === extent,
         click: () => { prefs.extent = extent; if (current) resize(current); save(); } })) },
@@ -92,7 +122,7 @@ function createCompanion(electron, options = {}) {
   async function showMenu(withWindow = true) { (await menu()).popup(withWindow ? { window: pet } : {}); }
   ipcMain.handle('jane:manifest', event => {
     if (!authorize(event)) throw new Error('Untrusted companion frame');
-    return { version: manifest.version, nativeVersion: options.coreVersion || '0.1.5', dialogueInset: 128, messageInset: 360, sideLayout: 2, manualVisibility: true, layout: adaptive ? layout.view : null, onlineUpdates: !!options.updates, states: manifest.states, default_image: manifest.default_image,
+    return { version: manifest.version, nativeVersion: options.coreVersion || '0.1.6', dialogueInset: 128, messageInset: 360, sideLayout: 2, manualVisibility: true, layout: adaptive ? layout.view : null, onlineUpdates: !!options.updates, states: manifest.states, default_image: manifest.default_image,
       images: manifest.images.map(({ id, file, width, height }) => ({ id, file, width, height })) };
   });
   ipcMain.handle('jane:artwork', (event, id) => {
@@ -183,4 +213,4 @@ function createCompanion(electron, options = {}) {
   app.on('window-all-closed', () => {});
   return { ready, getWindow: () => pet, authorize };
 }
-module.exports = { createCompanion };
+module.exports = { createCompanion, startupMenuItems };

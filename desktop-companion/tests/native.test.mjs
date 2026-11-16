@@ -49,6 +49,60 @@ function nativeFixture(directory) {
   return { electron, windows, handles, listeners, opened, launched, menus, nativeSession, cursor(value) { cursor = value; } };
 }
 
+function startupFixture() {
+  const executable = 'C:\\Users\\Milo\\Desktop\\Jane Companion\\Jane Companion.exe';
+  const writes = [], dialogs = [], state = { registered: false, approved: false };
+  const app = { isPackaged: true,
+    getPath(key) { assert.equal(key, 'exe'); return executable; },
+    getLoginItemSettings(target) {
+      assert.deepEqual(target, { path: executable, args: [] });
+      return { openAtLogin: state.registered, executableWillLaunchAtLogin: state.registered && state.approved,
+        launchItems: state.registered ? [{ name: 'Jane Companion', scope: 'user', path: executable, args: [], enabled: state.approved }] : [] };
+    },
+    setLoginItemSettings(value) {
+      writes.push(value); state.registered = value.openAtLogin; state.approved = value.enabled;
+    }
+  };
+  const dialog = { async showMessageBox(value) { dialogs.push(value); } };
+  return { app, dialog, writes, dialogs, state, executable, menu: () => main.startupMenuItems(app, dialog, 'win32')[0] };
+}
+
+test('startup is opt-in and uses the stable packaged executable for enable and disable', async () => {
+  const f = startupFixture(), item = f.menu();
+  assert.equal(item.label, '开机自动启动'); assert.equal(item.checked, false); assert.deepEqual(f.writes, []);
+  item.checked = true; await item.click(item);
+  assert.deepEqual(f.writes[0], { path: f.executable, args: [], name: 'Jane Companion', openAtLogin: true, enabled: true });
+  assert.equal(item.checked, true); assert.equal(f.menu().checked, true, 'a fresh menu reads persisted OS state');
+  const disable = f.menu(); disable.checked = false; await disable.click(disable);
+  assert.equal(f.writes[1].openAtLogin, false); assert.equal(f.writes[1].path, f.executable); assert.equal(f.menu().checked, false);
+  assert.deepEqual(f.dialogs, []);
+});
+
+test('startup reflects Task Manager changes and can explicitly enable a disabled entry again', async () => {
+  const f = startupFixture(); f.state.registered = true; f.state.approved = false;
+  const item = f.menu(); assert.equal(item.checked, false); assert.deepEqual(f.writes, []);
+  item.checked = true; await item.click(item); assert.equal(f.state.approved, true); assert.equal(f.menu().checked, true);
+  f.state.approved = false; assert.equal(f.menu().checked, false, 'external disabling is not overwritten at startup or menu open');
+});
+
+test('startup registration failures restore the OS setting and report the error', async () => {
+  for (const write of [() => { throw Error('registry unavailable'); }, () => {}]) {
+    const f = startupFixture(); f.app.setLoginItemSettings = write;
+    const item = f.menu(); item.checked = true; await item.click(item);
+    assert.equal(item.checked, false); assert.equal(f.dialogs.length, 1); assert.equal(f.dialogs[0].message, '未能更改开机启动设置');
+  }
+  const f = startupFixture(); f.app.getLoginItemSettings = () => { throw Error('registry unavailable'); };
+  assert.equal(f.menu().enabled, false); assert.deepEqual(f.writes, []);
+});
+
+test('startup control is absent in development and on unsupported platforms', () => {
+  const f = startupFixture();
+  assert.deepEqual(main.startupMenuItems(f.app, f.dialog, 'linux'), []);
+  assert.deepEqual(main.startupMenuItems(f.app, f.dialog, 'darwin'), []);
+  f.app.isPackaged = false; assert.deepEqual(main.startupMenuItems(f.app, f.dialog, 'win32'), []);
+  assert.deepEqual(f.writes, []);
+});
+
 test('native shell validates IPC, preserves login and dragging, opens only the locally selected application', async t => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'jane-companion-test-'));
   t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
