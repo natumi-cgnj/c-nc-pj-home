@@ -1,7 +1,7 @@
 import { recentCompanionRecords, companionPrompt, validateCompanionReply } from '../../../jane-companion-content.mjs';
 import { stateSessions } from '../../../cbi-state-content.mjs';
 import { savedStoryPrompt } from '../../../world-story-content.mjs';
-import { companionReplyAt } from './companion-timing.mjs';
+import { companionReplyAt, companionProactiveWindow } from './companion-timing.mjs';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const ACTIVE = ['starting', 'running', 'uncertain'];
@@ -55,21 +55,23 @@ export async function companionRequest({ input, user, store, now, cryptoApi, fet
   }
   const recent = await store.companionRecentRuns(user, new Date(at - 15 * 60000).toISOString());
   if (recent.length >= 6) return response({ waiting: 'busy' });
+  let proactive;
+  if (!message || message.kind === 'letter') {
+    const letters = await store.companionLetters(user, new Date(at - 24 * 3600000).toISOString());
+    proactive = companionProactiveWindow(user, at, letters, message?.id);
+    if (!proactive.allowed) return response({ waiting: 'later' });
+    const last = history[0];
+    if (last && Date.parse(last.replied_at || last.created_at) > at - 30 * 60000) return response({ waiting: 'later' });
+  }
   const story = await getStory(), raw = await store.companionInputs(user, accessToken);
   const records = await Promise.all(recentCompanionRecords(raw, at).map(async row => ({ ...row, key: await digest(JSON.stringify(row), cryptoApi) })));
   if (!message) {
     // No automatic greeting storm across devices, restarts or long-running states.
-    const letters = await store.companionLetters(user, new Date(at - 24 * 3600000).toISOString());
-    const latestLetter = letters[0];
-    if (latestLetter && Date.parse(latestLetter.created_at) > at - 45 * 60000) return response();
-    if (letters.length >= 8) return response();
     const mentioned = new Set((await store.companionMentioned(user, new Date(at - 8 * 86400000).toISOString())).flatMap(x => x.record_keys || []));
     const fresh = records.filter(r => !mentioned.has(r.key));
-    const last = history[0];
-    if (last && Date.parse(last.created_at) > at - 30 * 60000) return response();
     // A letter need not discuss a log. Unmentioned records must not pin the
     // dedupe key forever and silence later everyday/romantic correspondence.
-    const seed = 'open-correspondence-v2:' + Math.floor(at / (45 * 60000));
+    const seed = ['open-correspondence-v3', proactive.day, proactive.count, proactive.lastId].join(':');
     const dedupe = await digest('companion-letter:' + user + ':' + seed, cryptoApi);
     try { message = await store.companionInsert({ id: cryptoApi.randomUUID(), user_id: user, dedupe_key: dedupe, kind: 'letter', user_text: '', status: 'queued', created_at: time }); }
     catch (error) { if (error.dbCode === '23505') return response(); throw error; }

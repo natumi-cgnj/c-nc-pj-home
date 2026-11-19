@@ -260,7 +260,7 @@ export function createRestStore(env, fetcher = fetch) {
     },
     async companionOne(user, id) { return (await rest('jane_companion_messages?' + scope(user) + '&id=eq.' + encodeURIComponent(id) + '&select=*&limit=1'))[0] || null; },
     async companionHistory(user) { return rest('jane_companion_messages?' + scope(user) + '&select=*&order=created_at.desc&limit=60'); },
-    async companionLetters(user, since) { return rest('jane_companion_messages?' + scope(user) + '&kind=eq.letter&created_at=gte.' + encodeURIComponent(since) + '&select=created_at&order=created_at.desc&limit=8'); },
+    async companionLetters(user, since) { const bound = encodeURIComponent(since); return rest('jane_companion_messages?' + scope(user) + '&kind=eq.letter&or=(created_at.gte.' + bound + ',replied_at.gte.' + bound + ')&select=id,kind,status,created_at,replied_at&order=created_at.desc&limit=30'); },
     async companionQueue(user) { return rest('jane_companion_messages?' + scope(user) + '&status=in.(queued,running)&select=*&order=created_at.asc&limit=11'); },
     async companionMentioned(user, since) { return rest('jane_companion_messages?' + scope(user) + '&status=eq.completed&created_at=gte.' + encodeURIComponent(since) + '&select=record_keys&limit=300'); },
     async companionRecentRuns(user, since) { return rest('claude_routine_runs?' + scope(user) + '&created_at=gte.' + encodeURIComponent(since) + '&select=id&limit=6'); },

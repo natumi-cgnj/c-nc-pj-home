@@ -5,7 +5,7 @@ import { createBridgeHandler, createResultHandler, createRestStore } from '../su
 import { recentCompanionRecords, companionDay, validateCompanionReply } from '../jane-companion-content.mjs';
 import { CBI_CONTINUITY } from '../cbi-current-canon.mjs';
 import { CompanionMailbox } from '../jane-companion-mailbox.mjs';
-import { companionReplyAt } from '../supabase/functions/_shared/companion-timing.mjs';
+import { companionReplyAt, companionProactiveWindow } from '../supabase/functions/_shared/companion-timing.mjs';
 const A='11111111-1111-4111-8111-111111111111', B='22222222-2222-4222-8222-222222222222', ID='33333333-3333-4333-8333-333333333333';
 const copy=x=>structuredClone(x), active=['starting','running','uncertain'];
 const env={SUPABASE_URL:'https://lbxjshaiffklmalcxiif.supabase.co'};
@@ -19,7 +19,7 @@ function fixture(fire, getWeather = async () => null) {
     async worldFiles(){return null;},async cbiStory(){return null;},async companionInputs(){return copy(inputs);},
     async companionOne(user,id){return copy(messages.find(x=>x.user_id===user&&x.id===id)||null);},
     async companionHistory(user){return messages.filter(x=>x.user_id===user).slice().reverse().map(copy);},
-    async companionLetters(user,since){return messages.filter(x=>x.user_id===user&&x.kind==='letter'&&x.created_at>=since).slice().reverse().slice(0,8).map(copy);},
+    async companionLetters(user,since){return messages.filter(x=>x.user_id===user&&x.kind==='letter'&&(x.created_at>=since||x.replied_at>=since)).slice().reverse().slice(0,30).map(copy);},
     async companionQueue(user){return messages.filter(x=>x.user_id===user&&['queued','running'].includes(x.status)).map(copy);},
     async companionMentioned(user){return messages.filter(x=>x.user_id===user&&x.status==='completed').map(copy);},
     async companionRecentRuns(user,since){return runs.filter(x=>x.user_id===user&&x.created_at>=since).map(copy);},
@@ -38,7 +38,7 @@ function fixture(fire, getWeather = async () => null) {
   async function send(action,extra={},token='a') {const response=await bridge(new Request('https://test.invalid',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json',Origin:'https://natumi-cgnj.github.io'},body:JSON.stringify({action,owner_id:token==='a'?A:B,context:context(),...extra})}));return {status:response.status,data:await response.json()};}
   async function reply(index=0,edit=x=>x){const payload=calls[index].payload,binding=JSON.parse(runs.find(x=>x.id===payload.run_id).result);const value=edit({format:'jane-companion-reply',version:1,continuity:CBI_CONTINUITY,canon_revision:binding.canon_revision,message_id:binding.message_id,reply:'我看到了。等手边这点事结束，再慢慢听你说。',used_record_keys:(binding.record_keys||binding.used_record_keys||[]).slice(0,1)});const response=await result(new Request('https://test.invalid',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...payload,result:JSON.stringify(value)})}));return {status:response.status,data:await response.json()};}
   async function ready(){await send('companion_poll');at=Math.max(at,...messages.filter(x=>x.status==='queued').map(x=>Date.parse(x.reply_not_before)||at))+1;return send('companion_poll');}
-  return {store,runs,messages,calls,inputs,send,reply,context,ready,advance(ms){at+=ms;}};
+  return {store,runs,messages,calls,inputs,send,reply,context,ready,setTime(value){at=Date.parse(value);},advance(ms){at+=ms;}};
 }
 test('a sleeping/away message persists, wakes into one run, replies and keeps owner-only history',async()=>{
   const f=fixture(); const queued=await f.send('companion_send',{request_id:ID,text:'我今天把事情忙完了。',context:null,away:true});
@@ -80,12 +80,57 @@ test('concurrent pollers claim one task; callback is bound to its allowed record
 test('proactive letters deduplicate across devices and wait before another greeting',async()=>{
   const f=fixture();await Promise.all([f.send('companion_auto'),f.send('companion_auto')]);assert.equal(f.messages.length,1);assert.equal(f.calls.length,1);
   assert.equal((await f.reply()).status,200);await f.send('companion_auto');assert.equal(f.calls.length,1);
-  f.advance(46*60000);await f.send('companion_auto');assert.equal(f.calls.length,2);
+  f.advance(181*60000);await f.send('companion_auto');assert.equal(f.calls.length,2);
 });
 test('not discussing a fresh record does not silence future daily-life letters',async()=>{
   const f=fixture();await f.send('companion_auto');assert.equal(f.calls.length,1);
   await f.reply(0,x=>({...x,used_record_keys:[],reply:'我想和你出去吃点东西。哪天有空？'}));
-  f.advance(46*60000);await f.send('companion_auto');assert.equal(f.calls.length,2);
+  f.advance(181*60000);await f.send('companion_auto');assert.equal(f.calls.length,2);
+});
+test('proactive intervals stay between one and three hours and do not reroll on polls or at 04:00',()=>{
+  const at=Date.parse('2026-11-20T03:59:00+09:00');
+  const row={id:ID,kind:'letter',status:'completed',created_at:new Date(at-60000).toISOString(),replied_at:new Date(at).toISOString()};
+  const window=companionProactiveWindow(A,at,[row]);
+  assert.ok(window.nextAt-at>=3600000&&window.nextAt-at<=3*3600000);
+  for(let i=1;i<10;i++)assert.equal(companionProactiveWindow(A,at+i*60000,[row]).nextAt,window.nextAt);
+  assert.equal(companionProactiveWindow(A,at,[row]).count,1);
+  assert.equal(companionProactiveWindow(A,at+60000,[row]).count,0);
+  assert.equal(companionProactiveWindow(A,at+60000,[row]).allowed,false,'day rollover does not permit an immediate second letter');
+  assert.equal(companionProactiveWindow(A,window.nextAt-1,[row]).allowed,false);
+  assert.equal(companionProactiveWindow(A,window.nextAt,[row]).allowed,true);
+  const intervals=new Set();for(let i=0;i<30;i++)intervals.add(companionProactiveWindow(A,at,[{...row,id:'letter-'+i}]).nextAt);
+  assert.ok(intervals.size>20);
+});
+test('daily 3–5 quota is stable per owner/workday and excludes every manual response',()=>{
+  const at=Date.parse('2026-11-20T15:00:00+09:00'),limits=new Set();
+  for(let i=0;i<60;i++){
+    const day=at+i*86400000,w=companionProactiveWindow(A,day,[]);limits.add(w.limit);
+    assert.ok(w.limit>=3&&w.limit<=5);assert.equal(companionProactiveWindow(A,day+60000,[]).limit,w.limit);
+  }
+  assert.deepEqual([...limits].sort(),[3,4,5]);
+  const limit=companionProactiveWindow(A,at,[]).limit;
+  const letters=Array.from({length:limit},(_,i)=>({id:'l'+i,kind:'letter',created_at:'2026-11-20T05:00:00+09:00'}));
+  const replies=Array.from({length:30},(_,i)=>({id:'m'+i,kind:'message',created_at:'2026-11-20T06:00:00+09:00'}));
+  const w=companionProactiveWindow(A,at,[...letters,...replies]);assert.equal(w.count,limit);assert.equal(w.allowed,false);
+  assert.equal(companionProactiveWindow(A,at,replies).count,0);
+});
+test('a full proactive quota still allows manual replies, and polls cannot create catch-up letters',async()=>{
+  const f=fixture();f.setTime('2026-11-20T08:00:00+09:00');
+  const limit=companionProactiveWindow(A,Date.parse('2026-11-20T08:00:00+09:00'),[]).limit;
+  for(let i=0;i<limit;i++){
+    await Promise.all([f.send('companion_auto'),f.send('companion_auto')]);assert.equal(f.calls.length,i+1);
+    await f.reply(i);f.advance(181*60000);
+  }
+  for(let i=0;i<5;i++)await f.send('companion_auto');assert.equal(f.calls.length,limit);
+  assert.equal(f.messages.filter(x=>x.kind==='letter').length,limit);
+  await f.send('companion_send',{request_id:ID,text:'这个回复不占主动来信额度。'});await f.ready();assert.equal(f.calls.length,limit+1);
+});
+test('an already queued automatic letter cannot bypass the proactive gap',async()=>{
+  const f=fixture();f.setTime('2026-11-20T08:00:00+09:00');
+  await f.store.companionInsert({id:ID,user_id:A,dedupe_key:'done',kind:'letter',status:'completed',reply:'早。',created_at:'2026-11-19T22:50:00Z',replied_at:'2026-11-19T22:50:20Z'});
+  await f.store.companionInsert({id:B,user_id:A,dedupe_key:'queued',kind:'letter',status:'queued',created_at:'2026-11-19T22:51:00Z'});
+  await f.send('companion_poll');assert.equal(f.calls.length,0);
+  f.advance(181*60000);await f.send('companion_poll');assert.equal(f.calls.length,1);
 });
 test('weather is added only after winning a due run; unavailable weather never blocks a reply',async()=>{
   let reads=0;
@@ -143,7 +188,7 @@ test('record snapshot covers six new ledgers and the new diet, excludes assets/o
 test('REST record reads use the verified caller bearer token and all message reads/updates scope by owner',async()=>{
   const seen=[];const store=createRestStore({...env,SUPABASE_SERVICE_ROLE_KEY:'server',SUPABASE_ANON_KEY:'public'},async(url,options)=>{seen.push({url,options});return Response.json([]);});
   await store.companionInputs(A,'caller');assert.equal(seen.length,3);assert.ok(seen.every(x=>x.options.headers.Authorization==='Bearer caller'&&x.url.includes('user_id=eq.'+A)));
-  await store.companionHistory(B);await store.companionQueue(B);await store.companionUpdate(B,ID,{status:'completed'},'running');assert.ok(seen.slice(3).every(x=>x.url.includes('user_id=eq.'+B)));
+  await store.companionHistory(B);await store.companionQueue(B);await store.companionUpdate(B,ID,{status:'completed'},'running');await store.companionLetters(B,'2026-11-19T19:00:00Z');assert.ok(seen.slice(3).every(x=>x.url.includes('user_id=eq.'+B)));
   await store.companionSchedule(B,ID,'2026-11-19T06:00:00Z');
   assert.ok(seen.at(-1).url.includes('user_id=eq.'+B));assert.match(seen.at(-1).url,/status=eq\.queued&reply_not_before=is\.null/);
 });

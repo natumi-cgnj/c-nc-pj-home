@@ -1,4 +1,22 @@
 import { stateUnit } from '../../../cbi-state-content.mjs';
+import { companionDay } from '../../../jane-companion-content.mjs';
+
+const HOUR = 3600000;
+const letterTime = row => Math.max(Date.parse(row.created_at) || 0, Date.parse(row.replied_at) || 0);
+
+// Stable randomness: reopening/polling cannot reroll today's quota or the
+// next interval. Delivered letters anchor the gap, including across 04:00 JST.
+export function companionProactiveWindow(user, now, history, pendingId = '') {
+  const day = companionDay(now), dayStart = Date.parse(day + 'T04:00:00+09:00');
+  const letters = history.filter(x => x.kind === 'letter' && x.id !== pendingId);
+  const last = letters.slice().sort((a, b) => letterTime(b) - letterTime(a))[0];
+  const limit = 3 + Math.floor(stateUnit('companion-daily-v3:' + user + ':' + day) * 3);
+  const count = letters.filter(x => letterTime(x) >= dayStart && letterTime(x) < dayStart + 24 * HOUR).length;
+  const anchor = last ? last.id : day;
+  const interval = HOUR + Math.round(stateUnit('companion-interval-v3:' + user + ':' + anchor) * 2 * HOUR);
+  const nextAt = (last ? letterTime(last) : dayStart) + interval;
+  return { day, limit, count, nextAt, lastId: last?.id || '', allowed: count < limit && now >= nextAt };
+}
 
 // Choose once per message; persist the deadline rather than rerolling on polls.
 // The same activity can mean being absorbed in a book or ready for a distraction.
