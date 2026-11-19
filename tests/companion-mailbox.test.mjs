@@ -5,6 +5,7 @@ import { createBridgeHandler, createResultHandler, createRestStore } from '../su
 import { recentCompanionRecords, companionDay, validateCompanionReply } from '../jane-companion-content.mjs';
 import { CBI_CONTINUITY } from '../cbi-current-canon.mjs';
 import { CompanionMailbox } from '../jane-companion-mailbox.mjs';
+import { companionReplyAt } from '../supabase/functions/_shared/companion-timing.mjs';
 const A='11111111-1111-4111-8111-111111111111', B='22222222-2222-4222-8222-222222222222', ID='33333333-3333-4333-8333-333333333333';
 const copy=x=>structuredClone(x), active=['starting','running','uncertain'];
 const env={SUPABASE_URL:'https://lbxjshaiffklmalcxiif.supabase.co'};
@@ -24,6 +25,7 @@ function fixture(fire) {
     async companionRecentRuns(user,since){return runs.filter(x=>x.user_id===user&&x.created_at>=since).map(copy);},
     async companionInsert(row){if(messages.some(x=>x.id===row.id||(x.user_id===row.user_id&&x.dedupe_key===row.dedupe_key)))conflict();const value={reply:'',record_keys:[],...copy(row)};messages.push(value);return copy(value);},
     async companionUpdate(user,id,value,status){const row=messages.find(x=>x.user_id===user&&x.id===id&&x.status===status);if(!row)return [];Object.assign(row,copy(value));return [copy(row)];},
+    async companionSchedule(user,id,notBefore){const row=messages.find(x=>x.user_id===user&&x.id===id&&x.status==='queued'&&!x.reply_not_before);if(!row)return [];row.reply_not_before=notBefore;return [copy(row)];},
     async byRequest(user,id){return copy(runs.find(x=>x.user_id===user&&x.request_id===id)||null);},
     async active(user){return copy(runs.find(x=>x.user_id===user&&active.includes(x.status))||null);},
     async run(user,id){return copy(runs.find(x=>x.user_id===user&&x.id===id)||null);},async callbackRun(id){return copy(runs.find(x=>x.id===id)||null);},
@@ -35,13 +37,14 @@ function fixture(fire) {
   const context=()=>({scene:'home',startAt:at-3600000,endAt:at+3600000,restDay:false});
   async function send(action,extra={},token='a') {const response=await bridge(new Request('https://test.invalid',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json',Origin:'https://natumi-cgnj.github.io'},body:JSON.stringify({action,owner_id:token==='a'?A:B,context:context(),...extra})}));return {status:response.status,data:await response.json()};}
   async function reply(index=0,edit=x=>x){const payload=calls[index].payload,binding=JSON.parse(runs.find(x=>x.id===payload.run_id).result);const value=edit({format:'jane-companion-reply',version:1,continuity:CBI_CONTINUITY,canon_revision:binding.canon_revision,message_id:binding.message_id,reply:'我看到了。等手边这点事结束，再慢慢听你说。',used_record_keys:(binding.record_keys||binding.used_record_keys||[]).slice(0,1)});const response=await result(new Request('https://test.invalid',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...payload,result:JSON.stringify(value)})}));return {status:response.status,data:await response.json()};}
-  return {store,runs,messages,calls,inputs,send,reply,context,advance(ms){at+=ms;}};
+  async function ready(){await send('companion_poll');at=Math.max(at,...messages.filter(x=>x.status==='queued').map(x=>Date.parse(x.reply_not_before)||at))+1;return send('companion_poll');}
+  return {store,runs,messages,calls,inputs,send,reply,context,ready,advance(ms){at+=ms;}};
 }
 test('a sleeping/away message persists, wakes into one run, replies and keeps owner-only history',async()=>{
   const f=fixture(); const queued=await f.send('companion_send',{request_id:ID,text:'我今天把事情忙完了。',context:null,away:true});
   assert.equal(queued.data.messages[0].status,'queued');assert.equal(f.calls.length,0);
   await f.send('companion_send',{request_id:ID,text:'duplicate',context:null});assert.equal(f.messages.length,1);
-  const started=await f.send('companion_poll');assert.equal(started.data.messages[0].status,'running');assert.equal(f.calls.length,1);
+  const started=await f.ready();assert.equal(started.data.messages[0].status,'running');assert.equal(f.calls.length,1);
   const p=f.calls[0].payload;assert.equal(p.kind,'office-lines');assert.equal(p.content_type,'companion-message');assert.match(p.prompt,/我今天把事情忙完了/);assert.match(p.prompt,/测试晚饭/);assert.match(p.prompt,/book6/);assert.match(p.prompt,/shared-records/);
   assert.equal((await f.reply()).status,200);
   const history=await f.send('companion_list');assert.equal(history.data.messages[0].status,'completed');assert.match(history.data.messages[0].reply,/我看到了/);
@@ -53,12 +56,14 @@ test('owner switches, invalid text, invalid origin and unsigned callbacks cannot
   const f=fixture();assert.equal((await f.send('companion_send',{owner_id:A,request_id:ID,text:'wrong'},'b')).status,409);
   assert.equal((await f.send('companion_send',{request_id:ID,text:'x'.repeat(2001)})).status,400);assert.equal(f.messages.length,0);
   await f.send('companion_send',{request_id:ID,text:'我的留言'});
+  await f.ready();
   const pack=JSON.parse(f.runs[0].result);assert.throws(()=>validateCompanionReply(JSON.stringify({format:'wrong'}),pack));
   assert.equal((await f.reply(0,x=>({...x,message_id:B}))).status,400);
   assert.equal((await f.send('companion_poll')).data.messages[0].status,'failed');assert.equal(f.calls.length,1);
 });
 test('uncertain starts are not refired, expiry is visible, and the original run gate queues a message',async()=>{
   const f=fixture(async()=>{throw Error('timeout');});await f.send('companion_send',{request_id:ID,text:'慢慢回。'});
+  await f.ready();
   await f.send('companion_poll');assert.equal(f.calls.length,1);assert.equal(f.messages[0].status,'running');
   f.advance(16*60000);const expired=await f.send('companion_poll');assert.equal(expired.data.messages[0].status,'failed');assert.equal(f.calls.length,1);
   const g=fixture();g.runs.push({id:B,user_id:A,request_id:B,status:'running',expires_at:'2099-01-01',created_at:'2026-11-10T12:00:00+09:00'});
@@ -66,6 +71,7 @@ test('uncertain starts are not refired, expiry is visible, and the original run 
 });
 test('concurrent pollers claim one task; callback is bound to its allowed records and immutable after success',async()=>{
   const f=fixture();await f.send('companion_send',{request_id:ID,text:'你在做什么？',context:null});
+  await f.send('companion_poll');f.advance(46*60000);
   await Promise.all([f.send('companion_poll'),f.send('companion_poll')]);assert.equal(f.calls.length,1);
   assert.equal((await f.reply()).status,200);const first=f.messages[0].reply;
   assert.equal((await f.reply(0,x=>({...x,reply:'overwrite'}))).status,200);assert.equal(f.messages[0].reply,first);
@@ -80,7 +86,32 @@ test('a manually sent message goes before an older automatic letter that lost th
   const f=fixture();
   await f.store.companionInsert({id:B,user_id:A,dedupe_key:'older-letter',kind:'letter',user_text:'',status:'queued',created_at:'2026-11-10T01:00:00Z'});
   await f.store.companionInsert({id:ID,user_id:A,dedupe_key:ID,kind:'message',user_text:'先接这条留言。',status:'queued',created_at:'2026-11-10T02:00:00Z'});
-  await f.send('companion_poll');assert.equal(JSON.parse(f.runs[0].result).message_id,ID);assert.equal(f.calls.length,1);
+  await f.ready();assert.equal(JSON.parse(f.runs[0].result).message_id,ID);assert.equal(f.calls.length,1);
+});
+test('manual mail waits once across duplicate sends, repeated polls and state changes, without starting paid work',async()=>{
+  const f=fixture();const sent=await f.send('companion_send',{request_id:ID,text:'这本书好看吗？'});
+  assert.equal(sent.data.waiting,'later');assert.equal(f.calls.length,0);
+  const deadline=f.messages[0].reply_not_before;assert.ok(deadline);
+  for(let i=0;i<5;i++)await f.send('companion_poll');
+  await f.send('companion_send',{request_id:ID,text:'same request'});
+  assert.equal(f.messages.length,1);assert.equal(f.messages[0].reply_not_before,deadline);assert.equal(f.calls.length,0);
+  f.advance(46*60000);
+  await f.send('companion_poll',{context:null});assert.equal(f.calls.length,0,'a due message still cannot start during sleep');
+  await f.send('companion_poll');assert.equal(f.calls.length,1);
+});
+test('one reading state includes quick, medium and absorbed delays, with more long waits than relaxed states',()=>{
+  const now=Date.parse('2026-11-19T12:00:00+09:00'),buckets=[0,0,0],relaxed=[0,0,0];
+  for(let i=0;i<1500;i++){
+    const message={user_id:A,id:'sample-'+i};
+    for(const [state,result] of [['bedroom_read',buckets],['bedroom_tea',relaxed]]){
+      const activity={state,key:'same-session'};
+      const due=companionReplyAt(message,activity,now),seconds=(Date.parse(due)-now)/1000;
+      assert.equal(companionReplyAt(message,activity,now),due);
+      assert.ok(seconds>=15&&seconds<=2700);
+      result[seconds<=90?0:seconds<=720?1:2]++;
+    }
+  }
+  assert.ok(buckets.every(x=>x>200));assert.ok(buckets[2]>relaxed[2]);assert.ok(relaxed[0]>buckets[0]);
 });
 test('record snapshot covers six new ledgers and the new diet, excludes assets/old diet and uses the 04:00 workday',()=>{
   const f=fixture();f.inputs.wallet_accounts_v1.accounts={bank:{balance:99999999,note:'do not send'}};
@@ -96,6 +127,8 @@ test('REST record reads use the verified caller bearer token and all message rea
   const seen=[];const store=createRestStore({...env,SUPABASE_SERVICE_ROLE_KEY:'server',SUPABASE_ANON_KEY:'public'},async(url,options)=>{seen.push({url,options});return Response.json([]);});
   await store.companionInputs(A,'caller');assert.equal(seen.length,3);assert.ok(seen.every(x=>x.options.headers.Authorization==='Bearer caller'&&x.url.includes('user_id=eq.'+A)));
   await store.companionHistory(B);await store.companionQueue(B);await store.companionUpdate(B,ID,{status:'completed'},'running');assert.ok(seen.slice(3).every(x=>x.url.includes('user_id=eq.'+B)));
+  await store.companionSchedule(B,ID,'2026-11-19T06:00:00Z');
+  assert.ok(seen.at(-1).url.includes('user_id=eq.'+B));assert.match(seen.at(-1).url,/status=eq\.queued&reply_not_before=is\.null/);
 });
 test('client retries the same uncertain draft, clears account views, and rejects ABA late responses',async()=>{
   const data=new Map();const storage={getItem:k=>data.get(k)||null,setItem:(k,v)=>data.set(k,v)};let user=A, resolve, calls=[];

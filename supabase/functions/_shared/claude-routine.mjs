@@ -265,6 +265,7 @@ export function createRestStore(env, fetcher = fetch) {
     async companionRecentRuns(user, since) { return rest('claude_routine_runs?' + scope(user) + '&created_at=gte.' + encodeURIComponent(since) + '&select=id&limit=6'); },
     async companionInsert(value) { return (await rest('jane_companion_messages', { method: 'POST', body: JSON.stringify(value) }))[0]; },
     async companionUpdate(user, id, value, status) { return rest('jane_companion_messages?' + scope(user) + '&id=eq.' + encodeURIComponent(id) + '&status=eq.' + encodeURIComponent(status), { method: 'PATCH', body: JSON.stringify(value) }); },
+    async companionSchedule(user, id, notBefore) { return rest('jane_companion_messages?' + scope(user) + '&id=eq.' + encodeURIComponent(id) + '&status=eq.queued&reply_not_before=is.null', { method: 'PATCH', body: JSON.stringify({ reply_not_before: notBefore }) }); },
     async worldBatch(user, world) {
       const prefix = encodeURIComponent(JSON.stringify({format:'jane-world-lines',version:1,world}).slice(0,-1) + ',') + '*';
       return (await rest('claude_routine_runs?' + scope(user) + '&status=eq.completed&result=like.' + prefix + '&select=id,result,finished_at&order=created_at.desc&limit=1'))[0] || null;

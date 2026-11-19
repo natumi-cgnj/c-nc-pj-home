@@ -1,0 +1,13 @@
+.calorie-balance{margin:2px 0 26px;padding:16px 0 0;border-top:1px solid var(--diet-rule)}
+.calorie-balance-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.calorie-plan-label{font-size:10px;color:#aaa59e;line-height:1.6}
+.calorie-plan-button{border:0;background:none;padding:4px 0 4px 10px;font:inherit;font-size:11px;line-height:1.5;color:var(--diet-accent);cursor:pointer;white-space:nowrap}
+.calorie-balance-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+.calorie-balance-number{font-size:28px;line-height:1.2;font-weight:250;color:var(--diet-ink);font-variant-numeric:tabular-nums;letter-spacing:-.4px}
+.calorie-balance-number small{font-size:9px;font-weight:400;letter-spacing:0;color:#bbb;margin-left:4px}
+.calorie-balance-caption{margin-top:7px;color:#aaa59e;font-size:9px;line-height:1.7}
+.calorie-balance-note{margin-top:13px;font-size:9px;line-height:1.8;color:#b4afa7}
+.calorie-plan-hint{font-size:10px;line-height:1.8;color:#aaa59e;margin-top:8px}
+.calorie-plan-error{font-size:11px;line-height:1.7;color:#a76454;margin-top:12px}
+.calorie-plan-button:focus-visible{outline:1px solid var(--diet-accent);outline-offset:4px}
+@media(min-width:900px){.calorie-balance{padding-top:20px;margin-bottom:28px}.calorie-balance-number{font-size:32px}.calorie-balance-grid{gap:32px}.calorie-balance-note,.calorie-balance-caption{font-size:10px}}

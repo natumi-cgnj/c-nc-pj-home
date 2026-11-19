@@ -72,7 +72,7 @@ export function createMailboxUI({ client, owner, storage, context, ready, enable
   function schedule() {
     clearTimeout(timer); if (stopped) return;
     const pending = model.items.some(x => ['running', 'queued'].includes(x.status));
-    timer = setTimeout(() => refresh(true), pending ? 5000 : 60000);
+    timer = setTimeout(() => refresh(true), pending ? model.waiting === 'later' ? 30000 : 5000 : 60000);
   }
   function identity() {
     const previous = model.user; model.identity(); button.hidden = !owner();

@@ -1,6 +1,7 @@
 import { recentCompanionRecords, companionPrompt, validateCompanionReply } from '../../../jane-companion-content.mjs';
 import { stateSessions } from '../../../cbi-state-content.mjs';
 import { savedStoryPrompt } from '../../../world-story-content.mjs';
+import { companionReplyAt } from './companion-timing.mjs';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const ACTIVE = ['starting', 'running', 'uncertain'];
@@ -19,7 +20,9 @@ export async function companionRequest({ input, user, store, now, cryptoApi, fet
     if (!(await store.companionOne(user, input.request_id))) {
       const pending = await store.companionQueue(user);
       if (pending.length >= 10) throw new ClientError(429, 'message_queue_full');
-      try { await store.companionInsert({ id: input.request_id, user_id: user, dedupe_key: input.request_id, kind: 'message', user_text: input.text.trim(), status: 'queued', created_at: time }); }
+      const message = { id: input.request_id, user_id: user, dedupe_key: input.request_id, kind: 'message', user_text: input.text.trim(), status: 'queued', created_at: time };
+      if (state) message.reply_not_before = companionReplyAt(message, state, at);
+      try { await store.companionInsert(message); }
       catch (error) { if (error.dbCode !== '23505') throw error; }
     }
   }
@@ -41,6 +44,15 @@ export async function companionRequest({ input, user, store, now, cryptoApi, fet
   const queue = await store.companionQueue(user);
   let message = queue.filter(x => x.status === 'queued').sort((a, b) => Number(b.kind === 'message') - Number(a.kind === 'message') || a.created_at.localeCompare(b.created_at))[0];
   if (action !== 'companion_auto' && !message) return response();
+  if (message?.kind === 'message') {
+    if (!message.reply_not_before) {
+      // Sleep/away messages get their own pace when Jane is available again.
+      // A null-only update keeps concurrent clients from changing the deadline.
+      await store.companionSchedule(user, message.id, companionReplyAt(message, state, at));
+      return response({ waiting: 'later' });
+    }
+    if (Date.parse(message.reply_not_before) > at) return response({ waiting: 'later' });
+  }
   const recent = await store.companionRecentRuns(user, new Date(at - 15 * 60000).toISOString());
   if (recent.length >= 6) return response({ waiting: 'busy' });
   const story = await getStory(), raw = await store.companionInputs(user, accessToken);

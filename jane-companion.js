@@ -1,8 +1,8 @@
 import { companionFrame, hitArtwork } from './jane-companion-state.mjs?v=20261110-enter-send1';
 import { CompanionCloudReader } from './jane-companion-cloud.mjs?v=20261110-enter-send1';
-import { CompanionDialogue, companionSpeechContext, clickActions, COMPANION_UI_VERSION } from './jane-companion-dialogue.mjs?v=20261110-enter-send1';
+import { CompanionDialogue, companionSpeechContext, clickActions, COMPANION_UI_VERSION } from './jane-companion-dialogue.mjs?v=20261119-reply-pace1';
 
-import { createMailboxUI } from './jane-companion-mail-ui.mjs?v=20261110-enter-send1';
+import { createMailboxUI } from './jane-companion-mail-ui.mjs?v=20261119-reply-pace1';
 import { applyCompanionLayout, createDockHover } from './jane-companion-layout.mjs?v=20261110-enter-send1';
 
 const bridge = window.JaneDesktop;

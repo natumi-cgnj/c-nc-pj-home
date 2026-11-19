@@ -10,6 +10,10 @@ The hosted page shows a small `留言` button, a scrolling history and a text bo
 
 The client checks pending mail every five seconds, idle mail once a minute. Draft text, uncertain-send request IDs and the read marker remain local and account-scoped; accepted messages/replies persist on the server. Reloads and uncertain HTTP results reuse the same message ID, so retries cannot silently create duplicate paid tasks. Failed or expired runs remain visible and may be explicitly resent as a new message. An automatic or ambiguous task is never blindly refired.
 
+As of 2026-11-19, manual messages also receive a variable wait before generation starts: roughly 15–90 seconds, 3–12 minutes or 15–45 minutes, plus the existing generation time. Reading/case states favour longer waits; relaxed activities favour shorter ones, with all three ranges possible within one activity. `reply_not_before` is sampled once and persisted in the dedicated mail row. Polls, duplicate sends and client restarts never move it. Mail left during sleep/absence gets timed on the first available check; being due never overrides the sleep/away gate. Manual queued mail retains priority over automatic letters. The UI shows the existing neutral waiting text without a countdown or claims about whether Jane has read it.
+
+Apply `supabase/companion-reply-timing-schema.sql` before deploying both function entrypoints and the new `_shared/companion-timing.mjs` dependency. This is an additive nullable column; completed mail and existing application state are not migrated. No native-core update or replacement Windows package is needed.
+
 Older cores keep status/speech working and show an update hint when the mailbox button is clicked. They do not start automatic companion tasks until the upgraded native capability is available.
 
 ## Model context and frequency
