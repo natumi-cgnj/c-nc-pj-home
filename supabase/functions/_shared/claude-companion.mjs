@@ -11,7 +11,7 @@ function janeState(context, now) {
   return stateSessions(context, now).find(s => s.character === 'jane') || null;
 }
 
-export async function companionRequest({ input, user, store, now, cryptoApi, fetcher, env, accessToken, getStory, digest, ClientError }) {
+export async function companionRequest({ input, user, store, now, cryptoApi, fetcher, env, accessToken, getStory, getWeather, digest, ClientError }) {
   const action = input.action, at = now(), time = new Date(at).toISOString();
   if (input.owner_id !== user) throw new ClientError(409, 'account_changed');
   let state; try { state = janeState(input.context, at); } catch { throw new ClientError(400, 'invalid_state_context'); }
@@ -67,7 +67,9 @@ export async function companionRequest({ input, user, store, now, cryptoApi, fet
     const fresh = records.filter(r => !mentioned.has(r.key));
     const last = history[0];
     if (last && Date.parse(last.created_at) > at - 30 * 60000) return response();
-    const seed = fresh.length ? fresh.slice(0, 3).map(x => x.key).join('|') : state.key + ':' + Math.floor(at / (90 * 60000));
+    // A letter need not discuss a log. Unmentioned records must not pin the
+    // dedupe key forever and silence later everyday/romantic correspondence.
+    const seed = 'open-correspondence-v2:' + Math.floor(at / (45 * 60000));
     const dedupe = await digest('companion-letter:' + user + ':' + seed, cryptoApi);
     try { message = await store.companionInsert({ id: cryptoApi.randomUUID(), user_id: user, dedupe_key: dedupe, kind: 'letter', user_text: '', status: 'queued', created_at: time }); }
     catch (error) { if (error.dbCode === '23505') return response(); throw error; }
@@ -87,10 +89,13 @@ export async function companionRequest({ input, user, store, now, cryptoApi, fet
   const claimed = await store.companionUpdate(user, message.id, { status: 'running', run_id: id, state_label: state.status, error_code: null }, 'queued');
   if (!claimed.length) { await store.update(id, { status: 'failed', error_code: 'message_claim_lost', finished_at: time }); return response(); }
   try {
+    // Read weather only for the winning run, after timing and frequency gates.
+    // Failure leaves correspondence working, without invented live conditions.
+    let weather = null; try { weather = await getWeather?.(); } catch {}
     const result = await fetcher(connection.fire_url, { method: 'POST', redirect: 'error', signal: AbortSignal.timeout(20000),
       headers: { Authorization: 'Bearer ' + connection.fire_token, 'Content-Type': 'application/json', 'anthropic-version': '2026-10-21' },
       body: JSON.stringify({ text: JSON.stringify({ protocol: 'c-nc-routine-v1', kind: 'office-lines', content_type: 'companion-message',
-        prompt: companionPrompt({ message, history: history.slice().reverse(), records, state: { scene: state.scene, state: state.state, label: state.status, at: time }, revision: story.revision }) + savedStoryPrompt(story, story.revision),
+        prompt: companionPrompt({ message, history: history.slice().reverse(), records, state: { scene: state.scene, state: state.state, label: state.status, at: time }, weather, storyPrompt: savedStoryPrompt(story, story.revision), revision: story.revision }),
         run_id: id, callback_url: env.SUPABASE_URL + '/functions/v1/claude-result', callback_token: secret }) }) });
     if (!result.ok) {
       const code = ({ 401: 'claude_unauthorized', 403: 'claude_access_denied', 404: 'claude_task_not_found', 429: 'claude_limit' })[result.status] || 'claude_start_failed';

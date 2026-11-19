@@ -9,7 +9,7 @@ import { companionReplyAt } from '../supabase/functions/_shared/companion-timing
 const A='11111111-1111-4111-8111-111111111111', B='22222222-2222-4222-8222-222222222222', ID='33333333-3333-4333-8333-333333333333';
 const copy=x=>structuredClone(x), active=['starting','running','uncertain'];
 const env={SUPABASE_URL:'https://lbxjshaiffklmalcxiif.supabase.co'};
-function fixture(fire) {
+function fixture(fire, getWeather = async () => null) {
   let at=Date.parse('2026-11-10T14:00:00+09:00'); const runs=[],messages=[],calls=[];
   const inputs={calorie_log_db:{records:[{id:'meal',date:'2026-11-10',type:'intake',detail:'测试晚饭',kcal:500}]},wallet_accounts_v1:{expenseBooks:Array.from({length:6},(_,i)=>({id:'book'+(i+1),title:'测试账本'+i,records:[{id:'txn'+i,date:'2026-11-10',type:'expense',amount:100+i,note:'测试记录'+i}]}))}};
   const conflict=()=>{const e=Error('unique');e.dbCode='23505';throw e;};
@@ -33,7 +33,7 @@ function fixture(fire) {
     async update(id,value){const row=runs.find(x=>x.id===id&&active.includes(x.status));if(!row)return [];Object.assign(row,copy(value));return [copy(row)];}
   };
   const result=createResultHandler({env,store,cryptoApi:webcrypto,now:()=>at});
-  const bridge=createBridgeHandler({env,store,cryptoApi:webcrypto,now:()=>at,fetcher:async(url,options)=>{calls.push({url,options,payload:JSON.parse(JSON.parse(options.body).text)});return fire?fire(calls.at(-1),result):Response.json({claude_code_session_url:'https://claude.ai/code/session_test'});}});
+  const bridge=createBridgeHandler({env,store,cryptoApi:webcrypto,now:()=>at,weather:getWeather,fetcher:async(url,options)=>{calls.push({url,options,payload:JSON.parse(JSON.parse(options.body).text)});return fire?fire(calls.at(-1),result):Response.json({claude_code_session_url:'https://claude.ai/code/session_test'});}});
   const context=()=>({scene:'home',startAt:at-3600000,endAt:at+3600000,restDay:false});
   async function send(action,extra={},token='a') {const response=await bridge(new Request('https://test.invalid',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json',Origin:'https://natumi-cgnj.github.io'},body:JSON.stringify({action,owner_id:token==='a'?A:B,context:context(),...extra})}));return {status:response.status,data:await response.json()};}
   async function reply(index=0,edit=x=>x){const payload=calls[index].payload,binding=JSON.parse(runs.find(x=>x.id===payload.run_id).result);const value=edit({format:'jane-companion-reply',version:1,continuity:CBI_CONTINUITY,canon_revision:binding.canon_revision,message_id:binding.message_id,reply:'我看到了。等手边这点事结束，再慢慢听你说。',used_record_keys:(binding.record_keys||binding.used_record_keys||[]).slice(0,1)});const response=await result(new Request('https://test.invalid',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...payload,result:JSON.stringify(value)})}));return {status:response.status,data:await response.json()};}
@@ -81,6 +81,23 @@ test('proactive letters deduplicate across devices and wait before another greet
   const f=fixture();await Promise.all([f.send('companion_auto'),f.send('companion_auto')]);assert.equal(f.messages.length,1);assert.equal(f.calls.length,1);
   assert.equal((await f.reply()).status,200);await f.send('companion_auto');assert.equal(f.calls.length,1);
   f.advance(46*60000);await f.send('companion_auto');assert.equal(f.calls.length,2);
+});
+test('not discussing a fresh record does not silence future daily-life letters',async()=>{
+  const f=fixture();await f.send('companion_auto');assert.equal(f.calls.length,1);
+  await f.reply(0,x=>({...x,used_record_keys:[],reply:'我想和你出去吃点东西。哪天有空？'}));
+  f.advance(46*60000);await f.send('companion_auto');assert.equal(f.calls.length,2);
+});
+test('weather is added only after winning a due run; unavailable weather never blocks a reply',async()=>{
+  let reads=0;
+  const snapshot={city:'大阪',source:'Open-Meteo',temperature_c:12,condition:'小雨',observed_at:'2026-11-10T05:00:00Z'};
+  const f=fixture(undefined,async()=>{reads++;return snapshot;});
+  await f.send('companion_send',{request_id:ID,text:'今天想吃什么？'});
+  await f.send('companion_poll');assert.equal(reads,0);
+  await f.ready();assert.equal(reads,1);assert.ok(f.calls[0].payload.prompt.includes(JSON.stringify(snapshot)));
+  assert.match(f.calls[0].payload.prompt,/Milo是男性，是Jane的男朋友/);
+  assert.ok(f.calls[0].payload.prompt.indexOf('本次用户已保存的世界档案')<f.calls[0].payload.prompt.indexOf('本次桌面留言已确认'));
+  await f.send('companion_poll');assert.equal(reads,1);
+  const g=fixture(undefined,async()=>{throw Error('offline')});await g.send('companion_auto');assert.equal(g.calls.length,1);assert.match(g.calls[0].payload.prompt,/<milo-weather>null<\/milo-weather>/);
 });
 test('a manually sent message goes before an older automatic letter that lost the run gate',async()=>{
   const f=fixture();

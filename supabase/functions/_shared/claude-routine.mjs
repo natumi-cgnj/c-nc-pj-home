@@ -5,6 +5,7 @@ import { WORLD_FILES_KEY, validStoryWorld, storySnapshot, storyRevision, savedSt
 import { STATE_FORMAT, stateSessions, validateStateContext, validateStateBatch, decodeStateBatch, stateGenerationPrompt } from '../../../cbi-state-content.mjs';
 import { companionRequest, completeCompanion } from './claude-companion.mjs';
 import { RECORD_KEYS } from '../../../jane-companion-content.mjs';
+import { createCompanionWeather } from './companion-weather.mjs';
 
 const APP_ORIGIN = 'https://natumi-cgnj.github.io';
 const TEST_PROMPT = '请只回复：C-NC 连接测试成功。';
@@ -279,7 +280,7 @@ export function createRestStore(env, fetcher = fetch) {
   };
 }
 
-export function createBridgeHandler({ env, store = createRestStore(env), fetcher = fetch, cryptoApi = globalThis.crypto, now = () => Date.now() }) {
+export function createBridgeHandler({ env, store = createRestStore(env), fetcher = fetch, cryptoApi = globalThis.crypto, now = () => Date.now(), weather = createCompanionWeather({ fetcher, now }) }) {
   return async req => {
     let headers = {};
     try {
@@ -297,7 +298,7 @@ export function createBridgeHandler({ env, store = createRestStore(env), fetcher
       const readContext = world => { if (!contextCache.has(world)) contextCache.set(world, savedContext(store, user, world, cryptoApi, auth[1])); return contextCache.get(world); };
       if (['companion_send', 'companion_list', 'companion_poll', 'companion_auto'].includes(input.action)) {
         return response(await companionRequest({ input, user, store, now, cryptoApi, fetcher, env, accessToken: auth[1],
-          getStory: () => readContext('sacramento'), digest, ClientError }), 200, headers);
+          getStory: () => readContext('sacramento'), getWeather: weather, digest, ClientError }), 200, headers);
       }
       const worldMode = ['world_auto', 'world_generate', 'world_lines', 'story_context'].includes(input.action);
       const stateMode = ['state_auto', 'state_generate', 'state_lines'].includes(input.action);
