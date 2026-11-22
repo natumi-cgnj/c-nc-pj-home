@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://lbxjshaiffklmalcxiif.supabase.co; frame-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Jane</title><link rel="stylesheet" href="mobile.css"></head><body>
+<main id="mail">
+  <header><img id="portrait" src="art/00_tea.png" alt="Jane"><div><strong>Jane</strong><p id="state" role="status">正在连接…</p></div><button id="refresh" type="button" aria-label="刷新同步">刷新</button></header>
+  <div id="history" role="log" aria-live="polite"><p class="empty">正在读取留言…</p></div>
+  <p id="notice" role="status"></p>
+  <form id="messageForm"><textarea id="text" maxlength="2000" rows="2" placeholder="给他留句话…" aria-label="给 Jane 的留言" enterkeyhint="send"></textarea><button id="send" type="submit">发送</button></form>
+</main>
+<section id="failure" hidden><p id="failureText">暂时无法连接。</p><button id="retry" type="button">重试</button></section>
+<script src="supabase.js"></script><script src="character-runtime.js"></script><script type="module" src="mobile-ui.mjs"></script>
+</body></html>
