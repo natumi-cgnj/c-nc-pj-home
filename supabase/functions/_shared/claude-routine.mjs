@@ -1,3 +1,4 @@
+import { DIALOGUE_LANGUAGES, normalizeLanguage, dialogueLanguagePrompt } from '../../../language-core.mjs';
 import { decodeOfficeBatch, officeGenerationPrompt, officePeriod } from '../../../cbi-office-content.mjs';
 import { decodeHomeBatch, homeGenerationPrompt } from '../../../cbi-home-content.mjs';
 import { CBI_CONTINUITY } from '../../../cbi-current-canon.mjs';
@@ -29,20 +30,20 @@ If the helper reports a delivery failure, report that failure in this Claude ses
 After successful delivery, finish with a short acknowledgement.`;
 
 async function latestOfficeBatch(store, user, context = null) {
-  const row = await store.officeBatch(user);
+  const row = await store.officeBatch(user, context?.language || 'zh');
   if (!row) return null;
   try {
-    const pack = decodeOfficeBatch(row.result);
-    return pack ? { id: row.id, updated_at: row.finished_at, pack, ...(context?.versioned ? { stale: pack.canon_revision !== context.revision } : {}) } : null;
+    const pack = decodeOfficeBatch(row.result, context?.language);
+    return pack && (pack.language || 'zh') === (context?.language || 'zh') ? { id: row.id, updated_at: row.finished_at, pack, ...(context?.versioned ? { stale: pack.canon_revision !== context.revision } : {}) } : null;
   } catch { return null; }
 }
 
 async function latestHomeBatch(store, user, context = null) {
-  const row = await store.homeBatch(user);
+  const row = await store.homeBatch(user, context?.language || 'zh');
   if (!row) return null;
   try {
-    const pack = decodeHomeBatch(row.result);
-    return pack ? { id: row.id, updated_at: row.finished_at, pack, ...(context?.versioned ? { stale: pack.canon_revision !== context.revision } : {}) } : null;
+    const pack = decodeHomeBatch(row.result, context?.language);
+    return pack && (pack.language || 'zh') === (context?.language || 'zh') ? { id: row.id, updated_at: row.finished_at, pack, ...(context?.versioned ? { stale: pack.canon_revision !== context.revision } : {}) } : null;
   } catch { return null; }
 }
 
@@ -53,11 +54,11 @@ async function savedContext(store, user, world, cryptoApi, accessToken) {
   return { ...snapshot, revision: await storyRevision(snapshot, cryptoApi), archiveRevision: await storyRevision(storySnapshot(world, raw), cryptoApi) };
 }
 async function latestWorldBatch(store, user, world, context) {
-  const row = await store.worldBatch?.(user, world);
+  const row = await store.worldBatch?.(user, world, context?.language || 'zh');
   if (!row) return null;
   try {
-    const pack = decodeWorldBatch(row.result);
-    return pack?.world === world ? { id: row.id, updated_at: row.finished_at, pack, stale: pack.canon_revision !== context.revision } : null;
+    const pack = decodeWorldBatch(row.result, context?.language);
+    return pack?.world === world && (pack.language || 'zh') === (context?.language || 'zh') ? { id: row.id, updated_at: row.finished_at, pack, stale: pack.canon_revision !== context.revision } : null;
   } catch { return null; }
 }
 function withSavedPrompt(prompt, context) {
@@ -75,7 +76,7 @@ async function currentStateBatch(store, user, context, sessions) {
   const entries = new Map(); let id = '', updated_at = '';
   for (const row of rows) {
     try {
-      const pack = decodeStateBatch(row.result);
+      const pack = decodeStateBatch(row.result, context.language);
       if (!pack || pack.canon_revision !== context.revision || pack.scene !== sessions[0].scene) continue;
       for (const entry of pack.states) {
         const s = wanted.get(entry.key);
@@ -86,7 +87,7 @@ async function currentStateBatch(store, user, context, sessions) {
     } catch { /* Invalid historical results never become current dialogue. */ }
   }
   if (!entries.size) return null;
-  return { id, updated_at, pack: { format: STATE_FORMAT, version: 1, scene: sessions[0].scene, continuity: CBI_CONTINUITY,
+  return { id, updated_at, ...(context.language && context.language !== 'zh' ? { language: context.language } : {}), pack: { format: STATE_FORMAT, version: 1, scene: sessions[0].scene, continuity: CBI_CONTINUITY,
     canon_revision: context.revision, states: sessions.filter(s => entries.has(s.key)).map(s => entries.get(s.key)) } };
 }
 
@@ -100,7 +101,7 @@ async function stateRequest({ input, story, store, user, now, cryptoApi, fetcher
     if (reload) batch = await currentStateBatch(store, user, story, sessions);
     const found = new Set(batch?.pack.states.map(x => x.key) || []);
     return { state_batch: batch, context_revision: story.revision, needs_generation: sessions.some(s => !found.has(s.key)),
-      run: publicRun(run), auto: { pending: !!run && ACTIVE.includes(run.status),
+      ...(story.language !== 'zh' ? { language: story.language } : {}), run: publicRun(run), auto: { pending: !!run && ACTIVE.includes(run.status),
         next_change_at: new Date(Math.min(...sessions.map(s => s.nextAt))).toISOString(), ...extra } };
   };
   if (input.action === 'state_lines') return responseFor();
@@ -128,7 +129,7 @@ async function stateRequest({ input, story, store, user, now, cryptoApi, fetcher
   try {
     run = await store.insert({ id, user_id: user, request_id: requestId, status: 'starting', callback_hash: await digest(secret, cryptoApi),
       created_at: time, expires_at: new Date(now() + 15 * 60000).toISOString(),
-      result: JSON.stringify({ format: 'c-nc-generation-context', kind: 'state', world: 'sacramento', scene: context.scene,
+      result: JSON.stringify({ format: 'c-nc-generation-context', kind: 'state', world: 'sacramento', scene: context.scene, language: story.language || 'zh',
         canon_revision: story.revision, states: missing.map(({ key, character, state, lineRange }) => ({ key, character, state, lineRange })) }) });
   } catch (error) {
     if (error.dbCode !== '23505') throw error;
@@ -140,7 +141,7 @@ async function stateRequest({ input, story, store, user, now, cryptoApi, fetcher
     const result = await fetcher(connection.fire_url, { method: 'POST', redirect: 'error', signal: AbortSignal.timeout(20000),
       headers: { Authorization: 'Bearer ' + connection.fire_token, 'Content-Type': 'application/json', 'anthropic-version': '2026-10-21' },
       body: JSON.stringify({ text: JSON.stringify({ protocol: 'c-nc-routine-v1', kind: 'office-lines', content_type: 'state-lines',
-        prompt: stateGenerationPrompt(missing, story.revision) + savedStoryPrompt(story, story.revision),
+        prompt: stateGenerationPrompt(missing, story.revision) + savedStoryPrompt(story, story.revision) + dialogueLanguagePrompt(story.language),
         run_id: id, callback_url: env.SUPABASE_URL + CALLBACK_PATH, callback_token: secret }) }) });
     if (!result.ok) {
       const code = ({ 401: 'claude_unauthorized', 403: 'claude_access_denied', 404: 'claude_task_not_found', 429: 'claude_limit' })[result.status] || 'claude_start_failed';
@@ -238,13 +239,13 @@ export function createRestStore(env, fetcher = fetch) {
     async configure(user, value) { await rest('claude_routine_connections?on_conflict=user_id', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify({ user_id: user, ...value }) }); },
     async expire(user, now) { await rest('claude_routine_runs?' + scope(user) + '&status=in.(starting,running,uncertain)&expires_at=lt.' + encodeURIComponent(now), { method: 'PATCH', body: JSON.stringify({ status: 'expired', error_code: 'run_expired', finished_at: now }) }); },
     async recent(user) { return rest('claude_routine_runs?' + scope(user) + '&select=' + RUN_COLUMNS + '&order=created_at.desc&limit=8'); },
-    async officeBatch(user) {
+    async officeBatch(user, language = 'zh') {
       const prefix = encodeURIComponent('{"format":"cbi-office-lines",') + '*';
-      return (await rest('claude_routine_runs?' + scope(user) + '&status=eq.completed&result=like.' + prefix + '&select=id,result,finished_at&order=created_at.desc&limit=1'))[0] || null;
+      return (await rest('claude_routine_runs?' + scope(user) + '&status=eq.completed&result=like.' + prefix + '&select=id,result,finished_at&order=created_at.desc&limit=40')).find(row => { try { return (JSON.parse(row.result).language || 'zh') === language; } catch { return false; } }) || null;
     },
-    async homeBatch(user) {
+    async homeBatch(user, language = 'zh') {
       const prefix = encodeURIComponent('{"format":"cbi-home-lines",') + '*';
-      return (await rest('claude_routine_runs?' + scope(user) + '&status=eq.completed&result=like.' + prefix + '&select=id,result,finished_at&order=created_at.desc&limit=1'))[0] || null;
+      return (await rest('claude_routine_runs?' + scope(user) + '&status=eq.completed&result=like.' + prefix + '&select=id,result,finished_at&order=created_at.desc&limit=40')).find(row => { try { return (JSON.parse(row.result).language || 'zh') === language; } catch { return false; } }) || null;
     },
     async stateBatches(user, revision, keys = []) {
       const prefix = encodeURIComponent('{"format":"cbi-state-lines",') + '*';
@@ -267,9 +268,9 @@ export function createRestStore(env, fetcher = fetch) {
     async companionInsert(value) { return (await rest('jane_companion_messages', { method: 'POST', body: JSON.stringify(value) }))[0]; },
     async companionUpdate(user, id, value, status) { return rest('jane_companion_messages?' + scope(user) + '&id=eq.' + encodeURIComponent(id) + '&status=eq.' + encodeURIComponent(status), { method: 'PATCH', body: JSON.stringify(value) }); },
     async companionSchedule(user, id, notBefore) { return rest('jane_companion_messages?' + scope(user) + '&id=eq.' + encodeURIComponent(id) + '&status=eq.queued&reply_not_before=is.null', { method: 'PATCH', body: JSON.stringify({ reply_not_before: notBefore }) }); },
-    async worldBatch(user, world) {
+    async worldBatch(user, world, language = 'zh') {
       const prefix = encodeURIComponent(JSON.stringify({format:'jane-world-lines',version:1,world}).slice(0,-1) + ',') + '*';
-      return (await rest('claude_routine_runs?' + scope(user) + '&status=eq.completed&result=like.' + prefix + '&select=id,result,finished_at&order=created_at.desc&limit=1'))[0] || null;
+      return (await rest('claude_routine_runs?' + scope(user) + '&status=eq.completed&result=like.' + prefix + '&select=id,result,finished_at&order=created_at.desc&limit=40')).find(row => { try { return (JSON.parse(row.result).language || 'zh') === language; } catch { return false; } }) || null;
     },
     async byRequest(user, id) { return (await rest('claude_routine_runs?' + scope(user) + '&request_id=eq.' + encodeURIComponent(id) + '&select=' + RUN_COLUMNS + '&limit=1'))[0] || null; },
     async active(user) { return (await rest('claude_routine_runs?' + scope(user) + '&status=in.(starting,running,uncertain)&select=' + RUN_COLUMNS + '&limit=1'))[0] || null; },
@@ -293,9 +294,11 @@ export function createBridgeHandler({ env, store = createRestStore(env), fetcher
       if (!user) throw new ClientError(401, 'sign_in_required');
       const input = await body(req), time = new Date(now()).toISOString();
       if (typeof input.action !== 'string') invalid('unknown_action');
+      if (input.language != null && !DIALOGUE_LANGUAGES.includes(input.language)) invalid('invalid_language');
+      const language = normalizeLanguage(input.language);
       await store.expire(user, time);
       const contextCache = new Map();
-      const readContext = world => { if (!contextCache.has(world)) contextCache.set(world, savedContext(store, user, world, cryptoApi, auth[1])); return contextCache.get(world); };
+      const readContext = world => { if (!contextCache.has(world)) contextCache.set(world, savedContext(store, user, world, cryptoApi, auth[1]).then(async context => ({ ...context, language, versioned: context.versioned || language !== 'zh', revision: language === 'zh' ? context.revision : await digest(context.revision + ':dialogue:' + language, cryptoApi) }))); return contextCache.get(world); };
       if (['companion_send', 'companion_list', 'companion_poll', 'companion_auto'].includes(input.action)) {
         return response(await companionRequest({ input, user, store, now, cryptoApi, fetcher, env, accessToken: auth[1],
           getStory: () => readContext('sacramento'), getWeather: weather, digest, ClientError }), 200, headers);
@@ -364,7 +367,7 @@ export function createBridgeHandler({ env, store = createRestStore(env), fetcher
       const id = cryptoApi.randomUUID(), secret = Array.from(cryptoApi.getRandomValues(new Uint8Array(32))).map(x => x.toString(16).padStart(2, '0')).join('');
       let run;
       try {
-        run = await store.insert({ id, user_id: user, request_id: input.request_id, status: 'starting', result: input.action === 'test' ? null : JSON.stringify({format:'c-nc-generation-context',kind:worldMode?'world':home?'home':'office',world,...(worldMode||story.versioned?{canon_revision:story.revision}:{})}), callback_hash: await digest(secret, cryptoApi), created_at: time, expires_at: new Date(now() + 15 * 60000).toISOString() });
+        run = await store.insert({ id, user_id: user, request_id: input.request_id, status: 'starting', result: input.action === 'test' ? null : JSON.stringify({format:'c-nc-generation-context',kind:worldMode?'world':home?'home':'office',world,language,...(worldMode||story.versioned?{canon_revision:story.revision}:{})}), callback_hash: await digest(secret, cryptoApi), created_at: time, expires_at: new Date(now() + 15 * 60000).toISOString() });
       } catch (error) {
         if (error.dbCode !== '23505') throw error;
         const existing = await store.byRequest(user, input.request_id) || await store.active(user);
@@ -377,7 +380,7 @@ export function createBridgeHandler({ env, store = createRestStore(env), fetcher
         const result = await fetcher(connection.fire_url, {
           method: 'POST', redirect: 'error', signal: AbortSignal.timeout(20000),
           headers: { Authorization: 'Bearer ' + connection.fire_token, 'Content-Type': 'application/json', 'anthropic-version': '2026-10-21' },
-          body: JSON.stringify({ text: JSON.stringify({ protocol: 'c-nc-routine-v1', kind: input.action === 'test' ? 'connection-test' : 'office-lines', ...(worldMode ? {content_type:'world-lines',world_id:world} : home ? { content_type: 'home-states' } : {}), prompt: input.action === 'test' ? TEST_PROMPT : worldMode ? worldGenerationPrompt(story,story.revision,automatic?.slot) : withSavedPrompt(home ? homeGenerationPrompt(automatic?.slot) : officeGenerationPrompt(automatic?.slot),story), run_id: id, callback_url: env.SUPABASE_URL + CALLBACK_PATH, callback_token: secret }) })
+          body: JSON.stringify({ text: JSON.stringify({ protocol: 'c-nc-routine-v1', kind: input.action === 'test' ? 'connection-test' : 'office-lines', ...(worldMode ? {content_type:'world-lines',world_id:world} : home ? { content_type: 'home-states' } : {}), prompt: input.action === 'test' ? TEST_PROMPT : (worldMode ? worldGenerationPrompt(story,story.revision,automatic?.slot) : withSavedPrompt(home ? homeGenerationPrompt(automatic?.slot) : officeGenerationPrompt(automatic?.slot),story)) + dialogueLanguagePrompt(language), run_id: id, callback_url: env.SUPABASE_URL + CALLBACK_PATH, callback_token: secret }) })
         });
         if (!result.ok) {
           const code = ({ 401: 'claude_unauthorized', 403: 'claude_access_denied', 404: 'claude_task_not_found', 429: 'claude_limit' })[result.status] || 'claude_start_failed';
@@ -414,14 +417,15 @@ export function createResultHandler({ env, store = createRestStore(env), cryptoA
           await store.update(run.id, { status: 'completed', result, error_code: null, finished_at: new Date(now()).toISOString() });
           return response({ accepted: true }, 200);
         }
-        const pack = decodeStateBatch(result) || decodeOfficeBatch(result) || decodeHomeBatch(result) || decodeWorldBatch(result);
+        const language = normalizeLanguage(runBinding(run)?.language);
+        const pack = decodeStateBatch(result, language) || decodeOfficeBatch(result, language) || decodeHomeBatch(result, language) || decodeWorldBatch(result, language);
         const binding=runBinding(run);
         if(binding){
           const expected={office:'cbi-office-lines',home:'cbi-home-lines',world:'jane-world-lines',state:STATE_FORMAT}[binding.kind];
           if(!pack||pack.format!==expected||(binding.kind==='world'&&pack.world!==binding.world)||(binding.kind==='state'&&pack.scene!==binding.scene)||(binding.canon_revision&&pack.canon_revision!==binding.canon_revision))throw new Error(binding.kind==='state'?'invalid_state_lines':binding.kind==='world'?'invalid_world_lines':binding.kind==='home'?'invalid_home_lines':'invalid_office_lines');
-          if (binding.kind === 'state') validateStateBatch(pack, binding.states);
+          if (binding.kind === 'state') validateStateBatch(pack, binding.states, language);
         }
-        if (pack) result = JSON.stringify(pack);
+        if (pack) { if (binding?.language && binding.language !== 'zh' && binding.kind !== 'state') pack.language = binding.language; result = JSON.stringify(pack); }
       } catch (error) {
         const code = ['invalid_world_lines','invalid_home_lines','invalid_state_lines','invalid_companion_reply'].includes(error.message) ? error.message : 'invalid_office_lines';
         await store.update(run.id, { status: 'failed', error_code: code, finished_at: new Date(now()).toISOString() });

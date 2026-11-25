@@ -54,7 +54,7 @@
       + '<h2 id="checkinRewardModalTitle"></h2>'
       + '<div id="checkinRewardModalBody"></div>'
       + '<div class="checkin-reward-error" id="checkinRewardError"></div>'
-      + '<div class="btn-row"><button class="btn btn-cancel" type="button" id="checkinRewardCancel">取消</button>'
+      + '<div class="btn-row"><button class="btn btn-cancel" type="button" id="checkinRewardCancel" data-ui="取消">取消</button>'
       + '<button class="btn btn-primary" type="button" id="checkinRewardPrimary"></button></div>'
       + '</div></div>';
   }
@@ -88,7 +88,7 @@
   function rewardStatus() {
     var log = db.work.checkinRewardLog || [];
     document.getElementById('statusBar').innerHTML = '<div class="status-item"><div class="status-label">Point</div><div class="status-value">' + db.work.salary + '</div></div>'
-      + '<div class="status-item"><div class="status-label">已刷动态</div><div class="status-value">' + log.length + '</div></div>';
+      + '<div class="status-item"><div class="status-label" data-ui="已刷动态">已刷动态</div><div class="status-value">' + log.length + '</div></div>';
   }
 
   function latestMarkup() {
@@ -124,7 +124,7 @@
         + '<div class="checkin-history-line">' + esc(entry.line) + '</div>'
         + '</article>';
     }).join('');
-    return '<details class="checkin-history"><summary><span>动态历史</span><span>' + entries.length + ' 条</span></summary>'
+    return '<details class="checkin-history"><summary><span data-ui="动态历史">动态历史</span><span>' + entries.length + ' 条</span></summary>'
       + '<div class="checkin-history-list">' + rows + '</div></details>';
   }
 
@@ -145,7 +145,7 @@
     var isOpen = cabinetState[person.id] === true;
     var body = items.length
       ? '<div class="checkin-cabinet-items">' + items.map(function (item) { return itemMarkup(item, counts); }).join('') + '</div>'
-      : '<div class="checkin-cabinet-empty">空柜</div>';
+      : '<div class="checkin-cabinet-empty" data-ui="空柜">空柜</div>';
     return '<details class="checkin-cabinet" data-character-id="' + person.id + '"' + (isOpen ? ' open' : '') + '>'
       + '<summary><span class="checkin-cabinet-dot" style="background:' + person.color + '"></span>'
       + '<span class="checkin-cabinet-name">' + esc(person.name) + '</span>'
@@ -164,9 +164,9 @@
     var content = document.getElementById('content');
     content.innerHTML = latestMarkup()
       + historyMarkup()
-      + '<div class="checkin-reward-head"><span>日常购入</span><span>' + items.length + ' 件</span></div>'
+      + '<div class="checkin-reward-head"><span data-ui="日常购入">日常购入</span><span>' + items.length + ' 件</span></div>'
       + '<div class="checkin-cabinets">' + cabinets + '</div>'
-      + (!items.length ? '<a class="checkin-reward-shop-link" href="shop.html">前往商城</a>' : '');
+      + (!items.length ? '<a class="checkin-reward-shop-link" href="shop.html" data-ui="前往商城">前往商城</a>' : '');
     content.querySelectorAll('.checkin-cabinet').forEach(function (cabinet) {
       cabinet.addEventListener('toggle', function () {
         cabinetState[cabinet.dataset.characterId] = cabinet.open;
@@ -194,10 +194,10 @@
     document.getElementById('checkinRewardError').textContent = '';
     document.getElementById('checkinRewardCancel').style.display = '';
     var primary = document.getElementById('checkinRewardPrimary');
-    primary.textContent = '消耗 ' + global.CBIData.CHECKIN_REWARD_COST + ' 点';
+    (globalThis.AppLanguage ? AppLanguage.setText(primary, '消耗 ' + global.CBIData.CHECKIN_REWARD_COST + ' 点') : (primary.textContent = '消耗 ' + global.CBIData.CHECKIN_REWARD_COST + ' 点'));
     primary.dataset.mode = 'spend';
     primary.disabled = db.work.salary < global.CBIData.CHECKIN_REWARD_COST;
-    if (primary.disabled) document.getElementById('checkinRewardError').textContent = '点数不足';
+    if (primary.disabled) (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('checkinRewardError'), '点数不足') : (document.getElementById('checkinRewardError').textContent = '点数不足'));
     document.getElementById('checkinRewardModal').classList.add('show');
   }
 
@@ -205,7 +205,7 @@
     if (!selectedItemId) return;
     var result = global.CBIData.spendCheckinReward(global.CBIData.load(), selectedItemId, new Date());
     if (!result.ok) {
-      document.getElementById('checkinRewardError').textContent = result.reason === 'insufficient_points' ? '点数不足' : '这个物品暂时不能刷新';
+      (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('checkinRewardError'), result.reason === 'insufficient_points' ? '点数不足' : '这个物品暂时不能刷新') : (document.getElementById('checkinRewardError').textContent = result.reason === 'insufficient_points' ? '点数不足' : '这个物品暂时不能刷新'));
       return;
     }
     syncDb(result.db);
@@ -218,7 +218,7 @@
     document.getElementById('checkinRewardCancel').style.display = 'none';
     var primary = document.getElementById('checkinRewardPrimary');
     primary.disabled = false;
-    primary.textContent = '收下';
+    (globalThis.AppLanguage ? AppLanguage.setText(primary, '收下') : (primary.textContent = '收下'));
     primary.dataset.mode = 'close';
   }
 

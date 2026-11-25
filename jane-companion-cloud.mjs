@@ -1,4 +1,4 @@
-export const READ_KEYS = ['schedule_packs', 'schedule_user_events', 'cbi_db'];
+export const READ_KEYS = ['schedule_packs', 'schedule_user_events', 'cbi_db', 'omn_terminal_language_v1'];
 export const CACHE_KEY = 'jane_companion_snapshot_v1';
 
 // This client never loads cloud-sync.js or initializes CharacterRuntime: no
@@ -27,6 +27,7 @@ export class CompanionCloudReader {
       if (Object.hasOwn(states, key) && states[key] !== null) this.storage.setItem(key, JSON.stringify(states[key]));
       else this.storage.removeItem(key);
     }
+    globalThis.AppLanguage?.reload();
     this.onChange();
   }
   restore(owner) {

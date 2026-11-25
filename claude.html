@@ -1,80 +1,84 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
+<script src="app-language-data.js?v=20261125-language1"></script>
+<script src="app-language.js?v=20261125-language1"></script>
+<script type="module" src="dialogue-translations.mjs?v=20261125-language1"></script>
+
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Claude 连接 · C-NC</title>
+<title data-ui="Claude 连接 · C-NC">Claude 连接 · C-NC</title>
 <link rel="icon" href="favicon.ico">
 <link rel="stylesheet" href="claude-connection.css?v=20261029-audit1">
 </head>
 <body>
 <header class="top-bar"><a href="world-files.html">← World Files</a><h1>C-NC</h1><span>CLAUDE</span></header>
 <main>
-  <div class="page-heading"><div><p class="eyebrow">CONNECTION</p><h2>Claude 连接试验</h2></div><span class="connection-state" id="connectionState" role="status">正在读取</span></div>
-  <p class="intro">用现有 Claude 订阅测试云端连接。</p>
+  <div class="page-heading"><div><p class="eyebrow">CONNECTION</p><h2 data-ui="Claude 连接试验">Claude 连接试验</h2></div><span class="connection-state" id="connectionState" role="status" data-ui="正在读取">正在读取</span></div>
+  <p class="intro" data-ui="用现有 Claude 订阅测试云端连接。">用现有 Claude 订阅测试云端连接。</p>
   <p class="notice" id="pageNotice" role="status" aria-live="polite"></p>
 
   <details class="setup" id="setupDetails" open>
-    <summary>设置连接</summary>
+    <summary data-ui="设置连接">设置连接</summary>
     <section class="setup-step" aria-labelledby="createTaskTitle">
-      <div class="step-heading"><span>01</span><h3 id="createTaskTitle">创建 Claude 云端任务</h3></div>
+      <div class="step-heading"><span>01</span><h3 id="createTaskTitle" data-ui="创建 Claude 云端任务">创建 Claude 云端任务</h3></div>
       <p>在 Claude Code 中新建任务，选择 <strong>natumi-cgnj/c-nc-pj-home</strong> 仓库，触发方式选择 <strong>API</strong>。</p>
-      <div class="inline-actions"><a href="https://claude.ai/code/routines" target="_blank" rel="noopener noreferrer">打开 Claude Code ↗</a><button id="copyPrompt" type="button" disabled>复制任务说明</button></div>
-      <details class="prompt-details"><summary>查看任务说明</summary><textarea id="routinePrompt" aria-label="Claude 云端任务说明" readonly rows="8"></textarea></details>
+      <div class="inline-actions"><a href="https://claude.ai/code/routines" target="_blank" rel="noopener noreferrer" data-ui="打开 Claude Code ↗">打开 Claude Code ↗</a><button id="copyPrompt" type="button" disabled data-ui="复制任务说明">复制任务说明</button></div>
+      <details class="prompt-details"><summary data-ui="查看任务说明">查看任务说明</summary><textarea id="routinePrompt" aria-label="Claude 云端任务说明" readonly rows="8" data-ui-aria-label="Claude 云端任务说明"></textarea></details>
       <p class="hint">在任务环境的 Allowed domains 中加入 <code>lbxjshaiffklmalcxiif.supabase.co</code>，用于送回测试结果。</p>
     </section>
     <section class="setup-step" aria-labelledby="saveConnectionTitle">
-      <div class="step-heading"><span>02</span><h3 id="saveConnectionTitle">保存任务连接</h3></div>
-      <p>将任务 API 触发器中的 Fire URL 和 Token 填在这里。</p>
+      <div class="step-heading"><span>02</span><h3 id="saveConnectionTitle" data-ui="保存任务连接">保存任务连接</h3></div>
+      <p data-ui="将任务 API 触发器中的 Fire URL 和 Token 填在这里。">将任务 API 触发器中的 Fire URL 和 Token 填在这里。</p>
       <form id="connectionForm" autocomplete="off">
         <label for="fireUrl">Fire URL</label>
         <input id="fireUrl" name="fire_url" type="url" required maxlength="300" placeholder="https://api.anthropic.com/v1/claude_code/routines/…/fire" autocapitalize="none" spellcheck="false" autocomplete="off">
         <label for="fireToken">Token</label>
-        <input id="fireToken" name="fire_token" type="password" required maxlength="2100" placeholder="任务专用 Token" autocomplete="new-password" autocapitalize="none" spellcheck="false">
-        <p class="hint">Token 保存在你的账号后端，保存后输入框会清空。</p>
+        <input id="fireToken" name="fire_token" type="password" required maxlength="2100" placeholder="任务专用 Token" autocomplete="new-password" autocapitalize="none" spellcheck="false" data-ui-placeholder="任务专用 Token">
+        <p class="hint" data-ui="Token 保存在你的账号后端，保存后输入框会清空。">Token 保存在你的账号后端，保存后输入框会清空。</p>
         <p class="form-error" id="connectionError" role="alert"></p>
-        <button class="primary" id="saveConnection" type="submit" disabled>保存连接</button>
+        <button class="primary" id="saveConnection" type="submit" disabled data-ui="保存连接">保存连接</button>
       </form>
     </section>
   </details>
 
   <section class="test-section" aria-labelledby="testTitle">
-    <div class="step-heading"><span>03</span><h3 id="testTitle">发送连接测试</h3></div>
-    <p class="test-copy">发送内容：<q>请只回复：C-NC 连接测试成功。</q></p>
-    <button class="primary" id="testConnection" type="button" disabled>发送测试</button>
-    <p class="hint">使用 Claude 订阅额度。云端任务完成后，回复会显示在下方。</p>
-    <div id="testResults" class="results" aria-live="polite"><p class="empty">还没有测试记录</p></div>
-    <button class="text-action" id="refreshConnection" type="button" disabled>刷新状态</button>
+    <div class="step-heading"><span>03</span><h3 id="testTitle" data-ui="发送连接测试">发送连接测试</h3></div>
+    <p class="test-copy">发送内容：<q data-ui="请只回复：C-NC 连接测试成功。">请只回复：C-NC 连接测试成功。</q></p>
+    <button class="primary" id="testConnection" type="button" disabled data-ui="发送测试">发送测试</button>
+    <p class="hint" data-ui="使用 Claude 订阅额度。云端任务完成后，回复会显示在下方。">使用 Claude 订阅额度。云端任务完成后，回复会显示在下方。</p>
+    <div id="testResults" class="results" aria-live="polite"><p class="empty" data-ui="还没有测试记录">还没有测试记录</p></div>
+    <button class="text-action" id="refreshConnection" type="button" disabled data-ui="刷新状态">刷新状态</button>
   </section>
 
   <section class="office-section" aria-labelledby="officeTitle">
-    <div class="step-heading"><span>04</span><h3 id="officeTitle">办公室台词</h3></div>
-    <p class="hint">当前承接高维／META与原世界共同十年的关系；程序时间回到2006，熟悉与记忆继续保留。</p>
-    <p class="test-copy">人物先按各自的概率和时长进入工作、休息等状态，状态变化时再读取世界档案生成对应台词。长状态准备2—4句，刚从外勤回来等短状态准备1—2句。</p>
-    <p class="hint">已配置的连接可以继续使用；世界档案的新设定会随每次请求带入，无需反复修改云端任务说明。</p>
-    <div class="inline-actions"><button id="copyOfficePrompt" type="button" disabled>复制云端任务说明</button><a href="https://claude.ai/code/routines" target="_blank" rel="noopener noreferrer">打开云端任务 ↗</a></div>
-    <button class="primary" id="generateOfficeLines" type="button" disabled>立即更新</button>
+    <div class="step-heading"><span>04</span><h3 id="officeTitle" data-ui="办公室台词">办公室台词</h3></div>
+    <p class="hint" data-ui="当前承接高维／META与原世界共同十年的关系；程序时间回到2006，熟悉与记忆继续保留。">当前承接高维／META与原世界共同十年的关系；程序时间回到2006，熟悉与记忆继续保留。</p>
+    <p class="test-copy" data-ui="人物先按各自的概率和时长进入工作、休息等状态，状态变化时再读取世界档案生成对应台词。长状态准备2—4句，刚从外勤回来等短状态准备1—2句。">人物先按各自的概率和时长进入工作、休息等状态，状态变化时再读取世界档案生成对应台词。长状态准备2—4句，刚从外勤回来等短状态准备1—2句。</p>
+    <p class="hint" data-ui="已配置的连接可以继续使用；世界档案的新设定会随每次请求带入，无需反复修改云端任务说明。">已配置的连接可以继续使用；世界档案的新设定会随每次请求带入，无需反复修改云端任务说明。</p>
+    <div class="inline-actions"><button id="copyOfficePrompt" type="button" disabled data-ui="复制云端任务说明">复制云端任务说明</button><a href="https://claude.ai/code/routines" target="_blank" rel="noopener noreferrer" data-ui="打开云端任务 ↗">打开云端任务 ↗</a></div>
+    <button class="primary" id="generateOfficeLines" type="button" disabled data-ui="立即更新">立即更新</button>
     <p class="notice" id="officeNotice" role="status" aria-live="polite"></p>
-    <p class="hint" id="officeState">正在读取办公室台词</p>
+    <p class="hint" id="officeState" data-ui="正在读取办公室台词">正在读取办公室台词</p>
   </section>
   <section class="office-section" aria-labelledby="homeTitle">
-    <div class="step-heading"><span>05</span><h3 id="homeTitle">居家状态与台词</h3></div>
-    <p class="test-copy">Jane 在家且醒着时，先确定当前动作，再为这个动作生成对应台词。看书、看电视等长状态有多句台词，短动作少一些；同一状态持续期间，台词随时间轮换，手机和电脑保持一致。</p>
-    <p class="hint">活动按各自的时长和概率自然变化：看书、看电视通常约两小时，吃饭、洗澡约半小时至一个半小时，洗漱、煮水约十五至三十分钟。偶尔边休息边琢磨案情。床上睡姿每三至四小时有机会变化，刷新不重抽。洗澡与使用中的画面隐藏人物。已连接办公室任务即可使用。</p>
-    <a class="text-action" href="index.html">返回主页</a>
+    <div class="step-heading"><span>05</span><h3 id="homeTitle" data-ui="居家状态与台词">居家状态与台词</h3></div>
+    <p class="test-copy" data-ui="Jane 在家且醒着时，先确定当前动作，再为这个动作生成对应台词。看书、看电视等长状态有多句台词，短动作少一些；同一状态持续期间，台词随时间轮换，手机和电脑保持一致。">Jane 在家且醒着时，先确定当前动作，再为这个动作生成对应台词。看书、看电视等长状态有多句台词，短动作少一些；同一状态持续期间，台词随时间轮换，手机和电脑保持一致。</p>
+    <p class="hint" data-ui="活动按各自的时长和概率自然变化：看书、看电视通常约两小时，吃饭、洗澡约半小时至一个半小时，洗漱、煮水约十五至三十分钟。偶尔边休息边琢磨案情。床上睡姿每三至四小时有机会变化，刷新不重抽。洗澡与使用中的画面隐藏人物。已连接办公室任务即可使用。">活动按各自的时长和概率自然变化：看书、看电视通常约两小时，吃饭、洗澡约半小时至一个半小时，洗漱、煮水约十五至三十分钟。偶尔边休息边琢磨案情。床上睡姿每三至四小时有机会变化，刷新不重抽。洗澡与使用中的画面隐藏人物。已连接办公室任务即可使用。</p>
+    <a class="text-action" href="index.html" data-ui="返回主页">返回主页</a>
   </section>
   <section class="office-section" aria-labelledby="worldLinesTitle">
-    <div class="step-heading"><span>06</span><h3 id="worldLinesTitle">Jane 的世界线</h3></div>
-    <p class="test-copy">在 WORLD FILES 维护各世界的身份、关系、记忆与剧情。饮食／账本的世界页会按同样的四个时段准备本世界日常；空白世界先补设定再开始。</p>
-    <p class="hint">生成片段单独保存，阅读后可以收进剧情档案。萨克门托的办公室与居家气泡也会读取这份世界设定。</p>
-    <div class="inline-actions"><a href="world-files.html">打开世界档案 ↗</a></div>
+    <div class="step-heading"><span>06</span><h3 id="worldLinesTitle" data-ui="Jane 的世界线">Jane 的世界线</h3></div>
+    <p class="test-copy" data-ui="在 WORLD FILES 维护各世界的身份、关系、记忆与剧情。饮食／账本的世界页会按同样的四个时段准备本世界日常；空白世界先补设定再开始。">在 WORLD FILES 维护各世界的身份、关系、记忆与剧情。饮食／账本的世界页会按同样的四个时段准备本世界日常；空白世界先补设定再开始。</p>
+    <p class="hint" data-ui="生成片段单独保存，阅读后可以收进剧情档案。萨克门托的办公室与居家气泡也会读取这份世界设定。">生成片段单独保存，阅读后可以收进剧情档案。萨克门托的办公室与居家气泡也会读取这份世界设定。</p>
+    <div class="inline-actions"><a href="world-files.html" data-ui="打开世界档案 ↗">打开世界档案 ↗</a></div>
   </section>
 </main>
-<script src="cloud-sync.js?v=20261029-audit1"></script>
+<script src="cloud-sync.js?v=20261125-language1"></script>
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script src="character-runtime.js?v=20261105-late-sleep1"></script>
-<script src="cbi-state-lines.js?v=20261103-state1"></script>
-<script src="claude-connection.js?v=20261103-state1"></script>
+<script src="cbi-state-lines.js?v=20261125-language1"></script>
+<script src="claude-connection.js?v=20261125-language1"></script>
 </body>
 </html>

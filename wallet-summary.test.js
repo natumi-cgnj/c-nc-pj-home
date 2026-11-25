@@ -3,9 +3,9 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const test = require('node:test');
 
-const html = fs.readFileSync('ledger.html', 'utf8');
-const source = fs.readFileSync('wallet-assets.js', 'utf8');
-const recurring = fs.readFileSync('wallet-recurring.js', 'utf8');
+const html = require('./tests/helpers/localized-source.cjs').readFileSync('ledger.html', 'utf8');
+const source = require('./tests/helpers/localized-source.cjs').readFileSync('wallet-assets.js', 'utf8');
+const recurring = require('./tests/helpers/localized-source.cjs').readFileSync('wallet-recurring.js', 'utf8');
 
 function fixture(state, sharedStorage) {
   const storage = sharedStorage || new Map([['wallet_accounts_v1', JSON.stringify(state)], ['wallet_db', 'legacy-untouched']]);
@@ -50,9 +50,9 @@ function fixture(state, sharedStorage) {
   window.closeModal = id => { modalCalls.push(['close', id]); nodes.get(id).classList.remove('show'); };
   const context = vm.createContext({ window, document, Date: ClockDate, Intl });
   vm.runInContext(recurring, context);
-  vm.runInContext(fs.readFileSync('record-periods.js', 'utf8'), context);
-  vm.runInContext(fs.readFileSync('ledger-task-catalog.js', 'utf8'), context);
-  vm.runInContext(fs.readFileSync('ledger-task-model.js', 'utf8'), context);
+  vm.runInContext(require('./tests/helpers/localized-source.cjs').readFileSync('record-periods.js', 'utf8'), context);
+  vm.runInContext(require('./tests/helpers/localized-source.cjs').readFileSync('ledger-task-catalog.js', 'utf8'), context);
+  vm.runInContext(require('./tests/helpers/localized-source.cjs').readFileSync('ledger-task-model.js', 'utf8'), context);
   vm.runInContext(source, context);
   return { window, storage, writes, nodes, modalCalls, confirmations, toasts, expenseCards, timers,
     flushTimers() { const queued = [...timers.values()]; timers.clear(); queued.forEach(item => item.callback()); }, time(value) { now = value; }, render() { window.WalletAssets.render(); },

@@ -128,12 +128,12 @@
     if (!title || !subtitle) return;
     if (viewId === 'viewTreasury') {
       title.textContent = 'WISH DESK';
-      subtitle.textContent = '累计达成愿望' + global.CBIData.wishSpend(load()) + '円';
+      (globalThis.AppLanguage ? AppLanguage.setText(subtitle, '累计达成愿望' + global.CBIData.wishSpend(load()) + '円') : (subtitle.textContent = '累计达成愿望' + global.CBIData.wishSpend(load()) + '円'));
       subtitle.disabled = true;
       document.title = '报销 · 记账（旧版）';
       return;
     }
-    title.textContent = '记账（旧版）';
+    (globalThis.AppLanguage ? AppLanguage.setText(title, '记账（旧版）') : (title.textContent = '记账（旧版）'));
     subtitle.disabled = false;
     if (typeof global.renderMonthBudgetStatus === 'function') global.renderMonthBudgetStatus();
     document.title = '记账（旧版）';
@@ -142,14 +142,14 @@
   function renderAllocationHistory(cbi) {
     var logs = cbi.work.caseFund.logs.filter(function (entry) { return entry.type === 'allocation'; }).slice().reverse();
     var count = document.getElementById('allocationHistoryCount');
-    if (count) count.textContent = logs.length ? logs.length + '笔' : '';
+    if (count) (globalThis.AppLanguage ? AppLanguage.setText(count, logs.length ? logs.length + '笔' : '') : (count.textContent = logs.length ? logs.length + '笔' : ''));
     var target = document.getElementById('treasuryLog');
     if (!target) return;
     target.innerHTML = logs.length ? logs.map(function (entry) {
       var characterId = entry.characterId;
       var color = COLORS[characterId] || '#aaa';
       return '<div class="outing-card" style="border-left:3px solid ' + color + '"><div class="outing-char" style="color:' + color + '">' + esc(NAMES[characterId] || 'CBI') + '</div><div class="outing-activity">' + esc(entry.content) + '</div><div class="outing-cost">' + esc(entry.date) + '</div></div>';
-    }).join('') : '<div class="cbi-log-empty" style="padding:22px">还没有划拨记录</div>';
+    }).join('') : '<div class="cbi-log-empty" style="padding:22px" data-ui="还没有划拨记录">还没有划拨记录</div>';
   }
 
   function renderTreasury() {
@@ -160,7 +160,7 @@
     var open = global.CBIData.unassignedAllowance(cbi, wallet);
     var allocated = global.CBIData.allocatedAllowance(cbi);
     document.getElementById('treasuryCard').innerHTML =
-      '<div class="treasury-label">当前剩余资金 · REALITY BALANCE</div>' +
+      '<div class="treasury-label" data-ui="当前剩余资金 · REALITY BALANCE">当前剩余资金 · REALITY BALANCE</div>' +
       '<div class="treasury-amount positive">¥' + total + '</div>' +
       '<div class="cbi-fund-split"><span>剩余报销额度 ¥' + open + '</span><span>已划自由额度 ¥' + allocated + '</span></div>';
     document.getElementById('charFunds').innerHTML = global.CBIData.CBI_CHARACTERS.map(function (id) {
@@ -169,7 +169,7 @@
     }).join('');
     var transfer = document.querySelector('#viewTreasury .transfer-btn');
     transfer.style.display = '';
-    transfer.textContent = '划拨自由额度';
+    (globalThis.AppLanguage ? AppLanguage.setText(transfer, '划拨自由额度') : (transfer.textContent = '划拨自由额度'));
     renderAllocationHistory(cbi);
     renderWishes();
   }
@@ -180,9 +180,9 @@
       return '<button class="tag-opt' + (index === 0 ? ' selected' : '') + '" data-value="' + id + '" onclick="pickTag(this)" style="--tag-c:' + COLORS[id] + '">' + esc(NAMES[id]) + '</button>';
     }).join('');
     var modal = document.getElementById('transferModal');
-    modal.querySelector('h2').textContent = '划拨自由额度';
-    modal.querySelector('label').textContent = '调整谁的额度';
-    modal.querySelector('p').textContent = '输入正数是划拨；输入负数会从该角色收回自由额度。';
+    (globalThis.AppLanguage ? AppLanguage.setText(modal.querySelector('h2'), '划拨自由额度') : (modal.querySelector('h2').textContent = '划拨自由额度'));
+    (globalThis.AppLanguage ? AppLanguage.setText(modal.querySelector('label'), '调整谁的额度') : (modal.querySelector('label').textContent = '调整谁的额度'));
+    (globalThis.AppLanguage ? AppLanguage.setText(modal.querySelector('p'), '输入正数是划拨；输入负数会从该角色收回自由额度。') : (modal.querySelector('p').textContent = '输入正数是划拨；输入负数会从该角色收回自由额度。'));
     document.getElementById('transferAmount').removeAttribute('min');
     document.getElementById('transferAmount').placeholder = '正数划拨，负数收回';
     document.getElementById('transferAmount').value = '';
@@ -195,10 +195,10 @@
     var characterId = global.getTagValue('transferToGroup');
     var amount = parseInt(document.getElementById('transferAmount').value, 10) || 0;
     var reason = document.getElementById('transferReason').value.trim();
-    if (!amount) { global.showToast('请输入金额'); return; }
+    if (!amount) { global.showToast((globalThis.AppLanguage?.ui('请输入金额') ?? ('请输入金额'))); return; }
     var result = global.CBIData.allocateAllowance(load(), characterId, amount, walletDb(), new Date(), reason);
     if (!result.allocation) {
-      global.showToast(result.reason === 'insufficient_fund' ? '公共额度余额不足' : (result.reason === 'insufficient_personal_fund' ? '这个角色目前没有可收回的额度' : '调整失败'));
+      global.showToast((globalThis.AppLanguage?.ui(result.reason === 'insufficient_fund' ? '公共额度余额不足' : (result.reason === 'insufficient_personal_fund' ? '这个角色目前没有可收回的额度' : '调整失败')) ?? (result.reason === 'insufficient_fund' ? '公共额度余额不足' : (result.reason === 'insufficient_personal_fund' ? '这个角色目前没有可收回的额度' : '调整失败'))));
       return;
     }
     save(result.db);
@@ -206,11 +206,11 @@
     renderTreasury();
     if (amount < 0) {
       var reclaimed = Math.abs(result.allocation.amount);
-      global.showToast(result.clamped ? '已收回全部可用额度 ¥' + reclaimed : '已从 ' + NAMES[characterId] + ' 收回 ¥' + reclaimed);
+      global.showToast((globalThis.AppLanguage?.ui(result.clamped ? '已收回全部可用额度 ¥' + reclaimed : '已从 ' + NAMES[characterId] + ' 收回 ¥' + reclaimed) ?? (result.clamped ? '已收回全部可用额度 ¥' + reclaimed : '已从 ' + NAMES[characterId] + ' 收回 ¥' + reclaimed)));
     } else if (result.autoPurchases && result.autoPurchases.length) {
-      global.showToast(NAMES[characterId] + ' 已用自由额度买下等待中的愿望');
+      global.showToast((globalThis.AppLanguage?.ui(NAMES[characterId] + ' 已用自由额度买下等待中的愿望') ?? (NAMES[characterId] + ' 已用自由额度买下等待中的愿望')));
     } else {
-      global.showToast('已划拨 ¥' + amount + ' 给 ' + NAMES[characterId]);
+      global.showToast((globalThis.AppLanguage?.ui('已划拨 ¥' + amount + ' 给 ' + NAMES[characterId]) ?? ('已划拨 ¥' + amount + ' 给 ' + NAMES[characterId])));
     }
   }
 
@@ -264,7 +264,7 @@
       html += '<div class="outing-cost">' + esc(resolvedDate(request)) + '</div>';
     }
     if (request.progressLine) {
-      html += '<div class="cbi-legacy">旧制案件进展已原样保留</div><div class="cbi-wish-detail">' + esc(request.progressLine) + (request.progressDelta ? '　+' + request.progressDelta : '') + '</div>';
+      html += '<div class="cbi-legacy" data-ui="旧制案件进展已原样保留">旧制案件进展已原样保留</div><div class="cbi-wish-detail">' + esc(request.progressLine) + (request.progressDelta ? '　+' + request.progressDelta : '') + '</div>';
     }
     return html + '</div>';
   }
@@ -276,15 +276,15 @@
     var history = settledHistory(requests);
     document.getElementById('periodBanner').innerHTML = '<div class="period-name">CBI · WISH DESK</div><div class="period-time">' + today() + ' · 愿望、批复与花销</div>';
     var html = pending.map(function (item) { return requestCard(db, item); }).join('');
-    if (!pending.length) html += '<div class="outing-empty">愿望桌暂时没有新纸条</div>';
+    if (!pending.length) html += '<div class="outing-empty" data-ui="愿望桌暂时没有新纸条">愿望桌暂时没有新纸条</div>';
     document.getElementById('outingCards').innerHTML = html;
     var historyCount = document.getElementById('purchaseHistoryCount');
-    if (historyCount) historyCount.textContent = history.length ? history.length + '笔' : '';
+    if (historyCount) (globalThis.AppLanguage ? AppLanguage.setText(historyCount, history.length ? history.length + '笔' : '') : (historyCount.textContent = history.length ? history.length + '笔' : ''));
     var historyCards = document.getElementById('purchaseHistoryCards');
     if (historyCards) {
       historyCards.innerHTML = history.length
         ? history.map(function (item) { return historyCard(db, item); }).join('')
-        : '<div class="cbi-log-empty" style="padding:22px">还没有已结算记录</div>';
+        : '<div class="cbi-log-empty" style="padding:22px" data-ui="还没有已结算记录">还没有已结算记录</div>';
     }
     var treasuryView = document.getElementById('viewTreasury');
     if (treasuryView && treasuryView.classList.contains('active')) renderHeader('viewTreasury');
@@ -299,12 +299,12 @@
   function approveWish(id) {
     var result = global.CBIData.approveWishRequest(load(), id, walletDb());
     if (result.reason) {
-      global.showToast(result.reason === 'insufficient_fund' ? '余额不足，申请会继续保留' : '这条申请现在无法结算');
+      global.showToast((globalThis.AppLanguage?.ui(result.reason === 'insufficient_fund' ? '余额不足，申请会继续保留' : '这条申请现在无法结算') ?? (result.reason === 'insufficient_fund' ? '余额不足，申请会继续保留' : '这条申请现在无法结算')));
       return;
     }
     save(result.db);
     renderWishes();
-    global.showToast('已同意 ' + NAMES[result.request.characterId] + ' 的报销');
+    global.showToast((globalThis.AppLanguage?.ui('已同意 ' + NAMES[result.request.characterId] + ' 的报销') ?? ('已同意 ' + NAMES[result.request.characterId] + ' 的报销')));
   }
 
   function renderView(viewId) {
@@ -418,9 +418,9 @@
       treasuryView.appendChild(purchaseHistoryFold);
     }
     document.querySelector('.tab-bar').innerHTML =
-      '<button class="active" data-view="viewLedger" type="button" onclick="CBIWallet.switchView(\'viewLedger\',this)">记账</button>' +
-      '<button data-view="viewTreasury" type="button" onclick="CBIWallet.switchView(\'viewTreasury\',this)">报销</button>' +
-      '<button data-route="shop" type="button" onclick="location.href=\'shop.html\'">商城</button>';
+      '<button class="active" data-view="viewLedger" type="button" onclick="CBIWallet.switchView(\'viewLedger\',this)" data-ui="记账">记账</button>' +
+      '<button data-view="viewTreasury" type="button" onclick="CBIWallet.switchView(\'viewTreasury\',this)" data-ui="报销">报销</button>' +
+      '<button data-route="shop" type="button" onclick="location.href=\'shop.html\'" data-ui="商城">商城</button>';
     global.openTransferModal = openTransferModal;
     global.saveTransfer = saveTransfer;
     global.renderCurrentTab = renderView;

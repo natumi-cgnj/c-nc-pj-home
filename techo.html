@@ -1,11 +1,15 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
+<script src="app-language-data.js?v=20261125-language1"></script>
+<script src="app-language.js?v=20261125-language1"></script>
+<script type="module" src="dialogue-translations.mjs?v=20261125-language1"></script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Techo">
-<title>Techo</title>
+<title data-ui="Techo">Techo</title>
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="favicon.ico">
 <style>
@@ -211,7 +215,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 <div class="top-bar">
   <a class="back" href="index.html?p=4">← Home</a>
-  <div class="top-title"><h1>Techo</h1></div>
+  <div class="top-title"><h1 data-ui="Techo">Techo</h1></div>
   <div class="top-right"><button class="btn-s" onclick="openCategoryManager()">Edit</button></div>
 </div>
 
@@ -477,7 +481,7 @@ function sectionRowsFromDrafts(rows){return(Array.isArray(rows)?rows:[]).map(row
 function makeSectionRowDraft(colsValue){const cols=clampCols(colsValue),items=[];for(let i=0;i<cols;i++)items.push(makeBlankRefItem(i+1));return{cols,_items:items};}
 function resizeSectionRowDraft(row,value){
   if(!row)return false;const cols=clampCols(value),items=Array.isArray(row._items)?row._items.slice():[];
-  if(cols<items.length&&items.slice(cols).some(item=>!isBlankRefItem(item))){toast('先清空这一排末尾的已填写品目');return false;}
+  if(cols<items.length&&items.slice(cols).some(item=>!isBlankRefItem(item))){toast((globalThis.AppLanguage?.ui('先清空这一排末尾的已填写品目') ?? ('先清空这一排末尾的已填写品目')));return false;}
   row.cols=cols;row._items=items.slice(0,cols);while(row._items.length<cols)row._items.push(makeBlankRefItem(row._items.length+1));return true;
 }
 function clampImagePosition(value){const n=Number(value);return Number.isFinite(n)?Math.max(0,Math.min(100,n)):50;}
@@ -849,7 +853,7 @@ function moveGridItem(scope,fromIdx,toIdx){
   const fromSection=getRefItemSectionIndex(project,fromIdx),toSection=getRefItemSectionIndex(project,toIdx),scroll=currentScrollY();
   if(fromSection!==toSection){
     if(toSection>=0){
-      const placement=findSectionOpenPlacement(project,toSection);if(!placement){toast('请先在目标栏目新增一排');return false;}
+      const placement=findSectionOpenPlacement(project,toSection);if(!placement){toast((globalThis.AppLanguage?.ui('请先在目标栏目新增一排') ?? ('请先在目标栏目新增一排')));return false;}
       if(placement.type==='replace'){
         const blank=project.items[placement.index];project.items[placement.index]=project.items[fromIdx];project.items[fromIdx]=blank;renumberBlankRefItems(project);
         editRefItemId=null;refItemClickSuppressedUntil=Date.now()+400;save();refreshGridScope(scope,scroll);return true;
@@ -1016,7 +1020,7 @@ function addRefSectionDraftRow(sectionIndex){const sec=_refSections[sectionIndex
 function setRefSectionDraftRowCols(sectionIndex,rowIndex,value){const sec=_refSections[sectionIndex],row=sec&&sec._rows&&sec._rows[rowIndex];if(!row)return;if(resizeSectionRowDraft(row,value))syncRefSectionDraft(sec);renderRefSections();}
 function removeRefSectionDraftRow(sectionIndex,rowIndex){
   const sec=_refSections[sectionIndex],row=sec&&sec._rows&&sec._rows[rowIndex];if(!row)return;
-  if((row._items||[]).some(item=>!isBlankRefItem(item))){toast('先清空这一排的已填写品目');return;}
+  if((row._items||[]).some(item=>!isBlankRefItem(item))){toast((globalThis.AppLanguage?.ui('先清空这一排的已填写品目') ?? ('先清空这一排的已填写品目')));return;}
   sec._rows.splice(rowIndex,1);syncRefSectionDraft(sec);renderRefSections();
 }
 function addRefSectionRow(){_refSections.push({name:'',count:0,cols:3,_items:[],_rows:[]});renderRefSections();}
@@ -1086,7 +1090,7 @@ function addQuickRefSectionRow(){quickRefSectionRows.push(makeSectionRowDraft(3)
 function setQuickRefSectionRowCols(index,value){const row=quickRefSectionRows[index];if(!row)return;resizeSectionRowDraft(row,value);renderQuickRefSectionRows();}
 function removeQuickRefSectionRow(index){
   const row=quickRefSectionRows[index];if(!row)return;
-  if((row._items||[]).some(item=>!isBlankRefItem(item))){toast('先清空这一排的已填写品目');return;}
+  if((row._items||[]).some(item=>!isBlankRefItem(item))){toast((globalThis.AppLanguage?.ui('先清空这一排的已填写品目') ?? ('先清空这一排的已填写品目')));return;}
   quickRefSectionRows.splice(index,1);renderQuickRefSectionRows();
 }
 function openGridSectionQuick(scope,index){
@@ -1157,20 +1161,20 @@ function saveGridItem(){
     const oldIndex=project.items.findIndex(item=>item.id===editRefItemId),item=project.items[oldIndex];if(oldIndex<0||!item)return;
     const oldSection=getRefItemSectionIndex(project,oldIndex);
     if(selectedSection!==oldSection){
-      const target=selectedSection>=0?findSectionOpenPlacement(project,selectedSection):null;if(selectedSection>=0&&!target){toast('请先在目标栏目新增一排');return;}
+      const target=selectedSection>=0?findSectionOpenPlacement(project,selectedSection):null;if(selectedSection>=0&&!target){toast((globalThis.AppLanguage?.ui('请先在目标栏目新增一排') ?? ('请先在目标栏目新增一排')));return;}
       item.name=name;item.img=img;item.usage=usage;item.note=note;
       if(target&&target.type==='replace'){const blank=project.items[target.index];project.items[target.index]=item;project.items[oldIndex]=blank;}
       else{
         if(oldSection>=0){const source=project.sections[oldSection],sourceRow=getSectionRowIndexAt(source,oldIndex-getRefSectionStartIndex(project,oldSection));adjustSectionRowCount(source,sourceRow,-1);}
         project.items.splice(oldIndex,1);
-        if(selectedSection>=0){const placement=findSectionOpenPlacement(project,selectedSection);if(!placement||placement.type!=='insert'){toast('请先在目标栏目新增一排');return;}adjustSectionRowCount(project.sections[selectedSection],placement.rowIndex,1);project.items.splice(placement.index,0,item);}
+        if(selectedSection>=0){const placement=findSectionOpenPlacement(project,selectedSection);if(!placement||placement.type!=='insert'){toast((globalThis.AppLanguage?.ui('请先在目标栏目新增一排') ?? ('请先在目标栏目新增一排')));return;}adjustSectionRowCount(project.sections[selectedSection],placement.rowIndex,1);project.items.splice(placement.index,0,item);}
         else project.items.push(item);
       }
     }else{item.name=name;item.img=img;item.usage=usage;item.note=note;}
   }else{
     const item={id:gid(),name,img,usage,note,checked:false};
     if(selectedSection>=0){
-      const placement=findSectionOpenPlacement(project,selectedSection);if(!placement){toast('请先在栏目设置中新增一排');return;}
+      const placement=findSectionOpenPlacement(project,selectedSection);if(!placement){toast((globalThis.AppLanguage?.ui('请先在栏目设置中新增一排') ?? ('请先在栏目设置中新增一排')));return;}
       if(placement.type==='replace')project.items[placement.index]=item;else{adjustSectionRowCount(project.sections[selectedSection],placement.rowIndex,1);project.items.splice(placement.index,0,item);}
     }else project.items.push(item);
   }

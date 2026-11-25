@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
+<script src="app-language-data.js?v=20261125-language1"></script>
+<script src="app-language.js?v=20261125-language1"></script>
+<script type="module" src="dialogue-translations.mjs?v=20261125-language1"></script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -49,36 +53,36 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 </style>
 </head>
 <body>
-<div class="top-bar"><a class="back" href="index.html?p=5">&larr; 主页</a><h1>数据备份</h1><button class="logout" onclick="CloudSync.logout()">退出</button></div>
+<div class="top-bar"><a class="back" href="index.html?p=5" data-ui="← 主页">&larr; 主页</a><h1 data-ui="数据备份">数据备份</h1><button class="logout" onclick="CloudSync.logout()" data-ui="退出">退出</button></div>
 <div class="content">
 <div id="liminalCloudBadgeHost" aria-live="polite"></div>
 <div id="lastBackup" class="last-backup" style="display:none"></div>
-<div class="section"><div class="section-title">系统数据概况</div><div class="card" id="systemList"></div></div>
-<div class="section"><div class="section-title">备份操作</div>
-<button class="action-btn btn-export" onclick="exportAll()">&#8681; 导出全部数据</button>
-<button class="action-btn btn-import" onclick="createCloudSnapshot()">☁ 立即创建云端安全快照</button>
-<button class="action-btn btn-import" onclick="document.getElementById('importFile').click()">&#8679; 从备份文件恢复</button>
+<div class="section"><div class="section-title" data-ui="系统数据概况">系统数据概况</div><div class="card" id="systemList"></div></div>
+<div class="section"><div class="section-title" data-ui="备份操作">备份操作</div>
+<button class="action-btn btn-export" onclick="exportAll()" data-ui="⇩ 导出全部数据">&#8681; 导出全部数据</button>
+<button class="action-btn btn-import" onclick="createCloudSnapshot()" data-ui="☁ 立即创建云端安全快照">☁ 立即创建云端安全快照</button>
+<button class="action-btn btn-import" onclick="document.getElementById('importFile').click()" data-ui="⇧ 从备份文件恢复">&#8679; 从备份文件恢复</button>
 <input type="file" id="importFile" accept=".json" onchange="handleImport(this)" style="display:none">
 <p class="hint">每次云端覆盖前都会自动保留旧版本，每天首次修改前还会保存完整快照。<br>导出的 JSON 文件可作为额外的离线备份。</p>
 </div></div>
-<div class="section"><div class="section-title">云端安全快照</div>
-<div class="card" id="snapshotList"><div class="system-status">正在读取历史快照…</div></div>
-<p class="hint">可以把全部模块一起恢复到同一个时间点；恢复前还会再保存一次当前状态。</p>
+<div class="section"><div class="section-title" data-ui="云端安全快照">云端安全快照</div>
+<div class="card" id="snapshotList"><div class="system-status" data-ui="正在读取历史快照…">正在读取历史快照…</div></div>
+<p class="hint" data-ui="可以把全部模块一起恢复到同一个时间点；恢复前还会再保存一次当前状态。">可以把全部模块一起恢复到同一个时间点；恢复前还会再保存一次当前状态。</p>
 </div>
 
-<div class="section"><div class="section-title">首页台词管理</div>
-<button class="action-btn btn-export" onclick="exportLines()">&#8681; 导出台词 CSV</button>
-<button class="action-btn btn-import" onclick="document.getElementById('linesFile').click()">&#8679; 导入台词 CSV</button>
-<button class="action-btn btn-import" onclick="resetLines()" style="color:#D85A30;border-color:#f0d0c0">&#8635; 恢复默认台词</button>
+<div class="section"><div class="section-title" data-ui="首页台词管理">首页台词管理</div>
+<button class="action-btn btn-export" onclick="exportLines()" data-ui="⇩ 导出台词 CSV">&#8681; 导出台词 CSV</button>
+<button class="action-btn btn-import" onclick="document.getElementById('linesFile').click()" data-ui="⇧ 导入台词 CSV">&#8679; 导入台词 CSV</button>
+<button class="action-btn btn-import" onclick="resetLines()" style="color:#D85A30;border-color:#f0d0c0" data-ui="↻ 恢复默认台词">&#8635; 恢复默认台词</button>
 <input type="file" id="linesFile" accept=".csv" onchange="handleLinesImport(this)" style="display:none">
 <p class="hint">CSV 格式：角色,房间,状态,台词<br>角色 = neal / jane，房间 = neal / jane / natumi<br>导出后可用 Excel 编辑，保存为 CSV 再导入。</p>
 </div>
 <div class="toast" id="toast"></div>
 <div class="overlay" id="confirmOverlay"><div class="confirm-box">
-<div class="confirm-title">确认恢复数据？</div><div class="confirm-msg" id="confirmMsg"></div>
-<div class="confirm-btns"><button class="cbtn-cancel" onclick="hideConfirm()">取消</button><button class="cbtn-danger" onclick="runConfirmedRestore()">覆盖恢复</button></div>
+<div class="confirm-title" data-ui="确认恢复数据？">确认恢复数据？</div><div class="confirm-msg" id="confirmMsg"></div>
+<div class="confirm-btns"><button class="cbtn-cancel" onclick="hideConfirm()" data-ui="取消">取消</button><button class="cbtn-danger" onclick="runConfirmedRestore()" data-ui="覆盖恢复">覆盖恢复</button></div>
 </div></div>
-<script src="cloud-sync.js?v=20261029-audit1"></script>
+<script src="cloud-sync.js?v=20261125-language1"></script>
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
@@ -159,19 +163,19 @@ const SYS=[
 ];
 function gd(k){try{return JSON.parse(localStorage.getItem(k));}catch(e){return null;}}
 function gs(k){const v=localStorage.getItem(k);if(!v)return'-';const b=new Blob([v]).size;return b<1024?b+'B':(b/1024).toFixed(1)+'KB';}
-function renderSys(){document.getElementById('systemList').innerHTML=SYS.map(s=>'<div class="system-row"><div class="system-info"><div class="system-dot" style="background:'+s.color+'"></div><div><div class="system-name">'+s.name+'</div><div class="system-status">'+s.desc(gd(s.key))+'</div></div></div><div class="system-size">'+gs(s.key)+'</div></div>').join('');}
-function showLast(){const el=document.getElementById('lastBackup'),t=localStorage.getItem('last_backup_time');if(t){const d=new Date(+t);el.textContent='\u4E0A\u6B21\u5907\u4EFD\uFF1A'+(d.getMonth()+1)+'/'+d.getDate()+' '+d.getHours()+':'+String(d.getMinutes()).padStart(2,'0');el.style.display='block';}}
-async function exportAll(){try{await CloudSync.createSnapshot('manual-export');}catch(e){console.warn('Cloud snapshot failed before export:',e);}const bk={_meta:{app:'Liminal Space',version:8,exportTime:new Date().toISOString(),keys:SYS.map(s=>s.key),protection:'history-v2'}};SYS.forEach(s=>{const raw=localStorage.getItem(s.key);if(raw!==null)try{bk[s.key]=JSON.parse(raw);}catch(e){}});const bl=new Blob([JSON.stringify(bk,null,2)],{type:'application/json'}),u=URL.createObjectURL(bl),a=document.createElement('a'),n=new Date();a.href=u;a.download='liminal_'+n.getFullYear()+String(n.getMonth()+1).padStart(2,'0')+String(n.getDate()).padStart(2,'0')+'_'+String(n.getHours()).padStart(2,'0')+String(n.getMinutes()).padStart(2,'0')+'.json';a.click();URL.revokeObjectURL(u);localStorage.setItem('last_backup_time',''+Date.now());showLast();toast('\u2705 \u5DF2\u4FDD\u5B58');}
-async function createCloudSnapshot(){try{toast('正在创建安全快照…');await CloudSync.createSnapshot('manual');await loadSnapshots();toast('✅ 云端安全快照已创建');}catch(e){console.error(e);toast('❌ 快照创建失败，未改动数据');}}
+function renderSys(){document.getElementById('systemList').innerHTML=SYS.map(s=>'<div class="system-row"><div class="system-info"><div class="system-dot" style="background:'+s.color+'"></div><div><div class="system-name">'+(window.AppLanguage?.ui(s.name)||s.name)+'</div><div class="system-status">'+s.desc(gd(s.key))+'</div></div></div><div class="system-size">'+gs(s.key)+'</div></div>').join('');}
+function showLast(){const el=document.getElementById('lastBackup'),t=localStorage.getItem('last_backup_time');if(t){const d=new Date(+t);(globalThis.AppLanguage ? AppLanguage.setText(el, '\u4E0A\u6B21\u5907\u4EFD\uFF1A'+(d.getMonth()+1)+'/'+d.getDate()+' '+d.getHours()+':'+String(d.getMinutes()).padStart(2,'0')) : (el.textContent='\u4E0A\u6B21\u5907\u4EFD\uFF1A'+(d.getMonth()+1)+'/'+d.getDate()+' '+d.getHours()+':'+String(d.getMinutes()).padStart(2,'0')));el.style.display='block';}}
+async function exportAll(){try{await CloudSync.createSnapshot('manual-export');}catch(e){console.warn('Cloud snapshot failed before export:',e);}const bk={_meta:{app:'Liminal Space',version:8,exportTime:new Date().toISOString(),keys:SYS.map(s=>s.key),protection:'history-v2'}};SYS.forEach(s=>{const raw=localStorage.getItem(s.key);if(raw!==null)try{bk[s.key]=JSON.parse(raw);}catch(e){}});const bl=new Blob([JSON.stringify(bk,null,2)],{type:'application/json'}),u=URL.createObjectURL(bl),a=document.createElement('a'),n=new Date();a.href=u;a.download='liminal_'+n.getFullYear()+String(n.getMonth()+1).padStart(2,'0')+String(n.getDate()).padStart(2,'0')+'_'+String(n.getHours()).padStart(2,'0')+String(n.getMinutes()).padStart(2,'0')+'.json';a.click();URL.revokeObjectURL(u);localStorage.setItem('last_backup_time',''+Date.now());showLast();toast((globalThis.AppLanguage?.ui('\u2705 \u5DF2\u4FDD\u5B58') ?? ('\u2705 \u5DF2\u4FDD\u5B58')));}
+async function createCloudSnapshot(){try{toast((globalThis.AppLanguage?.ui('正在创建安全快照…') ?? ('正在创建安全快照…')));await CloudSync.createSnapshot('manual');await loadSnapshots();toast((globalThis.AppLanguage?.ui('✅ 云端安全快照已创建') ?? ('✅ 云端安全快照已创建')));}catch(e){console.error(e);toast((globalThis.AppLanguage?.ui('❌ 快照创建失败，未改动数据') ?? ('❌ 快照创建失败，未改动数据')));}}
 let pd=null;
 let restoreSnapshotKey=null;
-function handleImport(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{try{const d=JSON.parse(e.target.result);if(!d._meta||d._meta.app!=='Liminal Space'){toast('\u274C \u4E0D\u662F\u6709\u6548\u5907\u4EFD');inp.value='';return;}restoreSnapshotKey=null;pd=d;const ks=SYS.filter(s=>Object.prototype.hasOwnProperty.call(d,s.key)).map(s=>s.name),tm=d._meta.exportTime?new Date(d._meta.exportTime).toLocaleString('zh-CN'):'?';document.querySelector('.confirm-title').textContent='确认恢复备份文件？';document.getElementById('confirmMsg').innerHTML=tm+'<br>'+ks.join('\u3001')+'<br><br><strong>恢复前会先保存当前完整快照</strong>';document.getElementById('confirmOverlay').classList.add('show');}catch(x){toast('\u274C \u683C\u5F0F\u9519\u8BEF');}inp.value='';};r.readAsText(f);}
+function handleImport(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{try{const d=JSON.parse(e.target.result);if(!d._meta||d._meta.app!=='Liminal Space'){toast((globalThis.AppLanguage?.ui('\u274C \u4E0D\u662F\u6709\u6548\u5907\u4EFD') ?? ('\u274C \u4E0D\u662F\u6709\u6548\u5907\u4EFD')));inp.value='';return;}restoreSnapshotKey=null;pd=d;const ks=SYS.filter(s=>Object.prototype.hasOwnProperty.call(d,s.key)).map(s=>s.name),tm=d._meta.exportTime?new Date(d._meta.exportTime).toLocaleString('zh-CN'):'?';(globalThis.AppLanguage ? AppLanguage.setText(document.querySelector('.confirm-title'), '确认恢复备份文件？') : (document.querySelector('.confirm-title').textContent='确认恢复备份文件？'));document.getElementById('confirmMsg').innerHTML=tm+'<br>'+ks.join('\u3001')+'<br><br><strong data-ui="恢复前会先保存当前完整快照">恢复前会先保存当前完整快照</strong>';document.getElementById('confirmOverlay').classList.add('show');}catch(x){toast((globalThis.AppLanguage?.ui('\u274C \u683C\u5F0F\u9519\u8BEF') ?? ('\u274C \u683C\u5F0F\u9519\u8BEF')));}inp.value='';};r.readAsText(f);}
 function runConfirmedRestore(){if(restoreSnapshotKey)doSnapshotRestore();else doImport();}
-async function doImport(){if(!pd)return;const incoming=pd;pd=null;hideConfirm();toast('正在保存恢复前快照…');try{await CloudSync.restoreStates(incoming);renderSys();toast('\u2705 \u5DF2\u6062\u590D\uFF0C\u539F\u6570\u636E\u5DF2\u5B58\u5165\u5386\u53F2');}catch(e){console.error('Protected import failed:',e);toast('\u274C \u6062\u590D\u5931\u8D25\uFF0C\u4E91\u7AEF\u672A\u88AB\u9759\u9ED8\u8986\u76D6');}}
+async function doImport(){if(!pd)return;const incoming=pd;pd=null;hideConfirm();toast((globalThis.AppLanguage?.ui('正在保存恢复前快照…') ?? ('正在保存恢复前快照…')));try{await CloudSync.restoreStates(incoming);renderSys();toast((globalThis.AppLanguage?.ui('\u2705 \u5DF2\u6062\u590D\uFF0C\u539F\u6570\u636E\u5DF2\u5B58\u5165\u5386\u53F2') ?? ('\u2705 \u5DF2\u6062\u590D\uFF0C\u539F\u6570\u636E\u5DF2\u5B58\u5165\u5386\u53F2')));}catch(e){console.error('Protected import failed:',e);toast((globalThis.AppLanguage?.ui('\u274C \u6062\u590D\u5931\u8D25\uFF0C\u4E91\u7AEF\u672A\u88AB\u9759\u9ED8\u8986\u76D6') ?? ('\u274C \u6062\u590D\u5931\u8D25\uFF0C\u4E91\u7AEF\u672A\u88AB\u9759\u9ED8\u8986\u76D6')));}}
 function hideConfirm(){document.getElementById('confirmOverlay').classList.remove('show');pd=null;restoreSnapshotKey=null;}
-async function loadSnapshots(){const el=document.getElementById('snapshotList');try{const rows=await CloudSync.listSnapshots(20);if(!rows.length){el.innerHTML='<div class="system-status">还没有云端安全快照</div>';return;}el.innerHTML=rows.map(row=>{const info=row.state_data||{},when=new Date(info.createdAt||row.updated_at),count=info.states?Object.keys(info.states).length:0,reason=info.reason==='manual'?'手动':info.reason==='before-import'?'恢复前':info.reason==='manual-export'?'导出前':'每日保护';return'<div class="system-row"><div><div class="system-name">'+when.toLocaleString('zh-CN')+'</div><div class="system-status">'+reason+' · '+count+'个模块</div></div><button class="cbtn-cancel snapshot-restore" data-key="'+row.state_key+'" style="padding:7px 9px;border:0;border-radius:7px;cursor:pointer">恢复</button></div>';}).join('');el.querySelectorAll('.snapshot-restore').forEach(btn=>btn.onclick=()=>requestSnapshotRestore(btn.dataset.key,btn.closest('.system-row').querySelector('.system-name').textContent));}catch(e){console.error(e);el.innerHTML='<div class="system-status">读取快照失败，当前数据未改动</div>';}}
-function requestSnapshotRestore(key,label){pd=null;restoreSnapshotKey=key;document.querySelector('.confirm-title').textContent='恢复到这个时间点？';document.getElementById('confirmMsg').innerHTML=label+'<br><br><strong>全部模块会一起恢复；当前状态会先自动保存</strong>';document.getElementById('confirmOverlay').classList.add('show');}
-async function doSnapshotRestore(){const key=restoreSnapshotKey;if(!key)return;restoreSnapshotKey=null;document.getElementById('confirmOverlay').classList.remove('show');toast('正在恢复安全快照…');try{await CloudSync.restoreSnapshot(key);toast('✅ 已恢复，正在刷新');setTimeout(()=>location.reload(),700);}catch(e){console.error(e);toast('❌ 恢复失败，当前云端数据未被静默覆盖');}}
+async function loadSnapshots(){const el=document.getElementById('snapshotList');try{const rows=await CloudSync.listSnapshots(20);if(!rows.length){el.innerHTML='<div class="system-status" data-ui="还没有云端安全快照">还没有云端安全快照</div>';return;}el.innerHTML=rows.map(row=>{const info=row.state_data||{},when=new Date(info.createdAt||row.updated_at),count=info.states?Object.keys(info.states).length:0,reason=info.reason==='manual'?'手动':info.reason==='before-import'?'恢复前':info.reason==='manual-export'?'导出前':'每日保护';return`<div class="system-row"><div><div class="system-name">${(when.toLocaleString('zh-CN'))}</div><div class="system-status">${(reason)} · ${(count)}个模块</div></div><button class="cbtn-cancel snapshot-restore" data-key="${(row.state_key)}" style="padding:7px 9px;border:0;border-radius:7px;cursor:pointer" data-ui="恢复">恢复</button></div>`;}).join('');el.querySelectorAll('.snapshot-restore').forEach(btn=>btn.onclick=()=>requestSnapshotRestore(btn.dataset.key,btn.closest('.system-row').querySelector('.system-name').textContent));}catch(e){console.error(e);el.innerHTML='<div class="system-status" data-ui="读取快照失败，当前数据未改动">读取快照失败，当前数据未改动</div>';}}
+function requestSnapshotRestore(key,label){pd=null;restoreSnapshotKey=key;(globalThis.AppLanguage ? AppLanguage.setText(document.querySelector('.confirm-title'), '恢复到这个时间点？') : (document.querySelector('.confirm-title').textContent='恢复到这个时间点？'));document.getElementById('confirmMsg').innerHTML=label+'<br><br><strong data-ui="全部模块会一起恢复；当前状态会先自动保存">全部模块会一起恢复；当前状态会先自动保存</strong>';document.getElementById('confirmOverlay').classList.add('show');}
+async function doSnapshotRestore(){const key=restoreSnapshotKey;if(!key)return;restoreSnapshotKey=null;document.getElementById('confirmOverlay').classList.remove('show');toast((globalThis.AppLanguage?.ui('正在恢复安全快照…') ?? ('正在恢复安全快照…')));try{await CloudSync.restoreSnapshot(key);toast((globalThis.AppLanguage?.ui('✅ 已恢复，正在刷新') ?? ('✅ 已恢复，正在刷新')));setTimeout(()=>location.reload(),700);}catch(e){console.error(e);toast((globalThis.AppLanguage?.ui('❌ 恢复失败，当前云端数据未被静默覆盖') ?? ('❌ 恢复失败，当前云端数据未被静默覆盖')));}}
 let tt;function toast(m){const el=document.getElementById('toast');el.textContent=m;el.className='toast show';clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('show'),2500);}
 
 function exportLines(){
@@ -197,7 +201,7 @@ function exportLines(){
   const bl=new Blob([rows.join('\n')],{type:'text/csv;charset=utf-8'});
   const a=document.createElement('a');a.href=URL.createObjectURL(bl);
   a.download='liminal_lines_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
-  toast('✅ 台词已导出');
+  toast((globalThis.AppLanguage?.ui('✅ 台词已导出') ?? ('✅ 台词已导出')));
 }
 
 function handleLinesImport(inp){
@@ -231,10 +235,10 @@ function handleLinesImport(inp){
           }
         }
       });
-      if(count===0){toast('❌ 没有有效台词');inp.value='';return;}
+      if(count===0){toast((globalThis.AppLanguage?.ui('❌ 没有有效台词') ?? ('❌ 没有有效台词')));inp.value='';return;}
       localStorage.setItem('home_lines',JSON.stringify(data));
-      toast('✅ 已导入 '+count+' 条台词，刷新首页生效');
-    }catch(x){toast('❌ 格式错误');}
+      toast((globalThis.AppLanguage?.ui('✅ 已导入 '+count+' 条台词，刷新首页生效') ?? ('✅ 已导入 '+count+' 条台词，刷新首页生效')));
+    }catch(x){toast((globalThis.AppLanguage?.ui('❌ 格式错误') ?? ('❌ 格式错误')));}
     inp.value='';
   };
   r.readAsText(f);
@@ -242,7 +246,7 @@ function handleLinesImport(inp){
 
 function resetLines(){
   localStorage.removeItem('home_lines');
-  toast('✅ 已恢复默认台词，刷新首页生效');
+  toast((globalThis.AppLanguage?.ui('✅ 已恢复默认台词，刷新首页生效') ?? ('✅ 已恢复默认台词，刷新首页生效')));
 }
 
 renderSys();showLast();CloudSync.whenReady().then(loadSnapshots).catch(()=>loadSnapshots());

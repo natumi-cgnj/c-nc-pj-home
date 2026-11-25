@@ -488,12 +488,12 @@
     }
     target.innerHTML =
       '<div class="asset-summary-row">' +
-        '<div class="asset-summary-entry"><span class="asset-summary-label">CNY共计</span>' + amount(summary.cny, 'CNY', '元') + '</div>' +
-        '<div class="asset-summary-entry"><span class="asset-summary-label">JPY合算</span>' + amount(summary.jpy, 'JPY', '円') + '</div>' +
+        '<div class="asset-summary-entry"><span class="asset-summary-label" data-ui="CNY共计">CNY共计</span>' + amount(summary.cny, 'CNY', '元') + '</div>' +
+        '<div class="asset-summary-entry"><span class="asset-summary-label" data-ui="JPY合算">JPY合算</span>' + amount(summary.jpy, 'JPY', '円') + '</div>' +
       '</div>' +
       '<div class="asset-summary-row">' +
-        '<button class="asset-summary-entry asset-summary-goal" type="button" data-asset-goal aria-label="设置日元目标金额"><span class="asset-summary-label">目标金额</span>' + amount(summary.goal, 'JPY', '円') + '</button>' +
-        '<div class="asset-summary-entry asset-summary-remaining"><span class="asset-summary-label">当前还差</span>' + amount(summary.remaining, 'JPY', '円') + '</div>' +
+        '<button class="asset-summary-entry asset-summary-goal" type="button" data-asset-goal aria-label="设置日元目标金额" data-ui-aria-label="设置日元目标金额"><span class="asset-summary-label" data-ui="目标金额">目标金额</span>' + amount(summary.goal, 'JPY', '円') + '</button>' +
+        '<div class="asset-summary-entry asset-summary-remaining"><span class="asset-summary-label" data-ui="当前还差">当前还差</span>' + amount(summary.remaining, 'JPY', '円') + '</div>' +
       '</div>';
     target.querySelector('[data-asset-goal]').addEventListener('click', openGoalEditor);
   }
@@ -508,7 +508,7 @@
     var input = document.getElementById('assetGoalAmount').value.trim();
     var goal = normalizeGoal(input);
     if (input && goal == null) {
-      if (typeof global.showToast === 'function') global.showToast('请输入有效的整数日元目标');
+      if (typeof global.showToast === 'function') global.showToast((globalThis.AppLanguage?.ui('请输入有效的整数日元目标') ?? ('请输入有效的整数日元目标')));
       return;
     }
     var state = loadState();
@@ -570,16 +570,16 @@
       });
     });
     function amount(value) {
-      return '<span class="asset-summary-amount"><span class="asset-summary-value">' + esc(formatBalance(value, 'JPY')) + '</span><span class="asset-summary-unit">円</span></span>';
+      return '<span class="asset-summary-amount"><span class="asset-summary-value">' + esc(formatBalance(value, 'JPY')) + '</span><span class="asset-summary-unit" data-ui="円">円</span></span>';
     }
     target.innerHTML =
       '<div class="asset-summary-row">' +
-        '<div class="asset-summary-entry"><span class="asset-summary-label">当月进账</span>' + amount(income) + '</div>' +
-        '<div class="asset-summary-entry"><span class="asset-summary-label">当月花销</span>' + amount(spent) + '</div>' +
+        '<div class="asset-summary-entry"><span class="asset-summary-label" data-ui="当月进账">当月进账</span>' + amount(income) + '</div>' +
+        '<div class="asset-summary-entry"><span class="asset-summary-label" data-ui="当月花销">当月花销</span>' + amount(spent) + '</div>' +
       '</div>' +
       '<div class="asset-summary-row">' +
-        '<div class="asset-summary-entry asset-expense-monthly-difference"><span class="asset-summary-label">当月差额</span>' + amount(income - spent) + '</div>' +
-        '<div class="asset-summary-entry asset-expense-total-difference"><span class="asset-summary-label">累计差额</span>' + amount(totalIncome - totalSpent) + '</div>' +
+        '<div class="asset-summary-entry asset-expense-monthly-difference"><span class="asset-summary-label" data-ui="当月差额">当月差额</span>' + amount(income - spent) + '</div>' +
+        '<div class="asset-summary-entry asset-expense-total-difference"><span class="asset-summary-label" data-ui="累计差额">累计差额</span>' + amount(totalIncome - totalSpent) + '</div>' +
       '</div>';
   }
 
@@ -629,15 +629,15 @@
     }
     var history = periods ? periods.renderHistory({ records: records.map(function (entry) { return entry.record; }), starts: state.recordPeriodStarts,
       today: today, key: 'ledger:' + book.id, mode: 'money', renderRecord: renderRecord }) :
-      (records.length ? records.map(function (entry) { return renderRecord(entry.record); }).join('') : '<div class="asset-static-empty">暂无记录</div>');
+      (records.length ? records.map(function (entry) { return renderRecord(entry.record); }).join('') : '<div class="asset-static-empty" data-ui="暂无记录">暂无记录</div>');
     target.innerHTML =
       '<div class="asset-detail-toolbar">' +
         '<button class="asset-detail-back" type="button" data-expense-back>' + navigationLabels(state).record + '</button>' +
         '<div class="asset-detail-heading"><div class="asset-expense-title">' + esc(view.title) + '</div>' +
           '<div class="asset-detail-total"><span class="asset-detail-currency">JPY</span>' + esc(formatBalance(expenseTotal(book, today.slice(0, 7) + '-01', today), 'JPY')) + '</div></div>' +
-        '<button class="asset-detail-edit" type="button" data-expense-settings>设置</button>' +
+        '<button class="asset-detail-edit" type="button" data-expense-settings data-ui="设置">设置</button>' +
       '</div>' +
-      '<button class="asset-static-add" type="button" data-expense-add>＋ 记一笔</button>' +
+      '<button class="asset-static-add" type="button" data-expense-add data-ui="＋ 记一笔">＋ 记一笔</button>' +
       '<div class="asset-static-list">' + history + '</div>';
     if (periods) {
       periods.restore(target, opened);
@@ -658,7 +658,7 @@
     var record = id ? book.records.find(function (entry) { return entry.id === id; }) : null;
     if (id && !record) return;
     var today = expenseToday();
-    document.getElementById('assetExpenseRecordTitle').textContent = record ? '编辑记账' : '记一笔';
+    (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('assetExpenseRecordTitle'), record ? '编辑记账' : '记一笔') : (document.getElementById('assetExpenseRecordTitle').textContent = record ? '编辑记账' : '记一笔'));
     document.getElementById('assetExpenseRecordBookId').value = book.id;
     document.getElementById('assetExpenseRecordId').value = record ? record.id : '';
     document.getElementById('assetExpenseRecordType').value = record ? record.type : 'expense';
@@ -685,23 +685,23 @@
     var id = document.getElementById('assetExpenseRecordId').value;
     var existing = id ? book.records.find(function (entry) { return entry.id === id; }) : null;
     if (id && !existing) {
-      if (typeof global.showToast === 'function') global.showToast('这笔记录已不存在');
+      if (typeof global.showToast === 'function') global.showToast((globalThis.AppLanguage?.ui('这笔记录已不存在') ?? ('这笔记录已不存在')));
       return;
     }
     var date = document.getElementById('assetExpenseRecordDate').value;
     var days = calendarDayDifference(date, expenseToday());
     if (days == null || days > 0) {
-      if (typeof global.showToast === 'function') global.showToast('请选择有效日期，不能晚于当前记账日');
+      if (typeof global.showToast === 'function') global.showToast((globalThis.AppLanguage?.ui('请选择有效日期，不能晚于当前记账日') ?? ('请选择有效日期，不能晚于当前记账日')));
       return;
     }
     var type = document.getElementById('assetExpenseRecordType').value;
     if (type !== 'income' && type !== 'expense') {
-      if (typeof global.showToast === 'function') global.showToast('请选择进账或支出');
+      if (typeof global.showToast === 'function') global.showToast((globalThis.AppLanguage?.ui('请选择进账或支出') ?? ('请选择进账或支出')));
       return;
     }
     var amount = expenseAmount(document.getElementById('assetExpenseRecordAmount').value);
     if (amount == null || !Number.isSafeInteger(expenseTotal(book) - (existing ? signedExpenseAmount(existing) : 0) + (type === 'income' ? amount : -amount))) {
-      if (typeof global.showToast === 'function') global.showToast('请输入有效的正整数日元金额');
+      if (typeof global.showToast === 'function') global.showToast((globalThis.AppLanguage?.ui('请输入有效的正整数日元金额') ?? ('请输入有效的正整数日元金额')));
       return;
     }
     var note = document.getElementById('assetExpenseRecordNote').value.trim().slice(0, 120);
@@ -817,9 +817,7 @@
     if (!list) return;
     list.innerHTML = state.stage.worlds.map(function (world) {
       var selected = world.id === state.stage.activeWorldId;
-      return '<div class="asset-stage-option">' +
-        '<button class="asset-stage-select" type="button" role="radio" aria-checked="' + selected + '" data-stage-select="' + world.id + '"><span class="asset-stage-mark" aria-hidden="true">' + (selected ? '●' : '○') + '</span><span>' + esc(world.title) + '</span></button>' +
-        '<button class="asset-stage-edit" type="button" data-stage-edit="' + world.id + '" aria-label="编辑' + esc(world.title) + '题目">编辑</button></div>';
+      return `<div class="asset-stage-option"><button class="asset-stage-select" type="button" role="radio" aria-checked="${(selected)}" data-stage-select="${(world.id)}"><span class="asset-stage-mark" aria-hidden="true">${(selected ? '●' : '○')}</span><span>${(esc(world.title))}</span></button><button class="asset-stage-edit" type="button" data-stage-edit="${(world.id)}" aria-label="编辑${(esc(world.title))}题目" data-ui="编辑">编辑</button></div>`;
     }).join('');
     Array.prototype.forEach.call(list.querySelectorAll('[data-stage-select]'), function (button) {
       button.addEventListener('click', function () { selectStageWorld(button.getAttribute('data-stage-select')); });
@@ -860,7 +858,7 @@
     if (!world) return;
     var title = document.getElementById('assetStageWorldTitle').value.trim().slice(0, 30);
     if (!title) {
-      if (typeof global.showToast === 'function') global.showToast('请输入世界题目');
+      if (typeof global.showToast === 'function') global.showToast((globalThis.AppLanguage?.ui('请输入世界题目') ?? ('请输入世界题目')));
       return;
     }
     world.title = title;
@@ -1089,7 +1087,7 @@
           '<span class="asset-static-manage-actions">' +
             '<button class="asset-static-manage-button" type="button" data-savings-move="up" aria-label="向上移动"' + (index === 0 ? ' disabled' : '') + '>↑</button>' +
             '<button class="asset-static-manage-button" type="button" data-savings-move="down" aria-label="向下移动"' + (index === items.length - 1 ? ' disabled' : '') + '>↓</button>' +
-            '<button class="asset-static-manage-button asset-static-delete" type="button" data-savings-delete>删除</button>' +
+            '<button class="asset-static-manage-button asset-static-delete" type="button" data-savings-delete data-ui="删除">删除</button>' +
           '</span>' +
         '</div>';
       }
@@ -1099,7 +1097,7 @@
         '<span class="asset-static-amount">' + esc(formatBalance(item.balance, entry.currency)) + '</span>' +
       '</button>';
     }).join('');
-    if (!rows && !savingsManageMode) rows = '<div class="asset-static-empty">暂无资产栏</div>';
+    if (!rows && !savingsManageMode) rows = '<div class="asset-static-empty" data-ui="暂无资产栏">暂无资产栏</div>';
     target.style.setProperty('--account-color', color);
     target.innerHTML =
       '<div class="asset-detail-toolbar">' +
@@ -1109,7 +1107,7 @@
       '</div>' +
       '<div class="asset-static-list">' +
         rows +
-        (savingsManageMode ? '<button class="asset-static-add" type="button" data-savings-add>＋ 增加资产栏</button>' : '') +
+        (savingsManageMode ? '<button class="asset-static-add" type="button" data-savings-add data-ui="＋ 增加资产栏">＋ 增加资产栏</button>' : '') +
       '</div>';
     target.querySelector('[data-savings-back]').addEventListener('click', closeAccountDetail);
     target.querySelector('[data-savings-manage]').addEventListener('click', function () {
@@ -1134,7 +1132,7 @@
     var modal = document.getElementById('assetSavingsItemModal');
     if (!modal || !prepareSavingsItemEditor()) return;
     document.getElementById('assetSavingsItemId').value = '';
-    document.getElementById('assetSavingsItemModalTitle').textContent = '新增资产栏';
+    (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('assetSavingsItemModalTitle'), '新增资产栏') : (document.getElementById('assetSavingsItemModalTitle').textContent = '新增资产栏'));
     document.getElementById('assetSavingsItemName').value = '';
     document.getElementById('assetSavingsItemBalance').value = '';
     document.getElementById('assetSavingsItemConfirmedAt').value = '';
@@ -1200,11 +1198,11 @@
     target.innerHTML = rules.map(function (rule) {
       var originalDay = rule.originalDay == null ? (rule.nextDueOn ? rule.day : '') : rule.originalDay;
       return '<div class="asset-monthly-row" data-monthly-id="' + esc(rule.id) + '" data-next-due="' + esc(rule.nextDueOn || '') + '" data-original-day="' + esc(originalDay) + '">' +
-        '<div class="asset-monthly-heading"><label>款项</label><button class="asset-monthly-remove" type="button" data-monthly-remove aria-label="删除扣款">删除</button></div>' +
+        '<div class="asset-monthly-heading"><label data-ui="款项">款项</label><button class="asset-monthly-remove" type="button" data-monthly-remove aria-label="删除扣款" data-ui="删除" data-ui-aria-label="删除扣款">删除</button></div>' +
         '<input type="text" maxlength="40" data-monthly-field="title" value="' + esc(rule.title || '') + '">' +
         '<div class="asset-monthly-fields">' +
-          '<div><label>每月几号</label><input type="number" min="1" max="31" step="1" inputmode="numeric" data-monthly-field="day" value="' + esc(rule.day || '') + '"></div>' +
-          '<div><label>金额（日元）</label><input type="number" min="1" step="1" inputmode="numeric" data-monthly-field="amount" value="' + esc(rule.amount || '') + '"></div>' +
+          '<div><label data-ui="每月几号">每月几号</label><input type="number" min="1" max="31" step="1" inputmode="numeric" data-monthly-field="day" value="' + esc(rule.day || '') + '"></div>' +
+          '<div><label data-ui="金额（日元）">金额（日元）</label><input type="number" min="1" step="1" inputmode="numeric" data-monthly-field="amount" value="' + esc(rule.amount || '') + '"></div>' +
         '</div><div class="asset-monthly-next" data-monthly-next></div>' +
       '</div>';
     }).join('');
@@ -1215,7 +1213,7 @@
         if (Number.isInteger(day) && day >= 1 && day <= 31) {
           next = global.WalletRecurring.reschedule({ nextDueOn: row.getAttribute('data-next-due') || '' }, day);
         }
-        row.querySelector('[data-monthly-next]').textContent = '下次扣款 ' + (next ? next.replace(/-/g, '.') : '—');
+        (globalThis.AppLanguage ? AppLanguage.setText(row.querySelector('[data-monthly-next]'), '下次扣款 ' + (next ? next.replace(/-/g, '.') : '—')) : (row.querySelector('[data-monthly-next]').textContent = '下次扣款 ' + (next ? next.replace(/-/g, '.') : '—')));
       }
       Array.prototype.forEach.call(row.querySelectorAll('input'), function (input) { input.addEventListener('input', preview); });
       row.querySelector('[data-monthly-remove]').addEventListener('click', function () {
@@ -1267,7 +1265,7 @@
     var rawBalance = document.getElementById('assetSavingsItemBalance').value.trim();
     var balance = normalizeBalance(rawBalance);
     if (rawBalance && balance == null) {
-      if (typeof global.showToast === 'function') global.showToast('请输入有效金额');
+      if (typeof global.showToast === 'function') global.showToast((globalThis.AppLanguage?.ui('请输入有效金额') ?? ('请输入有效金额')));
       return;
     }
     var state = loadState();
@@ -1280,7 +1278,7 @@
     var monthlyDebits = config.monthly ? readMonthlyDebitEditor(item ? item.monthlyDebits : []) : [];
     if (monthlyDebits === null) return;
     if (monthlyDebits.length && balance == null) {
-      if (typeof global.showToast === 'function') global.showToast('设置扣款前请填写余额');
+      if (typeof global.showToast === 'function') global.showToast((globalThis.AppLanguage?.ui('设置扣款前请填写余额') ?? ('设置扣款前请填写余额')));
       return;
     }
     if (!item) {
@@ -1305,7 +1303,7 @@
     hideAssetModal('assetSavingsItemModal');
     render();
     renderSavingsDetail();
-    if (typeof global.showToast === 'function') global.showToast('资产已更新');
+    if (typeof global.showToast === 'function') global.showToast((globalThis.AppLanguage?.ui('资产已更新') ?? ('资产已更新')));
   }
 
   function moveSavingsItem(itemId, direction) {
@@ -1342,11 +1340,11 @@
       saveState(state);
       render();
       renderSavingsDetail();
-      if (typeof global.showToast === 'function') global.showToast('资产栏已删除');
+      if (typeof global.showToast === 'function') global.showToast((globalThis.AppLanguage?.ui('资产栏已删除') ?? ('资产栏已删除')));
     }
     if (typeof global.customConfirm === 'function') {
       global.customConfirm('删除这个资产栏？', removeItem, { yes: '删除', danger: true });
-    } else if (typeof global.confirm !== 'function' || global.confirm('删除这个资产栏？')) {
+    } else if (typeof global.confirm !== 'function' || global.confirm((globalThis.AppLanguage?.ui('删除这个资产栏？') ?? ('删除这个资产栏？')))) {
       removeItem();
     }
   }
@@ -1400,7 +1398,7 @@
     var rawBalance = document.getElementById('assetAccountBalance').value.trim();
     var balance = normalizeBalance(rawBalance);
     if (rawBalance && balance == null) {
-      if (typeof global.showToast === 'function') global.showToast('请输入有效金额');
+      if (typeof global.showToast === 'function') global.showToast((globalThis.AppLanguage?.ui('请输入有效金额') ?? ('请输入有效金额')));
       return;
     }
     var state = loadState();
@@ -1434,7 +1432,7 @@
     saveState(state);
     hideAssetModal('assetAccountModal');
     render();
-    if (typeof global.showToast === 'function') global.showToast('账户已更新');
+    if (typeof global.showToast === 'function') global.showToast((globalThis.AppLanguage?.ui('账户已更新') ?? ('账户已更新')));
   }
 
   function mount() {

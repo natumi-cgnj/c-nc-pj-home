@@ -304,13 +304,13 @@
 
   function renderActions() {
     var content = document.getElementById('content');
-    var html = '<div class="cbi-page-head"><div><div class="cbi-kicker">Anonymous case race</div><div class="cbi-page-title">行动</div><div class="cbi-page-note">把较大的现实目标立成无名案；你完成时，所有人的进度立即冻结并结算。</div></div><button class="cbi-btn primary" data-cbi-action="new-action">+ 新行动</button></div>';
+    var html = '<div class="cbi-page-head"><div><div class="cbi-kicker">Anonymous case race</div><div class="cbi-page-title" data-ui="行动">行动</div><div class="cbi-page-note" data-ui="把较大的现实目标立成无名案；你完成时，所有人的进度立即冻结并结算。">把较大的现实目标立成无名案；你完成时，所有人的进度立即冻结并结算。</div></div><button class="cbi-btn primary" data-cbi-action="new-action" data-ui="+ 新行动">+ 新行动</button></div>';
     html += '<div class="cbi-scoreboard">' + scoreBoard() + '</div>';
     var active = db.work.actions.filter(function (item) { return item.status === 'active'; });
     var planned = db.work.actions.filter(function (item) { return item.status === 'planned'; });
     var completed = db.work.actions.filter(function (item) { return item.status === 'completed'; }).slice().reverse();
 
-    if (active.length) html += '<div class="cbi-section">正在追查</div>';
+    if (active.length) html += '<div class="cbi-section" data-ui="正在追查">正在追查</div>';
     active.forEach(function (action) {
       var caseItem = caseForAction(action);
       var difficulty = difficultyInfo(action);
@@ -318,21 +318,21 @@
       if (action.description) html += '<div class="cbi-card-copy">' + esc(action.description) + '</div>';
       html += '<div class="cbi-meta">' + (action.dueDate ? '<span class="cbi-tag">目标 ' + esc(action.dueDate) + '</span>' : '') + '<span class="cbi-tag">立案 ' + esc((action.startedAt || '').slice(0, 10)) + '</span></div>';
       if (caseItem) html += progressRows(caseItem) + '<div class="cbi-case-report">今日线索：' + esc(latestReport(caseItem)) + '</div>';
-      html += '<div class="cbi-actions"><button class="cbi-btn primary" data-cbi-action="complete-action" data-id="' + action.id + '">我完成了 · 归档</button></div></div>';
+      html += `<div class="cbi-actions"><button class="cbi-btn primary" data-cbi-action="complete-action" data-id="${(action.id)}" data-ui="我完成了 · 归档">我完成了 · 归档</button></div></div>`;
     });
 
-    if (planned.length) html += '<div class="cbi-section">待立案</div>';
+    if (planned.length) html += '<div class="cbi-section" data-ui="待立案">待立案</div>';
     planned.forEach(function (action) {
       var difficulty = difficultyInfo(action);
       html += '<div class="cbi-case-file planned"><div class="cbi-file-tab">' + difficulty.label + ' · ' + difficulty.threshold + ' 点</div><div class="cbi-card-title">' + esc(action.title) + '</div>';
       if (action.description) html += '<div class="cbi-card-copy">' + esc(action.description) + '</div>';
       if (action.dueDate) html += '<div class="cbi-meta"><span class="cbi-tag">目标 ' + esc(action.dueDate) + '</span></div>';
-      html += '<div class="cbi-actions"><button class="cbi-btn gold" data-cbi-action="start-action" data-id="' + action.id + '">立案并开始追查</button><button class="cbi-btn" data-cbi-action="edit-action" data-id="' + action.id + '">编辑</button><button class="cbi-btn danger" data-cbi-action="delete-action" data-id="' + action.id + '">删除</button></div></div>';
+      html += `<div class="cbi-actions"><button class="cbi-btn gold" data-cbi-action="start-action" data-id="${(action.id)}" data-ui="立案并开始追查">立案并开始追查</button><button class="cbi-btn" data-cbi-action="edit-action" data-id="${(action.id)}" data-ui="编辑">编辑</button><button class="cbi-btn danger" data-cbi-action="delete-action" data-id="${(action.id)}" data-ui="删除">删除</button></div></div>`;
     });
 
     if (!active.length && !planned.length) html += '<div class="cbi-empty">目前没有行动。<br>例如整理一个柜子、上架两箱娃，或任何需要一点追赶感的大任务。</div>';
     if (completed.length) {
-      html += '<div class="cbi-section">最近归档</div>';
+      html += '<div class="cbi-section" data-ui="最近归档">最近归档</div>';
       completed.slice(0, 8).forEach(function (action) {
         var caseItem = caseForAction(action);
         var result = caseItem && caseItem.bossWon ? 'Boss 押中' : (caseItem && caseItem.winners.length ? caseItem.winners.map(function (id) { return NAMES[id]; }).join('、') + ' 押中' : '已归档');
@@ -347,7 +347,7 @@
     db = result.db;
     save();
     var found = result.reports.filter(function (entry) { return entry.found; }).length;
-    showToast('无名案已立案 · 首轮收到 ' + found + ' 份有效线索');
+    showToast((globalThis.AppLanguage?.ui('无名案已立案 · 首轮收到 ' + found + ' 份有效线索') ?? ('无名案已立案 · 首轮收到 ' + found + ' 份有效线索')));
     render();
   }
 
@@ -355,9 +355,9 @@
     var result = global.CBIData.completeAction(db, id, new Date());
     db = result.db;
     save();
-    if (!result.caseItem) showToast('行动已完成并归档');
-    else if (result.caseItem.bossWon) showToast('Boss 抢先完成：这次你押中了凶手。');
-    else showToast(result.caseItem.winners.map(function (charId) { return NAMES[charId]; }).join('、') + ' 在归档前押中了凶手。');
+    if (!result.caseItem) showToast((globalThis.AppLanguage?.ui('行动已完成并归档') ?? ('行动已完成并归档')));
+    else if (result.caseItem.bossWon) showToast((globalThis.AppLanguage?.ui('Boss 抢先完成：这次你押中了凶手。') ?? ('Boss 抢先完成：这次你押中了凶手。')));
+    else showToast((globalThis.AppLanguage?.ui(result.caseItem.winners.map(function (charId) { return NAMES[charId]; }).join('、') + ' 在归档前押中了凶手。') ?? (result.caseItem.winners.map(function (charId) { return NAMES[charId]; }).join('、') + ' 在归档前押中了凶手。')));
     render();
   }
 
@@ -370,14 +370,14 @@
     if (item.brief) html += '<div class="cbi-quote">“' + esc(item.brief) + '”</div>';
     html += '<div class="cbi-card-copy">' + esc(item.task) + '</div><div class="cbi-meta"><span class="cbi-tag">◆ +' + item.rewardGems + '</span><span class="cbi-tag">' + esc(NAMES[item.issuer]) + ' 好感 +' + item.rewardAffinity + '</span></div>';
     html += '<div class="cbi-actions">' + (mode === 'active'
-      ? '<button class="cbi-btn primary" data-cbi-action="complete-commission" data-id="' + item.id + '">完成委托</button>'
-      : '<button class="cbi-btn gold" data-cbi-action="accept-commission">接受</button>') + '</div></div>';
+      ? `<button class="cbi-btn primary" data-cbi-action="complete-commission" data-id="${(item.id)}" data-ui="完成委托">完成委托</button>`
+      : '<button class="cbi-btn gold" data-cbi-action="accept-commission" data-ui="接受">接受</button>') + '</div></div>';
     return html;
   }
 
   function renderCommissions() {
     var content = document.getElementById('content');
-    var html = '<div class="cbi-page-head"><div><div class="cbi-kicker">Character request</div><div class="cbi-page-title">委托</div><div class="cbi-page-note">从“知道该做、但不会主动排给自己”的事项里，每天抽出一份角色委托。</div></div><button class="cbi-btn" data-cbi-action="manage-commissions">委托池</button></div>';
+    var html = '<div class="cbi-page-head"><div><div class="cbi-kicker">Character request</div><div class="cbi-page-title" data-ui="委托">委托</div><div class="cbi-page-note" data-ui="从“知道该做、但不会主动排给自己”的事项里，每天抽出一份角色委托。">从“知道该做、但不会主动排给自己”的事项里，每天抽出一份角色委托。</div></div><button class="cbi-btn" data-cbi-action="manage-commissions" data-ui="委托池">委托池</button></div>';
     var active = db.work.activeCommissions[0] || null;
     if (active) html += commissionCard(active, 'active');
     else if (db.work.commissionOffer) {
@@ -387,12 +387,12 @@
 
     var affection = global.CBIData.CBI_CHARACTERS.filter(function (id) { return db.work.affinity[id] > 0; });
     if (affection.length) {
-      html += '<div class="cbi-section">累计关系</div><div class="cbi-card cbi-commission-summary"><div class="cbi-meta">';
+      html += '<div class="cbi-section" data-ui="累计关系">累计关系</div><div class="cbi-card cbi-commission-summary"><div class="cbi-meta">';
       affection.forEach(function (id) { html += '<span class="cbi-tag" style="color:' + COLORS[id] + '">' + NAMES[id] + ' +' + db.work.affinity[id] + '</span>'; });
       html += '</div></div>';
     }
     if (db.work.commissionHistory.length) {
-      html += '<div class="cbi-section">最近完成</div>';
+      html += '<div class="cbi-section" data-ui="最近完成">最近完成</div>';
       db.work.commissionHistory.slice().reverse().slice(0, 6).forEach(function (item) {
         html += '<div class="cbi-card cbi-commission-summary"><div class="cbi-card-title">' + esc(item.title) + '</div><div class="cbi-meta"><span class="cbi-tag">' + NAMES[item.issuer] + '</span><span class="cbi-tag">◆ +' + item.rewardGems + '</span><span class="cbi-tag">' + esc(item.completedDate) + '</span></div></div>';
       });
@@ -404,7 +404,7 @@
     var result = global.CBIData.acceptCommission(db, new Date());
     db = result.db;
     save();
-    if (result.active) showToast(NAMES[result.active.issuer] + ' 的委托已接下');
+    if (result.active) showToast((globalThis.AppLanguage?.ui(NAMES[result.active.issuer] + ' 的委托已接下') ?? (NAMES[result.active.issuer] + ' 的委托已接下')));
     render();
   }
 
@@ -436,11 +436,11 @@
 
   function actionModal(id) {
     var item = id ? db.work.actions.find(function (action) { return action.id === id; }) : null;
-    var body = '<label>行动目标</label><input id="cbiActionTitle" type="text" placeholder="如：整理完书柜" value="' + esc(item && item.title) + '">';
-    body += '<label>说明（可选）</label><textarea id="cbiActionDesc" placeholder="给未来的自己留一点具体线索">' + esc(item && item.description) + '</textarea>';
-    body += '<label>案件难度</label><select id="cbiActionDifficulty"><option value="quick"' + (item && item.difficulty === 'quick' ? ' selected' : '') + '>快速 · 15 点</option><option value="normal"' + (!item || item.difficulty === 'normal' ? ' selected' : '') + '>普通 · 30 点</option><option value="hard"' + (item && item.difficulty === 'hard' ? ' selected' : '') + '>棘手 · 60 点</option></select>';
-    body += '<label>目标日期（可选）</label><input id="cbiActionDue" type="date" value="' + esc(item && item.dueDate) + '">';
-    body += '<div class="cbi-modal-note">保存后仍是待立案状态。点击“立案并开始追查”才会启动全员首轮推进。</div>';
+    var body = '<label data-ui="行动目标">行动目标</label><input id="cbiActionTitle" type="text" placeholder="如：整理完书柜" value="' + esc(item && item.title) + '">';
+    body += '<label data-ui="说明（可选）">说明（可选）</label><textarea id="cbiActionDesc" placeholder="给未来的自己留一点具体线索" data-ui-placeholder="给未来的自己留一点具体线索">' + esc(item && item.description) + '</textarea>';
+    body += `<label data-ui="案件难度">案件难度</label><select id="cbiActionDifficulty"><option value="quick"${(item && item.difficulty === 'quick' ? ' selected' : '')} data-ui="快速 · 15 点">快速 · 15 点</option><option value="normal"${(!item || item.difficulty === 'normal' ? ' selected' : '')} data-ui="普通 · 30 点">普通 · 30 点</option><option value="hard"${(item && item.difficulty === 'hard' ? ' selected' : '')} data-ui="棘手 · 60 点">棘手 · 60 点</option></select>`;
+    body += '<label data-ui="目标日期（可选）">目标日期（可选）</label><input id="cbiActionDue" type="date" value="' + esc(item && item.dueDate) + '">';
+    body += '<div class="cbi-modal-note" data-ui="保存后仍是待立案状态。点击“立案并开始追查”才会启动全员首轮推进。">保存后仍是待立案状态。点击“立案并开始追查”才会启动全员首轮推进。</div>';
     openModal(item ? '编辑行动' : '新建行动', body, '保存', function () {
       var title = document.getElementById('cbiActionTitle').value.trim();
       if (!title) return;
@@ -454,17 +454,17 @@
   function commissionManager() {
     var body = '<div id="cbiCommissionPool">';
     db.work.commissionPool.forEach(function (item) {
-      body += '<div class="cbi-pool-row"><div class="cbi-pool-main"><div class="cbi-pool-name">' + esc(item.title) + ' · ' + esc(NAMES[item.issuer]) + '</div><div class="cbi-pool-task">' + esc(item.task) + '</div></div><button type="button" class="cbi-btn danger" data-cbi-action="delete-commission" data-id="' + item.id + '">删除</button></div>';
+      body += `<div class="cbi-pool-row"><div class="cbi-pool-main"><div class="cbi-pool-name">${(esc(item.title))} · ${(esc(NAMES[item.issuer]))}</div><div class="cbi-pool-task">${(esc(item.task))}</div></div><button type="button" class="cbi-btn danger" data-cbi-action="delete-commission" data-id="${(item.id)}" data-ui="删除">删除</button></div>`;
     });
-    if (!db.work.commissionPool.length) body += '<div class="cbi-empty">委托池为空</div>';
-    body += '</div><div class="cbi-section">加入待办委托</div>';
-    body += '<label>发起人</label><select id="cbiCommissionIssuer">' + global.CBIData.CBI_CHARACTERS.map(function (id) { return '<option value="' + id + '">' + NAMES[id] + '</option>'; }).join('') + '</select>';
-    body += '<label>标题</label><input id="cbiCommissionTitle" type="text" placeholder="一眼能认出的短标题">';
-    body += '<label>现实任务</label><textarea id="cbiCommissionTask" placeholder="具体做什么才算完成"></textarea>';
-    body += '<label>角色台词（可选）</label><textarea id="cbiCommissionBrief" placeholder="由角色把任务包装成委托"></textarea>';
-    body += '<label>完成台词（可选）</label><textarea id="cbiCommissionCompletion" placeholder="完成后出现的一句话"></textarea>';
-    body += '<div class="aff-row"><div><label>宝石</label><input id="cbiCommissionGems" type="number" min="0" value="2"></div><div><label>好感</label><input id="cbiCommissionAffinity" type="number" min="0" value="2"></div></div>';
-    body += '<div class="aff-row"><div><label>冷却天数</label><input id="cbiCommissionCooldown" type="number" min="0" value="7"></div><div><label>重复</label><select id="cbiCommissionRepeat"><option value="yes">可重复</option><option value="no">只出现一次</option></select></div></div>';
+    if (!db.work.commissionPool.length) body += '<div class="cbi-empty" data-ui="委托池为空">委托池为空</div>';
+    body += '</div><div class="cbi-section" data-ui="加入待办委托">加入待办委托</div>';
+    body += '<label data-ui="发起人">发起人</label><select id="cbiCommissionIssuer">' + global.CBIData.CBI_CHARACTERS.map(function (id) { return '<option value="' + id + '">' + NAMES[id] + '</option>'; }).join('') + '</select>';
+    body += '<label data-ui="标题">标题</label><input id="cbiCommissionTitle" type="text" placeholder="一眼能认出的短标题" data-ui-placeholder="一眼能认出的短标题">';
+    body += '<label data-ui="现实任务">现实任务</label><textarea id="cbiCommissionTask" placeholder="具体做什么才算完成" data-ui-placeholder="具体做什么才算完成"></textarea>';
+    body += '<label data-ui="角色台词（可选）">角色台词（可选）</label><textarea id="cbiCommissionBrief" placeholder="由角色把任务包装成委托" data-ui-placeholder="由角色把任务包装成委托"></textarea>';
+    body += '<label data-ui="完成台词（可选）">完成台词（可选）</label><textarea id="cbiCommissionCompletion" placeholder="完成后出现的一句话" data-ui-placeholder="完成后出现的一句话"></textarea>';
+    body += '<div class="aff-row"><div><label data-ui="宝石">宝石</label><input id="cbiCommissionGems" type="number" min="0" value="2"></div><div><label data-ui="好感">好感</label><input id="cbiCommissionAffinity" type="number" min="0" value="2"></div></div>';
+    body += '<div class="aff-row"><div><label data-ui="冷却天数">冷却天数</label><input id="cbiCommissionCooldown" type="number" min="0" value="7"></div><div><label data-ui="重复">重复</label><select id="cbiCommissionRepeat"><option value="yes" data-ui="可重复">可重复</option><option value="no" data-ui="只出现一次">只出现一次</option></select></div></div>';
     openModal('委托任务池', body, '加入任务池', function () {
       var title = document.getElementById('cbiCommissionTitle').value.trim();
       var task = document.getElementById('cbiCommissionTask').value.trim();
@@ -483,7 +483,7 @@
       }));
       db.work.commissionOffer = null;
       refreshDailyState();
-      closeModal(); render(); showToast('已加入委托池');
+      closeModal(); render(); showToast((globalThis.AppLanguage?.ui('已加入委托池') ?? ('已加入委托池')));
     });
   }
 
@@ -535,12 +535,12 @@
       tabs.innerHTML = '';
       tabs.style.display = 'none';
     } else {
-      tabs.innerHTML = '<div class="tab" data-tab="drop">委托</div><div class="tab" data-tab="todo">行动</div><div class="tab" data-tab="habits">打卡</div>';
+      tabs.innerHTML = '<div class="tab" data-tab="drop" data-ui="委托">委托</div><div class="tab" data-tab="todo" data-ui="行动">行动</div><div class="tab" data-tab="habits" data-ui="打卡">打卡</div>';
       document.querySelectorAll('.tabs .tab').forEach(function (node) {
         node.addEventListener('click', function () { setTab(node.dataset.tab); });
       });
     }
-    document.body.insertAdjacentHTML('beforeend', '<div class="modal-bg" id="cbiWorkModal"><div class="modal"><h2 id="cbiWorkModalTitle"></h2><div id="cbiWorkModalBody"></div><div class="btn-row"><button class="btn btn-cancel" id="cbiWorkModalCancel">取消</button><button class="btn btn-primary" id="cbiWorkModalPrimary">保存</button></div></div></div><div class="cbi-toast" id="cbiToast"></div>' + (lockedTab === 'todo' ? actionNavMarkup() : ''));
+    document.body.insertAdjacentHTML('beforeend', '<div class="modal-bg" id="cbiWorkModal"><div class="modal"><h2 id="cbiWorkModalTitle"></h2><div id="cbiWorkModalBody"></div><div class="btn-row"><button class="btn btn-cancel" id="cbiWorkModalCancel" data-ui="取消">取消</button><button class="btn btn-primary" id="cbiWorkModalPrimary" data-ui="保存">保存</button></div></div></div><div class="cbi-toast" id="cbiToast"></div>' + (lockedTab === 'todo' ? actionNavMarkup() : ''));
     if (lockedTab === 'todo') {
       document.querySelectorAll('#actionBottomTabs [data-action-view]').forEach(function (button) {
         button.addEventListener('click', function () { setActionView(button.dataset.actionView); });

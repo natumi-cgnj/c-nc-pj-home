@@ -51,7 +51,7 @@ function storeFixture() {
   const writes=[];
   const window={localStorage:{getItem:key=>data.get(key)??null,setItem(key,value){writes.push(key);data.set(key,value);}}};
   const context=vm.createContext({window,Date,Intl});
-  vm.runInContext(fs.readFileSync('record-periods.js','utf8'),context);
+  vm.runInContext(require('./helpers/localized-source.cjs').readFileSync('record-periods.js','utf8'),context);
   return {api:window.RecordPeriods,data,writes,wallet,diet};
 }
 
@@ -87,7 +87,7 @@ test('history rendering leaves the current period visible and defaults old perio
   const html=P.renderHistory({records:[{date:'2026-10-20',amount:100,type:'expense'}],starts:['2026-11-07'],today:'2026-11-07',key:'ledger:book1',mode:'money',renderRecord:()=>'<button data-edit>old detail</button>'});
   assert.match(html,/record-period-current/);
   assert.match(html,/2026-11-07 起/);
-  assert.match(html,/record-period-range">2026-11-07 起<\/span><\/span><button[^>]*data-record-archive>归档<\/button>/);
+  assert.match(html,/record-period-range">2026-11-07 起<\/span><\/span><button[^>]*data-record-archive(?: data-ui="归档")?>归档<\/button>/);
   assert.match(html,/本段还没有记录/);
   assert.match(html,/<details class="record-period" data-record-period="ledger:book1:first">/);
   assert.match(html,/record-period-range">2026-10-20/);

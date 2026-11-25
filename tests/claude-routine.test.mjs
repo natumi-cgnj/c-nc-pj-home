@@ -513,6 +513,43 @@ function stateResult(e, payload = e.calls.at(-1).payload, edit = () => {}) {
 }
 function stateEnvironment() { const e=environment(); e.advance(8*3600000); return e; }
 
+test('dialogue languages isolate revisions, cached states, request IDs and length limits', async () => {
+  const e=stateEnvironment(), context=officeContext();
+  const revisions=new Set();
+  for (const language of ['zh','en','ja']) {
+    const started=await send(e.bridge,{action:'state_auto',context,language});
+    assert.equal(started.status,200);
+    assert.equal(started.data.state_batch,null,'another language cannot supply this pool');
+    const binding=JSON.parse(e.store.runs.at(-1).result);
+    revisions.add(binding.canon_revision);
+    assert.equal(binding.language,language);
+    assert.match(e.calls.at(-1).payload.prompt,/OUTPUT LANGUAGE:/);
+    const lines={zh:'这段还在核对。',en:'I am still comparing these records. Give me another moment before we draw any conclusions about this detail.',ja:'この記録はまだ照合中です。結論を出す前に、もう少し確認します。'};
+    const result=stateResult(e,undefined,pack=>{for(const s of pack.states)s.lines=s.lines.map((_,i)=>lines[language]+(i?' '+i:''));});
+    assert.equal((await send(e.result,result,{token:null,origin:null})).status,200);
+    const read=await send(e.bridge,{action:'state_lines',context,language});
+    assert.equal(read.data.state_batch.pack.states[0].lines[0],lines[language]);
+  }
+  assert.equal(revisions.size,3);
+  assert.equal(e.calls.length,3);
+  const chinese=await send(e.bridge,{action:'state_lines',context,language:'zh'});
+  assert.equal(chinese.data.state_batch.pack.states[0].lines[0],'这段还在核对。');
+  assert.equal((await send(e.bridge,{action:'state_auto',context,language:'invalid'})).status,400);
+  assert.equal(e.calls.length,3);
+});
+
+test('a late old-language callback remains historical while a new language waits', async () => {
+  const e=stateEnvironment(),context=officeContext();
+  await send(e.bridge,{action:'state_auto',context,language:'zh'});
+  const oldResult=stateResult(e);
+  const waiting=await send(e.bridge,{action:'state_auto',context,language:'en'});
+  assert.equal(waiting.data.auto.reused,true);
+  assert.equal(waiting.data.state_batch,null);
+  assert.equal((await send(e.result,oldResult,{token:null,origin:null})).status,200);
+  assert.equal((await send(e.bridge,{action:'state_lines',context,language:'en'})).data.state_batch,null);
+  assert.ok((await send(e.bridge,{action:'state_lines',context,language:'zh'})).data.state_batch);
+});
+
 test('state dialogue spans clock periods and generates only after the actual state changes', async () => {
   const e=stateEnvironment(); let context;
   for(let ago=15;ago<=100;ago++) {

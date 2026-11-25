@@ -1,11 +1,15 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
+<script src="app-language-data.js?v=20261125-language1"></script>
+<script src="app-language.js?v=20261125-language1"></script>
+<script type="module" src="dialogue-translations.mjs?v=20261125-language1"></script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Shop">
-<title>商城 · 记账（旧版）</title>
+<title data-ui="商城 · 记账（旧版）">商城 · 记账（旧版）</title>
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="apple-touch-icon.png">
 <style>
@@ -88,50 +92,50 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 </div>
 <div class="wallet">☕ <span class="w-coffee" id="wC">0</span> &nbsp; 🍃 <span class="w-tea" id="wT">0</span></div>
 <div class="tabs">
-  <div class="tab active" data-tab="preset" onclick="sw('preset')">精选</div>
-  <div class="tab" data-tab="custom" onclick="sw('custom')">自选</div>
-  <div class="tab" data-tab="catalog" onclick="sw('catalog')">图鉴</div>
-  <div class="tab" data-tab="recharge" onclick="sw('recharge')">充值</div>
+  <div class="tab active" data-tab="preset" onclick="sw('preset')" data-ui="精选">精选</div>
+  <div class="tab" data-tab="custom" onclick="sw('custom')" data-ui="自选">自选</div>
+  <div class="tab" data-tab="catalog" onclick="sw('catalog')" data-ui="图鉴">图鉴</div>
+  <div class="tab" data-tab="recharge" onclick="sw('recharge')" data-ui="充值">充值</div>
 </div>
 <div class="content" id="content"></div>
 <button class="add-btn" id="addBtn" onclick="openAdd()" style="display:none">+</button>
 
 <div class="modal-bg" id="buyModal"><div class="modal">
   <div class="buy-detail" id="buyDetail"></div>
-  <div class="btn-row"><button class="btn btn-cancel" onclick="cm('buyModal')">取消</button><button class="btn btn-primary" onclick="confirmBuy()">购买并送出</button></div>
+  <div class="btn-row"><button class="btn btn-cancel" onclick="cm('buyModal')" data-ui="取消">取消</button><button class="btn btn-primary" onclick="confirmBuy()" data-ui="购买并送出">购买并送出</button></div>
 </div></div>
 
 <div class="modal-bg" id="giftModal"><div class="modal">
   <div class="gift-result" id="giftResult"></div>
-  <div class="btn-row"><button class="btn btn-primary" onclick="cm('giftModal')">收下</button></div>
+  <div class="btn-row"><button class="btn btn-primary" onclick="cm('giftModal')" data-ui="收下">收下</button></div>
 </div></div>
 
 <div class="modal-bg" id="addModal"><div class="modal">
-  <h2>添加商品</h2>
-  <label>商品名称</label><input type="text" id="aName" placeholder="如: Hermès Twilly（蓝色系）">
-  <label>所属系列（可选）</label><input type="text" id="aSeries" placeholder="留空为「自选」">
-  <label>送给谁</label>
+  <h2 data-ui="添加商品">添加商品</h2>
+  <label data-ui="商品名称">商品名称</label><input type="text" id="aName" placeholder="如: Hermès Twilly（蓝色系）" data-ui-placeholder="如: Hermès Twilly（蓝色系）">
+  <label data-ui="所属系列（可选）">所属系列（可选）</label><input type="text" id="aSeries" placeholder="留空为「自选」" data-ui-placeholder="留空为「自选」">
+  <label data-ui="送给谁">送给谁</label>
   <select id="aTarget"><option value="neal">Neal</option><option value="jane">Jane</option></select>
-  <label>价格</label>
+  <label data-ui="价格">价格</label>
   <div class="aff-row">
-    <div><label style="margin-top:4px">数量</label><input type="number" id="aPrice" value="400" min="1"></div>
-    <div><label style="margin-top:4px">货币</label><select id="aCurr"><option value="coffee">咖啡豆</option><option value="tea">茶叶</option><option value="both">通用</option></select></div>
+    <div><label style="margin-top:4px" data-ui="数量">数量</label><input type="number" id="aPrice" value="400" min="1"></div>
+    <div><label style="margin-top:4px" data-ui="货币">货币</label><select id="aCurr"><option value="coffee" data-ui="咖啡豆">咖啡豆</option><option value="tea" data-ui="茶叶">茶叶</option><option value="both" data-ui="通用">通用</option></select></div>
   </div>
-  <label>碎片范围</label>
+  <label data-ui="碎片范围">碎片范围</label>
   <div class="aff-row">
-    <div><label style="margin-top:4px">最低</label><input type="number" id="aAffMin" value="8" min="1"></div>
-    <div><label style="margin-top:4px">最高</label><input type="number" id="aAffMax" value="14" min="1"></div>
+    <div><label style="margin-top:4px" data-ui="最低">最低</label><input type="number" id="aAffMin" value="8" min="1"></div>
+    <div><label style="margin-top:4px" data-ui="最高">最高</label><input type="number" id="aAffMax" value="14" min="1"></div>
   </div>
-  <div class="btn-row"><button class="btn btn-cancel" onclick="cm('addModal')">取消</button><button class="btn btn-primary" onclick="saveItem()">保存</button></div>
+  <div class="btn-row"><button class="btn btn-cancel" onclick="cm('addModal')" data-ui="取消">取消</button><button class="btn btn-primary" onclick="saveItem()" data-ui="保存">保存</button></div>
 </div></div>
 
-<nav class="legacy-wallet-nav" aria-label="记账（旧版）"><a href="wallet.html">记账</a><a href="wallet.html#reimbursement">报销</a><a class="active" href="shop.html">商城</a></nav>
+<nav class="legacy-wallet-nav" aria-label="记账（旧版）" data-ui-aria-label="记账（旧版）"><a href="wallet.html" data-ui="记账">记账</a><a href="wallet.html#reimbursement" data-ui="报销">报销</a><a class="active" href="shop.html" data-ui="商城">商城</a></nav>
 
 <script src="world-context.js?v=20261019-ledger-split1"></script>
-<script src="cloud-sync.js?v=20261029-audit1"></script>
+<script src="cloud-sync.js?v=20261125-language1"></script>
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script src="cbi-data.js?v=20261108-suitcase-periods1"></script>
-<script src="cbi-shop.js?v=20261019-ledger-split1"></script>
+<script src="cbi-shop.js?v=20261125-language1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 // ══════════════════════════════════════
@@ -282,7 +286,7 @@ function renderCatalog(c){
   const groups=grp(all);
   let tOwn=0,tAll=0;
   groups.forEach(s=>{tOwn+=s.items.filter(i=>shop.owned.includes(i.id)).length;tAll+=s.items.length;});
-  let h='<div class="catalog-total"><div class="lbl">\u6536\u96C6\u8FDB\u5EA6</div><div class="num">'+tOwn+' / '+tAll+'</div></div>';
+  let h='<div class="catalog-total"><div class="lbl" data-ui="收集进度">收集进度</div><div class="num">'+tOwn+' / '+tAll+'</div></div>';
   groups.forEach(s=>{
     const owned=s.items.filter(i=>shop.owned.includes(i.id)).length;
     const total=s.items.length;
@@ -312,10 +316,10 @@ function renderRecharge(c){
   let h='<div style="text-align:center;padding:16px 0;font-size:12px;color:#999;line-height:1.8">\u5F53\u524D\u4F59\u989D<br>';
   h+='<span style="font-size:16px;font-weight:600;color:#8B6914">☕ '+(b.coffee||0)+'</span> &nbsp; ';
   h+='<span style="font-size:16px;font-weight:600;color:#5A7247">🍃 '+(b.tea||0)+'</span></div>';
-  h+='<div class="recharge-box"><div style="font-size:12px;color:#999;margin-bottom:8px">\u624B\u52A8\u5145\u503C</div>';
-  h+='<div class="aff-row"><div><label>☕ \u5496\u5561\u8C46</label><input type="number" id="rC" value="0" min="0"></div>';
-  h+='<div><label>🍃 \u8336\u53F6</label><input type="number" id="rT" value="0" min="0"></div></div>';
-  h+='<button class="recharge-btn" onclick="doRecharge()">\u5145\u503C</button></div>';
+  h+='<div class="recharge-box"><div style="font-size:12px;color:#999;margin-bottom:8px" data-ui="手动充值">手动充值</div>';
+  h+='<div class="aff-row"><div><label data-ui="☕ 咖啡豆">☕ 咖啡豆</label><input type="number" id="rC" value="0" min="0"></div>';
+  h+='<div><label data-ui="🍃 茶叶">🍃 茶叶</label><input type="number" id="rT" value="0" min="0"></div></div>';
+  h+='<button class="recharge-btn" onclick="doRecharge()" data-ui="充值">充值</button></div>';
   c.innerHTML=h;
 }
 

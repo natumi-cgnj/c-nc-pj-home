@@ -3,10 +3,10 @@ const fs = require('node:fs');
 const test = require('node:test');
 const vm = require('node:vm');
 
-const source = fs.readFileSync('cbi-data.js', 'utf8');
-const index = fs.readFileSync('index.html', 'utf8');
-const suitcase = fs.readFileSync('suitcase.html', 'utf8');
-const cloud = fs.readFileSync('cloud-sync.js', 'utf8');
+const source = require('./helpers/localized-source.cjs').readFileSync('cbi-data.js', 'utf8');
+const index = require('./helpers/localized-source.cjs').readFileSync('index.html', 'utf8');
+const suitcase = require('./helpers/localized-source.cjs').readFileSync('suitcase.html', 'utf8');
+const cloud = require('./helpers/localized-source.cjs').readFileSync('cloud-sync.js', 'utf8');
 const cbiDataPages = ['index.html', 'cbi.html', 'daily.html', 'dynamics.html', 'schedule.html', 'shop.html', 'wallet.html', 'suitcase.html'];
 
 function makeStorage(seed) {
@@ -140,7 +140,7 @@ test('suitcase page exposes four direct size taps, inventory redemption, collect
 
 test('every page that can save CBI data loads the suitcase-aware data model', () => {
   for (const page of cbiDataPages) {
-    const html = fs.readFileSync(page, 'utf8');
+    const html = require('./helpers/localized-source.cjs').readFileSync(page, 'utf8');
     assert.match(html, /cbi-data\.js\?v=20261108-suitcase-periods1/, page);
   }
 });
@@ -155,7 +155,7 @@ function historyFixture() {
   const context=vm.createContext({console,Date,Math,JSON,localStorage:storage,document});
   context.window=context;
   vm.runInContext(source,context);
-  vm.runInContext(fs.readFileSync('record-periods.js','utf8'),context);
+  vm.runInContext(require('./helpers/localized-source.cjs').readFileSync('record-periods.js','utf8'),context);
   const start=suitcase.indexOf("  var COLLAPSED_KEY=");
   const end=suitcase.indexOf('\n  function render(){',start);
   vm.runInContext(suitcase.slice(start,end),context);

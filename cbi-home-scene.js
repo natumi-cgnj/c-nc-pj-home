@@ -22,7 +22,7 @@
   const LAMP_SHADE_GAIN = [.4,.23,-.08], LAMP_SHADE_LIFT = [18,6,-5];
   const state = { rules: null, assets: null, loading: null, frame: null, drawn: '', images: {},
     pending: {}, retry: {}, windowPending: {}, windowRetry: {}, raw: null, mask: null, error: '', drawCount: 0, failedAt: 0 };
-  const content = import('./cbi-home-content.mjs?v=20261103-state1').then(rules => { state.rules = rules; return rules; });
+  const content = import('./cbi-home-content.mjs?v=20261125-language1').then(rules => { state.rules = rules; return rules; });
   content.catch(() => {});
   function active() {
     if (global.__HOME_SCENE_BOOTING) return false;

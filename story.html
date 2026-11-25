@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
+<script src="app-language-data.js?v=20261125-language1"></script>
+<script src="app-language.js?v=20261125-language1"></script>
+<script type="module" src="dialogue-translations.mjs?v=20261125-language1"></script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -112,7 +116,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <div class="dialogue-screen" id="diaScreen" onclick="nextLine()">
   <div class="dia-header">
     <span class="dia-title" id="diaTitle"></span>
-    <button class="dia-close" onclick="event.stopPropagation();closeDia()">跳过</button>
+    <button class="dia-close" onclick="event.stopPropagation();closeDia()" data-ui="跳过">跳过</button>
   </div>
   <div class="dia-body">
     <div class="dia-content">
@@ -123,19 +127,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   </div>
   <div class="dia-footer">
     <div class="dia-progress" id="diaProgress"></div>
-    <div class="dia-hint">点击继续</div>
+    <div class="dia-hint" data-ui="点击继续">点击继续</div>
   </div>
 </div>
 
 <div class="reward-popup" id="rewardPopup">
   <div class="reward-box">
-    <h3>剧情完成 ✦</h3>
+    <h3 data-ui="剧情完成 ✦">剧情完成 ✦</h3>
     <div class="reward-text" id="rewardText"></div>
-    <button onclick="closeReward()">确认</button>
+    <button onclick="closeReward()" data-ui="确认">确认</button>
   </div>
 </div>
 
-<script src="cloud-sync.js?v=20261029-audit1"></script>
+<script src="cloud-sync.js?v=20261125-language1"></script>
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
@@ -467,7 +471,7 @@ function renderEpisodes(c){
     const jAllDone=routes.jane?routes.jane.episodes.every(e=>isEpDone(e.id)):true;
     const nAllDone=routes.neal?routes.neal.episodes.every(e=>isEpDone(e.id)):true;
     const unlockHint=(!jAllDone||!nAllDone)?'完成两条线后解锁':'';
-    html+='<div class="route-divider">汇合</div>';
+    html+='<div class="route-divider" data-ui="汇合">汇合</div>';
     html+='<div class="converge-section">';
     routes.converge.episodes.forEach((ep,i)=>{
       const isDone=isEpDone(ep.id);
@@ -609,12 +613,12 @@ function renderQuests(c){
     html+='</div>';
   });
   if(allDone&&!epDone){
-    html+='<div style="text-align:center;margin-top:16px;"><button onclick="claimReward()" style="padding:12px 32px;background:#1a1a1a;color:#fff;border:none;border-radius:10px;font-size:14px;cursor:pointer;font-family:inherit;">领取奖励</button></div>';
+    html+='<div style="text-align:center;margin-top:16px;"><button onclick="claimReward()" style="padding:12px 32px;background:#1a1a1a;color:#fff;border:none;border-radius:10px;font-size:14px;cursor:pointer;font-family:inherit;" data-ui="领取奖励">领取奖励</button></div>';
   }else if(epDone){
-    html+='<div style="text-align:center;padding:16px;color:#5BA66B;font-size:12px;">\u2726 已完成</div>';
+    html+='<div style="text-align:center;padding:16px;color:#5BA66B;font-size:12px;" data-ui="✦ 已完成">✦ 已完成</div>';
   }
   html+='</div>';
-  html+='<div style="text-align:center;padding:0 20px 20px;"><button onclick="replayDia()" style="padding:8px 20px;border:1px solid #e0e0e0;border-radius:8px;background:#fff;font-size:11px;cursor:pointer;color:#999;">重看剧情</button></div>';
+  html+='<div style="text-align:center;padding:0 20px 20px;"><button onclick="replayDia()" style="padding:8px 20px;border:1px solid #e0e0e0;border-radius:8px;background:#fff;font-size:11px;cursor:pointer;color:#999;" data-ui="重看剧情">重看剧情</button></div>';
   c.innerHTML=html;
 }
 

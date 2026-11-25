@@ -28,7 +28,7 @@ function loadContact(seed) {
     dispatchEvent() {}
   });
   context.window = context;
-  vm.runInContext(fs.readFileSync('cbi-contact.js', 'utf8'), context, { filename: 'cbi-contact.js' });
+  vm.runInContext(require('./helpers/localized-source.cjs').readFileSync('cbi-contact.js', 'utf8'), context, { filename: 'cbi-contact.js' });
   return { CBIContact: context.CBIContact, localStorage };
 }
 
@@ -113,10 +113,10 @@ test('status history uses the shared 04:00 workday boundary', () => {
 });
 
 test('contact keeps STATUS and replaces local threads with two external chat launchers', () => {
-  const page = fs.readFileSync('contact.html', 'utf8');
-  const index = fs.readFileSync('index.html', 'utf8');
-  const cloud = fs.readFileSync('cloud-sync.js', 'utf8');
-  const backup = fs.readFileSync('backup.html', 'utf8');
+  const page = require('./helpers/localized-source.cjs').readFileSync('contact.html', 'utf8');
+  const index = require('./helpers/localized-source.cjs').readFileSync('index.html', 'utf8');
+  const cloud = require('./helpers/localized-source.cjs').readFileSync('cloud-sync.js', 'utf8');
+  const backup = require('./helpers/localized-source.cjs').readFileSync('backup.html', 'utf8');
 
   assert.equal((index.match(/href="contact\.html"/g) || []).length, 2);
   assert.match(index, /class="cbi-desk cbi-desk-boss cbi-status-target" href="contact\.html" aria-label="设置 Boss 状态"/);

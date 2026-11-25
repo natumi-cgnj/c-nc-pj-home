@@ -2,14 +2,14 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const test = require('node:test');
 
-const cbiData = fs.readFileSync('cbi-data.js', 'utf8');
-const cbiShop = fs.readFileSync('cbi-shop.js', 'utf8');
-const cbiWallet = fs.readFileSync('cbi-wallet.js', 'utf8');
-const cloudSync = fs.readFileSync('cloud-sync.js', 'utf8');
-const dynamics = fs.readFileSync('dynamics.html', 'utf8');
-const index = fs.readFileSync('index.html', 'utf8');
-const shop = fs.readFileSync('shop.html', 'utf8');
-const wallet = fs.readFileSync('wallet.html', 'utf8');
+const cbiData = require('./tests/helpers/localized-source.cjs').readFileSync('cbi-data.js', 'utf8');
+const cbiShop = require('./tests/helpers/localized-source.cjs').readFileSync('cbi-shop.js', 'utf8');
+const cbiWallet = require('./tests/helpers/localized-source.cjs').readFileSync('cbi-wallet.js', 'utf8');
+const cloudSync = require('./tests/helpers/localized-source.cjs').readFileSync('cloud-sync.js', 'utf8');
+const dynamics = require('./tests/helpers/localized-source.cjs').readFileSync('dynamics.html', 'utf8');
+const index = require('./tests/helpers/localized-source.cjs').readFileSync('index.html', 'utf8');
+const shop = require('./tests/helpers/localized-source.cjs').readFileSync('shop.html', 'utf8');
+const wallet = require('./tests/helpers/localized-source.cjs').readFileSync('wallet.html', 'utf8');
 
 test('shop keeps the item-grid model inside a three-tier Reward House', () => {
   const projectEditor = cbiShop.slice(cbiShop.indexOf('function projectModalMarkup'), cbiShop.indexOf('function itemModalMarkup'));
@@ -65,7 +65,7 @@ test('shop keeps the item-grid model inside a three-tier Reward House', () => {
   assert.match(cbiShop, /source:\s*'entertainment_balance'/);
   assert.doesNotMatch(cbiShop, /currentProjectId/);
   assert.doesNotMatch(cbiShop, /work\.salary\s*[-+]=/);
-  assert.match(shop, /cbi-shop\.js\?v=20261019-ledger-split1/);
+  assert.match(shop, /cbi-shop\.js\?v=20261125-language1/);
 });
 
 test('reality wallet merges allowance and wishes into reimbursement', () => {
@@ -87,7 +87,7 @@ test('reality wallet merges allowance and wishes into reimbursement', () => {
   assert.doesNotMatch(cbiWallet, /closest\('input,textarea,select,button,a,summary/);
   assert.match(cbiWallet, /event\.preventDefault\(\)/);
   assert.match(cbiWallet, /\}, \{ passive: false \}\);/);
-  assert.match(wallet, /cbi-wallet\.js\?v=20261019-ledger-split1/);
+  assert.match(wallet, /cbi-wallet\.js\?v=20261125-language1/);
   assert.match(cbiShop, /wallet\.html#reimbursement/);
   assert.match(cbiShop, /bindTabSwipe/);
   assert.doesNotMatch(cbiWallet, /案件进度已移至/);
@@ -120,20 +120,20 @@ test('Rewards dynamics preserves its shared entry and hands CBI to check-in rewa
   assert.match(index, /href="techo\.html"[^>]*>[\s\S]*?<div class="entry-label">Techo<\/div>/);
   assert.match(index, /href="dynamics\.html"[^>]*>[\s\S]*?<div class="entry-label">动态<\/div>/);
   assert.match(dynamics, /WorldContext\.getActiveWorldId\(\)==='cbi'[\s\S]*?daily\.html\?tab=habits&view=reward/);
-  assert.match(fs.readFileSync('cbi-checkin-rewards.js', 'utf8'), /data-checkin-view="reward">REWARD/);
+  assert.match(require('./tests/helpers/localized-source.cjs').readFileSync('cbi-checkin-rewards.js', 'utf8'), /data-checkin-view="reward">REWARD/);
 });
 
 test('every page that writes CBI data loads the current schema cache version', () => {
   for (const page of ['cbi.html', 'daily.html', 'schedule.html', 'wallet.html', 'shop.html', 'dynamics.html']) {
-    const html = fs.readFileSync(page, 'utf8');
-    assert.match(html, /cbi-data\.js\?v=20260927-checkin-categories1/, page);
+    const html = require('./tests/helpers/localized-source.cjs').readFileSync(page, 'utf8');
+    assert.match(html, /cbi-data\.js\?v=20261108-suitcase-periods1/, page);
   }
 });
 
 test('every page that loads the wallet runtime uses the current character cache version', () => {
   for (const page of ['index.html', 'cbi.html', 'schedule.html', 'wallet.html']) {
-    const html = fs.readFileSync(page, 'utf8');
-    assert.match(html, /character-runtime\.js\?v=20261028-rest1/, page);
+    const html = require('./tests/helpers/localized-source.cjs').readFileSync(page, 'utf8');
+    assert.match(html, /character-runtime\.js\?v=20261105-late-sleep1/, page);
   }
 });
 
@@ -145,12 +145,12 @@ test('cloud sync keeps running everywhere while its status badge stays on Home',
     'shop.html', 'story.html', 'study.html', 'wallet.html', 'world-empty.html'
   ];
   pages.forEach(page => {
-    const html = fs.readFileSync(page, 'utf8');
+    const html = require('./tests/helpers/localized-source.cjs').readFileSync(page, 'utf8');
     if (page === 'event.html') {
       assert.match(html, /location\.replace\('kitchen\.html'\+location\.search\+location\.hash\)/);
       return; // The retired entry redirects to the synced ACTIVITY page.
     }
-    assert.match(html, /cloud-sync\.js\?v=20261029-audit1/, page);
+    assert.match(html, /cloud-sync\.js\?v=20261125-language1/, page);
   });
   assert.match(cloudSync, /function showsCloudBadge\(\)[\s\S]*?=== 'index\.html'/);
   assert.match(cloudSync, /if \(!showsCloudBadge\(\)\) \{[\s\S]*?return;/);

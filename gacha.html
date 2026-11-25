@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
+<script src="app-language-data.js?v=20261125-language1"></script>
+<script src="app-language.js?v=20261125-language1"></script>
+<script type="module" src="dialogue-translations.mjs?v=20261125-language1"></script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -129,7 +133,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <div class="top-bar">
   <a class="back" href="index.html?p=5">&larr; Home</a>
   <h1>GACHA</h1>
-  <button class="btn-s" onclick="showModal('exportModal')">备份</button>
+  <button class="btn-s" onclick="showModal('exportModal')" data-ui="备份">备份</button>
 </div>
 
 <div class="gem-bar" id="gemBar"></div>
@@ -145,18 +149,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- Export/Import -->
 <div class="modal-bg" id="exportModal">
   <div class="modal">
-    <h2>数据备份</h2>
+    <h2 data-ui="数据备份">数据备份</h2>
     <div style="padding:8px 0;">
-      <button class="btn btn-cancel" style="margin-bottom:8px;width:100%;" onclick="exportData()">导出所有数据</button>
-      <button class="btn btn-cancel" style="width:100%;" onclick="document.getElementById('importFile').click()">从备份导入</button>
+      <button class="btn btn-cancel" style="margin-bottom:8px;width:100%;" onclick="exportData()" data-ui="导出所有数据">导出所有数据</button>
+      <button class="btn btn-cancel" style="width:100%;" onclick="document.getElementById('importFile').click()" data-ui="从备份导入">从备份导入</button>
       <input type="file" id="importFile" accept=".json" onchange="importData(this)" style="display:none;">
-      <p style="font-size:11px;color:#bbb;text-align:center;margin-top:12px;">建议定期导出备份</p>
+      <p style="font-size:11px;color:#bbb;text-align:center;margin-top:12px;" data-ui="建议定期导出备份">建议定期导出备份</p>
     </div>
-    <div class="btn-row"><button class="btn btn-cancel" onclick="closeModal('exportModal')">关闭</button></div>
+    <div class="btn-row"><button class="btn btn-cancel" onclick="closeModal('exportModal')" data-ui="关闭">关闭</button></div>
   </div>
 </div>
 
-<script src="cloud-sync.js?v=20261029-audit1"></script>
+<script src="cloud-sync.js?v=20261125-language1"></script>
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
@@ -247,10 +251,10 @@ function renderPull(c){
 
   c.innerHTML=`
     <div class="info-card">
-      <div class="info-row"><span class="info-label">收集进度</span><span class="info-value">${owned} / ${p.length}</span></div>
-      <div class="info-row"><span class="info-label">累计抽取</span><span class="info-value">${total} 次</span></div>
-      <div class="info-row"><span class="info-label">距保底 SSR</span><span class="info-value ${pity>=25?'pity-warn':''}">${PITY-pity} 抽</span></div>
-      <div class="info-row"><span class="info-label">单抽花费</span><span class="info-value">${costStr.join(' + ')}</span></div>
+      <div class="info-row"><span class="info-label" data-ui="收集进度">收集进度</span><span class="info-value">${owned} / ${p.length}</span></div>
+      <div class="info-row"><span class="info-label" data-ui="累计抽取">累计抽取</span><span class="info-value">${total} 次</span></div>
+      <div class="info-row"><span class="info-label" data-ui="距保底 SSR">距保底 SSR</span><span class="info-value ${pity>=25?'pity-warn':''}">${PITY-pity} 抽</span></div>
+      <div class="info-row"><span class="info-label" data-ui="单抽花费">单抽花费</span><span class="info-value">${costStr.join(' + ')}</span></div>
     </div>
     <button class="pull-btn ${canAfford?pool:'disabled'}" onclick="doPull()" ${canAfford?'':'disabled'}>
       ${canAfford?'抽 卡':'宝石不足'}
@@ -261,7 +265,7 @@ function renderPull(c){
       <span class="rate-r">R 80%</span>
     </div>
     <div class="recharge" style="margin-top:20px;">
-      <h3>快速录入宝石</h3>
+      <h3 data-ui="快速录入宝石">快速录入宝石</h3>
       <div style="display:flex;justify-content:center;gap:20px;margin-bottom:10px;font-size:13px;font-weight:500;">
         <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#5BA66B;vertical-align:middle;margin-right:4px;"></span>${st.emerald}</span>
         <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#6B8AFF;vertical-align:middle;margin-right:4px;"></span>${st.sapphire}</span>
@@ -272,7 +276,7 @@ function renderPull(c){
       <div class="recharge-row">
         ${[1,5,10].map(n=>`<button class="rch-btn sapphire" onclick="addGem('sapphire',${n})">蓝宝石 +${n}</button>`).join('')}
       </div>
-      <div class="recharge-desc">日常 / 主线 / 聊天掉落的宝石在此录入</div>
+      <div class="recharge-desc" data-ui="日常 / 主线 / 聊天掉落的宝石在此录入">日常 / 主线 / 聊天掉落的宝石在此录入</div>
     </div>`;
 }
 
@@ -366,7 +370,7 @@ function showReveal(card,rarity,isNew,recycled){
     <div class="reveal-name ${nameClass}">${card.name}</div>
     ${card.ep?`<div class="reveal-ep">${card.ep}</div>`:''}
     ${statusHtml}
-    <button class="reveal-close" onclick="closeReveal()">確認</button>
+    <button class="reveal-close" onclick="closeReveal()" data-ui="確認">確認</button>
   </div>`;
 }
 function closeReveal(){document.getElementById('revealBg').style.display='none';}
@@ -388,11 +392,11 @@ function renderCollection(c){
 // ── History ──
 function renderHistory(c){
   const h=st.history.filter(x=>x.pool===pool);
-  if(!h.length){c.innerHTML='<div class="empty">还没有抽卡记录</div>';return;}
+  if(!h.length){c.innerHTML='<div class="empty" data-ui="还没有抽卡记录">还没有抽卡记录</div>';return;}
   const colors={SSR:'#E8B96A',SR:'#999',R:'#c4b5a0'};
   c.innerHTML=h.map(x=>`<div class="hist-item">
     <span class="hist-rarity" style="color:${colors[x.rarity]}">${x.rarity}</span>
-    <span class="hist-name">${x.name}${x.isNew?'<span class="hist-new">NEW</span>':'<span class="hist-dup">重复</span>'}</span>
+    <span class="hist-name">${x.name}${x.isNew?'<span class="hist-new">NEW</span>':'<span class="hist-dup" data-ui="重复">重复</span>'}</span>
     <span class="hist-meta">${typeof x.time==='string'?x.time.slice(5,16).replace('T',' '):''}</span>
   </div>`).join('');
 }
@@ -432,7 +436,7 @@ function renderRecharge(c){
     <div id="buyResult" style="font-size:12px;color:#5BA66B;text-align:center;margin-top:12px;min-height:20px;"></div>
 
     <div class="recharge" style="margin-top:20px;">
-      <h3>手动录入宝石</h3>
+      <h3 data-ui="手动录入宝石">手动录入宝石</h3>
       <div style="display:flex;justify-content:center;gap:20px;margin-bottom:10px;font-size:13px;font-weight:500;">
         <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#5BA66B;vertical-align:middle;margin-right:4px;"></span>${st.emerald}</span>
         <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#6B8AFF;vertical-align:middle;margin-right:4px;"></span>${st.sapphire}</span>
@@ -443,17 +447,17 @@ function renderRecharge(c){
       <div class="recharge-row">
         ${[1,5,10].map(n=>`<button class="rch-btn sapphire" onclick="addGem('sapphire',${n})">蓝宝石 +${n}</button>`).join('')}
       </div>
-      <div class="recharge-desc">聊天掉落 / 日常任务 / 主线奖励在此手动录入</div>
+      <div class="recharge-desc" data-ui="聊天掉落 / 日常任务 / 主线奖励在此手动录入">聊天掉落 / 日常任务 / 主线奖励在此手动录入</div>
     </div>`;
 }
 
 function buyPack(e,s,price,label){
-  if(!confirm('充值 ¥'+price+'（'+label+'）？'))return;
+  if(!confirm((globalThis.AppLanguage?.ui('充值 ¥'+price+'（'+label+'）？') ?? ('充值 ¥'+price+'（'+label+'）？'))))return;
   st.emerald+=e;st.sapphire+=s;save();render();
   setView('recharge');
   setTimeout(()=>{
     const el=document.getElementById('buyResult');
-    if(el)el.textContent='✦ 充值成功！祖母绿 +'+e+'  蓝宝石 +'+s;
+    if(el)(globalThis.AppLanguage ? AppLanguage.setText(el, '✦ 充值成功！祖母绿 +'+e+'  蓝宝石 +'+s) : (el.textContent='✦ 充值成功！祖母绿 +'+e+'  蓝宝石 +'+s));
   },50);
 }
 
@@ -470,8 +474,8 @@ function importData(input){
   const reader=new FileReader();
   reader.onload=(ev)=>{try{
     const imp=JSON.parse(ev.target.result);
-    if(confirm('导入数据？')){st=imp;save();render();closeModal('exportModal');}
-  }catch(e){alert('导入失败');}};
+    if(confirm((globalThis.AppLanguage?.ui('导入数据？') ?? ('导入数据？')))){st=imp;save();render();closeModal('exportModal');}
+  }catch(e){alert((globalThis.AppLanguage?.ui('导入失败') ?? ('导入失败')));}};
   reader.readAsText(input.files[0]);
 }
 

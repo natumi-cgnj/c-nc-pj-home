@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
+<script src="app-language-data.js?v=20261125-language1"></script>
+<script src="app-language.js?v=20261125-language1"></script>
+<script type="module" src="dialogue-translations.mjs?v=20261125-language1"></script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -42,7 +46,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 </header>
 <main id="dynamicRoot"></main>
 <script src="world-context.js?v=20260913-cbi-room-label1"></script>
-<script src="cloud-sync.js?v=20261029-audit1"></script>
+<script src="cloud-sync.js?v=20261125-language1"></script>
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script src="cbi-data.js?v=20261108-suitcase-periods1"></script>
 <script>
@@ -67,9 +71,9 @@ if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
     });
   });
   var root=document.getElementById('dynamicRoot');
-  var html='<section class="status"><div class="kicker">Usage log</div><div class="status-line"><h2>物品动态</h2><div class="owned-count">'+ownedItems.length+' 件物品已就位</div></div><p>这里只承接商城物品的使用记录；动态刷新以后再接入打卡货币。</p></section>';
+  var html='<section class="status"><div class="kicker">Usage log</div><div class="status-line"><h2 data-ui="物品动态">物品动态</h2><div class="owned-count">'+ownedItems.length+' 件物品已就位</div></div><p data-ui="这里只承接商城物品的使用记录；动态刷新以后再接入打卡货币。">这里只承接商城物品的使用记录；动态刷新以后再接入打卡货币。</p></section>';
   if(!ownedItems.length){
-    html+='<section class="empty"><div class="empty-inner"><div class="empty-mark">◌</div><div class="empty-title">暂无动态</div><div class="empty-copy">你还没有在商城点亮物品。获得物品后，角色的使用记录会从这里开始；现在不会为了填满页面而生成假的日常。</div><a href="shop.html">前往跨世界橱窗</a></div></section>';
+    html+='<section class="empty"><div class="empty-inner"><div class="empty-mark">◌</div><div class="empty-title" data-ui="暂无动态">暂无动态</div><div class="empty-copy" data-ui="你还没有在商城点亮物品。获得物品后，角色的使用记录会从这里开始；现在不会为了填满页面而生成假的日常。">你还没有在商城点亮物品。获得物品后，角色的使用记录会从这里开始；现在不会为了填满页面而生成假的日常。</div><a href="shop.html" data-ui="前往跨世界橱窗">前往跨世界橱窗</a></div></section>';
   }else{
     html+='<section class="waiting-list">';
     ownedItems.forEach(function(entry){

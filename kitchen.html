@@ -2,6 +2,10 @@
 <!-- Activity build: 2026-10-08-unified-food -->
 <html lang="zh">
 <head>
+<script src="app-language-data.js?v=20261125-language1"></script>
+<script src="app-language.js?v=20261125-language1"></script>
+<script type="module" src="dialogue-translations.mjs?v=20261125-language1"></script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -295,7 +299,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <div class="top-bar">
     <a class="back-btn" href="index.html?p=4">← Home</a>
     <h1>ACTIVITY</h1>
-    <button class="btn-s" onclick="openProjectCategoryManager()">编辑</button>
+    <button class="btn-s" onclick="openProjectCategoryManager()" data-ui="编辑">编辑</button>
   </div>
   <div class="project-list" id="projectList"></div>
 </div>
@@ -303,21 +307,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- ═══ DETAIL VIEW ═══ -->
 <div id="viewDetail" class="view">
   <div class="detail-header">
-    <button class="back-btn" onclick="goHome()">← 返回</button>
+    <button class="back-btn" onclick="goHome()" data-ui="← 返回">← 返回</button>
     <h2 id="detailTitle"></h2>
     <button class="btn-s" id="projectHeaderBtn" onclick="handleProjectHeaderButton()">⋯</button>
   </div>
   <div class="detail-overall" id="detailOverall"></div>
   <div class="item-grid" id="itemGrid"></div>
-  <button class="add-item-btn" style="border-color:#E8B96A;color:#E8B96A" onclick="openAddSection()">+ 添加系列</button>
-  <button class="add-item-btn" onclick="openAddItem()">+ 添加品目</button>
+  <button class="add-item-btn" style="border-color:#E8B96A;color:#E8B96A" onclick="openAddSection()" data-ui="+ 添加系列">+ 添加系列</button>
+  <button class="add-item-btn" onclick="openAddItem()" data-ui="+ 添加品目">+ 添加品目</button>
 </div>
 <input type="file" accept="image/*" id="quickItemImgInput" onchange="quickItemImgSelected(this)" style="display:none">
 
 <!-- ═══ ITEM VIEW ═══ -->
 <div id="viewItem" class="view">
   <div class="detail-header">
-    <button class="back-btn" id="itemBackBtn">← 返回</button>
+    <button class="back-btn" id="itemBackBtn" data-ui="← 返回">← 返回</button>
     <h2 id="itemTitle"></h2>
     <button class="btn-s" onclick="openItemMenu()">⋯</button>
   </div>
@@ -329,32 +333,32 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- Add/Edit project -->
 <div class="modal-bg" id="projectModal">
   <div class="modal">
-    <h2 id="projectModalTitle">添加项目</h2>
-    <label>项目图标</label>
-    <label class="file-label" id="projectIconLabel">点击选择图片</label>
+    <h2 id="projectModalTitle" data-ui="添加项目">添加项目</h2>
+    <label data-ui="项目图标">项目图标</label>
+    <label class="file-label" id="projectIconLabel" data-ui="点击选择图片">点击选择图片</label>
     <input type="file" accept="image/*" id="projectIconInput" onchange="previewProjectIcon(this)" style="display:none">
     <div id="projectIconEditor" class="project-icon-editor" style="display:none">
       <div id="projectIconPosFrame" class="project-icon-pos-frame" onmousedown="startProjectIconDrag(event)" ontouchstart="startProjectIconDrag(event)">
         <img id="projectIconPreview" src="" alt="">
-        <button type="button" class="project-icon-clear" aria-label="清除项目图片" onclick="event.stopPropagation();clearProjectIcon()">×</button>
+        <button type="button" class="project-icon-clear" aria-label="清除项目图片" onclick="event.stopPropagation();clearProjectIcon()" data-ui-aria-label="清除项目图片">×</button>
       </div>
-      <div class="banner-pos-hint"><span class="banner-pos-hint-text">拖动图片调整显示区域</span><button type="button" class="banner-pos-reset" onclick="resetProjectIconPos()">恢复居中</button></div>
+      <div class="banner-pos-hint"><span class="banner-pos-hint-text" data-ui="拖动图片调整显示区域">拖动图片调整显示区域</span><button type="button" class="banner-pos-reset" onclick="resetProjectIconPos()" data-ui="恢复居中">恢复居中</button></div>
     </div>
-    <label>项目名</label>
-    <input type="text" id="inputProjectName" placeholder="如: Subway 三明治收集">
-    <label>IP 分组（选填）</label>
-    <input type="text" id="inputProjectCategory" list="projectCategoryOptions" placeholder="如：三丽鸥、角落生物">
+    <label data-ui="项目名">项目名</label>
+    <input type="text" id="inputProjectName" placeholder="如: Subway 三明治收集" data-ui-placeholder="如: Subway 三明治收集">
+    <label data-ui="IP 分组（选填）">IP 分组（选填）</label>
+    <input type="text" id="inputProjectCategory" list="projectCategoryOptions" placeholder="如：三丽鸥、角落生物" data-ui-placeholder="如：三丽鸥、角落生物">
     <datalist id="projectCategoryOptions"></datalist>
-    <label>项目细分</label>
+    <label data-ui="项目细分">项目细分</label>
     <div class="section-list" id="sectionList"></div>
-    <button class="add-section-btn" onclick="addSectionRow()">+ 添加分栏</button>
-    <label>备注（选填）</label>
-    <textarea id="inputProjectNote" placeholder="心斋桥店、只记常规款…"></textarea>
-    <label for="inputProjectDuty">值班</label>
+    <button class="add-section-btn" onclick="addSectionRow()" data-ui="+ 添加分栏">+ 添加分栏</button>
+    <label data-ui="备注（选填）">备注（选填）</label>
+    <textarea id="inputProjectNote" placeholder="心斋桥店、只记常规款…" data-ui-placeholder="心斋桥店、只记常规款…"></textarea>
+    <label for="inputProjectDuty" data-ui="值班">值班</label>
     <input type="text" id="inputProjectDuty">
     <div class="btn-row">
-      <button class="btn btn-cancel" onclick="closeModal('projectModal')">取消</button>
-      <button class="btn btn-primary" onclick="saveProject()">保存</button>
+      <button class="btn btn-cancel" onclick="closeModal('projectModal')" data-ui="取消">取消</button>
+      <button class="btn btn-primary" onclick="saveProject()" data-ui="保存">保存</button>
     </div>
   </div>
 </div>
@@ -362,27 +366,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- Add/Edit item -->
 <div class="modal-bg" id="itemModal">
   <div class="modal">
-    <h2 id="itemModalTitle">添加品目</h2>
+    <h2 id="itemModalTitle" data-ui="添加品目">添加品目</h2>
     <div id="itemSectionField" style="display:none">
-      <label>所属分类</label>
+      <label data-ui="所属分类">所属分类</label>
       <select id="inputItemSection"></select>
     </div>
     <div id="itemSubtypeField" style="display:none">
-      <label>品目类型</label>
+      <label data-ui="品目类型">品目类型</label>
       <select id="inputItemSubtype"></select>
     </div>
-    <label>名称</label>
-    <input type="text" id="inputItemName" placeholder="品目名称">
-    <label>备注（选填）</label>
-    <textarea id="inputItemNote" placeholder="口感、评价…"></textarea>
-    <label>照片</label>
-    <label class="file-label" id="itemFileLabel">点击选择图片</label>
+    <label data-ui="名称">名称</label>
+    <input type="text" id="inputItemName" placeholder="品目名称" data-ui-placeholder="品目名称">
+    <label data-ui="备注（选填）">备注（选填）</label>
+    <textarea id="inputItemNote" placeholder="口感、评价…" data-ui-placeholder="口感、评价…"></textarea>
+    <label data-ui="照片">照片</label>
+    <label class="file-label" id="itemFileLabel" data-ui="点击选择图片">点击选择图片</label>
     <input type="file" accept="image/*" id="itemImgInput" onchange="previewItemImg(this)" style="display:none">
     <img id="itemImgPreview" class="img-preview" style="display:none">
     <div class="btn-row">
-      <button class="btn btn-cancel" onclick="closeModal('itemModal')">取消</button>
-      <button class="btn btn-del" id="itemDeleteBtn" style="display:none" onclick="deleteEditingItem()">删除</button>
-      <button class="btn btn-primary" onclick="saveItem()">保存</button>
+      <button class="btn btn-cancel" onclick="closeModal('itemModal')" data-ui="取消">取消</button>
+      <button class="btn btn-del" id="itemDeleteBtn" style="display:none" onclick="deleteEditingItem()" data-ui="删除">删除</button>
+      <button class="btn btn-primary" onclick="saveItem()" data-ui="保存">保存</button>
     </div>
   </div>
 </div>
@@ -390,28 +394,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- Check-in modal -->
 <div class="modal-bg" id="checkinModal">
   <div class="modal">
-    <h2 id="checkinModalTitle">打卡记录</h2>
-    <label>品名</label>
-    <input type="text" id="checkinItemName" placeholder="品目名称">
-    <label>日期</label>
+    <h2 id="checkinModalTitle" data-ui="打卡记录">打卡记录</h2>
+    <label data-ui="品名">品名</label>
+    <input type="text" id="checkinItemName" placeholder="品目名称" data-ui-placeholder="品目名称">
+    <label data-ui="日期">日期</label>
     <input type="date" id="checkinDate">
-    <label id="checkinNoteLabel">感想（选填）</label>
-    <input type="text" id="checkinNote" maxlength="120" placeholder="味道怎么样、有什么想记的…">
+    <label id="checkinNoteLabel" data-ui="感想（选填）">感想（选填）</label>
+    <input type="text" id="checkinNote" maxlength="120" placeholder="味道怎么样、有什么想记的…" data-ui-placeholder="味道怎么样、有什么想记的…">
     <div id="checkinCostWrap" style="display:none">
-      <label>花费金额</label>
+      <label data-ui="花费金额">花费金额</label>
       <input type="number" id="checkinCost" placeholder="0" min="0" step="1">
     </div>
     <div id="checkinContentWrap" style="display:none">
-      <label>内容</label>
-      <textarea id="checkinContent" rows="4" placeholder="记录内容…" style="min-height:80px"></textarea>
+      <label data-ui="内容">内容</label>
+      <textarea id="checkinContent" rows="4" placeholder="记录内容…" style="min-height:80px" data-ui-placeholder="记录内容…"></textarea>
     </div>
-    <label>打卡照片（选填）</label>
-    <label class="file-label" id="checkinImgLabel">点击选择图片</label>
+    <label data-ui="打卡照片（选填）">打卡照片（选填）</label>
+    <label class="file-label" id="checkinImgLabel" data-ui="点击选择图片">点击选择图片</label>
     <input type="file" accept="image/*" id="checkinImgInput" onchange="previewCheckinImg(this)" style="display:none">
     <img id="checkinImgPreview" class="img-preview" style="display:none">
     <div class="btn-row">
-      <button class="btn btn-cancel" onclick="closeModal('checkinModal')">取消</button>
-      <button class="btn btn-primary" id="checkinSubmitBtn" onclick="saveCheckin()">打卡</button>
+      <button class="btn btn-cancel" onclick="closeModal('checkinModal')" data-ui="取消">取消</button>
+      <button class="btn btn-primary" id="checkinSubmitBtn" onclick="saveCheckin()" data-ui="打卡">打卡</button>
     </div>
   </div>
 </div>
@@ -419,27 +423,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- Quick section edit -->
 <div class="modal-bg" id="sectionQuickModal">
   <div class="modal">
-    <h2>编辑分栏</h2>
-    <label>分栏名</label>
-    <input type="text" id="quickSectionName" maxlength="40" placeholder="分栏名称" onkeydown="if(event.key==='Enter')saveSectionQuickEdit()">
-    <label>小标签（选填）</label>
+    <h2 data-ui="编辑分栏">编辑分栏</h2>
+    <label data-ui="分栏名">分栏名</label>
+    <input type="text" id="quickSectionName" maxlength="40" placeholder="分栏名称" onkeydown="if(event.key==='Enter')saveSectionQuickEdit()" data-ui-placeholder="分栏名称">
+    <label data-ui="小标签（选填）">小标签（选填）</label>
     <div id="quickSectionTag"></div>
-    <label>横幅图（选填）</label>
-    <label class="file-label" id="quickBannerLabel" onclick="document.getElementById('quickBannerInput').click()">点击选择横幅图</label>
+    <label data-ui="横幅图（选填）">横幅图（选填）</label>
+    <label class="file-label" id="quickBannerLabel" onclick="document.getElementById('quickBannerInput').click()" data-ui="点击选择横幅图">点击选择横幅图</label>
     <input type="file" accept="image/*" id="quickBannerInput" onchange="previewSectionBanner(this,'quick')" style="display:none">
     <div id="quickBannerPreview" class="banner-pos-editor" style="display:none">
       <div class="banner-pos-frame" id="quickBannerPosFrame" onmousedown="startBannerDrag(event,'quick')" ontouchstart="startBannerDrag(event,'quick')">
         <img class="img-preview" src="" alt="">
         <button type="button" onclick="clearSectionBanner('quick')" style="position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;border:none;background:rgba(0,0,0,0.45);color:#fff;font-size:11px;cursor:pointer;line-height:20px;text-align:center;z-index:2">×</button>
       </div>
-      <div class="banner-pos-hint"><span class="banner-pos-hint-text">拖动图片调整显示区域</span><button type="button" class="banner-pos-reset" onclick="resetBannerPos('quick')">恢复居中</button></div>
+      <div class="banner-pos-hint"><span class="banner-pos-hint-text" data-ui="拖动图片调整显示区域">拖动图片调整显示区域</span><button type="button" class="banner-pos-reset" onclick="resetBannerPos('quick')" data-ui="恢复居中">恢复居中</button></div>
     </div>
-    <label>内容设置</label>
+    <label data-ui="内容设置">内容设置</label>
     <div id="quickSectionConfig"></div>
     <div class="btn-row">
-      <button class="btn btn-del" onclick="deleteSectionQuickEdit()">删除</button>
-      <button class="btn btn-cancel" onclick="closeModal('sectionQuickModal')">取消</button>
-      <button class="btn btn-primary" onclick="saveSectionQuickEdit()">保存</button>
+      <button class="btn btn-del" onclick="deleteSectionQuickEdit()" data-ui="删除">删除</button>
+      <button class="btn btn-cancel" onclick="closeModal('sectionQuickModal')" data-ui="取消">取消</button>
+      <button class="btn btn-primary" onclick="saveSectionQuickEdit()" data-ui="保存">保存</button>
     </div>
   </div>
 </div>
@@ -447,26 +451,26 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- Add Section modal -->
 <div class="modal-bg" id="addSectionModal">
   <div class="modal">
-    <h2>添加系列</h2>
-    <label>名称</label>
-    <input type="text" id="inputSectionName" placeholder="如: 第二弹、季节限定" maxlength="40">
-    <label>小标签（选填）</label>
+    <h2 data-ui="添加系列">添加系列</h2>
+    <label data-ui="名称">名称</label>
+    <input type="text" id="inputSectionName" placeholder="如: 第二弹、季节限定" maxlength="40" data-ui-placeholder="如: 第二弹、季节限定">
+    <label data-ui="小标签（选填）">小标签（选填）</label>
     <div id="addSectionTag"></div>
-    <label>横幅图（选填）</label>
-    <label class="file-label" id="addBannerLabel" onclick="document.getElementById('addBannerInput').click()">点击选择横幅图</label>
+    <label data-ui="横幅图（选填）">横幅图（选填）</label>
+    <label class="file-label" id="addBannerLabel" onclick="document.getElementById('addBannerInput').click()" data-ui="点击选择横幅图">点击选择横幅图</label>
     <input type="file" accept="image/*" id="addBannerInput" onchange="previewSectionBanner(this,'add')" style="display:none">
     <div id="addBannerPreview" class="banner-pos-editor" style="display:none">
       <div class="banner-pos-frame" id="addBannerPosFrame" onmousedown="startBannerDrag(event,'add')" ontouchstart="startBannerDrag(event,'add')">
         <img class="img-preview" src="" alt="">
         <button type="button" onclick="clearSectionBanner('add')" style="position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;border:none;background:rgba(0,0,0,0.45);color:#fff;font-size:11px;cursor:pointer;line-height:20px;text-align:center;z-index:2">×</button>
       </div>
-      <div class="banner-pos-hint"><span class="banner-pos-hint-text">拖动图片调整显示区域</span><button type="button" class="banner-pos-reset" onclick="resetBannerPos('add')">恢复居中</button></div>
+      <div class="banner-pos-hint"><span class="banner-pos-hint-text" data-ui="拖动图片调整显示区域">拖动图片调整显示区域</span><button type="button" class="banner-pos-reset" onclick="resetBannerPos('add')" data-ui="恢复居中">恢复居中</button></div>
     </div>
-    <label>内容设置</label>
+    <label data-ui="内容设置">内容设置</label>
     <div id="addSectionConfig"></div>
     <div class="btn-row">
-      <button class="btn btn-cancel" onclick="closeModal('addSectionModal')">取消</button>
-      <button class="btn btn-primary" onclick="saveAddSection()">添加</button>
+      <button class="btn btn-cancel" onclick="closeModal('addSectionModal')" data-ui="取消">取消</button>
+      <button class="btn btn-primary" onclick="saveAddSection()" data-ui="添加">添加</button>
     </div>
   </div>
 </div>
@@ -485,33 +489,33 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <div id="checkinCharVisual"></div>
     <div class="checkin-char-name" id="checkinCharName"></div>
     <div class="checkin-char-line" id="checkinCharLine"></div>
-    <button class="checkin-ok" onclick="closeCheckinPopup()">好的</button>
+    <button class="checkin-ok" onclick="closeCheckinPopup()" data-ui="好的">好的</button>
   </div>
 </div>
 
 <!-- Backup -->
 <div class="modal-bg" id="backupModal">
   <div class="modal">
-    <h2>饮食记录备份</h2>
+    <h2 data-ui="饮食记录备份">饮食记录备份</h2>
     <div style="padding:8px 0">
-      <button class="btn btn-cancel" style="margin-bottom:8px;width:100%" onclick="exportKitchen()">导出数据</button>
-      <button class="btn btn-cancel" style="width:100%" onclick="document.getElementById('importKitchenFile').click()">导入数据</button>
+      <button class="btn btn-cancel" style="margin-bottom:8px;width:100%" onclick="exportKitchen()" data-ui="导出数据">导出数据</button>
+      <button class="btn btn-cancel" style="width:100%" onclick="document.getElementById('importKitchenFile').click()" data-ui="导入数据">导入数据</button>
       <input type="file" id="importKitchenFile" accept=".json" onchange="importKitchen(this)" style="display:none">
     </div>
-    <div class="btn-row"><button class="btn btn-cancel" onclick="closeModal('backupModal')">关闭</button></div>
+    <div class="btn-row"><button class="btn btn-cancel" onclick="closeModal('backupModal')" data-ui="关闭">关闭</button></div>
   </div>
 </div>
 
 <!-- Module category manager -->
 <div class="modal-bg" id="projectCategoryManagerModal">
   <div class="modal">
-    <h2>IP 分组管理</h2>
+    <h2 data-ui="IP 分组管理">IP 分组管理</h2>
     <div class="category-manager-list" id="projectCategoryManagerList"></div>
-    <button type="button" class="add-section-btn" onclick="addProjectCategoryDraft()">+ 添加分类</button>
-    <div class="category-manager-actions"><button type="button" class="btn-s" onclick="closeModal('projectCategoryManagerModal');openModal('backupModal')">备份</button></div>
+    <button type="button" class="add-section-btn" onclick="addProjectCategoryDraft()" data-ui="+ 添加分类">+ 添加分类</button>
+    <div class="category-manager-actions"><button type="button" class="btn-s" onclick="closeModal('projectCategoryManagerModal');openModal('backupModal')" data-ui="备份">备份</button></div>
     <div class="btn-row">
-      <button class="btn btn-cancel" onclick="closeModal('projectCategoryManagerModal')">取消</button>
-      <button class="btn btn-primary" onclick="saveProjectCategoryManager()">保存</button>
+      <button class="btn btn-cancel" onclick="closeModal('projectCategoryManagerModal')" data-ui="取消">取消</button>
+      <button class="btn btn-primary" onclick="saveProjectCategoryManager()" data-ui="保存">保存</button>
     </div>
   </div>
 </div>
@@ -524,21 +528,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- Action sheets -->
 <div class="action-sheet-bg" id="projectMenuSheet">
   <div class="action-sheet">
-    <button onclick="closeSheet('projectMenuSheet');openEditProject()">编辑项目</button>
-    <button class="del-as" onclick="closeSheet('projectMenuSheet');deleteProject()">删除项目</button>
-    <button class="cancel-as" onclick="closeSheet('projectMenuSheet')">取消</button>
+    <button onclick="closeSheet('projectMenuSheet');openEditProject()" data-ui="编辑项目">编辑项目</button>
+    <button class="del-as" onclick="closeSheet('projectMenuSheet');deleteProject()" data-ui="删除项目">删除项目</button>
+    <button class="cancel-as" onclick="closeSheet('projectMenuSheet')" data-ui="取消">取消</button>
   </div>
 </div>
 <div class="action-sheet-bg" id="itemMenuSheet">
   <div class="action-sheet">
-    <button onclick="closeSheet('itemMenuSheet');if(getProject(curProjectId).items[curItemIdx].collected){uncollect();}else{openCheckin();}">打卡 / 取消打卡</button>
-    <button class="del-as" onclick="closeSheet('itemMenuSheet');deleteItem()">删除品目</button>
-    <button class="cancel-as" onclick="closeSheet('itemMenuSheet')">取消</button>
+    <button onclick="closeSheet('itemMenuSheet');if(getProject(curProjectId).items[curItemIdx].collected){uncollect();}else{openCheckin();}" data-ui="打卡 / 取消打卡">打卡 / 取消打卡</button>
+    <button class="del-as" onclick="closeSheet('itemMenuSheet');deleteItem()" data-ui="删除品目">删除品目</button>
+    <button class="cancel-as" onclick="closeSheet('itemMenuSheet')" data-ui="取消">取消</button>
   </div>
 </div>
 
 <script src="activity-migration.js?v=20261008-merge1"></script>
-<script src="cloud-sync.js?v=20261029-audit1"></script>
+<script src="cloud-sync.js?v=20261125-language1"></script>
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
@@ -1022,7 +1026,7 @@ function renderProjects(){
     group.forEach(p=>{html+=renderProjectRow(p);});
     html+='</div></div>';
   });
-  html+=`<div class="project-row-add" onclick="openAddProject()">+ 添加项目</div>`;
+  html+=`<div class="project-row-add" onclick="openAddProject()" data-ui="+ 添加项目">+ 添加项目</div>`;
   list.innerHTML=html;
   initProjectDrag();
 }
@@ -1416,7 +1420,7 @@ function removeDraftSubsection(scope,index,subIndex){
   const sec=getDraftSection(scope,index);if(!sec||!Array.isArray(sec.subsections)||!sec.subsections[subIndex])return;
   const candidate=sec.subsections[subIndex];
   if((candidate._items||[]).some(itemHasSavedContent)){
-    showToast('这个子分栏里有已填写的品目，请先移动品目');
+    showToast((globalThis.AppLanguage?.ui('这个子分栏里有已填写的品目，请先移动品目') ?? ('这个子分栏里有已填写的品目，请先移动品目')));
     return;
   }
   const removed=sec.subsections.splice(subIndex,1)[0];
@@ -1528,7 +1532,7 @@ function clearSubsectionPress(){
   subsectionPressState=null;
 }
 function sectionTypeOptions(value){
-  return`<option value="food"${value==='merch'?'':' selected'}>餐品</option><option value="merch"${value==='merch'?' selected':''}>周边</option>`;
+  return`<option value="food"${(value==='merch'?'':' selected')} data-ui="餐品">餐品</option><option value="merch"${(value==='merch'?' selected':'')} data-ui="周边">周边</option>`;
 }
 function sectionColsOptions(value){
   const active=clampSectionCols(value);let html='';for(let i=1;i<=5;i++)html+=`<option value="${i}"${i===active?' selected':''}>${i}列</option>`;return html;
@@ -1540,9 +1544,9 @@ function sectionTagEditorHtml(sec,scope,index){
 function sectionSettingsHtml(sec,scope,index){
   if(Array.isArray(sec.subsections)&&sec.subsections.length){
     const rows=sec.subsections.map((sub,subIndex)=>`<div class="subsection-editor" data-sub-scope="${scope}" data-parent-index="${index}" data-sub-index="${subIndex}"><div class="subsection-editor-main"><input type="text" value="${esc(sub.name||'')}" placeholder="子分栏名称" oninput="setSubDraftField('${scope}',${index},${subIndex},'name',this.value)"><select aria-label="子分栏类型" onchange="setSubDraftField('${scope}',${index},${subIndex},'itemType',this.value)">${sectionTypeOptions(normalizeItemType(sub.itemType))}</select><input type="number" value="${Math.max(0,parseInt(sub.count)||0)}" min="0" max="99" aria-label="数量" onchange="setSubDraftField('${scope}',${index},${subIndex},'count',this.value)"><select aria-label="列数" onchange="setSubDraftField('${scope}',${index},${subIndex},'cols',this.value)">${sectionColsOptions(sub.cols)}</select><div class="subsection-editor-actions"><button type="button" aria-label="删除子分栏" onclick="removeDraftSubsection('${scope}',${index},${subIndex})">×</button></div></div></div>`).join('');
-    return`${rows}<div class="section-config-line"><button type="button" class="subsection-add-btn" onclick="addDraftSubsection('${scope}',${index})">＋ 添加子分栏</button></div>`;
+    return`${(rows)}<div class="section-config-line"><button type="button" class="subsection-add-btn" onclick="addDraftSubsection('${(scope)}',${(index)})" data-ui="＋ 添加子分栏">＋ 添加子分栏</button></div>`;
   }
-  return`<div class="section-config-line"><span class="section-config-label">内容</span><select aria-label="内容类型" onchange="setDraftField('${scope}',${index},'itemType',this.value,false)">${sectionTypeOptions(normalizeItemType(sec.itemType))}</select><span class="section-config-label">数量</span><input type="number" value="${Math.max(0,parseInt(sec.count)||0)}" min="0" max="99" aria-label="数量" onchange="setDraftField('${scope}',${index},'count',this.value,false)"><select aria-label="列数" onchange="setDraftField('${scope}',${index},'cols',this.value,false)">${sectionColsOptions(sec.cols)}</select><button type="button" class="subsection-add-btn" onclick="addDraftSubsection('${scope}',${index})">＋ 添加子分栏</button></div>`;
+  return`<div class="section-config-line"><span class="section-config-label" data-ui="内容">内容</span><select aria-label="内容类型" onchange="setDraftField('${(scope)}',${(index)},'itemType',this.value,false)">${(sectionTypeOptions(normalizeItemType(sec.itemType)))}</select><span class="section-config-label" data-ui="数量">数量</span><input type="number" value="${(Math.max(0,parseInt(sec.count)||0))}" min="0" max="99" aria-label="数量" onchange="setDraftField('${(scope)}',${(index)},'count',this.value,false)"><select aria-label="列数" onchange="setDraftField('${(scope)}',${(index)},'cols',this.value,false)">${(sectionColsOptions(sec.cols))}</select><button type="button" class="subsection-add-btn" onclick="addDraftSubsection('${(scope)}',${(index)})" data-ui="＋ 添加子分栏">＋ 添加子分栏</button></div>`;
 }
 function renderStandaloneSectionDraft(scope){
   const sec=getDraftSection(scope,0);if(!sec)return;
@@ -1554,8 +1558,8 @@ function renderStandaloneSectionDraft(scope){
 function renderSectionList(){
   clearSectionPress();
   const list=document.getElementById('sectionList');
-  if(!_sections.length){list.innerHTML='<div style="font-size:11px;color:#ccc;padding:8px 0">点下方"添加分栏"设置细分类别</div>';return;}
-  list.innerHTML=_sections.map((s,i)=>`<div class="section-row" data-sec-idx="${i}"><div class="section-row-header" title="长按移动系列"><input type="text" value="${esc(s.name)}" placeholder="分栏名称" aria-label="系列名称" oninput="setDraftField('project',${i},'name',this.value,false)"><button type="button" class="del-sec" aria-label="删除系列" onclick="removeSectionRow(${i})">×</button></div><div class="section-config">${sectionTagEditorHtml(s,'project',i)}${sectionSettingsHtml(s,'project',i)}</div></div>`).join('');
+  if(!_sections.length){list.innerHTML='<div style="font-size:11px;color:#ccc;padding:8px 0" data-ui="点下方&quot;添加分栏&quot;设置细分类别">点下方"添加分栏"设置细分类别</div>';return;}
+  list.innerHTML=_sections.map((s,i)=>`<div class="section-row" data-sec-idx="${i}"><div class="section-row-header" title="长按移动系列" data-ui-title="长按移动系列"><input type="text" value="${esc(s.name)}" placeholder="分栏名称" aria-label="系列名称" oninput="setDraftField('project',${i},'name',this.value,false)"><button type="button" class="del-sec" aria-label="删除系列" onclick="removeSectionRow(${i})">×</button></div><div class="section-config">${sectionTagEditorHtml(s,'project',i)}${sectionSettingsHtml(s,'project',i)}</div></div>`).join('');
   initSectionDrag();
 }
 function initSectionDrag(){
@@ -1707,23 +1711,23 @@ function writeProjectCategories(categories){localStorage.setItem(PROJECT_CATEGOR
 function registerProjectCategory(value){const name=String(value||'').trim();if(!name||name===DEFAULT_PROJECT_CATEGORY)return;const categories=readProjectCategories();if(!categories.includes(name)){categories.push(name);writeProjectCategories(categories);}}
 function openProjectCategoryManager(){projectCategoryManagerOriginals=readProjectCategories();projectCategoryDrafts=projectCategoryManagerOriginals.map(name=>({original:name,name}));renderProjectCategoryDrafts();openModal('projectCategoryManagerModal');}
 function renderProjectCategoryDrafts(){
-  const list=document.getElementById('projectCategoryManagerList');list.innerHTML=projectCategoryDrafts.length?projectCategoryDrafts.map((draft,index)=>`<div class="category-manager-row"><div class="category-manager-order"><button type="button" aria-label="上移分类" ${index===0?'disabled':''} onclick="moveProjectCategoryDraft(${index},-1)">↑</button><button type="button" aria-label="下移分类" ${index===projectCategoryDrafts.length-1?'disabled':''} onclick="moveProjectCategoryDraft(${index},1)">↓</button></div><input type="text" value="${esc(draft.name)}" placeholder="分类名" oninput="projectCategoryDrafts[${index}].name=this.value"><button type="button" class="category-manager-remove" aria-label="删除分类" onclick="removeProjectCategoryDraft(${index})">×</button></div>`).join(''):'<div class="category-manager-empty">暂无自定义分类</div>';
+  const list=document.getElementById('projectCategoryManagerList');list.innerHTML=projectCategoryDrafts.length?projectCategoryDrafts.map((draft,index)=>`<div class="category-manager-row"><div class="category-manager-order"><button type="button" aria-label="上移分类" ${index===0?'disabled':''} onclick="moveProjectCategoryDraft(${index},-1)">↑</button><button type="button" aria-label="下移分类" ${index===projectCategoryDrafts.length-1?'disabled':''} onclick="moveProjectCategoryDraft(${index},1)">↓</button></div><input type="text" value="${esc(draft.name)}" placeholder="分类名" oninput="projectCategoryDrafts[${index}].name=this.value"><button type="button" class="category-manager-remove" aria-label="删除分类" onclick="removeProjectCategoryDraft(${index})">×</button></div>`).join(''):'<div class="category-manager-empty" data-ui="暂无自定义分类">暂无自定义分类</div>';
 }
 function moveProjectCategoryDraft(index,delta){const target=index+delta;if(target<0||target>=projectCategoryDrafts.length)return;const moved=projectCategoryDrafts.splice(index,1)[0];projectCategoryDrafts.splice(target,0,moved);renderProjectCategoryDrafts();}
 function addProjectCategoryDraft(){projectCategoryDrafts.push({original:'',name:''});renderProjectCategoryDrafts();const inputs=document.querySelectorAll('#projectCategoryManagerList input');const last=inputs[inputs.length-1];if(last&&last.focus)last.focus();}
 function removeProjectCategoryDraft(index){projectCategoryDrafts.splice(index,1);renderProjectCategoryDrafts();}
 function saveProjectCategoryManager(){
   const names=projectCategoryDrafts.map(draft=>String(draft.name||'').trim()).filter(Boolean);
-  if(new Set(names).size!==names.length){showToast('分类名不能重复');return;}
+  if(new Set(names).size!==names.length){showToast((globalThis.AppLanguage?.ui('分类名不能重复') ?? ('分类名不能重复')));return;}
   const mapping=new Map();projectCategoryManagerOriginals.forEach(original=>{const draft=projectCategoryDrafts.find(entry=>entry.original===original);mapping.set(original,draft?String(draft.name||'').trim():'');});
   projects.forEach(project=>{const current=String(project.category||'').trim();if(mapping.has(current))project.category=mapping.get(current);});
   const collapsed=new Set(readCollapsedProjectCategories()),nextCollapsed=[];collapsed.forEach(category=>{const mapped=mapping.has(category)?mapping.get(category):category;if(mapped&&!nextCollapsed.includes(mapped))nextCollapsed.push(mapped);});
-  localStorage.setItem(PROJECT_CATEGORY_COLLAPSE_SK,JSON.stringify(nextCollapsed));writeProjectCategories(names.filter(name=>name!==DEFAULT_PROJECT_CATEGORY));save();closeModal('projectCategoryManagerModal');renderProjectCategoryOptions();renderProjects();showToast('分类已更新');
+  localStorage.setItem(PROJECT_CATEGORY_COLLAPSE_SK,JSON.stringify(nextCollapsed));writeProjectCategories(names.filter(name=>name!==DEFAULT_PROJECT_CATEGORY));save();closeModal('projectCategoryManagerModal');renderProjectCategoryOptions();renderProjects();showToast((globalThis.AppLanguage?.ui('分类已更新') ?? ('分类已更新')));
 }
 
 function openAddProject(){
   editProjectId=null;projectTempIcon='';projectIconPosTemp={x:50,y:50};
-  document.getElementById('projectModalTitle').textContent='添加项目';
+  (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('projectModalTitle'), '添加项目') : (document.getElementById('projectModalTitle').textContent='添加项目'));
   document.getElementById('inputProjectName').value='';
   document.getElementById('inputProjectCategory').value='';
   document.getElementById('inputProjectNote').value='';
@@ -1740,7 +1744,7 @@ function openEditProject(){
   const p=getProject(curProjectId);if(!p)return;
   editProjectId=p.id;projectTempIcon=p.icon||'';
   projectIconPosTemp={x:clampImagePosition(p.iconPositionX),y:clampImagePosition(p.iconPositionY)};
-  document.getElementById('projectModalTitle').textContent='编辑项目';
+  (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('projectModalTitle'), '编辑项目') : (document.getElementById('projectModalTitle').textContent='编辑项目'));
   document.getElementById('inputProjectName').value=p.name;
   document.getElementById('inputProjectCategory').value=typeof p.category==='string'?p.category:'';
   document.getElementById('inputProjectNote').value=p.note||'';
@@ -1790,7 +1794,7 @@ async function saveProject(){
     projects.push({id:gid(),name,category,note,icon:icon||'',iconPositionX:icon?iconPositionX:50,iconPositionY:icon?iconPositionY:50,count:totalCount,duty,items,sections,order:projects.length});
   }
   save();closeModal('projectModal');
-  if(finalized.preserved)showToast(`已保留 ${finalized.preserved} 个有记录的品目`);
+  if(finalized.preserved)showToast((globalThis.AppLanguage?.ui(`已保留 ${finalized.preserved} 个有记录的品目`) ?? (`已保留 ${finalized.preserved} 个有记录的品目`)));
   if(editProjectId){renderDetail();}
   renderProjects();
 }
@@ -1908,7 +1912,7 @@ async function saveAddSection(){
   _addSectionDraft.name=secName;
   const finalized=finalizeOneSectionDraft(_addSectionDraft,p.items.length+1);
   const totalCount=finalized.items.length;
-  if(totalCount<=0){showToast('请输入品目数量');return;}
+  if(totalCount<=0){showToast((globalThis.AppLanguage?.ui('请输入品目数量') ?? ('请输入品目数量')));return;}
   const savedBanner=await persistSectionBanner(_sectionBannerTemp.add,p.id);
   if(!Array.isArray(p.sections))p.sections=[];
   if(!p.sections.length&&p.items.length){
@@ -2116,7 +2120,7 @@ async function saveSectionQuickEdit(){
   normalizeGenericItemNames(p);
   save();
   closeModal('sectionQuickModal');
-  if(finalized.preserved)showToast(`已保留 ${finalized.preserved} 个有记录的品目`);
+  if(finalized.preserved)showToast((globalThis.AppLanguage?.ui(`已保留 ${finalized.preserved} 个有记录的品目`) ?? (`已保留 ${finalized.preserved} 个有记录的品目`)));
   editSectionIdx=null;
   _quickSectionDraft=null;_sectionBannerTemp.quick='';_bannerPosTemp.quick={x:50,y:50};
   renderDetail(p);
@@ -2186,7 +2190,7 @@ function setItemArrangeMode(active){
   const btn=document.getElementById('projectHeaderBtn');
   if(view)view.classList.toggle('arrange-mode',itemArrangeMode);
   if(btn){
-    btn.textContent=itemArrangeMode?'完成':'⋯';
+    (globalThis.AppLanguage ? AppLanguage.setText(btn, itemArrangeMode?'完成':'⋯') : (btn.textContent=itemArrangeMode?'完成':'⋯'));
     btn.setAttribute('aria-label',itemArrangeMode?'完成整理':'项目菜单');
   }
   if(!itemArrangeMode)cancelItemArrangeGesture();
@@ -2409,7 +2413,7 @@ async function quickItemImgSelected(input){
     save();renderDetail(p);
   }catch(e){
     console.error(e);
-    showToast('图片保存失败，请再试一次');
+    showToast((globalThis.AppLanguage?.ui('图片保存失败，请再试一次') ?? ('图片保存失败，请再试一次')));
   }finally{
     quickItemIdx=null;input.value='';
   }
@@ -2435,10 +2439,10 @@ function openItem(idx,options){
   html+='<div class="card-detail-body">';
   if(displayName){
     html+=hasCustomName
-      ?`<div class="card-detail-name" id="inlineName" title="双击编辑名称">${esc(displayName)}</div>`
+      ?`<div class="card-detail-name" id="inlineName" title="双击编辑名称" data-ui-title="双击编辑名称">${esc(displayName)}</div>`
       :`<div class="card-detail-name">${esc(displayName)}</div>`;
   }
-  if(item.note)html+=`<div class="card-detail-item-note"><span class="card-detail-item-note-label">品目备注</span>${esc(item.note)}</div>`;
+  if(item.note)html+=`<div class="card-detail-item-note"><span class="card-detail-item-note-label" data-ui="品目备注">品目备注</span>${esc(item.note)}</div>`;
 
   if(bt==='food'||bt==='content'){
     html+='</div></div>';
@@ -2450,7 +2454,7 @@ function openItem(idx,options){
       });
       html+='</div>';
     }
-    html+=`<div class="card-actions"><button class="btn btn-primary" onclick="${history.length?'addCollabFoodCheckin()':'openCheckin()'}">${history.length?'再来一次':'打卡'}</button>${history.length?'<button class="btn btn-cancel" onclick="uncollect()">清空记录</button>':''}</div>`;
+    html+=`<div class="card-actions"><button class="btn btn-primary" onclick="${history.length?'addCollabFoodCheckin()':'openCheckin()'}">${history.length?'再来一次':'打卡'}</button>${history.length?'<button class="btn btn-cancel" onclick="uncollect()" data-ui="清空记录">清空记录</button>':''}</div>`;
   }else if(bt==='merch'||bt==='shopping'){
     html+='</div></div>';
     const records=item.records||[];
@@ -2479,8 +2483,8 @@ function openItem(idx,options){
     if(item.checkinImg)html+=`<div class="card-detail-media" style="margin-top:12px;border-radius:8px"><img class="card-detail-img" src="${item.checkinImg}"></div>`;
     html+='</div></div>';
     html+=item.collected
-      ?'<div class="card-actions"><button class="btn btn-cancel" onclick="uncollect()">取消打卡</button></div>'
-      :'<div class="card-actions"><button class="btn btn-primary" onclick="openCheckin()">打卡</button></div>';
+      ?'<div class="card-actions"><button class="btn btn-cancel" onclick="uncollect()" data-ui="取消打卡">取消打卡</button></div>'
+      :'<div class="card-actions"><button class="btn btn-primary" onclick="openCheckin()" data-ui="打卡">打卡</button></div>';
   }
   document.getElementById('itemContent').innerHTML=html;
   // Wire up double-click editing
@@ -2513,7 +2517,7 @@ function startInlineEdit(elId,field){
       document.getElementById('itemTitle').textContent=displayName;
       if(!val)el.textContent=displayName;
     }
-    if(field==='checkinNote'&&!val){el.textContent='双击添加感想…';el.style.color='#ccc';el.style.fontStyle='italic';}
+    if(field==='checkinNote'&&!val){(globalThis.AppLanguage ? AppLanguage.setText(el, '双击添加感想…') : (el.textContent='双击添加感想…'));el.style.color='#ccc';el.style.fontStyle='italic';}
     save();
     el.removeEventListener('blur',commit);
     el.removeEventListener('keydown',onKey);
@@ -2609,8 +2613,8 @@ function prepareCheckinModal(mode){
   document.getElementById('checkinImgInput').value='';
   const isRepeat=mode==='collab_repeat';
   const isMerch=mode==='merch_add';
-  document.getElementById('checkinModalTitle').textContent=isRepeat?'追加打卡':isMerch?'记录入手':'打卡记录';
-  document.getElementById('checkinSubmitBtn').textContent=isRepeat?'保存记录':isMerch?'记录':'打卡';
+  (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('checkinModalTitle'), isRepeat?'追加打卡':isMerch?'记录入手':'打卡记录') : (document.getElementById('checkinModalTitle').textContent=isRepeat?'追加打卡':isMerch?'记录入手':'打卡记录'));
+  (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('checkinSubmitBtn'), isRepeat?'保存记录':isMerch?'记录':'打卡') : (document.getElementById('checkinSubmitBtn').textContent=isRepeat?'保存记录':isMerch?'记录':'打卡'));
   const itemBt=getItemBehaviorType(getProject(curProjectId),item,curItemIdx);
   document.getElementById('checkinCostWrap').style.display=itemBt==='shopping'?'':'none';
   if(document.getElementById('checkinCost'))document.getElementById('checkinCost').value='';
@@ -2632,7 +2636,7 @@ function previewCheckinImg(input){
   if(!input.files||!input.files[0])return;
   optimizedImageDataUrl(input.files[0],1000).then(d=>{
     const p=document.getElementById('checkinImgPreview');p.dataset.source=d;p.src=d;p.style.display='block';
-  }).catch(e=>{console.error(e);showToast('图片读取失败');});
+  }).catch(e=>{console.error(e);showToast((globalThis.AppLanguage?.ui('图片读取失败') ?? ('图片读取失败')));});
 }
 async function saveCheckin(){
   const p=getProject(curProjectId);if(!p||curItemIdx===null)return;
@@ -2810,7 +2814,7 @@ function getSelectedItemTarget(p){
 function openAddItem(){
   const p=getProject(curProjectId);if(!p)return;
   editItemIdx=null;
-  document.getElementById('itemModalTitle').textContent='添加品目';
+  (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('itemModalTitle'), '添加品目') : (document.getElementById('itemModalTitle').textContent='添加品目'));
   document.getElementById('inputItemName').value='';
   document.getElementById('inputItemNote').value='';
   document.getElementById('itemImgPreview').style.display='none';
@@ -2824,7 +2828,7 @@ function openEditItem(){
   const p=getProject(curProjectId);if(!p||curItemIdx===null)return;
   const item=p.items[curItemIdx];
   editItemIdx=curItemIdx;
-  document.getElementById('itemModalTitle').textContent='编辑品目';
+  (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('itemModalTitle'), '编辑品目') : (document.getElementById('itemModalTitle').textContent='编辑品目'));
   document.getElementById('inputItemName').value=item.name||'';
   document.getElementById('inputItemNote').value=item.note||'';
   if(item.img){const pr=document.getElementById('itemImgPreview');pr.src=item.img;pr.dataset.source=item.img;pr.style.display='block';}
@@ -2838,7 +2842,7 @@ function previewItemImg(input){
   if(!input.files||!input.files[0])return;
   optimizedImageDataUrl(input.files[0],1000).then(d=>{
     const p=document.getElementById('itemImgPreview');p.dataset.source=d;p.src=d;p.style.display='block';
-  }).catch(e=>{console.error(e);showToast('图片读取失败');});
+  }).catch(e=>{console.error(e);showToast((globalThis.AppLanguage?.ui('图片读取失败') ?? ('图片读取失败')));});
 }
 async function saveItem(){
   const p=getProject(curProjectId);if(!p)return;
@@ -2925,7 +2929,7 @@ function importKitchen(input){
     try{
       const data=JSON.parse(ev.target.result);
       const importedProjects=Array.isArray(data)?data:Array.isArray(data&&data.projects)?data.projects:null;
-      if(!importedProjects){showToast('格式不正确');input.value='';return;}
+      if(!importedProjects){showToast((globalThis.AppLanguage?.ui('格式不正确') ?? ('格式不正确')));input.value='';return;}
       customConfirm('导入数据？将覆盖当前记录。',()=>{
         projects=importedProjects;
         migrateKitchenSectionModel();
@@ -2934,7 +2938,7 @@ function importKitchen(input){
         if(data&&data.migration&&typeof data.migration==='object'&&!Array.isArray(data.migration))localStorage.setItem(ActivityMigration.KEYS.migration,JSON.stringify(data.migration));
         renderProjects();closeModal('backupModal');
       });
-    }catch(e){showToast('导入失败');}
+    }catch(e){showToast((globalThis.AppLanguage?.ui('导入失败') ?? ('导入失败')));}
     input.value='';
   };
   reader.readAsText(input.files[0]);
@@ -2949,8 +2953,8 @@ function closeModal(id){
   modal.classList.remove('show');
   if(id==='checkinModal'){
     modal.dataset.mode='';
-    document.getElementById('checkinModalTitle').textContent='打卡记录';
-    document.getElementById('checkinSubmitBtn').textContent='打卡';
+    (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('checkinModalTitle'), '打卡记录') : (document.getElementById('checkinModalTitle').textContent='打卡记录'));
+    (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('checkinSubmitBtn'), '打卡') : (document.getElementById('checkinSubmitBtn').textContent='打卡'));
   }
 }
 document.querySelectorAll('.modal-bg,.action-sheet-bg').forEach(bg=>{bg.addEventListener('click',e=>{if(e.target===bg)closeModal(bg.id);});});
@@ -3077,7 +3081,7 @@ function initializeActivity(mergeLegacy=true){
     if(changed)save();
   }catch(error){
     console.warn('Activity migration pending:',error);
-    showToast('旧活动迁移暂未完成，原记录已保留');
+    showToast((globalThis.AppLanguage?.ui('旧活动迁移暂未完成，原记录已保留') ?? ('旧活动迁移暂未完成，原记录已保留')));
   }
   restoreInitialView();
   migrateLocalImages();

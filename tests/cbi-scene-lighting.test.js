@@ -9,10 +9,10 @@ function japanDate(year, month, day, hour, minute = 0) {
   return new Date(Date.UTC(year, month, day, hour - 9, minute));
 }
 
-const index = fs.readFileSync('index.html', 'utf8');
-const source = fs.readFileSync('cbi-scene-lighting.js', 'utf8');
-const worldContextSource = fs.readFileSync('world-context.js', 'utf8');
-const suitcase = fs.readFileSync('suitcase.html', 'utf8');
+const index = require('./helpers/localized-source.cjs').readFileSync('index.html', 'utf8');
+const source = require('./helpers/localized-source.cjs').readFileSync('cbi-scene-lighting.js', 'utf8');
+const worldContextSource = require('./helpers/localized-source.cjs').readFileSync('world-context.js', 'utf8');
+const suitcase = require('./helpers/localized-source.cjs').readFileSync('suitcase.html', 'utf8');
 
 function createHarness(options = {}) {
   const scenes = {};

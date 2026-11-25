@@ -2,6 +2,10 @@
 <!-- Music build: 2026-07-31 -->
 <html lang="zh">
 <head>
+<script src="app-language-data.js?v=20261125-language1"></script>
+<script src="app-language.js?v=20261125-language1"></script>
+<script type="module" src="dialogue-translations.mjs?v=20261125-language1"></script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -386,7 +390,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   </div>
 </div>
 
-<script src="cloud-sync.js?v=20261029-audit1"></script>
+<script src="cloud-sync.js?v=20261125-language1"></script>
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
@@ -585,7 +589,7 @@ function finalizeSectionDrafts(){
 }
 function renderSectionList(){
   const list=document.getElementById('sectionList');
-  if(!_sections.length){list.innerHTML='<div style="font-size:11px;color:#ccc;padding:8px 0">点下方"添加分类"设置分组</div>';return;}
+  if(!_sections.length){list.innerHTML='<div style="font-size:11px;color:#ccc;padding:8px 0" data-ui="点下方&quot;添加分类&quot;设置分组">点下方"添加分类"设置分组</div>';return;}
   list.innerHTML=_sections.map((s,i)=>`<div class="section-row" data-sec-idx="${i}">
     <input type="text" value="${esc(s.name)}" onchange="_sections[${i}].name=this.value">
     <input type="number" value="${s.count||0}" min="0" max="99" style="width:50px" onchange="_sections[${i}].count=Math.max(0,parseInt(this.value)||0)">
@@ -721,7 +725,7 @@ function renderItemRows(items,globalOffset){
 
 /* ── Item arrange mode ── */
 function handleProjectHeaderButton(){if(itemArrangeMode){setItemArrangeMode(false);return;}openProjectMenu();}
-function setItemArrangeMode(a){itemArrangeMode=!!a;const v=document.getElementById('viewDetail'),b=document.getElementById('projectHeaderBtn');if(v)v.classList.toggle('arrange-mode',a);if(b){b.textContent=a?'完成':'⋯';}if(!a)clearItemArrangeGesture();}
+function setItemArrangeMode(a){itemArrangeMode=!!a;const v=document.getElementById('viewDetail'),b=document.getElementById('projectHeaderBtn');if(v)v.classList.toggle('arrange-mode',a);if(b){(globalThis.AppLanguage ? AppLanguage.setText(b, a?'完成':'⋯') : (b.textContent=a?'完成':'⋯'));}if(!a)clearItemArrangeGesture();}
 function moveGridItem(fromIdx,toIdx){
   const p=getProject(curProjectId);if(!p||fromIdx===toIdx||!p.items[fromIdx]||!p.items[toIdx])return false;
   const fromSec=getItemSectionIndex(p,fromIdx),toSec=getItemSectionIndex(p,toIdx);
@@ -811,7 +815,7 @@ function openItem(idx){
   html+='<div class="card-detail-body">';
   if(displayName){
     const custom=!isGenericItemName(item.name);
-    html+=custom?`<div class="card-detail-name" id="inlineName" title="双击编辑">${esc(displayName)}</div>`:`<div class="card-detail-name">${esc(displayName)}</div>`;
+    html+=custom?`<div class="card-detail-name" id="inlineName" title="双击编辑" data-ui-title="双击编辑">${esc(displayName)}</div>`:`<div class="card-detail-name">${esc(displayName)}</div>`;
   }
   const infoParts=[];
   if(item.artist)infoParts.push(esc(item.artist));
@@ -819,7 +823,7 @@ function openItem(idx){
   if(item.tracks)infoParts.push(esc(item.tracks));
   if(infoParts.length)html+=`<div class="card-detail-info">${infoParts.map(t=>'<span class="info-tag">'+t+'</span>').join('')}</div>`;
   if(item.collected&&item.collectedDate)html+=`<div class="card-detail-date">Listened ${esc(item.collectedDate)}${item.rating?` <span class="rating-badge r-${item.rating}">${item.rating.charAt(0).toUpperCase()+item.rating.slice(1)}</span>`:''}</div>`;
-  if(item.note)html+=`<div class="card-detail-item-note"><span class="card-detail-item-note-label">影片备注</span>${esc(item.note)}</div>`;
+  if(item.note)html+=`<div class="card-detail-item-note"><span class="card-detail-item-note-label" data-ui="影片备注">影片备注</span>${esc(item.note)}</div>`;
   if(item.collected){
     const noteText=item.checkinNote||'';
     html+=`<div class="card-detail-note" id="inlineNote" title="Double-click to edit" style="margin-top:8px;${noteText?'':'color:#ccc;font-style:italic'}">${noteText?esc(noteText):'add notes...'}</div>`;
@@ -828,7 +832,7 @@ function openItem(idx){
   html+='</div></div>';
   html+=item.collected
     ?'<div class="card-actions"><button class="btn btn-cancel" onclick="uncollect()">Undo Check In</button></div>'
-    :'<div class="card-actions"><button class="btn btn-primary" onclick="openCheckin()">打卡</button></div>';
+    :'<div class="card-actions"><button class="btn btn-primary" onclick="openCheckin()" data-ui="打卡">打卡</button></div>';
   document.getElementById('itemContent').innerHTML=html;
   const nameEl=document.getElementById('inlineName');if(nameEl)nameEl.addEventListener('dblclick',()=>startInlineEdit('inlineName','name'));
   const noteEl=document.getElementById('inlineNote');if(noteEl)noteEl.addEventListener('dblclick',()=>startInlineEdit('inlineNote','checkinNote'));
@@ -863,7 +867,7 @@ function prepareCheckinModal(){
   document.getElementById('checkinImgInput').value='';
   openModal('checkinModal');
 }
-function previewCheckinImg(input){if(!input.files||!input.files[0])return;optimizedImageDataUrl(input.files[0],1000).then(d=>{const p=document.getElementById('checkinImgPreview');p.dataset.source=d;p.src=d;p.style.display='block';}).catch(()=>showToast('图片读取失败'));}
+function previewCheckinImg(input){if(!input.files||!input.files[0])return;optimizedImageDataUrl(input.files[0],1000).then(d=>{const p=document.getElementById('checkinImgPreview');p.dataset.source=d;p.src=d;p.style.display='block';}).catch(()=>showToast((globalThis.AppLanguage?.ui('图片读取失败') ?? ('图片读取失败'))));}
 async function saveCheckin(){
   const p=getProject(curProjectId);if(!p||curItemIdx===null)return;const item=p.items[curItemIdx];
   const fromItemView=document.getElementById('viewItem').classList.contains('active');
@@ -928,7 +932,7 @@ function openEditItem(){
   document.getElementById('itemDeleteBtn').style.display='';
   renderItemSectionSelect(p,getItemSectionIndex(p,curItemIdx));openModal('itemModal');
 }
-function previewItemImg(input){if(!input.files||!input.files[0])return;optimizedImageDataUrl(input.files[0],1000).then(d=>{const p=document.getElementById('itemImgPreview');p.dataset.source=d;p.src=d;p.style.display='block';}).catch(()=>showToast('图片读取失败'));}
+function previewItemImg(input){if(!input.files||!input.files[0])return;optimizedImageDataUrl(input.files[0],1000).then(d=>{const p=document.getElementById('itemImgPreview');p.dataset.source=d;p.src=d;p.style.display='block';}).catch(()=>showToast((globalThis.AppLanguage?.ui('图片读取失败') ?? ('图片读取失败'))));}
 async function saveItem(){
   const p=getProject(curProjectId);if(!p)return;const wasEditing=editItemIdx!==null;
   const existingItem=wasEditing?p.items[editItemIdx]:null;const stableId=existingItem&&existingItem.id?existingItem.id:gid();
@@ -1005,25 +1009,25 @@ function collectMusicAssetRefs(sourceProjects){
 
 async function checkOrphanedMusicAssets(){
   if(!window.CloudSync||typeof CloudSync.listAssets!=='function'||typeof CloudSync.deleteAssets!=='function'){
-    showToast('请刷新页面后再检查');return;
+    showToast((globalThis.AppLanguage?.ui('请刷新页面后再检查') ?? ('请刷新页面后再检查')));return;
   }
   try{
-    showToast('正在检查影视图片…');
+    showToast((globalThis.AppLanguage?.ui('正在检查影视图片…') ?? ('正在检查影视图片…')));
     const stored=await CloudSync.listAssets('music');
     const refs=collectMusicAssetRefs(projects);
     const orphaned=stored.filter(value=>!refs.has(value));
-    if(!orphaned.length){showToast('没有发现无引用图片');return;}
+    if(!orphaned.length){showToast((globalThis.AppLanguage?.ui('没有发现无引用图片') ?? ('没有发现无引用图片')));return;}
     customConfirm(
       `找到 ${orphaned.length} 张当前片单未引用的图片。清理后，旧快照中若仍有已删影片，其图片将无法恢复。确认清理？`,
       async()=>{
         try{
           const removed=await CloudSync.deleteAssets(orphaned);
-          showToast(`已清理 ${removed} 张无引用图片`);
-        }catch(e){console.warn('Music orphan cleanup failed:',e);showToast('清理失败，请稍后重试');}
+          showToast((globalThis.AppLanguage?.ui(`已清理 ${removed} 张无引用图片`) ?? (`已清理 ${removed} 张无引用图片`)));
+        }catch(e){console.warn('Music orphan cleanup failed:',e);showToast((globalThis.AppLanguage?.ui('清理失败，请稍后重试') ?? ('清理失败，请稍后重试')));}
       },
       {yes:'清理',danger:true}
     );
-  }catch(e){console.warn('Music orphan scan failed:',e);showToast('检查失败，请稍后重试');}
+  }catch(e){console.warn('Music orphan scan failed:',e);showToast((globalThis.AppLanguage?.ui('检查失败，请稍后重试') ?? ('检查失败，请稍后重试')));}
 }
 
 /* ═══ MENUS / MODALS / BACKUP ═══ */
@@ -1044,17 +1048,17 @@ function importData(input){
   reader.onload=ev=>{
     try{
       const data=JSON.parse(ev.target.result);
-      if(!Array.isArray(data)){showToast('格式不正确');input.value='';return;}
+      if(!Array.isArray(data)){showToast((globalThis.AppLanguage?.ui('格式不正确') ?? ('格式不正确')));input.value='';return;}
       customConfirm('导入数据？将覆盖当前记录。',async()=>{
         try{
           if(window.CloudSync){
-            showToast('正在上传导入图片…');
+            showToast((globalThis.AppLanguage?.ui('正在上传导入图片…') ?? ('正在上传导入图片…')));
             await uploadInlineMusicImages(data);
           }
-          projects=data;save();renderProjects();closeModal('backupModal');showToast('导入完成');
-        }catch(e){console.warn('Music import failed:',e);showToast('图片上传失败，原记录未覆盖');}
+          projects=data;save();renderProjects();closeModal('backupModal');showToast((globalThis.AppLanguage?.ui('导入完成') ?? ('导入完成')));
+        }catch(e){console.warn('Music import failed:',e);showToast((globalThis.AppLanguage?.ui('图片上传失败，原记录未覆盖') ?? ('图片上传失败，原记录未覆盖')));}
       });
-    }catch(e){showToast('导入失败');}
+    }catch(e){showToast((globalThis.AppLanguage?.ui('导入失败') ?? ('导入失败')));}
     input.value='';
   };
   reader.readAsText(input.files[0]);

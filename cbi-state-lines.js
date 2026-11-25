@@ -2,21 +2,24 @@
   'use strict';
   if (global.__LIMINAL_REDIRECTING) return;
   let rules, homeRules, officeRules, owner = '', pending = null, timer = null, fingerprint = '', lastRead = 0;
+  let language = 'zh';
+  const selectedLanguage = () => global.AppLanguage?.dialogue || 'zh';
   let revision = '', waiting = false, retryAt = 0, blocked = '', latest = null;
   const cache = new Map(), shown = new Map(), history = {};
   const names = { jane: 'Jane', cho: 'Cho', rigsby: 'Rigsby', lisbon: 'Lisbon', vanpelt: 'Van Pelt' };
   const clock = () => (global.Date || Date).now();
   const doc = global.document;
   const ready = Promise.all([
-    import('./cbi-state-content.mjs?v=20261103-state1'),
-    import('./cbi-home-content.mjs?v=20261103-state1'),
-    import('./cbi-office-content.mjs?v=20261103-state1')
+    import('./cbi-state-content.mjs?v=20261125-language1'),
+    import('./cbi-home-content.mjs?v=20261125-language1'),
+    import('./cbi-office-content.mjs?v=20261125-language1')
   ]).then(([state, home, office]) => { rules = state; homeRules = home; officeRules = office; return state; });
   ready.catch(() => {});
   function identity() { return global.CloudSync?.user?.id || ''; }
   function sameOwner() {
     const next = identity();
-    if (next !== owner) {
+    if (next !== owner || language !== selectedLanguage()) {
+      language = selectedLanguage();
       if (owner) for (const id of Object.keys(names)) doc?.getElementById?.('bubble-' + id)?.classList?.remove('show');
       owner = next; cache.clear(); shown.clear(); fingerprint = ''; revision = ''; latest = null;
       waiting = false; retryAt = 0; blocked = ''; lastRead = 0; delete history.home; delete history.office;
@@ -50,7 +53,7 @@
         const node = doc?.getElementById?.('char-' + id);
         if (node) { node.title = names[id] + ' · ' + session.status; if (node.dataset) node.dataset.officeState = session.state; }
         const status = doc?.getElementById?.('status-' + id);
-        if (status) status.textContent = session.status;
+        if (status) status.textContent = global.AppLanguage?.ui(session.status) || session.status;
       }
     }
   }
@@ -62,8 +65,8 @@
   function poolFor(session) {
     if (!session) return [];
     const saved = cache.get(session.key);
-    const lines = saved?.revision === revision ? saved.entry.lines : [rules.stateFallback(session)];
-    return lines.map(m => ({ s: session.status, m }));
+    const lines = saved?.revision === revision ? saved.entry.lines : [rules.stateFallback(session, language)];
+    return lines.map(m => ({ s: global.AppLanguage?.label(session.status) || session.status, m }));
   }
   function getPool(scene, id) { return poolFor(getSession(scene, id)); }
   function getLine(scene, id) {
@@ -72,8 +75,8 @@
   }
   async function accept(value) {
     await ready; sameOwner();
-    if (!value?.pack || value.pack.format !== rules.STATE_FORMAT) return null;
-    const pack = rules.validateStateBatch(value.pack);
+    if (!value?.pack || (value.language || 'zh') !== language || value.pack.format !== rules.STATE_FORMAT) return null;
+    const pack = rules.validateStateBatch(value.pack, null, language);
     if (revision && pack.canon_revision !== revision) return null;
     revision = pack.canon_revision;
     for (const entry of pack.states) cache.set(entry.key, { entry, revision, id: value.id });
@@ -91,8 +94,8 @@
     if (response.error || response.data?.error || !response.data) throw new Error('state_dialogue_unavailable');
     return response.data;
   }
-  async function install(data, user) {
-    if (user !== identity()) return false;
+  async function install(data, user, requestLanguage) {
+    if (user !== identity() || requestLanguage !== selectedLanguage()) return false;
     sameOwner();
     if (typeof data.context_revision === 'string' && revision !== data.context_revision) {
       revision = data.context_revision; cache.clear(); latest = null;
@@ -120,7 +123,7 @@
     if (!global.CloudSync || (!options.manual && activeScene() !== scene)) { schedule(); return null; }
     pending = (async () => {
       await global.CloudSync.whenReady();
-      const user = sameOwner();
+      const user = sameOwner(), requestLanguage = language;
       if (!user || (!options.manual && activeScene() !== scene)) return null;
       const snap = snapshot(scene);
       syncStates(snap, scene);
@@ -132,14 +135,14 @@
       if (!changed && !options.manual && !options.forceRead && !waiting && clock() - lastRead < 60000 && (!missing || blocked === fingerprint || clock() < retryAt)) return latest;
       const generate = options.manual || changed || (missing && blocked !== fingerprint && clock() >= retryAt);
       if (generate && !changed && !options.manual && clock() < retryAt) return latest;
-      const input = { action: options.manual ? 'state_generate' : generate ? 'state_auto' : 'state_lines', context: snap.context };
+      const input = { language: requestLanguage, action: options.manual ? 'state_generate' : generate ? 'state_auto' : 'state_lines', context: snap.context };
       if (options.manual) input.request_id = (global.crypto || globalThis.crypto).randomUUID();
       let data = await call(input);
       lastRead = clock();
-      if (!await install(data, user)) return null;
+      if (!await install(data, user, requestLanguage)) return null;
       if (input.action === 'state_lines' && data.needs_generation && !waiting && !data.auto?.blocked && clock() >= retryAt && activeScene() === scene) {
-        data = await call({ action: 'state_auto', context: snap.context });
-        if (!await install(data, user)) return null;
+        data = await call({ action: 'state_auto', language: requestLanguage, context: snap.context });
+        if (!await install(data, user, requestLanguage)) return null;
       }
       return data;
     })().catch(() => { retryAt = clock() + 60000; lastRead = clock(); return null; }).finally(() => { pending = null; schedule(); });
@@ -150,7 +153,7 @@
     return latest?.pack.scene === scene ? latest : history[scene] || null;
   }
   global.CBIStateLines = { ready, refresh, accept, getPool, getLine, getSession,
-    decode: source => rules?.decodeStateBatch(source) || null,
+    decode: source => rules?.decodeStateBatch(source, language) || null,
     describe: (state, scene) => scene === 'office' ? rules?.OFFICE_ACTIVITY_STATES[state]?.label || '' :
       homeRules?.homeStateLabel(state?.replace(/\.case$/, ''), state?.endsWith('.case') ? 'case' : 'daily') || '',
     getHomeFrame(frame, now = clock()) {
@@ -164,13 +167,14 @@
   };
   global.CBIOfficeLines = { ready, refresh: options => refresh('office', options), accept: value => legacyAccept('office', value),
     getPool: id => getPool('office', id), getLine: id => getLine('office', id), getSession: id => getSession('office', id),
-    getBatch: () => batch('office'), decode: source => officeRules?.decodeOfficeBatch(source) || null };
+    getBatch: () => batch('office'), decode: source => officeRules?.decodeOfficeBatch(source, 'en') || null };
   global.CBIHomeLines = { ready, refresh: options => refresh('home', options), accept: value => legacyAccept('home', value),
-    getBatch: () => batch('home'), decode: source => homeRules?.decodeHomeBatch(source) || null,
+    getBatch: () => batch('home'), decode: source => homeRules?.decodeHomeBatch(source, 'en') || null,
     describe: (id, topic) => homeRules?.homeStateLabel(id, topic) || '' };
+  global.addEventListener?.('omniverse:languagechange', () => { sameOwner(); for (const id of rules?.STATE_IDS || []) doc?.getElementById?.('bubble-' + id)?.classList?.remove('show'); });
   const resume = () => { if (!doc?.hidden) refresh(activeScene(), { forceRead: true }).catch(() => {}); else { clearTimeout(timer); } };
   doc?.addEventListener('visibilitychange', resume);
-  for (const name of ['pageshow', 'home-scene-entry-ready', 'omniverse:worldchange', 'omniverse:locationchange', 'liminal-cloud-ready']) global.addEventListener?.(name, resume);
+  for (const name of ['omniverse:languagechange', 'pageshow', 'home-scene-entry-ready', 'omniverse:worldchange', 'omniverse:locationchange', 'liminal-cloud-ready']) global.addEventListener?.(name, resume);
   global.addEventListener?.('storage', event => {
     if (event.key === null || ['jane_world_files_v1', 'cbi_db', 'omniverse_world_context'].includes(event.key) || String(event.key).startsWith('schedule_')) resume();
   });

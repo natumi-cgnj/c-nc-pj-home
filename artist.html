@@ -1,12 +1,16 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
+<script src="app-language-data.js?v=20261125-language1"></script>
+<script src="app-language.js?v=20261125-language1"></script>
+<script type="module" src="dialogue-translations.mjs?v=20261125-language1"></script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Artist">
-<title>艺人整理</title>
+<title data-ui="艺人整理">艺人整理</title>
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="favicon.ico">
 <style>
@@ -48,8 +52,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 </head>
 <body>
 <div class="top-bar">
-<button class="back-btn" onclick="location.href='index.html'">← 返回</button>
-<h1>艺人整理</h1>
+<button class="back-btn" onclick="location.href='index.html'" data-ui="← 返回">← 返回</button>
+<h1 data-ui="艺人整理">艺人整理</h1>
 <div style="width:40px"></div>
 </div>
 <div class="content">
@@ -58,20 +62,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 <div class="modal-overlay" id="modal" onclick="closeModal(event)">
 <div class="modal" onclick="event.stopPropagation()">
-<h2 id="modalTitle">添加艺人</h2>
-<div class="field"><label>名前 / Name</label><input id="fName" type="text" maxlength="60"></div>
-<div class="field"><label>团体 / 所属</label><input id="fGroup" type="text" maxlength="60" placeholder="可选"></div>
-<div class="field"><label>标签</label><input id="fTag" type="text" maxlength="30" placeholder="歌手 / 声优 / 俳优 …"></div>
-<div class="field"><label>备注</label><textarea id="fNote" maxlength="300" placeholder="喜欢的作品、推し事 …"></textarea></div>
+<h2 id="modalTitle" data-ui="添加艺人">添加艺人</h2>
+<div class="field"><label data-ui="名前 / Name">名前 / Name</label><input id="fName" type="text" maxlength="60"></div>
+<div class="field"><label data-ui="团体 / 所属">团体 / 所属</label><input id="fGroup" type="text" maxlength="60" placeholder="可选" data-ui-placeholder="可选"></div>
+<div class="field"><label data-ui="标签">标签</label><input id="fTag" type="text" maxlength="30" placeholder="歌手 / 声优 / 俳优 …" data-ui-placeholder="歌手 / 声优 / 俳优 …"></div>
+<div class="field"><label data-ui="备注">备注</label><textarea id="fNote" maxlength="300" placeholder="喜欢的作品、推し事 …" data-ui-placeholder="喜欢的作品、推し事 …"></textarea></div>
 <div class="modal-actions">
-<button class="btn-cancel" type="button" onclick="closeModal()">取消</button>
-<button class="btn-primary" type="button" onclick="saveArtist()">保存</button>
+<button class="btn-cancel" type="button" onclick="closeModal()" data-ui="取消">取消</button>
+<button class="btn-primary" type="button" onclick="saveArtist()" data-ui="保存">保存</button>
 </div>
-<button class="del-link" id="delBtn" type="button" style="display:none" onclick="delArtist()">删除</button>
+<button class="del-link" id="delBtn" type="button" style="display:none" onclick="delArtist()" data-ui="删除">删除</button>
 </div>
 </div>
 
-<script src="cloud-sync.js?v=20261029-audit1"></script>
+<script src="cloud-sync.js?v=20261125-language1"></script>
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting');
@@ -85,13 +89,13 @@ function initial(s){return(s||'?').charAt(0).toUpperCase();}
 function resetDeleteConfirm(){
   deleteArmed=false;
   var btn=document.getElementById('delBtn');
-  if(btn){btn.textContent='删除';btn.classList.remove('confirming');}
+  if(btn){(globalThis.AppLanguage ? AppLanguage.setText(btn, '删除') : (btn.textContent='删除'));btn.classList.remove('confirming');}
 }
 function requireDeleteConfirm(){
   if(deleteArmed)return true;
   deleteArmed=true;
   var btn=document.getElementById('delBtn');
-  if(btn){btn.textContent='再次点击确认删除';btn.classList.add('confirming');}
+  if(btn){(globalThis.AppLanguage ? AppLanguage.setText(btn, '再次点击确认删除') : (btn.textContent='再次点击确认删除'));btn.classList.add('confirming');}
   return false;
 }
 function render(){
@@ -112,7 +116,7 @@ function render(){
 function openAdd(){
   editIdx=-1;
   resetDeleteConfirm();
-  document.getElementById('modalTitle').textContent='添加艺人';
+  (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('modalTitle'), '添加艺人') : (document.getElementById('modalTitle').textContent='添加艺人'));
   document.getElementById('fName').value='';
   document.getElementById('fGroup').value='';
   document.getElementById('fTag').value='';
@@ -123,7 +127,7 @@ function openAdd(){
 function openEdit(i){
   var data=load();if(!data[i])return;editIdx=i;
   resetDeleteConfirm();
-  document.getElementById('modalTitle').textContent='编辑';
+  (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('modalTitle'), '编辑') : (document.getElementById('modalTitle').textContent='编辑'));
   document.getElementById('fName').value=data[i].name||'';
   document.getElementById('fGroup').value=data[i].group||'';
   document.getElementById('fTag').value=data[i].tag||'';
@@ -134,7 +138,7 @@ function openEdit(i){
 function closeModal(e){if(e&&e.target!==e.currentTarget)return;document.getElementById('modal').classList.remove('show');resetDeleteConfirm();}
 function saveArtist(){
   var name=document.getElementById('fName').value.trim();
-  if(!name){alert('请输入名前');return;}
+  if(!name){alert((globalThis.AppLanguage?.ui('请输入名前') ?? ('请输入名前')));return;}
   var data=load();
   var entry={name:name,group:document.getElementById('fGroup').value.trim(),tag:document.getElementById('fTag').value.trim(),note:document.getElementById('fNote').value.trim()};
   if(editIdx>=0&&data[editIdx]){Object.assign(data[editIdx],entry);}

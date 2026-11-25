@@ -38,10 +38,10 @@
     el('copyPrompt').disabled = !el('routinePrompt').value;
     el('copyOfficePrompt').disabled = !el('routinePrompt').value;
     el('generateOfficeLines').disabled = !ready || !configured || busy || active;
-    el('generateOfficeLines').textContent = active ? '等待云端回复' : '立即更新';
-    el('testConnection').textContent = active ? '等待云端回复' : '发送测试';
+    (globalThis.AppLanguage ? AppLanguage.setText(el('generateOfficeLines'), active ? '等待云端回复' : '立即更新') : (el('generateOfficeLines').textContent = active ? '等待云端回复' : '立即更新'));
+    (globalThis.AppLanguage ? AppLanguage.setText(el('testConnection'), active ? '等待云端回复' : '发送测试') : (el('testConnection').textContent = active ? '等待云端回复' : '发送测试'));
     const success = runs[0]?.status === 'completed';
-    el('connectionState').textContent = !ready ? '正在读取' : active ? '正在测试' : success ? '连接成功' : configured ? '已设置 · 待测试' : '尚未设置';
+    (globalThis.AppLanguage ? AppLanguage.setText(el('connectionState'), !ready ? '正在读取' : active ? '正在测试' : success ? '连接成功' : configured ? '已设置 · 待测试' : '尚未设置') : (el('connectionState').textContent = !ready ? '正在读取' : active ? '正在测试' : success ? '连接成功' : configured ? '已设置 · 待测试' : '尚未设置'));
     el('connectionState').classList.toggle('success', success);
   }
   async function call(body) {
@@ -61,7 +61,7 @@
     el('testResults').innerHTML = runs.length ? runs.map(run => {
       const date = new Date(run.created_at).toLocaleString('zh-CN', { timeZone: 'Asia/Tokyo', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false });
       let copy = run.status === 'completed' ? run.result : run.error_code ? message(run.error_code) : '已发送固定测试文本，等待 Claude 送回回复。';
-      const link = typeof run.session_url === 'string' && /^https:\/\/claude\.ai\/code\/session_[A-Za-z0-9_-]+$/.test(run.session_url) ? '<a href="' + esc(run.session_url) + '" target="_blank" rel="noopener noreferrer">在 Claude 中查看这次任务 ↗</a>' : '';
+      const link = typeof run.session_url === 'string' && /^https:\/\/claude\.ai\/code\/session_[A-Za-z0-9_-]+$/.test(run.session_url) ? `<a href="${(esc(run.session_url))}" target="_blank" rel="noopener noreferrer" data-ui="在 Claude 中查看这次任务 ↗">在 Claude 中查看这次任务 ↗</a>` : '';
       const status = Object.hasOwn(STATUS, run.status) ? run.status : 'uncertain';
       const pack = run.status === 'completed' ? decode(run) : null;
       const homePack = run.status === 'completed' ? decodeHome(run) : null;
@@ -75,11 +75,11 @@
         + lines.map(line => '<p class="office-line"><span>' + esc(global.CBIHomeLines.describe(line.activity, line.topic)) + '</span><span>' + esc(line.m) + '</span></p>').join('') + '</section>').join('') : '';
       const label = statePack ? '已保存状态台词' : pack ? '办公室台词记录' : homePack ? '居家台词记录' : STATUS[status];
       return '<article class="test-result ' + status + '"><div class="test-result-head"><span>' + esc(date) + '</span><strong>' + label + '</strong></div>' + (stateCards || office || home || '<p class="test-result-body">' + esc(copy) + '</p>') + link + '</article>';
-    }).join('') : '<p class="empty">还没有测试记录</p>';
+    }).join('') : '<p class="empty" data-ui="还没有测试记录">还没有测试记录</p>';
     const batch = global.CBIOfficeLines?.getBatch();
-    el('officeState').textContent = batch?.pack?.format === 'cbi-state-lines' ? '当前状态共 ' + batch.pack.states.reduce((n, state) => n + state.lines.length, 0) + ' 句台词。' : '进入办公室后，按在场人物的当前状态自动准备台词。';
+    (globalThis.AppLanguage ? AppLanguage.setText(el('officeState'), batch?.pack?.format === 'cbi-state-lines' ? '当前状态共 ' + batch.pack.states.reduce((n, state) => n + state.lines.length, 0) + ' 句台词。' : '进入办公室后，按在场人物的当前状态自动准备台词。') : (el('officeState').textContent = batch?.pack?.format === 'cbi-state-lines' ? '当前状态共 ' + batch.pack.states.reduce((n, state) => n + state.lines.length, 0) + ' 句台词。' : '进入办公室后，按在场人物的当前状态自动准备台词。'));
     const officeRun = runs.find(run => run.id === lastOfficeRun);
-    if (officeRun?.status === 'completed') el('officeNotice').textContent = decodeState(officeRun) ? '这批状态台词已保存，返回主页后按对应状态使用。' : decode(officeRun) ? '已保存办公室台词记录。' : '这次回传未成为可用的状态台词，请查看云端任务结果。';
+    if (officeRun?.status === 'completed') (globalThis.AppLanguage ? AppLanguage.setText(el('officeNotice'), decodeState(officeRun) ? '这批状态台词已保存，返回主页后按对应状态使用。' : decode(officeRun) ? '已保存办公室台词记录。' : '这次回传未成为可用的状态台词，请查看云端任务结果。') : (el('officeNotice').textContent = decodeState(officeRun) ? '这批状态台词已保存，返回主页后按对应状态使用。' : decode(officeRun) ? '已保存办公室台词记录。' : '这次回传未成为可用的状态台词，请查看云端任务结果。'));
     else if (officeRun && ['failed', 'expired'].includes(officeRun.status)) el('officeNotice').textContent = message(officeRun.error_code);
     controls();
   }
@@ -105,7 +105,7 @@
     } catch (error) {
       el('pageNotice').textContent = message(error.message);
       controls();
-      if (!ready) el('connectionState').textContent = '等待连接';
+      if (!ready) (globalThis.AppLanguage ? AppLanguage.setText(el('connectionState'), '等待连接') : (el('connectionState').textContent = '等待连接'));
     } finally { refreshing = false; schedule(); }
   }
   el('connectionForm').addEventListener('submit', async event => {
@@ -115,7 +115,7 @@
       await call({ action: 'configure', fire_url: el('fireUrl').value.trim(), fire_token: el('fireToken').value.trim() });
       el('fireToken').value = '';
       configured = true; el('setupDetails').open = false;
-      el('pageNotice').textContent = '连接已保存，可以发送测试了。';
+      (globalThis.AppLanguage ? AppLanguage.setText(el('pageNotice'), '连接已保存，可以发送测试了。') : (el('pageNotice').textContent = '连接已保存，可以发送测试了。'));
     } catch (error) { el('connectionError').textContent = message(error.message); }
     finally { busy = false; controls(); }
   });
@@ -136,7 +136,7 @@
     busy = true; controls(); el('officeNotice').textContent = '';
     try {
       await global.CBIStateLines.ready;
-      if (!global.CBIStateLines.context('office')) { el('officeNotice').textContent = '当前没有在办公室的人物。有人在场时会按各自状态自动准备台词。'; return; }
+      if (!global.CBIStateLines.context('office')) { (globalThis.AppLanguage ? AppLanguage.setText(el('officeNotice'), '当前没有在办公室的人物。有人在场时会按各自状态自动准备台词。') : (el('officeNotice').textContent = '当前没有在办公室的人物。有人在场时会按各自状态自动准备台词。')); return; }
       const data = await global.CBIOfficeLines.refresh({ manual: true });
       if (!data) throw new Error('service_unavailable');
       if (data.run) { lastOfficeRun = data.run.id; runs = [data.run, ...runs.filter(x => x.id !== data.run.id)].slice(0, 8); }
@@ -146,12 +146,12 @@
     finally { busy = false; controls(); schedule(); }
   });
   async function copyInstructions(buttonId) {
-    try { await navigator.clipboard.writeText(el('routinePrompt').value); el(buttonId).textContent = '已复制'; }
+    try { await navigator.clipboard.writeText(el('routinePrompt').value); (globalThis.AppLanguage ? AppLanguage.setText(el(buttonId), '已复制') : (el(buttonId).textContent = '已复制')); }
     catch { el('routinePrompt').closest('details').open = true; el('routinePrompt').focus(); el('routinePrompt').select(); }
   }
   el('copyPrompt').addEventListener('click', () => copyInstructions('copyPrompt'));
   el('copyOfficePrompt').addEventListener('click', () => copyInstructions('copyOfficePrompt'));
   el('refreshConnection').addEventListener('click', refresh);
   document.addEventListener('visibilitychange', () => { if (document.hidden) clearTimeout(timer); else refresh(); });
-  global.CloudSync.whenReady().then(() => { authenticated = true; return refresh(); }).catch(() => { el('pageNotice').textContent = '请登录 C-NC 后设置连接。'; el('connectionState').textContent = '等待登录'; });
+  global.CloudSync.whenReady().then(() => { authenticated = true; return refresh(); }).catch(() => { (globalThis.AppLanguage ? AppLanguage.setText(el('pageNotice'), '请登录 C-NC 后设置连接。') : (el('pageNotice').textContent = '请登录 C-NC 后设置连接。')); (globalThis.AppLanguage ? AppLanguage.setText(el('connectionState'), '等待登录') : (el('connectionState').textContent = '等待登录')); });
 })(window);

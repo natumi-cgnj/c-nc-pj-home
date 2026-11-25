@@ -15,8 +15,8 @@ const object = value => !!value && typeof value === 'object' && !Array.isArray(v
 const exactKeys = (value, keys) => object(value) && Object.keys(value).length === keys.length && keys.every(key => Object.hasOwn(value, key));
 const invalid = () => { throw new Error('invalid_office_lines'); };
 
-export function validateOfficeBatch(value) {
-  if (!object(value) || !exactKeys(Object.fromEntries(Object.entries(value).filter(([key]) => key !== 'canon_revision')), Object.hasOwn(value,'continuity') ? ['format','version','scene','characters','continuity'] : ['format','version','scene','characters']) || (Object.hasOwn(value,'canon_revision') && !/^[a-f0-9]{64}$/.test(value.canon_revision)) ||
+export function validateOfficeBatch(value, language = 'zh') {
+  if (!object(value) || (value.language != null && !['zh','ja','en'].includes(value.language)) || !exactKeys(Object.fromEntries(Object.entries(value).filter(([key]) => !['canon_revision','language'].includes(key))), Object.hasOwn(value,'continuity') ? ['format','version','scene','characters','continuity'] : ['format','version','scene','characters']) || (Object.hasOwn(value,'canon_revision') && !/^[a-f0-9]{64}$/.test(value.canon_revision)) ||
       (Object.hasOwn(value, 'continuity') && value.continuity !== CBI_CONTINUITY) || value.format !== OFFICE_FORMAT ||
       value.version !== 1 || value.scene !== 'office-seated' || !exactKeys(value.characters, OFFICE_IDS)) invalid();
   const characters = {};
@@ -26,23 +26,23 @@ export function validateOfficeBatch(value) {
     characters[id] = pool.map(line => {
       if (!exactKeys(line, ['s', 'm']) || !OFFICE_STATES[id].includes(line.s) || typeof line.m !== 'string') invalid();
       const m = line.m.trim();
-      if (!m || [...m].length > 90 || /[()（）\r\n\u0000-\u001f]/.test(m) ||
+      if (!m || [...m].length > (language === 'en' ? 260 : language === 'ja' ? 130 : 90) || /[()（）\r\n\u0000-\u001f]/.test(m) ||
           /^(?:Jane|Cho|Rigsby|Lisbon|Van\s*Pelt|Milo|Boss|旁白|台词)\s*[：:]/i.test(m)) invalid();
       return { s: line.s, m };
     });
   }
   return { format: OFFICE_FORMAT, version: 1, scene: 'office-seated', characters,
-    ...(value.continuity ? { continuity: value.continuity } : {}), ...(value.canon_revision ? {canon_revision:value.canon_revision} : {}) };
+    ...(value.language ? { language: value.language } : {}), ...(value.continuity ? { continuity: value.continuity } : {}), ...(value.canon_revision ? {canon_revision:value.canon_revision} : {}) };
 }
 
 // Plain connectivity replies remain valid test results, but cannot become dialogue.
-export function decodeOfficeBatch(text) {
+export function decodeOfficeBatch(text, language = 'zh') {
   if (typeof text !== 'string') return null;
   const raw = text.trim().replace(/^```(?:json)?\s*\n([\s\S]*?)\n```$/i, '$1').trim();
   let value;
   try { value = JSON.parse(raw); }
   catch { if (/"format"\s*:\s*"cbi-office-lines"/.test(raw)) invalid(); return null; }
-  return value?.format === OFFICE_FORMAT ? validateOfficeBatch(value) : null;
+  return value?.format === OFFICE_FORMAT ? validateOfficeBatch(value, language) : null;
 }
 
 export function officePeriod(now = Date.now()) {

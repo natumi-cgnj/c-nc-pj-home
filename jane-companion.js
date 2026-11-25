@@ -1,8 +1,8 @@
 import { companionFrame, hitArtwork } from './jane-companion-state.mjs?v=20261110-enter-send1';
-import { CompanionCloudReader } from './jane-companion-cloud.mjs?v=20261110-enter-send1';
-import { CompanionDialogue, companionSpeechContext, clickActions, COMPANION_UI_VERSION } from './jane-companion-dialogue.mjs?v=20261119-reply-pace1';
+import { CompanionCloudReader } from './jane-companion-cloud.mjs?v=20261125-language1';
+import { CompanionDialogue, companionSpeechContext, clickActions, COMPANION_UI_VERSION } from './jane-companion-dialogue.mjs?v=20261125-language1';
 
-import { createMailboxUI } from './jane-companion-mail-ui.mjs?v=20261119-reply-pace1';
+import { createMailboxUI } from './jane-companion-mail-ui.mjs?v=20261125-language1';
 import { applyCompanionLayout, createDockHover } from './jane-companion-layout.mjs?v=20261110-enter-send1';
 
 const bridge = window.JaneDesktop;
@@ -14,8 +14,8 @@ const speech = document.getElementById('speech'), speechState = document.getElem
 
 async function start() {
   if (!bridge) {
-    setup.hidden = false; message.textContent = '请从 Jane Companion 启动桌面小伴侣。';
-    connect.textContent = '打开原程序'; connect.onclick = () => location.assign('index.html'); return;
+    setup.hidden = false; (globalThis.AppLanguage ? AppLanguage.setText(message, '请从 Jane Companion 启动桌面小伴侣。') : (message.textContent = '请从 Jane Companion 启动桌面小伴侣。'));
+    (globalThis.AppLanguage ? AppLanguage.setText(connect, '打开原程序') : (connect.textContent = '打开原程序')); connect.onclick = () => location.assign('index.html'); return;
   }
   const manifest = await bridge.manifest();
   const sideLayout = [1, 2].includes(manifest.sideLayout) && typeof bridge.onLayout === 'function';
@@ -41,11 +41,11 @@ async function start() {
   async function fillSpeech() {
     const token = ++speechRequest, frame = currentFrame, user = cloud?.owner || '';
     if (!frame || !user) return;
-    speechKey = frame.key; speechState.textContent = 'Jane · ' + frame.label; speechLine.textContent = '';
+    speechKey = frame.key; speechState.textContent = 'Jane · ' + (window.AppLanguage?.label(frame.label) || frame.label); speechLine.textContent = '';
     const current = companionSpeechContext(window.CharacterRuntime);
     if (!current) {
       const presence = window.CharacterRuntime.getCbiCharacterPresence('jane', new Date());
-      if (presence?.location === 'away' && presence.endAt > Date.now()) speechLine.textContent = '预计还有 ' + Math.ceil((presence.endAt - Date.now()) / 60000) + ' 分钟';
+      if (presence?.location === 'away' && presence.endAt > Date.now()) (globalThis.AppLanguage ? AppLanguage.setText(speechLine, '预计还有 ' + Math.ceil((presence.endAt - Date.now()) / 60000) + ' 分钟') : (speechLine.textContent = '预计还有 ' + Math.ceil((presence.endAt - Date.now()) / 60000) + ' 分钟'));
       return;
     }
     speechLine.textContent = dialogue?.line(current.session) || '';
@@ -68,7 +68,7 @@ async function start() {
 
   async function paint(frame) {
     const token = ++request;
-    caption.textContent = frame.label + (sync === 'offline' || sync === 'cached' ? ' · 离线缓存' : '');
+    (globalThis.AppLanguage ? AppLanguage.setText(caption, frame.label + (sync === 'offline' || sync === 'cached' ? ' · 离线缓存' : '')) : (caption.textContent = frame.label + (sync === 'offline' || sync === 'cached' ? ' · 离线缓存' : '')));
     img.title = manifest.manualVisibility ? '' : frame.label + ' · 单击查看状态和台词，双击打开程序'; caption.title = caption.textContent;
     if (frame.assetId === assetId) { nativeFrame(frame); return; }
     const data = await bridge.artwork(frame.assetId), loaded = new Image();
@@ -83,7 +83,7 @@ async function start() {
     const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
     mask = Uint8Array.from({ length: canvas.width * canvas.height }, (_, i) => pixels[i * 4 + 3]);
     maskWidth = canvas.width; maskHeight = canvas.height; img.src = data; assetId = frame.assetId;
-    img.alt = 'Jane · ' + frame.label; nativeFrame(frame);
+    img.alt = 'Jane · ' + (window.AppLanguage?.label(frame.label) || frame.label); nativeFrame(frame);
   }
   function render() {
     clearTimeout(timer);
@@ -94,7 +94,7 @@ async function start() {
     }
     currentFrame = frame; mailbox?.render();
     if (!speech.hidden && speechKey !== frame.key) fillSpeech();
-    paint(frame).catch(() => { caption.textContent = '图片暂时无法加载，右键重试'; });
+    paint(frame).catch(() => { (globalThis.AppLanguage ? AppLanguage.setText(caption, '图片暂时无法加载，右键重试') : (caption.textContent = '图片暂时无法加载，右键重试')); });
     timer = setTimeout(render, Math.max(250, Math.min(15000, (frame.nextAt || Date.now() + 15000) - Date.now())));
   }
   function status(value) {
@@ -104,8 +104,8 @@ async function start() {
     if (value === 'signed_out' || value === 'connecting' || value === 'unavailable') {
       if (value !== 'connecting' || !hasSnapshot) hasSnapshot = false;
       setup.hidden = false;
-      message.textContent = value === 'signed_out' ? '登录原程序的账号，同步 Jane 的当前状态。' : value === 'connecting' ? '正在读取 Jane 的状态…' : '暂时无法连接，稍后可以重试。';
-      connect.textContent = value === 'signed_out' ? '登录同步' : '重试连接';
+      (globalThis.AppLanguage ? AppLanguage.setText(message, value === 'signed_out' ? '登录原程序的账号，同步 Jane 的当前状态。' : value === 'connecting' ? '正在读取 Jane 的状态…' : '暂时无法连接，稍后可以重试。') : (message.textContent = value === 'signed_out' ? '登录原程序的账号，同步 Jane 的当前状态。' : value === 'connecting' ? '正在读取 Jane 的状态…' : '暂时无法连接，稍后可以重试。'));
+      (globalThis.AppLanguage ? AppLanguage.setText(connect, value === 'signed_out' ? '登录同步' : '重试连接') : (connect.textContent = value === 'signed_out' ? '登录同步' : '重试连接'));
       connect.onclick = value === 'signed_out' ? () => bridge.login() : () => bridge.reconnect();
       if (value === 'signed_out' && !prompted) { prompted = true; bridge.login(); }
     } else if (value === 'connected' || value === 'cached' || hasSnapshot) setup.hidden = true;
@@ -163,7 +163,7 @@ async function start() {
       context: () => ({ context: companionSpeechContext(window.CharacterRuntime)?.context || null, away: window.CharacterRuntime.getCbiCharacterPresence('jane', new Date())?.location === 'away' }),
       ready: () => sync === 'connected', frame: () => currentFrame,
       onPanel: open => { if (open) { actions.cancel(); closeSpeech(); } root.classList.toggle('chat-space', open); if (currentFrame) nativeFrame(currentFrame); },
-      onUpgrade: () => { closeSpeech(); speechRequest++; speech.hidden = false; root.classList.add('speech-space'); nativeFrame(currentFrame); speechState.textContent = '留言功能已准备好'; speechLine.textContent = '右键 Jane → 检查在线更新，更新并重启后即可留言。'; } });
+      onUpgrade: () => { closeSpeech(); speechRequest++; speech.hidden = false; root.classList.add('speech-space'); nativeFrame(currentFrame); (globalThis.AppLanguage ? AppLanguage.setText(speechState, '留言功能已准备好') : (speechState.textContent = '留言功能已准备好')); (globalThis.AppLanguage ? AppLanguage.setText(speechLine, '右键 Jane → 检查在线更新，更新并重启后即可留言。') : (speechLine.textContent = '右键 Jane → 检查在线更新，更新并重启后即可留言。')); } });
     window.addEventListener('online', () => cloud.refresh());
     window.addEventListener('pageshow', () => { render(); cloud.refresh(); });
     window.addEventListener('pagehide', event => { if (!event.persisted) { cloud.stop(); mailbox?.stop(); actions.cancel(); hover.stop(); speechSize.disconnect(); removeLayout?.(); clearTimeout(timer); clearTimeout(speechTimer); clearInterval(versionTimer); } });
@@ -180,4 +180,4 @@ async function start() {
   }
   versionTimer = setInterval(checkUI, 5 * 60000); window.addEventListener('online', checkUI);
 }
-start().catch(() => { setup.hidden = false; message.textContent = '小伴侣暂时无法启动，请退出后重新打开。'; connect.textContent = '重试'; connect.onclick = () => location.reload(); });
+start().catch(() => { setup.hidden = false; (globalThis.AppLanguage ? AppLanguage.setText(message, '小伴侣暂时无法启动，请退出后重新打开。') : (message.textContent = '小伴侣暂时无法启动，请退出后重新打开。')); (globalThis.AppLanguage ? AppLanguage.setText(connect, '重试') : (connect.textContent = '重试')); connect.onclick = () => location.reload(); });

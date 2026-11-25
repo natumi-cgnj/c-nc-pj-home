@@ -3,17 +3,17 @@ const fs = require('node:fs');
 const test = require('node:test');
 const vm = require('node:vm');
 
-const index = fs.readFileSync('index.html', 'utf8');
-const cbi = fs.readFileSync('cbi.html', 'utf8');
-const cloud = fs.readFileSync('cloud-sync.js', 'utf8');
-const backup = fs.readFileSync('backup.html', 'utf8');
-const meals = fs.readFileSync('meals.html', 'utf8');
-const recipe = fs.readFileSync('recipe.html', 'utf8');
-const schedule = fs.readFileSync('schedule.html', 'utf8');
-const daily = fs.readFileSync('daily.html', 'utf8');
-const shop = fs.readFileSync('shop.html', 'utf8');
-const wallet = fs.readFileSync('wallet.html', 'utf8');
-const worldContext = fs.readFileSync('world-context.js', 'utf8');
+const index = require('./helpers/localized-source.cjs').readFileSync('index.html', 'utf8');
+const cbi = require('./helpers/localized-source.cjs').readFileSync('cbi.html', 'utf8');
+const cloud = require('./helpers/localized-source.cjs').readFileSync('cloud-sync.js', 'utf8');
+const backup = require('./helpers/localized-source.cjs').readFileSync('backup.html', 'utf8');
+const meals = require('./helpers/localized-source.cjs').readFileSync('meals.html', 'utf8');
+const recipe = require('./helpers/localized-source.cjs').readFileSync('recipe.html', 'utf8');
+const schedule = require('./helpers/localized-source.cjs').readFileSync('schedule.html', 'utf8');
+const daily = require('./helpers/localized-source.cjs').readFileSync('daily.html', 'utf8');
+const shop = require('./helpers/localized-source.cjs').readFileSync('shop.html', 'utf8');
+const wallet = require('./helpers/localized-source.cjs').readFileSync('wallet.html', 'utf8');
+const worldContext = require('./helpers/localized-source.cjs').readFileSync('world-context.js', 'utf8');
 
 function count(text, pattern) {
   return [...text.matchAll(pattern)].length;
@@ -168,7 +168,7 @@ test('CBI locations have separate day and night banner scenes', () => {
   assert.match(index, /readCGContextJson\(CG_LIBRARY_KEY,target\)/);
   assert.match(index, /localStorage\.setItem\(baseKey,JSON\.stringify\(\{version:2,contexts\}\)\)/);
   assert.match(index, /function applyWorldView\(\)[\s\S]*?initCG\(\)/);
-  assert.match(fs.readFileSync('world-context.js', 'utf8'), /banner: 'location'/);
+  assert.match(require('./helpers/localized-source.cjs').readFileSync('world-context.js', 'utf8'), /banner: 'location'/);
 });
 
 test('world-sensitive entries use stable identities instead of mutable hrefs', () => {
@@ -305,7 +305,7 @@ test('CBI reality loop reuses the mature pages without crossing its currencies',
 });
 
 test('CBI check-ins use one repeatable grouped list while commissions and actions keep their own systems', () => {
-  const cbiWork = fs.readFileSync('cbi-work.js', 'utf8');
+  const cbiWork = require('./helpers/localized-source.cjs').readFileSync('cbi-work.js', 'utf8');
   assert.match(cbiWork, /cbi-commission-card/);
   assert.match(cbiWork, /cbi-case-file/);
   assert.doesNotMatch(cbiWork, /cbi-habit-sheet|function renderHabits\(\)/);
@@ -318,7 +318,7 @@ test('CBI check-ins use one repeatable grouped list while commissions and action
   assert.match(daily, /type:'count',\s*interval:1/);
   assert.match(daily, /if\(IS_CBI_HABITS\)\{if\(h\.salary\)rewardParts\.push\('点数 \+'/);
   assert.match(daily, /cbiDailyDb\.work\.salary=\(cbiDailyDb\.work\.salary\|\|0\)\+salary/);
-  assert.match(daily, /if\(utility\)\{utility\.textContent='编辑';utility\.onclick=openHabitSectionManager;/);
+  assert.match(daily, /if\(utility\)\{[\s\S]*?utility\.textContent='编辑'[\s\S]*?utility\.onclick=openHabitSectionManager;/);
   assert.doesNotMatch(cbiWork, /utility\.textContent = '卷宗'|backup\.html/);
   assert.match(cbiWork, /id="cbiActionDifficulty"/);
   assert.match(cbiWork, /快速 · 15 点/);
@@ -338,7 +338,7 @@ test('CBI check-ins use one repeatable grouped list while commissions and action
 });
 
 test('CBI wallet owns reimbursements and allowances while preserving the archive and deployment boundaries', () => {
-  const cbiWallet = fs.readFileSync('cbi-wallet.js', 'utf8');
+  const cbiWallet = require('./helpers/localized-source.cjs').readFileSync('cbi-wallet.js', 'utf8');
   for (const label of ['记账', '报销', '商城']) {
     assert.match(cbiWallet, new RegExp(`>${label}<`));
   }

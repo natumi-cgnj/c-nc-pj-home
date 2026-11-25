@@ -11,10 +11,10 @@
     el('nutritionBasal').textContent = format(stats.basalKcal);
     el('calorieRemaining').textContent = format(stats.remaining);
     el('calorieDifference').textContent = signed(stats.difference);
-    el('calorieBudgetLabel').textContent = stats.dailyBudget == null ? '每日额度 · 未设置' : '每日额度 · ' + format(stats.dailyBudget) + ' kcal';
-    el('calorieRemainingCaption').textContent = stats.dailyBudget == null ? '在热量设置中填写每日额度' : stats.remaining < 0 ? '超出额度 ' + format(-stats.remaining) + ' kcal' : '每日额度 − 已摄入';
-    el('calorieDifferenceCaption').textContent = stats.basalKcal == null ? '填写基础代谢后计算' : stats.difference < 0 ? '热量缺口 ' + format(-stats.difference) + ' kcal' : stats.difference > 0 ? '热量盈余 ' + format(stats.difference) + ' kcal' : '摄入与消耗相抵';
-    el('caloriePlanDate').textContent = stats.startDate ? stats.startDate + ' 起生效' : '';
+    (globalThis.AppLanguage ? AppLanguage.setText(el('calorieBudgetLabel'), stats.dailyBudget == null ? '每日额度 · 未设置' : '每日额度 · ' + format(stats.dailyBudget) + ' kcal') : (el('calorieBudgetLabel').textContent = stats.dailyBudget == null ? '每日额度 · 未设置' : '每日额度 · ' + format(stats.dailyBudget) + ' kcal'));
+    (globalThis.AppLanguage ? AppLanguage.setText(el('calorieRemainingCaption'), stats.dailyBudget == null ? '在热量设置中填写每日额度' : stats.remaining < 0 ? '超出额度 ' + format(-stats.remaining) + ' kcal' : '每日额度 − 已摄入') : (el('calorieRemainingCaption').textContent = stats.dailyBudget == null ? '在热量设置中填写每日额度' : stats.remaining < 0 ? '超出额度 ' + format(-stats.remaining) + ' kcal' : '每日额度 − 已摄入'));
+    (globalThis.AppLanguage ? AppLanguage.setText(el('calorieDifferenceCaption'), stats.basalKcal == null ? '填写基础代谢后计算' : stats.difference < 0 ? '热量缺口 ' + format(-stats.difference) + ' kcal' : stats.difference > 0 ? '热量盈余 ' + format(stats.difference) + ' kcal' : '摄入与消耗相抵') : (el('calorieDifferenceCaption').textContent = stats.basalKcal == null ? '填写基础代谢后计算' : stats.difference < 0 ? '热量缺口 ' + format(-stats.difference) + ' kcal' : stats.difference > 0 ? '热量盈余 ' + format(stats.difference) + ' kcal' : '摄入与消耗相抵'));
+    (globalThis.AppLanguage ? AppLanguage.setText(el('caloriePlanDate'), stats.startDate ? stats.startDate + ' 起生效' : '') : (el('caloriePlanDate').textContent = stats.startDate ? stats.startDate + ' 起生效' : ''));
   }
   function read() {
     const raw = localStorage.getItem(KEY), value = raw == null ? { version: 1, records: [] } : JSON.parse(raw);

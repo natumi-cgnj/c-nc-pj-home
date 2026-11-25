@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
+<script src="app-language-data.js?v=20261125-language1"></script>
+<script src="app-language.js?v=20261125-language1"></script>
+<script type="module" src="dialogue-translations.mjs?v=20261125-language1"></script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -84,20 +88,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <div class="top-bar">
   <a class="back" href="index.html?p=2">&larr; Home</a>
   <h1>GOALS</h1>
-  <button class="btn-s" id="goalManageButton" onclick="showModal('manageModal')">管理</button>
+  <button class="btn-s" id="goalManageButton" onclick="showModal('manageModal')" data-ui="管理">管理</button>
 </div>
 
 <div class="status-bar" id="goalStatusBar">
   <div class="status-item">
-    <div class="status-label">咖啡豆</div>
+    <div class="status-label" data-ui="咖啡豆">咖啡豆</div>
     <div class="status-value" style="color:#8B6914" id="beanCoffee">0</div>
   </div>
   <div class="status-item">
-    <div class="status-label">茶叶</div>
+    <div class="status-label" data-ui="茶叶">茶叶</div>
     <div class="status-value" style="color:#5A7247" id="beanTea">0</div>
   </div>
   <div class="status-item">
-    <div class="status-label">今日完成</div>
+    <div class="status-label" data-ui="今日完成">今日完成</div>
     <div class="status-value" id="todayCount">0/0</div>
   </div>
 </div>
@@ -116,21 +120,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- Add/edit habit -->
 <div class="modal-bg" id="habitModal">
   <div class="modal">
-    <h2 id="habitModalTitle">添加目标</h2>
-    <label>目标名称</label>
-    <input type="text" id="habitName" placeholder="如: 记10个韩语单词">
-    <label>产出类型</label>
+    <h2 id="habitModalTitle" data-ui="添加目标">添加目标</h2>
+    <label data-ui="目标名称">目标名称</label>
+    <input type="text" id="habitName" placeholder="如: 记10个韩语单词" data-ui-placeholder="如: 记10个韩语单词">
+    <label data-ui="产出类型">产出类型</label>
     <select id="habitCurrency">
-      <option value="coffee">咖啡豆（Neal）</option>
-      <option value="tea">茶叶（Jane）</option>
-      <option value="both">两种各一半</option>
+      <option value="coffee" data-ui="咖啡豆（Neal）">咖啡豆（Neal）</option>
+      <option value="tea" data-ui="茶叶（Jane）">茶叶（Jane）</option>
+      <option value="both" data-ui="两种各一半">两种各一半</option>
     </select>
-    <label>每次打卡产出</label>
+    <label data-ui="每次打卡产出">每次打卡产出</label>
     <input type="number" id="habitReward" value="20" min="1" max="100">
-    <div style="font-size:10px;color:#bbb;margin-top:4px">建议 15-30，目标每天总计约 100-150</div>
+    <div style="font-size:10px;color:#bbb;margin-top:4px" data-ui="建议 15-30，目标每天总计约 100-150">建议 15-30，目标每天总计约 100-150</div>
     <div class="btn-row">
-      <button class="btn btn-cancel" onclick="closeModal('habitModal')">取消</button>
-      <button class="btn btn-primary" onclick="saveHabit()">保存</button>
+      <button class="btn btn-cancel" onclick="closeModal('habitModal')" data-ui="取消">取消</button>
+      <button class="btn btn-primary" onclick="saveHabit()" data-ui="保存">保存</button>
     </div>
   </div>
 </div>
@@ -138,10 +142,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- Manage habits -->
 <div class="modal-bg" id="manageModal">
   <div class="modal">
-    <h2>管理目标</h2>
+    <h2 data-ui="管理目标">管理目标</h2>
     <div id="manageList"></div>
     <div class="btn-row" style="margin-top:16px">
-      <button class="btn btn-cancel" onclick="closeModal('manageModal')">关闭</button>
+      <button class="btn btn-cancel" onclick="closeModal('manageModal')" data-ui="关闭">关闭</button>
     </div>
   </div>
 </div>
@@ -149,16 +153,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- Confirm delete -->
 <div class="modal-bg" id="deleteModal">
   <div class="modal">
-    <h2>确认删除</h2>
+    <h2 data-ui="确认删除">确认删除</h2>
     <p style="font-size:13px;color:#666;text-align:center;margin-bottom:8px" id="deleteMsg"></p>
     <div class="btn-row">
-      <button class="btn btn-cancel" onclick="closeModal('deleteModal')">取消</button>
-      <button class="btn btn-danger" onclick="confirmDelete()">删除</button>
+      <button class="btn btn-cancel" onclick="closeModal('deleteModal')" data-ui="取消">取消</button>
+      <button class="btn btn-danger" onclick="confirmDelete()" data-ui="删除">删除</button>
     </div>
   </div>
 </div>
 
-<script src="cloud-sync.js?v=20261029-audit1"></script>
+<script src="cloud-sync.js?v=20261125-language1"></script>
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
@@ -243,14 +247,14 @@ function render(){
   // Progress bar
   const pct=totalHabits?Math.round(doneCount/totalHabits*100):0;
   let html='<div class="progress-row">';
-  html+='<div class="progress-label">今日</div>';
+  html+='<div class="progress-label" data-ui="今日">今日</div>';
   html+='<div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%;background:'+(pct>=100?'#5BA66B':'#E8B96A')+'"></div></div>';
   html+='<div class="progress-count">'+doneCount+'/'+totalHabits+'</div>';
   html+='</div>';
 
   // Streak bonus notification
   if(doneCount===totalHabits&&totalHabits>0){
-    html+='<div class="streak-bonus">\u2728 \u4ECA\u65E5\u5168\u90E8\u5B8C\u6210\uFF01</div>';
+    html+='<div class="streak-bonus" data-ui="✨ 今日全部完成！">✨ 今日全部完成！</div>';
   }
 
   // Habits list
@@ -258,11 +262,11 @@ function render(){
   const done=db.habits.filter(h=>isDoneToday(h.id));
 
   if(undone.length){
-    html+='<div class="section-header"><div class="section-title">\u5F85\u5B8C\u6210</div></div>';
+    html+='<div class="section-header"><div class="section-title" data-ui="待完成">待完成</div></div>';
     undone.forEach(h=>{html+=renderHabitCard(h,false);});
   }
   if(done.length){
-    html+='<div class="section-header"><div class="section-title">\u5DF2\u5B8C\u6210</div></div>';
+    html+='<div class="section-header"><div class="section-title" data-ui="已完成">已完成</div></div>';
     done.forEach(h=>{html+=renderHabitCard(h,true);});
   }
 
@@ -339,7 +343,7 @@ function checkHabit(id){
 // ══════════════════════════════════════
 function openAdd(){
   editingId=null;
-  document.getElementById('habitModalTitle').textContent='\u6DFB\u52A0\u76EE\u6807';
+  (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('habitModalTitle'), '\u6DFB\u52A0\u76EE\u6807') : (document.getElementById('habitModalTitle').textContent='\u6DFB\u52A0\u76EE\u6807'));
   document.getElementById('habitName').value='';
   document.getElementById('habitCurrency').value='coffee';
   document.getElementById('habitReward').value='20';
@@ -350,7 +354,7 @@ function openEdit(id){
   const h=db.habits.find(x=>x.id===id);
   if(!h)return;
   editingId=id;
-  document.getElementById('habitModalTitle').textContent='\u7F16\u8F91\u76EE\u6807';
+  (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('habitModalTitle'), '\u7F16\u8F91\u76EE\u6807') : (document.getElementById('habitModalTitle').textContent='\u7F16\u8F91\u76EE\u6807'));
   document.getElementById('habitName').value=h.name;
   document.getElementById('habitCurrency').value=h.currency||'coffee';
   document.getElementById('habitReward').value=h.reward||20;
@@ -386,28 +390,19 @@ function saveHabit(){
 function renderManage(){
   const el=document.getElementById('manageList');
   if(!db.habits.length){
-    el.innerHTML='<div style="text-align:center;color:#ccc;padding:20px;font-size:13px">\u6CA1\u6709\u76EE\u6807</div>';
+    el.innerHTML='<div style="text-align:center;color:#ccc;padding:20px;font-size:13px" data-ui="没有目标">没有目标</div>';
     return;
   }
   el.innerHTML=db.habits.map(h=>{
     const currIcon=h.currency==='coffee'?'\u2615\u8C46':(h.currency==='tea'?'\u2615\u53F6':'\u2615\u5404');
-    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f5f5f5">'+
-      '<div style="flex:1;min-width:0">'+
-        '<div style="font-size:13px;color:#333">'+escHtml(h.name)+'</div>'+
-        '<div style="font-size:10px;color:#bbb">'+currIcon+' +'+h.reward+'</div>'+
-      '</div>'+
-      '<div style="display:flex;gap:6px">'+
-        '<button style="font-size:10px;padding:4px 8px;border:1px solid #e8e8e8;border-radius:6px;background:#fff;cursor:pointer;color:#6B8AFF" onclick="closeModal(\'manageModal\');openEdit(\''+h.id+'\')">\u7F16\u8F91</button>'+
-        '<button style="font-size:10px;padding:4px 8px;border:1px solid #e8e8e8;border-radius:6px;background:#fff;cursor:pointer;color:#D85A30" onclick="askDelete(\''+h.id+'\')">\u5220\u9664</button>'+
-      '</div>'+
-    '</div>';
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f5f5f5"><div style="flex:1;min-width:0"><div style="font-size:13px;color:#333">${(escHtml(h.name))}</div><div style="font-size:10px;color:#bbb">${(currIcon)} +${(h.reward)}</div></div><div style="display:flex;gap:6px"><button style="font-size:10px;padding:4px 8px;border:1px solid #e8e8e8;border-radius:6px;background:#fff;cursor:pointer;color:#6B8AFF" onclick="closeModal('manageModal');openEdit('${(h.id)}')" data-ui="编辑">编辑</button><button style="font-size:10px;padding:4px 8px;border:1px solid #e8e8e8;border-radius:6px;background:#fff;cursor:pointer;color:#D85A30" onclick="askDelete('${(h.id)}')" data-ui="删除">删除</button></div></div>`;
   }).join('');
 }
 
 function askDelete(id){
   deletingId=id;
   const h=db.habits.find(x=>x.id===id);
-  document.getElementById('deleteMsg').textContent='\u5220\u9664\u300C'+(h?h.name:'')+'\u300D\uFF1F\u8FDE\u7EED\u6253\u5361\u8BB0\u5F55\u4E5F\u4F1A\u6E05\u9664\u3002';
+  (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('deleteMsg'), '\u5220\u9664\u300C'+(h?h.name:'')+'\u300D\uFF1F\u8FDE\u7EED\u6253\u5361\u8BB0\u5F55\u4E5F\u4F1A\u6E05\u9664\u3002') : (document.getElementById('deleteMsg').textContent='\u5220\u9664\u300C'+(h?h.name:'')+'\u300D\uFF1F\u8FDE\u7EED\u6253\u5361\u8BB0\u5F55\u4E5F\u4F1A\u6E05\u9664\u3002'));
   showModal('deleteModal');
 }
 

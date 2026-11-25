@@ -1,13 +1,17 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
+<script src="app-language-data.js?v=20261125-language1"></script>
+<script src="app-language.js?v=20261125-language1"></script>
+<script type="module" src="dialogue-translations.mjs?v=20261125-language1"></script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Home">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Home</title>
+<title data-ui="Home">Home</title>
 <script src="home-scene-entry.js?v=20261029-entry1"></script>
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="apple-touch-icon.png">
@@ -768,16 +772,16 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
 <div class="section-collapse collapsed"><div class="memo-wrap">
 <div class="memo-list" id="memoList"></div>
 <div class="memo-add-bar">
-<input class="memo-input" id="memoInput" type="text" placeholder="添加待处理事项…" maxlength="200">
-<button class="memo-add-btn" type="button" onclick="addMemo()">添加</button>
+<input class="memo-input" id="memoInput" type="text" placeholder="添加待处理事项…" maxlength="200" data-ui-placeholder="添加待处理事项…">
+<button class="memo-add-btn" type="button" onclick="addMemo()" data-ui="添加">添加</button>
 </div>
 </div>
 </div>
 </div>
 </div>
 <div class="home-page" id="pageMain">
-<div class="header" id="worldHeader" role="button" tabindex="0" aria-label="切换世界" onclick="openWorldSwitcher()">
-<h1 id="worldHeaderTitle">Liminal Space</h1><p id="worldHeaderSubtitle">夹缝空間</p>
+<div class="header" id="worldHeader" role="button" tabindex="0" aria-label="切换世界" onclick="openWorldSwitcher()" data-ui-aria-label="切换世界">
+<h1 id="worldHeaderTitle">Liminal Space</h1><p id="worldHeaderSubtitle" data-ui="夹缝空間">夹缝空間</p>
 <div class="cbi-weather-strip cbi-weather-strip-mobile" data-cbi-weather-strip="combined" aria-live="polite"><span class="cbi-weather-place">SACRAMENTO</span><span class="cbi-weather-icon" data-cbi-weather="sacramento-icon">·</span><span class="cbi-weather-temp" data-cbi-weather="sacramento-temp">—°</span><span class="cbi-weather-divider">｜</span><span class="cbi-weather-place">OSAKA</span><span class="cbi-weather-icon" data-cbi-weather="osaka-icon">·</span><span class="cbi-weather-temp" data-cbi-weather="osaka-temp">—°</span></div>
 <div class="cbi-weather-strip cbi-weather-strip-desktop cbi-weather-strip-desktop-sacramento" data-cbi-weather-strip="sacramento" aria-live="polite"><span class="cbi-weather-icon" data-cbi-weather="sacramento-icon">·</span><span class="cbi-weather-temp" data-cbi-weather="sacramento-temp">—°</span></div>
 <div class="cbi-weather-strip cbi-weather-strip-desktop cbi-weather-strip-desktop-osaka" data-cbi-weather-strip="osaka" aria-live="polite"><span class="cbi-weather-place">OSAKA</span><span class="cbi-weather-icon" data-cbi-weather="osaka-icon">·</span><span class="cbi-weather-temp" data-cbi-weather="osaka-temp">—°</span></div>
@@ -794,11 +798,11 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
       <div class="cg-tabs" id="cgTabs"></div>
       <div class="cg-library-summary" id="cgLibrarySummary"></div>
       <div class="cg-library-grid" id="cgLibraryGrid"></div>
-      <button class="cg-add" type="button" onclick="document.getElementById('cgFileInput').click()">＋ 添加到当前时段</button>
+      <button class="cg-add" type="button" onclick="document.getElementById('cgFileInput').click()" data-ui="＋ 添加到当前时段">＋ 添加到当前时段</button>
       <input type="file" id="cgFileInput" accept="image/png,image/jpeg,image/webp" onchange="handleCGUpload(this)" hidden>
       <div class="cg-delete-bar" id="cgDeleteBar">
-        <span id="cgDeleteText">删除这张自定义 CG？</span>
-        <div class="cg-delete-actions"><button type="button" onclick="cancelCGDelete()">取消</button><button class="danger" type="button" onclick="confirmCGDelete()">删除</button></div>
+        <span id="cgDeleteText" data-ui="删除这张自定义 CG？">删除这张自定义 CG？</span>
+        <div class="cg-delete-actions"><button type="button" onclick="cancelCGDelete()" data-ui="取消">取消</button><button class="danger" type="button" onclick="confirmCGDelete()" data-ui="删除">删除</button></div>
       </div>
     </div>
   </div>
@@ -807,8 +811,8 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
 <div class="apt-wrap" id="aptWrap" data-scene-state="pending">
   <img class="cbi-home-scene" data-cbi-scene="home" width="1672" height="941" alt="Boss 家：左上卧室、左下卫生间，右侧客厅与厨房" draggable="false" decoding="async">
   <canvas class="cbi-home-canvas" id="cbiHomeCanvas" width="1672" height="941" aria-hidden="true" hidden></canvas>
-  <button class="cbi-home-activity-target" id="cbiHomeActivityTarget" type="button" onclick="onCbiHomeActivityTap(event)" aria-label="查看 Jane 的居家状态" hidden></button>
-  <button class="cbi-location-trigger cbi-home-trigger cbi-scene-switch" type="button" onclick="toggleCbiLocation(event)" aria-label="当前在家，切换到办公室" title="切换到办公室">Home ⇄</button>
+  <button class="cbi-home-activity-target" id="cbiHomeActivityTarget" type="button" onclick="onCbiHomeActivityTap(event)" aria-label="查看 Jane 的居家状态" hidden data-ui-aria-label="查看 Jane 的居家状态"></button>
+  <button class="cbi-location-trigger cbi-home-trigger cbi-scene-switch" type="button" onclick="toggleCbiLocation(event)" aria-label="当前在家，切换到办公室" title="切换到办公室" data-ui-aria-label="当前在家，切换到办公室" data-ui-title="切换到办公室">Home ⇄</button>
   <!-- TOP BRANCH STACK: new rooms added here overlap instead of expanding the map -->
   <div class="branch-stack branch-top has-active-room" data-branch="top">
   <div class="room-box room-neal branch-room is-stack-front" id="roomNeal" data-room-id="neal" data-character-id="neal">
@@ -818,7 +822,7 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
       <div class="furniture neal-table"></div><div class="furniture neal-easel"></div>
       <div class="furniture neal-piano"></div><div class="furniture neal-shelf"></div>
       <div class="furniture neal-wine"></div>
-      <button class="wardrobe-btn" type="button" onclick="openWardrobe('neal',event)" aria-label="打开 Neal 的衣柜" title="衣柜"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a2 2 0 0 0-2 2c0 .74.4 1.39 1 1.73V8l-7 6h16l-7-6V6.73A2 2 0 0 0 12 3z"/><path d="M4 14v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg></button>
+      <button class="wardrobe-btn" type="button" onclick="openWardrobe('neal',event)" aria-label="打开 Neal 的衣柜" title="衣柜" data-ui-aria-label="打开 Neal 的衣柜" data-ui-title="衣柜"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a2 2 0 0 0-2 2c0 .74.4 1.39 1 1.73V8l-7 6h16l-7-6V6.73A2 2 0 0 0 12 3z"/><path d="M4 14v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg></button>
     </div>
     <div class="room-away-status" id="away-neal" onclick="onAwayTap('neal',event)"><div class="room-away-label"><span class="away-title" id="away-title-neal"></span><span class="away-eta" id="away-eta-neal"></span></div></div>
     <div class="char-sprite" id="char-neal" onclick="onCharacterSpriteTap(event)">
@@ -840,20 +844,20 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
         <div class="furniture jane-blanket"></div>
         <div class="furniture cbi-home-only cbi-bedroom-window"></div>
         <div class="furniture cbi-home-only cbi-bedroom-bed"></div>
-        <button class="cbi-sleep-status-target cbi-sleep-bedroom-sofa" type="button" data-cbi-sleep-place="bedroom_sofa" onclick="onCbiSleepPlaceTap('bedroom_sofa',event)" aria-label="查看卧室沙发上的 Jane 睡眠状态" hidden></button>
-        <button class="cbi-sleep-status-target cbi-sleep-bedroom-bed" type="button" data-cbi-sleep-place="bedroom_bed" onclick="onCbiSleepPlaceTap('bedroom_bed',event)" aria-label="查看卧室床上的 Jane 睡眠状态" hidden></button>
-        <button class="furniture cbi-home-only cbi-guest-shelf cbi-closet-target" type="button" onclick="openCbiStorage('closet',event)" aria-label="查看家里的衣柜" title="衣柜"></button><div class="furniture cbi-home-only cbi-guest-teacup"></div><div class="furniture cbi-home-only cbi-guest-teapot"></div>
+        <button class="cbi-sleep-status-target cbi-sleep-bedroom-sofa" type="button" data-cbi-sleep-place="bedroom_sofa" onclick="onCbiSleepPlaceTap('bedroom_sofa',event)" aria-label="查看卧室沙发上的 Jane 睡眠状态" hidden data-ui-aria-label="查看卧室沙发上的 Jane 睡眠状态"></button>
+        <button class="cbi-sleep-status-target cbi-sleep-bedroom-bed" type="button" data-cbi-sleep-place="bedroom_bed" onclick="onCbiSleepPlaceTap('bedroom_bed',event)" aria-label="查看卧室床上的 Jane 睡眠状态" hidden data-ui-aria-label="查看卧室床上的 Jane 睡眠状态"></button>
+        <button class="furniture cbi-home-only cbi-guest-shelf cbi-closet-target" type="button" onclick="openCbiStorage('closet',event)" aria-label="查看家里的衣柜" title="衣柜" data-ui-aria-label="查看家里的衣柜" data-ui-title="衣柜"></button><div class="furniture cbi-home-only cbi-guest-teacup"></div><div class="furniture cbi-home-only cbi-guest-teapot"></div>
         <div class="furniture cbi-home-only cbi-guest-bossbox1"></div><div class="furniture cbi-home-only cbi-guest-bossbox2"></div>
         <div class="furniture cbi-home-only cbi-guest-bossjacket"></div><div class="furniture cbi-home-only cbi-guest-rug"></div>
         <div class="furniture cbi-home-only cbi-guest-bosshoe"></div><div class="furniture cbi-home-only cbi-guest-janebook"></div>
-        <button class="wardrobe-btn" type="button" onclick="openWardrobe('jane',event)" aria-label="打开 Jane 的衣柜" title="衣柜"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a2 2 0 0 0-2 2c0 .74.4 1.39 1 1.73V8l-7 6h16l-7-6V6.73A2 2 0 0 0 12 3z"/><path d="M4 14v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg></button>
+        <button class="wardrobe-btn" type="button" onclick="openWardrobe('jane',event)" aria-label="打开 Jane 的衣柜" title="衣柜" data-ui-aria-label="打开 Jane 的衣柜" data-ui-title="衣柜"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a2 2 0 0 0-2 2c0 .74.4 1.39 1 1.73V8l-7 6h16l-7-6V6.73A2 2 0 0 0 12 3z"/><path d="M4 14v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg></button>
       </div>
       <div class="room-away-status" id="away-jane" onclick="onAwayTap('jane',event)"><div class="room-away-label"><span class="away-title" id="away-title-jane"></span><span class="away-eta" id="away-eta-jane"></span></div></div>
       <div class="char-sprite" id="char-jane" onclick="onCharacterSpriteTap(event)">
         <img src="assets/characters/jane/jane-default.png?v=20260802-clean1" alt="Jane" crossorigin="anonymous">
       </div>
       <div class="speech-bubble" id="bubble-jane"><span class="bubble-status bubble-status-jane" id="status-jane"></span><span id="msg-jane"></span></div>
-      <button class="conn-btn conn-on-jane-top on" id="cNealJane" onclick="toggleMod('nealjane')"><span class="conn-dot" id="dNealJane" style="background:#5B9AB5"></span> <span id="lNealJane">连接</span></button>
+      <button class="conn-btn conn-on-jane-top on" id="cNealJane" onclick="toggleMod('nealjane')"><span class="conn-dot" id="dNealJane" style="background:#5B9AB5"></span> <span id="lNealJane" data-ui="连接">连接</span></button>
     </div>
     </div>
     <!-- Natumi -->
@@ -867,7 +871,7 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
         <div class="furniture cbi-home-only natumi-living-table"></div>
         <div class="furniture cbi-home-only natumi-tv-console"></div><div class="furniture cbi-home-only natumi-tv"></div>
         <div class="furniture cbi-home-only natumi-media-shelf"></div>
-        <button class="cbi-sleep-status-target cbi-sleep-living-sofa" type="button" data-cbi-sleep-place="living_sofa_bed" onclick="onCbiSleepPlaceTap('living_sofa_bed',event)" aria-label="查看客厅沙发床上的 Jane 睡眠状态" hidden></button>
+        <button class="cbi-sleep-status-target cbi-sleep-living-sofa" type="button" data-cbi-sleep-place="living_sofa_bed" onclick="onCbiSleepPlaceTap('living_sofa_bed',event)" aria-label="查看客厅沙发床上的 Jane 睡眠状态" hidden data-ui-aria-label="查看客厅沙发床上的 Jane 睡眠状态"></button>
         <div class="furniture cbi-home-only natumi-homedesk"></div><div class="furniture cbi-home-only natumi-homescreen"></div>
         <div class="furniture cbi-home-only natumi-laundry"></div><div class="furniture cbi-home-only natumi-sneaker1"></div>
         <div class="furniture cbi-home-only natumi-sneaker2"></div><div class="furniture cbi-home-only natumi-guitar"></div>
@@ -876,11 +880,11 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
         <div class="furniture cbi-home-only natumi-poster"></div><div class="furniture cbi-home-only natumi-towel"></div>
       </div>
       <!-- Neal↔Natumi: top center -->
-      <button class="conn-btn conn-on-natumi-top branch-connector on" id="cNeal" data-branch-target="top" onclick="toggleMod('neal')"><span class="conn-dot" id="dNeal" style="background:#6B8AFF"></span> <span id="lNeal">连接</span></button>
+      <button class="conn-btn conn-on-natumi-top branch-connector on" id="cNeal" data-branch-target="top" onclick="toggleMod('neal')"><span class="conn-dot" id="dNeal" style="background:#6B8AFF"></span> <span id="lNeal" data-ui="连接">连接</span></button>
       <!-- Jane↔Natumi: left center -->
-      <button class="conn-btn conn-on-natumi-left branch-connector on" id="cJane" data-branch-target="left" onclick="toggleMod('jane')"><span class="conn-dot" id="dJane" style="background:#5BA66B"></span> <span id="lJane">连接</span></button>
+      <button class="conn-btn conn-on-natumi-left branch-connector on" id="cJane" data-branch-target="left" onclick="toggleMod('jane')"><span class="conn-dot" id="dJane" style="background:#5BA66B"></span> <span id="lJane" data-ui="连接">连接</span></button>
       <!-- Third branch: bottom on portrait/mobile, right on wide desktop -->
-      <button class="conn-btn conn-on-natumi-adaptive branch-connector" id="cWill" data-branch-target="adaptive" onclick="toggleMod('will')"><span class="conn-dot" id="dWill" style="background:#ddd"></span> <span id="lWill">连接</span></button>
+      <button class="conn-btn conn-on-natumi-adaptive branch-connector" id="cWill" data-branch-target="adaptive" onclick="toggleMod('will')"><span class="conn-dot" id="dWill" style="background:#ddd"></span> <span id="lWill" data-ui="连接">连接</span></button>
     </div>
   </div>
 
@@ -895,8 +899,8 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
     </div>
     <div class="room-box cbi-kitchen-room" id="cbiKitchenRoom">
       <div class="room-inner">
-        <div class="room-label">厨房</div>
-        <a class="cbi-home-status-target" href="contact.html" aria-label="设置 Boss 状态" title="状态"></a>
+        <div class="room-label" data-ui="厨房">厨房</div>
+        <a class="cbi-home-status-target" href="contact.html" aria-label="设置 Boss 状态" title="状态" data-ui-aria-label="设置 Boss 状态" data-ui-title="状态"></a>
         <div class="furniture cbi-laundry-stack"></div>
         <div class="furniture cbi-kitchen-window"></div><div class="furniture cbi-kitchen-counter"></div>
         <div class="furniture cbi-kitchen-shelf"></div><div class="furniture cbi-kitchen-fridge"></div>
@@ -913,7 +917,7 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
       <div class="furniture will-table"></div><div class="furniture will-bowl"></div>
       <div class="furniture will-cushion"></div><div class="furniture will-snack"></div>
       <div class="furniture will-cup"></div>
-      <button class="wardrobe-btn" type="button" onclick="openWardrobe('will',event)" aria-label="打开 Will 的衣柜" title="衣柜"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a2 2 0 0 0-2 2c0 .74.4 1.39 1 1.73V8l-7 6h16l-7-6V6.73A2 2 0 0 0 12 3z"/><path d="M4 14v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg></button>
+      <button class="wardrobe-btn" type="button" onclick="openWardrobe('will',event)" aria-label="打开 Will 的衣柜" title="衣柜" data-ui-aria-label="打开 Will 的衣柜" data-ui-title="衣柜"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a2 2 0 0 0-2 2c0 .74.4 1.39 1 1.73V8l-7 6h16l-7-6V6.73A2 2 0 0 0 12 3z"/><path d="M4 14v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg></button>
     </div>
     <div class="room-away-status" id="away-will" onclick="onAwayTap('will',event)"><div class="room-away-label"><span class="away-title" id="away-title-will"></span><span class="away-eta" id="away-eta-will"></span></div></div>
     <div class="char-placeholder" id="char-will" onclick="onCharacterSpriteTap(event)">
@@ -925,21 +929,21 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
 </div>
 
 <div class="cbi-office-wrap" id="cbiOfficeWrap" data-scene-state="pending" hidden>
-  <button class="cbi-location-trigger cbi-scene-switch" type="button" onclick="toggleCbiLocation(event)" aria-label="当前在办公室，切换到家" title="切换到家">Office ⇄</button>
+  <button class="cbi-location-trigger cbi-scene-switch" type="button" onclick="toggleCbiLocation(event)" aria-label="当前在办公室，切换到家" title="切换到家" data-ui-aria-label="当前在办公室，切换到家" data-ui-title="切换到家">Office ⇄</button>
   <div class="room-box cbi-office" id="roomCbiOffice" data-room-id="cbi" data-character-id="jane">
     <div class="room-inner">
       <img class="cbi-office-scene" data-cbi-scene="office" width="1672" height="940" alt="" aria-hidden="true" decoding="async">
       <canvas class="cbi-office-canvas" id="cbiOfficeCanvas" width="1672" height="941" aria-hidden="true" hidden></canvas>
       <div class="cbi-office-window"></div>
-      <a class="cbi-desk cbi-desk-boss cbi-status-target" href="contact.html" aria-label="设置 Boss 状态"></a><div class="cbi-boss-mug"></div>
-      <button class="cbi-snack-basket cbi-status-target" type="button" onclick="openCbiStorage('snacks',event)" aria-label="查看办公桌旁的零食筐" title="零食筐"></button>
-      <button class="cbi-desk cbi-desk-rigsby cbi-status-target" type="button" data-cbi-desk="rigsby" onclick="onCbiDeskTap('rigsby',event)" aria-label="Rigsby 的工位"></button>
+      <a class="cbi-desk cbi-desk-boss cbi-status-target" href="contact.html" aria-label="设置 Boss 状态" data-ui-aria-label="设置 Boss 状态"></a><div class="cbi-boss-mug"></div>
+      <button class="cbi-snack-basket cbi-status-target" type="button" onclick="openCbiStorage('snacks',event)" aria-label="查看办公桌旁的零食筐" title="零食筐" data-ui-aria-label="查看办公桌旁的零食筐" data-ui-title="零食筐"></button>
+      <button class="cbi-desk cbi-desk-rigsby cbi-status-target" type="button" data-cbi-desk="rigsby" onclick="onCbiDeskTap('rigsby',event)" aria-label="Rigsby 的工位" data-ui-aria-label="Rigsby 的工位"></button>
       <div class="cbi-desk-divider cbi-desk-divider-upper"></div>
-      <button class="cbi-desk cbi-desk-grace cbi-status-target" type="button" data-cbi-desk="vanpelt" onclick="onCbiDeskTap('vanpelt',event)" aria-label="Van Pelt 的工位"></button>
-      <button class="cbi-desk cbi-desk-lisbon cbi-status-target" type="button" data-cbi-desk="lisbon" onclick="onCbiDeskTap('lisbon',event)" aria-label="Lisbon 的工位"></button>
+      <button class="cbi-desk cbi-desk-grace cbi-status-target" type="button" data-cbi-desk="vanpelt" onclick="onCbiDeskTap('vanpelt',event)" aria-label="Van Pelt 的工位" data-ui-aria-label="Van Pelt 的工位"></button>
+      <button class="cbi-desk cbi-desk-lisbon cbi-status-target" type="button" data-cbi-desk="lisbon" onclick="onCbiDeskTap('lisbon',event)" aria-label="Lisbon 的工位" data-ui-aria-label="Lisbon 的工位"></button>
       <div class="cbi-desk-divider cbi-desk-divider-lower"></div>
-      <button class="cbi-desk cbi-desk-cho cbi-status-target" type="button" data-cbi-desk="cho" onclick="onCbiDeskTap('cho',event)" aria-label="Cho 的工位"></button>
-      <button class="cbi-sofa cbi-status-target" type="button" data-cbi-desk="jane" onclick="onCbiDeskTap('jane',event)" aria-label="Jane 的沙发"></button><div class="cbi-tea-table"></div>
+      <button class="cbi-desk cbi-desk-cho cbi-status-target" type="button" data-cbi-desk="cho" onclick="onCbiDeskTap('cho',event)" aria-label="Cho 的工位" data-ui-aria-label="Cho 的工位"></button>
+      <button class="cbi-sofa cbi-status-target" type="button" data-cbi-desk="jane" onclick="onCbiDeskTap('jane',event)" aria-label="Jane 的沙发" data-ui-aria-label="Jane 的沙发"></button><div class="cbi-tea-table"></div>
       <div class="cbi-pinboard"></div>
       <div class="cbi-filing cbi-filing-upper"></div><div class="cbi-filing cbi-filing-lower"></div>
       <div class="cbi-coffee"></div><div class="cbi-printer"></div>
@@ -969,9 +973,9 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
   </button>
 </div>
 
-<nav class="mobile-shortcuts-wrap" id="mobileShortcutsWrap" aria-label="快捷入口">
+<nav class="mobile-shortcuts-wrap" id="mobileShortcutsWrap" aria-label="快捷入口" data-ui-aria-label="快捷入口">
   <div class="mobile-shortcuts" id="mobileShortcuts"></div>
-  <button class="ds-add" type="button" onclick="openShortcutPicker()" aria-label="添加快捷入口"><span class="entry-icon">＋</span><span class="entry-label">添加</span></button>
+  <button class="ds-add" type="button" onclick="openShortcutPicker()" aria-label="添加快捷入口" data-ui-aria-label="添加快捷入口"><span class="entry-icon">＋</span><span class="entry-label" data-ui="添加">添加</span></button>
 </nav>
 
 <div class="wardrobe-overlay" id="wardrobeOverlay" onclick="closeWardrobe(event)">
@@ -979,8 +983,8 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
     <div class="wardrobe-header">
       <span class="wardrobe-title" id="wardrobeTitle"></span>
       <div class="wardrobe-hdr-right">
-        <button class="edit-toggle" id="editModeBtn" type="button" onclick="toggleEditMode()">管理</button>
-        <button class="wardrobe-close" type="button" onclick="closeWardrobe()" aria-label="关闭衣柜">✕</button>
+        <button class="edit-toggle" id="editModeBtn" type="button" onclick="toggleEditMode()" data-ui="管理">管理</button>
+        <button class="wardrobe-close" type="button" onclick="closeWardrobe()" aria-label="关闭衣柜" data-ui-aria-label="关闭衣柜">✕</button>
       </div>
     </div>
     <div class="wardrobe-tabs" id="wardrobeTabs"></div>
@@ -988,46 +992,47 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
       <div class="skin-grid" id="skinGrid"></div>
       <div class="skin-editor" id="skinEditor">
         <div class="skin-editor-hdr">
-          <button class="back-btn" type="button" onclick="closeEditor()" aria-label="返回衣装列表">←</button>
-          <span class="wardrobe-title" id="editorTitle">编辑衣装</span>
-          <button class="del-btn" id="editorDelBtn" type="button" onclick="deleteSkinEditor()">删除</button>
+          <button class="back-btn" type="button" onclick="closeEditor()" aria-label="返回衣装列表" data-ui-aria-label="返回衣装列表">←</button>
+          <span class="wardrobe-title" id="editorTitle" data-ui="编辑衣装">编辑衣装</span>
+          <button class="del-btn" id="editorDelBtn" type="button" onclick="deleteSkinEditor()" data-ui="删除">删除</button>
         </div>
         <div class="editor-img-area" id="editorImgArea" onclick="document.getElementById('editorFileInput').click()">
           <img id="editorPreviewImg" src="" alt="" style="display:none">
-          <div class="upload-hint" id="editorUploadHint">点击上传立绘
+          <div class="upload-hint" id="editorUploadHint" data-ui="点击上传立绘
+支持 PNG / JPG / WEBP">点击上传立绘
 支持 PNG / JPG / WEBP</div>
           <input type="file" id="editorFileInput" accept="image/png,image/jpeg,image/webp" onchange="handleImgUpload(this)" hidden>
         </div>
         <div class="editor-img-actions">
-          <button class="editor-remove-img" id="editorRemoveImg" type="button" onclick="removeEditorImage()">移除这张立绘</button>
+          <button class="editor-remove-img" id="editorRemoveImg" type="button" onclick="removeEditorImage()" data-ui="移除这张立绘">移除这张立绘</button>
         </div>
-        <span class="editor-label">名称</span>
-        <input class="editor-input" id="editorName" type="text" maxlength="40" placeholder="衣装名称">
-        <span class="editor-label">描述</span>
-        <input class="editor-input" id="editorDesc" type="text" maxlength="100" placeholder="简短描述">
+        <span class="editor-label" data-ui="名称">名称</span>
+        <input class="editor-input" id="editorName" type="text" maxlength="40" placeholder="衣装名称" data-ui-placeholder="衣装名称">
+        <span class="editor-label" data-ui="描述">描述</span>
+        <input class="editor-input" id="editorDesc" type="text" maxlength="100" placeholder="简短描述" data-ui-placeholder="简短描述">
         <div class="editor-row">
           <div>
-            <span class="editor-label">状态</span>
+            <span class="editor-label" data-ui="状态">状态</span>
             <select class="editor-select" id="editorStatus">
-              <option value="obtained">已获得</option>
-              <option value="locked">未解锁</option>
+              <option value="obtained" data-ui="已获得">已获得</option>
+              <option value="locked" data-ui="未解锁">未解锁</option>
             </select>
           </div>
           <div>
-            <span class="editor-label">主题色</span>
+            <span class="editor-label" data-ui="主题色">主题色</span>
             <div class="editor-color-wrap">
               <input class="editor-color" id="editorColor" type="color" value="#999999">
               <span class="editor-label" style="margin:0" id="editorColorHex">#999999</span>
             </div>
           </div>
         </div>
-        <span class="editor-label">系列</span>
-        <select class="editor-select" id="editorSeries"><option value="">未分类</option></select>
+        <span class="editor-label" data-ui="系列">系列</span>
+        <select class="editor-select" id="editorSeries"><option value="" data-ui="未分类">未分类</option></select>
         <div>
-          <span class="editor-label">来源</span>
-          <input class="editor-input" id="editorSource" type="text" maxlength="100" placeholder="例：饮食图鉴打卡奖励">
+          <span class="editor-label" data-ui="来源">来源</span>
+          <input class="editor-input" id="editorSource" type="text" maxlength="100" placeholder="例：饮食图鉴打卡奖励" data-ui-placeholder="例：饮食图鉴打卡奖励">
         </div>
-        <button class="editor-save" id="editorSaveBtn" type="button" onclick="saveEditor()">保存</button>
+        <button class="editor-save" id="editorSaveBtn" type="button" onclick="saveEditor()" data-ui="保存">保存</button>
       </div>
     </div>
     <div class="wardrobe-footer" id="wardrobeFooter"></div>
@@ -1040,13 +1045,13 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
 <div class="home-page" id="pageDaily">
 <div class="page-content">
 <div class="page-clock"><div class="time" id="clock2"></div><div class="date" id="date2"></div></div>
-<div class="page-title" onclick="toggleSection(this)">Dailies</div>
+<div class="page-title" onclick="toggleSection(this)" data-ui="Dailies">Dailies</div>
 <div class="section-collapse"><div class="entry-grid" data-section="daily">
   <a class="entry-card" href="ledger.html" data-world-module="ledger" data-entry-id="ledger"><div class="entry-icon">▦</div><div class="entry-label">LEDGER</div></a>
-  <a class="entry-card" href="wallet.html" data-world-module="wallet" data-entry-id="wallet"><div class="entry-icon">¥</div><div class="entry-label">记账（旧版）</div></a>
+  <a class="entry-card" href="wallet.html" data-world-module="wallet" data-entry-id="wallet"><div class="entry-icon">¥</div><div class="entry-label" data-ui="记账（旧版）">记账（旧版）</div></a>
   <a class="entry-card" href="diet.html" data-world-module="diet" data-entry-id="diet"><div class="entry-icon">🍽</div><div class="entry-label">DIET</div></a>
-  <a class="entry-card" href="meals.html" data-world-module="kitchen" data-entry-id="kitchen"><div class="entry-icon">🍽</div><div class="entry-label">饮食（旧版）</div></a>
-  <a class="entry-card draft"><div class="entry-icon">👔</div><div class="entry-label">穿搭</div></a>
+  <a class="entry-card" href="meals.html" data-world-module="kitchen" data-entry-id="kitchen"><div class="entry-icon">🍽</div><div class="entry-label" data-ui="饮食（旧版）">饮食（旧版）</div></a>
+  <a class="entry-card draft"><div class="entry-icon">👔</div><div class="entry-label" data-ui="穿搭">穿搭</div></a>
 </div>
 </div>
 </div>
@@ -1055,10 +1060,10 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
 <div class="home-page" id="pageEvents">
 <div class="page-content">
 <div class="page-clock"><div class="time" id="clock6"></div><div class="date" id="date6"></div></div>
-<div class="page-title" onclick="toggleSection(this)">Events</div>
+<div class="page-title" onclick="toggleSection(this)" data-ui="Events">Events</div>
 <div class="section-collapse"><div class="entry-grid" data-section="events">
-  <a class="entry-card" href="daily.html?tab=drop" data-world-module="daily" data-entry-id="daily-drop"><div class="entry-icon">📋</div><div class="entry-label">委托</div></a>
-  <a class="entry-card draft" href="artist.html"><div class="entry-icon">🎤</div><div class="entry-label">艺人</div></a>
+  <a class="entry-card" href="daily.html?tab=drop" data-world-module="daily" data-entry-id="daily-drop"><div class="entry-icon">📋</div><div class="entry-label" data-ui="委托">委托</div></a>
+  <a class="entry-card draft" href="artist.html"><div class="entry-icon">🎤</div><div class="entry-label" data-ui="艺人">艺人</div></a>
 </div>
 </div>
 </div>
@@ -1067,12 +1072,12 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
 <div class="home-page" id="pageCollect">
 <div class="page-content">
 <div class="page-clock"><div class="time" id="clock4"></div><div class="date" id="date4"></div></div>
-<div class="page-title" onclick="toggleSection(this)">Archive</div>
+<div class="page-title" onclick="toggleSection(this)" data-ui="Archive">Archive</div>
 <div class="section-collapse"><div class="entry-grid" data-section="collect">
-  <a class="entry-card" href="cinema.html"><div class="entry-icon">🎬</div><div class="entry-label">Cinema</div></a>
-  <a class="entry-card" href="reading.html"><div class="entry-icon">📚</div><div class="entry-label">Book</div></a>
-  <a class="entry-card" href="techo.html"><div class="entry-icon">✎</div><div class="entry-label">Techo</div></a>
-  <a class="entry-card" href="bjd.html"><div class="entry-icon">✦</div><div class="entry-label">Doll</div></a>
+  <a class="entry-card" href="cinema.html"><div class="entry-icon">🎬</div><div class="entry-label" data-ui="Cinema">Cinema</div></a>
+  <a class="entry-card" href="reading.html"><div class="entry-icon">📚</div><div class="entry-label" data-ui="Book">Book</div></a>
+  <a class="entry-card" href="techo.html"><div class="entry-icon">✎</div><div class="entry-label" data-ui="Techo">Techo</div></a>
+  <a class="entry-card" href="bjd.html"><div class="entry-icon">✦</div><div class="entry-label" data-ui="Doll">Doll</div></a>
   <a class="entry-card" href="kitchen.html" data-entry-id="food-archive"><div class="entry-icon">🎟</div><div class="entry-label">ACTIVITY</div></a>
 </div>
 </div>
@@ -1082,13 +1087,13 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
 <div class="home-page" id="pageRewards">
 <div class="page-content">
 <div class="page-clock"><div class="time" id="clock5"></div><div class="date" id="date5"></div></div>
-<div class="page-title" onclick="toggleSection(this)">Rewards</div>
+<div class="page-title" onclick="toggleSection(this)" data-ui="Rewards">Rewards</div>
 <div class="section-collapse"><div class="entry-grid" data-section="rewards">
-  <a class="entry-card" href="story.html" data-world-module="story" data-entry-id="story"><div class="entry-icon">📖</div><div class="entry-label">剧情</div></a>
-  <a class="entry-card" href="dungeon.html" data-world-module="dungeon" data-entry-id="dungeon"><div class="entry-icon">🗝</div><div class="entry-label">副本</div></a>
-  <a class="entry-card" href="gacha.html" data-world-module="gacha" data-entry-id="gacha"><div class="entry-icon">💎</div><div class="entry-label">抽卡</div></a>
-  <a class="entry-card" href="dynamics.html" data-entry-id="dynamics"><div class="entry-icon">◌</div><div class="entry-label">动态</div></a>
-  <a class="entry-card" href="backup.html"><div class="entry-icon">☁</div><div class="entry-label">备份</div></a>
+  <a class="entry-card" href="story.html" data-world-module="story" data-entry-id="story"><div class="entry-icon">📖</div><div class="entry-label" data-ui="剧情">剧情</div></a>
+  <a class="entry-card" href="dungeon.html" data-world-module="dungeon" data-entry-id="dungeon"><div class="entry-icon">🗝</div><div class="entry-label" data-ui="副本">副本</div></a>
+  <a class="entry-card" href="gacha.html" data-world-module="gacha" data-entry-id="gacha"><div class="entry-icon">💎</div><div class="entry-label" data-ui="抽卡">抽卡</div></a>
+  <a class="entry-card" href="dynamics.html" data-entry-id="dynamics"><div class="entry-icon">◌</div><div class="entry-label" data-ui="动态">动态</div></a>
+  <a class="entry-card" href="backup.html"><div class="entry-icon">☁</div><div class="entry-label" data-ui="备份">备份</div></a>
 </div>
 </div>
 </div>
@@ -1107,14 +1112,14 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
 
 <div class="desktop-shortcuts-wrap" id="desktopShortcutsWrap">
 <div class="desktop-shortcuts" id="desktopShortcuts"></div>
-<div class="ds-add" onclick="openShortcutPicker()"><div class="entry-icon">＋</div><div class="entry-label">添加</div></div>
+<div class="ds-add" onclick="openShortcutPicker()"><div class="entry-icon">＋</div><div class="entry-label" data-ui="添加">添加</div></div>
 </div>
 
 <div class="desktop-blocks">
-<div class="db-block" onclick="openCategoryPopup('daily')"><div class="db-icon">📋</div><div class="db-label">Dailies</div></div>
-<div class="db-block" onclick="openCategoryPopup('events')"><div class="db-icon">🎫</div><div class="db-label">Events</div></div>
-<div class="db-block" onclick="openCategoryPopup('collect')"><div class="db-icon">📂</div><div class="db-label">Archive</div></div>
-<div class="db-block" onclick="openCategoryPopup('rewards')"><div class="db-icon">⭐</div><div class="db-label">Rewards</div></div>
+<div class="db-block" onclick="openCategoryPopup('daily')"><div class="db-icon">📋</div><div class="db-label" data-ui="Dailies">Dailies</div></div>
+<div class="db-block" onclick="openCategoryPopup('events')"><div class="db-icon">🎫</div><div class="db-label" data-ui="Events">Events</div></div>
+<div class="db-block" onclick="openCategoryPopup('collect')"><div class="db-icon">📂</div><div class="db-label" data-ui="Archive">Archive</div></div>
+<div class="db-block" onclick="openCategoryPopup('rewards')"><div class="db-icon">⭐</div><div class="db-label" data-ui="Rewards">Rewards</div></div>
 <div class="db-block db-file-card db-world-files" id="worldFilesBlock" onclick="openWorldFiles()"><div class="db-icon">🗃️</div><div class="db-world-copy"><div class="db-label">WORLD FILES</div><div class="db-world-sub" id="worldFilesSubtitle" data-world-files-subtitle>JANE'S WORLDLINES</div></div></div>
 <div class="db-block db-file-card db-suitcase" id="suitcaseBlock" onclick="openSuitcase()"><div class="db-icon" aria-hidden="true"><svg class="suitcase-mark" viewBox="0 0 36 36" focusable="false"><path class="suitcase-mark-handle" d="M13 10V7.7c0-1.2 1-2.2 2.2-2.2h5.6c1.2 0 2.2 1 2.2 2.2V10"/><rect class="suitcase-mark-body" x="5.5" y="9.5" width="25" height="22" rx="4"/><path class="suitcase-mark-trim" d="M9 10h3v21H9zM24 10h3v21h-3z"/><rect class="suitcase-mark-label" x="14" y="16.3" width="8" height="5.4" rx="1.3"/><path class="suitcase-mark-label-line" d="M15.8 19h4.4"/><circle class="suitcase-mark-wheel" cx="10.5" cy="33" r="1.4"/><circle class="suitcase-mark-wheel" cx="25.5" cy="33" r="1.4"/></svg></div><div class="db-world-copy"><div class="db-label">SUITCASE</div><div class="db-world-sub">FROM OSAKA</div></div></div>
 </div>
@@ -1131,14 +1136,14 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
 
 <div class="shortcut-picker-overlay" id="shortcutPickerOverlay" onclick="closeShortcutPicker(event)">
 <div class="shortcut-picker" onclick="event.stopPropagation()">
-<div class="shortcut-picker-title">添加快捷入口</div>
+<div class="shortcut-picker-title" data-ui="添加快捷入口">添加快捷入口</div>
 <div id="shortcutPickerContent"></div>
 </div>
 </div>
 
 <div class="cbi-storage-overlay" id="cbiStorageOverlay" role="dialog" aria-modal="true" aria-labelledby="cbiStorageTitle" onclick="closeCbiStorage(event)">
   <div class="cbi-storage-panel" onclick="event.stopPropagation()">
-    <div class="cbi-storage-header"><h2 class="cbi-storage-title" id="cbiStorageTitle"></h2><button class="cbi-storage-close" id="cbiStorageClose" type="button" onclick="closeCbiStorage()" aria-label="关闭">×</button></div>
+    <div class="cbi-storage-header"><h2 class="cbi-storage-title" id="cbiStorageTitle"></h2><button class="cbi-storage-close" id="cbiStorageClose" type="button" onclick="closeCbiStorage()" aria-label="关闭" data-ui-aria-label="关闭">×</button></div>
     <div class="cbi-storage-count" id="cbiStorageCount"></div>
     <div class="cbi-storage-items" id="cbiStorageItems"></div>
     <div class="cbi-storage-empty" id="cbiStorageEmpty" hidden></div>
@@ -1147,19 +1152,19 @@ body[data-world-id="cbi"][data-world-location="home"] #char-jane img{display:blo
 
 <div class="world-switch-overlay" id="worldSwitchOverlay" onclick="closeWorldSwitcher(event)">
   <div class="world-switch-panel" onclick="event.stopPropagation()">
-    <div class="world-switch-title">World Select</div>
+    <div class="world-switch-title" data-ui="World Select">World Select</div>
     <div id="worldSwitchOptions"></div>
   </div>
 </div>
 
 <script src="world-context.js?v=20261019-diet-split1"></script>
 <script src="activity-migration.js?v=20261008-merge1"></script>
-<script src="cloud-sync.js?v=20261029-audit1"></script>
+<script src="cloud-sync.js?v=20261125-language1"></script>
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script src="character-runtime.js?v=20261105-late-sleep1"></script>
 <script src="cbi-weather.js?v=20260903-cbi-weather2"></script>
 <script src="cbi-office-scene.js?v=20261108-office-mainlight1"></script>
-<script src="cbi-state-lines.js?v=20261103-state1"></script>
+<script src="cbi-state-lines.js?v=20261125-language1"></script>
 <script src="cbi-home-scene.js?v=20261105-mainlight1"></script>
 <script src="cbi-scene-lighting.js?v=20261105-night19"></script>
 <script src="cbi-data.js?v=20261108-suitcase-periods1"></script>
@@ -1283,7 +1288,7 @@ function renderCbiHomePresence(){
     away.classList.remove('break-presence');
     var title=document.getElementById('away-title-jane');
     var eta=document.getElementById('away-eta-jane');
-    if(title)title.textContent=status&&status.location==='office'?'在 CBI 办公室':(status&&status.title)||'不在家';
+    if(title)(globalThis.AppLanguage ? AppLanguage.setText(title, status&&status.location==='office'?'在 CBI 办公室':(status&&status.title)||'不在家') : (title.textContent=status&&status.location==='office'?'在 CBI 办公室':(status&&status.title)||'不在家'));
     if(eta)eta.textContent=cbiPresenceEta(status);
   }
 }
@@ -1339,8 +1344,8 @@ function openCbiStorage(kind,event){
   if(kind!=='closet'&&kind!=='snacks')return;
   cbiStorageReturnFocus=document.activeElement;
   const items=cbiStorageItems(kind);
-  document.getElementById('cbiStorageTitle').textContent=kind==='closet'?'家里的衣柜':'零食筐';
-  document.getElementById('cbiStorageCount').textContent=items.length+' 件';
+  (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('cbiStorageTitle'), kind==='closet'?'家里的衣柜':'零食筐') : (document.getElementById('cbiStorageTitle').textContent=kind==='closet'?'家里的衣柜':'零食筐'));
+  (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('cbiStorageCount'), items.length+' 件') : (document.getElementById('cbiStorageCount').textContent=items.length+' 件'));
   const list=document.getElementById('cbiStorageItems');
   list.replaceChildren();
   items.forEach(function(item){
@@ -1354,7 +1359,7 @@ function openCbiStorage(kind,event){
     card.append(photo,copy);list.appendChild(card);
   });
   const empty=document.getElementById('cbiStorageEmpty');
-  empty.textContent=kind==='closet'?'衣柜还是空的':'零食筐还是空的';
+  (globalThis.AppLanguage ? AppLanguage.setText(empty, kind==='closet'?'衣柜还是空的':'零食筐还是空的') : (empty.textContent=kind==='closet'?'衣柜还是空的':'零食筐还是空的'));
   empty.hidden=items.length>0;
   document.getElementById('cbiStorageOverlay').classList.add('show');
   document.getElementById('cbiStorageClose').focus();
@@ -1389,13 +1394,13 @@ function onCbiStaffTap(charId,event){
   var messageEl=document.getElementById('msg-'+charId);
   var wrap=getActiveMapWrap();
   if(!pool.length||!bubble||!charEl||!statusEl||!messageEl||!wrap){
-    showTip(CBI_STAFF_NAMES[charId]+' · '+(assignment.mode==='office'?'办公室':'外勤'));
+    showTip((globalThis.AppLanguage?.ui(CBI_STAFF_NAMES[charId]+' · '+(assignment.mode==='office'?'办公室':'外勤')) ?? (CBI_STAFF_NAMES[charId]+' · '+(assignment.mode==='office'?'办公室':'外勤'))));
     return;
   }
   var line=window.CBIOfficeLines?.getLine?.(charId)||pickCbiLine(pool);
   if(bubble.parentElement!==wrap)wrap.appendChild(bubble);
-  statusEl.textContent=line.s||'';
-  messageEl.textContent=line.m||'';
+  statusEl.textContent=window.AppLanguage?.label(line.s)||line.s||'';
+  messageEl.textContent=window.AppLanguage?.speech(line.m)||line.m||'';
   positionBubbleAtCharacter(bubble,charEl,wrap);
   if(bubbleTimers[charId])clearTimeout(bubbleTimers[charId]);
   bubble.style.zIndex=++bubbleZCounter;
@@ -1460,7 +1465,7 @@ function applyMod(){
     if(!b)return;
     b.classList.toggle('on',modules[id]);
     d.style.background=modules[id]?MC[id]:'#ddd';
-    if(l)l.textContent='连接';
+    if(l)(globalThis.AppLanguage ? AppLanguage.setText(l, '连接') : (l.textContent='连接'));
   });
   // A disabled character must disappear even when currently visiting another room.
   ['neal','jane','will'].forEach(id=>{
@@ -1793,8 +1798,8 @@ function showBubble(id){
   const wrap=getActiveMapWrap();
   // move bubble to apt-wrap so it's never clipped by room boundaries
   if(bubble.parentElement!==wrap) wrap.appendChild(bubble);
-  document.getElementById('status-'+id).textContent=line.s;
-  document.getElementById('msg-'+id).textContent=line.m;
+  document.getElementById('status-'+id).textContent=window.AppLanguage?.label(line.s)||line.s;
+  document.getElementById('msg-'+id).textContent=window.AppLanguage?.speech(line.m)||line.m;
   positionBubbleAtCharacter(bubble,charEl,wrap);
   if(bubbleTimers[id])clearTimeout(bubbleTimers[id]);
   bubble.style.zIndex=++bubbleZCounter;
@@ -1817,8 +1822,8 @@ function showCbiHomeActivityBubble(){
   const wrap=getActiveMapWrap();
   if(!bubble||!target||target.hidden||!wrap)return false;
   if(bubble.parentElement!==wrap)wrap.appendChild(bubble);
-  document.getElementById('status-jane').textContent=line.s;
-  document.getElementById('msg-jane').textContent=line.m;
+  document.getElementById('status-jane').textContent=window.AppLanguage?.label(line.s)||line.s;
+  document.getElementById('msg-jane').textContent=window.AppLanguage?.speech(line.m)||line.m;
   positionBubbleAtCharacter(bubble,target,wrap);
   if(bubbleTimers.jane)clearTimeout(bubbleTimers.jane);
   bubble.style.zIndex=++bubbleZCounter;
@@ -1833,8 +1838,8 @@ function showCbiJaneSleepBubble(status){
   const wrap=getActiveMapWrap();
   if(!sleep||!sleep.sleeping||!charEl||!bubble||!wrap)return false;
   if(bubble.parentElement!==wrap)wrap.appendChild(bubble);
-  document.getElementById('status-jane').textContent=sleep.status||'';
-  document.getElementById('msg-jane').textContent=sleep.detail||'';
+  document.getElementById('status-jane').textContent=window.AppLanguage?.label(sleep.status)||sleep.status||'';
+  document.getElementById('msg-jane').textContent=window.AppLanguage?.speech(sleep.detail)||sleep.detail||'';
   const homeTarget=document.getElementById('cbiHomeActivityTarget');
   const sleepTarget=homeTarget&&!homeTarget.hidden?homeTarget:document.querySelector('[data-cbi-sleep-place="'+sleep.placeId+'"]');
   positionBubbleAtCharacter(bubble,sleepTarget&&!sleepTarget.hidden?sleepTarget:charEl,wrap);
@@ -1858,8 +1863,8 @@ function onCharTap(id,e){
       var bubble=document.getElementById('bubble-'+id);
       var wrap=getActiveMapWrap();
       if(bubble.parentElement!==wrap)wrap.appendChild(bubble);
-      document.getElementById('status-'+id).textContent=line.s||'';
-      document.getElementById('msg-'+id).textContent=line.m||'';
+      document.getElementById('status-'+id).textContent=window.AppLanguage?.label(line.s)||line.s||'';
+      document.getElementById('msg-'+id).textContent=window.AppLanguage?.speech(line.m)||line.m||'';
       var charEl=document.getElementById('char-'+id);
       positionBubbleAtCharacter(bubble,charEl,wrap);
       if(bubbleTimers[id])clearTimeout(bubbleTimers[id]);
@@ -1882,7 +1887,7 @@ function onAwayTap(id,e){
   var line=CharacterRuntime.getAppropriateLine(id);
   if(line)showTip(line.s+' · '+line.m);
 }
-function onRoomTap(e){if(!e.target.closest('.char-sprite')&&!e.target.closest('.char-placeholder')&&!e.target.closest('.room-away-status'))showTip('布置功能开发中…');}
+function onRoomTap(e){if(!e.target.closest('.char-sprite')&&!e.target.closest('.char-placeholder')&&!e.target.closest('.room-away-status'))showTip((globalThis.AppLanguage?.ui('布置功能开发中…') ?? ('布置功能开发中…')));}
 
 /* ═══ LINES ═══ */
 const DEFAULT_NEAL = {
@@ -2028,7 +2033,7 @@ function loadCGLibrary(contextId){
 function saveCGLibrary(library){
   const target=library.contextId||getCGContextId();
   try{writeCGContextJson(CG_LIBRARY_KEY,target,{version:1,slots:library.slots});return true;}
-  catch(e){showTip('保存失败，浏览器空间不足');return false;}
+  catch(e){showTip((globalThis.AppLanguage?.ui('保存失败，浏览器空间不足') ?? ('保存失败，浏览器空间不足')));return false;}
 }
 function getCGItems(slot,library){
   const activeLibrary=library||loadCGLibrary();
@@ -2141,7 +2146,7 @@ function renderCGLibrary(){
     tabs.appendChild(button);
   });
   const items=getCGItems(slot,library);
-  document.getElementById('cgLibrarySummary').textContent=slotMeta[slot].range+' · 库存 '+items.length+' 张 · 已选 '+slotState.selected.length+' 张（下个时段生效）';
+  (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('cgLibrarySummary'), slotMeta[slot].range+' · 库存 '+items.length+' 张 · 已选 '+slotState.selected.length+' 张（下个时段生效）') : (document.getElementById('cgLibrarySummary').textContent=slotMeta[slot].range+' · 库存 '+items.length+' 张 · 已选 '+slotState.selected.length+' 张（下个时段生效）'));
   const grid=document.getElementById('cgLibraryGrid');
   grid.replaceChildren();
   items.forEach(item=>{
@@ -2173,7 +2178,7 @@ function toggleCGCandidate(itemId){
   const library=loadCGLibrary(currentCGLibraryContextId),slotState=library.slots[currentCGLibrarySlot];
   const index=slotState.selected.indexOf(itemId);
   if(index>=0){
-    if(slotState.selected.length===1){showTip('这个时段至少保留一张候选');return;}
+    if(slotState.selected.length===1){showTip((globalThis.AppLanguage?.ui('这个时段至少保留一张候选') ?? ('这个时段至少保留一张候选')));return;}
     slotState.selected.splice(index,1);
   }else slotState.selected.push(itemId);
   if(saveCGLibrary(library))renderCGLibrary();
@@ -2182,7 +2187,7 @@ function requestCGDelete(itemId,event){
   if(event)event.stopPropagation();
   pendingCGDeleteId=itemId;
   const item=getCGItems(currentCGLibrarySlot,loadCGLibrary(currentCGLibraryContextId)).find(entry=>entry.id===itemId);
-  document.getElementById('cgDeleteText').textContent='删除“'+(item&&item.name||'这张 CG')+'”？';
+  (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('cgDeleteText'), '删除“'+(item&&item.name||'这张 CG')+'”？') : (document.getElementById('cgDeleteText').textContent='删除“'+(item&&item.name||'这张 CG')+'”？'));
   renderCGLibrary();
 }
 function cancelCGDelete(){pendingCGDeleteId='';renderCGLibrary();}
@@ -2207,7 +2212,7 @@ async function confirmCGDelete(){
     try{await CloudSync.deleteAsset(item.src);}catch(e){console.warn('Could not delete CG asset:',e);}
   }
   pendingCGDeleteId='';
-  showTip('已删除');
+  showTip((globalThis.AppLanguage?.ui('已删除') ?? ('已删除')));
   renderCGLibrary();
 }
 function readFileAsDataUrl(file){
@@ -2238,7 +2243,7 @@ async function handleCGUpload(input){
   const contextId=currentCGLibraryContextId||getCGContextId();
   const slot=currentCGLibrarySlot,id='custom_'+Date.now();
   try{
-    showTip('正在保存 CG…');
+    showTip((globalThis.AppLanguage?.ui('正在保存 CG…') ?? ('正在保存 CG…')));
     const dataUrl=await resizeCGFile(file);
     if(!window.CloudSync||typeof CloudSync.uploadDataUrl!=='function')throw new Error('Cloud upload unavailable');
     const contextFolder=contextId==='liminal'?'cg':'cg/'+contextId.replace(':','/');
@@ -2247,11 +2252,11 @@ async function handleCGUpload(input){
     library.slots[slot].custom.push({id,name:(file.name||'自定义 CG').replace(/\.[^.]+$/,''),src,tag:'',weight:1});
     library.slots[slot].selected.push(id);
     if(!saveCGLibrary(library)){await CloudSync.deleteAsset(src);return;}
-    showTip('已加入 '+getCGSlotMeta(contextId)[slot].label+' Scenes');
+    showTip((globalThis.AppLanguage?.ui('已加入 '+getCGSlotMeta(contextId)[slot].label+' Scenes') ?? ('已加入 '+getCGSlotMeta(contextId)[slot].label+' Scenes')));
     renderCGLibrary();
   }catch(e){
     console.error('CG upload failed:',e);
-    showTip('CG 上传失败，请联网后重试');
+    showTip((globalThis.AppLanguage?.ui('CG 上传失败，请联网后重试') ?? ('CG 上传失败，请联网后重试')));
   }
 }
 
@@ -2261,7 +2266,7 @@ function updateClock(){
   const now=new Date();
   document.getElementById('clock').textContent=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
   const days=['日','月','火','水','木','金','土'];
-  document.getElementById('date').textContent=(now.getMonth()+1)+'月'+now.getDate()+'日 '+days[now.getDay()]+'曜日';
+  (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('date'), (now.getMonth()+1)+'月'+now.getDate()+'日 '+days[now.getDay()]+'曜日') : (document.getElementById('date').textContent=(now.getMonth()+1)+'月'+now.getDate()+'日 '+days[now.getDay()]+'曜日'));
   if(window.CBIWeather)CBIWeather.tick(now);
   const nextCGPeriod=getCGDisplayPeriodKey(now);
   if(currentCGPeriodKey&&nextCGPeriod!==currentCGPeriodKey)initCG();
@@ -2338,7 +2343,7 @@ function saveWardrobeJson(key,value){
     localStorage.setItem(key,JSON.stringify(value));
     return true;
   }catch(e){
-    showTip('保存失败，浏览器空间不足');
+    showTip((globalThis.AppLanguage?.ui('保存失败，浏览器空间不足') ?? ('保存失败，浏览器空间不足')));
     return false;
   }
 }
@@ -2543,18 +2548,18 @@ function renderWardrobeTabs(charId){
   c.appendChild(add);
 }
 function addWardrobeTab(charId){
-  const n=prompt('新系列名称：');
+  const n=prompt((globalThis.AppLanguage?.ui('新系列名称：') ?? ('新系列名称：')));
   if(!n||!n.trim())return;
   const name=n.trim();
   const tabs=getCharTabs(charId);
-  if(tabs.includes(name)){showTip('系列已存在');return;}
+  if(tabs.includes(name)){showTip((globalThis.AppLanguage?.ui('系列已存在') ?? ('系列已存在')));return;}
   tabs.push(name);
   setCharTabs(charId,tabs);
   currentWardrobeTab=name;
   renderWardrobe(charId);
 }
 function showTabActions(charId,tabName){
-  const r=prompt('「'+tabName+'」\n输入新名称可重命名，输入 删除 可删除此系列：',tabName);
+  const r=prompt((globalThis.AppLanguage?.ui('「'+tabName+'」\n输入新名称可重命名，输入 删除 可删除此系列：') ?? ('「'+tabName+'」\n输入新名称可重命名，输入 删除 可删除此系列：')),tabName);
   if(r===null)return;
   if(r.trim()==='删除'){deleteWardrobeTab(charId,tabName);}
   else if(r.trim()&&r.trim()!==tabName){renameWardrobeTab(charId,tabName,r.trim());}
@@ -2563,7 +2568,7 @@ function renameWardrobeTab(charId,oldN,newN){
   const tabs=getCharTabs(charId);
   const i=tabs.indexOf(oldN);
   if(i<0)return;
-  if(tabs.includes(newN)){showTip('系列名已存在');return;}
+  if(tabs.includes(newN)){showTip((globalThis.AppLanguage?.ui('系列名已存在') ?? ('系列名已存在')));return;}
   tabs[i]=newN;
   setCharTabs(charId,tabs);
   const custom=loadCustomSkins();
@@ -2574,7 +2579,7 @@ function renameWardrobeTab(charId,oldN,newN){
   renderWardrobe(charId);
 }
 function deleteWardrobeTab(charId,tabName){
-  if(!confirm('删除系列「'+tabName+'」？衣装不会被删除，仅取消分类。'))return;
+  if(!confirm((globalThis.AppLanguage?.ui('删除系列「'+tabName+'」？衣装不会被删除，仅取消分类。') ?? ('删除系列「'+tabName+'」？衣装不会被删除，仅取消分类。'))))return;
   const tabs=getCharTabs(charId);
   const i=tabs.indexOf(tabName);
   if(i<0)return;
@@ -2590,7 +2595,7 @@ function deleteWardrobeTab(charId,tabName){
 function populateSeriesSelect(charId,currentVal){
   const sel=document.getElementById('editorSeries');
   const tabs=getCharTabs(charId);
-  sel.innerHTML='<option value="">未分类</option>';
+  sel.innerHTML='<option value="" data-ui="未分类">未分类</option>';
   tabs.forEach(name=>{
     const o=document.createElement('option');
     o.value=name;o.textContent=name;
@@ -2616,11 +2621,11 @@ function renderWardrobe(charId){
   const editButton=document.getElementById('editModeBtn');
   const body=document.querySelector('.wardrobe-body');
   const grid=document.getElementById('skinGrid');
-  title.textContent=CHAR_LABEL[charId]+' 的衣柜';
+  (globalThis.AppLanguage ? AppLanguage.setText(title, CHAR_LABEL[charId]+' 的衣柜') : (title.textContent=CHAR_LABEL[charId]+' 的衣柜'));
   title.style.color=charColor;
   editButton.style.setProperty('--cc',charColor);
   editButton.classList.toggle('active',editMode);
-  editButton.textContent=editMode?'完成':'管理';
+  (globalThis.AppLanguage ? AppLanguage.setText(editButton, editMode?'完成':'管理') : (editButton.textContent=editMode?'完成':'管理'));
   body.classList.toggle('is-edit-mode',editMode);
   document.getElementById('skinEditor').classList.remove('show');
   grid.style.display='';
@@ -2711,7 +2716,7 @@ function toggleSelect(charId,skinId){
   const index=cfg.selected.indexOf(skinId);
   if(index>=0){
     if(cfg.selected.length===1){
-      showTip('至少保留一套每日候选');
+      showTip((globalThis.AppLanguage?.ui('至少保留一套每日候选') ?? ('至少保留一套每日候选')));
       return;
     }
     cfg.selected.splice(index,1);
@@ -2738,12 +2743,12 @@ function setEditorImagePreview(src,canRemove){
   if(src){
     image.setAttribute('src',src);
     image.style.display='';
-    hint.textContent='点击更换立绘';
+    (globalThis.AppLanguage ? AppLanguage.setText(hint, '点击更换立绘') : (hint.textContent='点击更换立绘'));
     hint.classList.add('has-img');
   }else{
     image.removeAttribute('src');
     image.style.display='none';
-    hint.textContent='点击上传立绘\n支持 PNG / JPG / WEBP';
+    (globalThis.AppLanguage ? AppLanguage.setText(hint, '点击上传立绘\n支持 PNG / JPG / WEBP') : (hint.textContent='点击上传立绘\n支持 PNG / JPG / WEBP'));
     hint.classList.remove('has-img');
   }
   removeButton.classList.toggle('show',!!canRemove);
@@ -2759,7 +2764,7 @@ function openEditor(charId,skinId){
   const isNew=!skinId;
   const skin=isNew?null:getMergedSkins(charId).find(item=>item.id===skinId);
 
-  document.getElementById('editorTitle').textContent=isNew?'添加新衣装':'编辑 · '+(skin?skin.name:'');
+  (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('editorTitle'), isNew?'添加新衣装':'编辑 · '+(skin?skin.name:'')) : (document.getElementById('editorTitle').textContent=isNew?'添加新衣装':'编辑 · '+(skin?skin.name:'')));
   document.getElementById('editorTitle').style.color=charColor;
   const deleteButton=document.getElementById('editorDelBtn');
   deleteButton.classList.toggle('can-del',!isNew&&!isBuiltinSkin(charId,skinId));
@@ -2802,7 +2807,7 @@ function handleImgUpload(input){
   const file=input.files&&input.files[0];
   if(!file)return;
   if(!/^image\/(png|jpeg|webp)$/i.test(file.type)){
-    showTip('请选择 PNG、JPG 或 WEBP 图片');
+    showTip((globalThis.AppLanguage?.ui('请选择 PNG、JPG 或 WEBP 图片') ?? ('请选择 PNG、JPG 或 WEBP 图片')));
     input.value='';
     return;
   }
@@ -2819,7 +2824,7 @@ function handleImgUpload(input){
       canvas.height=height;
       const context=canvas.getContext('2d');
       if(!context){
-        showTip('图片处理失败');
+        showTip((globalThis.AppLanguage?.ui('图片处理失败') ?? ('图片处理失败')));
         return;
       }
       context.drawImage(image,0,0,width,height);
@@ -2829,10 +2834,10 @@ function handleImgUpload(input){
       editorImageRemoved=false;
       setEditorImagePreview(data,true);
     };
-    image.onerror=()=>showTip('无法读取这张图片');
+    image.onerror=()=>showTip((globalThis.AppLanguage?.ui('无法读取这张图片') ?? ('无法读取这张图片')));
     image.src=event.target.result;
   };
-  reader.onerror=()=>showTip('无法读取这张图片');
+  reader.onerror=()=>showTip((globalThis.AppLanguage?.ui('无法读取这张图片') ?? ('无法读取这张图片')));
   reader.readAsDataURL(file);
   input.value='';
 }
@@ -2854,7 +2859,7 @@ async function safelyDeleteWardrobeAsset(value){
 async function saveEditor(){
   const name=document.getElementById('editorName').value.trim();
   if(!name){
-    showTip('请输入衣装名称');
+    showTip((globalThis.AppLanguage?.ui('请输入衣装名称') ?? ('请输入衣装名称')));
     return;
   }
   const saveButton=document.getElementById('editorSaveBtn');
@@ -2868,13 +2873,13 @@ async function saveEditor(){
 
   try{
     if(savedSrc.startsWith('data:')){
-      showTip('正在保存立绘…');
+      showTip((globalThis.AppLanguage?.ui('正在保存立绘…') ?? ('正在保存立绘…')));
       savedSrc=await uploadWardrobeImage(savedSrc,editorCharId,skinId);
       uploadedNewAsset=true;
     }
   }catch(e){
     console.error('Wardrobe image upload failed:',e);
-    showTip('立绘上传失败，请联网后重试');
+    showTip((globalThis.AppLanguage?.ui('立绘上传失败，请联网后重试') ?? ('立绘上传失败，请联网后重试')));
     saveButton.disabled=false;
     return;
   }
@@ -2922,7 +2927,7 @@ async function saveEditor(){
     if(worldCharacterEnabled(editorCharId))requestAnimationFrame(()=>placeChar(editorCharId));
   }
   if(editorOriginalSrc&&editorOriginalSrc!==savedSrc)await safelyDeleteWardrobeAsset(editorOriginalSrc);
-  showTip('已保存');
+  showTip((globalThis.AppLanguage?.ui('已保存') ?? ('已保存')));
   saveButton.disabled=false;
   closeEditor();
 }
@@ -2930,10 +2935,10 @@ async function saveEditor(){
 async function deleteSkinEditor(){
   if(!editorSkinId)return;
   if(isBuiltinSkin(editorCharId,editorSkinId)){
-    showTip('预设衣装格可修改，不能删除');
+    showTip((globalThis.AppLanguage?.ui('预设衣装格可修改，不能删除') ?? ('预设衣装格可修改，不能删除')));
     return;
   }
-  if(!confirm('确定删除这个衣装格？'))return;
+  if(!confirm((globalThis.AppLanguage?.ui('确定删除这个衣装格？') ?? ('确定删除这个衣装格？'))))return;
   const custom=loadCustomSkins();
   const list=Array.isArray(custom[editorCharId])?custom[editorCharId]:[];
   const removed=list.find(item=>item.id===editorSkinId);
@@ -2949,7 +2954,7 @@ async function deleteSkinEditor(){
     if(worldCharacterEnabled(editorCharId))requestAnimationFrame(()=>placeChar(editorCharId));
   }
   if(removed&&removed.src)await safelyDeleteWardrobeAsset(removed.src);
-  showTip('已删除');
+  showTip((globalThis.AppLanguage?.ui('已删除') ?? ('已删除')));
   closeEditor();
 }
 
@@ -3011,7 +3016,7 @@ function renderCharacterRuntime(){
       awayEl.classList.add('show','break-presence');
       var breakTitle=document.getElementById('away-title-'+id);
       var breakEta=document.getElementById('away-eta-'+id);
-      if(breakTitle)breakTitle.textContent='现实中 · '+(status.worldActivity?status.worldActivity.title:'活动中')+'（暂时回来）';
+      if(breakTitle)(globalThis.AppLanguage ? AppLanguage.setText(breakTitle, '现实中 · '+(status.worldActivity?status.worldActivity.title:'活动中')+'（暂时回来）') : (breakTitle.textContent='现实中 · '+(status.worldActivity?status.worldActivity.title:'活动中')+'（暂时回来）'));
       if(breakEta)breakEta.textContent=estimateEta(status.worldActivity?status.worldActivity.endAt:0);
       applyRuntimeCharacterArt(id,status);
       placeChar(id);
@@ -3258,7 +3263,7 @@ function rememberHomeModuleReturn(href,page){
     var list=document.getElementById('memoList');
     if(!list)return;
     var items=load();
-    if(!items.length){list.innerHTML='<div class="memo-empty">暂无待处理事项</div>';return;}
+    if(!items.length){list.innerHTML='<div class="memo-empty" data-ui="暂无待处理事项">暂无待处理事项</div>';return;}
     var h='';
     items.forEach(function(it,i){
       var cls=it.done?'memo-item done':'memo-item';
@@ -3304,7 +3309,7 @@ function rememberHomeModuleReturn(href,page){
 function isDesktopLayout(){return window.innerWidth>=700;}
 function isMemoTitle(titleEl){return !!titleEl.closest('#pageMemo');}
 function canCollapseSection(titleEl){return isDesktopLayout()||isMemoTitle(titleEl);}
-function collapseStorageKey(titleEl){return 'collapse_'+titleEl.textContent.trim();}
+function collapseStorageKey(titleEl){return 'collapse_'+(titleEl.getAttribute('data-ui')||titleEl.textContent).trim();}
 function defaultCollapsed(titleEl){return isMemoTitle(titleEl);}
 
 function setSectionCollapsed(titleEl,isCollapsed,shouldSave){
@@ -4195,7 +4200,7 @@ function toggleCbiLocation(event) {
 
 function selectCbiLocation(locationId,options) {
   var previous=WorldContext.getActiveLocationId('cbi');
-  if(!WorldContext.setActiveLocationId('cbi',locationId)){showTip('地点切换失败');return;}
+  if(!WorldContext.setActiveLocationId('cbi',locationId)){showTip((globalThis.AppLanguage?.ui('地点切换失败') ?? ('地点切换失败')));return;}
   if(previous!==locationId)resetCbiLocationViewState();
   applyWorldView();
   if(!options||!options.silent)showTip(WorldContext.getLocation(locationId,'cbi').label);
@@ -4295,7 +4300,7 @@ function closeWorldSwitcher(event){
 
 function selectWorld(worldId){
   var previous=getActiveWorldId();
-  if(!WorldContext.setActiveWorldId(worldId)){showTip('世界切换失败');return;}
+  if(!WorldContext.setActiveWorldId(worldId)){showTip((globalThis.AppLanguage?.ui('世界切换失败') ?? ('世界切换失败')));return;}
   closeWorldSwitcher(null);
   if(previous!==worldId){
     charPlacementState={version:CHAR_PLACEMENT_VERSION,periodKey:'',worldId:worldId,placements:{}};

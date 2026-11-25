@@ -1,12 +1,16 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
+<script src="app-language-data.js?v=20261125-language1"></script>
+<script src="app-language.js?v=20261125-language1"></script>
+<script type="module" src="dialogue-translations.mjs?v=20261125-language1"></script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Organize">
-<title>整理 · 断舍离</title>
+<title data-ui="整理 · 断舍离">整理 · 断舍离</title>
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="favicon.ico">
 <style>
@@ -53,39 +57,39 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 </head>
 <body>
 <div class="top-bar">
-<button class="back-btn" onclick="location.href='index.html'">← 返回</button>
-<h1>整理 · 断舍离</h1>
+<button class="back-btn" onclick="location.href='index.html'" data-ui="← 返回">← 返回</button>
+<h1 data-ui="整理 · 断舍离">整理 · 断舍离</h1>
 <div style="width:40px"></div>
 </div>
 <div class="content">
 <div class="tabs">
-<button class="tab active" data-tab="pending" onclick="switchTab('pending')">待整理</button>
-<button class="tab" data-tab="listed" onclick="switchTab('listed')">出品中</button>
-<button class="tab" data-tab="done" onclick="switchTab('done')">已完成</button>
+<button class="tab active" data-tab="pending" onclick="switchTab('pending')" data-ui="待整理">待整理</button>
+<button class="tab" data-tab="listed" onclick="switchTab('listed')" data-ui="出品中">出品中</button>
+<button class="tab" data-tab="done" onclick="switchTab('done')" data-ui="已完成">已完成</button>
 </div>
 <div class="item-list" id="itemList"></div>
-<button class="add-btn" type="button" onclick="openAdd()">＋ 添加物品</button>
+<button class="add-btn" type="button" onclick="openAdd()" data-ui="＋ 添加物品">＋ 添加物品</button>
 </div>
 
 <div class="modal-overlay" id="modal" onclick="closeModal(event)">
 <div class="modal" onclick="event.stopPropagation()">
-<h2 id="modalTitle">添加物品</h2>
-<div class="field"><label>物品名称</label><input id="fName" type="text" maxlength="60"></div>
-<div class="field"><label>分类</label><input id="fCategory" type="text" maxlength="30" placeholder="衣物 / 书籍 / 数码 …"></div>
-<div class="field"><label>处理方式</label>
-<select id="fMethod"><option value="sell">出售</option><option value="give">赠送</option><option value="recycle">回收</option><option value="discard">丢弃</option></select></div>
-<div class="field"><label>状态</label>
-<select id="fStatus"><option value="pending">待整理</option><option value="listed">出品中</option><option value="done">已完成</option></select></div>
-<div class="field"><label>备注</label><textarea id="fNote" maxlength="200"></textarea></div>
+<h2 id="modalTitle" data-ui="添加物品">添加物品</h2>
+<div class="field"><label data-ui="物品名称">物品名称</label><input id="fName" type="text" maxlength="60"></div>
+<div class="field"><label data-ui="分类">分类</label><input id="fCategory" type="text" maxlength="30" placeholder="衣物 / 书籍 / 数码 …" data-ui-placeholder="衣物 / 书籍 / 数码 …"></div>
+<div class="field"><label data-ui="处理方式">处理方式</label>
+<select id="fMethod"><option value="sell" data-ui="出售">出售</option><option value="give" data-ui="赠送">赠送</option><option value="recycle" data-ui="回收">回收</option><option value="discard" data-ui="丢弃">丢弃</option></select></div>
+<div class="field"><label data-ui="状态">状态</label>
+<select id="fStatus"><option value="pending" data-ui="待整理">待整理</option><option value="listed" data-ui="出品中">出品中</option><option value="done" data-ui="已完成">已完成</option></select></div>
+<div class="field"><label data-ui="备注">备注</label><textarea id="fNote" maxlength="200"></textarea></div>
 <div class="modal-actions">
-<button class="btn-cancel" type="button" onclick="closeModal()">取消</button>
-<button class="btn-primary" type="button" onclick="saveItem()">保存</button>
+<button class="btn-cancel" type="button" onclick="closeModal()" data-ui="取消">取消</button>
+<button class="btn-primary" type="button" onclick="saveItem()" data-ui="保存">保存</button>
 </div>
-<button class="del-link" id="delBtn" type="button" style="display:none" onclick="delItem()">删除</button>
+<button class="del-link" id="delBtn" type="button" style="display:none" onclick="delItem()" data-ui="删除">删除</button>
 </div>
 </div>
 
-<script src="cloud-sync.js?v=20261029-audit1"></script>
+<script src="cloud-sync.js?v=20261125-language1"></script>
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting');
@@ -104,13 +108,13 @@ function appDayKey(value){
 function resetDeleteConfirm(){
   deleteArmed=false;
   var btn=document.getElementById('delBtn');
-  if(btn){btn.textContent='删除';btn.classList.remove('confirming');}
+  if(btn){(globalThis.AppLanguage ? AppLanguage.setText(btn, '删除') : (btn.textContent='删除'));btn.classList.remove('confirming');}
 }
 function requireDeleteConfirm(){
   if(deleteArmed)return true;
   deleteArmed=true;
   var btn=document.getElementById('delBtn');
-  if(btn){btn.textContent='再次点击确认删除';btn.classList.add('confirming');}
+  if(btn){(globalThis.AppLanguage ? AppLanguage.setText(btn, '再次点击确认删除') : (btn.textContent='再次点击确认删除'));btn.classList.add('confirming');}
   return false;
 }
 function switchTab(t){
@@ -121,7 +125,7 @@ function switchTab(t){
 function render(){
   var list=document.getElementById('itemList');
   var data=load().filter(function(it){return it.status===currentTab;});
-  if(!data.length){list.innerHTML='<div class="empty">暂无物品</div>';return;}
+  if(!data.length){list.innerHTML='<div class="empty" data-ui="暂无物品">暂无物品</div>';return;}
   var statusMap={pending:['待整理','status-pending'],listed:['出品中','status-listed'],done:['已完成','status-done']};
   var methodMap={sell:'出售',give:'赠送',recycle:'回收',discard:'丢弃'};
   var h='';
@@ -136,7 +140,7 @@ function render(){
 function openAdd(){
   editIdx=-1;
   resetDeleteConfirm();
-  document.getElementById('modalTitle').textContent='添加物品';
+  (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('modalTitle'), '添加物品') : (document.getElementById('modalTitle').textContent='添加物品'));
   document.getElementById('fName').value='';
   document.getElementById('fCategory').value='';
   document.getElementById('fMethod').value='sell';
@@ -148,7 +152,7 @@ function openAdd(){
 function openEdit(i){
   var data=load();if(!data[i])return;editIdx=i;
   resetDeleteConfirm();
-  document.getElementById('modalTitle').textContent='编辑';
+  (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('modalTitle'), '编辑') : (document.getElementById('modalTitle').textContent='编辑'));
   document.getElementById('fName').value=data[i].name||'';
   document.getElementById('fCategory').value=data[i].category||'';
   document.getElementById('fMethod').value=data[i].method||'sell';
@@ -160,7 +164,7 @@ function openEdit(i){
 function closeModal(e){if(e&&e.target!==e.currentTarget)return;document.getElementById('modal').classList.remove('show');resetDeleteConfirm();}
 function saveItem(){
   var name=document.getElementById('fName').value.trim();
-  if(!name){alert('请输入物品名称');return;}
+  if(!name){alert((globalThis.AppLanguage?.ui('请输入物品名称') ?? ('请输入物品名称')));return;}
   var data=load();
   var entry={name:name,category:document.getElementById('fCategory').value.trim(),method:document.getElementById('fMethod').value,status:document.getElementById('fStatus').value,note:document.getElementById('fNote').value.trim()};
   if(editIdx>=0&&data[editIdx]){Object.assign(data[editIdx],entry);}

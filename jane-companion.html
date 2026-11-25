@@ -1,20 +1,24 @@
 <!doctype html>
-<html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="zh"><head>
+<script src="app-language-data.js?v=20261125-language1"></script>
+<script src="app-language.js?v=20261125-language1"></script>
+<script type="module" src="dialogue-translations.mjs?v=20261125-language1"></script>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self'; img-src 'self' data:; connect-src 'self' https://lbxjshaiffklmalcxiif.supabase.co https://cdn.jsdelivr.net; base-uri 'none'; form-action 'none'">
 <title>Jane Companion</title><link rel="stylesheet" href="jane-companion.css?v=20261110-enter-send1">
 </head><body>
-<main id="companion" aria-label="Jane 桌面小伴侣">
+<main id="companion" aria-label="Jane 桌面小伴侣" data-ui-aria-label="Jane 桌面小伴侣">
   <img id="artwork" alt="Jane" draggable="false">
   <div id="dock"><div id="caption" role="status" aria-live="polite"></div><button id="mailButton" type="button" hidden>留言<span id="mailUnread" hidden></span></button></div>
-  <section id="speech" hidden aria-label="Jane 的状态与台词"><button id="closeSpeech" type="button" aria-label="收起台词">×</button><div id="speechState"></div><p id="speechLine" aria-live="polite"></p></section>
-  <section id="conversation" hidden aria-label="和 Jane 的留言">
-    <header><div><strong>Jane</strong><span id="mailState"></span></div><button id="closeMail" type="button" aria-label="收起留言">×</button></header>
+  <section id="speech" hidden aria-label="Jane 的状态与台词" data-ui-aria-label="Jane 的状态与台词"><button id="closeSpeech" type="button" aria-label="收起台词" data-ui-aria-label="收起台词">×</button><div id="speechState"></div><p id="speechLine" aria-live="polite"></p></section>
+  <section id="conversation" hidden aria-label="和 Jane 的留言" data-ui-aria-label="和 Jane 的留言">
+    <header><div><strong>Jane</strong><span id="mailState"></span></div><button id="closeMail" type="button" aria-label="收起留言" data-ui-aria-label="收起留言">×</button></header>
     <div id="mailHistory" role="log" aria-live="polite"></div>
     <p id="mailNotice" role="status"></p>
-    <form id="mailForm"><textarea id="mailText" rows="2" maxlength="2000" placeholder="给他留句话…" aria-label="给 Jane 的留言" enterkeyhint="send" aria-description="回车发送，Shift＋回车换行。"></textarea><button id="sendMail" type="submit">发送</button></form>
+    <form id="mailForm"><textarea id="mailText" rows="2" maxlength="2000" placeholder="给他留句话…" aria-label="给 Jane 的留言" enterkeyhint="send" aria-description="回车发送，Shift＋回车换行。" data-ui-placeholder="给他留句话…" data-ui-aria-label="给 Jane 的留言"></textarea><button id="sendMail" type="submit" data-ui="发送">发送</button></form>
   </section>
-  <section id="setup" hidden><p id="setupMessage"></p><button id="connect" type="button">登录同步</button></section>
+  <section id="setup" hidden><p id="setupMessage"></p><button id="connect" type="button" data-ui="登录同步">登录同步</button></section>
 </main>
 <script src="character-runtime.js?v=20261105-late-sleep1"></script>
-<script type="module" src="jane-companion.js?v=20261119-reply-pace1"></script>
+<script type="module" src="jane-companion.js?v=20261125-language1"></script>
 </body></html>

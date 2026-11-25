@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
+<script src="app-language-data.js?v=20261125-language1"></script>
+<script src="app-language.js?v=20261125-language1"></script>
+<script type="module" src="dialogue-translations.mjs?v=20261125-language1"></script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -31,7 +35,7 @@ body{min-height:100vh;min-height:100dvh;padding-bottom:74px;background:#fafafa;c
 </head>
 <body>
 <header class="top-bar">
-  <a class="top-link" href="index.html">Home</a>
+  <a class="top-link" href="index.html" data-ui="Home">Home</a>
   <h1>CONTACT</h1>
   <button class="top-action" id="editChats" type="button" hidden>EDIT</button>
 </header>
@@ -49,25 +53,25 @@ body{min-height:100vh;min-height:100dvh;padding-bottom:74px;background:#fafafa;c
 
 <main class="view" id="chatView" hidden>
   <div class="chat-intro">
-    <div class="chat-intro-title">ChatGPT 会话</div>
-    <div class="chat-intro-copy">角色设定与对话保存在各自的窗口中。</div>
+    <div class="chat-intro-title" data-ui="ChatGPT 会话">ChatGPT 会话</div>
+    <div class="chat-intro-copy" data-ui="角色设定与对话保存在各自的窗口中。">角色设定与对话保存在各自的窗口中。</div>
   </div>
   <div class="section-label"><span>CONVERSATIONS</span><span class="section-count">2</span></div>
   <div class="chat-list" id="chatList"></div>
-  <div class="chat-note">点击后将离开 C-NC，并在 ChatGPT App 或浏览器中打开对应会话。</div>
-  <div class="chat-note"><a href="claude.html" style="color:#a68b59;text-decoration:none">Claude 连接试验 ↗</a></div>
+  <div class="chat-note" data-ui="点击后将离开 C-NC，并在 ChatGPT App 或浏览器中打开对应会话。">点击后将离开 C-NC，并在 ChatGPT App 或浏览器中打开对应会话。</div>
+  <div class="chat-note"><a href="claude.html" style="color:#a68b59;text-decoration:none" data-ui="Claude 连接试验 ↗">Claude 连接试验 ↗</a></div>
 </main>
 
 <nav class="bottom-tabs" aria-label="Contact pages">
-  <button class="bottom-tab active" type="button" data-tab="status"><span>STATUS</span></button>
-  <button class="bottom-tab" type="button" data-tab="chat"><span>CHAT</span></button>
+  <button class="bottom-tab active" type="button" data-tab="status"><span data-ui="STATUS">STATUS</span></button>
+  <button class="bottom-tab" type="button" data-tab="chat"><span data-ui="CHAT">CHAT</span></button>
 </nav>
 
 <div class="sheet-overlay" id="statusSheet" role="dialog" aria-modal="true" aria-labelledby="statusSheetTitle">
   <div class="sheet" onclick="event.stopPropagation()">
-    <div class="sheet-head"><span class="sheet-title" id="statusSheetTitle">STATUS</span><button class="sheet-close" type="button" data-close="statusSheet">×</button></div>
+    <div class="sheet-head"><span class="sheet-title" id="statusSheetTitle" data-ui="STATUS">STATUS</span><button class="sheet-close" type="button" data-close="statusSheet">×</button></div>
     <div class="field"><input id="statusInput" maxlength="240" autocomplete="off"></div>
-    <div class="sheet-actions"><button class="sheet-btn danger" id="clearStatus" type="button">清除</button><button class="sheet-btn" type="button" data-close="statusSheet">取消</button><button class="sheet-btn primary" id="saveStatus" type="button">保存</button></div>
+    <div class="sheet-actions"><button class="sheet-btn danger" id="clearStatus" type="button" data-ui="清除">清除</button><button class="sheet-btn" type="button" data-close="statusSheet" data-ui="取消">取消</button><button class="sheet-btn primary" id="saveStatus" type="button" data-ui="保存">保存</button></div>
   </div>
 </div>
 
@@ -76,23 +80,23 @@ body{min-height:100vh;min-height:100dvh;padding-bottom:74px;background:#fafafa;c
     <div class="sheet-head"><span class="sheet-title" id="historySheetTitle">HISTORY</span><button class="sheet-close" type="button" data-close="historySheet">×</button></div>
     <div class="field"><input id="historyInput" maxlength="240" autocomplete="off"></div>
     <div class="field"><input id="historyAt" type="datetime-local"></div>
-    <div class="sheet-actions"><button class="sheet-btn danger" id="deleteHistory" type="button">删除</button><button class="sheet-btn" type="button" data-close="historySheet">取消</button><button class="sheet-btn primary" id="saveHistory" type="button">保存</button></div>
+    <div class="sheet-actions"><button class="sheet-btn danger" id="deleteHistory" type="button" data-ui="删除">删除</button><button class="sheet-btn" type="button" data-close="historySheet" data-ui="取消">取消</button><button class="sheet-btn primary" id="saveHistory" type="button" data-ui="保存">保存</button></div>
   </div>
 </div>
 
 <div class="sheet-overlay" id="chatSheet" role="dialog" aria-modal="true" aria-labelledby="chatSheetTitle">
   <div class="sheet" onclick="event.stopPropagation()">
     <div class="sheet-head"><span class="sheet-title" id="chatSheetTitle">CHAT LINKS</span><button class="sheet-close" type="button" data-close="chatSheet">×</button></div>
-    <div class="field"><label for="teamChatLink">世界C群聊</label><input id="teamChatLink" type="url" inputmode="url" autocomplete="off" placeholder="https://chatgpt.com/c/…"></div>
-    <div class="field"><label for="janeChatLink">Jane 私聊</label><input id="janeChatLink" type="url" inputmode="url" autocomplete="off" placeholder="https://chatgpt.com/c/…"></div>
-    <div class="field-help">请粘贴会话窗口本身的 /c/ 地址；/share/ 是共享快照，无法继续原对话。</div>
-    <div class="field-error" id="chatLinkError" hidden>请检查会话地址。</div>
-    <div class="sheet-actions"><button class="sheet-btn" type="button" data-close="chatSheet">取消</button><button class="sheet-btn primary" id="saveChatLinks" type="button">保存</button></div>
+    <div class="field"><label for="teamChatLink" data-ui="世界C群聊">世界C群聊</label><input id="teamChatLink" type="url" inputmode="url" autocomplete="off" placeholder="https://chatgpt.com/c/…"></div>
+    <div class="field"><label for="janeChatLink" data-ui="Jane 私聊">Jane 私聊</label><input id="janeChatLink" type="url" inputmode="url" autocomplete="off" placeholder="https://chatgpt.com/c/…"></div>
+    <div class="field-help" data-ui="请粘贴会话窗口本身的 /c/ 地址；/share/ 是共享快照，无法继续原对话。">请粘贴会话窗口本身的 /c/ 地址；/share/ 是共享快照，无法继续原对话。</div>
+    <div class="field-error" id="chatLinkError" hidden data-ui="请检查会话地址。">请检查会话地址。</div>
+    <div class="sheet-actions"><button class="sheet-btn" type="button" data-close="chatSheet" data-ui="取消">取消</button><button class="sheet-btn primary" id="saveChatLinks" type="button" data-ui="保存">保存</button></div>
   </div>
 </div>
 
 <script src="world-context.js?v=20260926-chatlinks1"></script>
-<script src="cloud-sync.js?v=20261029-audit1"></script>
+<script src="cloud-sync.js?v=20261125-language1"></script>
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script src="character-runtime.js?v=20261105-late-sleep1"></script>
 <script src="cbi-contact.js?v=20260926-chatlinks1"></script>
@@ -163,7 +167,7 @@ body{min-height:100vh;min-height:100dvh;padding-bottom:74px;background:#fafafa;c
     var links=CBIContact.load().chatLinks;
     el('chatList').innerHTML=CHAT_CONFIG.map(function(chat){
       var url=links[chat.id];
-      var copy='<span class="row-main"><span class="chat-name">'+PEOPLE[chat.id].name+'</span><span class="chat-preview">'+(url?chat.preview:'尚未设置链接 · 点此填写')+'</span></span>';
+      var copy='<span class="row-main"><span class="chat-name">'+(window.AppLanguage?.ui(PEOPLE[chat.id].name)||PEOPLE[chat.id].name)+'</span><span class="chat-preview">'+(url?(window.AppLanguage?.ui(chat.preview)||chat.preview):(window.AppLanguage?.ui('尚未设置链接 · 点此填写')||'尚未设置链接 · 点此填写'))+'</span></span>';
       var side='<span class="chat-side"><span class="chat-state">'+(url?'OPEN':'SET')+'</span><span class="row-arrow">›</span></span>';
       if(url)return '<a class="chat-row" href="'+escapeHtml(url)+'" target="_blank" rel="noopener noreferrer">'+avatarHtml(chat.id)+copy+side+'</a>';
       return '<button class="chat-row unset" type="button" data-chat-setup="'+chat.id+'">'+avatarHtml(chat.id)+copy+side+'</button>';

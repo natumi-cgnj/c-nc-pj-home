@@ -37,10 +37,10 @@
     'home_character_runtime', 'home_character_action_packs', 'shared_diary_db',
     'omniverse_world_context', 'cbi_db', 'cbi_contact_db', 'jane_world_files_v1',
     'memo_db', 'study_db', 'organize_db', 'artist_db', 'music_db', 'reading_db',
-    'schedule_packs', 'schedule_user_events'
+    'schedule_packs', 'schedule_user_events', 'omn_terminal_language_v1'
   ];
   const PAGE_KEYS = {
-    'index.html': ['habit_db', 'wallet_db', 'memo_db', 'home_modules', 'home_lines', 'home_skins', 'home_skin_custom', 'home_wardrobe_tabs', 'home_skin_daily', 'home_cg_library', 'home_cg_period', 'shortcut-order', 'home_custom_shortcuts', 'home_character_runtime', 'home_character_action_packs', 'shared_diary_db', 'schedule_packs', 'schedule_user_events', 'omniverse_world_context', 'cbi_db', 'jane_world_files_v1'],
+    'index.html': ['omn_terminal_language_v1', 'habit_db', 'wallet_db', 'memo_db', 'home_modules', 'home_lines', 'home_skins', 'home_skin_custom', 'home_wardrobe_tabs', 'home_skin_daily', 'home_cg_library', 'home_cg_period', 'shortcut-order', 'home_custom_shortcuts', 'home_character_runtime', 'home_character_action_packs', 'shared_diary_db', 'schedule_packs', 'schedule_user_events', 'omniverse_world_context', 'cbi_db', 'jane_world_files_v1'],
     'schedule.html': ['schedule_packs', 'schedule_user_events', 'home_character_runtime', 'home_character_action_packs', 'omniverse_world_context', 'cbi_db'],
     'daily.html': ['daily_db', 'daily_presets', 'gacha_st', 'bean_st', 'habit_db', 'cbi_db', 'omniverse_world_context'],
     'gacha.html': ['gacha_st'],
@@ -97,7 +97,7 @@
 
   window.CloudSync = {
     whenReady: () => readyPromise,
-    invokeFunction: (name, body) => readyPromise.then(() => supabase.functions.invoke(name, { body })),
+    invokeFunction: (name, body) => readyPromise.then(() => supabase.functions.invoke(name, { body: { ...body, language: window.AppLanguage?.dialogue || 'zh' } })),
     syncNow: () => readyPromise.then(() => syncAllNow()),
     syncKey: key => readyPromise.then(() => syncKeyNow(key)),
     createSnapshot: reason => readyPromise.then(() => createFullSnapshot(reason || 'manual')),
@@ -1114,8 +1114,8 @@
       const choices = Object.fromEntries(keys.map(key => [key, 'cloud']));
       const overlay = document.createElement('div');
       overlay.className = 'liminal-cloud-overlay';
-      const rows = keys.map(key => `<div class="liminal-cloud-conflict-row" data-key="${key}"><span class="liminal-cloud-conflict-name">${stateLabel(key)}</span><span class="liminal-cloud-choice"><button class="active" data-value="cloud">云端</button><button data-value="local">这台设备</button></span></div>`).join('');
-      overlay.innerHTML = `<div class="liminal-cloud-dialog"><h2>分别选择要保留的存档</h2><p>每一项都可以单独选择。日常通常选手机上传的“云端”，BJD 和手账可以选整理它们的“这台设备”。</p><div class="liminal-cloud-conflicts">${rows}</div><div class="liminal-cloud-actions"><button class="liminal-cloud-primary">确认这些选择</button></div></div>`;
+      const rows = keys.map(key => `<div class="liminal-cloud-conflict-row" data-key="${key}"><span class="liminal-cloud-conflict-name">${stateLabel(key)}</span><span class="liminal-cloud-choice"><button class="active" data-value="cloud" data-ui="云端">云端</button><button data-value="local" data-ui="这台设备">这台设备</button></span></div>`).join('');
+      overlay.innerHTML = `<div class="liminal-cloud-dialog"><h2 data-ui="分别选择要保留的存档">分别选择要保留的存档</h2><p data-ui="每一项都可以单独选择。日常通常选手机上传的“云端”，BJD 和手账可以选整理它们的“这台设备”。">每一项都可以单独选择。日常通常选手机上传的“云端”，BJD 和手账可以选整理它们的“这台设备”。</p><div class="liminal-cloud-conflicts">${rows}</div><div class="liminal-cloud-actions"><button class="liminal-cloud-primary" data-ui="确认这些选择">确认这些选择</button></div></div>`;
       overlay.querySelectorAll('.liminal-cloud-conflict-row').forEach(row => {
         row.querySelectorAll('button').forEach(button => {
           button.onclick = () => {

@@ -2,11 +2,11 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 
-const daily = fs.readFileSync('daily.html', 'utf8');
-const goals = fs.readFileSync('habit.html', 'utf8');
-const wallet = fs.readFileSync('wallet.html', 'utf8');
-const cbiWork = fs.readFileSync('cbi-work.js', 'utf8');
-const sharedCss = fs.readFileSync('task-modules.css', 'utf8');
+const daily = require('./helpers/localized-source.cjs').readFileSync('daily.html', 'utf8');
+const goals = require('./helpers/localized-source.cjs').readFileSync('habit.html', 'utf8');
+const wallet = require('./helpers/localized-source.cjs').readFileSync('wallet.html', 'utf8');
+const cbiWork = require('./helpers/localized-source.cjs').readFileSync('cbi-work.js', 'utf8');
+const sharedCss = require('./helpers/localized-source.cjs').readFileSync('task-modules.css', 'utf8');
 
 test('task pages share the wallet-era visual shell', () => {
   for (const page of [daily, goals]) {
@@ -20,7 +20,7 @@ test('task pages share the wallet-era visual shell', () => {
 });
 
 test('CBI actions keep their mechanics while using the lighter shared visual language', () => {
-  assert.match(daily, /cbi-work\.js\?v=20260916-task-tabs1/);
+  assert.match(daily, /cbi-work\.js\?v=20261125-language1/);
   assert.match(cbiWork, /Wallet-era visual sync/);
   assert.match(cbiWork, /\.cbi-case-file,.cbi-case-file\.planned,.cbi-case-file\.closed/);
   assert.match(cbiWork, /\.cbi-commission-card:after\{display:none\}/);

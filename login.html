@@ -1,11 +1,15 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
+<script src="app-language-data.js?v=20261125-language1"></script>
+<script src="app-language.js?v=20261125-language1"></script>
+<script type="module" src="dialogue-translations.mjs?v=20261125-language1"></script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Liminal Space">
-<title>登录 · Liminal Space</title>
+<title data-ui="登录 · Liminal Space">登录 · Liminal Space</title>
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="apple-touch-icon.png">
 <style>
@@ -24,13 +28,13 @@ button{width:100%;margin-top:20px;border:0;border-radius:10px;padding:13px;backg
 <main class="card">
   <div class="mark"><span class="dot b"></span><span class="dot g"></span><span class="dot y"></span></div>
   <h1>Liminal Space</h1>
-  <div class="sub">夹缝空间 · 云端登录</div>
+  <div class="sub" data-ui="夹缝空间 · 云端登录">夹缝空间 · 云端登录</div>
   <form id="loginForm">
-    <label for="email">邮箱</label>
+    <label for="email" data-ui="邮箱">邮箱</label>
     <input id="email" name="email" type="email" autocomplete="username" required>
-    <label for="password">密码</label>
+    <label for="password" data-ui="密码">密码</label>
     <input id="password" name="password" type="password" autocomplete="current-password" required>
-    <button id="loginBtn" type="submit">进入夹缝空间</button>
+    <button id="loginBtn" type="submit" data-ui="进入夹缝空间">进入夹缝空间</button>
   </form>
   <div class="msg" id="message"></div>
   <div class="hint">登录一次后会保持登录状态。<br>电脑与手机使用同一账号，即可读取同一份存档。</div>
@@ -55,16 +59,16 @@ if(session)location.replace(nextPage());
 
 form.addEventListener('submit',async event=>{
   event.preventDefault();
-  button.disabled=true;button.textContent='正在登录…';message.textContent='';
+  button.disabled=true;(globalThis.AppLanguage ? AppLanguage.setText(button, '正在登录…') : (button.textContent='正在登录…'));message.textContent='';
   const email=document.getElementById('email').value.trim();
   const password=document.getElementById('password').value;
   const {error}=await supabase.auth.signInWithPassword({email,password});
   if(error){
-    message.textContent=error.message==='Invalid login credentials'?'邮箱或密码不正确':`登录失败：${error.message}`;
-    button.disabled=false;button.textContent='进入夹缝空间';
+    (globalThis.AppLanguage ? AppLanguage.setText(message, error.message==='Invalid login credentials'?'邮箱或密码不正确':`登录失败：${error.message}`) : (message.textContent=error.message==='Invalid login credentials'?'邮箱或密码不正确':`登录失败：${error.message}`));
+    button.disabled=false;(globalThis.AppLanguage ? AppLanguage.setText(button, '进入夹缝空间') : (button.textContent='进入夹缝空间'));
     return;
   }
-  button.textContent='已登录，正在进入…';
+  (globalThis.AppLanguage ? AppLanguage.setText(button, '已登录，正在进入…') : (button.textContent='已登录，正在进入…'));
   location.replace(nextPage());
 });
 </script>

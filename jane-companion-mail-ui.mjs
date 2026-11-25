@@ -27,13 +27,13 @@ export function createMailboxUI({ client, owner, storage, context, ready, enable
       else if (row.status !== 'completed') {
         const text = row.status === 'failed' ? '这次没收到回复。' : row.status === 'running' ? '等他回信…' : model.waiting === 'away' ? '他还在外勤，留言先放在这里。' : model.waiting === 'resting' ? '留言先放在这里，等他方便时再回。' : '已留下，等他回信。';
         const item = bubble('留言', text, row.created_at, true);
-        if (row.status === 'failed' && row.user_text) { const retry = document.createElement('button'); retry.type = 'button'; retry.textContent = '重新发送'; retry.onclick = () => send(row.user_text); item.append(retry); }
+        if (row.status === 'failed' && row.user_text) { const retry = document.createElement('button'); retry.type = 'button'; (globalThis.AppLanguage ? AppLanguage.setText(retry, '重新发送') : (retry.textContent = '重新发送')); retry.onclick = () => send(row.user_text); item.append(retry); }
         nodes.push(item);
       }
     }
-    if (!nodes.length) { const empty = document.createElement('p'); empty.className = 'mail-empty'; empty.textContent = '想说什么，就留在这里。'; nodes.push(empty); }
+    if (!nodes.length) { const empty = document.createElement('p'); empty.className = 'mail-empty'; (globalThis.AppLanguage ? AppLanguage.setText(empty, '想说什么，就留在这里。') : (empty.textContent = '想说什么，就留在这里。')); nodes.push(empty); }
     history.replaceChildren(...nodes); history.scrollTop = atBottom ? history.scrollHeight : oldScroll;
-    notice.textContent = model.error ? errorText(model.error) : !model.configured ? '请在原程序的 Claude 连接页完成连接，留言会先保留。' : !ready() ? '当前离线，已发送的留言会保留。' : '';
+    (globalThis.AppLanguage ? AppLanguage.setText(notice, model.error ? errorText(model.error) : !model.configured ? '请在原程序的 Claude 连接页完成连接，留言会先保留。' : !ready() ? '当前离线，已发送的留言会保留。' : '') : (notice.textContent = model.error ? errorText(model.error) : !model.configured ? '请在原程序的 Claude 连接页完成连接，留言会先保留。' : !ready() ? '当前离线，已发送的留言会保留。' : ''));
     if (model.unread) model.markRead();
   }
   function close() { panel.hidden = true; onPanel(false); }

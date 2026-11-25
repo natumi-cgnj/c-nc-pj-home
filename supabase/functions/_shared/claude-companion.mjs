@@ -1,3 +1,4 @@
+import { dialogueLanguagePrompt } from '../../../language-core.mjs';
 import { recentCompanionRecords, companionPrompt, validateCompanionReply } from '../../../jane-companion-content.mjs';
 import { stateSessions } from '../../../cbi-state-content.mjs';
 import { savedStoryPrompt } from '../../../world-story-content.mjs';
@@ -80,7 +81,7 @@ export async function companionRequest({ input, user, store, now, cryptoApi, fet
   // Insert into the existing one-active-run gate first. A losing claimant never fires.
   const secret = Array.from(cryptoApi.getRandomValues(new Uint8Array(32))).map(x => x.toString(16).padStart(2, '0')).join('');
   const id = cryptoApi.randomUUID();
-  const binding = { format: 'c-nc-generation-context', kind: 'companion', message_id: message.id, canon_revision: story.revision, record_keys: records.map(x => x.key) };
+  const binding = { format: 'c-nc-generation-context', kind: 'companion', language: story.language || 'zh', message_id: message.id, canon_revision: story.revision, record_keys: records.map(x => x.key) };
   const previous = await store.byRequest(user, message.id);
   if (previous) {
     await store.companionUpdate(user, message.id, { status: ACTIVE.includes(previous.status) ? 'running' : 'failed', run_id: previous.id, error_code: ACTIVE.includes(previous.status) ? null : 'reply_interrupted' }, 'queued');
@@ -97,7 +98,7 @@ export async function companionRequest({ input, user, store, now, cryptoApi, fet
     const result = await fetcher(connection.fire_url, { method: 'POST', redirect: 'error', signal: AbortSignal.timeout(20000),
       headers: { Authorization: 'Bearer ' + connection.fire_token, 'Content-Type': 'application/json', 'anthropic-version': '2026-10-21' },
       body: JSON.stringify({ text: JSON.stringify({ protocol: 'c-nc-routine-v1', kind: 'office-lines', content_type: 'companion-message',
-        prompt: companionPrompt({ message, history: history.slice().reverse(), records, state: { scene: state.scene, state: state.state, label: state.status, at: time }, weather, storyPrompt: savedStoryPrompt(story, story.revision), revision: story.revision }),
+        prompt: companionPrompt({ message, history: history.slice().reverse(), records, state: { scene: state.scene, state: state.state, label: state.status, at: time }, weather, storyPrompt: savedStoryPrompt(story, story.revision), revision: story.revision }) + dialogueLanguagePrompt(story.language),
         run_id: id, callback_url: env.SUPABASE_URL + '/functions/v1/claude-result', callback_token: secret }) }) });
     if (!result.ok) {
       const code = ({ 401: 'claude_unauthorized', 403: 'claude_access_denied', 404: 'claude_task_not_found', 429: 'claude_limit' })[result.status] || 'claude_start_failed';

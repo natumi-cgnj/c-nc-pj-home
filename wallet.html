@@ -1,12 +1,16 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
+<script src="app-language-data.js?v=20261125-language1"></script>
+<script src="app-language.js?v=20261125-language1"></script>
+<script type="module" src="dialogue-translations.mjs?v=20261125-language1"></script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="记账（旧版）">
-<title>记账（旧版）</title>
+<title data-ui="记账（旧版）">记账（旧版）</title>
 <style>
 html{scrollbar-width:none}
 html::-webkit-scrollbar{display:none}
@@ -235,10 +239,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <div class="top-bar">
   <a class="back-btn" href="index.html?p=2">← Home</a>
   <div class="wallet-title">
-    <h1>记账（旧版）</h1>
-    <button type="button" class="month-budget-status" id="monthBudgetStatus" onclick="openMonthlyBudgetModal()">26年09月预算未设置</button>
+    <h1 data-ui="记账（旧版）">记账（旧版）</h1>
+    <button type="button" class="month-budget-status" id="monthBudgetStatus" onclick="openMonthlyBudgetModal()" data-ui="26年09月预算未设置">26年09月预算未设置</button>
   </div>
-  <button class="btn-s" onclick="openModal('settingsModal')">设置</button>
+  <button class="btn-s" onclick="openModal('settingsModal')" data-ui="设置">设置</button>
 </div>
 
 <!-- LEDGER TAB -->
@@ -253,7 +257,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
       <div class="category-list" id="entertainmentCategoryList"></div>
     </section>
   </div>
-  <button class="record-btn" onclick="openRecordModal()">+ 记一笔</button>
+  <button class="record-btn" onclick="openRecordModal()" data-ui="+ 记一笔">+ 记一笔</button>
   <details class="ledger-fold" id="historyFold" open>
     <summary>记账 <span class="ledger-fold-count" id="historyCount"></span></summary>
     <div id="todayHistory"></div>
@@ -261,7 +265,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <details class="ledger-fold" id="pendingFold">
     <summary>挂账 <span class="pending-summary-total" id="pendingTotal"></span></summary>
     <div id="pendingList"></div>
-    <button class="pending-add" type="button" onclick="openPendingModal()">＋ 挂一笔</button>
+    <button class="pending-add" type="button" onclick="openPendingModal()" data-ui="＋ 挂一笔">＋ 挂一笔</button>
   </details>
 </div>
 
@@ -269,7 +273,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <div id="viewTreasury" class="view">
   <div class="treasury-card" id="treasuryCard"></div>
   <div class="char-funds" id="charFunds"></div>
-  <button class="transfer-btn" onclick="openTransferModal()">划拨零花钱</button>
+  <button class="transfer-btn" onclick="openTransferModal()" data-ui="划拨零花钱">划拨零花钱</button>
   <div class="history-section" id="treasuryLog"></div>
 </div>
 
@@ -286,15 +290,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 <!-- DIARY TAB -->
 <div id="viewDiary" class="view">
-  <button class="record-btn" onclick="openDiaryModal()">+ 写今天的日记</button>
+  <button class="record-btn" onclick="openDiaryModal()" data-ui="+ 写今天的日记">+ 写今天的日记</button>
   <div id="diaryEntries"></div>
   <div style="padding:12px 20px">
-    <button class="btn-s" style="width:100%;padding:10px;margin-bottom:6px" onclick="exportDiary()">导出日记</button>
-    <button class="btn-s" style="width:100%;padding:10px;margin-bottom:6px" onclick="document.getElementById('importDiaryFile').click()">导入日记</button>
+    <button class="btn-s" style="width:100%;padding:10px;margin-bottom:6px" onclick="exportDiary()" data-ui="导出日记">导出日记</button>
+    <button class="btn-s" style="width:100%;padding:10px;margin-bottom:6px" onclick="document.getElementById('importDiaryFile').click()" data-ui="导入日记">导入日记</button>
     <input type="file" id="importDiaryFile" accept=".json" onchange="handleDiaryImport(this)" style="display:none">
-    <button class="btn-s" style="width:100%;padding:10px;margin-bottom:6px" onclick="document.getElementById('importPackFile').click()">导入行动包</button>
+    <button class="btn-s" style="width:100%;padding:10px;margin-bottom:6px" onclick="document.getElementById('importPackFile').click()" data-ui="导入行动包">导入行动包</button>
     <input type="file" id="importPackFile" accept=".json" onchange="handlePackImport(this)" style="display:none">
-    <button class="btn-s" style="width:100%;padding:10px" onclick="exportPacks()">导出行动包配置</button>
+    <button class="btn-s" style="width:100%;padding:10px" onclick="exportPacks()" data-ui="导出行动包配置">导出行动包配置</button>
   </div>
   <div id="packInfo"></div>
 </div>
@@ -302,12 +306,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- Diary write modal -->
 <div class="modal-bg" id="diaryModal">
   <div class="modal">
-    <h2>写日记</h2>
-    <label>内容</label>
-    <textarea id="diaryContent" rows="4" placeholder="今天发生了什么…" style="resize:vertical"></textarea>
+    <h2 data-ui="写日记">写日记</h2>
+    <label data-ui="内容">内容</label>
+    <textarea id="diaryContent" rows="4" placeholder="今天发生了什么…" style="resize:vertical" data-ui-placeholder="今天发生了什么…"></textarea>
     <div class="btn-row">
-      <button class="btn btn-cancel" onclick="closeModal('diaryModal')">取消</button>
-      <button class="btn btn-primary" onclick="saveDiaryEntry()">保存</button>
+      <button class="btn btn-cancel" onclick="closeModal('diaryModal')" data-ui="取消">取消</button>
+      <button class="btn btn-primary" onclick="saveDiaryEntry()" data-ui="保存">保存</button>
     </div>
   </div>
 </div>
@@ -315,17 +319,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- Pack import confirm -->
 <div class="modal-bg" id="packConfirmModal">
   <div class="modal">
-    <h2 id="packConfirmTitle">导入行动包</h2>
+    <h2 id="packConfirmTitle" data-ui="导入行动包">导入行动包</h2>
     <div id="packPreview" class="pack-info"></div>
-    <label>导入方式</label>
+    <label data-ui="导入方式">导入方式</label>
     <select id="packImportMode">
-      <option value="merge">合并（保留现有，更新重复）</option>
-      <option value="replace">替换（清除旧配置）</option>
+      <option value="merge" data-ui="合并（保留现有，更新重复）">合并（保留现有，更新重复）</option>
+      <option value="replace" data-ui="替换（清除旧配置）">替换（清除旧配置）</option>
     </select>
-    <p style="font-size:10px;color:#bbb;margin-top:6px">替换不会删除已有运行记录和日记</p>
+    <p style="font-size:10px;color:#bbb;margin-top:6px" data-ui="替换不会删除已有运行记录和日记">替换不会删除已有运行记录和日记</p>
     <div class="btn-row">
-      <button class="btn btn-cancel" onclick="closeModal('packConfirmModal')">取消</button>
-      <button class="btn btn-primary" onclick="confirmPackImport()">导入</button>
+      <button class="btn btn-cancel" onclick="closeModal('packConfirmModal')" data-ui="取消">取消</button>
+      <button class="btn btn-primary" onclick="confirmPackImport()" data-ui="导入">导入</button>
     </div>
   </div>
 </div>
@@ -335,23 +339,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- Record expense/income -->
 <div class="modal-bg" id="recordModal">
   <div class="modal">
-    <h2>记一笔</h2>
-    <label>日期</label>
+    <h2 data-ui="记一笔">记一笔</h2>
+    <label data-ui="日期">日期</label>
     <input type="date" id="recordDate">
-    <label>类型</label>
+    <label data-ui="类型">类型</label>
     <div class="tag-group" id="recordTypeGroup">
-      <button class="tag-opt selected" data-type="expense" data-value="expense" onclick="pickTag(this)">支出</button>
-      <button class="tag-opt" data-type="income" data-value="income" onclick="pickTag(this)">收入</button>
+      <button class="tag-opt selected" data-type="expense" data-value="expense" onclick="pickTag(this)" data-ui="支出">支出</button>
+      <button class="tag-opt" data-type="income" data-value="income" onclick="pickTag(this)" data-ui="收入">收入</button>
     </div>
-    <label>分类</label>
+    <label data-ui="分类">分类</label>
     <div class="tag-group" id="recordCategoryGroup"></div>
-    <label>金额（日元）</label>
+    <label data-ui="金额（日元）">金额（日元）</label>
     <input type="number" id="recordAmount" min="0" step="1">
-    <label>备注（选填）</label>
+    <label data-ui="备注（选填）">备注（选填）</label>
     <input type="text" id="recordNote">
     <div class="btn-row">
-      <button class="btn btn-cancel" onclick="closeModal('recordModal')">取消</button>
-      <button class="btn btn-primary" onclick="saveRecord()">保存</button>
+      <button class="btn btn-cancel" onclick="closeModal('recordModal')" data-ui="取消">取消</button>
+      <button class="btn btn-primary" onclick="saveRecord()" data-ui="保存">保存</button>
     </div>
   </div>
 </div>
@@ -359,23 +363,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- Transfer -->
 <div class="modal-bg" id="transferModal">
   <div class="modal">
-    <h2>划拨零花钱</h2>
-    <label>划给谁</label>
+    <h2 data-ui="划拨零花钱">划拨零花钱</h2>
+    <label data-ui="划给谁">划给谁</label>
     <div class="tag-group" id="transferToGroup">
       <button class="tag-opt selected" data-value="neal" onclick="pickTag(this)" style="--tag-c:#6B8AFF">Neal</button>
       <button class="tag-opt" data-value="jane" onclick="pickTag(this)" style="--tag-c:#5BA66B">Jane</button>
       <button class="tag-opt" data-value="will" onclick="pickTag(this)" style="--tag-c:#D85A30">Will</button>
     </div>
-    <label>金额（日元）</label>
-    <input type="number" id="transferAmount" placeholder="金额" min="0" step="1">
+    <label data-ui="金额（日元）">金额（日元）</label>
+    <input type="number" id="transferAmount" placeholder="金额" min="0" step="1" data-ui-placeholder="金额">
     <div id="cbiTransferReasonField" hidden>
-      <label>原因（选填）</label>
-      <input type="text" id="transferReason" maxlength="80" placeholder="如：Boss非常偏心">
+      <label data-ui="原因（选填）">原因（选填）</label>
+      <input type="text" id="transferReason" maxlength="80" placeholder="如：Boss非常偏心" data-ui-placeholder="如：Boss非常偏心">
     </div>
-    <p style="font-size:11px;color:#bbb;margin-top:8px">从共享金库划入角色专属零花钱，总额不变</p>
+    <p style="font-size:11px;color:#bbb;margin-top:8px" data-ui="从共享金库划入角色专属零花钱，总额不变">从共享金库划入角色专属零花钱，总额不变</p>
     <div class="btn-row">
-      <button class="btn btn-cancel" onclick="closeModal('transferModal')">取消</button>
-      <button class="btn btn-primary" onclick="saveTransfer()">划拨</button>
+      <button class="btn btn-cancel" onclick="closeModal('transferModal')" data-ui="取消">取消</button>
+      <button class="btn btn-primary" onclick="saveTransfer()" data-ui="划拨">划拨</button>
     </div>
   </div>
 </div>
@@ -383,18 +387,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- Settings -->
 <div class="modal-bg" id="settingsModal">
   <div class="modal">
-    <h2>支出分类管理</h2>
+    <h2 data-ui="支出分类管理">支出分类管理</h2>
     <div class="settings-budget-plan" id="settingsBudgetPlan"></div>
     <div id="budgetSettings"></div>
-    <button class="add-category-btn" onclick="addCategory()">＋ 新增分类</button>
+    <button class="add-category-btn" onclick="addCategory()" data-ui="＋ 新增分类">＋ 新增分类</button>
     <div class="btn-row settings-actions">
-      <button class="btn btn-cancel" onclick="closeModal('settingsModal')">关闭</button>
-      <button class="btn btn-primary" onclick="saveBudgetSettings()">保存</button>
+      <button class="btn btn-cancel" onclick="closeModal('settingsModal')" data-ui="关闭">关闭</button>
+      <button class="btn btn-primary" onclick="saveBudgetSettings()" data-ui="保存">保存</button>
     </div>
     <hr class="settings-divider">
-    <h2>数据管理</h2>
-    <button class="btn settings-data-btn" onclick="exportWallet()">导出数据</button>
-    <button class="btn settings-data-btn" onclick="document.getElementById('importWalletFile').click()">导入数据</button>
+    <h2 data-ui="数据管理">数据管理</h2>
+    <button class="btn settings-data-btn" onclick="exportWallet()" data-ui="导出数据">导出数据</button>
+    <button class="btn settings-data-btn" onclick="document.getElementById('importWalletFile').click()" data-ui="导入数据">导入数据</button>
     <input type="file" id="importWalletFile" accept=".json" onchange="importWallet(this)" style="display:none">
   </div>
 </div>
@@ -402,14 +406,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- Monthly budget -->
 <div class="modal-bg" id="monthlyBudgetModal">
   <div class="modal monthly-budget-modal">
-    <h2 id="monthlyBudgetTitle">本月预算</h2>
-    <label>本月总预算（日元）</label>
-    <input type="number" id="monthlyBudgetAmount" min="0" step="1000" placeholder="如 500000" oninput="renderMonthlyBudgetPreview()">
-    <p class="monthly-budget-note" id="monthlyBudgetNote">每天的分类额度会按本月天数换算，再从这里预留。</p>
+    <h2 id="monthlyBudgetTitle" data-ui="本月预算">本月预算</h2>
+    <label data-ui="本月总预算（日元）">本月总预算（日元）</label>
+    <input type="number" id="monthlyBudgetAmount" min="0" step="1000" placeholder="如 500000" oninput="renderMonthlyBudgetPreview()" data-ui-placeholder="如 500000">
+    <p class="monthly-budget-note" id="monthlyBudgetNote" data-ui="每天的分类额度会按本月天数换算，再从这里预留。">每天的分类额度会按本月天数换算，再从这里预留。</p>
     <div class="monthly-budget-preview" id="monthlyBudgetPreview"></div>
     <div class="btn-row">
-      <button class="btn btn-cancel" onclick="closeModal('monthlyBudgetModal')">取消</button>
-      <button class="btn btn-primary" onclick="saveMonthlyBudget()">保存</button>
+      <button class="btn btn-cancel" onclick="closeModal('monthlyBudgetModal')" data-ui="取消">取消</button>
+      <button class="btn btn-primary" onclick="saveMonthlyBudget()" data-ui="保存">保存</button>
     </div>
   </div>
 </div>
@@ -417,10 +421,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- Fixed category color palette -->
 <div class="modal-bg" id="categoryColorModal">
   <div class="modal category-color-modal">
-    <h2 id="categoryColorTitle">选择颜色</h2>
+    <h2 id="categoryColorTitle" data-ui="选择颜色">选择颜色</h2>
     <div class="category-color-picker" id="categoryColorPicker"></div>
     <div class="btn-row" style="margin-top:16px">
-      <button class="btn btn-cancel" onclick="closeCategoryColorPicker()">取消</button>
+      <button class="btn btn-cancel" onclick="closeCategoryColorPicker()" data-ui="取消">取消</button>
     </div>
   </div>
 </div>
@@ -428,17 +432,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- Pending expense -->
 <div class="modal-bg" id="pendingModal">
   <div class="modal">
-    <h2>先挂在这里</h2>
-    <label>日期</label>
+    <h2 data-ui="先挂在这里">先挂在这里</h2>
+    <label data-ui="日期">日期</label>
     <input type="date" id="pendingDate">
-    <label>金额（日元）</label>
-    <input type="number" id="pendingAmount" placeholder="只记录，不影响余额" min="1" step="1">
-    <label>备注（选填）</label>
-    <input type="text" id="pendingNote" maxlength="120" placeholder="这笔是什么">
-    <p style="font-size:10px;color:#bbb;line-height:1.65;margin-top:9px">挂账不会进入任何资金池；等想处理时再分次转入正式账本。</p>
+    <label data-ui="金额（日元）">金额（日元）</label>
+    <input type="number" id="pendingAmount" placeholder="只记录，不影响余额" min="1" step="1" data-ui-placeholder="只记录，不影响余额">
+    <label data-ui="备注（选填）">备注（选填）</label>
+    <input type="text" id="pendingNote" maxlength="120" placeholder="这笔是什么" data-ui-placeholder="这笔是什么">
+    <p style="font-size:10px;color:#bbb;line-height:1.65;margin-top:9px" data-ui="挂账不会进入任何资金池；等想处理时再分次转入正式账本。">挂账不会进入任何资金池；等想处理时再分次转入正式账本。</p>
     <div class="btn-row">
-      <button class="btn btn-cancel" onclick="closeModal('pendingModal')">取消</button>
-      <button class="btn btn-primary" onclick="savePendingExpense()">保存</button>
+      <button class="btn btn-cancel" onclick="closeModal('pendingModal')" data-ui="取消">取消</button>
+      <button class="btn btn-primary" onclick="savePendingExpense()" data-ui="保存">保存</button>
     </div>
   </div>
 </div>
@@ -446,36 +450,36 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- Settle pending expense -->
 <div class="modal-bg" id="settlePendingModal">
   <div class="modal">
-    <h2>销一点挂账</h2>
+    <h2 data-ui="销一点挂账">销一点挂账</h2>
     <input type="hidden" id="settlePendingId">
     <div id="settlePendingInfo" style="font-size:11px;color:#999;line-height:1.65;margin-bottom:12px"></div>
-    <label>本次转入金额（日元）</label>
+    <label data-ui="本次转入金额（日元）">本次转入金额（日元）</label>
     <input type="number" id="settlePendingAmount" min="1" step="1">
-    <label>转入分类</label>
+    <label data-ui="转入分类">转入分类</label>
     <div class="tag-group" id="settlePendingCategoryGroup"></div>
     <div class="btn-row">
-      <button class="btn btn-cancel" onclick="closeModal('settlePendingModal')">取消</button>
-      <button class="btn btn-primary" onclick="settlePendingExpense()">转入账本</button>
+      <button class="btn btn-cancel" onclick="closeModal('settlePendingModal')" data-ui="取消">取消</button>
+      <button class="btn btn-primary" onclick="settlePendingExpense()" data-ui="转入账本">转入账本</button>
     </div>
   </div>
 </div>
 
 <!-- Tab bar -->
-<div class="tab-bar" aria-label="记账（旧版）">
-  <button class="active" type="button" onclick="switchTab('viewLedger',this)">记账</button>
-  <button type="button" onclick="switchTab('viewTreasury',this)">报销</button>
-  <button type="button" onclick="location.href='shop.html'">商城</button>
+<div class="tab-bar" aria-label="记账（旧版）" data-ui-aria-label="记账（旧版）">
+  <button class="active" type="button" onclick="switchTab('viewLedger',this)" data-ui="记账">记账</button>
+  <button type="button" onclick="switchTab('viewTreasury',this)" data-ui="报销">报销</button>
+  <button type="button" onclick="location.href='shop.html'" data-ui="商城">商城</button>
 </div>
 
 <div class="toast" id="toast"></div>
 <div class="confirm-bg" id="confirmBg"><div class="confirm-box"></div></div>
 
 <script src="world-context.js?v=20261019-ledger-split1"></script>
-<script src="cloud-sync.js?v=20261029-audit1"></script>
+<script src="cloud-sync.js?v=20261125-language1"></script>
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script src="cbi-data.js?v=20261108-suitcase-periods1"></script>
 <script src="character-runtime.js?v=20261105-late-sleep1"></script>
-<script src="cbi-wallet.js?v=20261019-ledger-split1"></script>
+<script src="cbi-wallet.js?v=20261125-language1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 var SK='wallet_db';
@@ -660,7 +664,7 @@ if(JSON.stringify(db)!==walletRaw){
 
 function save(){
   try{localStorage.setItem(SK,JSON.stringify(db));}
-  catch(e){showToast('保存失败，浏览器空间不足');}
+  catch(e){showToast((globalThis.AppLanguage?.ui('保存失败，浏览器空间不足') ?? ('保存失败，浏览器空间不足')));}
 }
 function gid(){return 'w_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
@@ -777,16 +781,16 @@ function renderMonthBudgetStatus(){
   if(!status)return;
   var monthKey=currentBudgetMonth();
   var state=monthlyBudgetState(db,monthKey);
-  status.textContent=compactBudgetMonthLabel(monthKey)+'预算'+(state.amount===null?'未设置':state.amount+'円');
+  (globalThis.AppLanguage ? AppLanguage.setText(status, compactBudgetMonthLabel(monthKey)+'预算'+(state.amount===null?'未设置':state.amount+'円')) : (status.textContent=compactBudgetMonthLabel(monthKey)+'预算'+(state.amount===null?'未设置':state.amount+'円')));
 }
 function openMonthlyBudgetModal(){
   var monthKey=currentBudgetMonth();
   var state=monthlyBudgetState(db,monthKey);
   var input=document.getElementById('monthlyBudgetAmount');
-  document.getElementById('monthlyBudgetTitle').textContent=budgetMonthLabel(monthKey)+'预算';
+  (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('monthlyBudgetTitle'), budgetMonthLabel(monthKey)+'预算') : (document.getElementById('monthlyBudgetTitle').textContent=budgetMonthLabel(monthKey)+'预算'));
   input.dataset.month=monthKey;
   input.value=state.amount===null?'':state.amount;
-  document.getElementById('monthlyBudgetNote').textContent=state.inherited?'目前沿用'+budgetMonthLabel(state.source)+'的预算；保存后只更新本月。':'每天的分类额度会按本月天数换算，再从这里预留。';
+  (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('monthlyBudgetNote'), state.inherited?'目前沿用'+budgetMonthLabel(state.source)+'的预算；保存后只更新本月。':'每天的分类额度会按本月天数换算，再从这里预留。') : (document.getElementById('monthlyBudgetNote').textContent=state.inherited?'目前沿用'+budgetMonthLabel(state.source)+'的预算；保存后只更新本月。':'每天的分类额度会按本月天数换算，再从这里预留。'));
   renderMonthlyBudgetPreview();
   openModal('monthlyBudgetModal');
 }
@@ -798,27 +802,27 @@ function renderMonthlyBudgetPreview(){
   var allocated=monthlyCategoryAllocation(db.categories,monthKey);
   var raw=String(input.value||'').trim();
   preview.classList.remove('over');
-  if(!raw){preview.textContent='当前分类月额度 ¥'+formatYenAmount(allocated);return;}
+  if(!raw){(globalThis.AppLanguage ? AppLanguage.setText(preview, '当前分类月额度 ¥'+formatYenAmount(allocated)) : (preview.textContent='当前分类月额度 ¥'+formatYenAmount(allocated)));return;}
   var amount=Math.max(0,Math.floor(Number(raw)||0));
   var remaining=amount-allocated;
   preview.classList.toggle('over',remaining<0);
-  preview.textContent='分类月额度 ¥'+formatYenAmount(allocated)+' · '+(remaining<0?'超出 ¥':'剩余 ¥')+formatYenAmount(remaining);
+  (globalThis.AppLanguage ? AppLanguage.setText(preview, '分类月额度 ¥'+formatYenAmount(allocated)+' · '+(remaining<0?'超出 ¥':'剩余 ¥')+formatYenAmount(remaining)) : (preview.textContent='分类月额度 ¥'+formatYenAmount(allocated)+' · '+(remaining<0?'超出 ¥':'剩余 ¥')+formatYenAmount(remaining)));
 }
 function saveMonthlyBudget(){
   var input=document.getElementById('monthlyBudgetAmount');
   var raw=String(input.value||'').trim();
-  if(!raw){showToast('请输入本月预算');return;}
+  if(!raw){showToast((globalThis.AppLanguage?.ui('请输入本月预算') ?? ('请输入本月预算')));return;}
   var amount=Math.floor(Number(raw));
-  if(!Number.isFinite(amount)||amount<0){showToast('请输入有效金额');return;}
+  if(!Number.isFinite(amount)||amount<0){showToast((globalThis.AppLanguage?.ui('请输入有效金额') ?? ('请输入有效金额')));return;}
   var monthKey=input.dataset.month||currentBudgetMonth();
   var allocated=monthlyCategoryAllocation(db.categories,monthKey);
-  if(amount<allocated){showToast('比分类月额度少 ¥'+formatYenAmount(allocated-amount));return;}
+  if(amount<allocated){showToast((globalThis.AppLanguage?.ui('比分类月额度少 ¥'+formatYenAmount(allocated-amount)) ?? ('比分类月额度少 ¥'+formatYenAmount(allocated-amount))));return;}
   db.monthlyBudgets[monthKey]=amount;
   save();
   closeModal('monthlyBudgetModal');
   renderMonthBudgetStatus();
   if(document.getElementById('settingsModal').classList.contains('show'))renderSettingsBudgetPreview();
-  showToast(budgetMonthLabel(monthKey)+'预算已更新');
+  showToast((globalThis.AppLanguage?.ui(budgetMonthLabel(monthKey)+'预算已更新') ?? (budgetMonthLabel(monthKey)+'预算已更新')));
 }
 function getTodayRecords(){return db.records.filter(function(r){return r.date===todayStr();});}
 function getCategoryToday(catId){
@@ -913,7 +917,7 @@ function renderCategoryCards(account){
     var surplus=cat.dailyBudget-ct.net;
     var colorSide=account==='entertainment'?'right':'left';
     return '<div class="category-card" style="border-'+colorSide+':3px solid '+cat.color+'"><div class="cat-header"><span class="cat-name">'+esc(cat.name)+'</span><span class="cat-budget">日额 ¥'+cat.dailyBudget+'</span></div><div class="cat-bar"><div class="cat-bar-fill" style="width:'+Math.max(0,pct)+'%;background:'+cat.color+'"></div></div><div class="cat-stats"><span>支出 ¥'+ct.spent+(ct.earned?' / 收入 ¥'+ct.earned:'')+'</span><span class="'+(surplus>=0?'positive':'negative')+'">'+(surplus>=0?'+':'')+'¥'+surplus+'</span></div></div>';
-  }).join('')||'<div style="padding:18px 14px;color:#ccc;font-size:10px;text-align:center">还没有分类</div>';
+  }).join('')||'<div style="padding:18px 14px;color:#ccc;font-size:10px;text-align:center" data-ui="还没有分类">还没有分类</div>';
 }
 function renderLedger(){
   renderMonthBudgetStatus();
@@ -925,9 +929,9 @@ function renderLedger(){
   var records=db.records.map(function(record,index){return{record:record,index:index};}).sort(function(left,right){
     return String(right.record.date||'').localeCompare(String(left.record.date||''))||right.index-left.index;
   }).map(function(entry){return entry.record;});
-  document.getElementById('historyCount').textContent=records.length?'· '+records.length+' 笔':'';
+  (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('historyCount'), records.length?'· '+records.length+' 笔':'') : (document.getElementById('historyCount').textContent=records.length?'· '+records.length+' 笔':''));
   var histHtml='';
-  if(!records.length)histHtml+='<div style="text-align:center;color:#ccc;font-size:12px;padding:24px">还没有记录</div>';
+  if(!records.length)histHtml+='<div style="text-align:center;color:#ccc;font-size:12px;padding:24px" data-ui="还没有记录">还没有记录</div>';
   records.forEach(function(r){
     var cat=db.categories.find(function(c){return c.id===r.category;});
     var catColor=cat?cat.color:'#999';
@@ -960,12 +964,12 @@ function openRecordModal(){
 }
 function saveRecord(){
   var amount=parseInt(document.getElementById('recordAmount').value)||0;
-  if(amount<=0){showToast('请输入金额');return;}
+  if(amount<=0){showToast((globalThis.AppLanguage?.ui('请输入金额') ?? ('请输入金额')));return;}
   var date=document.getElementById('recordDate').value;
-  if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||date>todayStr()){showToast('请选择有效日期');return;}
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||date>todayStr()){showToast((globalThis.AppLanguage?.ui('请选择有效日期') ?? ('请选择有效日期')));return;}
   var type=getTagValue('recordTypeGroup');
   var category=getTagValue('recordCategoryGroup');
-  if(!category){showToast('请选择分类');return;}
+  if(!category){showToast((globalThis.AppLanguage?.ui('请选择分类') ?? ('请选择分类')));return;}
   db.records.push({
     id:gid(),
     date:date,
@@ -1023,11 +1027,11 @@ function editRecordField(target,id,field){
     var value=control.value;
     if(field==='amount'){
       value=Math.floor(Number(value)||0);
-      if(value<=0){showToast('请输入有效金额');control.focus();return;}
+      if(value<=0){showToast((globalThis.AppLanguage?.ui('请输入有效金额') ?? ('请输入有效金额')));control.focus();return;}
     }else if(field==='date'){
-      if(!/^\d{4}-\d{2}-\d{2}$/.test(value)){showToast('请选择有效日期');control.focus();return;}
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(value)){showToast((globalThis.AppLanguage?.ui('请选择有效日期') ?? ('请选择有效日期')));control.focus();return;}
     }else if(field==='category'){
-      if(!db.categories.some(function(category){return category.id===value;})){showToast('请选择分类');control.focus();return;}
+      if(!db.categories.some(function(category){return category.id===value;})){showToast((globalThis.AppLanguage?.ui('请选择分类') ?? ('请选择分类')));control.focus();return;}
     }else if(field==='note'){
       value=String(value||'').trim();
     }
@@ -1035,7 +1039,7 @@ function editRecordField(target,id,field){
     finished=true;
     save();
     renderLedger();
-    showToast(({date:'日期',category:'分类',note:'详情',amount:'金额'}[field]||'记录')+'已更新');
+    showToast((globalThis.AppLanguage?.ui(({date:'日期',category:'分类',note:'详情',amount:'金额'}[field]||'记录')+'已更新') ?? (({date:'日期',category:'分类',note:'详情',amount:'金额'}[field]||'记录')+'已更新')));
   }
   control.addEventListener('keydown',function(event){
     if(event.key==='Enter'){event.preventDefault();finish(true);}
@@ -1059,8 +1063,8 @@ function renderPendingExpenses(){
   var total=pending.reduce(function(sum,item){return sum+Math.max(0,Number(item.amount)||0);},0);
   document.getElementById('pendingTotal').textContent=pending.length?'· ¥'+total:'';
   document.getElementById('pendingList').innerHTML=pending.length?pending.slice().reverse().map(function(item){
-    return'<div class="pending-row"><div class="pending-copy"><div class="pending-note">'+esc(item.note||'未写备注')+'</div><div class="pending-date">'+esc(item.date||'')+'</div></div><span class="pending-amount">¥'+item.amount+'</span><button class="pending-action" type="button" onclick="openSettlePendingModal(\''+item.id+'\')">销一点</button><button class="hist-del" type="button" onclick="deletePendingExpense(\''+item.id+'\')">×</button></div>';
-  }).join(''):'<div style="text-align:center;color:#ccc;font-size:11px;padding:22px">这里现在是空的</div>';
+    return`<div class="pending-row"><div class="pending-copy"><div class="pending-note">${(esc(item.note||'未写备注'))}</div><div class="pending-date">${(esc(item.date||''))}</div></div><span class="pending-amount">¥${(item.amount)}</span><button class="pending-action" type="button" onclick="openSettlePendingModal('${(item.id)}')" data-ui="销一点">销一点</button><button class="hist-del" type="button" onclick="deletePendingExpense('${(item.id)}')">×</button></div>`;
+  }).join(''):'<div style="text-align:center;color:#ccc;font-size:11px;padding:22px" data-ui="这里现在是空的">这里现在是空的</div>';
 }
 function openPendingModal(){
   var pendingDate=document.getElementById('pendingDate');
@@ -1072,16 +1076,16 @@ function openPendingModal(){
 }
 function savePendingExpense(){
   var amount=Math.floor(Number(document.getElementById('pendingAmount').value)||0);
-  if(amount<=0){showToast('请输入金额');return;}
+  if(amount<=0){showToast((globalThis.AppLanguage?.ui('请输入金额') ?? ('请输入金额')));return;}
   var date=document.getElementById('pendingDate').value;
-  if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||date>todayStr()){showToast('请选择有效日期');return;}
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||date>todayStr()){showToast((globalThis.AppLanguage?.ui('请选择有效日期') ?? ('请选择有效日期')));return;}
   db.pendingExpenses.push({id:gid(),amount:amount,note:document.getElementById('pendingNote').value.trim(),date:date,createdAt:new Date().toISOString()});
-  save();closeModal('pendingModal');renderLedger();showToast('已挂账，不影响余额');
+  save();closeModal('pendingModal');renderLedger();showToast((globalThis.AppLanguage?.ui('已挂账，不影响余额') ?? ('已挂账，不影响余额')));
 }
 function openSettlePendingModal(id){
   var item=db.pendingExpenses.find(function(entry){return entry.id===id;});if(!item)return;
   document.getElementById('settlePendingId').value=id;
-  document.getElementById('settlePendingInfo').textContent=(item.note||'未写备注')+' · 尚余 ¥'+item.amount;
+  (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('settlePendingInfo'), (item.note||'未写备注')+' · 尚余 ¥'+item.amount) : (document.getElementById('settlePendingInfo').textContent=(item.note||'未写备注')+' · 尚余 ¥'+item.amount));
   document.getElementById('settlePendingAmount').value=item.amount;
   document.getElementById('settlePendingAmount').max=item.amount;
   document.getElementById('settlePendingCategoryGroup').innerHTML=db.categories.map(function(category,index){
@@ -1093,13 +1097,13 @@ function settlePendingExpense(){
   var id=document.getElementById('settlePendingId').value;
   var item=db.pendingExpenses.find(function(entry){return entry.id===id;});if(!item)return;
   var amount=Math.floor(Number(document.getElementById('settlePendingAmount').value)||0);
-  if(amount<=0||amount>item.amount){showToast('请输入不超过挂账余额的金额');return;}
-  var category=getTagValue('settlePendingCategoryGroup');if(!category){showToast('请选择分类');return;}
+  if(amount<=0||amount>item.amount){showToast((globalThis.AppLanguage?.ui('请输入不超过挂账余额的金额') ?? ('请输入不超过挂账余额的金额')));return;}
+  var category=getTagValue('settlePendingCategoryGroup');if(!category){showToast((globalThis.AppLanguage?.ui('请选择分类') ?? ('请选择分类')));return;}
   var settledAll=amount===item.amount;
   db.records.push({id:gid(),date:todayStr(),type:'expense',category:category,amount:amount,note:'挂账转入'+(item.note?' · '+item.note:'')});
   item.amount-=amount;
   if(item.amount<=0)db.pendingExpenses=db.pendingExpenses.filter(function(entry){return entry.id!==id;});
-  save();closeModal('settlePendingModal');renderLedger();showToast(settledAll?'已全部转入账本':'已销账 ¥'+amount);
+  save();closeModal('settlePendingModal');renderLedger();showToast((globalThis.AppLanguage?.ui(settledAll?'已全部转入账本':'已销账 ¥'+amount) ?? (settledAll?'已全部转入账本':'已销账 ¥'+amount)));
 }
 function deletePendingExpense(id){
   customConfirm('移除这条挂账？它不会进入正式账本。',function(){db.pendingExpenses=db.pendingExpenses.filter(function(item){return item.id!==id;});save();renderLedger();},{yes:'移除',danger:true});
@@ -1108,7 +1112,7 @@ function deletePendingExpense(id){
 /* ═══ TREASURY ═══ */
 function renderTreasury(){
   var shared=getSharedFund();
-  document.getElementById('treasuryCard').innerHTML='<div class="treasury-label">共享小金库</div><div class="treasury-amount '+(shared>=0?'positive':'negative')+'">¥'+shared+'</div>';
+  document.getElementById('treasuryCard').innerHTML='<div class="treasury-label" data-ui="共享小金库">共享小金库</div><div class="treasury-amount '+(shared>=0?'positive':'negative')+'">¥'+shared+'</div>';
 
   var chars=['neal','jane','will'];
   var colors={neal:'#6B8AFF',jane:'#5BA66B',will:'#D85A30'};
@@ -1129,11 +1133,11 @@ function openTransferModal(){
 function saveTransfer(){
   var to=getTagValue('transferToGroup');
   var amount=parseInt(document.getElementById('transferAmount').value)||0;
-  if(amount<=0){showToast('请输入金额');return;}
+  if(amount<=0){showToast((globalThis.AppLanguage?.ui('请输入金额') ?? ('请输入金额')));return;}
   var shared=getSharedFund();
-  if(amount>shared){showToast('共享金库余额不足');return;}
+  if(amount>shared){showToast((globalThis.AppLanguage?.ui('共享金库余额不足') ?? ('共享金库余额不足')));return;}
   db.charFunds[to]=(db.charFunds[to]||0)+amount;
-  save();closeModal('transferModal');renderTreasury();showToast('已划拨 ¥'+amount+' 给 '+db.outingConfig[to].name);
+  save();closeModal('transferModal');renderTreasury();showToast((globalThis.AppLanguage?.ui('已划拨 ¥'+amount+' 给 '+db.outingConfig[to].name) ?? ('已划拨 ¥'+amount+' 给 '+db.outingConfig[to].name)));
 }
 
 /* ═══ OUTINGS ═══ */
@@ -1146,15 +1150,15 @@ function renderOutings(){
   var cards=document.getElementById('outingCards');
 
   var html='';
-  if(!todayOutings.length)html='<div class="outing-empty">今天还没有人到这边外出<br><span style="font-size:10px;color:#ddd">人物状态会自动记录来到用户世界的行动</span></div>';
+  if(!todayOutings.length)html='<div class="outing-empty">今天还没有人到这边外出<br><span style="font-size:10px;color:#ddd" data-ui="人物状态会自动记录来到用户世界的行动">人物状态会自动记录来到用户世界的行动</span></div>';
   todayOutings.forEach(function(o){
     var cfg=db.outingConfig[o.char]||{color:'#999',name:o.char};
     html+='<div class="outing-card" style="border-left:3px solid '+cfg.color+'"><div class="outing-char" style="color:'+cfg.color+'">'+esc(cfg.name)+' · '+periodName(o.period)+'</div><div class="outing-activity">'+esc(o.activity||'散步')+'</div>'+(o.dialogue?'<div class="outing-dialogue">「'+esc(o.dialogue)+'」</div>':'')+(o.cost?'<div class="outing-cost">-¥'+o.cost+'</div>':'')+'</div>';
   });
 
   var recent=db.outings.filter(function(o){return Number(o&&o.cost)>0;}).slice(-5).reverse();
-  html+='<div class="history-section" style="padding-top:18px"><div class="history-section-title">近期外出花费</div>';
-  if(!recent.length)html+='<div style="text-align:center;color:#ccc;font-size:12px;padding:20px">还没有外出花费</div>';
+  html+='<div class="history-section" style="padding-top:18px"><div class="history-section-title" data-ui="近期外出花费">近期外出花费</div>';
+  if(!recent.length)html+='<div style="text-align:center;color:#ccc;font-size:12px;padding:20px" data-ui="还没有外出花费">还没有外出花费</div>';
   recent.forEach(function(o){
     var cfg=db.outingConfig[o.char]||{color:'#999',name:o.char};
     html+='<div class="hist-row"><span class="hist-cat" style="background:'+cfg.color+'20;color:'+cfg.color+'">'+esc(cfg.name)+'</span><span class="hist-note">'+esc(o.activity||'散步')+'</span><span class="hist-amount expense">-¥'+(o.cost||0)+'</span></div>';
@@ -1164,11 +1168,11 @@ function renderOutings(){
   cards.innerHTML=html;
 }
 function processCurrentPeriod(){
-  if(window.CharacterRuntime){showToast('外出现在由人物状态自动决定');return;}
+  if(window.CharacterRuntime){showToast((globalThis.AppLanguage?.ui('外出现在由人物状态自动决定') ?? ('外出现在由人物状态自动决定')));return;}
   var today=todayStr();
   var period=getCurrentPeriod();
   var periodKey=today+'_'+period;
-  if(db.processedPeriods[periodKey]){showToast('当前时段已刷新');return;}
+  if(db.processedPeriods[periodKey]){showToast((globalThis.AppLanguage?.ui('当前时段已刷新') ?? ('当前时段已刷新')));return;}
 
   var chars=['neal','jane','will'];
   var remainingShared=getSharedFund();
@@ -1234,9 +1238,9 @@ function processCurrentPeriod(){
   renderOutings();
 
   if(newOutings.length){
-    showToast(newOutings.map(function(o){return db.outingConfig[o.char].name;}).join('、')+' 出门了！');
+    showToast((globalThis.AppLanguage?.ui(newOutings.map(function(o){return db.outingConfig[o.char].name;}).join('、')+' 出门了！') ?? (newOutings.map(function(o){return db.outingConfig[o.char].name;}).join('、')+' 出门了！')));
   }else{
-    showToast('这个时段没人出门');
+    showToast((globalThis.AppLanguage?.ui('这个时段没人出门') ?? ('这个时段没人出门')));
   }
 }
 
@@ -1267,7 +1271,7 @@ function renderCollection(){
     html+='</div>';
   });
 
-  if(!html)html='<div style="text-align:center;color:#ccc;padding:40px;font-size:13px">还没有活动池</div>';
+  if(!html)html='<div style="text-align:center;color:#ccc;padding:40px;font-size:13px" data-ui="还没有活动池">还没有活动池</div>';
   document.getElementById('collectionSets').innerHTML=html;
 }
 
@@ -1281,7 +1285,7 @@ function renderBudgetSettings(){
 }
 function renderSettingsRows(){
   document.getElementById('budgetSettings').innerHTML=_settingsCache.map(function(cat,i){
-    return '<div class="cat-setting-row" data-color="'+cat.color+'" style="--cat-color:'+cat.color+'"><button type="button" class="cat-setting-color" onclick="openCategoryColorPicker('+i+')" aria-label="选择'+esc(cat.name||'分类')+'的颜色"></button><input type="text" class="cat-setting-name" data-i="'+i+'" value="'+esc(cat.name)+'" placeholder="分类名" oninput="updateSettingsBudgetPreview()"><select class="cat-setting-account" data-i="'+i+'" aria-label="资金池" onchange="updateSettingsBudgetPreview()"><option value="living"'+(cat.account==='living'?' selected':'')+'>生活</option><option value="entertainment"'+(cat.account==='entertainment'?' selected':'')+'>娱乐</option></select><input type="number" class="cat-setting-budget" data-i="'+i+'" value="'+cat.dailyBudget+'" min="0" step="50" placeholder="日额" oninput="updateSettingsBudgetPreview()"><button class="cat-setting-del" data-i="'+i+'" onclick="removeSettingsRow('+i+')" title="删除">×</button></div>';
+    return `<div class="cat-setting-row" data-color="${(cat.color)}" style="--cat-color:${(cat.color)}"><button type="button" class="cat-setting-color" onclick="openCategoryColorPicker(${(i)})" aria-label="选择${(esc(cat.name||'分类'))}的颜色"></button><input type="text" class="cat-setting-name" data-i="${(i)}" value="${(esc(cat.name))}" placeholder="分类名" oninput="updateSettingsBudgetPreview()"><select class="cat-setting-account" data-i="${(i)}" aria-label="资金池" onchange="updateSettingsBudgetPreview()"><option value="living"${(cat.account==='living'?' selected':'')} data-ui="生活">生活</option><option value="entertainment"${(cat.account==='entertainment'?' selected':'')} data-ui="娱乐">娱乐</option></select><input type="number" class="cat-setting-budget" data-i="${(i)}" value="${(cat.dailyBudget)}" min="0" step="50" placeholder="日额" oninput="updateSettingsBudgetPreview()"><button class="cat-setting-del" data-i="${(i)}" onclick="removeSettingsRow(${(i)})" title="删除">×</button></div>`;
   }).join('');
   renderSettingsBudgetPreview();
 }
@@ -1301,8 +1305,8 @@ function renderSettingsBudgetPreview(){
   if(!preview)return;
   var summary=monthlyBudgetSummary(db,_settingsCache,currentBudgetMonth());
   preview.classList.toggle('over',summary.remaining!==null&&summary.remaining<0);
-  if(summary.amount===null){preview.textContent='本月已分配 ¥'+formatYenAmount(summary.allocated)+' · 月预算未设置';return;}
-  preview.textContent='本月已分配 ¥'+formatYenAmount(summary.allocated)+' · '+(summary.remaining<0?'超出 ¥':'剩余 ¥')+formatYenAmount(summary.remaining);
+  if(summary.amount===null){(globalThis.AppLanguage ? AppLanguage.setText(preview, '本月已分配 ¥'+formatYenAmount(summary.allocated)+' · 月预算未设置') : (preview.textContent='本月已分配 ¥'+formatYenAmount(summary.allocated)+' · 月预算未设置'));return;}
+  (globalThis.AppLanguage ? AppLanguage.setText(preview, '本月已分配 ¥'+formatYenAmount(summary.allocated)+' · '+(summary.remaining<0?'超出 ¥':'剩余 ¥')+formatYenAmount(summary.remaining)) : (preview.textContent='本月已分配 ¥'+formatYenAmount(summary.allocated)+' · '+(summary.remaining<0?'超出 ¥':'剩余 ¥')+formatYenAmount(summary.remaining)));
 }
 function updateSettingsBudgetPreview(){
   syncSettingsCacheFromRows();
@@ -1318,7 +1322,7 @@ function openCategoryColorPicker(i){
   syncSettingsCacheFromRows();
   if(!_settingsCache[i])return;
   _editingCategoryColorIndex=i;
-  document.getElementById('categoryColorTitle').textContent=(_settingsCache[i].name||'未命名分类')+' · 颜色';
+  (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('categoryColorTitle'), (_settingsCache[i].name||'未命名分类')+' · 颜色') : (document.getElementById('categoryColorTitle').textContent=(_settingsCache[i].name||'未命名分类')+' · 颜色'));
   renderCategoryColorPicker();
   openModal('categoryColorModal');
 }
@@ -1334,9 +1338,9 @@ function pickCategoryColor(color){
 }
 function removeSettingsRow(i){
   syncSettingsCacheFromRows();
-  if(_settingsCache.length<=2){showToast('两个账户各要保留一个分类');return;}
+  if(_settingsCache.length<=2){showToast((globalThis.AppLanguage?.ui('两个账户各要保留一个分类') ?? ('两个账户各要保留一个分类')));return;}
   var account=_settingsCache[i].account;
-  if(_settingsCache.filter(function(category){return category.account===account;}).length<=1){showToast((account==='living'?'生活':'娱乐')+'账户至少保留一个分类');return;}
+  if(_settingsCache.filter(function(category){return category.account===account;}).length<=1){showToast((globalThis.AppLanguage?.ui((account==='living'?'生活':'娱乐')+'账户至少保留一个分类') ?? ((account==='living'?'生活':'娱乐')+'账户至少保留一个分类')));return;}
   _settingsCache.splice(i,1);
   renderSettingsRows();
 }
@@ -1359,17 +1363,17 @@ function saveBudgetSettings(){
     var account=cat.account==='living'?'living':'entertainment';
     newCats.push({id:cat.id||('cat_'+gid()),name:name,dailyBudget:budget,color:color,account:account,activeFrom:cat.activeFrom||todayStr()});
   });
-  if(!newCats.some(function(category){return category.account==='living';})||!newCats.some(function(category){return category.account==='entertainment';})){showToast('生活和娱乐账户各要保留一个分类');return;}
+  if(!newCats.some(function(category){return category.account==='living';})||!newCats.some(function(category){return category.account==='entertainment';})){showToast((globalThis.AppLanguage?.ui('生活和娱乐账户各要保留一个分类') ?? ('生活和娱乐账户各要保留一个分类')));return;}
   var monthKey=currentBudgetMonth();
   var budgetState=monthlyBudgetState(db,monthKey);
   var allocated=monthlyCategoryAllocation(newCats,monthKey);
   if(budgetState.amount!==null&&allocated>budgetState.amount){
-    showToast('分类月额度超出预算 ¥'+formatYenAmount(allocated-budgetState.amount));
+    showToast((globalThis.AppLanguage?.ui('分类月额度超出预算 ¥'+formatYenAmount(allocated-budgetState.amount)) ?? ('分类月额度超出预算 ¥'+formatYenAmount(allocated-budgetState.amount))));
     renderSettingsBudgetPreview();
     return;
   }
   db.categories=newCats;
-  save();closeModal('settingsModal');renderLedger();showToast('分类已更新');
+  save();closeModal('settingsModal');renderLedger();showToast((globalThis.AppLanguage?.ui('分类已更新') ?? ('分类已更新')));
 }
 document.getElementById('settingsModal').addEventListener('transitionend',function(){});
 var settingsObserver=new MutationObserver(function(mutations){
@@ -1390,9 +1394,9 @@ function importWallet(input){
   var reader=new FileReader();
   reader.onload=function(ev){
     try{var data=JSON.parse(ev.target.result);
-    if(!data||!data.categories){showToast('格式不正确');input.value='';return;}
+    if(!data||!data.categories){showToast((globalThis.AppLanguage?.ui('格式不正确') ?? ('格式不正确')));input.value='';return;}
     customConfirm('导入数据？将覆盖当前记录。',function(){db=normalizeWalletDB(data);save();renderLedger();closeModal('settingsModal');});
-    }catch(e){showToast('导入失败');}
+    }catch(e){showToast((globalThis.AppLanguage?.ui('导入失败') ?? ('导入失败')));}
     input.value='';
   };
   reader.readAsText(input.files[0]);
@@ -1401,11 +1405,11 @@ function importWallet(input){
 /* ═══ DIARY ═══ */
 var charNames={neal:'Neal',jane:'Jane',will:'Will'};
 function renderDiary(){
-  if(!window.CharacterRuntime){document.getElementById('diaryEntries').innerHTML='<div class="outing-empty">状态引擎未加载</div>';return;}
+  if(!window.CharacterRuntime){document.getElementById('diaryEntries').innerHTML='<div class="outing-empty" data-ui="状态引擎未加载">状态引擎未加载</div>';return;}
   var diary=CharacterRuntime.loadDiary();
   var entries=(diary.entries||[]).slice().reverse();
   var el=document.getElementById('diaryEntries');
-  if(!entries.length){el.innerHTML='<div class="outing-empty">还没有日记</div>';}
+  if(!entries.length){el.innerHTML='<div class="outing-empty" data-ui="还没有日记">还没有日记</div>';}
   else{
     el.innerHTML=entries.slice(0,50).map(function(e){
       var type=e.type==='manual'?'manual':'auto';
@@ -1422,29 +1426,29 @@ function renderDiary(){
   var packs=CharacterRuntime.loadPacks();
   var merged=packs.merged||[];
   var pi=document.getElementById('packInfo');
-  if(!merged.length){pi.innerHTML='<div class="pack-info" style="margin:8px 20px">未加载行动包</div>';}
+  if(!merged.length){pi.innerHTML='<div class="pack-info" style="margin:8px 20px" data-ui="未加载行动包">未加载行动包</div>';}
   else{
     var counts={};merged.forEach(function(a){a.participants.forEach(function(p){counts[p]=(counts[p]||0)+1;});});
     var joint=merged.filter(function(a){return a.participants.length>1;}).length;
-    pi.innerHTML='<div class="pack-info" style="margin:8px 20px"><div class="pack-stat"><span class="pack-stat-label">行动总数</span><span class="pack-stat-value">'+merged.length+'</span></div>'
+    pi.innerHTML='<div class="pack-info" style="margin:8px 20px"><div class="pack-stat"><span class="pack-stat-label" data-ui="行动总数">行动总数</span><span class="pack-stat-value">'+merged.length+'</span></div>'
       +Object.keys(counts).map(function(k){return '<div class="pack-stat"><span class="pack-stat-label">'+esc(charNames[k]||k)+'</span><span class="pack-stat-value">'+counts[k]+'</span></div>';}).join('')
-      +'<div class="pack-stat"><span class="pack-stat-label">联合事件</span><span class="pack-stat-value">'+joint+'</span></div></div>';
+      +'<div class="pack-stat"><span class="pack-stat-label" data-ui="联合事件">联合事件</span><span class="pack-stat-value">'+joint+'</span></div></div>';
   }
 }
 function openDiaryModal(){document.getElementById('diaryContent').value='';openModal('diaryModal');}
 function saveDiaryEntry(){
   var content=document.getElementById('diaryContent').value.trim();
-  if(!content){showToast('请输入内容');return;}
-  if(!window.CharacterRuntime){showToast('状态引擎未加载');return;}
+  if(!content){showToast((globalThis.AppLanguage?.ui('请输入内容') ?? ('请输入内容')));return;}
+  if(!window.CharacterRuntime){showToast((globalThis.AppLanguage?.ui('状态引擎未加载') ?? ('状态引擎未加载')));return;}
   CharacterRuntime.addManualDiaryEntry(content);
-  closeModal('diaryModal');renderDiary();showToast('日记已保存');
+  closeModal('diaryModal');renderDiary();showToast((globalThis.AppLanguage?.ui('日记已保存') ?? ('日记已保存')));
 }
 function exportDiary(){
   if(!window.CharacterRuntime)return;
   var payload=CharacterRuntime.exportDiary();
   var blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
   var a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download='liminal_diary_'+todayStr()+'.json';a.click();URL.revokeObjectURL(a.href);showToast('日记已导出');
+  a.download='liminal_diary_'+todayStr()+'.json';a.click();URL.revokeObjectURL(a.href);showToast((globalThis.AppLanguage?.ui('日记已导出') ?? ('日记已导出')));
 }
 function handleDiaryImport(input){
   var f=input.files&&input.files[0];if(!f)return;
@@ -1453,15 +1457,15 @@ function handleDiaryImport(input){
     try{
       var payload=JSON.parse(ev.target.result);
       if(!payload||payload.format!=='liminal-diary'||payload.version!==1||!payload.diary||!Array.isArray(payload.diary.entries)){
-        showToast('格式不正确：需要 liminal-diary v1');input.value='';return;
+        showToast((globalThis.AppLanguage?.ui('格式不正确：需要 liminal-diary v1') ?? ('格式不正确：需要 liminal-diary v1')));input.value='';return;
       }
       var count=payload.diary.entries.length;
       customConfirm('合并导入 '+count+' 条日记？已有记录不会被覆盖。',function(){
         var result=CharacterRuntime.importDiary(payload,'merge');
-        if(result.ok){renderDiary();showToast('已导入 '+result.imported+' 条新记录');}
-        else showToast('日记导入失败');
+        if(result.ok){renderDiary();showToast((globalThis.AppLanguage?.ui('已导入 '+result.imported+' 条新记录') ?? ('已导入 '+result.imported+' 条新记录')));}
+        else showToast((globalThis.AppLanguage?.ui('日记导入失败') ?? ('日记导入失败')));
       });
-    }catch(error){showToast('日记 JSON 解析失败');}
+    }catch(error){showToast((globalThis.AppLanguage?.ui('日记 JSON 解析失败') ?? ('日记 JSON 解析失败')));}
     input.value='';
   };
   reader.readAsText(f);
@@ -1469,10 +1473,10 @@ function handleDiaryImport(input){
 function exportPacks(){
   if(!window.CharacterRuntime)return;
   var pack=CharacterRuntime.exportPacks();
-  if(!pack){showToast('没有行动包可导出');return;}
+  if(!pack){showToast((globalThis.AppLanguage?.ui('没有行动包可导出') ?? ('没有行动包可导出')));return;}
   var blob=new Blob([JSON.stringify(pack,null,2)],{type:'application/json'});
   var a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download='liminal_action_pack_'+todayStr()+'.json';a.click();showToast('行动包已导出');
+  a.download='liminal_action_pack_'+todayStr()+'.json';a.click();showToast((globalThis.AppLanguage?.ui('行动包已导出') ?? ('行动包已导出')));
 }
 var _pendingPack=null;
 function handlePackImport(input){
@@ -1481,19 +1485,19 @@ function handlePackImport(input){
   reader.onload=function(ev){
     try{
       var data=JSON.parse(ev.target.result);
-      if(!data||data.format!=='liminal-action-pack'||data.version!==1){showToast('格式不正确：需要 liminal-action-pack v1');input.value='';return;}
-      if(!window.CharacterRuntime){showToast('状态引擎未加载');input.value='';return;}
+      if(!data||data.format!=='liminal-action-pack'||data.version!==1){showToast((globalThis.AppLanguage?.ui('格式不正确：需要 liminal-action-pack v1') ?? ('格式不正确：需要 liminal-action-pack v1')));input.value='';return;}
+      if(!window.CharacterRuntime){showToast((globalThis.AppLanguage?.ui('状态引擎未加载') ?? ('状态引擎未加载')));input.value='';return;}
       var validation=CharacterRuntime.validateActionPack(data);
-      if(!validation.ok){showToast('行动包校验失败: '+validation.error+(validation.detail?' ('+validation.detail+')':''));input.value='';return;}
+      if(!validation.ok){showToast((globalThis.AppLanguage?.ui('行动包校验失败: '+validation.error+(validation.detail?' ('+validation.detail+')':'')) ?? ('行动包校验失败: '+validation.error+(validation.detail?' ('+validation.detail+')':''))));input.value='';return;}
       var preview=CharacterRuntime.summarizePack(data);
       _pendingPack=data;
-      document.getElementById('packConfirmTitle').textContent='导入: '+esc(data.name||'行动包');
+      (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('packConfirmTitle'), '导入: '+esc(data.name||'行动包')) : (document.getElementById('packConfirmTitle').textContent='导入: '+esc(data.name||'行动包')));
       var counts=preview.characters||{};
-      document.getElementById('packPreview').innerHTML='<div class="pack-stat"><span class="pack-stat-label">行动总数</span><span class="pack-stat-value">'+preview.total+'</span></div>'
+      document.getElementById('packPreview').innerHTML='<div class="pack-stat"><span class="pack-stat-label" data-ui="行动总数">行动总数</span><span class="pack-stat-value">'+preview.total+'</span></div>'
         +Object.keys(counts).map(function(k){return '<div class="pack-stat"><span class="pack-stat-label">'+esc(charNames[k]||k)+'</span><span class="pack-stat-value">'+counts[k]+'</span></div>';}).join('')
-        +'<div class="pack-stat"><span class="pack-stat-label">联合事件</span><span class="pack-stat-value">'+preview.jointEvents+'</span></div>';
+        +'<div class="pack-stat"><span class="pack-stat-label" data-ui="联合事件">联合事件</span><span class="pack-stat-value">'+preview.jointEvents+'</span></div>';
       openModal('packConfirmModal');
-    }catch(e){showToast('JSON 解析失败');}
+    }catch(e){showToast((globalThis.AppLanguage?.ui('JSON 解析失败') ?? ('JSON 解析失败')));}
     input.value='';
   };
   reader.readAsText(f);
@@ -1504,8 +1508,8 @@ function confirmPackImport(){
   var result=CharacterRuntime.importActionPack(_pendingPack,mode);
   _pendingPack=null;
   closeModal('packConfirmModal');
-  if(result.ok){showToast('行动包已导入');renderDiary();}
-  else{showToast('导入失败: '+result.error+(result.detail?' ('+result.detail+')':''));}
+  if(result.ok){showToast((globalThis.AppLanguage?.ui('行动包已导入') ?? ('行动包已导入')));renderDiary();}
+  else{showToast((globalThis.AppLanguage?.ui('导入失败: '+result.error+(result.detail?' ('+result.detail+')':'')) ?? ('导入失败: '+result.error+(result.detail?' ('+result.detail+')':''))));}
 }
 
 /* ═══ INIT ═══ */

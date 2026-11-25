@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
+<script src="app-language-data.js?v=20261125-language1"></script>
+<script src="app-language.js?v=20261125-language1"></script>
+<script type="module" src="dialogue-translations.mjs?v=20261125-language1"></script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -133,23 +137,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <div id="viewNutrition" class="view active">
   <section class="nutrition-wrap">
     <div class="nutrition-head">
-      <div class="nutrition-title">今日饮食</div>
+      <div class="nutrition-title" data-ui="今日饮食">今日饮食</div>
       <div class="nutrition-date-nav">
-        <button class="nutrition-nav-btn" type="button" onclick="shiftNutritionDay(-1)" aria-label="前一天">‹</button>
+        <button class="nutrition-nav-btn" type="button" onclick="shiftNutritionDay(-1)" aria-label="前一天" data-ui-aria-label="前一天">‹</button>
         <span class="nutrition-date" id="nutritionDate"></span>
-        <button class="nutrition-nav-btn" id="nutritionNext" type="button" onclick="shiftNutritionDay(1)" aria-label="后一天">›</button>
+        <button class="nutrition-nav-btn" id="nutritionNext" type="button" onclick="shiftNutritionDay(1)" aria-label="后一天" data-ui-aria-label="后一天">›</button>
       </div>
     </div>
     <div class="nutrition-summary">
-      <div class="nutrition-summary-item"><div class="nutrition-summary-label">摄入</div><div class="nutrition-summary-value"><span id="nutritionIntake">0</span><small>kcal</small></div></div>
-      <div class="nutrition-summary-item"><div class="nutrition-summary-label">活动消耗</div><div class="nutrition-summary-value"><span id="nutritionBurn">0</span><small>kcal</small></div></div>
-      <div class="nutrition-summary-item"><div class="nutrition-summary-label">基础代谢</div><div class="nutrition-summary-value"><span id="nutritionBasal">—</span><small>kcal</small></div></div>
+      <div class="nutrition-summary-item"><div class="nutrition-summary-label" data-ui="摄入">摄入</div><div class="nutrition-summary-value"><span id="nutritionIntake">0</span><small>kcal</small></div></div>
+      <div class="nutrition-summary-item"><div class="nutrition-summary-label" data-ui="活动消耗">活动消耗</div><div class="nutrition-summary-value"><span id="nutritionBurn">0</span><small>kcal</small></div></div>
+      <div class="nutrition-summary-item"><div class="nutrition-summary-label" data-ui="基础代谢">基础代谢</div><div class="nutrition-summary-value"><span id="nutritionBasal">—</span><small>kcal</small></div></div>
     </div>
-    <section class="calorie-balance" aria-label="每日热量额度与热量差">
-      <div class="calorie-balance-head"><span class="calorie-plan-label" id="calorieBudgetLabel">每日额度 · 未设置</span><button class="calorie-plan-button" id="caloriePlanButton" type="button">热量设置</button></div>
+    <section class="calorie-balance" aria-label="每日热量额度与热量差" data-ui-aria-label="每日热量额度与热量差">
+      <div class="calorie-balance-head"><span class="calorie-plan-label" id="calorieBudgetLabel" data-ui="每日额度 · 未设置">每日额度 · 未设置</span><button class="calorie-plan-button" id="caloriePlanButton" type="button" data-ui="热量设置">热量设置</button></div>
       <div class="calorie-balance-grid" aria-live="polite">
-        <div><div class="nutrition-summary-label">额度余额</div><div class="calorie-balance-number"><span id="calorieRemaining">—</span><small>kcal</small></div><div class="calorie-balance-caption" id="calorieRemainingCaption">在热量设置中填写每日额度</div></div>
-        <div><div class="nutrition-summary-label">热量差</div><div class="calorie-balance-number"><span id="calorieDifference">—</span><small>kcal</small></div><div class="calorie-balance-caption" id="calorieDifferenceCaption">填写基础代谢后计算</div></div>
+        <div><div class="nutrition-summary-label" data-ui="额度余额">额度余额</div><div class="calorie-balance-number"><span id="calorieRemaining">—</span><small>kcal</small></div><div class="calorie-balance-caption" id="calorieRemainingCaption" data-ui="在热量设置中填写每日额度">在热量设置中填写每日额度</div></div>
+        <div><div class="nutrition-summary-label" data-ui="热量差">热量差</div><div class="calorie-balance-number"><span id="calorieDifference">—</span><small>kcal</small></div><div class="calorie-balance-caption" id="calorieDifferenceCaption" data-ui="填写基础代谢后计算">填写基础代谢后计算</div></div>
       </div>
       <div class="calorie-balance-note">热量差＝摄入 − 基础代谢 − 活动消耗。步数与运动均计入活动消耗。<br>额度余额不加回活动消耗，每天凌晨 4:00 换日。<span id="caloriePlanDate"></span></div>
     </section>
@@ -160,72 +164,72 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
         <summary>热量记录 <span class="calorie-count" id="calorieCount"></span></summary>
         <div id="calorieHistory"></div>
       </details>
-      <button class="calorie-add" type="button" onclick="openCalorieModal()">＋ 记一笔</button>
+      <button class="calorie-add" type="button" onclick="openCalorieModal()" data-ui="＋ 记一笔">＋ 记一笔</button>
     </div>
   </section>
 </div>
-<div id="viewBody" class="view" aria-label="身体状况"></div>
+<div id="viewBody" class="view" aria-label="身体状况" data-ui-aria-label="身体状况"></div>
 
-<div id="viewDraft" class="view" aria-label="饮食世界"></div>
+<div id="viewDraft" class="view" aria-label="饮食世界" data-ui-aria-label="饮食世界"></div>
 
 <div class="modal-bg" id="calorieModal" onclick="if(event.target===this)closeMealModal('calorieModal')">
   <div class="modal">
-    <h2>记录热量</h2>
-    <label>日期</label>
+    <h2 data-ui="记录热量">记录热量</h2>
+    <label data-ui="日期">日期</label>
     <input type="date" id="calorieDate" onchange="syncCalorieSteps()">
-    <label>类型</label>
+    <label data-ui="类型">类型</label>
     <input type="hidden" id="calorieType" value="intake">
     <div class="calorie-types" id="calorieTypeGroup">
-      <button type="button" class="active" data-value="intake" onclick="pickCalorieType(this)">吃了</button>
-      <button type="button" data-value="burn" onclick="pickCalorieType(this)">运动</button>
-      <button type="button" data-value="steps" onclick="pickCalorieType(this)">步数</button>
+      <button type="button" class="active" data-value="intake" onclick="pickCalorieType(this)" data-ui="吃了">吃了</button>
+      <button type="button" data-value="burn" onclick="pickCalorieType(this)" data-ui="运动">运动</button>
+      <button type="button" data-value="steps" onclick="pickCalorieType(this)" data-ui="步数">步数</button>
     </div>
     <div id="calorieManualFields">
-      <label id="calorieDetailLabel" for="calorieDetail">吃了什么</label>
+      <label id="calorieDetailLabel" for="calorieDetail" data-ui="吃了什么">吃了什么</label>
       <input type="text" id="calorieDetail">
-      <label for="calorieAmount">卡路里（kcal）</label>
+      <label for="calorieAmount" data-ui="卡路里（kcal）">卡路里（kcal）</label>
       <input type="number" id="calorieAmount" min="1" step="1">
     </div>
     <div id="calorieStepFields" hidden>
-      <label for="calorieSteps">微信步数（当天总数）</label>
+      <label for="calorieSteps" data-ui="微信步数（当天总数）">微信步数（当天总数）</label>
       <input type="number" id="calorieSteps" min="0" step="1" inputmode="numeric" oninput="renderStepEstimate()" aria-describedby="calorieStepEstimate">
       <div class="calorie-step-estimate" id="calorieStepEstimate" role="status" aria-live="polite"></div>
     </div>
     <div class="modal-actions">
-      <button class="modal-cancel" type="button" onclick="closeMealModal('calorieModal')">取消</button>
-      <button class="modal-save" type="button" onclick="saveCalorieRecord()">保存</button>
+      <button class="modal-cancel" type="button" onclick="closeMealModal('calorieModal')" data-ui="取消">取消</button>
+      <button class="modal-save" type="button" onclick="saveCalorieRecord()" data-ui="保存">保存</button>
     </div>
   </div>
 </div>
 
 <div class="modal-bg" id="caloriePlanModal">
   <form class="modal" id="caloriePlanForm" role="dialog" aria-modal="true" aria-labelledby="caloriePlanTitle">
-    <h2 id="caloriePlanTitle">热量设置</h2>
-    <label for="caloriePlanStart">生效日期</label><input type="date" id="caloriePlanStart" required>
-    <label for="calorieDailyBudget">每日摄入额度 · kcal</label><input type="number" id="calorieDailyBudget" min="1" step="1" inputmode="numeric">
-    <label for="calorieBasalKcal">每日基础代谢 · kcal</label><input type="number" id="calorieBasalKcal" min="1" step="1" inputmode="numeric">
+    <h2 id="caloriePlanTitle" data-ui="热量设置">热量设置</h2>
+    <label for="caloriePlanStart" data-ui="生效日期">生效日期</label><input type="date" id="caloriePlanStart" required>
+    <label for="calorieDailyBudget" data-ui="每日摄入额度 · kcal">每日摄入额度 · kcal</label><input type="number" id="calorieDailyBudget" min="1" step="1" inputmode="numeric">
+    <label for="calorieBasalKcal" data-ui="每日基础代谢 · kcal">每日基础代谢 · kcal</label><input type="number" id="calorieBasalKcal" min="1" step="1" inputmode="numeric">
     <p class="calorie-plan-hint">两项都可留空。填写基础代谢本身，不含步数和运动消耗。<br>从所选日期起沿用，直到下一次调整；此前日期保留当时的设置。同一天保存会更新当天的设置。</p>
     <p class="calorie-plan-error" id="caloriePlanError" role="alert"></p>
-    <div class="modal-actions"><button class="modal-cancel" id="caloriePlanCancel" type="button">取消</button><button class="modal-save" type="submit">保存</button></div>
+    <div class="modal-actions"><button class="modal-cancel" id="caloriePlanCancel" type="button" data-ui="取消">取消</button><button class="modal-save" type="submit" data-ui="保存">保存</button></div>
   </form>
 </div>
 
 <nav class="tab-bar" aria-label="DIET">
-  <button type="button" data-diet-tab="body" onclick="switchMealTab('viewBody',this)">身体</button>
-  <button type="button" data-diet-tab="world" onclick="switchMealTab('viewDraft',this)">世界</button>
-  <button type="button" data-diet-tab="nutrition" class="active" onclick="switchMealTab('viewNutrition',this)">营养</button>
+  <button type="button" data-diet-tab="body" onclick="switchMealTab('viewBody',this)" data-ui="身体">身体</button>
+  <button type="button" data-diet-tab="world" onclick="switchMealTab('viewDraft',this)" data-ui="世界">世界</button>
+  <button type="button" data-diet-tab="nutrition" class="active" onclick="switchMealTab('viewNutrition',this)" data-ui="营养">营养</button>
 </nav>
 <div class="toast" id="toast"></div>
 <script src="world-context.js?v=20261019-diet-split1"></script>
-<script src="cloud-sync.js?v=20261029-audit1"></script>
+<script src="cloud-sync.js?v=20261125-language1"></script>
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script src="world-moments.js?v=20261028-stories1"></script>
 <script src="body-model.js?v=20261023-body1"></script>
 <script src="diet-calorie-model.js?v=20261119-balance1"></script>
-<script src="diet-calorie.js?v=20261119-balance1"></script>
-<script src="diet-body.js?v=20261023-body1"></script>
-<script src="diet-world.js?v=20261028-stories1-20261023-bridge1"></script>
-<script src="record-periods.js?v=20261108-archive-summary4"></script>
+<script src="diet-calorie.js?v=20261125-language1"></script>
+<script src="diet-body.js?v=20261125-language1"></script>
+<script src="diet-world.js?v=20261125-language1"></script>
+<script src="record-periods.js?v=20261125-language1"></script>
 <script>
 'use strict';
 if(window.__LIMINAL_REDIRECTING)throw new Error('Redirecting to cloud login');
@@ -263,13 +267,13 @@ function renderCalorieLedger(){
   const log=getCalorieLog();
   const records=log.records.slice().sort((left,right)=>String(right.date||'').localeCompare(String(left.date||''))||(Number(right.createdAt)||0)-(Number(left.createdAt)||0));
   const target=document.getElementById('calorieHistory'),periods=window.RecordPeriods,opened=periods?periods.capture(target):[];
-  document.getElementById('calorieCount').textContent=records.length?'· '+records.length+' 笔':'';
+  (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('calorieCount'), records.length?'· '+records.length+' 笔':'') : (document.getElementById('calorieCount').textContent=records.length?'· '+records.length+' 笔':''));
   function renderRecord(record){
     const burn=record.type==='burn',steps=isStepRecord(record),kind=steps?'steps':burn?'burn':'intake',kcal=Math.max(0,Math.round(Number(record.kcal)||0));
     return'<div class="calorie-row"><span class="calorie-date">'+esc(record.date||'—')+'</span><span class="calorie-kind '+kind+'">'+(steps?'步':burn?'运动':'吃')+'</span><span class="calorie-detail">'+esc(record.detail||'—')+'</span><span class="calorie-amount '+kind+'">'+(burn?'−':'+')+kcal+' kcal</span><button class="calorie-delete" type="button" aria-label="删除" onclick="deleteCalorieRecord(\''+record.id+'\')">×</button></div>';
   }
   target.innerHTML=periods?periods.renderHistory({records,starts:log.recordPeriodStarts,today:workdayKey(),key:'diet',mode:'calorie',renderRecord}):
-    records.length?records.map(renderRecord).join(''):'<div class="calorie-empty">还没有记录</div>';
+    records.length?records.map(renderRecord).join(''):'<div class="calorie-empty" data-ui="还没有记录">还没有记录</div>';
   target.onclick=function(event){if(event.target.closest('[data-record-archive]'))openCaloriePeriod();};
   if(periods)periods.restore(target,opened);
 }
@@ -278,7 +282,7 @@ function getNutritionStore(){const data=readJson(NUTRITION_KEY,{version:1,days:{
 function nutritionDayDate(day){const parts=String(day||'').split('-').map(Number);return new Date(parts[0]||1970,(parts[1]||1)-1,parts[2]||1,12,0,0,0);}
 function shiftNutritionDay(delta){const today=syncNutritionDay(),date=nutritionDayDate(nutritionSelectedDate);date.setDate(date.getDate()+delta);const next=dateKey(date);nutritionSelectedDate=next>today?today:next;renderNutritionChecklist();}
 function cycleNutrition(itemId){syncNutritionDay();const store=getNutritionStore();store.days[nutritionSelectedDate]=store.days[nutritionSelectedDate]||{};const current=Math.max(0,Math.min(2,Number(store.days[nutritionSelectedDate][itemId])||0));store.days[nutritionSelectedDate][itemId]=(current+1)%3;writeJson(NUTRITION_KEY,store);renderNutritionChecklist();}
-function renderNutritionChecklist(){const today=syncNutritionDay();if(nutritionSelectedDate>today)nutritionSelectedDate=today;const store=getNutritionStore(),day=store.days[nutritionSelectedDate]||{},dateEl=document.getElementById('nutritionDate'),rowsEl=document.getElementById('nutritionRows'),nextEl=document.getElementById('nutritionNext');if(!dateEl||!rowsEl)return;dateEl.textContent=nutritionSelectedDate===today?'今天 · '+nutritionSelectedDate:nutritionSelectedDate;if(nextEl)nextEl.disabled=nutritionSelectedDate>=today;const stats=calorieStatsForDay(nutritionSelectedDate),intakeEl=document.getElementById('nutritionIntake'),burnEl=document.getElementById('nutritionBurn');if(intakeEl)intakeEl.textContent=stats.intake;if(burnEl)burnEl.textContent=stats.burn;DietCalorieUI.render(getCalorieLog(),nutritionSelectedDate);const labels=['未覆盖','有一点','够了'];rowsEl.innerHTML=NUTRITION_ITEMS.map(item=>{const state=Math.max(0,Math.min(2,Number(day[item.id])||0));return'<div class="nutrition-row"><div class="nutrition-copy"><div class="nutrition-name">'+esc(item.name)+'</div><div class="nutrition-source">'+esc(item.source)+'</div></div><button class="nutrition-state s'+state+'" type="button" aria-label="'+esc(item.name)+'：'+labels[state]+'" title="'+labels[state]+'" onclick="cycleNutrition(\''+item.id+'\')"></button></div>';}).join('');}
+function renderNutritionChecklist(){const today=syncNutritionDay();if(nutritionSelectedDate>today)nutritionSelectedDate=today;const store=getNutritionStore(),day=store.days[nutritionSelectedDate]||{},dateEl=document.getElementById('nutritionDate'),rowsEl=document.getElementById('nutritionRows'),nextEl=document.getElementById('nutritionNext');if(!dateEl||!rowsEl)return;(globalThis.AppLanguage ? AppLanguage.setText(dateEl, nutritionSelectedDate===today?'今天 · '+nutritionSelectedDate:nutritionSelectedDate) : (dateEl.textContent=nutritionSelectedDate===today?'今天 · '+nutritionSelectedDate:nutritionSelectedDate));if(nextEl)nextEl.disabled=nutritionSelectedDate>=today;const stats=calorieStatsForDay(nutritionSelectedDate),intakeEl=document.getElementById('nutritionIntake'),burnEl=document.getElementById('nutritionBurn');if(intakeEl)intakeEl.textContent=stats.intake;if(burnEl)burnEl.textContent=stats.burn;DietCalorieUI.render(getCalorieLog(),nutritionSelectedDate);const labels=['未覆盖','有一点','够了'];rowsEl.innerHTML=NUTRITION_ITEMS.map(item=>{const state=Math.max(0,Math.min(2,Number(day[item.id])||0));return'<div class="nutrition-row"><div class="nutrition-copy"><div class="nutrition-name">'+esc(window.AppLanguage?.ui(item.name)||item.name)+'</div><div class="nutrition-source">'+esc(window.AppLanguage?.ui(item.source)||item.source)+'</div></div><button class="nutrition-state s'+state+'" type="button" aria-label="'+esc(window.AppLanguage?.ui(item.name)||item.name)+'：'+(window.AppLanguage?.ui(labels[state])||labels[state])+'" title="'+(window.AppLanguage?.ui(labels[state])||labels[state])+'" onclick="cycleNutrition(\''+item.id+'\')"></button></div>';}).join('');}
 function switchMealTab(viewId,button){if(['viewNutrition','viewBody','viewDraft'].indexOf(viewId)<0)return;document.querySelectorAll('.view').forEach(view=>view.classList.toggle('active',view.id===viewId));document.querySelectorAll('.tab-bar button').forEach(item=>{const active=item===button;item.classList.toggle('active',active);item.setAttribute('aria-current',active?'page':'false');});document.getElementById('worldLabel').textContent=viewId==='viewDraft'?'':'REALITY';const hash={viewBody:'body',viewDraft:'world',viewNutrition:'nutrition'}[viewId];if(location.hash!=='#'+hash)history.replaceState(null,'','#'+hash);refreshDiet();}
 function openCalorieModal(){const today=workdayKey(),first=document.querySelector('#calorieTypeGroup button[data-value="intake"]');document.getElementById('calorieDate').value=today;document.getElementById('calorieDate').max=today;document.getElementById('calorieDetail').value='';document.getElementById('calorieAmount').value='';document.getElementById('calorieSteps').value='';calorieStepsDate=null;pickCalorieType(first);document.getElementById('calorieModal').classList.add('show');}
 function closeMealModal(id){document.getElementById(id).classList.remove('show');}
@@ -287,7 +291,7 @@ function pickCalorieType(button){
   document.querySelectorAll('#calorieTypeGroup button').forEach(item=>item.classList.toggle('active',item===button));
   const type=['burn','steps'].includes(button.dataset.value)?button.dataset.value:'intake';
   document.getElementById('calorieType').value=type;
-  document.getElementById('calorieDetailLabel').textContent=type==='burn'?'做了什么运动':'吃了什么';
+  (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('calorieDetailLabel'), type==='burn'?'做了什么运动':'吃了什么') : (document.getElementById('calorieDetailLabel').textContent=type==='burn'?'做了什么运动':'吃了什么'));
   document.getElementById('calorieManualFields').hidden=type==='steps';
   document.getElementById('calorieStepFields').hidden=type!=='steps';
   if(type==='steps')syncCalorieSteps();
@@ -305,24 +309,24 @@ function syncCalorieSteps(){
 function renderStepEstimate(){
   const raw=document.getElementById('calorieSteps').value.trim(),steps=Number(raw);
   const estimate=raw!==''&&Number.isSafeInteger(steps)&&steps>=0?' · 预计消耗 '+stepCalories(steps)+' kcal':'';
-  document.getElementById('calorieStepEstimate').textContent='1000 步＝'+STEP_KCAL_PER_THOUSAND+' kcal'+estimate;
+  (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('calorieStepEstimate'), '1000 步＝'+STEP_KCAL_PER_THOUSAND+' kcal'+estimate) : (document.getElementById('calorieStepEstimate').textContent='1000 步＝'+STEP_KCAL_PER_THOUSAND+' kcal'+estimate));
 }
 function saveCalorieRecord(){
   const date=document.getElementById('calorieDate').value;
   const type=['burn','steps'].includes(document.getElementById('calorieType').value)?document.getElementById('calorieType').value:'intake';
-  if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||dateKey(nutritionDayDate(date))!==date||date>workdayKey()){showToast('请选择有效日期');return;}
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||dateKey(nutritionDayDate(date))!==date||date>workdayKey()){showToast((globalThis.AppLanguage?.ui('请选择有效日期') ?? ('请选择有效日期')));return;}
   const log=getCalorieLog();
   if(type==='steps'){
     const raw=document.getElementById('calorieSteps').value.trim(),steps=Number(raw);
-    if(raw===''||!Number.isSafeInteger(steps)||steps<0){showToast('请输入有效的整数步数');return;}
+    if(raw===''||!Number.isSafeInteger(steps)||steps<0){showToast((globalThis.AppLanguage?.ui('请输入有效的整数步数') ?? ('请输入有效的整数步数')));return;}
     const index=log.records.findIndex(record=>record.date===date&&isStepRecord(record));
     const existing=index<0?null:log.records[index];
     const record={...existing,id:existing?existing.id:gid('kcal'),date,type:'burn',source:'wechat_steps',steps,detail:'微信步数 '+steps.toLocaleString('zh-CN')+' 步',kcal:stepCalories(steps),createdAt:existing?existing.createdAt:Date.now()};
     if(index<0)log.records.push(record);else log.records[index]=record;
   }else{
     const detail=document.getElementById('calorieDetail').value.trim(),kcal=Math.round(Number(document.getElementById('calorieAmount').value)||0);
-    if(!detail){showToast(type==='burn'?'请填写运动':'请填写吃了什么');return;}
-    if(!Number.isSafeInteger(kcal)||kcal<=0){showToast('请输入卡路里');return;}
+    if(!detail){showToast((globalThis.AppLanguage?.ui(type==='burn'?'请填写运动':'请填写吃了什么') ?? (type==='burn'?'请填写运动':'请填写吃了什么')));return;}
+    if(!Number.isSafeInteger(kcal)||kcal<=0){showToast((globalThis.AppLanguage?.ui('请输入卡路里') ?? ('请输入卡路里')));return;}
     log.records.push({id:gid('kcal'),date,type,detail,kcal,createdAt:Date.now()});
   }
   writeJson(CALORIE_KEY,log);closeMealModal('calorieModal');renderCalorieLedger();renderNutritionChecklist();

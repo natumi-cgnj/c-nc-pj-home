@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
+<script src="app-language-data.js?v=20261125-language1"></script>
+<script src="app-language.js?v=20261125-language1"></script>
+<script type="module" src="dialogue-translations.mjs?v=20261125-language1"></script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -12,7 +16,7 @@
 <link rel="stylesheet" href="cbi-files.css?v=20261028-files1">
 <link rel="stylesheet" href="world-files.css?v=20261028-files1">
 <link rel="stylesheet" href="world-story.css?v=20261028-stories1">
-<script src="world-files.js?v=20261028-stories1" defer></script>
+<script src="world-files.js?v=20261125-language1" defer></script>
 </head>
 <body class="world-files-page world-files-cbi" data-files-world="cbi">
 <header class="top-bar">
@@ -26,8 +30,8 @@
     <div data-world-files-switcher></div>
     <div class="masthead"><h1>CBI · Sacramento</h1><p>CALIFORNIA BUREAU OF INVESTIGATION</p></div>
     <details class="canon-summary" id="cbiCurrentCanon">
-      <summary>当前设定 · META／2006二周目</summary>
-      <a class="story-text-button" href="world-files.html?world=sacramento">编辑世界设定 ↗</a>
+      <summary data-ui="当前设定 · META／2006二周目">当前设定 · META／2006二周目</summary>
+      <a class="story-text-button" href="world-files.html?world=sacramento" data-ui="编辑世界设定 ↗">编辑世界设定 ↗</a>
       <div id="cbiCanonBody"></div>
     </details>
     <div class="eyebrow">Current Case</div>
@@ -37,23 +41,23 @@
       <button class="quick-card" type="button" onclick="showView('viewCases')"><div class="quick-icon">▤</div><div class="quick-name">CASE BOARD</div><div class="quick-count" id="caseCount"></div></button>
       <button class="quick-card" type="button" onclick="showView('viewPersonnel')"><div class="quick-icon">◉</div><div class="quick-name">PERSONNEL</div><div class="quick-count" id="personCount"></div></button>
     </div>
-    <div class="section-head"><div class="section-title">Recent Files</div><button class="small-btn" type="button" onclick="openCaseEditor()">＋ 新增案宗</button></div>
+    <div class="section-head"><div class="section-title">Recent Files</div><button class="small-btn" type="button" onclick="openCaseEditor()" data-ui="＋ 新增案宗">＋ 新增案宗</button></div>
     <div class="list" id="recentCases"></div>
   </div></section>
 
   <section class="view" id="viewCases"><div class="content">
-    <div class="view-heading"><div><h2>案件板</h2><p>进行中案件、今日调查与正式归档</p></div><button class="add-btn" type="button" onclick="openCaseEditor()">＋ 新增案件</button></div>
+    <div class="view-heading"><div><h2 data-ui="案件板">案件板</h2><p data-ui="进行中案件、今日调查与正式归档">进行中案件、今日调查与正式归档</p></div><button class="add-btn" type="button" onclick="openCaseEditor()" data-ui="＋ 新增案件">＋ 新增案件</button></div>
     <div class="list" id="caseList"></div>
   </div></section>
 
   <section class="view" id="viewPersonnel"><div class="content">
-    <div class="view-heading"><div><h2>人物档案</h2><p>当前关系与原世界前史</p></div><button class="add-btn" type="button" onclick="openPersonEditor()">＋ 新增人物</button></div>
+    <div class="view-heading"><div><h2 data-ui="人物档案">人物档案</h2><p data-ui="当前关系与原世界前史">当前关系与原世界前史</p></div><button class="add-btn" type="button" onclick="openPersonEditor()" data-ui="＋ 新增人物">＋ 新增人物</button></div>
     <div class="list" id="personList"></div>
   </div></section>
 
   <section class="view" id="viewTimeline"><div class="content">
-    <div class="view-heading"><div><h2>剧情时间轴</h2><p>前史、关系节点与案宗按时间合并排列</p></div><button class="add-btn" type="button" onclick="openTimelineEditor()">＋ 新增节点</button></div>
-    <div class="timeline-toolbar"><button class="primary" type="button" onclick="openTimelineEditor()">＋ 时间节点</button><button type="button" onclick="openCaseEditor()">＋ 案件</button></div>
+    <div class="view-heading"><div><h2 data-ui="剧情时间轴">剧情时间轴</h2><p data-ui="前史、关系节点与案宗按时间合并排列">前史、关系节点与案宗按时间合并排列</p></div><button class="add-btn" type="button" onclick="openTimelineEditor()" data-ui="＋ 新增节点">＋ 新增节点</button></div>
+    <div class="timeline-toolbar"><button class="primary" type="button" onclick="openTimelineEditor()" data-ui="＋ 时间节点">＋ 时间节点</button><button type="button" onclick="openCaseEditor()" data-ui="＋ 案件">＋ 案件</button></div>
     <div class="timeline" id="timelineList"></div>
   </div></section>
 
@@ -62,57 +66,57 @@
 </main>
 
 <div class="modal-bg" id="caseModal" onclick="closeModalOnBg(event,'caseModal')"><div class="modal" onclick="event.stopPropagation()">
-  <h2 id="caseModalTitle">新增案件</h2>
+  <h2 id="caseModalTitle" data-ui="新增案件">新增案件</h2>
   <input type="hidden" id="caseId">
   <div class="field-row">
-    <div class="field"><label>集数 / 档案编号</label><input id="caseEpisode" placeholder="S01E01 / ARCHIVE 00"></div>
-    <div class="field"><label>日期</label><input id="caseDate" type="date"></div>
+    <div class="field"><label data-ui="集数 / 档案编号">集数 / 档案编号</label><input id="caseEpisode" placeholder="S01E01 / ARCHIVE 00"></div>
+    <div class="field"><label data-ui="日期">日期</label><input id="caseDate" type="date"></div>
   </div>
-  <div class="field"><label>标题</label><input id="caseTitle" placeholder="案件标题"></div>
-  <div class="field"><label>案件状态</label><select id="caseStatus"><option value="active">进行中</option><option value="closed">已结案</option><option value="archive">档案／回忆</option></select></div>
-  <div class="field"><label>本集简介</label><textarea id="caseSummary"></textarea></div>
-  <div class="field"><label>本集人物</label><input id="caseCharacters" placeholder="Boss, Jane, Cho…"></div>
-  <div class="field"><label>时间轴摘要／主线变化</label><textarea id="caseMainline" placeholder="留空时，时间轴会显示本集简介"></textarea></div>
-  <div class="field"><label>案件正文</label><textarea class="long" id="caseBody"></textarea></div>
-  <div class="field"><label>关系或长期设定变化</label><textarea id="caseChanges" placeholder="没有变化时留空"></textarea></div>
-  <div class="modal-actions"><button class="btn-cancel" type="button" onclick="closeModal('caseModal')">取消</button><button class="btn-save" type="button" onclick="saveCaseEditor()">保存</button></div>
+  <div class="field"><label data-ui="标题">标题</label><input id="caseTitle" placeholder="案件标题" data-ui-placeholder="案件标题"></div>
+  <div class="field"><label data-ui="案件状态">案件状态</label><select id="caseStatus"><option value="active" data-ui="进行中">进行中</option><option value="closed" data-ui="已结案">已结案</option><option value="archive" data-ui="档案／回忆">档案／回忆</option></select></div>
+  <div class="field"><label data-ui="本集简介">本集简介</label><textarea id="caseSummary"></textarea></div>
+  <div class="field"><label data-ui="本集人物">本集人物</label><input id="caseCharacters" placeholder="Boss, Jane, Cho…"></div>
+  <div class="field"><label data-ui="时间轴摘要／主线变化">时间轴摘要／主线变化</label><textarea id="caseMainline" placeholder="留空时，时间轴会显示本集简介" data-ui-placeholder="留空时，时间轴会显示本集简介"></textarea></div>
+  <div class="field"><label data-ui="案件正文">案件正文</label><textarea class="long" id="caseBody"></textarea></div>
+  <div class="field"><label data-ui="关系或长期设定变化">关系或长期设定变化</label><textarea id="caseChanges" placeholder="没有变化时留空" data-ui-placeholder="没有变化时留空"></textarea></div>
+  <div class="modal-actions"><button class="btn-cancel" type="button" onclick="closeModal('caseModal')" data-ui="取消">取消</button><button class="btn-save" type="button" onclick="saveCaseEditor()" data-ui="保存">保存</button></div>
 </div></div>
 
 <div class="modal-bg" id="personModal" onclick="closeModalOnBg(event,'personModal')"><div class="modal" onclick="event.stopPropagation()">
-  <h2 id="personModalTitle">新增人物</h2>
+  <h2 id="personModalTitle" data-ui="新增人物">新增人物</h2>
   <input type="hidden" id="personId">
-  <div class="field-row"><div class="field"><label>姓名</label><input id="personName"></div><div class="field"><label>职位／身份</label><input id="personRole"></div></div>
-  <div class="field"><label>基本履历</label><textarea id="personProfile"></textarea></div>
-  <div class="field"><label>年龄与时间线</label><textarea class="long" id="personTimeline"></textarea></div>
-  <div class="field"><label>能力</label><textarea id="personAbilities"></textarea></div>
-  <div class="field"><label>关系</label><textarea id="personRelationships"></textarea></div>
-  <div class="field"><label>当前长期状态</label><textarea id="personLongTerm"></textarea></div>
-  <div class="modal-actions"><button class="btn-cancel" type="button" onclick="closeModal('personModal')">取消</button><button class="btn-save" type="button" onclick="savePersonEditor()">保存</button></div>
+  <div class="field-row"><div class="field"><label data-ui="姓名">姓名</label><input id="personName"></div><div class="field"><label data-ui="职位／身份">职位／身份</label><input id="personRole"></div></div>
+  <div class="field"><label data-ui="基本履历">基本履历</label><textarea id="personProfile"></textarea></div>
+  <div class="field"><label data-ui="年龄与时间线">年龄与时间线</label><textarea class="long" id="personTimeline"></textarea></div>
+  <div class="field"><label data-ui="能力">能力</label><textarea id="personAbilities"></textarea></div>
+  <div class="field"><label data-ui="关系">关系</label><textarea id="personRelationships"></textarea></div>
+  <div class="field"><label data-ui="当前长期状态">当前长期状态</label><textarea id="personLongTerm"></textarea></div>
+  <div class="modal-actions"><button class="btn-cancel" type="button" onclick="closeModal('personModal')" data-ui="取消">取消</button><button class="btn-save" type="button" onclick="savePersonEditor()" data-ui="保存">保存</button></div>
 </div></div>
 
 <div class="modal-bg" id="timelineModal" onclick="closeModalOnBg(event,'timelineModal')"><div class="modal" onclick="event.stopPropagation()">
-  <h2 id="timelineModalTitle">新增时间节点</h2>
+  <h2 id="timelineModalTitle" data-ui="新增时间节点">新增时间节点</h2>
   <input type="hidden" id="timelineId">
   <div class="field-row">
-    <div class="field"><label>显示时间</label><input id="timelineWhen" placeholder="2006年初 · S01E01前"></div>
-    <div class="field"><label>排序日期</label><input id="timelineSortDate" type="date"></div>
+    <div class="field"><label data-ui="显示时间">显示时间</label><input id="timelineWhen" placeholder="2006年初 · S01E01前" data-ui-placeholder="2006年初 · S01E01前"></div>
+    <div class="field"><label data-ui="排序日期">排序日期</label><input id="timelineSortDate" type="date"></div>
   </div>
   <div class="field-row">
-    <div class="field"><label>节点类型</label><select id="timelineType"><option value="career">履历</option><option value="team">小组</option><option value="flashback">回忆集</option><option value="relationship">关系</option><option value="mainline">主线</option><option value="other">其他</option></select></div>
-    <div class="field"><label>集数／标记</label><input id="timelineEpisode" placeholder="S01E01 / 回忆集 01"></div>
+    <div class="field"><label data-ui="节点类型">节点类型</label><select id="timelineType"><option value="career" data-ui="履历">履历</option><option value="team" data-ui="小组">小组</option><option value="flashback" data-ui="回忆集">回忆集</option><option value="relationship" data-ui="关系">关系</option><option value="mainline" data-ui="主线">主线</option><option value="other" data-ui="其他">其他</option></select></div>
+    <div class="field"><label data-ui="集数／标记">集数／标记</label><input id="timelineEpisode" placeholder="S01E01 / 回忆集 01" data-ui-placeholder="S01E01 / 回忆集 01"></div>
   </div>
-  <div class="field"><label>节点标题</label><input id="timelineTitle" placeholder="发生了什么"></div>
-  <div class="field"><label>事件内容</label><textarea class="long" id="timelineSummary"></textarea></div>
-  <div class="field"><label>涉及人物</label><input id="timelineCharacters" placeholder="Milo、Jane、Cho…"></div>
-  <div class="field"><label>连续性备注</label><textarea id="timelineContinuity" placeholder="此时谁知道什么、哪些关系或信息仍未揭示"></textarea></div>
-  <div class="modal-actions"><button class="btn-cancel" type="button" onclick="closeModal('timelineModal')">取消</button><button class="btn-save" type="button" onclick="saveTimelineEditor()">保存</button></div>
+  <div class="field"><label data-ui="节点标题">节点标题</label><input id="timelineTitle" placeholder="发生了什么" data-ui-placeholder="发生了什么"></div>
+  <div class="field"><label data-ui="事件内容">事件内容</label><textarea class="long" id="timelineSummary"></textarea></div>
+  <div class="field"><label data-ui="涉及人物">涉及人物</label><input id="timelineCharacters" placeholder="Milo、Jane、Cho…"></div>
+  <div class="field"><label data-ui="连续性备注">连续性备注</label><textarea id="timelineContinuity" placeholder="此时谁知道什么、哪些关系或信息仍未揭示" data-ui-placeholder="此时谁知道什么、哪些关系或信息仍未揭示"></textarea></div>
+  <div class="modal-actions"><button class="btn-cancel" type="button" onclick="closeModal('timelineModal')" data-ui="取消">取消</button><button class="btn-save" type="button" onclick="saveTimelineEditor()" data-ui="保存">保存</button></div>
 </div></div>
 
-<div class="confirm-bg" id="confirmBg"><div class="confirm"><p id="confirmText"></p><div class="confirm-actions"><button type="button" onclick="closeConfirm()">取消</button><button class="yes" id="confirmYes" type="button">删除</button></div></div></div>
+<div class="confirm-bg" id="confirmBg"><div class="confirm"><p id="confirmText"></p><div class="confirm-actions"><button type="button" onclick="closeConfirm()" data-ui="取消">取消</button><button class="yes" id="confirmYes" type="button" data-ui="删除">删除</button></div></div></div>
 <div class="toast" id="toast"></div>
 
 <script src="world-context.js?v=20260913-cbi-room-label1"></script>
-<script src="cloud-sync.js?v=20261029-audit1"></script>
+<script src="cloud-sync.js?v=20261125-language1"></script>
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script src="cbi-data.js?v=20261108-suitcase-periods1"></script>
 <script src="character-runtime.js?v=20261105-late-sleep1"></script>
@@ -137,7 +141,7 @@ function statusLabel(value){return STATUS_LABELS[value]||'已结案';}
 
 function persist(message){
   var saved=CBIData.save(db);
-  if(!saved){showToast('保存失败，浏览器空间不足');return false;}
+  if(!saved){showToast((globalThis.AppLanguage?.ui('保存失败，浏览器空间不足') ?? ('保存失败，浏览器空间不足')));return false;}
   db=saved;
   renderAll();
   if(message)showToast(message);
@@ -157,7 +161,7 @@ function showView(viewId,options){
   if(!options.replace)viewStack.push(currentView);
   document.querySelectorAll('.view').forEach(function(view){view.classList.toggle('active',view.id===viewId);});
   currentView=viewId;
-  document.getElementById('backAction').textContent=viewId==='viewHome'?'← World Files':'← 返回';
+  (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('backAction'), viewId==='viewHome'?'← World Files':'← 返回') : (document.getElementById('backAction').textContent=viewId==='viewHome'?'← World Files':'← 返回'));
   if(viewId==='viewHome')setTop('WORLD FILES');
   if(viewId==='viewCases')setTop('CASE BOARD','＋',openCaseEditor);
   if(viewId==='viewPersonnel')setTop('PERSONNEL','＋',openPersonEditor);
@@ -178,7 +182,7 @@ function renderCurrentCase(){
   var item=db.cases.find(function(entry){return entry.id===db.currentCaseId;});
   if(!item){
     card.className='current-card empty-current';
-    card.innerHTML='<div class="case-code">CURRENT CASE</div><div class="case-title">NO FOCUSED CASE</div><div class="case-summary">可以同时保留多个进行中案件，再从 CASE BOARD 指定主查。</div>';
+    card.innerHTML='<div class="case-code">CURRENT CASE</div><div class="case-title">NO FOCUSED CASE</div><div class="case-summary" data-ui="可以同时保留多个进行中案件，再从 CASE BOARD 指定主查。">可以同时保留多个进行中案件，再从 CASE BOARD 指定主查。</div>';
     card.onclick=function(){showView('viewCases');};
     return;
   }
@@ -207,8 +211,8 @@ function renderCaseLists(){
   var recent=document.getElementById('recentCases');
   var list=document.getElementById('caseList');
   recent.innerHTML=cases.length?cases.slice(0,4).map(caseRow).join(''):'<div class="empty-list">还没有案件档案。<br>可以先建立一个空案宗作为结构测试。</div>';
-  var html='<section class="board-section"><div class="board-label">CASE BOARD <span>'+active.length+' ACTIVE</span></div><div class="list">'+(active.length?active.map(caseRow).join(''):'<div class="empty-list">目前没有进行中的案件。</div>')+'</div></section>';
-  html+='<section class="board-section"><div class="board-label">CASE FILES <span>'+filed.length+' FILED</span></div><div class="list">'+(filed.length?filed.map(caseRow).join(''):'<div class="empty-list">结案后会移入这里正式归档。</div>')+'</div></section>';
+  var html='<section class="board-section"><div class="board-label">CASE BOARD <span>'+active.length+' ACTIVE</span></div><div class="list">'+(active.length?active.map(caseRow).join(''):'<div class="empty-list" data-ui="目前没有进行中的案件。">目前没有进行中的案件。</div>')+'</div></section>';
+  html+='<section class="board-section"><div class="board-label">CASE FILES <span>'+filed.length+' FILED</span></div><div class="list">'+(filed.length?filed.map(caseRow).join(''):'<div class="empty-list" data-ui="结案后会移入这里正式归档。">结案后会移入这里正式归档。</div>')+'</div></section>';
   list.innerHTML=html;
   bindCaseRows(recent);bindCaseRows(list);
 }
@@ -229,10 +233,10 @@ function timelineCard(item){
   var when=item.timeLabel||item.sortDate||'时间未定';
   var code=[item.episodeCode,when].filter(Boolean).join(' · ');
   var people=item.characters&&item.characters.length?'<div class="timeline-people">'+item.characters.map(function(name){return '<span class="timeline-person">'+esc(name)+'</span>';}).join('')+'</div>':'';
-  var continuity=item.continuity?'<div class="timeline-continuity"><strong>连续性：</strong>'+block(item.continuity)+'</div>':'';
+  var continuity=item.continuity?'<div class="timeline-continuity"><strong data-ui="连续性：">连续性：</strong>'+block(item.continuity)+'</div>':'';
   var actions=item.source==='case'
-    ?'<div class="timeline-actions"><button type="button" data-open-case="'+esc(item.sourceId)+'">查看案宗</button></div>'
-    :'<div class="timeline-actions"><button type="button" data-edit-timeline="'+esc(item.sourceId)+'">编辑</button><button class="danger" type="button" data-delete-timeline="'+esc(item.sourceId)+'">删除</button></div>';
+    ?`<div class="timeline-actions"><button type="button" data-open-case="${(esc(item.sourceId))}" data-ui="查看案宗">查看案宗</button></div>`
+    :`<div class="timeline-actions"><button type="button" data-edit-timeline="${(esc(item.sourceId))}" data-ui="编辑">编辑</button><button class="danger" type="button" data-delete-timeline="${(esc(item.sourceId))}" data-ui="删除">删除</button></div>`;
   return '<article class="timeline-item '+(item.source==='case'?'case':'event')+'"><div class="timeline-head"><div class="timeline-code"><span class="timeline-type">'+esc(TIMELINE_TYPE_LABELS[item.type]||'节点')+'</span>'+esc(code)+'</div></div><div class="timeline-title">'+esc(item.title||'未命名节点')+'</div>'+(item.summary?'<div class="timeline-status">'+block(item.summary)+'</div>':'')+people+continuity+actions+'</article>';
 }
 function renderTimeline(){
@@ -259,10 +263,8 @@ function openCaseDetail(id){detailCaseId=id;renderCaseDetail();showView('viewCas
 function renderCaseDetail(){
   var item=db.cases.find(function(entry){return entry.id===detailCaseId;});
   if(!item){handleBack();return;}
-  var tags=item.characters.length?'<div class="tag-list">'+item.characters.map(function(name){return '<span class="tag">'+esc(name)+'</span>';}).join('')+'</div>':'<p class="muted">未填写</p>';
-  document.getElementById('caseDetail').innerHTML='<div class="detail-code">'+esc(displayCode(item))+'</div><h1 class="detail-title">'+esc(displayTitle(item))+'</h1><div class="detail-meta"><span class="pill">'+esc(item.date||'日期未定')+'</span><span class="pill">'+esc(statusLabel(item.status))+'</span></div>'
-    +detailSection('本集简介',item.summary)+renderMajorCaseProgress(item)+detailSectionHtml('本集人物',tags)+detailSection('时间轴摘要／主线变化',item.mainlineStatus)+detailSection('案件正文',item.body)+detailSection('关系或长期设定变化',item.longTermChanges)
-    +'<div class="detail-actions"><button type="button" onclick="openCaseEditor(\''+esc(item.id)+'\')">编辑案宗</button><button class="danger" type="button" onclick="requestDeleteCase(\''+esc(item.id)+'\')">删除</button></div>';
+  var tags=item.characters.length?'<div class="tag-list">'+item.characters.map(function(name){return '<span class="tag">'+esc(name)+'</span>';}).join('')+'</div>':'<p class="muted" data-ui="未填写">未填写</p>';
+  document.getElementById('caseDetail').innerHTML=`<div class="detail-code">${(esc(displayCode(item)))}</div><h1 class="detail-title">${(esc(displayTitle(item)))}</h1><div class="detail-meta"><span class="pill">${(esc(item.date||'日期未定'))}</span><span class="pill">${(esc(statusLabel(item.status)))}</span></div>${(detailSection('本集简介',item.summary))}${(renderMajorCaseProgress(item))}${(detailSectionHtml('本集人物',tags))}${(detailSection('时间轴摘要／主线变化',item.mainlineStatus))}${(detailSection('案件正文',item.body))}${(detailSection('关系或长期设定变化',item.longTermChanges))}<div class="detail-actions"><button type="button" onclick="openCaseEditor('${(esc(item.id))}')" data-ui="编辑案宗">编辑案宗</button><button class="danger" type="button" onclick="requestDeleteCase('${(esc(item.id))}')" data-ui="删除">删除</button></div>`;
 }
 
 function majorCaseState(caseId){return db.work.majorCaseProgress[caseId]||{progress:0,scenes:[],archivedAt:''};}
@@ -276,16 +278,16 @@ function renderMajorCaseProgress(item){
   var focused=db.currentCaseId===item.id;
   var dateKey=CBIData.workDayKey(new Date());
   var advancedToday=state.lastAdvancedDate===dateKey;
-  var html='<section class="case-progress-panel"><div class="case-progress-head"><div class="case-progress-title">Investigation Progress</div>'+(focused?'<span class="case-progress-focus">CURRENT CASE</span>':'')+'</div><div class="case-progress-track"><div class="case-progress-fill" style="width:'+state.progress+'%"></div></div><div class="case-progress-meta"><span>调查进展</span><span>'+state.progress+' / 100</span></div>';
+  var html='<section class="case-progress-panel"><div class="case-progress-head"><div class="case-progress-title">Investigation Progress</div>'+(focused?'<span class="case-progress-focus">CURRENT CASE</span>':'')+'</div><div class="case-progress-track"><div class="case-progress-fill" style="width:'+state.progress+'%"></div></div><div class="case-progress-meta"><span data-ui="调查进展">调查进展</span><span>'+state.progress+' / 100</span></div>';
   if(state.scenes.length){
     html+='<div style="margin-top:10px">';
     state.scenes.slice().reverse().slice(0,5).forEach(function(scene){html+='<div class="case-scene">'+caseSceneAvatar(scene.characterId)+'<div class="case-scene-main"><div class="case-scene-name">'+esc(CBI_STAFF_NAMES[scene.characterId])+'</div><div class="case-scene-line">'+esc(scene.line)+'</div></div><div class="case-scene-delta">+'+scene.delta+'</div></div>';});
     html+='</div>';
-  }else html+='<div class="case-progress-note">还没有调查片段。每天可按原有角色权重结算一次，案件进度与记账额度彼此独立。</div>';
+  }else html+='<div class="case-progress-note" data-ui="还没有调查片段。每天可按原有角色权重结算一次，案件进度与记账额度彼此独立。">还没有调查片段。每天可按原有角色权重结算一次，案件进度与记账额度彼此独立。</div>';
   if(item.status==='active'&&state.progress<100){
     html+='<div class="case-progress-controls"><button class="case-progress-action" type="button" onclick="toggleCaseFocus(\''+esc(item.id)+'\')">'+(focused?'取消主查':'设为主查')+'</button><button class="case-progress-action primary" type="button" onclick="settleCaseDay(\''+esc(item.id)+'\')"'+(advancedToday?' disabled':'')+'>'+(advancedToday?'今日调查已结算':'结算今日调查')+'</button></div>';
   }
-  if(item.status==='active'&&state.progress>=100)html+='<button class="case-progress-action primary" style="margin-top:11px" type="button" onclick="archiveCase(\''+esc(item.id)+'\')">进展已满 · 正式归档</button>';
+  if(item.status==='active'&&state.progress>=100)html+=`<button class="case-progress-action primary" style="margin-top:11px" type="button" onclick="archiveCase('${(esc(item.id))}')" data-ui="进展已满 · 正式归档">进展已满 · 正式归档</button>`;
   if(state.archivedAt)html+='<div class="case-progress-note">已于 '+esc(state.archivedAt.slice(0,10))+' 正式归档。</div>';
   return html+'</section>';
 }
@@ -298,9 +300,9 @@ function toggleCaseFocus(caseId){
 function settleCaseDay(caseId){
   var result=CBIData.advanceMajorCaseDay(db,caseId,{date:new Date(),availableCharacters:['boss'].concat(CBIData.CBI_CHARACTERS)});
   db=result.db;
-  if(result.reason==='already_advanced'){showToast('今天的调查已经结算过了');return;}
-  if(result.reason==='complete'){showToast('案件进展已经达到 100');return;}
-  if(result.reason){showToast('当前案件无法推进');return;}
+  if(result.reason==='already_advanced'){showToast((globalThis.AppLanguage?.ui('今天的调查已经结算过了') ?? ('今天的调查已经结算过了')));return;}
+  if(result.reason==='complete'){showToast((globalThis.AppLanguage?.ui('案件进展已经达到 100') ?? ('案件进展已经达到 100')));return;}
+  if(result.reason){showToast((globalThis.AppLanguage?.ui('当前案件无法推进') ?? ('当前案件无法推进')));return;}
   persist(CBI_STAFF_NAMES[result.scene.characterId]+' 带回新进展 · +'+result.scene.delta);
 }
 
@@ -314,19 +316,15 @@ function openPersonDetail(id){detailPersonId=id;renderPersonDetail();showView('v
 function renderPersonDetail(){
   var item=db.personnel.find(function(entry){return entry.id===detailPersonId;});
   if(!item){handleBack();return;}
-  document.getElementById('personDetail').innerHTML='<div class="detail-code">PERSONNEL FILE</div><h1 class="detail-title">'+esc(item.name||'未命名人物')+'</h1><div class="detail-meta"><span class="pill">'+esc((window.CBICurrentCanon&&window.CBICurrentCanon.roles[item.id])||item.role||'身份未填写')+'</span></div>'
-    +(window.CBICurrentCanon&&window.CBICurrentCanon.userRelationships?detailSection('用户保存的当前关系',window.CBICurrentCanon.userRelationships):'')
-    +(window.CBICurrentCanon?detailSection(window.CBICurrentCanon.userRelationships?'原世界关系参考':'当前关系 · 保留十年共同经历',window.CBICurrentCanon.people[item.id]||window.CBICurrentCanon.facts.join('\n')):'')
-    +detailSection('原世界早期身份',item.role)+detailSection('原世界早期履历',item.profile)+detailSection('早期年龄与时间线',item.timeline)+detailSection('原世界早期能力',item.abilities)+detailSection('关系的来路',item.relationships)+detailSection('原世界早期状态',item.longTermStatus)
-    +'<div class="detail-actions"><button type="button" onclick="openPersonEditor(\''+esc(item.id)+'\')">编辑档案</button><button class="danger" type="button" onclick="requestDeletePerson(\''+esc(item.id)+'\')">删除</button></div>';
+  document.getElementById('personDetail').innerHTML=`<div class="detail-code">PERSONNEL FILE</div><h1 class="detail-title">${(esc(item.name||'未命名人物'))}</h1><div class="detail-meta"><span class="pill">${(esc((window.CBICurrentCanon&&window.CBICurrentCanon.roles[item.id])||item.role||'身份未填写'))}</span></div>${(window.CBICurrentCanon&&window.CBICurrentCanon.userRelationships?detailSection('用户保存的当前关系',window.CBICurrentCanon.userRelationships):'')}${(window.CBICurrentCanon?detailSection(window.CBICurrentCanon.userRelationships?'原世界关系参考':'当前关系 · 保留十年共同经历',window.CBICurrentCanon.people[item.id]||window.CBICurrentCanon.facts.join('\n')):'')}${(detailSection('原世界早期身份',item.role))}${(detailSection('原世界早期履历',item.profile))}${(detailSection('早期年龄与时间线',item.timeline))}${(detailSection('原世界早期能力',item.abilities))}${(detailSection('关系的来路',item.relationships))}${(detailSection('原世界早期状态',item.longTermStatus))}<div class="detail-actions"><button type="button" onclick="openPersonEditor('${(esc(item.id))}')" data-ui="编辑档案">编辑档案</button><button class="danger" type="button" onclick="requestDeletePerson('${(esc(item.id))}')" data-ui="删除">删除</button></div>`;
 }
 
-function detailSection(title,value){return detailSectionHtml(title,value?'<p>'+block(value)+'</p>':'<p class="muted">未填写</p>');}
+function detailSection(title,value){return detailSectionHtml(title,value?'<p>'+block(value)+'</p>':'<p class="muted" data-ui="未填写">未填写</p>');}
 function detailSectionHtml(title,html){return '<section class="detail-section"><h3>'+esc(title)+'</h3>'+html+'</section>';}
 
 function openCaseEditor(id){
   var item=id?db.cases.find(function(entry){return entry.id===id;}):null;
-  document.getElementById('caseModalTitle').textContent=item?'编辑案件':'新增案件';
+  (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('caseModalTitle'), item?'编辑案件':'新增案件') : (document.getElementById('caseModalTitle').textContent=item?'编辑案件':'新增案件'));
   document.getElementById('caseId').value=item?item.id:'';
   document.getElementById('caseEpisode').value=item?item.episodeCode:'';
   document.getElementById('caseDate').value=item?item.date:'';
@@ -363,7 +361,7 @@ function saveCaseEditor(){
 
 function openPersonEditor(id){
   var item=id?db.personnel.find(function(entry){return entry.id===id;}):null;
-  document.getElementById('personModalTitle').textContent=item?'编辑人物':'新增人物';
+  (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('personModalTitle'), item?'编辑人物':'新增人物') : (document.getElementById('personModalTitle').textContent=item?'编辑人物':'新增人物'));
   document.getElementById('personId').value=item?item.id:'';
   document.getElementById('personName').value=item?item.name:'';
   document.getElementById('personRole').value=item?item.role:'';
@@ -391,7 +389,7 @@ function savePersonEditor(){
 
 function openTimelineEditor(id){
   var item=id?db.timeline.find(function(entry){return entry.id===id;}):null;
-  document.getElementById('timelineModalTitle').textContent=item?'编辑时间节点':'新增时间节点';
+  (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('timelineModalTitle'), item?'编辑时间节点':'新增时间节点') : (document.getElementById('timelineModalTitle').textContent=item?'编辑时间节点':'新增时间节点'));
   document.getElementById('timelineId').value=item?item.id:'';
   document.getElementById('timelineWhen').value=item?item.timeLabel:'';
   document.getElementById('timelineSortDate').value=item?item.sortDate:'';
@@ -408,7 +406,7 @@ function saveTimelineEditor(){
   var id=document.getElementById('timelineId').value||CBIData.createId('timeline');
   var existing=db.timeline.find(function(item){return item.id===id;});
   var title=document.getElementById('timelineTitle').value.trim();
-  if(!title){showToast('请填写节点标题');return;}
+  if(!title){showToast((globalThis.AppLanguage?.ui('请填写节点标题') ?? ('请填写节点标题')));return;}
   var value=CBIData.normalizeTimelineItem({
     id:id,sortDate:document.getElementById('timelineSortDate').value,timeLabel:document.getElementById('timelineWhen').value.trim(),
     type:document.getElementById('timelineType').value,episodeCode:document.getElementById('timelineEpisode').value.trim(),title:title,
@@ -436,6 +434,6 @@ if(window.CharacterRuntime)CharacterRuntime.init();
 renderAll();
 if(location.hash==='#case-board')showView('viewCases',{replace:true,force:true});
 </script>
-<script type="module" src="cbi-canon-view.mjs?v=20261028-stories1"></script>
+<script type="module" src="cbi-canon-view.mjs?v=20261125-language1"></script>
 </body>
 </html>

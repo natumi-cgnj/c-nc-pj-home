@@ -28,7 +28,7 @@ export class CompanionMailbox {
     const operation = (async () => {
       const state = this.context() || {};
       try {
-        const result = await this.client.functions.invoke('claude-bridge', { body: { action, owner_id: user, context: state.context || null, away: state.away === true, ...extra } });
+        const result = await this.client.functions.invoke('claude-bridge', { body: { action, language: globalThis.AppLanguage?.dialogue || 'zh', owner_id: user, context: state.context || null, away: state.away === true, ...extra } });
         if (user !== this.identity() || epoch !== this.epoch || sequence < this.applied) return null;
         const data = result.data;
         if (result.error || data?.error || !Array.isArray(data?.messages)) throw Error(data?.error || 'connection_failed');

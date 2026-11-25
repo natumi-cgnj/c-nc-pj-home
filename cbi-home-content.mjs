@@ -44,8 +44,8 @@ export function homeStateLabel(activity, topic) {
   return (topic === 'case' && HOME_CASE_STATES[activity]?.label) || HOME_STATES[activity]?.label || '';
 }
 
-export function validateHomeBatch(value) {
-  if (!object(value) || !exactKeys(Object.fromEntries(Object.entries(value).filter(([key]) => key !== 'canon_revision')), Object.hasOwn(value,'continuity') ? ['format','version','scene','spaces','continuity'] : ['format','version','scene','spaces']) || (Object.hasOwn(value,'canon_revision') && !/^[a-f0-9]{64}$/.test(value.canon_revision)) ||
+export function validateHomeBatch(value, language = 'zh') {
+  if (!object(value) || (value.language != null && !['zh','ja','en'].includes(value.language)) || !exactKeys(Object.fromEntries(Object.entries(value).filter(([key]) => !['canon_revision','language'].includes(key))), Object.hasOwn(value,'continuity') ? ['format','version','scene','spaces','continuity'] : ['format','version','scene','spaces']) || (Object.hasOwn(value,'canon_revision') && !/^[a-f0-9]{64}$/.test(value.canon_revision)) ||
       (Object.hasOwn(value, 'continuity') && value.continuity !== CBI_CONTINUITY) || value.format !== HOME_FORMAT ||
       value.version !== 1 || value.scene !== 'home-jane' || !exactKeys(value.spaces, Object.keys(HOME_SPACES))) invalid();
   const spaces = {};
@@ -57,23 +57,23 @@ export function validateHomeBatch(value) {
           !ids.includes(line.activity) || typeof line.m !== 'string' ||
           (Object.hasOwn(line, 'topic') && (line.topic !== 'case' || !HOME_CASE_STATES[line.activity]))) invalid();
       const m = line.m.trim();
-      if (!m || [...m].length > 90 || /[()（）\r\n\u0000-\u001f]/.test(m) ||
+      if (!m || [...m].length > (language === 'en' ? 260 : language === 'ja' ? 130 : 90) || /[()（）\r\n\u0000-\u001f]/.test(m) ||
           /^(?:Jane|Patrick|Milo|Boss|旁白|台词)\s*[：:]/i.test(m)) invalid();
       return { activity: line.activity, m, ...(line.topic === 'case' ? { topic: 'case' } : {}) };
     });
     if (!ids.every(id => spaces[space].some(line => line.activity === id))) invalid();
   }
   return { format: HOME_FORMAT, version: 1, scene: 'home-jane', spaces,
-    ...(value.continuity ? { continuity: value.continuity } : {}), ...(value.canon_revision ? {canon_revision:value.canon_revision} : {}) };
+    ...(value.language ? { language: value.language } : {}), ...(value.continuity ? { continuity: value.continuity } : {}), ...(value.canon_revision ? {canon_revision:value.canon_revision} : {}) };
 }
 
-export function decodeHomeBatch(text) {
+export function decodeHomeBatch(text, language = 'zh') {
   if (typeof text !== 'string') return null;
   const raw = text.trim().replace(/^```(?:json)?\s*\n([\s\S]*?)\n```$/i, '$1').trim();
   let value;
   try { value = JSON.parse(raw); }
   catch { if (/"format"\s*:\s*"cbi-home-lines"/.test(raw)) invalid(); return null; }
-  return value?.format === HOME_FORMAT ? validateHomeBatch(value) : null;
+  return value?.format === HOME_FORMAT ? validateHomeBatch(value, language) : null;
 }
 
 export const homePeriod = officePeriod;

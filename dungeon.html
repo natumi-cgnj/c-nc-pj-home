@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
+<script src="app-language-data.js?v=20261125-language1"></script>
+<script src="app-language.js?v=20261125-language1"></script>
+<script type="module" src="dialogue-translations.mjs?v=20261125-language1"></script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -122,9 +126,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <div class="currency-bar" id="currencyBar"></div>
 
 <div class="tabs">
-  <div class="tab active" data-tab="draw" onclick="switchTab('draw')">抽取</div>
-  <div class="tab" data-tab="inventory" onclick="switchTab('inventory')">仓库</div>
-  <div class="tab" data-tab="au" onclick="switchTab('au')">AU 收藏</div>
+  <div class="tab active" data-tab="draw" onclick="switchTab('draw')" data-ui="抽取">抽取</div>
+  <div class="tab" data-tab="inventory" onclick="switchTab('inventory')" data-ui="仓库">仓库</div>
+  <div class="tab" data-tab="au" onclick="switchTab('au')" data-ui="AU 收藏">AU 收藏</div>
 </div>
 
 <div class="content" id="content"></div>
@@ -135,11 +139,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <div class="reveal-type" id="revealType"></div>
     <div class="reveal-name" id="revealName"></div>
     <div class="reveal-extra" id="revealExtra"></div>
-    <button class="reveal-close" onclick="closeReveal()">确认</button>
+    <button class="reveal-close" onclick="closeReveal()" data-ui="确认">确认</button>
   </div>
 </div>
 
-<script src="cloud-sync.js?v=20261029-audit1"></script>
+<script src="cloud-sync.js?v=20261125-language1"></script>
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
@@ -208,9 +212,9 @@ function switchTab(t){currentTab=t;render();}
 function renderCurrency(){
   const f=getFragments();
   document.getElementById('currencyBar').innerHTML=
-    '<div class="currency-item"><div class="currency-icon">🎨</div><div class="currency-label">画作碎片</div><div class="currency-value neal-color">'+f.painting+'</div></div>'
-    +'<div class="currency-item"><div class="currency-icon">📁</div><div class="currency-label">档案碎片</div><div class="currency-value jane-color">'+f.archive+'</div></div>'
-    +'<div class="currency-item"><div class="currency-icon">📜</div><div class="currency-label">剧本碎片</div><div class="currency-value script-color">'+f.script+'</div></div>';
+    '<div class="currency-item"><div class="currency-icon">🎨</div><div class="currency-label" data-ui="画作碎片">画作碎片</div><div class="currency-value neal-color">'+f.painting+'</div></div>'
+    +'<div class="currency-item"><div class="currency-icon">📁</div><div class="currency-label" data-ui="档案碎片">档案碎片</div><div class="currency-value jane-color">'+f.archive+'</div></div>'
+    +'<div class="currency-item"><div class="currency-icon">📜</div><div class="currency-label" data-ui="剧本碎片">剧本碎片</div><div class="currency-value script-color">'+f.script+'</div></div>';
 }
 
 // ── DRAW TAB ──
@@ -219,25 +223,25 @@ function renderDraw(c){
   let html='';
 
   // Identity Front (Neal / 画作碎片)
-  html+='<div class="draw-section"><div class="draw-header"><div class="draw-icon neal">🎨</div><div><div class="draw-title">身份牌 · 正面</div><div class="draw-sub">画作碎片 ×'+DRAW_COST_IDENTITY+'</div></div></div>';
+  html+='<div class="draw-section"><div class="draw-header"><div class="draw-icon neal">🎨</div><div><div class="draw-title" data-ui="身份牌 · 正面">身份牌 · 正面</div><div class="draw-sub">画作碎片 ×'+DRAW_COST_IDENTITY+'</div></div></div>';
   html+='<div class="draw-desc">Neal 系身份牌。灵感来源：一幅画导致暴露。每种最多持有 '+MAX_IDENTITY+' 张。</div>';
   const canFront=f.painting>=DRAW_COST_IDENTITY;
-  html+='<button class="draw-btn neal-btn'+(canFront?'':' disabled')+'" onclick="'+(canFront?'drawIdentity(\"front\")':'')+'">抽取正面身份牌</button></div>';
+  html+=`<button class="draw-btn neal-btn${(canFront?'':' disabled')}" onclick="${(canFront?'drawIdentity(\"front\")':'')}" data-ui="抽取正面身份牌">抽取正面身份牌</button></div>`;
 
   // Identity Back (Jane / 档案碎片)
-  html+='<div class="draw-section"><div class="draw-header"><div class="draw-icon jane">📁</div><div><div class="draw-title">身份牌 · 反面</div><div class="draw-sub">档案碎片 ×'+DRAW_COST_IDENTITY+'</div></div></div>';
+  html+='<div class="draw-section"><div class="draw-header"><div class="draw-icon jane">📁</div><div><div class="draw-title" data-ui="身份牌 · 反面">身份牌 · 反面</div><div class="draw-sub">档案碎片 ×'+DRAW_COST_IDENTITY+'</div></div></div>';
   html+='<div class="draw-desc">Jane 系身份牌。灵感来源：CBI 机密档案。每种最多持有 '+MAX_IDENTITY+' 张。</div>';
   const canBack=f.archive>=DRAW_COST_IDENTITY;
-  html+='<button class="draw-btn jane-btn'+(canBack?'':' disabled')+'" onclick="'+(canBack?'drawIdentity(\"back\")':'')+'">抽取反面身份牌</button></div>';
+  html+=`<button class="draw-btn jane-btn${(canBack?'':' disabled')}" onclick="${(canBack?'drawIdentity(\"back\")':'')}" data-ui="抽取反面身份牌">抽取反面身份牌</button></div>`;
 
   // Tag (双方碎片)
-  html+='<div class="draw-section"><div class="draw-header"><div class="draw-icon script">📜</div><div><div class="draw-title">世界观 Tag</div><div class="draw-sub">画作 ×'+DRAW_COST_TAG_A+' + 档案 ×'+DRAW_COST_TAG_B+'</div></div></div>';
+  html+='<div class="draw-section"><div class="draw-header"><div class="draw-icon script">📜</div><div><div class="draw-title" data-ui="世界观 Tag">世界观 Tag</div><div class="draw-sub">画作 ×'+DRAW_COST_TAG_A+' + 档案 ×'+DRAW_COST_TAG_B+'</div></div></div>';
   html+='<div class="draw-desc">Natumi 的剧本灵感。高维世界通过电视剧认识他们。每种最多 '+MAX_TAG+' 个。</div>';
   const canTag=f.painting>=DRAW_COST_TAG_A&&f.archive>=DRAW_COST_TAG_B;
-  html+='<button class="draw-btn script-btn'+(canTag?'':' disabled')+'" onclick="'+(canTag?'drawTag()':'')+'">抽取 Tag</button></div>';
+  html+=`<button class="draw-btn script-btn${(canTag?'':' disabled')}" onclick="${(canTag?'drawTag()':'')}" data-ui="抽取 Tag">抽取 Tag</button></div>`;
 
   // Script fragment recharge (placeholder)
-  html+='<div class="recharge-box"><label>剧本碎片充值（获取方式待定）</label><input type="number" id="scriptRecharge" value="" min="0" placeholder="输入数量"><button class="recharge-btn" onclick="rechargeScript()">充值</button></div>';
+  html+='<div class="recharge-box"><label data-ui="剧本碎片充值（获取方式待定）">剧本碎片充值（获取方式待定）</label><input type="number" id="scriptRecharge" value="" min="0" placeholder="输入数量" data-ui-placeholder="输入数量"><button class="recharge-btn" onclick="rechargeScript()" data-ui="充值">充值</button></div>';
 
   c.innerHTML=html;
 }
@@ -301,13 +305,13 @@ function rechargeScript(){
 function renderInventory(c){
   let html='';
   // Front identities
-  html+='<div class="section-title">身份牌 · 正面（Neal 系）</div>';
+  html+='<div class="section-title" data-ui="身份牌 · 正面（Neal 系）">身份牌 · 正面（Neal 系）</div>';
   html+=renderInvGroup('identity_front',IDENTITY_FRONT);
   // Back identities
-  html+='<div class="section-title" style="margin-top:16px">身份牌 · 反面（Jane 系）</div>';
+  html+='<div class="section-title" style="margin-top:16px" data-ui="身份牌 · 反面（Jane 系）">身份牌 · 反面（Jane 系）</div>';
   html+=renderInvGroup('identity_back',IDENTITY_BACK);
   // Tags
-  html+='<div class="section-title" style="margin-top:16px">世界观 Tag</div>';
+  html+='<div class="section-title" style="margin-top:16px" data-ui="世界观 Tag">世界观 Tag</div>';
   html+=renderInvGroup('tag',WORLD_TAGS);
   c.innerHTML=html;
 }
@@ -333,8 +337,8 @@ function renderAU(c){
   let html='';
 
   // Compose section
-  html+='<div class="compose-section"><div class="compose-title">开启 AU 副本</div>';
-  html+='<div class="select-hint">选择身份牌（至少 1 张）</div>';
+  html+='<div class="compose-section"><div class="compose-title" data-ui="开启 AU 副本">开启 AU 副本</div>';
+  html+='<div class="select-hint" data-ui="选择身份牌（至少 1 张）">选择身份牌（至少 1 张）</div>';
   const ownedIdentities=getOwnedIdentities();
   if(ownedIdentities.length){
     html+='<div class="select-grid">';
@@ -345,10 +349,10 @@ function renderAU(c){
     });
     html+='</div>';
   }else{
-    html+='<div style="font-size:10px;color:#444;margin-bottom:10px">还没有身份牌</div>';
+    html+='<div style="font-size:10px;color:#444;margin-bottom:10px" data-ui="还没有身份牌">还没有身份牌</div>';
   }
 
-  html+='<div class="select-hint" style="margin-top:8px">选择 Tag（可选）</div>';
+  html+='<div class="select-hint" style="margin-top:8px" data-ui="选择 Tag（可选）">选择 Tag（可选）</div>';
   const ownedTags=getOwnedTags();
   if(ownedTags.length){
     html+='<div class="select-grid">';
@@ -358,14 +362,14 @@ function renderAU(c){
     });
     html+='</div>';
   }else{
-    html+='<div style="font-size:10px;color:#444;margin-bottom:10px">还没有 Tag</div>';
+    html+='<div style="font-size:10px;color:#444;margin-bottom:10px" data-ui="还没有 Tag">还没有 Tag</div>';
   }
 
   const cost=calcAUCost();
   const f=getFragments();
   const canCompose=selectedIdentities.length>0&&f.script>=cost;
   html+='<div class="script-cost">消耗 '+cost+' 剧本碎片'+(f.script<cost?' (不足)':'')+'</div>';
-  html+='<button class="compose-btn'+(canCompose?'':' disabled')+'" onclick="'+(canCompose?'composeAU()':'')+'">开启副本</button>';
+  html+=`<button class="compose-btn${(canCompose?'':' disabled')}" onclick="${(canCompose?'composeAU()':'')}" data-ui="开启副本">开启副本</button>`;
   html+='</div>';
 
   // Collection list

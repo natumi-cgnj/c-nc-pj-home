@@ -1,11 +1,15 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
+<script src="app-language-data.js?v=20261125-language1"></script>
+<script src="app-language.js?v=20261125-language1"></script>
+<script type="module" src="dialogue-translations.mjs?v=20261125-language1"></script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Schedule">
-<title>Schedule</title>
+<title data-ui="Schedule">Schedule</title>
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="apple-touch-icon.png">
 <link rel="icon" href="favicon.ico">
@@ -134,11 +138,11 @@ body[data-world-id="cbi"] .cbi-deployment{display:block}
 <body>
 
 <div class="top-bar">
-  <a class="back" href="index.html">← 返回</a>
-  <h1>Schedule</h1>
+  <a class="back" href="index.html" data-ui="← 返回">← 返回</a>
+  <h1 data-ui="Schedule">Schedule</h1>
   <div class="top-bar-right">
-    <button class="btn-s" onclick="showImportModal()">导入</button>
-    <button class="btn-s" onclick="exportPack()">导出</button>
+    <button class="btn-s" onclick="showImportModal()" data-ui="导入">导入</button>
+    <button class="btn-s" onclick="exportPack()" data-ui="导出">导出</button>
   </div>
 </div>
 
@@ -146,7 +150,7 @@ body[data-world-id="cbi"] .cbi-deployment{display:block}
   <button onclick="prevWeek()">‹</button>
   <div style="display:flex;align-items:center">
     <span class="week-label" id="weekLabel"></span>
-    <button class="today-btn" onclick="goToday()">今天</button>
+    <button class="today-btn" onclick="goToday()" data-ui="今天">今天</button>
   </div>
   <button onclick="nextWeek()">›</button>
 </div>
@@ -158,56 +162,56 @@ body[data-world-id="cbi"] .cbi-deployment{display:block}
 <div class="day-detail" id="dayDetail">
   <div class="detail-header">
     <span class="detail-date" id="detailDate"></span>
-    <button class="detail-add" onclick="openAddEvent()" title="添加事件">+</button>
+    <button class="detail-add" onclick="openAddEvent()" title="添加事件" data-ui-title="添加事件">+</button>
   </div>
   <div id="detailEvents"></div>
 </div>
 
 <div class="cbi-deployment" id="cbiDeploymentPanel">
   <div class="cbi-deploy-head">
-    <div><div class="cbi-deploy-kicker">CBI · deployment</div><div class="cbi-deploy-title" id="cbiDeployTitle">今日调度</div><div class="cbi-deploy-note" id="cbiDeployNote"></div></div>
-    <button class="btn-s" type="button" onclick="selectAllDeploymentAgents()">全员</button>
+    <div><div class="cbi-deploy-kicker">CBI · deployment</div><div class="cbi-deploy-title" id="cbiDeployTitle" data-ui="今日调度">今日调度</div><div class="cbi-deploy-note" id="cbiDeployNote"></div></div>
+    <button class="btn-s" type="button" onclick="selectAllDeploymentAgents()" data-ui="全员">全员</button>
   </div>
-  <div class="cbi-deploy-label">Boss 今天</div>
+  <div class="cbi-deploy-label" data-ui="Boss 今天">Boss 今天</div>
   <div class="cbi-mode-grid">
-    <button class="cbi-mode-btn" type="button" data-mode="office" onclick="setCbiBossMode('office')">留办公室</button>
-    <button class="cbi-mode-btn" type="button" data-mode="temporary_field" onclick="setCbiBossMode('temporary_field')">临时外勤</button>
-    <button class="cbi-mode-btn" type="button" data-mode="full_field" onclick="setCbiBossMode('full_field')">全天外勤</button>
+    <button class="cbi-mode-btn" type="button" data-mode="office" onclick="setCbiBossMode('office')" data-ui="留办公室">留办公室</button>
+    <button class="cbi-mode-btn" type="button" data-mode="temporary_field" onclick="setCbiBossMode('temporary_field')" data-ui="临时外勤">临时外勤</button>
+    <button class="cbi-mode-btn" type="button" data-mode="full_field" onclick="setCbiBossMode('full_field')" data-ui="全天外勤">全天外勤</button>
   </div>
-  <div class="cbi-deploy-label" id="cbiAgentLabel">选择外勤人员</div>
+  <div class="cbi-deploy-label" id="cbiAgentLabel" data-ui="选择外勤人员">选择外勤人员</div>
   <div class="cbi-agent-grid" id="cbiAgentGrid"></div>
   <div class="cbi-deploy-actions">
-    <button type="button" onclick="restoreDefaultCbiDeployment()">恢复默认</button>
-    <button class="primary" type="button" onclick="saveCbiDeployment()">保存调度</button>
-    <button class="return" type="button" id="cbiReturnBtn" onclick="returnCbiDeployment()">归队 · 回办公室</button>
+    <button type="button" onclick="restoreDefaultCbiDeployment()" data-ui="恢复默认">恢复默认</button>
+    <button class="primary" type="button" onclick="saveCbiDeployment()" data-ui="保存调度">保存调度</button>
+    <button class="return" type="button" id="cbiReturnBtn" onclick="returnCbiDeployment()" data-ui="归队 · 回办公室">归队 · 回办公室</button>
   </div>
 </div>
 
 <!-- Add/Edit event modal -->
 <div class="modal-overlay" id="eventModal">
   <div class="modal">
-    <div class="modal-title" id="modalTitle">添加事件</div>
-    <label>日期</label>
+    <div class="modal-title" id="modalTitle" data-ui="添加事件">添加事件</div>
+    <label data-ui="日期">日期</label>
     <input type="date" id="evtDate">
-    <label>内容</label>
-    <input type="text" id="evtTitle" placeholder="做什么" maxlength="100">
-    <label>备注</label>
-    <textarea id="evtNote" placeholder="可选"></textarea>
+    <label data-ui="内容">内容</label>
+    <input type="text" id="evtTitle" placeholder="做什么" maxlength="100" data-ui-placeholder="做什么">
+    <label data-ui="备注">备注</label>
+    <textarea id="evtNote" placeholder="可选" data-ui-placeholder="可选"></textarea>
     <div class="assignment-section" id="assignmentSection" hidden>
-      <label>工作地点</label>
+      <label data-ui="工作地点">工作地点</label>
       <div class="assignment-switch">
-        <button class="assignment-btn selected" type="button" data-assignment="field" onclick="setAssignment('field')">外勤</button>
-        <button class="assignment-btn" type="button" data-assignment="office" onclick="setAssignment('office')">留在办公室</button>
+        <button class="assignment-btn selected" type="button" data-assignment="field" onclick="setAssignment('field')" data-ui="外勤">外勤</button>
+        <button class="assignment-btn" type="button" data-assignment="office" onclick="setAssignment('office')" data-ui="留在办公室">留在办公室</button>
       </div>
     </div>
-    <label id="companionLabel">陪伴角色</label>
+    <label id="companionLabel" data-ui="陪伴角色">陪伴角色</label>
     <div class="companion-grid" id="companionGrid"></div>
     <div class="modal-btns">
-      <button class="btn-cancel" onclick="closeModal('eventModal')">取消</button>
-      <button class="btn-save" onclick="saveEvent()">保存</button>
+      <button class="btn-cancel" onclick="closeModal('eventModal')" data-ui="取消">取消</button>
+      <button class="btn-save" onclick="saveEvent()" data-ui="保存">保存</button>
     </div>
     <div id="deleteWrap" style="text-align:center;display:none">
-      <button class="btn-danger" onclick="deleteEvent()">删除此事件</button>
+      <button class="btn-danger" onclick="deleteEvent()" data-ui="删除此事件">删除此事件</button>
     </div>
   </div>
 </div>
@@ -215,12 +219,12 @@ body[data-world-id="cbi"] .cbi-deployment{display:block}
 <!-- Import modal -->
 <div class="modal-overlay" id="importModal">
   <div class="modal">
-    <div class="modal-title">导入日程包</div>
-    <label>选择 JSON 文件</label>
+    <div class="modal-title" data-ui="导入日程包">导入日程包</div>
+    <label data-ui="选择 JSON 文件">选择 JSON 文件</label>
     <input type="file" id="importFile" accept=".json" style="margin:8px 0">
     <div class="modal-btns">
-      <button class="btn-cancel" onclick="closeModal('importModal')">取消</button>
-      <button class="btn-save" onclick="doImport()">导入</button>
+      <button class="btn-cancel" onclick="closeModal('importModal')" data-ui="取消">取消</button>
+      <button class="btn-save" onclick="doImport()" data-ui="导入">导入</button>
     </div>
   </div>
 </div>
@@ -228,7 +232,7 @@ body[data-world-id="cbi"] .cbi-deployment{display:block}
 <div id="toast" style="position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.7);color:#fff;font-size:11px;padding:8px 16px;border-radius:8px;display:none;z-index:300"></div>
 
 <script src="world-context.js?v=20260913-cbi-room-label1"></script>
-<script src="cloud-sync.js?v=20261029-audit1"></script>
+<script src="cloud-sync.js?v=20261125-language1"></script>
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script src="cbi-data.js?v=20261108-suitcase-periods1"></script>
 <script src="character-runtime.js?v=20261105-late-sleep1"></script>
@@ -348,8 +352,8 @@ function selectDay(ds) {
 function renderDetail(ds) {
   if (WORLD_ID === 'cbi') renderCbiDeployment(ds);
   var d = new Date(ds + 'T00:00:00');
-  document.getElementById('detailDate').textContent =
-    (d.getMonth() + 1) + '月' + d.getDate() + '日 ' + '月火水木金土日'[d.getDay() === 0 ? 6 : d.getDay() - 1] + '曜日';
+  (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('detailDate'), (d.getMonth() + 1) + '月' + d.getDate() + '日 ' + '月火水木金土日'[d.getDay() === 0 ? 6 : d.getDay() - 1] + '曜日') : (document.getElementById('detailDate').textContent =
+    (d.getMonth() + 1) + '月' + d.getDate() + '日 ' + '月火水木金土日'[d.getDay() === 0 ? 6 : d.getDay() - 1] + '曜日'));
 
   var wrap = document.getElementById('detailEvents');
   wrap.innerHTML = '';
@@ -358,7 +362,7 @@ function renderDetail(ds) {
   if (WORLD_ID === 'cbi') renderDutyPreview(wrap, ds);
 
   if (!allEvts.length) {
-    wrap.insertAdjacentHTML('beforeend', '<div class="detail-empty">这一天还没有手动安排</div>');
+    wrap.insertAdjacentHTML('beforeend', '<div class="detail-empty" data-ui="这一天还没有手动安排">这一天还没有手动安排</div>');
     return;
   }
 
@@ -377,14 +381,12 @@ function renderDetail(ds) {
     }).join('');
 
     var tagHtml = item.type === 'schedule'
-      ? '<span class="detail-tag schedule">日程包</span>'
+      ? '<span class="detail-tag schedule" data-ui="日程包">日程包</span>'
       : '<span class="detail-tag date">' + (WORLD_ID === 'cbi' && evt.assignment ? (evt.assignment === 'field' ? '外勤' : '办公室') : '个人') + '</span>';
 
     var actionsHtml = '';
     if (item.type === 'user') {
-      actionsHtml = '<div class="detail-actions">' +
-        '<button onclick="editEvent(\'' + evt.id + '\')">编辑</button>' +
-        '</div>';
+      actionsHtml = `<div class="detail-actions"><button onclick="editEvent('${(evt.id)}')" data-ui="编辑">编辑</button></div>`;
     }
 
     div.innerHTML = '<div class="detail-color" style="background:' + color + '"></div>' +
@@ -409,9 +411,9 @@ function renderDutyPreview(wrap, ds) {
     }).join(' · ') || '—';
   }
   panel.innerHTML = '<div class="duty-preview-title">CBI · DAY SHIFT</div>' +
-    '<div class="duty-row"><strong>办公室</strong><span>' + names(duty.office) + '</span></div>' +
-    '<div class="duty-row"><strong>外勤</strong><span>' + names(duty.field) + '</span></div>' +
-    '<div class="duty-row"><strong>休息</strong><span>' + names(duty.rest || []) + '</span></div>';
+    '<div class="duty-row"><strong data-ui="办公室">办公室</strong><span>' + names(duty.office) + '</span></div>' +
+    '<div class="duty-row"><strong data-ui="外勤">外勤</strong><span>' + names(duty.field) + '</span></div>' +
+    '<div class="duty-row"><strong data-ui="休息">休息</strong><span>' + names(duty.rest || []) + '</span></div>';
   wrap.appendChild(panel);
 }
 
@@ -459,16 +461,18 @@ function updateCbiDeploymentControls() {
   var field = selectedDeploymentAgents();
   var rest = CharacterRuntime.getCbiDutyRoster(selectedDate, 'day').rest || [];
   rest = rest.filter(function (id) { return field.indexOf(id) < 0; });
-  document.getElementById('cbiAgentLabel').textContent = mode === 'office' ? '派去外勤的人员' : '陪 Boss 外勤的人员';
-  document.getElementById('cbiDeployNote').textContent = mode === 'office'
+  (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('cbiAgentLabel'), mode === 'office' ? '派去外勤的人员' : '陪 Boss 外勤的人员') : (document.getElementById('cbiAgentLabel').textContent = mode === 'office' ? '派去外勤的人员' : '陪 Boss 外勤的人员'));
+  (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('cbiDeployNote'), mode === 'office'
     ? (field.length ? field.length + ' 人外勤，Boss 留守办公室。' : '在班成员留守办公室；也可以临时改成外勤。')
-    : (field.length ? 'Boss 与 ' + field.map(function (id) { return CHAR_META[id].name; }).join('、') + ' 一起外勤。' : 'Boss 单独外勤，在班成员留守办公室。');
+    : (field.length ? 'Boss 与 ' + field.map(function (id) { return CHAR_META[id].name; }).join('、') + ' 一起外勤。' : 'Boss 单独外勤，在班成员留守办公室。')) : (document.getElementById('cbiDeployNote').textContent = mode === 'office'
+    ? (field.length ? field.length + ' 人外勤，Boss 留守办公室。' : '在班成员留守办公室；也可以临时改成外勤。')
+    : (field.length ? 'Boss 与 ' + field.map(function (id) { return CHAR_META[id].name; }).join('、') + ' 一起外勤。' : 'Boss 单独外勤，在班成员留守办公室。')));
   if (rest.length) document.getElementById('cbiDeployNote').textContent += ' ' + rest.map(function (id) { return CHAR_META[id].name; }).join('、') + ' 今天休息；若选入外勤则按调度出勤。';
 }
 
 function renderCbiDeployment(ds) {
   var deployment = cbiDeploymentFor(ds);
-  document.getElementById('cbiDeployTitle').textContent = ds + ' 调度';
+  (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('cbiDeployTitle'), ds + ' 调度') : (document.getElementById('cbiDeployTitle').textContent = ds + ' 调度'));
   document.getElementById('cbiAgentGrid').innerHTML = CHARS.map(function (id) {
     return '<button class="cbi-agent-btn' + (deployment.fieldAgents.indexOf(id) >= 0 ? ' selected' : '') + '" type="button" data-char="' + id + '" onclick="toggleCbiDeploymentAgent(\'' + id + '\')">' + esc(CHAR_META[id].name) + '</button>';
   }).join('');
@@ -493,7 +497,7 @@ function saveCbiDeployment() {
   }, selectedDate);
   CBIData.save(current);
   render();
-  toast('调度已保存');
+  toast((globalThis.AppLanguage?.ui('调度已保存') ?? ('调度已保存')));
 }
 
 function restoreDefaultCbiDeployment() {
@@ -504,7 +508,7 @@ function restoreDefaultCbiDeployment() {
     CBIData.save(current);
   }
   render();
-  toast('已恢复系统默认值班');
+  toast((globalThis.AppLanguage?.ui('已恢复系统默认值班') ?? ('已恢复系统默认值班')));
 }
 
 function returnCbiDeployment() {
@@ -524,7 +528,7 @@ function returnCbiDeployment() {
   }, selectedDate);
   CBIData.save(current);
   render();
-  toast('全员归队，回到办公室');
+  toast((globalThis.AppLanguage?.ui('全员归队，回到办公室') ?? ('全员归队，回到办公室')));
 }
 
 function prevWeek() { weekStart = addDays(weekStart, -7); render(); }
@@ -540,7 +544,7 @@ function goToday() {
 
 function openAddEvent() {
   editingEventId = null;
-  document.getElementById('modalTitle').textContent = WORLD_ID === 'cbi' ? '安排人员' : '添加事件';
+  (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('modalTitle'), WORLD_ID === 'cbi' ? '安排人员' : '添加事件') : (document.getElementById('modalTitle').textContent = WORLD_ID === 'cbi' ? '安排人员' : '添加事件'));
   document.getElementById('evtDate').value = selectedDate || dateStr(new Date());
   document.getElementById('evtTitle').value = '';
   document.getElementById('evtNote').value = '';
@@ -555,7 +559,7 @@ function editEvent(id) {
   var evt = data.events.find(function (e) { return e.id === id; });
   if (!evt) return;
   editingEventId = id;
-  document.getElementById('modalTitle').textContent = WORLD_ID === 'cbi' ? '编辑人员调度' : '编辑事件';
+  (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('modalTitle'), WORLD_ID === 'cbi' ? '编辑人员调度' : '编辑事件') : (document.getElementById('modalTitle').textContent = WORLD_ID === 'cbi' ? '编辑人员调度' : '编辑事件'));
   document.getElementById('evtDate').value = evt.date;
   document.getElementById('evtTitle').value = evt.title;
   document.getElementById('evtNote').value = evt.note || '';
@@ -614,7 +618,7 @@ function saveEvent() {
   var title = document.getElementById('evtTitle').value.trim();
   var date = document.getElementById('evtDate').value;
   var note = document.getElementById('evtNote').value.trim();
-  if (!title || !date) { toast('请填写日期和内容'); return; }
+  if (!title || !date) { toast((globalThis.AppLanguage?.ui('请填写日期和内容') ?? ('请填写日期和内容'))); return; }
   var companions = [];
   document.querySelectorAll('.companion-btn.selected').forEach(function (b) {
     companions.push(b.getAttribute('data-char'));
@@ -636,7 +640,7 @@ function saveEvent() {
   selectedDate = date;
   weekStart = getMonday(new Date(date + 'T00:00:00'));
   render();
-  toast('已保存');
+  toast((globalThis.AppLanguage?.ui('已保存') ?? ('已保存')));
 }
 
 function deleteEvent() {
@@ -645,7 +649,7 @@ function deleteEvent() {
   editingEventId = null;
   closeModal('eventModal');
   render();
-  toast('已删除');
+  toast((globalThis.AppLanguage?.ui('已删除') ?? ('已删除')));
 }
 
 /* ── Import / Export ── */
@@ -654,21 +658,21 @@ function showImportModal() { showModal('importModal'); }
 
 function doImport() {
   var fileInput = document.getElementById('importFile');
-  if (!fileInput.files.length) { toast('请选择文件'); return; }
+  if (!fileInput.files.length) { toast((globalThis.AppLanguage?.ui('请选择文件') ?? ('请选择文件'))); return; }
   var reader = new FileReader();
   reader.onload = function (e) {
     try {
       var json = JSON.parse(e.target.result);
       var result = CharacterRuntime.importSchedulePack(json, 'merge', WORLD_ID);
       if (result.ok) {
-        toast('导入成功 · ' + result.imported + ' 条日程');
+        toast((globalThis.AppLanguage?.ui('导入成功 · ' + result.imported + ' 条日程') ?? ('导入成功 · ' + result.imported + ' 条日程')));
         closeModal('importModal');
         render();
       } else {
-        toast('导入失败: ' + result.error);
+        toast((globalThis.AppLanguage?.ui('导入失败: ' + result.error) ?? ('导入失败: ' + result.error)));
       }
     } catch (err) {
-      toast('文件格式错误');
+      toast((globalThis.AppLanguage?.ui('文件格式错误') ?? ('文件格式错误')));
     }
   };
   reader.readAsText(fileInput.files[0]);
@@ -676,7 +680,7 @@ function doImport() {
 
 function exportPack() {
   var data = CharacterRuntime.exportSchedulePacks(WORLD_ID);
-  if (!data) { toast('没有日程包数据'); return; }
+  if (!data) { toast((globalThis.AppLanguage?.ui('没有日程包数据') ?? ('没有日程包数据'))); return; }
   var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   var a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -706,7 +710,7 @@ document.body.dataset.worldId=WORLD_ID;
 document.querySelector('.top-bar h1').textContent='Schedule · '+(WORLD_META[WORLD_ID]||WORLD_META.liminal).label;
 if(WORLD_ID==='cbi'){
   document.getElementById('assignmentSection').hidden=false;
-  document.getElementById('companionLabel').textContent='调度人员';
+  (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('companionLabel'), '调度人员') : (document.getElementById('companionLabel').textContent='调度人员'));
   document.getElementById('evtTitle').placeholder='现场调查、办公室查资料……';
 }
 renderLegend();

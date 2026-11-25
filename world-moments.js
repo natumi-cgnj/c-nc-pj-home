@@ -3,10 +3,12 @@
   if(global.__LIMINAL_REDIRECTING)return;
   let owner='',pending=false,waiting=false,nextAt=0,timer=null,observedStory=null,storyObserver=null,activeWorld='';
   const cache=new Map();
-  const content=import('./world-story-content.mjs?v=20261028-stories1');
+  let language='zh';
+  const selectedLanguage=()=>global.AppLanguage?.dialogue||'zh';
+  const content=import('./world-story-content.mjs?v=20261125-language1');
   content.catch(()=>{});
   const identity=()=>global.CloudSync?.user?.id||'';
-  function sameOwner(){const next=identity();if(next!==owner){owner=next;cache.clear();waiting=false;nextAt=0;}return next;}
+  function sameOwner(){const next=identity();if(next!==owner||language!==selectedLanguage()){owner=next;language=selectedLanguage();cache.clear();waiting=false;nextAt=0;}return next;}
   function surface(){
     const view=document.getElementById('viewDraft');
     const world=document.body.dataset.ledgerWorld;
@@ -44,12 +46,13 @@
     const cached=cache.get(place.world);
     if(cached)render(place.target,place.world,cached.batch,cached.hasContent);
     if(!waiting&&Date.now()<nextAt){schedule();return;}
-    pending=true;const requestedWorld=place.world,requestedOwner=owner;
+    pending=true;const requestedWorld=place.world,requestedOwner=owner,requestedLanguage=language;
     try{
       await content;
+      if(requestedLanguage!==selectedLanguage())return;
       const result=await global.CloudSync.invokeFunction('claude-bridge',{action:'world_auto',world_id:requestedWorld});
       if(result.error||result.data?.error)throw new Error('unavailable');
-      if(identity()!==requestedOwner)return;
+      if(identity()!==requestedOwner||requestedLanguage!==selectedLanguage())return;
       const batch=result.data.world_batch||null;
       cache.set(requestedWorld,{batch,hasContent:result.data.has_context!==false});
       const current=surface();
@@ -64,6 +67,7 @@
     const view=document.getElementById('viewDraft');if(view)new MutationObserver(()=>refresh()).observe(view,{attributes:true,attributeFilter:['class'],childList:true});
     refresh();
   }).catch(()=>{});
+  global.addEventListener('omniverse:languagechange',()=>{if(language!==selectedLanguage()){sameOwner();surface()?.target.replaceChildren();invalidate();}});
   global.addEventListener('pageshow',invalidate);
   global.addEventListener('storage',event=>{if(event.key==='jane_world_files_v1')invalidate();});
   document.addEventListener('visibilitychange',()=>{if(document.hidden){clearTimeout(timer);}else invalidate();});

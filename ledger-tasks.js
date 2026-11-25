@@ -29,7 +29,7 @@
   function save(state) {
     var raw = JSON.stringify(state);
     try { global.localStorage.setItem(model.storageKey, raw); }
-    catch (error) { toast('任务进度未能保存，请稍后再试'); return false; }
+    catch (error) { toast((globalThis.AppLanguage?.ui('任务进度未能保存，请稍后再试') ?? ('任务进度未能保存，请稍后再试'))); return false; }
     cachedRaw = 'v2:' + raw;
     cachedState = state;
     return true;
@@ -95,13 +95,13 @@
     if (!target) return;
     target.classList.add('asset-task-story');
     if (catalog.worlds.indexOf(context.worldId) < 0) {
-      target.innerHTML = '<p class="asset-stage-empty">暂无</p>';
+      target.innerHTML = '<p class="asset-stage-empty" data-ui="暂无">暂无</p>';
       target.onclick = null;
       return;
     }
     var state = read(), group = model.getWorld(state, context.worldId);
     target.innerHTML = '<div class="ledger-task-panel">' + (group.active ? renderActive(state) : group.offer ? renderOffer(state) :
-      heading(state, '本批已完成', '这一批小事件都完成了') + '<p class="ledger-task-note">新的小事件会在之后加入。</p>') + '</div>';
+      heading(state, '本批已完成', '这一批小事件都完成了') + '<p class="ledger-task-note" data-ui="新的小事件会在之后加入。">新的小事件会在之后加入。</p>') + '</div>';
     target.onclick = function (event) {
       var control = event.target.closest('[data-task-action]');
       if (!control || control.disabled || !target.contains(control)) return;
@@ -115,12 +115,12 @@
       if (action === 'finish') response = model.finish(state, context.worldId, wallet(), Date.now(), expected);
       if (!response) return;
       if (response.ok && !save(response.state)) return;
-      if (!response.ok) toast(response.reason === 'not-ended' ? '这一天还在进行中，结束后再打卡' : response.reason === 'unread' ? '读完这段剧情后再接受' : '任务已更新，请重新查看');
-      else if (response.failed) toast('条件未达成，任务已放回池中，下次可以重来');
-      else if (response.reason === 'returned') toast('已放回任务池，下次再来');
+      if (!response.ok) toast((globalThis.AppLanguage?.ui(response.reason === 'not-ended' ? '这一天还在进行中，结束后再打卡' : response.reason === 'unread' ? '读完这段剧情后再接受' : '任务已更新，请重新查看') ?? (response.reason === 'not-ended' ? '这一天还在进行中，结束后再打卡' : response.reason === 'unread' ? '读完这段剧情后再接受' : '任务已更新，请重新查看')));
+      else if (response.failed) toast((globalThis.AppLanguage?.ui('条件未达成，任务已放回池中，下次可以重来') ?? ('条件未达成，任务已放回池中，下次可以重来')));
+      else if (response.reason === 'returned') toast((globalThis.AppLanguage?.ui('已放回任务池，下次再来') ?? ('已放回任务池，下次再来')));
       else if (response.reason === 'completed') {
         var owner = context.wallet.stage.worlds.find(function (entry) { return entry.id === response.reward.worldId; });
-        toast((owner ? owner.title : '任务完成') + ' +' + response.reward.points + ' 积分');
+        toast((globalThis.AppLanguage?.ui((owner ? owner.title : '任务完成') + ' +' + response.reward.points + ' 积分') ?? ((owner ? owner.title : '任务完成') + ' +' + response.reward.points + ' 积分')));
       }
       if (global.WalletAssets) global.WalletAssets.render();
       else render(context);

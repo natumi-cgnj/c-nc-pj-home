@@ -2,7 +2,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const test = require('node:test');
 
-const index = fs.readFileSync('index.html', 'utf8');
+const index = require('./helpers/localized-source.cjs').readFileSync('index.html', 'utf8');
 
 function count(pattern) {
   return [...index.matchAll(pattern)].length;

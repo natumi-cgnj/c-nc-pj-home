@@ -1,11 +1,15 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
+<script src="app-language-data.js?v=20261125-language1"></script>
+<script src="app-language.js?v=20261125-language1"></script>
+<script type="module" src="dialogue-translations.mjs?v=20261125-language1"></script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Doll">
-<title>Doll</title>
+<title data-ui="Doll">Doll</title>
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="favicon.ico">
 <style>
@@ -161,7 +165,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 <div class="top-bar">
   <a class="back" href="index.html?p=4">← Home</a>
-  <h1>Doll</h1>
+  <h1 data-ui="Doll">Doll</h1>
   <div class="top-right"><button class="btn-s" onclick="exportData()">Backup</button></div>
 </div>
 
@@ -262,8 +266,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <textarea id="inputRefItemNote"></textarea>
   <label>List</label>
   <div class="cat-select" id="refItemListSelect">
-    <button type="button" class="cat-opt active" onclick="pickRefItemList(false)">未添加list</button>
-    <button type="button" class="cat-opt" onclick="pickRefItemList(true)">添加list</button>
+    <button type="button" class="cat-opt active" onclick="pickRefItemList(false)" data-ui="未添加list">未添加list</button>
+    <button type="button" class="cat-opt" onclick="pickRefItemList(true)" data-ui="添加list">添加list</button>
   </div>
   <input type="hidden" id="refItemInList" value="0">
   <div class="btn-row">

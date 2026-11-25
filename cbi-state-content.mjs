@@ -1,3 +1,4 @@
+import { translateDialogue } from './dialogue-translations.mjs';
 import { CBI_CONTINUITY, currentCanonPrompt } from './cbi-current-canon.mjs';
 import { HOME_STATES, HOME_CASE_STATES, selectHomeFrame } from './cbi-home-content.mjs';
 
@@ -160,7 +161,8 @@ export function stateSessions(context, now = Date.now()) {
   return (c.scene === 'home' ? [selectHomeSession(c, now)] : c.characters.map(x => selectOfficeSession(x.character, x, now))).filter(Boolean);
 }
 
-export function stateFallback(session) {
+export function stateFallback(session, language = 'zh') { return translateDialogue(baseStateFallback(session), language); }
+function baseStateFallback(session) {
   if (session.scene === 'home') return (session.topic === 'case' ? HOME_CASE_STATES[session.activity]?.fallback : HOME_STATES[session.activity]?.fallback) || '等一下，我还在这里。';
   const id = session.character;
   if (session.state === 'field_return' || session.state === 'errand_return') return ({ jane: '回来了。你看起来倒不怎么意外。', cho: '回来了。我先把记录核对一遍。', rigsby: '刚回来。让我先把手边的记录放好。', lisbon: '回来了。记录整理好后我再跟你说。', vanpelt: '回来了。我先核对一下带回来的资料。' })[id];
@@ -169,7 +171,7 @@ export function stateFallback(session) {
   return ({ jane: '等一下。我想把这处不对劲再看一遍。', cho: '这段还在核对。', rigsby: '我正在理这部分。给我一点时间。', lisbon: '这里还要再核对一下，先不下结论。', vanpelt: '我正在比对记录，还没核对完。' })[id];
 }
 
-export function validateStateBatch(value, sessions = null) {
+export function validateStateBatch(value, sessions = null, language = 'zh') {
   if (!exact(value, ['format', 'version', 'scene', 'continuity', 'canon_revision', 'states']) || value.format !== STATE_FORMAT || value.version !== 1 ||
       !['home', 'office'].includes(value.scene) || value.continuity !== CBI_CONTINUITY || !/^[a-f0-9]{64}$/.test(value.canon_revision) ||
       !Array.isArray(value.states) || !value.states.length || value.states.length > (value.scene === 'home' ? 1 : 5)) fail();
@@ -185,7 +187,7 @@ export function validateStateBatch(value, sessions = null) {
     const lines = x.lines.map(m => {
       if (typeof m !== 'string') fail();
       m = m.trim();
-      if (!m || [...m].length > 90 || /[()（）\r\n\u0000-\u001f]/.test(m) || /^(?:Jane|Patrick|Cho|Rigsby|Lisbon|Van\s*Pelt|Milo|Boss|旁白|台词)\s*[：:]/i.test(m)) fail();
+      if (!m || [...m].length > (language === 'en' ? 260 : language === 'ja' ? 130 : 90) || /[()（）\r\n\u0000-\u001f]/.test(m) || /^(?:Jane|Patrick|Cho|Rigsby|Lisbon|Van\s*Pelt|Milo|Boss|旁白|台词)\s*[：:]/i.test(m)) fail();
       return m;
     });
     if (new Set(lines).size !== lines.length) fail();
@@ -200,12 +202,12 @@ export function validateStateBatch(value, sessions = null) {
   }
   return { format: STATE_FORMAT, version: 1, scene: value.scene, continuity: CBI_CONTINUITY, canon_revision: value.canon_revision, states };
 }
-export function decodeStateBatch(source) {
+export function decodeStateBatch(source, language = 'zh') {
   if (typeof source !== 'string') return null;
   const raw = source.trim().replace(/^```(?:json)?\s*\n([\s\S]*?)\n```$/i, '$1').trim();
   let value;
   try { value = JSON.parse(raw); } catch { if (/"format"\s*:\s*"cbi-state-lines"/.test(raw)) fail(); return null; }
-  return value?.format === STATE_FORMAT ? validateStateBatch(value) : null;
+  return value?.format === STATE_FORMAT ? validateStateBatch(value, null, language) : null;
 }
 
 export function sessionLine(session, pool, now = Date.now()) {

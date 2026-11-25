@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
+<script src="app-language-data.js?v=20261125-language1"></script>
+<script src="app-language.js?v=20261125-language1"></script>
+<script type="module" src="dialogue-translations.mjs?v=20261125-language1"></script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -37,7 +41,7 @@ body{min-height:100vh;min-height:100dvh;padding-bottom:36px;background:#fafafa;c
 </head>
 <body>
 <header class="top-bar">
-  <a class="top-link" href="index.html">Home</a>
+  <a class="top-link" href="index.html" data-ui="Home">Home</a>
   <h1>SUITCASE</h1>
   <button class="top-action" id="addItem" type="button">＋ ITEM</button>
 </header>
@@ -50,11 +54,11 @@ body{min-height:100vh;min-height:100dvh;padding-bottom:36px;background:#fafafa;c
 
   <section class="point-panel" aria-label="Suitcase Point">
     <div class="point-head"><span class="point-title">SUITCASE POINT</span><span><strong class="point-value" id="pointBalance">0</strong><span class="point-unit">PT</span></span></div>
-    <div class="size-buttons" aria-label="记录清出的物品尺寸">
-      <button class="size-button xlarge" type="button" data-cleanup="xlarge"><span class="size-score">+20</span><span class="size-name">极大</span></button>
-      <button class="size-button large" type="button" data-cleanup="large"><span class="size-score">+8</span><span class="size-name">大</span></button>
-      <button class="size-button medium" type="button" data-cleanup="medium"><span class="size-score">+5</span><span class="size-name">中</span></button>
-      <button class="size-button small" type="button" data-cleanup="small"><span class="size-score">+2</span><span class="size-name">小</span></button>
+    <div class="size-buttons" aria-label="记录清出的物品尺寸" data-ui-aria-label="记录清出的物品尺寸">
+      <button class="size-button xlarge" type="button" data-cleanup="xlarge"><span class="size-score">+20</span><span class="size-name" data-ui="极大">极大</span></button>
+      <button class="size-button large" type="button" data-cleanup="large"><span class="size-score">+8</span><span class="size-name" data-ui="大">大</span></button>
+      <button class="size-button medium" type="button" data-cleanup="medium"><span class="size-score">+5</span><span class="size-name" data-ui="中">中</span></button>
+      <button class="size-button small" type="button" data-cleanup="small"><span class="size-score">+2</span><span class="size-name" data-ui="小">小</span></button>
     </div>
   </section>
 
@@ -64,31 +68,31 @@ body{min-height:100vh;min-height:100dvh;padding-bottom:36px;background:#fafafa;c
 
 <div class="sheet-overlay" id="itemSheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
   <form class="sheet" id="itemForm" onclick="event.stopPropagation()">
-    <div class="sheet-head"><span class="sheet-title" id="sheetTitle">NEW ITEM</span><button class="sheet-close" id="closeSheet" type="button" aria-label="关闭">×</button></div>
-    <div class="field"><label for="itemName">物品（选填）</label><input id="itemName" maxlength="120" autocomplete="off"></div>
+    <div class="sheet-head"><span class="sheet-title" id="sheetTitle">NEW ITEM</span><button class="sheet-close" id="closeSheet" type="button" aria-label="关闭" data-ui-aria-label="关闭">×</button></div>
+    <div class="field"><label for="itemName" data-ui="物品（选填）">物品（选填）</label><input id="itemName" maxlength="120" autocomplete="off"></div>
     <div class="field">
-      <label for="itemImage">图片</label>
+      <label for="itemImage" data-ui="图片">图片</label>
       <div class="image-field">
-        <label class="image-picker" id="itemImagePicker" for="itemImage"><img id="itemImagePreview" alt="" hidden><span class="image-placeholder">＋ 图片</span></label>
-        <button class="image-remove" id="removeItemImage" type="button" hidden>移除</button>
+        <label class="image-picker" id="itemImagePicker" for="itemImage"><img id="itemImagePreview" alt="" hidden><span class="image-placeholder" data-ui="＋ 图片">＋ 图片</span></label>
+        <button class="image-remove" id="removeItemImage" type="button" hidden data-ui="移除">移除</button>
       </div>
       <input id="itemImage" type="file" accept="image/*" hidden>
     </div>
     <div class="field-grid">
-      <div class="field"><label for="itemSeries">系列 / 分栏</label><input id="itemSeries" maxlength="80" list="seriesOptions" autocomplete="off" placeholder="例如 文具"></div>
-      <div class="field"><label for="itemCost">所需点数</label><input id="itemCost" type="number" min="1" step="1" inputmode="numeric" required></div>
+      <div class="field"><label for="itemSeries" data-ui="系列 / 分栏">系列 / 分栏</label><input id="itemSeries" maxlength="80" list="seriesOptions" autocomplete="off" placeholder="例如 文具" data-ui-placeholder="例如 文具"></div>
+      <div class="field"><label for="itemCost" data-ui="所需点数">所需点数</label><input id="itemCost" type="number" min="1" step="1" inputmode="numeric" required></div>
     </div>
-    <div class="field"><label for="itemNote">备注</label><input id="itemNote" maxlength="160" autocomplete="off" placeholder="留在家里 / 送给谁"></div>
+    <div class="field"><label for="itemNote" data-ui="备注">备注</label><input id="itemNote" maxlength="160" autocomplete="off" placeholder="留在家里 / 送给谁" data-ui-placeholder="留在家里 / 送给谁"></div>
     <datalist id="seriesOptions"></datalist>
-    <div class="sheet-actions"><button class="sheet-btn danger" id="deleteItem" type="button" hidden>删除</button><button class="sheet-btn" id="cancelItem" type="button">取消</button><button class="sheet-btn primary" type="submit">保存</button></div>
+    <div class="sheet-actions"><button class="sheet-btn danger" id="deleteItem" type="button" hidden data-ui="删除">删除</button><button class="sheet-btn" id="cancelItem" type="button" data-ui="取消">取消</button><button class="sheet-btn primary" type="submit" data-ui="保存">保存</button></div>
   </form>
 </div>
 
 <script src="world-context.js?v=20260920-suitcase2"></script>
-<script src="cloud-sync.js?v=20261029-audit1"></script>
+<script src="cloud-sync.js?v=20261125-language1"></script>
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script src="cbi-data.js?v=20261108-suitcase-periods1"></script>
-<script src="record-periods.js?v=20261108-archive-summary4"></script>
+<script src="record-periods.js?v=20261125-language1"></script>
 <script>
 (function(){
   'use strict';
@@ -140,12 +144,12 @@ body{min-height:100vh;min-height:100dvh;padding-bottom:36px;background:#fafafa;c
   }
 
   function renderInventory(items,points){
-    el('inventoryCount').textContent=items.length?items.length+' 件':'';
-    el('inventoryList').innerHTML=items.length?groupedHtml(items,'inventory',points):'<div class="empty">—<button class="empty-add" type="button" data-add-item>＋ 添加物品</button></div>';
+    (globalThis.AppLanguage ? AppLanguage.setText(el('inventoryCount'), items.length?items.length+' 件':'') : (el('inventoryCount').textContent=items.length?items.length+' 件':''));
+    el('inventoryList').innerHTML=items.length?groupedHtml(items,'inventory',points):'<div class="empty">—<button class="empty-add" type="button" data-add-item data-ui="＋ 添加物品">＋ 添加物品</button></div>';
   }
 
   function renderCollection(items){
-    el('collectionCount').textContent=items.length?items.length+' 件':'';
+    (globalThis.AppLanguage ? AppLanguage.setText(el('collectionCount'), items.length?items.length+' 件':'') : (el('collectionCount').textContent=items.length?items.length+' 件':''));
     el('collectionList').innerHTML=items.length?groupedHtml(items,'collected',0):'<div class="empty">—</div>';
   }
 
@@ -199,7 +203,7 @@ body{min-height:100vh;min-height:100dvh;padding-bottom:36px;background:#fafafa;c
   function historyPeriodSummary(period){
     var range=period.to?(period.from===period.to?period.from:period.from+' — '+period.to):(period.from?period.from+' 起':'本段');
     var date='<span class="record-period-range">'+escapeHtml(range)+'</span>';
-    if(period.current)return '<span class="record-period-copy">'+date+'</span><button class="history-archive" type="button" data-archive-period>归档</button>';
+    if(period.current)return '<span class="record-period-copy">'+date+'</span><button class="history-archive" type="button" data-archive-period data-ui="归档">归档</button>';
     var total=period.records.reduce(function(sum,entry){
       if(entry.kind==='cleanup'){sum.cleanup+=entry.count;sum.earned+=entry.delta}
       else{sum.items+=1;sum.spent+=Math.max(0,-entry.delta)}
@@ -266,7 +270,7 @@ body{min-height:100vh;min-height:100dvh;padding-bottom:36px;background:#fafafa;c
   }
 
   function deleteItem(){
-    if(!editingId||!window.confirm('删除这件物品？'))return;
+    if(!editingId||!window.confirm((globalThis.AppLanguage?.ui('删除这件物品？') ?? ('删除这件物品？'))))return;
     var db=load();var items=itemsOf(db);var index=items.findIndex(function(item){return item.id===editingId});if(index<0)return;
     var removed=items[index];items.splice(index,1);if(!CBIData.save(db))return;if(removed.image&&/^cloud:\/\//.test(removed.image)&&window.CloudSync&&typeof CloudSync.deleteAsset==='function')CloudSync.deleteAsset(removed.image).catch(function(){});closeEditor();render();
   }

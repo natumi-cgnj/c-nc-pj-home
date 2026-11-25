@@ -1,4 +1,4 @@
-import { WORLD_FILES_KEY, CANON_FIELDS, normalizeWorldFiles, normalizeArchive, worldTitles, validStoryWorld, storySnapshot, storyRevision } from './world-story-content.mjs?v=20261028-stories1';
+import { WORLD_FILES_KEY, CANON_FIELDS, normalizeWorldFiles, normalizeArchive, worldTitles, validStoryWorld, storySnapshot, storyRevision } from './world-story-content.mjs?v=20261125-language1';
 
 const $=id=>document.getElementById(id);
 let saving=false;
@@ -52,7 +52,7 @@ function renderWorlds(){
   const current=list.find(x=>x.id===world);
   $('storyWorldName').textContent=current.title;
   $('storyHeading').textContent=current.title;
-  $('storySubtitle').textContent=current.subtitle+' · Jane 的世界线';
+  (globalThis.AppLanguage ? AppLanguage.setText($('storySubtitle'), current.subtitle+' · Jane 的世界线') : ($('storySubtitle').textContent=current.subtitle+' · Jane 的世界线'));
   $('storyCbiLink').hidden=world!=='sacramento';
   $('storyWorldOptions').replaceChildren(...list.map(item=>{
     const button=el('button','files-world-option'+(item.id===world?' is-current':''));button.type='button';button.setAttribute('aria-pressed',String(item.id===world));
@@ -103,7 +103,7 @@ function editCanon(){
 function closeEntry(discard=false){if(discard){try{sessionStorage.removeItem(entryDraftKey());}catch{}}$('storyEntryModal').classList.remove('show');$('addStoryEntry').focus();}
 function openEntry(item=null){
   identity();if(!item){try{item=JSON.parse(sessionStorage.getItem(entryDraftKey()));}catch{}}entryId=item?.id||'';entryBase=JSON.stringify(archive());
-  $('storyEntryHeading').textContent=entryId?'编辑剧情':'补一段剧情';
+  (globalThis.AppLanguage ? AppLanguage.setText($('storyEntryHeading'), entryId?'编辑剧情':'补一段剧情') : ($('storyEntryHeading').textContent=entryId?'编辑剧情':'补一段剧情'));
   $('storyEntryTitle').value=item?.title||'';$('storyEntryWhen').value=item?.when||'';$('storyEntryBody').value=item?.body||'';$('storyEntryInclude').checked=item?.include!==false;
   $('removeStoryEntry').hidden=!entryId;notice('',false,'storyEntryNotice');$('storyEntryModal').classList.add('show');$('storyEntryTitle').focus();
 }
@@ -115,7 +115,7 @@ function renderMoment(value){
   if(value.stale)notice('这段使用的是旧版设定；再次生成会参考当前保存的档案。',false,'storyGenerationNotice');
 }
 async function loadMoment(){
-  const requestedWorld=world;try{const data=await api({action:'world_lines',world_id:requestedWorld});if(world===requestedWorld){notice('',false,'storyGenerationNotice');renderMoment(data.world_batch);}}catch(error){notice(explain(error),true,'storyGenerationNotice');}
+  const requestedWorld=world,language=window.AppLanguage?.dialogue||'zh';try{const data=await api({action:'world_lines',world_id:requestedWorld});if(world===requestedWorld&&language===(window.AppLanguage?.dialogue||'zh')){notice('',false,'storyGenerationNotice');renderMoment(data.world_batch);}}catch(error){notice(explain(error),true,'storyGenerationNotice');}
 }
 function endOperation(text,error=false){clearTimeout(pollTimer);const original=operation;operation=null;$('generateStoryMoment').disabled=false;if(original?.world===world)notice(text,error,'storyGenerationNotice');}
 async function advanceGeneration(){
@@ -174,9 +174,11 @@ $('generateStoryMoment').addEventListener('click',async()=>{
   $('generateStoryMoment').disabled=true;
   const requestedWorld=world;
   try{const revision=await localRevision();const cloud=await api({action:'story_context',world_id:world});if(cloud.archive_revision!==revision)throw new Error('story_not_synced');if(!cloud.has_context)throw new Error('story_empty');if(world!==requestedWorld){$('generateStoryMoment').disabled=false;return;}
-    operation={world,revision:cloud.context_revision,request:crypto.randomUUID(),run:null};notice('正在发送本世界的已保存设定。',false,'storyGenerationNotice');advanceGeneration();
+    operation={world,language:window.AppLanguage?.dialogue||'zh',revision:cloud.context_revision,request:crypto.randomUUID(),run:null};notice('正在发送本世界的已保存设定。',false,'storyGenerationNotice');advanceGeneration();
   }catch(error){$('generateStoryMoment').disabled=false;notice(explain(error),true,'storyGenerationNotice');}
 });
 $('archiveStoryMoment').addEventListener('click',()=>{if(moment)openEntry({title:moment.pack.title,when:'日常片段',body:moment.pack.scene+'\n\n'+moment.pack.lines.map(x=>x.s+'\nJane：'+x.m).join('\n\n'),include:true});});
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&$('storyEntryModal').classList.contains('show')){event.stopPropagation();closeEntry();}});
 boot().catch(error=>notice(explain(error),true));
+
+window.addEventListener('omniverse:languagechange',event=>{if(event.detail.previous.dialogue===event.detail.dialogue)return;if(operation)endOperation('');renderMoment(null);if(owner)loadMoment();});

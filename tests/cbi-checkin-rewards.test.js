@@ -99,7 +99,7 @@ test('check-in module exposes REWARD then CHECK in a fixed bottom tab bar', () =
   const sharedCss = fs.readFileSync('task-modules.css', 'utf8');
   const rewardIndex = rewardUi.indexOf('data-checkin-view="reward">REWARD');
   const checkIndex = rewardUi.indexOf('data-checkin-view="check">CHECK');
-  assert.match(daily, /cbi-checkin-rewards\.js\?v=20260927-checkin-history1/);
+  assert.match(daily, /cbi-checkin-rewards\.js\?v=20261125-language1/);
   assert.ok(rewardIndex >= 0 && checkIndex > rewardIndex);
   assert.match(rewardUi, /var PEOPLE = \[/);
   for (const id of ['boss', 'jane', 'cho', 'rigsby', 'lisbon', 'vanpelt']) {

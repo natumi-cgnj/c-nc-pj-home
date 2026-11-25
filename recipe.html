@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
+<script src="app-language-data.js?v=20261125-language1"></script>
+<script src="app-language.js?v=20261125-language1"></script>
+<script type="module" src="dialogue-translations.mjs?v=20261125-language1"></script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -181,8 +185,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- ═══ Grid View ═══ -->
 <div class="view active" id="viewGrid">
   <div class="detail-header">
-    <button class="back-btn" onclick="location.href='meals.html'">← 返回</button>
-    <h2>沙拉菜谱</h2>
+    <button class="back-btn" onclick="location.href='meals.html'" data-ui="← 返回">← 返回</button>
+    <h2 data-ui="沙拉菜谱">沙拉菜谱</h2>
     <button class="btn-s" id="recipeMenuBtn" onclick="openRecipeMenu()">⋯</button>
   </div>
   <div class="detail-overall" id="gridOverall"></div>
@@ -192,8 +196,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- ═══ Detail View ═══ -->
 <div class="view" id="viewDetail">
   <div class="detail-header">
-    <button class="back-btn" onclick="backToGrid()">← 返回</button>
-    <h2 id="recipeDetailTitle">沙拉菜谱</h2>
+    <button class="back-btn" onclick="backToGrid()" data-ui="← 返回">← 返回</button>
+    <h2 id="recipeDetailTitle" data-ui="沙拉菜谱">沙拉菜谱</h2>
     <div style="width:40px"></div>
   </div>
   <div id="detailContent"></div>
@@ -202,36 +206,36 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- Action sheet -->
 <div class="action-sheet-bg" id="recipeMenuSheet">
   <div class="action-sheet">
-    <button onclick="closeSheet('recipeMenuSheet');openEditRecipeProject()">编辑项目</button>
-    <button class="del-as" onclick="closeSheet('recipeMenuSheet');deleteRecipeProject()">删除项目</button>
-    <button class="cancel-as" onclick="closeSheet('recipeMenuSheet')">取消</button>
+    <button onclick="closeSheet('recipeMenuSheet');openEditRecipeProject()" data-ui="编辑项目">编辑项目</button>
+    <button class="del-as" onclick="closeSheet('recipeMenuSheet');deleteRecipeProject()" data-ui="删除项目">删除项目</button>
+    <button class="cancel-as" onclick="closeSheet('recipeMenuSheet')" data-ui="取消">取消</button>
   </div>
 </div>
 
 <!-- Edit project modal -->
 <div class="modal-bg" id="projectModal">
   <div class="modal">
-    <h2 id="projectModalTitle">编辑项目</h2>
-    <label>项目图标</label>
-    <label class="file-label" id="projectIconLabel" onclick="document.getElementById('projectIconInput').click()">点击选择图片</label>
+    <h2 id="projectModalTitle" data-ui="编辑项目">编辑项目</h2>
+    <label data-ui="项目图标">项目图标</label>
+    <label class="file-label" id="projectIconLabel" onclick="document.getElementById('projectIconInput').click()" data-ui="点击选择图片">点击选择图片</label>
     <input type="file" accept="image/*" id="projectIconInput" onchange="previewProjectIcon(this)" style="display:none">
     <img id="projectIconPreview" class="img-preview" style="display:none">
-    <label>项目名</label>
-    <input type="text" id="inputProjectName" placeholder="如: 沙拉菜谱">
-    <label>项目细分</label>
+    <label data-ui="项目名">项目名</label>
+    <input type="text" id="inputProjectName" placeholder="如: 沙拉菜谱" data-ui-placeholder="如: 沙拉菜谱">
+    <label data-ui="项目细分">项目细分</label>
     <div class="section-list" id="sectionList"></div>
-    <button class="add-section-btn" onclick="addSectionRow()">+ 添加分栏</button>
-    <label>备注（选填）</label>
-    <textarea id="inputProjectNote" placeholder="心斋桥店、只记常规款…"></textarea>
-    <label>值班</label>
+    <button class="add-section-btn" onclick="addSectionRow()" data-ui="+ 添加分栏">+ 添加分栏</button>
+    <label data-ui="备注（选填）">备注（选填）</label>
+    <textarea id="inputProjectNote" placeholder="心斋桥店、只记常规款…" data-ui-placeholder="心斋桥店、只记常规款…"></textarea>
+    <label data-ui="值班">值班</label>
     <div class="duty-row" id="dutyRow"></div>
     <div class="duty-custom-row" id="dutyCustomRow" style="display:none">
-      <input type="text" id="dutyCustomName" placeholder="如: Hello Kitty">
+      <input type="text" id="dutyCustomName" placeholder="如: Hello Kitty" data-ui-placeholder="如: Hello Kitty">
       <div class="color-picker-row" id="colorPicker"></div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-cancel" onclick="closeModal('projectModal')">取消</button>
-      <button class="btn btn-primary" onclick="saveRecipeProject()">保存</button>
+      <button class="btn btn-cancel" onclick="closeModal('projectModal')" data-ui="取消">取消</button>
+      <button class="btn btn-primary" onclick="saveRecipeProject()" data-ui="保存">保存</button>
     </div>
   </div>
 </div>
@@ -241,7 +245,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   <div class="completion-box" onclick="event.stopPropagation()">
     <h3>🎉</h3>
     <p id="completionMsg"></p>
-    <button onclick="document.getElementById('completionPopup').classList.remove('show')">好的</button>
+    <button onclick="document.getElementById('completionPopup').classList.remove('show')" data-ui="好的">好的</button>
   </div>
 </div>
 
@@ -250,7 +254,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 <script src="cloudinary-upload.js"></script>
 <script src="world-context.js?v=20260913-cbi-room-label1"></script>
-<script src="cloud-sync.js?v=20261029-audit1"></script>
+<script src="cloud-sync.js?v=20261125-language1"></script>
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script>
 'use strict';
@@ -347,7 +351,7 @@ function renderGrid(){
   const done=countCollected(),total=RECIPES.length,pct=total?Math.round(done/total*100):0;
   document.getElementById('gridOverall').innerHTML=`<span>${done}/${total}</span><div class="detail-overall-bar"><div class="detail-overall-fill" style="width:${pct}%"></div></div><span>${pct}%</span>`;
   if(!RECIPES.length){
-    document.getElementById('recipeGridArea').innerHTML='<div class="world-empty"><strong>CBI 菜谱项目尚未建立</strong><span>这里会保存只属于 CBI 世界的菜谱、抽取进度与评语；夹缝空间的18张沙拉卡不会出现在这里。</span></div>';
+    document.getElementById('recipeGridArea').innerHTML='<div class="world-empty"><strong data-ui="CBI 菜谱项目尚未建立">CBI 菜谱项目尚未建立</strong><span data-ui="这里会保存只属于 CBI 世界的菜谱、抽取进度与评语；夹缝空间的18张沙拉卡不会出现在这里。">这里会保存只属于 CBI 世界的菜谱、抽取进度与评语；夹缝空间的18张沙拉卡不会出现在这里。</span></div>';
     return;
   }
   let html='';
@@ -428,12 +432,12 @@ function renderDetail(){
   // Action area
   if(s.status==='active'){
     if(!allChecked){
-      html+=`<div class="recipe-action"><button class="action-btn disabled">开始制作</button></div>`;
+      html+=`<div class="recipe-action"><button class="action-btn disabled" data-ui="开始制作">开始制作</button></div>`;
     }else if(!s.made){
-      html+=`<div class="recipe-action"><button class="action-btn gold" onclick="markMade()">制作完成</button></div>`;
+      html+=`<div class="recipe-action"><button class="action-btn gold" onclick="markMade()" data-ui="制作完成">制作完成</button></div>`;
     }else if(!s.eaten){
-      html+=`<div class="photo-area"><div class="photo-slot${s.photo?' has-img':''}" onclick="pickPhoto()">${s.photo?`<img src="${s.photo}">`:'<div class="photo-placeholder"><div class="photo-icon">📷</div><div class="photo-hint">打卡照片</div></div>'}</div></div>`;
-      html+=`<div class="recipe-action"><button class="action-btn primary" onclick="markEaten()">开始食用</button></div>`;
+      html+=`<div class="photo-area"><div class="photo-slot${s.photo?' has-img':''}" onclick="pickPhoto()">${s.photo?`<img src="${s.photo}">`:'<div class="photo-placeholder"><div class="photo-icon">📷</div><div class="photo-hint" data-ui="打卡照片">打卡照片</div></div>'}</div></div>`;
+      html+=`<div class="recipe-action"><button class="action-btn primary" onclick="markEaten()" data-ui="开始食用">开始食用</button></div>`;
     }else{
       if(s.photo){html+=`<div class="photo-area"><div class="photo-slot has-img"><img src="${s.photo}"></div></div>`;}
       html+=renderComments(r,s,false);
@@ -441,7 +445,7 @@ function renderDetail(){
   }else if(s.status==='collected'){
     if(s.photo){html+=`<div class="photo-area"><div class="photo-slot has-img"><img src="${s.photo}"></div></div>`;}
     html+=renderComments(r,s,true);
-    html+=`<div class="collected-banner">✦ 已收录 ✦</div>`;
+    html+=`<div class="collected-banner" data-ui="✦ 已收录 ✦">✦ 已收录 ✦</div>`;
   }
 
   html+=`</div>`;
@@ -456,11 +460,11 @@ function renderComments(recipe,s,readonly){
   });
   if(readonly){
     if(s.myComment){
-      html+=`<div class="comment-card"><div class="comment-avatar" style="background:#E8B96A">Me</div><div class="comment-body"><div class="comment-name" style="color:#E8B96A">我的评语</div><div class="comment-text">「${esc(s.myComment)}」</div></div></div>`;
+      html+=`<div class="comment-card"><div class="comment-avatar" style="background:#E8B96A">Me</div><div class="comment-body"><div class="comment-name" style="color:#E8B96A" data-ui="我的评语">我的评语</div><div class="comment-text">「${esc(s.myComment)}」</div></div></div>`;
     }
   }else{
-    html+=`<div class="my-comment"><textarea id="myCommentInput" placeholder="我的评语（选填）">${esc(s.myComment||'')}</textarea></div>`;
-    html+=`<div class="collect-btn-wrap"><button class="action-btn gold" onclick="collectRecipe()">完成收录</button></div>`;
+    html+=`<div class="my-comment"><textarea id="myCommentInput" placeholder="我的评语（选填）" data-ui-placeholder="我的评语（选填）">${esc(s.myComment||'')}</textarea></div>`;
+    html+=`<div class="collect-btn-wrap"><button class="action-btn gold" onclick="collectRecipe()" data-ui="完成收录">完成收录</button></div>`;
   }
   html+=`</div>`;
   return html;
@@ -475,7 +479,7 @@ function toggleIngredient(idx){
 function markMade(){
   const s=state.items[curRecipeId];if(!s)return;
   s.made=true;save();renderDetail();
-  toast('制作完成！');
+  toast((globalThis.AppLanguage?.ui('制作完成！') ?? ('制作完成！')));
 }
 
 function markEaten(){
@@ -514,7 +518,7 @@ function normalizeTagColor(c){return /^#[0-9a-f]{6}$/i.test(String(c||''))?Strin
 function openEditRecipeProject(){
   const cfg=getProjectConfig();
   projectTempIcon=cfg.icon||'';
-  document.getElementById('projectModalTitle').textContent='编辑项目';
+  (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('projectModalTitle'), '编辑项目') : (document.getElementById('projectModalTitle').textContent='编辑项目'));
   document.getElementById('inputProjectName').value=cfg.name;
   document.getElementById('inputProjectNote').value=cfg.note||'';
   if(cfg.icon){document.getElementById('projectIconPreview').src=cfg.icon;document.getElementById('projectIconPreview').style.display='block';}
@@ -536,11 +540,11 @@ function saveRecipeProject(){
   document.querySelector('#viewGrid .detail-header h2').textContent=name;
   closeModal('projectModal');
   renderGrid();
-  toast('已保存');
+  toast((globalThis.AppLanguage?.ui('已保存') ?? ('已保存')));
 }
 
 function deleteRecipeProject(){
-  if(!confirm('删除此项目？所有打卡记录都会消失。'))return;
+  if(!confirm((globalThis.AppLanguage?.ui('删除此项目？所有打卡记录都会消失。') ?? ('删除此项目？所有打卡记录都会消失。'))))return;
   localStorage.removeItem(CONFIG_SK);
   localStorage.removeItem(SK);
   location.href='meals.html';
@@ -561,7 +565,7 @@ function renderDutyRow(selected){
     const active=selType===d.type;
     return`<button class="duty-opt ${active?'active':''}" style="border-color:${d.color};${active?'background:'+d.color+'15;color:'+d.color:''}" onclick="selectDuty('${d.type}')">${d.name}</button>`;
   }).join('');
-  html+=`<button class="duty-opt ${selType==='custom'?'active':''}" style="${selType==='custom'?'border-color:'+(selected.color||'#E8B96A'):''}" onclick="selectDuty('custom')">其他</button>`;
+  html+=`<button class="duty-opt ${(selType==='custom'?'active':'')}" style="${(selType==='custom'?'border-color:'+(selected.color||'#E8B96A'):'')}" onclick="selectDuty('custom')" data-ui="其他">其他</button>`;
   row.innerHTML=html;
   document.getElementById('dutyCustomRow').style.display=selType==='custom'?'flex':'none';
   if(selType==='custom'){
@@ -581,14 +585,14 @@ function selectDuty(type){
 function pickColor(c){_dutyState.color=c;renderColorPicker(c);}
 
 /* ── Section rows ── */
-function sectionTypeOptions(value){return`<option value="food"${value==='merch'?'':' selected'}>餐品</option><option value="merch"${value==='merch'?' selected':''}>周边</option>`;}
+function sectionTypeOptions(value){return`<option value="food"${(value==='merch'?'':' selected')} data-ui="餐品">餐品</option><option value="merch"${(value==='merch'?' selected':'')} data-ui="周边">周边</option>`;}
 function sectionColsOptions(value){const active=clampSectionCols(value);let html='';for(let i=1;i<=5;i++)html+=`<option value="${i}"${i===active?' selected':''}>${i}列</option>`;return html;}
 function sectionTagEditorHtml(sec,index){
   const color=normalizeTagColor(sec.tagColor);
   return`<div class="section-config-line"><input type="text" value="${esc(sec.tagText||'')}" placeholder="如：角落生物、春季限定" maxlength="20" oninput="_sections[${index}].tagText=this.value"><div class="section-tag-palette">${SECTION_TAG_COLORS.map(c=>`<button type="button" class="section-tag-swatch ${c===color?'active':''}" style="background:${c}" onclick="_sections[${index}].tagColor='${c}';renderSectionList()"></button>`).join('')}</div></div>`;
 }
 function sectionSettingsHtml(sec,index){
-  return`<div class="section-config-line"><span class="section-config-label">内容</span><select onchange="_sections[${index}].itemType=this.value">${sectionTypeOptions(normalizeItemType(sec.itemType))}</select><span class="section-config-label">数量</span><input type="number" value="${Math.max(0,parseInt(sec.count)||0)}" min="0" max="99" onchange="_sections[${index}].count=parseInt(this.value)||0"><select onchange="_sections[${index}].cols=parseInt(this.value)||3">${sectionColsOptions(sec.cols)}</select></div>`;
+  return`<div class="section-config-line"><span class="section-config-label" data-ui="内容">内容</span><select onchange="_sections[${index}].itemType=this.value">${sectionTypeOptions(normalizeItemType(sec.itemType))}</select><span class="section-config-label" data-ui="数量">数量</span><input type="number" value="${Math.max(0,parseInt(sec.count)||0)}" min="0" max="99" onchange="_sections[${index}].count=parseInt(this.value)||0"><select onchange="_sections[${index}].cols=parseInt(this.value)||3">${sectionColsOptions(sec.cols)}</select></div>`;
 }
 function renderSectionList(){
   const list=document.getElementById('sectionList');
@@ -601,10 +605,10 @@ async function onPhotoSelected(input){
   if(!input.files||!input.files[0]||!curRecipeId)return;
   const s=state.items[curRecipeId];if(!s)return;
   try{
-    toast('上传中…');
+    toast((globalThis.AppLanguage?.ui('上传中…') ?? ('上传中…')));
     const url=await CloudinaryAssets.uploadImage(input.files[0]);
-    s.photo=url;save();renderDetail();toast('照片已保存');
-  }catch(e){toast('上传失败');}
+    s.photo=url;save();renderDetail();toast((globalThis.AppLanguage?.ui('照片已保存') ?? ('照片已保存')));
+  }catch(e){toast((globalThis.AppLanguage?.ui('上传失败') ?? ('上传失败')));}
   input.value='';
 }
 

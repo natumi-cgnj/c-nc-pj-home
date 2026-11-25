@@ -53,8 +53,8 @@
     try {
       const value = state(), current = value.list.find(x => x.id === value.active);
       document.body.dataset.ledgerWorld = current.id;
-      target.innerHTML = '<div class="ledger-world-scene" aria-hidden="true"></div><div class="diet-world-board"><div class="diet-world-head"><span>世界</span><div style="display:flex;align-items:center;gap:16px"><a href="world-files.html?world=' + current.id + '" class="body-link muted" style="text-decoration:none">世界档案</a><button type="button" class="body-link muted" data-diet-world-open>切换</button></div></div><div class="diet-world-spacer" aria-label="任务小剧情"><p class="body-empty" style="text-align:center;padding-top:32px">暂无</p></div><div class="diet-world-stage"><button type="button" class="asset-stage-current" data-diet-world-open aria-label="选择世界，当前' + esc(current.title) + '">' + art(current.id) + '<span class="asset-summary-label">' + esc(current.title) + '</span></button></div></div>';
-    } catch (error) { target.innerHTML = '<div class="body-wrap"><p class="body-empty">世界暂时无法读取，请刷新后重试。</p></div>'; }
+      target.innerHTML = `<div class="ledger-world-scene" aria-hidden="true"></div><div class="diet-world-board"><div class="diet-world-head"><span data-ui="世界">世界</span><div style="display:flex;align-items:center;gap:16px"><a href="world-files.html?world=${(current.id)}" class="body-link muted" style="text-decoration:none" data-ui="世界档案">世界档案</a><button type="button" class="body-link muted" data-diet-world-open data-ui="切换">切换</button></div></div><div class="diet-world-spacer" aria-label="任务小剧情" data-ui-aria-label="任务小剧情"><p class="body-empty" style="text-align:center;padding-top:32px" data-ui="暂无">暂无</p></div><div class="diet-world-stage"><button type="button" class="asset-stage-current" data-diet-world-open aria-label="选择世界，当前${(esc(current.title))}">${(art(current.id))}<span class="asset-summary-label">${(esc(current.title))}</span></button></div></div>`;
+    } catch (error) { target.innerHTML = '<div class="body-wrap"><p class="body-empty" data-ui="世界暂时无法读取，请刷新后重试。">世界暂时无法读取，请刷新后重试。</p></div>'; }
   }
   function close() {
     document.getElementById('dietWorldModal').classList.remove('show');
@@ -65,7 +65,7 @@
     try { value = state(); } catch (error) { return; }
     returnFocus = document.activeElement;
     const modal = document.getElementById('dietWorldModal');
-    modal.innerHTML = '<div class="modal body-modal" role="dialog" aria-modal="true" aria-labelledby="dietWorldModalTitle"><div class="body-modal-kicker">DIET · WORLD</div><h2 id="dietWorldModalTitle">选择世界</h2><div role="group" aria-label="世界列表">' + value.list.map(x => '<button class="diet-world-option" type="button" data-diet-world="' + x.id + '" aria-pressed="' + (x.id === value.active) + '"><span aria-hidden="true">' + (x.id === value.active ? '●' : '○') + '</span><span>' + esc(x.title) + '</span></button>').join('') + '</div><p class="body-form-error" id="dietWorldError" role="alert"></p><div class="modal-actions"><button class="modal-cancel" type="button" data-diet-world-close>关闭</button></div></div>';
+    modal.innerHTML = '<div class="modal body-modal" role="dialog" aria-modal="true" aria-labelledby="dietWorldModalTitle"><div class="body-modal-kicker">DIET · WORLD</div><h2 id="dietWorldModalTitle" data-ui="选择世界">选择世界</h2><div role="group" aria-label="世界列表" data-ui-aria-label="世界列表">' + value.list.map(x => '<button class="diet-world-option" type="button" data-diet-world="' + x.id + '" aria-pressed="' + (x.id === value.active) + '"><span aria-hidden="true">' + (x.id === value.active ? '●' : '○') + '</span><span>' + esc(x.title) + '</span></button>').join('') + '</div><p class="body-form-error" id="dietWorldError" role="alert"></p><div class="modal-actions"><button class="modal-cancel" type="button" data-diet-world-close data-ui="关闭">关闭</button></div></div>';
     modal.classList.add('show');
     modal.querySelector('[aria-pressed="true"]').focus({ preventScroll: true });
   }
@@ -80,7 +80,7 @@
       const button = event.target.closest('[data-diet-world]');
       if (!button) return;
       try { localStorage.setItem(KEY, JSON.stringify({ ...read(KEY), version: 1, activeWorldId: button.dataset.dietWorld })); }
-      catch (error) { document.getElementById('dietWorldError').textContent = '这次没有保存成功，请重试'; return; }
+      catch (error) { (globalThis.AppLanguage ? AppLanguage.setText(document.getElementById('dietWorldError'), '这次没有保存成功，请重试') : (document.getElementById('dietWorldError').textContent = '这次没有保存成功，请重试')); return; }
       close(); render();
     });
     modal.addEventListener('keydown', event => {

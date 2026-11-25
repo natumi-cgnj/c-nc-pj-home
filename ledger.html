@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
+<script src="app-language-data.js?v=20261125-language1"></script>
+<script src="app-language.js?v=20261125-language1"></script>
+<script type="module" src="dialogue-translations.mjs?v=20261125-language1"></script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -70,27 +74,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 <!-- SIX ACCOUNTS TAB -->
 <div id="viewAccounts" class="view">
-  <section class="asset-board" aria-label="六账户">
+  <section class="asset-board" aria-label="六账户" data-ui-aria-label="六账户">
     <div class="asset-account-grid" id="assetAccountGrid"></div>
-    <div class="asset-account-summary" id="assetAccountSummary" aria-label="资产合计与目标"></div>
+    <div class="asset-account-summary" id="assetAccountSummary" aria-label="资产合计与目标" data-ui-aria-label="资产合计与目标"></div>
   </section>
-  <section class="asset-account-detail" id="assetAccountDetail" aria-label="账户详情">
+  <section class="asset-account-detail" id="assetAccountDetail" aria-label="账户详情" data-ui-aria-label="账户详情">
     <div id="assetSavingsDetail"></div>
   </section>
 </div>
 
 
 <div id="viewRecord" class="view active">
-  <section class="asset-board" id="assetExpenseBoard" aria-label="六账本">
+  <section class="asset-board" id="assetExpenseBoard" aria-label="六账本" data-ui-aria-label="六账本">
     <div class="asset-account-grid" id="assetExpenseGrid"></div>
-    <div class="asset-account-summary" id="assetExpenseSummary" aria-label="进账与花销合计"></div>
+    <div class="asset-account-summary" id="assetExpenseSummary" aria-label="进账与花销合计" data-ui-aria-label="进账与花销合计"></div>
   </section>
-  <section class="asset-account-detail" id="assetExpenseDetail" aria-label="账本明细"></section>
+  <section class="asset-account-detail" id="assetExpenseDetail" aria-label="账本明细" data-ui-aria-label="账本明细"></section>
 </div>
 <div id="viewDraft" class="view">
   <div class="ledger-world-scene" aria-hidden="true"></div>
-  <section class="asset-board" aria-label="世界">
-    <div class="asset-stage-story" id="assetStageStory" aria-label="任务小剧情"><p class="asset-stage-empty">暂无</p></div>
+  <section class="asset-board" aria-label="世界" data-ui-aria-label="世界">
+    <div class="asset-stage-story" id="assetStageStory" aria-label="任务小剧情" data-ui-aria-label="任务小剧情"><p class="asset-stage-empty" data-ui="暂无">暂无</p></div>
     <div class="asset-account-summary asset-stage-summary" id="assetStageSummary"></div>
   </section>
 </div>
@@ -98,22 +102,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- Stage selection and title editor -->
 <div class="modal-bg" id="assetStageWorldModal">
   <div class="modal">
-    <h2>选择世界</h2>
-    <div id="assetStageWorldList" role="radiogroup" aria-label="当前世界"></div>
+    <h2 data-ui="选择世界">选择世界</h2>
+    <div id="assetStageWorldList" role="radiogroup" aria-label="当前世界" data-ui-aria-label="当前世界"></div>
     <div class="btn-row">
-      <button class="btn btn-cancel" type="button" onclick="closeModal('assetStageWorldModal')">关闭</button>
+      <button class="btn btn-cancel" type="button" onclick="closeModal('assetStageWorldModal')" data-ui="关闭">关闭</button>
     </div>
   </div>
 </div>
 <div class="modal-bg" id="assetStageTitleModal">
   <div class="modal">
-    <h2>编辑题目</h2>
+    <h2 data-ui="编辑题目">编辑题目</h2>
     <input type="hidden" id="assetStageWorldId">
-    <label for="assetStageWorldTitle">世界题目</label>
+    <label for="assetStageWorldTitle" data-ui="世界题目">世界题目</label>
     <input type="text" id="assetStageWorldTitle" maxlength="30">
     <div class="btn-row">
-      <button class="btn btn-cancel" type="button" onclick="closeModal('assetStageTitleModal')">取消</button>
-      <button class="btn btn-primary" type="button" data-modal-save onclick="WalletAssets.saveStageWorldTitle()">保存</button>
+      <button class="btn btn-cancel" type="button" onclick="closeModal('assetStageTitleModal')" data-ui="取消">取消</button>
+      <button class="btn btn-primary" type="button" data-modal-save onclick="WalletAssets.saveStageWorldTitle()" data-ui="保存">保存</button>
     </div>
   </div>
 </div>
@@ -121,24 +125,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- Expense record editor -->
 <div class="modal-bg" id="assetExpenseRecordModal">
   <div class="modal">
-    <h2 id="assetExpenseRecordTitle">记一笔</h2>
+    <h2 id="assetExpenseRecordTitle" data-ui="记一笔">记一笔</h2>
     <input type="hidden" id="assetExpenseRecordBookId">
     <input type="hidden" id="assetExpenseRecordId">
-    <label for="assetExpenseRecordType">收支</label>
+    <label for="assetExpenseRecordType" data-ui="收支">收支</label>
     <select id="assetExpenseRecordType">
-      <option value="expense">支出（−）</option>
-      <option value="income">进账（＋）</option>
+      <option value="expense" data-ui="支出（−）">支出（−）</option>
+      <option value="income" data-ui="进账（＋）">进账（＋）</option>
     </select>
-    <label for="assetExpenseRecordDate">日期</label>
+    <label for="assetExpenseRecordDate" data-ui="日期">日期</label>
     <input type="date" id="assetExpenseRecordDate">
-    <label for="assetExpenseRecordAmount">金额（日元）</label>
+    <label for="assetExpenseRecordAmount" data-ui="金额（日元）">金额（日元）</label>
     <input type="number" id="assetExpenseRecordAmount" min="1" step="1" inputmode="numeric">
-    <label for="assetExpenseRecordNote">备注（选填）</label>
+    <label for="assetExpenseRecordNote" data-ui="备注（选填）">备注（选填）</label>
     <input type="text" id="assetExpenseRecordNote" maxlength="120">
     <div class="btn-row">
-      <button class="btn btn-del" id="assetExpenseRecordDelete" type="button" onclick="WalletAssets.deleteExpenseRecord()">删除</button>
-      <button class="btn btn-cancel" type="button" onclick="closeModal('assetExpenseRecordModal')">取消</button>
-      <button class="btn btn-primary" type="button" data-modal-save onclick="WalletAssets.saveExpenseRecord()">保存</button>
+      <button class="btn btn-del" id="assetExpenseRecordDelete" type="button" onclick="WalletAssets.deleteExpenseRecord()" data-ui="删除">删除</button>
+      <button class="btn btn-cancel" type="button" onclick="closeModal('assetExpenseRecordModal')" data-ui="取消">取消</button>
+      <button class="btn btn-primary" type="button" data-modal-save onclick="WalletAssets.saveExpenseRecord()" data-ui="保存">保存</button>
     </div>
   </div>
 </div>
@@ -146,19 +150,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- Expense book settings -->
 <div class="modal-bg" id="assetExpenseBookModal">
   <div class="modal">
-    <h2>账本设置</h2>
+    <h2 data-ui="账本设置">账本设置</h2>
     <input type="hidden" id="assetExpenseBookId">
     <input type="hidden" id="assetExpenseBookWorldId">
-    <label for="assetExpenseBookName">账本名称</label>
+    <label for="assetExpenseBookName" data-ui="账本名称">账本名称</label>
     <input type="text" id="assetExpenseBookName" maxlength="30">
-    <label>颜色</label>
+    <label data-ui="颜色">颜色</label>
     <input type="hidden" id="assetExpenseBookColor">
     <div class="category-color-picker asset-inline-color-picker" id="assetExpenseBookColorPicker"></div>
-    <label for="assetExpenseBookNote">备注（选填）</label>
+    <label for="assetExpenseBookNote" data-ui="备注（选填）">备注（选填）</label>
     <input type="text" id="assetExpenseBookNote" maxlength="80">
     <div class="btn-row">
-      <button class="btn btn-cancel" type="button" onclick="closeModal('assetExpenseBookModal')">取消</button>
-      <button class="btn btn-primary" type="button" data-modal-save onclick="WalletAssets.saveExpenseBook()">保存</button>
+      <button class="btn btn-cancel" type="button" onclick="closeModal('assetExpenseBookModal')" data-ui="取消">取消</button>
+      <button class="btn btn-primary" type="button" data-modal-save onclick="WalletAssets.saveExpenseBook()" data-ui="保存">保存</button>
     </div>
   </div>
 </div>
@@ -166,21 +170,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- Account overview editor -->
 <div class="modal-bg" id="assetAccountModal">
   <div class="modal">
-    <h2 id="assetAccountModalTitle">账户</h2>
+    <h2 id="assetAccountModalTitle" data-ui="账户">账户</h2>
     <input type="hidden" id="assetAccountId">
     <input type="hidden" id="assetAccountWorldId">
-    <label>账户名称</label>
+    <label data-ui="账户名称">账户名称</label>
     <input type="text" id="assetAccountName" maxlength="30">
     <label>余额 <span class="asset-modal-currency" id="assetAccountCurrency"></span></label>
     <input type="number" id="assetAccountBalance" step="0.01" inputmode="decimal">
-    <label>颜色</label>
+    <label data-ui="颜色">颜色</label>
     <input type="hidden" id="assetAccountColor">
     <div class="category-color-picker asset-inline-color-picker" id="assetAccountColorPicker"></div>
-    <label>备注（选填）</label>
+    <label data-ui="备注（选填）">备注（选填）</label>
     <input type="text" id="assetAccountNote" maxlength="80">
     <div class="btn-row">
-      <button class="btn btn-cancel" type="button" onclick="closeModal('assetAccountModal')">取消</button>
-      <button class="btn btn-primary" type="button" data-modal-save onclick="WalletAssets.saveEditor()">保存</button>
+      <button class="btn btn-cancel" type="button" onclick="closeModal('assetAccountModal')" data-ui="取消">取消</button>
+      <button class="btn btn-primary" type="button" data-modal-save onclick="WalletAssets.saveEditor()" data-ui="保存">保存</button>
     </div>
   </div>
 </div>
@@ -188,13 +192,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- Asset goal editor -->
 <div class="modal-bg" id="assetGoalModal">
   <div class="modal">
-    <h2>目标金额</h2>
-    <label for="assetGoalAmount">目标金额（日元）</label>
+    <h2 data-ui="目标金额">目标金额</h2>
+    <label for="assetGoalAmount" data-ui="目标金额（日元）">目标金额（日元）</label>
     <input type="number" id="assetGoalAmount" min="1" step="1" inputmode="numeric">
-    <div class="asset-goal-rate">人民币按 1円＝0.042元折算。留空可清除目标。</div>
+    <div class="asset-goal-rate" data-ui="人民币按 1円＝0.042元折算。留空可清除目标。">人民币按 1円＝0.042元折算。留空可清除目标。</div>
     <div class="btn-row">
-      <button class="btn btn-cancel" type="button" onclick="closeModal('assetGoalModal')">取消</button>
-      <button class="btn btn-primary" type="button" data-modal-save onclick="WalletAssets.saveGoal()">保存</button>
+      <button class="btn btn-cancel" type="button" onclick="closeModal('assetGoalModal')" data-ui="取消">取消</button>
+      <button class="btn btn-primary" type="button" data-modal-save onclick="WalletAssets.saveGoal()" data-ui="保存">保存</button>
     </div>
   </div>
 </div>
@@ -202,47 +206,47 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <!-- Static account item editor -->
 <div class="modal-bg" id="assetSavingsItemModal">
   <div class="modal">
-    <h2 id="assetSavingsItemModalTitle">静态资产</h2>
+    <h2 id="assetSavingsItemModalTitle" data-ui="静态资产">静态资产</h2>
     <input type="hidden" id="assetSavingsItemAccountId">
     <input type="hidden" id="assetSavingsItemId">
-    <label>名称</label>
+    <label data-ui="名称">名称</label>
     <input type="text" id="assetSavingsItemName" maxlength="30">
     <label>余额 <span class="asset-modal-currency" id="assetSavingsItemCurrency">CNY</span></label>
     <input type="number" id="assetSavingsItemBalance" step="0.01" inputmode="decimal">
-    <label id="assetSavingsItemDateLabel">最后确认时间</label>
+    <label id="assetSavingsItemDateLabel" data-ui="最后确认时间">最后确认时间</label>
     <input type="date" id="assetSavingsItemConfirmedAt">
     <div id="assetMonthlyDebitSection" style="display:none">
-      <label>每月扣款</label>
-      <div class="asset-monthly-help">按日本日期扣款；当月没有设置的日期时，按月末计算。</div>
+      <label data-ui="每月扣款">每月扣款</label>
+      <div class="asset-monthly-help" data-ui="按日本日期扣款；当月没有设置的日期时，按月末计算。">按日本日期扣款；当月没有设置的日期时，按月末计算。</div>
       <div class="asset-monthly-list" id="assetMonthlyDebitList"></div>
-      <button class="asset-monthly-add" type="button" onclick="WalletAssets.addMonthlyDebit()">＋ 增加每月扣款</button>
+      <button class="asset-monthly-add" type="button" onclick="WalletAssets.addMonthlyDebit()" data-ui="＋ 增加每月扣款">＋ 增加每月扣款</button>
     </div>
     <div class="btn-row">
-      <button class="btn btn-cancel" type="button" onclick="closeModal('assetSavingsItemModal')">取消</button>
-      <button class="btn btn-primary" type="button" data-modal-save onclick="WalletAssets.saveSavingsItem()">保存</button>
+      <button class="btn btn-cancel" type="button" onclick="closeModal('assetSavingsItemModal')" data-ui="取消">取消</button>
+      <button class="btn btn-primary" type="button" data-modal-save onclick="WalletAssets.saveSavingsItem()" data-ui="保存">保存</button>
     </div>
   </div>
 </div>
 
 <nav class="tab-bar" aria-label="LEDGER">
-  <button type="button" id="ledgerTabAccounts" data-ledger-tab="viewAccounts" onclick="switchTab('viewAccounts',this)">账户</button>
-  <button type="button" id="ledgerTabWorld" data-ledger-tab="viewDraft" onclick="switchTab('viewDraft',this)">世界</button>
-  <button class="active" type="button" id="ledgerTabRecord" data-ledger-tab="viewRecord" onclick="switchTab('viewRecord',this)">记账</button>
+  <button type="button" id="ledgerTabAccounts" data-ledger-tab="viewAccounts" onclick="switchTab('viewAccounts',this)" data-ui="账户">账户</button>
+  <button type="button" id="ledgerTabWorld" data-ledger-tab="viewDraft" onclick="switchTab('viewDraft',this)" data-ui="世界">世界</button>
+  <button class="active" type="button" id="ledgerTabRecord" data-ledger-tab="viewRecord" onclick="switchTab('viewRecord',this)" data-ui="记账">记账</button>
 </nav>
 <div class="toast" id="toast"></div>
 <div class="confirm-bg" id="confirmBg"><div class="confirm-box"></div></div>
 
 <script src="world-context.js?v=20261019-ledger-split1"></script>
-<script src="cloud-sync.js?v=20261029-audit1"></script>
+<script src="cloud-sync.js?v=20261125-language1"></script>
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script src="world-moments.js?v=20261112-task-flow1"></script>
 <script src="ledger-modal.js?v=20261020-blank-save1"></script>
 <script src="wallet-recurring.js?v=20261019-monthly-debits1"></script>
 <script src="ledger-task-catalog.js?v=20261022-checkin1"></script>
 <script src="ledger-task-model.js?v=20261022-checkin1"></script>
-<script src="ledger-tasks.js?v=20261022-checkin1"></script>
-<script src="record-periods.js?v=20261108-archive-summary4"></script>
-<script src="wallet-assets.js?v=20261108-archive-all3"></script>
+<script src="ledger-tasks.js?v=20261125-language1"></script>
+<script src="record-periods.js?v=20261125-language1"></script>
+<script src="wallet-assets.js?v=20261125-language1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 
@@ -257,7 +261,7 @@ function showToast(message){
 function customConfirm(message,onYes,options){
   var background=document.getElementById('confirmBg');
   var box=background.querySelector('.confirm-box');
-  box.innerHTML='<p></p><div class="btn-row"><button class="btn btn-cancel" type="button">取消</button><button class="btn '+(options&&options.danger?'btn-del':'btn-primary')+'" type="button">确定</button></div>';
+  box.innerHTML=`<p></p><div class="btn-row"><button class="btn btn-cancel" type="button" data-ui="取消">取消</button><button class="btn ${(options&&options.danger?'btn-del':'btn-primary')}" type="button" data-ui="确定">确定</button></div>`;
   box.querySelector('p').textContent=message;
   var buttons=box.querySelectorAll('button');
   buttons[0].textContent=options&&options.no||'取消';

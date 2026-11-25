@@ -87,25 +87,25 @@ export function worldGenerationPrompt(snapshot, revision, slot='') {
   const world=STORY_WORLDS.find(x=>x.id===snapshot.snapshot.world);
   return `为Jane的「${world.title}」世界线写一个简短日常片段。时段：${slot||'日常'}。\n${savedStoryPrompt(snapshot,revision)}\n用中文。scene只写眼前日常，80—160字以内；保留Jane的主体性、轻巧的机灵和表达方式。未设定的身份、共同旧事、关系结局、其他人物到场不擅自补齐。此片段只是日常演绎，不推进重大主线，不自动确立新设定，不替用户写回复。lines是Jane此刻向你说的2—4句，每句s为18字以内状态，m为90字以内直接台词；不要“对某某说”、姓名前缀、台词圆括号或详细动作。\n只返回JSON，顶层恰好format、version、world、canon_revision、title、scene、lines；format="jane-world-lines"，version=1，world="${world.id}"，canon_revision="${revision}"；title为40字以内短标题，scene为400字以内文字，lines每项恰好s、m。不得输出Markdown或额外字段。`;
 }
-export function validateWorldBatch(value) {
+export function validateWorldBatch(value, language = 'zh') {
   const keys=['format','version','world','canon_revision','title','scene','lines'];
-  if(!obj(value)||Object.keys(value).length!==keys.length||!keys.every(k=>Object.hasOwn(value,k))||value.format!=='jane-world-lines'||value.version!==1||!validStoryWorld(value.world)||!/^[a-f0-9]{64}$/.test(value.canon_revision)||!Array.isArray(value.lines)||value.lines.length<2||value.lines.length>4)fail('invalid_world_lines');
+  if(!obj(value)||Object.keys(value).length!==(keys.length+(Object.hasOwn(value,'language')?1:0))|| (value.language!=null&&!['zh','ja','en'].includes(value.language))||!keys.every(k=>Object.hasOwn(value,k))||value.format!=='jane-world-lines'||value.version!==1||!validStoryWorld(value.world)||!/^[a-f0-9]{64}$/.test(value.canon_revision)||!Array.isArray(value.lines)||value.lines.length<2||value.lines.length>4)fail('invalid_world_lines');
   try {
     const title=text(value.title,40).trim(), scene=text(value.scene,400).trim();
     if(!title||!scene)fail('invalid_world_lines');
     const lines=value.lines.map(x=>{
       if(!obj(x)||Object.keys(x).length!==2||!Object.hasOwn(x,'s')||!Object.hasOwn(x,'m'))fail('invalid_world_lines');
-      const s=text(x.s,18).trim(),m=text(x.m,90).trim();
+      const s=text(x.s,language === 'en' ? 64 : language === 'ja' ? 30 : 18).trim(),m=text(x.m,language === 'en' ? 260 : language === 'ja' ? 130 : 90).trim();
       if(!s||!m||/[()（）\r\n\u0000-\u001f]/.test(s+m)||/^(Jane|Patrick|Milo|Boss|旁白|台词)\s*[：:]/i.test(m))fail('invalid_world_lines');
       return {s,m};
     });
-    return {format:'jane-world-lines',version:1,world:value.world,canon_revision:value.canon_revision,title,scene,lines};
+    return {format:'jane-world-lines',version:1,world:value.world,canon_revision:value.canon_revision,title,scene,lines,...(value.language?{language:value.language}:{})};
   } catch {fail('invalid_world_lines');}
 }
-export function decodeWorldBatch(source) {
+export function decodeWorldBatch(source, language = 'zh') {
   if(typeof source!=='string')return null;
   const raw=source.trim().replace(/^```(?:json)?\s*\n([\s\S]*?)\n```$/i,'$1').trim();
   let value;try{value=JSON.parse(raw);}catch{if(/"format"\s*:\s*"jane-world-lines"/.test(raw))fail('invalid_world_lines');return null;}
-  return value?.format==='jane-world-lines'?validateWorldBatch(value):null;
+  return value?.format==='jane-world-lines'?validateWorldBatch(value, language):null;
 }
 export const STORY_BASE_REVISION = CBI_CONTINUITY;

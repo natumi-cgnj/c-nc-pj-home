@@ -12,25 +12,25 @@ export function companionSpeechContext(runtime, now = Date.now()) {
 
 // Read the exact shared pool; never ask the bridge to start a Claude task.
 export class CompanionDialogue {
-  constructor({ client, owner, clock = () => Date.now() }) { Object.assign(this, { client, owner, clock }); this.user = ''; this.revision = ''; this.epoch = 0; this.sequence = 0; this.applied = 0; this.cache = new Map(); this.pending = new Map(); }
+  constructor({ client, owner, clock = () => Date.now() }) { Object.assign(this, { client, owner, clock }); this.user = ''; this.language = 'zh'; this.revision = ''; this.epoch = 0; this.sequence = 0; this.applied = 0; this.cache = new Map(); this.pending = new Map(); }
   identity() {
-    const next = this.owner() || '';
-    if (next !== this.user) { this.epoch++; this.user = next; this.revision = ''; this.cache.clear(); this.pending.clear(); }
+    const next = this.owner() || '', language = globalThis.AppLanguage?.dialogue || 'zh';
+    if (next !== this.user || language !== this.language) { this.language = language; this.epoch++; this.user = next; this.revision = ''; this.cache.clear(); this.pending.clear(); }
     return next;
   }
   line(session, now = this.clock()) {
     if (!this.identity() || !session) return '';
-    return sessionLine(session, this.cache.get(session.key)?.lines || [stateFallback(session)], now) || '';
+    return sessionLine(session, this.cache.get(session.key)?.lines || [stateFallback(session, this.language)], now) || '';
   }
   async read(context) {
     const user = this.identity(); if (!user || !context) return;
     const sessions = stateSessions(context, this.clock()), jane = sessions.find(entry => entry.character === 'jane');
     if (!jane) return;
-    const key = user + ':' + jane.key;
+    const language = this.language, key = user + ':' + language + ':' + jane.key;
     if (this.pending.has(key)) return this.pending.get(key);
     const epoch = this.epoch, sequence = ++this.sequence;
     const request = (async () => {
-      const result = await this.client.functions.invoke('claude-bridge', { body: { action: 'state_lines', context } });
+      const result = await this.client.functions.invoke('claude-bridge', { body: { action: 'state_lines', context, language } });
       if (result.error || result.data?.error || user !== this.identity() || epoch !== this.epoch || sequence < this.applied) return;
       const data = result.data;
       if (!/^[a-f0-9]{64}$/.test(data?.context_revision)) return;
@@ -38,7 +38,7 @@ export class CompanionDialogue {
       if (this.revision !== data.context_revision) { this.cache.clear(); this.revision = data.context_revision; }
       this.cache.delete(jane.key);
       if (!data.state_batch?.pack) return;
-      const pack = validateStateBatch(data.state_batch.pack);
+      const pack = validateStateBatch(data.state_batch.pack, null, language);
       if (pack.scene !== context.scene || pack.canon_revision !== this.revision) return;
       const entry = pack.states.find(entry => entry.character === 'jane' && entry.key === jane.key && entry.state === jane.state);
       if (entry && entry.lines.length >= jane.lineRange[0] && entry.lines.length <= jane.lineRange[1]) this.cache.set(jane.key, entry);
@@ -55,4 +55,4 @@ export function clickActions({ single, double, hide, setTimer = (fn, delay) => s
     doubleClick() { cancel(); hide(); double(); }, cancel };
 }
 
-export const COMPANION_UI_VERSION = '20261119-reply-pace1';
+export const COMPANION_UI_VERSION = '20261125-language1';
