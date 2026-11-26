@@ -110,11 +110,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
   .nutrition-source{font-size:10px;line-height:1.5}
   .calorie-row{gap:12px;padding:16px 0}
 }
-@media (max-width:599px) and (max-height:700px){
-  .nutrition-wrap{padding-top:12px;padding-bottom:10px}
+@media (max-width:599px){
+  .nutrition-wrap{padding-top:12px}
   .nutrition-head{margin-bottom:8px}
   .nutrition-summary{margin-bottom:6px}
-  .nutrition-summary-item{padding-bottom:6px}
+  .nutrition-summary-item{padding:2px 0 4px}
+  .calorie-balance{padding-top:10px;margin-bottom:12px}
+  .calorie-balance-head{margin-bottom:8px}
+}
+@media (max-width:599px) and (max-height:700px){
+  .nutrition-wrap{padding-bottom:10px}
   .nutrition-row{padding:2px 0}
   .nutrition-log{margin-top:8px}
 }
@@ -216,7 +221,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 <nav class="tab-bar" aria-label="DIET">
   <button type="button" data-diet-tab="body" onclick="switchMealTab('viewBody',this)" data-ui="身体">身体</button>
-  <button type="button" data-diet-tab="world" onclick="switchMealTab('viewDraft',this)" data-ui="世界">世界</button>
+  <button type="button" data-diet-tab="world" onclick="switchMealTab('viewDraft',this)" data-ui="故事">故事</button>
   <button type="button" data-diet-tab="nutrition" class="active" onclick="switchMealTab('viewNutrition',this)" data-ui="营养">营养</button>
 </nav>
 <div class="toast" id="toast"></div>

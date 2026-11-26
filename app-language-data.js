@@ -1632,6 +1632,10 @@ window.AppLanguageCatalog = {
     "世界",
     "World"
   ],
+  "故事": [
+    "ストーリー",
+    "Story"
+  ],
   "切换": [
     "切り替え",
     "Switch"

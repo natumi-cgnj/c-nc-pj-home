@@ -1606,3 +1606,11 @@ Keep each head and torso about the SAME SIZE as its reference counterpart. Prese
 - 涉及文件：`diet.html`、`diet-calorie.js`、`diet-calorie.css`、`docs/README.md` 及本日志。
 - 验证：独立与内联脚本语法、页面ID、空值和有值渲染、说明移除及设置入口保留的隔离检查通过。计算模型、真实存档与同步不修改。
 - 请勿误改：后续常用页面不主动重复解释用户已明确的使用方式或计算规则，不自动增加装饰性提示文字；必要的校验与操作反馈仍保留。未修改 `docs/DECISIONS.md` 或 `docs/SYSTEM_BLUEPRINT.md`。
+
+## 2026-11-26｜DIET 手机营养页收紧与故事页签
+
+- 执行者：Codex；分支：`main`，基于 `8fed492`。
+- 用户目标：手机营养页上方收紧，最后一项营养（铁／锌／B12）完整显示于首屏；中间页签改称故事，日文使用片假名。
+- 实际改动：仅对宽度599px及以下的营养页收紧顶端内边距、标题与摘要间距、热量余额区域的上下留白。在通常手机高度减少48 CSS px，原700px以下紧凑布局再减少32 CSS px；不改营养行字号、行距、打卡、底栏或桌面布局。中间页签显示中文故事／日文ストーリー／英文Story，保留内部world ID、hash、世界选择和档案入口。
+- 验证：比对原／新页面，内联程序逻辑及其他视图保持不变；依据用户两张手机截图的可见高度与滚动位移核对预期空间，最后一行与狐狐插画均应落入首屏。实际手机尚未复测。不改任何业务记录或计算。
+- 涉及文件：`diet.html`、`app-language-data.js`、本日志；不改 `docs/DECISIONS.md` 或 `docs/SYSTEM_BLUEPRINT.md`。
