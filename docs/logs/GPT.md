@@ -1622,3 +1622,13 @@ Keep each head and torso about the SAME SIZE as its reference counterpart. Prese
 - 实际改动：移除整个趋势SVG、日期轴、图表生成函数及专属样式；体重历史直接接在原摘要下方。不修改任何记录、设置、计算、同步及其余身体页面。
 - 验证：9项身体及世界相关测试通过，新增多条既有记录的无图表、历史保留和只读渲染检查；JS语法通过。未作真机渲染核对。
 - 涉及文件：`diet-body.js`、`diet-body.css`、`diet.html`资源版本、`tests/diet-body.test.js`及本日志。其余模块及世界保持原样。
+
+## 2026-11-27｜恢复 TECHO 九月初三页版（独立演示）
+
+- 执行者：Codex；分支：`main`，基于 `6c73b65`，历史页面来源 `18a2f60699f4f8559e721b68b437e1ffd938180c`（2026-09-03）。
+- 用户目标：恢复 ITEM／LIST／REF 三页版供作品集截图，并补充 Rollbahn 等文具示例数据。按已确认方案另开演示入口，不覆盖新版。
+- 历史核对：旧版与现版的业务存档键相同；历史 HTML 没有内嵌实际收藏数据。本次未读取或复制用户个人存档。
+- 实际改动：`techo-legacy.html` 保留九月初原界面、三页交互及收藏／购入／REF关联流程；移除生产云同步、旧文具迁移、外部图片上传。通过独立 `techo-legacy-demo.js` 生成4个LIST、28个收藏品目、22个实际物品示例、3个REF、28个参考品目及关联购入记录，含待处理和已分配状态。商品名称、价格、购入记录及本地SVG示意图均为演示数据，不是用户的实际记录或官方封面。
+- 隔离：仅使用独立的会话存档键 `techo_legacy_demo_20260903_v1`；禁止外部数据连接，图片选择改为本地读取；不接触现版的 localStorage、CloudSync、云端图片或备份。现版 `techo.html`、`stationery.html` 及首页维持原样。直接打开 `techo-legacy.html`；`?tab=list`、`?tab=ref` 可直达对应页；`?reset=1` 仅重置本演示数据。
+- 验证：4项测试通过，涵盖原三页实际渲染函数、LIST购入详情、REF关联、数量和分栏、编辑与分配、独立保存和重置、无生产存档及网络依赖。JS语法通过；未在真实账号写入示例。
+- 文件：新增 `techo-legacy.html`、`techo-legacy-demo.js`、`tests/techo-legacy-demo.test.js` 及本日志。仅部署静态独立演示页，未改现版及数据库。
