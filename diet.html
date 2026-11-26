@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-<script src="app-language-data.js?v=20261125-language1"></script>
+<script src="app-language-data.js?v=20261126-diet-tasks1"></script>
 <script src="app-language.js?v=20261125-language1"></script>
 <script type="module" src="dialogue-translations.mjs?v=20261125-language1"></script>
 
@@ -222,15 +222,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 </nav>
 <div class="toast" id="toast"></div>
 <script src="world-context.js?v=20261019-diet-split1"></script>
-<script src="cloud-sync.js?v=20261125-language1"></script>
+<script src="cloud-sync.js?v=20261126-diet-tasks1"></script>
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script src="world-moments.js?v=20261028-stories1"></script>
 <script src="body-model.js?v=20261023-body1"></script>
 <script src="diet-calorie-model.js?v=20261119-balance1"></script>
 <script src="diet-calorie.js?v=20261125-language1"></script>
 <script src="diet-body.js?v=20261125-language1"></script>
-<script src="diet-fox-stories.js?v=20261126-fox-story1"></script>
-<script src="diet-world.js?v=20261126-fox-story1"></script>
+<script src="diet-fox-stories.js?v=20261126-diet-tasks1"></script>
+<script src="diet-fox-task-model.js?v=20261126-diet-tasks1"></script>
+<script src="diet-fox-tasks.js?v=20261126-diet-tasks1"></script>
+<script src="diet-world.js?v=20261126-diet-tasks1"></script>
 <script src="record-periods.js?v=20261125-language1"></script>
 <script>
 'use strict';
@@ -340,7 +342,7 @@ function applyDietHash(){const name=location.hash.slice(1),tab=['body','world','
 applyDietHash();
 window.addEventListener('hashchange',applyDietHash);
 window.addEventListener('liminal-cloud-ready',refreshDiet);
-window.addEventListener('storage',function(event){if(!event.key||[CALORIE_KEY,NUTRITION_KEY,'body_log_db','diet_world_state_v1','wallet_accounts_v1'].includes(event.key))refreshDiet();});
+window.addEventListener('storage',function(event){if(!event.key||[CALORIE_KEY,NUTRITION_KEY,'body_log_db','diet_world_state_v1','diet_world_tasks_v1','wallet_accounts_v1'].includes(event.key))refreshDiet();});
 window.addEventListener('pageshow',refreshDiet);
 document.addEventListener('visibilitychange',function(){if(!document.hidden)refreshDiet();});
 setInterval(function(){if(!document.hidden&&nutritionWorkday!==workdayKey())refreshDiet();},60000);

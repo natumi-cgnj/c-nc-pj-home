@@ -528,21 +528,32 @@ async function testDietBodyAndWorldSyncIndependently() {
   const world = { version: 1, activeWorldId: 'fox' };
   const wallet = { version: 1, stage: { activeWorldId: 'sacramento', worlds: [{ id: 'fox', title: 'Patrick狐狐' }] }, accounts: {} };
   const nutrition = { version: 1, days: { '2026-10-22': { protein: 2 } } };
-  const remoteStates = { body_log_db: body, diet_world_state_v1: world, wallet_accounts_v1: wallet, nutrition_check_db: nutrition };
+  const tasks = { version: 1, batchId: '20261126-01', worlds: {
+    fox: { offer: { taskId: 'lunch-photo', attemptId: 'diet-test', revision: '20261126-events1', read: 2 }, active: null, receipts: {} }
+  } };
+  const ledgerTasks = { version: 2, batchId: '20261021-01', worlds: { fox: { offer: null, active: null, receipts: {} } } };
+  const remoteStates = { body_log_db: body, diet_world_state_v1: world, wallet_accounts_v1: wallet, nutrition_check_db: nutrition,
+    diet_world_tasks_v1: tasks, ledger_world_tasks_v2: ledgerTasks };
   const env = makeEnvironment({ pathname: '/diet.html', remoteValue: {}, localValue: {}, remoteStates, alreadyReloaded: true });
   await env.window.CloudSync.whenReady();
   for (const [key, value] of Object.entries(remoteStates)) assert.deepEqual(JSON.parse(env.localStorage.getItem(key)), value, key + ' restores on diet');
   const changed = { ...body, repairs: [{ id: 'test', location: '测试事项', status: 'pending', startedOn: '2026-10-22' }] };
   env.localStorage.setItem('body_log_db', JSON.stringify(changed));
   env.localStorage.setItem('diet_world_state_v1', JSON.stringify({ version: 1, activeWorldId: 'palace' }));
+  const taskProgress = clone(tasks);
+  taskProgress.worlds.fox.offer.read = 5;
+  env.localStorage.setItem('diet_world_tasks_v1', JSON.stringify(taskProgress));
   await env.window.CloudSync.syncNow();
   assert.deepEqual(currentRow(env, 'body_log_db').state_data, changed);
   assert.equal(currentRow(env, 'diet_world_state_v1').state_data.activeWorldId, 'palace');
+  assert.deepEqual(currentRow(env, 'diet_world_tasks_v1').state_data, taskProgress, 'DIET task progress syncs independently');
+  assert.deepEqual(currentRow(env, 'ledger_world_tasks_v2').state_data, ledgerTasks, 'DIET cannot overwrite the ledger task pool');
   assert.deepEqual(currentRow(env, 'wallet_accounts_v1').state_data, wallet, 'diet does not change ledger accounts or world');
   assert.deepEqual(currentRow(env, 'nutrition_check_db').state_data, nutrition, 'body saves preserve nutrition');
-  const reload = makeEnvironment({ pathname: '/diet.html', remoteValue: {}, localValue: {}, remoteStates: { ...remoteStates, body_log_db: changed }, alreadyReloaded: true });
+  const reload = makeEnvironment({ pathname: '/diet.html', remoteValue: {}, localValue: {}, remoteStates: { ...remoteStates, body_log_db: changed, diet_world_tasks_v1: taskProgress }, alreadyReloaded: true });
   await reload.window.CloudSync.whenReady();
   assert.deepEqual(JSON.parse(reload.localStorage.getItem('body_log_db')), changed, 'another device restores body records');
+  assert.deepEqual(JSON.parse(reload.localStorage.getItem('diet_world_tasks_v1')), taskProgress, 'another device restores DIET task progress');
 }
 
 async function testFullSnapshotCanBeRestoredSafely() {

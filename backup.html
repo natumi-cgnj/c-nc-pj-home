@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-<script src="app-language-data.js?v=20261125-language1"></script>
+<script src="app-language-data.js?v=20261126-diet-tasks1"></script>
 <script src="app-language.js?v=20261125-language1"></script>
 <script type="module" src="dialogue-translations.mjs?v=20261125-language1"></script>
 
@@ -82,7 +82,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <div class="confirm-title" data-ui="确认恢复数据？">确认恢复数据？</div><div class="confirm-msg" id="confirmMsg"></div>
 <div class="confirm-btns"><button class="cbtn-cancel" onclick="hideConfirm()" data-ui="取消">取消</button><button class="cbtn-danger" onclick="runConfirmedRestore()" data-ui="覆盖恢复">覆盖恢复</button></div>
 </div></div>
-<script src="cloud-sync.js?v=20261125-language1"></script>
+<script src="cloud-sync.js?v=20261126-diet-tasks1"></script>
 <script src="app-back.js?v=20261010-home-return2"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
@@ -144,6 +144,7 @@ const SYS=[
 {key:'nutrition_check_db',name:'营养覆盖',color:'#A88E54',desc:d=>{return d&&d.days?Object.keys(d.days).length+'天记录':'-';}},
 {key:'body_log_db',name:'身体记录',color:'#AA8C56',desc:d=>{if(!d)return'-';return (d.weights||[]).length+'笔体重 · '+(d.periods||[]).length+'次经期 · '+(d.repairs||[]).length+'项修缮';}},
 {key:'diet_world_state_v1',name:'饮食世界',color:'#87977F',desc:d=>d&&d.activeWorldId?'已选择世界':'-'},
+{key:'diet_world_tasks_v1',name:'饮食世界小事件',color:'#87977F',desc:d=>{if(!d)return'-';const groups=Object.values(d.worlds||{});return groups.reduce((n,w)=>n+Object.keys(w&&w.receipts||{}).length,0)+'项完成'+(groups.some(w=>w&&w.active)?' · 进行中':'');}},
 {key:'recipe_salad_db',name:'\u5939\u7F1D\u7A7A\u95F4\u83DC\u8C31',color:'#5BA66B',desc:d=>{if(!d||!d.items)return'-';return Object.values(d.items).filter(x=>x.status==='collected').length+'/18';}},
 {key:'recipe_project_config',name:'\u5939\u7F1D\u7A7A\u95F4\u83DC\u8C31\u8BBE\u7F6E',color:'#6B8AFF',desc:d=>d&&d.name?d.name:'\u9ED8\u8BA4'},
 {key:'recipe_salad_db__world__cbi',name:'CBI \u83DC\u8C31',color:'#B49A61',desc:d=>{if(!d||!d.items)return'\u5C1A\u672A\u5EFA\u7ACB';return Object.keys(d.items).length+'\u5F20';}},

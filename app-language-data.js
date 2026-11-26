@@ -1756,6 +1756,10 @@ window.AppLanguageCatalog = {
     "食事の世界",
     "Meal world"
   ],
+  "饮食世界小事件": [
+    "食事の世界の小イベント",
+    "Meal world events"
+  ],
   "· {0} 笔": [
     "・{0}件",
     "· {0} entries"

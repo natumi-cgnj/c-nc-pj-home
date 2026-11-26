@@ -11,7 +11,7 @@
     lines: beats.map(([speaker, zh, ja, en]) => ({ speaker, text: localized(zh, ja, en) }))
   });
   // Like the ledger vignettes, the fox communicates through gestures.
-  // These stories don't read or modify real-life records or task progress.
+  // Real-life actions are confirmed manually, independently of meal/body records.
   const stories = [
     scene('lunch-photo', ['午餐的额外配菜', 'お弁当にもう一品', 'An Extra Side Dish'], [
       ['', '你把便当摆到窗边，想给今天的午饭留张照片。镜头里除了饭盒，忽然多出一截金色的尾巴。', '窓辺にお弁当を置き、今日の昼食を写真に残そうとする。レンズを向けると、弁当箱の横に金色のしっぽが写り込んだ。', 'You set your lunchbox by the window to photograph today’s lunch. A golden tail suddenly appears beside it in the frame.'],
@@ -63,30 +63,29 @@
     ])
   ];
 
-  const labels = {
-    zh: { event: '小事件', more: '点击继续', next: '点击下一段', restart: '从头再看', you: '你' },
-    ja: { event: '小さな出来事', more: 'クリックして続ける', next: '次の話へ', restart: '最初から読む', you: 'あなた' },
-    en: { event: 'Little moments', more: 'Click to continue', next: 'Next story', restart: 'Read from the start', you: 'You' }
+  const conditions = {
+    'lunch-photo': [0, localized('给一顿日常餐食拍照，将照片留在自己的饮食记录中。', '普段の食事を一度撮影し、写真を自分の食事記録に残す。', 'Photograph a meal and keep the picture in your food journal.')],
+    'table-seat': [0, localized('为自己准备或点一顿想吃的饭，记下最喜欢的一道菜。', '食べたい食事を用意するか注文し、気に入った一品を記録する。', 'Prepare or order a meal you would like and note a favorite dish.')],
+    'menu-adviser': [0, localized('挑一家想去的餐厅，保存一张菜单或记下想尝的菜品。', '行ってみたいお店を一軒選び、メニューを保存するか食べてみたい料理を記録する。', 'Choose a restaurant you would like to visit and save its menu or note a dish to try.')],
+    'fridge-detective': [0, localized('整理一层冰箱，给食盒标上内容或存放日期。', '冷蔵庫の棚を一段整理し、保存容器に中身や保存日を表示する。', 'Organize one fridge shelf and label the containers with their contents or storage dates.')],
+    'tea-coaster': [0, localized('准备一杯喜欢的饮品，记下一种喜欢的搭配。', '好きな飲み物を一杯用意し、気に入った組み合わせを記録する。', 'Make a drink you enjoy and note a favorite pairing.')],
+    'dinner-note': [3, localized('连续三天，每天记下一顿餐食的菜名或用餐感想。', '3日間、毎日一度の食事について料理名または感想を記録する。', 'For three consecutive days, write down a dish or a memory from one meal each day.')]
   };
+  const tasks = Object.freeze(stories.map(story => Object.freeze({
+    id: story.id, days: conditions[story.id][0], reward: 10, lineCount: story.lines.length
+  })));
   const language = value => ['zh', 'ja', 'en'].includes(value) ? value : 'zh';
-  const initial = () => ({ story: 0, line: 0 });
-  function frame(position, dialogueLanguage, uiLanguage) {
-    const dialogue = language(dialogueLanguage), ui = labels[language(uiLanguage)];
-    const story = stories[position.story], line = story.lines[position.line];
-    const lastLine = position.line === story.lines.length - 1;
-    return {
-      id: story.id, title: story.title[dialogue], text: line.text[dialogue],
-      speaker: line.speaker === 'you' ? labels[dialogue].you : '',
-      isPlayer: line.speaker === 'you', dialogue,
-      heading: ui.event, hint: lastLine ? (position.story === stories.length - 1 ? ui.restart : ui.next) : ui.more,
-      storyNumber: position.story + 1, storyCount: stories.length,
-      lineNumber: position.line + 1, lineCount: story.lines.length
+  const task = id => tasks.find(entry => entry.id === id) || null;
+  function content(id, dialogueLanguage, uiLanguage) {
+    const story = stories.find(entry => entry.id === id);
+    if (!story) return null;
+    const dialogue = language(dialogueLanguage), ui = language(uiLanguage);
+    return { ...task(id), title: story.title[dialogue], condition: conditions[id][1][ui], dialogue,
+      lines: story.lines.map(line => ({
+        speaker: line.speaker === 'you' ? { zh: '你', ja: 'あなた', en: 'You' }[dialogue] : '',
+        text: line.text[dialogue], isPlayer: line.speaker === 'you'
+      }))
     };
   }
-  function advance(position) {
-    const story = stories[position.story];
-    if (position.line + 1 < story.lines.length) return { story: position.story, line: position.line + 1 };
-    return { story: (position.story + 1) % stories.length, line: 0 };
-  }
-  return Object.freeze({ initial, frame, advance });
+  return Object.freeze({ batchId: '20261126-01', storyRevision: '20261126-events1', tasks, task, content });
 });
