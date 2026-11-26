@@ -4927,5 +4927,129 @@ window.AppLanguageCatalog = {
   "客厅的沙发床": [
     "リビングのソファベッド",
     "the living-room sofa bed"
+  ],
+  "追更": [
+    "続編フォロー",
+    "Following"
+  ],
+  "下一季": [
+    "次シーズン",
+    "Next season"
+  ],
+  "追踪下一季": [
+    "次シーズンをフォロー",
+    "Track next season"
+  ],
+  "下一季标题": [
+    "次シーズンのタイトル",
+    "Next season title"
+  ],
+  "预计播出时间": [
+    "放送・配信予定",
+    "Expected release"
+  ],
+  "具体日期": [
+    "日付指定",
+    "Exact date"
+  ],
+  "预计月份": [
+    "予定月",
+    "Expected month"
+  ],
+  "预计年份": [
+    "予定年",
+    "Expected year"
+  ],
+  "其他档期": [
+    "その他の時期表記",
+    "Other release window"
+  ],
+  "日期未公布": [
+    "公開日未発表",
+    "Date not announced"
+  ],
+  "停止追更": [
+    "フォローを解除",
+    "Stop following"
+  ],
+  "预计档期已到": [
+    "予定時期に到達（要確認）",
+    "Expected date reached · Verify"
+  ],
+  "待播": [
+    "放送・配信待ち",
+    "Upcoming"
+  ],
+  "档期待确认": [
+    "時期未確定",
+    "Schedule to verify"
+  ],
+  "已加入待看": [
+    "視聴予定に追加済み",
+    "Added to watchlist"
+  ],
+  "加入待看": [
+    "視聴予定に追加",
+    "Add to watchlist"
+  ],
+  "打开待看": [
+    "視聴予定を開く",
+    "Open planned title"
+  ],
+  "打开下一季": [
+    "次シーズンを開く",
+    "Open next season"
+  ],
+  "下一季已观看": [
+    "次シーズン視聴済み",
+    "Next season watched"
+  ],
+  "暂无追更记录": [
+    "フォロー中の続編はありません",
+    "No seasons being followed"
+  ],
+  "打开已打卡的剧集详情，选择追踪下一季。": [
+    "視聴記録の詳細を開き、「次シーズンをフォロー」を選んでください。",
+    "Open a watched title and select Track next season."
+  ],
+  "追更 {0} 项": [
+    "フォロー中 {0} 件",
+    "{0} following"
+  ],
+  "已到预计档期 {0} 项": [
+    "予定時期に到達 {0} 件",
+    "{0} expected dates reached"
+  ],
+  "追更记录暂时无法读取": [
+    "フォロー記録を読み込めませんでした。",
+    "Could not load following records."
+  ],
+  "例如：2027年春": [
+    "例：2027年春",
+    "e.g. Spring 2027"
+  ],
+  "追更记录已更新，请重新打开": [
+    "フォロー記録が更新されました。開き直してください。",
+    "The following record changed. Reopen it."
+  ],
+  "追更未能保存，请重试": [
+    "フォロー記録を保存できませんでした。再試行してください。",
+    "Could not save the following record. Try again."
+  ],
+  "请输入下一季标题": [
+    "次シーズンのタイトルを入力してください。",
+    "Enter a next season title."
+  ],
+  "请输入有效的预计播出时间": [
+    "有効な放送・配信予定を入力してください。",
+    "Enter a valid expected release."
+  ],
+  "追更记录已保存": [
+    "フォロー記録を保存しました。",
+    "Following record saved."
+  ],
+  "停止追更？不会删除原有观影记录。": [
+    "フォローを解除しますか？既存の視聴記録は削除されません。",
+    "Stop following? Existing viewing records will be kept."
   ]
 };

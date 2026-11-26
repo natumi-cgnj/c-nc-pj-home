@@ -2,7 +2,7 @@
 <!-- Cinema build: 2026-07-31 -->
 <html lang="zh">
 <head>
-<script src="app-language-data.js?v=20261125-language1"></script>
+<script src="app-language-data.js?v=20261126-cinema-follow1"></script>
 <script src="app-language.js?v=20261125-language1"></script>
 <script type="module" src="dialogue-translations.mjs?v=20261125-language1"></script>
 
@@ -127,6 +127,35 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 .card-actions{width:calc(100% - 40px);max-width:520px;display:flex;gap:8px;padding:0;margin:8px auto 0}
 .card-actions .btn{flex:1;padding:10px;border:none;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit}
 
+/* ── Next-season follow-up ── */
+.follow-home-entry{width:100%;display:flex;align-items:center;gap:12px;padding:14px 20px;border:0;border-bottom:1px solid #f0edf6;background:#fff;font:inherit;text-align:left;cursor:pointer;color:#6B5ACD}
+.follow-home-entry strong{font-size:13px;font-weight:600;white-space:nowrap}
+.follow-home-summary{flex:1;min-width:0;font-size:11px;color:#aaa;line-height:1.6;overflow-wrap:anywhere}
+.follow-home-arrow{font-size:18px;color:#b5a9d8}
+#viewHome.project-arrange-mode .follow-home-entry{pointer-events:none;opacity:.45}
+.follow-list{max-width:640px;margin:auto;padding:8px 0 24px}
+.follow-group{padding:12px 20px 7px;font-size:11px;color:#9a90b2;letter-spacing:.4px}
+.follow-row{background:#fff;padding:14px 20px;border-bottom:1px solid #f3f0f6}
+.follow-row-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.follow-title{font-size:14px;font-weight:500;line-height:1.5;color:#333;overflow-wrap:anywhere;min-width:0}
+.follow-date{font-size:11px;font-weight:500;color:#6B5ACD;background:#f0edff;border-radius:4px;padding:3px 7px;text-align:right;max-width:46%;overflow-wrap:anywhere;flex-shrink:0}
+.follow-date.due{background:#fff0e1;color:#b57940}
+.follow-source,.follow-note,.follow-status{font-size:11px;color:#999;line-height:1.7;overflow-wrap:anywhere}
+.follow-note{color:#777;white-space:pre-wrap;margin-top:6px}
+.follow-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:8px;margin-top:11px}
+.follow-action{font:inherit;font-size:11px;padding:7px 12px;border:1px solid #e8e1f4;border-radius:6px;background:#fff;color:#8273b4;cursor:pointer}
+.follow-action.primary{background:#f0edff;color:#6B5ACD;border-color:transparent}
+.follow-empty{padding:40px 24px;text-align:center;font-size:12px;line-height:1.9;color:#aaa}
+.cinema-follow-card{width:calc(100% - 40px);max-width:520px;margin:12px auto}
+.cinema-follow-card:empty{display:none}
+.follow-detail{background:#fff;border:1px solid #eee;border-radius:10px;padding:13px 15px}
+.follow-detail-label{font-size:10px;color:#9b8ec7;margin-bottom:7px;letter-spacing:.4px}
+.follow-add{display:block;width:100%;border:1px dashed #d8cfeb;border-radius:8px;background:#fff;color:#8273b4;padding:11px;cursor:pointer;font:inherit;font-size:12px}
+.item-follow-meta{font-size:10px;color:#9b8ac8;margin-top:4px;line-height:1.5;white-space:normal;overflow-wrap:anywhere}
+.follow-modal-source{font-size:12px;color:#8d83a7;line-height:1.7;overflow-wrap:anywhere}
+.follow-error{color:#bd765c;font-size:11px;min-height:14px;margin-top:9px;line-height:1.5}
+[hidden]{display:none!important}
+
 /* ── Modals ── */
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:200;display:none;align-items:flex-end;justify-content:center}
 .modal-bg.show{display:flex}
@@ -204,7 +233,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <h1>CINEMA</h1>
     <button class="btn-s" onclick="openModal('backupModal')">Backup</button>
   </div>
+  <button type="button" class="follow-home-entry" id="cinemaFollowHome" onclick="openFollowView()">
+    <strong data-ui="追更">追更</strong><span class="follow-home-summary" id="cinemaFollowSummary"></span><span class="follow-home-arrow" aria-hidden="true">›</span>
+  </button>
   <div class="project-list" id="projectList"></div>
+</div>
+
+<!-- FOLLOW VIEW -->
+<div id="viewFollow" class="view">
+  <div class="detail-header">
+    <button class="back-btn" onclick="goHome()" data-ui="← 返回">← 返回</button>
+    <h2 data-ui="追更">追更</h2>
+    <span class="follow-status" id="cinemaFollowCount"></span>
+  </div>
+  <div class="follow-list" id="cinemaFollowList"></div>
 </div>
 
 <!-- DETAIL VIEW -->
@@ -286,6 +328,35 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
       <button class="btn btn-del" id="itemDeleteBtn" style="display:none" onclick="deleteEditingItem()">Delete</button>
       <button class="btn btn-primary" onclick="saveItem()">Save</button>
     </div>
+  </div>
+</div>
+
+<!-- Next-season tracking modal -->
+<div class="modal-bg" id="followModal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="followModalHeading">
+    <h2 id="followModalHeading" data-ui="追踪下一季">追踪下一季</h2>
+    <p class="follow-modal-source" id="followSourceName"></p>
+    <label for="followTitle" data-ui="下一季标题">下一季标题</label>
+    <input type="text" id="followTitle" maxlength="160">
+    <label for="followPrecision" data-ui="预计播出时间">预计播出时间</label>
+    <select id="followPrecision" onchange="changeFollowPrecision()">
+      <option value="day" data-ui="具体日期">具体日期</option>
+      <option value="month" data-ui="预计月份">预计月份</option>
+      <option value="year" data-ui="预计年份">预计年份</option>
+      <option value="window" data-ui="其他档期">其他档期</option>
+      <option value="unknown" data-ui="日期未公布">日期未公布</option>
+    </select>
+    <div id="followDateWrap" style="margin-top:8px">
+      <input type="text" id="followDate" aria-label="预计播出时间" data-ui-aria-label="预计播出时间">
+    </div>
+    <label for="followNote" data-ui="备注">备注</label>
+    <textarea id="followNote" maxlength="500"></textarea>
+    <p class="follow-error" id="followError" role="alert"></p>
+    <div class="btn-row">
+      <button class="btn btn-cancel" onclick="closeModal('followModal')" data-ui="取消">取消</button>
+      <button class="btn btn-primary" onclick="saveNextSeason()" data-ui="保存">保存</button>
+    </div>
+    <div class="follow-actions"><button type="button" class="follow-action" id="followStopBtn" onclick="stopNextSeason()" data-ui="停止追更" hidden>停止追更</button></div>
   </div>
 </div>
 
@@ -394,6 +465,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 
 <script src="cloud-sync.js?v=20261125-language1"></script>
 <script src="app-back.js?v=20261010-home-return2"></script>
+<script src="cinema-follow.js?v=20261126-cinema-follow1"></script>
 <script>
 if(window.__LIMINAL_REDIRECTING) throw new Error('Redirecting to cloud login');
 
@@ -431,6 +503,161 @@ function getItemDisplayName(p,item,idx){
   const si=getItemSectionIndex(p,idx);
   const sec=si>=0&&p&&Array.isArray(p.sections)?p.sections[si]:null;
   return sec?String(sec.name||'').trim():'';
+}
+
+/* ═══ NEXT-SEASON FOLLOWING ═══ */
+let followRows=[],editingFollow=null;
+const followUi = key => globalThis.AppLanguage?.ui(key) ?? key;
+const followStatusLabel = status => ({due:'预计档期已到',upcoming:'待播',unknown:'档期待确认'})[status] || '档期待确认';
+function followDateText(record){return record.value || followUi('日期未公布');}
+function followSnapshot(item){return JSON.stringify(window.CinemaFollow?.read(item?.nextSeason) || null);}
+function currentFollowRef(){return window.CinemaFollow?.sourceRef(getProject(curProjectId),curItemIdx);}
+function followAction(label,handler,primary=false){
+  return '<button type="button" class="follow-action'+(primary?' primary':'')+'" onclick="'+handler+'">'+esc(followUi(label))+'</button>';
+}
+function renderFollowHome(){
+  const home=document.getElementById('cinemaFollowHome'),summary=document.getElementById('cinemaFollowSummary'),model=window.CinemaFollow;
+  if(!home||!summary)return;
+  home.hidden=!model;if(!model)return;
+  const rows=model.list(projects),due=rows.filter(row=>row.status==='due').length;
+  summary.textContent=rows.length?followUi('追更 '+rows.length+' 项')+(due?' · '+followUi('已到预计档期 '+due+' 项'):''):followUi('暂无追更记录');
+}
+function followItemBadge(p,item,index){
+  const model=window.CinemaFollow,record=model?.read(item.nextSeason);
+  if(!p||!record)return '';
+  const next=model.linkedIndex(p,index,record);
+  if(next>=0&&p.items[next].collected)return '';
+  return '<div class="item-follow-meta">'+esc(followUi('下一季'))+' · '+esc(followDateText(record))+' · '+esc(followUi(followStatusLabel(model.status(record))))+'</div>';
+}
+function renderNextSeasonCard(p,index){
+  const model=window.CinemaFollow,item=p?.items?.[index];if(!model||!item)return '';
+  const record=model.read(item.nextSeason);
+  if(!record)return item.collected?'<button class="follow-add" type="button" onclick="openCurrentFollow()">'+esc(followUi('追踪下一季'))+' ＋</button>':'';
+  const next=model.linkedIndex(p,index,record),watched=next>=0&&p.items[next].collected;
+  const status=model.status(record);
+  return '<div class="follow-detail"><div class="follow-detail-label">'+esc(followUi('追更'))+'</div><div class="follow-row-head">'+
+    '<div class="follow-title">'+esc(record.title)+'</div><span class="follow-date'+(status==='due'&&!watched?' due':'')+'">'+esc(followDateText(record))+'</span></div>'+
+    '<div class="follow-status">'+esc(followUi(watched?'下一季已观看':followStatusLabel(status)))+
+    (next>=0&&!watched?' · '+esc(followUi('已加入待看')):'')+'</div>'+
+    (record.note?'<div class="follow-note">'+esc(record.note)+'</div>':'')+'<div class="follow-actions">'+followAction('编辑','openCurrentFollow()')+
+    followAction(next<0?'加入待看':watched?'打开下一季':'打开待看','continueCurrentFollow()',true)+'</div></div>';
+}
+function renderFollowView(){
+  const model=window.CinemaFollow,container=document.getElementById('cinemaFollowList');if(!model||!container)return;
+  followRows=model.list(projects);
+  document.getElementById('cinemaFollowCount').textContent=followUi('追更 '+followRows.length+' 项');
+  if(!followRows.length){container.innerHTML='<p class="follow-empty">'+esc(followUi('暂无追更记录'))+'<br>'+esc(followUi('打开已打卡的剧集详情，选择追踪下一季。'))+'</p>';return;}
+  let html='',previous='';
+  followRows.forEach((row,index)=>{
+    if(row.status!==previous){previous=row.status;html+='<div class="follow-group">'+esc(followUi(followStatusLabel(row.status)))+'</div>';}
+    const source=[row.project.name,getItemDisplayName(row.project,row.item,row.index)].filter(Boolean).map(esc).join(' · ');
+    html+='<article class="follow-row"><div class="follow-row-head"><div class="follow-title">'+esc(row.record.title)+'</div>'+
+      '<span class="follow-date'+(row.status==='due'?' due':'')+'">'+esc(followDateText(row.record))+'</span></div>'+
+      '<div class="follow-source">'+source+'</div>'+
+      (row.nextIndex>=0?'<div class="follow-status">'+esc(followUi('已加入待看'))+'</div>':'')+
+      (row.record.note?'<div class="follow-note">'+esc(row.record.note)+'</div>':'')+
+      '<div class="follow-actions">'+followAction('编辑','openFollowRow('+index+')')+
+      followAction(row.nextIndex>=0?'打开待看':'加入待看','continueFollowRow('+index+')',true)+'</div></article>';
+  });
+  container.innerHTML=html;
+}
+function latestCinemaForFollow(){
+  const raw=localStorage.getItem(SK),data=raw===null?JSON.parse(JSON.stringify(projects)):JSON.parse(raw);
+  if(!Array.isArray(data))throw new Error('invalid cinema data');
+  return data;
+}
+function openFollowView(){
+  if(!window.CinemaFollow)return;
+  try{projects=latestCinemaForFollow();}catch(e){showToast(followUi('追更记录暂时无法读取'));return;}
+  setProjectArrangeMode(false);renderFollowView();switchView('viewFollow');window.scrollTo(0,0);
+}
+function configureFollowDate(value=''){
+  const precision=document.getElementById('followPrecision').value,input=document.getElementById('followDate');
+  document.getElementById('followDateWrap').hidden=precision==='unknown';
+  input.type=precision==='day'?'date':precision==='month'?'month':'text';
+  input.inputMode=precision==='year'?'numeric':'text';
+  input.maxLength=precision==='year'?4:100;
+  input.placeholder=precision==='day'?'YYYY-MM-DD':precision==='month'?'YYYY-MM':precision==='year'?'YYYY':precision==='window'?followUi('例如：2027年春'):'';
+  input.value=precision==='unknown'?'':value;
+}
+function changeFollowPrecision(){
+  const value=document.getElementById('followDate').value,precision=document.getElementById('followPrecision').value;
+  let next='';
+  if(/^\d{4}(?:-\d{2}(?:-\d{2})?)?$/.test(value)){
+    if(precision==='year')next=value.slice(0,4);
+    if(precision==='month'&&value.length>=7)next=value.slice(0,7);
+    if(precision==='day'&&value.length===10)next=value;
+    if(precision==='window')next=value;
+  }
+  configureFollowDate(next);document.getElementById('followError').textContent='';
+}
+function openFollowEditor(ref){
+  const model=window.CinemaFollow,found=model?.locate(projects,ref);if(!found)return;
+  const record=model.read(found.item.nextSeason),name=getItemDisplayName(found.project,found.item,found.index);
+  editingFollow={ref,before:followSnapshot(found.item)};
+  document.getElementById('followSourceName').textContent=[found.project.name,name].filter(Boolean).join(' · ');
+  document.getElementById('followTitle').value=record?.title||model.suggestTitle(name);
+  document.getElementById('followPrecision').value=record?.precision||'unknown';
+  configureFollowDate(record?.value||'');
+  document.getElementById('followNote').value=record?.note||'';
+  document.getElementById('followError').textContent='';
+  document.getElementById('followStopBtn').hidden=!record;
+  openModal('followModal');
+}
+function openCurrentFollow(){openFollowEditor(currentFollowRef());}
+function openFollowRow(index){if(followRows[index])openFollowEditor(followRows[index].ref);}
+function commitFollowChange(ref,before,update){
+  const model=window.CinemaFollow;if(!model||!ref)return null;
+  try{
+    const latest=latestCinemaForFollow(),found=model.locate(latest,ref);
+    if(!found||followSnapshot(found.item)!==before){showToast(followUi('追更记录已更新，请重新打开'));return null;}
+    const result=update(found.project,found.index,found.item);
+    if(!result)return null;
+    if(result.changed!==false)localStorage.setItem(SK,JSON.stringify(latest));
+    projects=latest;
+    return {...result,projectId:found.project.id,sourceIndex:found.index};
+  }catch(e){showToast(followUi('追更未能保存，请重试'));return null;}
+}
+function refreshFollowAfterEdit(result){
+  renderFollowHome();
+  if(document.getElementById('viewFollow').classList.contains('active'))renderFollowView();
+  else if(document.getElementById('viewItem').classList.contains('active')){curProjectId=result.projectId;openItem(result.sourceIndex);}
+  else if(document.getElementById('viewDetail').classList.contains('active'))renderDetail();
+}
+function saveNextSeason(){
+  if(!editingFollow||!window.CinemaFollow)return;
+  let data;
+  try{data=window.CinemaFollow.make({title:document.getElementById('followTitle').value,precision:document.getElementById('followPrecision').value,
+    value:document.getElementById('followDate').value,note:document.getElementById('followNote').value});}
+  catch(e){document.getElementById('followError').textContent=followUi(e.message==='title'?'请输入下一季标题':'请输入有效的预计播出时间');return;}
+  const result=commitFollowChange(editingFollow.ref,editingFollow.before,(p,index)=>{window.CinemaFollow.set(p,index,data);return{changed:true};});
+  if(!result)return;
+  editingFollow=null;closeModal('followModal');refreshFollowAfterEdit(result);showToast(followUi('追更记录已保存'));
+}
+function stopNextSeason(){
+  const draft=editingFollow;if(!draft)return;
+  customConfirm(esc(followUi('停止追更？不会删除原有观影记录。')),()=>{
+    const result=commitFollowChange(draft.ref,draft.before,(p,index,item)=>{delete item.nextSeason;return{changed:true};});
+    if(!result)return;
+    editingFollow=null;closeModal('followModal');refreshFollowAfterEdit(result);
+  },{yes:followUi('停止追更'),no:followUi('取消')});
+}
+function continueFollowing(ref,before){
+  const result=commitFollowChange(ref,before,(p,index)=>window.CinemaFollow.queue(p,index,gid()));
+  if(!result)return;
+  openProject(result.projectId);openItem(result.index);
+  if(result.created)showToast(followUi('已加入待看'));
+}
+function continueCurrentFollow(){
+  const p=getProject(curProjectId),item=p?.items?.[curItemIdx];if(item)continueFollowing(currentFollowRef(),followSnapshot(item));
+}
+function continueFollowRow(index){const row=followRows[index];if(row)continueFollowing(row.ref,JSON.stringify(row.record));}
+function refreshFollowSurface(){
+  if(!window.CinemaFollow)return;
+  renderFollowHome();
+  if(document.getElementById('viewFollow').classList.contains('active'))renderFollowView();
+  const card=document.getElementById('cinemaFollowCard'),p=getProject(curProjectId);
+  if(card&&p?.items?.[curItemIdx]&&document.getElementById('viewItem').classList.contains('active'))card.innerHTML=renderNextSeasonCard(p,curItemIdx);
 }
 
 /* ═══ VIEWS ═══ */
@@ -512,7 +739,7 @@ function renderProjects(){
     html+=`</div></div>`;
   });
   html+=`<div class="project-row-add" onclick="openAddProject()">New List</div>`;
-  list.innerHTML=html;initProjectDrag();
+  list.innerHTML=html;initProjectDrag();renderFollowHome();
 }
 function renderProjectRow(p){
   const st=projectStats(p);const pct=st.total>0?Math.round(st.collected/st.total*100):0;
@@ -577,7 +804,7 @@ function buildSectionDrafts(p){
   if(off<p.items.length){if(!drafts.length)drafts.push({name:'',count:0,_items:[]});const last=drafts[drafts.length-1];last._items.push(...p.items.slice(off));last.count=last._items.length;}
   return drafts;
 }
-function itemHasSavedContent(item){return !!(item&&(item.collected||item.img||item.note||item.checkinNote||item.checkinImg||item.releaseDate||item.studio||item.duration||!isGenericItemName(item.name)));}
+function itemHasSavedContent(item){return !!(item&&(item.collected||item.img||item.note||item.checkinNote||item.checkinImg||item.releaseDate||item.studio||item.duration||item.nextSeason||!isGenericItemName(item.name)));}
 function finalizeSectionDrafts(){
   const sections=[],items=[];let preserved=0;
   _sections.filter(s=>s.name||s.count>0||(s._items&&s._items.length)).forEach(sec=>{
@@ -718,6 +945,7 @@ function renderItemRows(items,globalOffset){
       <div class="item-row-body">
         <div class="item-row-name">${displayName?esc(displayName):('Title '+(idx+1))}${item.rating?`<span class="rating-badge r-${item.rating}">${item.rating.charAt(0).toUpperCase()+item.rating.slice(1)}</span>`:''}</div>
         ${subHtml?`<div class="item-row-sub">${subHtml}</div>`:''}
+        ${followItemBadge(getProject(curProjectId),item,idx)}
       </div>
       <div class="item-row-check ${item.collected?'done':''}">${item.collected?'✓':''}</div>
       <button class="item-delete-x" aria-label="删除" onclick="event.stopPropagation();deleteGridItem(${idx})">×</button>
@@ -798,7 +1026,7 @@ function saveAddSection(){
 function handleItemClick(idx){
   if(itemArrangeMode||Date.now()<itemClickSuppressedUntil)return;const p=getProject(curProjectId);if(!p||!p.items[idx])return;
   curItemIdx=idx;const item=p.items[idx];
-  if(item.collected){openItem(idx);return;}
+  if(item.collected||window.CinemaFollow?.read(item.nextSeason)){openItem(idx);return;}
   if(item.img||!isGenericItemName(item.name)||item.note||item.releaseDate||item.studio||item.duration){openCheckin();return;}
   openEditItem();
 }
@@ -835,6 +1063,7 @@ function openItem(idx){
   html+=item.collected
     ?'<div class="card-actions"><button class="btn btn-primary" onclick="openEditCheckin()">Edit Check In</button><button class="btn btn-cancel" onclick="uncollect()">Undo Check In</button></div>'
     :'<div class="card-actions"><button class="btn btn-primary" onclick="openCheckin()" data-ui="打卡">打卡</button></div>';
+  html+='<div class="cinema-follow-card" id="cinemaFollowCard">'+renderNextSeasonCard(p,idx)+'</div>';
   document.getElementById('itemContent').innerHTML=html;
   const nameEl=document.getElementById('inlineName');if(nameEl)nameEl.addEventListener('dblclick',()=>startInlineEdit('inlineName','name'));
   const noteEl=document.getElementById('inlineNote');if(noteEl)noteEl.addEventListener('dblclick',()=>startInlineEdit('inlineNote','checkinNote'));
@@ -1110,6 +1339,15 @@ async function migrateLocalImages(){
 renderProjects();
 setupItemArrangeGestures();
 migrateLocalImages();
+window.addEventListener('omniverse:languagechange',refreshFollowSurface);
+window.addEventListener('pageshow',refreshFollowSurface);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshFollowSurface();});
+window.addEventListener('storage',event=>{
+  if(event.key!==SK||document.querySelector('.modal-bg.show,.action-sheet-bg.show,.confirm-bg.show'))return;
+  if(!document.getElementById('viewHome').classList.contains('active')&&!document.getElementById('viewFollow').classList.contains('active'))return;
+  try{projects=latestCinemaForFollow();}catch(e){return;}
+  if(document.getElementById('viewHome').classList.contains('active'))renderProjects();else refreshFollowSurface();
+});
 </script>
 </body>
 </html>
