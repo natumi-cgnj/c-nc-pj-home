@@ -19,7 +19,7 @@
 <link rel="stylesheet" href="ledger-world-scene.css?v=20261023-fluffy-tail1">
 <link rel="stylesheet" href="ledger-tasks.css?v=20261112-mobile-tasks3">
 <link rel="stylesheet" href="diet-body.css?v=20261126-fox-story1">
-<link rel="stylesheet" href="diet-calorie.css?v=20261119-balance1">
+<link rel="stylesheet" href="diet-calorie.css?v=20261126-clean-labels1">
 <style>
 html{height:100%;overflow:hidden;--diet-accent:#9B7D41;--diet-ink:#66625e;--diet-rule:#efede9}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -153,10 +153,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
     <section class="calorie-balance" aria-label="每日热量额度与热量差" data-ui-aria-label="每日热量额度与热量差">
       <div class="calorie-balance-head"><span class="calorie-plan-label" id="calorieBudgetLabel" data-ui="每日额度 · 未设置">每日额度 · 未设置</span><button class="calorie-plan-button" id="caloriePlanButton" type="button" data-ui="热量设置">热量设置</button></div>
       <div class="calorie-balance-grid" aria-live="polite">
-        <div><div class="nutrition-summary-label" data-ui="额度余额">额度余额</div><div class="calorie-balance-number"><span id="calorieRemaining">—</span><small>kcal</small></div><div class="calorie-balance-caption" id="calorieRemainingCaption" data-ui="在热量设置中填写每日额度">在热量设置中填写每日额度</div></div>
-        <div><div class="nutrition-summary-label" data-ui="热量差">热量差</div><div class="calorie-balance-number"><span id="calorieDifference">—</span><small>kcal</small></div><div class="calorie-balance-caption" id="calorieDifferenceCaption" data-ui="填写基础代谢后计算">填写基础代谢后计算</div></div>
+        <div><div class="nutrition-summary-label" data-ui="额度余额">额度余额</div><div class="calorie-balance-number"><span id="calorieRemaining">—</span><small>kcal</small></div></div>
+        <div><div class="nutrition-summary-label" data-ui="热量差">热量差</div><div class="calorie-balance-number"><span id="calorieDifference">—</span><small>kcal</small></div></div>
       </div>
-      <div class="calorie-balance-note">热量差＝摄入 − 基础代谢 − 活动消耗。步数与运动均计入活动消耗。<br>额度余额不加回活动消耗，每天凌晨 4:00 换日。<span id="caloriePlanDate"></span></div>
     </section>
     <div class="nutrition-card" id="nutritionRows"></div>
     <div class="nutrition-log">
@@ -227,7 +226,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue"
 <script src="world-moments.js?v=20261028-stories1"></script>
 <script src="body-model.js?v=20261023-body1"></script>
 <script src="diet-calorie-model.js?v=20261119-balance1"></script>
-<script src="diet-calorie.js?v=20261125-language1"></script>
+<script src="diet-calorie.js?v=20261126-clean-labels1"></script>
 <script src="diet-body.js?v=20261125-language1"></script>
 <script src="diet-fox-stories.js?v=20261126-diet-tasks1"></script>
 <script src="diet-fox-task-model.js?v=20261126-diet-tasks1"></script>

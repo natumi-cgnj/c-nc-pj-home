@@ -1597,3 +1597,12 @@ Keep each head and torso about the SAME SIZE as its reference counterpart. Prese
 - 文件：`cinema.html`、`cinema-follow.js`、`app-language-data.js`、`tests/cinema-follow.test.js`、本日志。
 - 验证：20项追更模型、实际页面处理函数的隔离DOM测试及既有手机返回检查通过；覆盖不同日期粒度、无损旧记录、添加及复用、正常打卡、停止追更、远端更新保护、原备份同步键、三语文字和页面导航。独立／内联JS语法与diff格式通过；未在真实账号写入演示数据，未作真机画面检查。
 - 发布：仅前端 Pages 主分支；不需后台部署。不自动从网络查档期、不发送系统通知；按用户手工填写的时间在页面内提醒。保留其他影视记录功能；`docs/DECISIONS.md` 与 `docs/SYSTEM_BLUEPRINT.md` 不改不推。
+
+## 2026-11-26｜简化 DIET 营养页说明文字
+
+- 执行者：Codex；分支：`main`，基于 `97f806a`。
+- 用户目标：去掉营养页截图圈出的两项数值下方提示及整段计算／换日解释；以后不要主动在常用页面加类似的冗余说明。
+- 实际改动：移除额度余额与热量差下方的所有重复小字、底部常驻说明及关联渲染和样式，保留标题、数值、热量设置、食物示例及原有功能。仅改该页展示；设置弹窗和必要错误反馈不变。把用户的长期简洁界面要求加入项目 README 协作规则。
+- 涉及文件：`diet.html`、`diet-calorie.js`、`diet-calorie.css`、`docs/README.md` 及本日志。
+- 验证：独立与内联脚本语法、页面ID、空值和有值渲染、说明移除及设置入口保留的隔离检查通过。计算模型、真实存档与同步不修改。
+- 请勿误改：后续常用页面不主动重复解释用户已明确的使用方式或计算规则，不自动增加装饰性提示文字；必要的校验与操作反馈仍保留。未修改 `docs/DECISIONS.md` 或 `docs/SYSTEM_BLUEPRINT.md`。
