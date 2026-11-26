@@ -56,6 +56,8 @@
 .diet-world-board{position:relative;z-index:1;display:flex;flex-direction:column;min-height:100%;max-width:1120px;margin:0 auto;padding:25px clamp(20px,4vw,32px) 60px}
 .diet-world-head{display:flex;align-items:center;justify-content:space-between;font-size:10px;color:#aaa59f}
 .diet-world-spacer{height:clamp(160px,40vh,440px);flex-shrink:0}
+.diet-world-spacer.diet-world-story{height:auto;min-height:clamp(240px,40vh,440px);display:flex;align-items:center;justify-content:center;padding:20px 0}
+.diet-fox-story{min-width:0}
 .diet-world-stage{display:flex;justify-content:center;align-items:center;min-height:150px}
 .diet-world-stage .asset-stage-current{display:grid;grid-template-rows:100px auto;justify-items:center;align-items:center;gap:12px;border:0;background:none;color:var(--diet-ink);font-family:inherit;max-width:100%;cursor:pointer}
 .diet-world-stage .asset-summary-label{font-size:12px;line-height:1.6;font-weight:500;overflow-wrap:anywhere;text-align:center}
@@ -65,4 +67,5 @@ body[data-ledger-world="fox"] .ledger-world-scene::before{filter:url("#diet-fox-
 .diet-world-option{display:flex;width:100%;gap:12px;align-items:center;border:0;border-bottom:1px solid var(--diet-rule);background:none;padding:18px 0;font-family:inherit;font-size:12px;line-height:1.6;color:var(--diet-ink);text-align:left;cursor:pointer}
 .diet-world-option span:first-child{color:#a58c60;font-size:10px;width:14px;flex-shrink:0}
 @media(min-width:900px){.body-wrap{padding-top:30px}.body-page-head{margin-bottom:36px}.body-section{padding-bottom:32px;margin-bottom:30px}.body-weight-chart{height:120px}.diet-world-spacer{height:380px}}
+@media(min-width:900px){.diet-world-spacer.diet-world-story{min-height:clamp(220px,calc(100vh - 355px),380px)}}
 @media(max-width:359px){.body-wrap{padding-left:16px;padding-right:16px}.body-metric-value{font-size:22px}.body-metrics{gap:8px}}

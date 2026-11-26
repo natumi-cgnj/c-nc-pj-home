@@ -1,9 +1,9 @@
 (function (global, factory) {
   'use strict';
-  const api = factory(global);
+  const api = factory(global, typeof module === 'object' && module.exports ? require('./diet-fox-stories.js') : global.DietFoxStories);
   if (typeof module === 'object' && module.exports) module.exports = api;
   else global.DietWorld = api;
-})(typeof window !== 'undefined' ? window : globalThis, function (global) {
+})(typeof window !== 'undefined' ? window : globalThis, function (global, foxStories) {
   'use strict';
   const KEY = 'diet_world_state_v1';
   const DEFAULTS = [
@@ -11,6 +11,7 @@
     { id: 'palace', title: '古代后宫' }, { id: 'fox', title: '狐狸AU' }, { id: 'heist', title: 'Leverage AU' }
   ];
   let visitor = null, mounted = false, returnFocus = null;
+  let foxPosition = foxStories && foxStories.initial();
   const esc = value => String(value == null ? '' : value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   function worlds(wallet) {
     const saved = wallet && wallet.stage && Array.isArray(wallet.stage.worlds) ? wallet.stage.worlds : [];
@@ -46,6 +47,17 @@
     const wallet = read('wallet_accounts_v1'), saved = read(KEY);
     return { list: worlds(wallet), active: selection(saved, wallet), saved };
   }
+  function foxStoryBody() {
+    const frame = foxStories.frame(foxPosition, global.AppLanguage?.dialogue, global.AppLanguage?.uiLanguage);
+    const lang = frame.dialogue === 'zh' ? 'zh-CN' : frame.dialogue;
+    return `<div class="ledger-task-heading"><span>${esc(frame.heading)}</span><span>${frame.storyNumber} / ${frame.storyCount}</span></div><h2 class="ledger-task-title" lang="${lang}">${esc(frame.title)}</h2><button type="button" class="ledger-task-dialogue" data-diet-fox-next><span class="ledger-task-speaker" lang="${lang}"${frame.isPlayer ? ' style="color:#B08A5A"' : ''}>${esc(frame.speaker || ' ')}</span><span class="ledger-task-line" lang="${lang}" aria-live="polite">${esc(frame.text)}</span><span class="ledger-task-hint">${esc(frame.hint)} · ${frame.lineNumber} / ${frame.lineCount}</span></button>`;
+  }
+  function updateFoxStory(target, focus = false) {
+    const panel = target.querySelector('[data-diet-fox-story]');
+    if (!panel) return;
+    panel.innerHTML = foxStoryBody();
+    if (focus) panel.querySelector('[data-diet-fox-next]')?.focus({ preventScroll: true });
+  }
   function render() {
     const target = document.getElementById('viewDraft');
     if (!target || global.__LIMINAL_REDIRECTING) return;
@@ -53,7 +65,9 @@
     try {
       const value = state(), current = value.list.find(x => x.id === value.active);
       document.body.dataset.ledgerWorld = current.id;
-      target.innerHTML = `<div class="ledger-world-scene" aria-hidden="true"></div><div class="diet-world-board"><div class="diet-world-head"><span data-ui="世界">世界</span><div style="display:flex;align-items:center;gap:16px"><a href="world-files.html?world=${(current.id)}" class="body-link muted" style="text-decoration:none" data-ui="世界档案">世界档案</a><button type="button" class="body-link muted" data-diet-world-open data-ui="切换">切换</button></div></div><div class="diet-world-spacer" aria-label="任务小剧情" data-ui-aria-label="任务小剧情"><p class="body-empty" style="text-align:center;padding-top:32px" data-ui="暂无">暂无</p></div><div class="diet-world-stage"><button type="button" class="asset-stage-current" data-diet-world-open aria-label="选择世界，当前${(esc(current.title))}">${(art(current.id))}<span class="asset-summary-label">${(esc(current.title))}</span></button></div></div>`;
+      const hasFoxStory = current.id === 'fox' && foxStories;
+      const story = hasFoxStory ? `<div class="ledger-task-panel diet-fox-story" data-diet-fox-story>${foxStoryBody()}</div>` : '<p class="body-empty" style="text-align:center;padding-top:32px" data-ui="暂无">暂无</p>';
+      target.innerHTML = `<div class="ledger-world-scene" aria-hidden="true"></div><div class="diet-world-board"><div class="diet-world-head"><span data-ui="世界">世界</span><div style="display:flex;align-items:center;gap:16px"><a href="world-files.html?world=${(current.id)}" class="body-link muted" style="text-decoration:none" data-ui="世界档案">世界档案</a><button type="button" class="body-link muted" data-diet-world-open data-ui="切换">切换</button></div></div><div class="diet-world-spacer${hasFoxStory ? ' diet-world-story' : ''}" aria-label="${hasFoxStory ? '世界小事件' : '任务小剧情'}" data-ui-aria-label="${hasFoxStory ? '世界小事件' : '任务小剧情'}">${story}</div><div class="diet-world-stage"><button type="button" class="asset-stage-current" data-diet-world-open aria-label="选择世界，当前${(esc(current.title))}">${(art(current.id))}<span class="asset-summary-label">${(esc(current.title))}</span></button></div></div>`;
     } catch (error) { target.innerHTML = '<div class="body-wrap"><p class="body-empty" data-ui="世界暂时无法读取，请刷新后重试。">世界暂时无法读取，请刷新后重试。</p></div>'; }
   }
   function close() {
@@ -74,7 +88,16 @@
     mounted = true;
     const modal = document.createElement('div'); modal.id = 'dietWorldModal'; modal.className = 'modal-bg';
     document.body.appendChild(modal);
-    document.getElementById('viewDraft').addEventListener('click', event => { if (event.target.closest('[data-diet-world-open]')) open(); });
+    const target = document.getElementById('viewDraft');
+    target.addEventListener('click', event => {
+      if (event.target.closest('[data-diet-fox-next]') && foxStories && document.body.dataset.ledgerWorld === 'fox') {
+        foxPosition = foxStories.advance(foxPosition);
+        updateFoxStory(target, true);
+      } else if (event.target.closest('[data-diet-world-open]')) open();
+    });
+    global.addEventListener?.('omniverse:languagechange', () => {
+      if (foxStories && document.body.dataset.ledgerWorld === 'fox') updateFoxStory(target);
+    });
     modal.addEventListener('click', event => {
       if (event.target === modal || event.target.closest('[data-diet-world-close]')) { close(); return; }
       const button = event.target.closest('[data-diet-world]');
