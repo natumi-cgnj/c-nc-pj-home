@@ -127,3 +127,17 @@ test('opening and rerendering empty, saved or corrupt records never initializes 
   assert.match(c.elements.viewBody.innerHTML, /&lt;script&gt;/);
   assert.equal(c.writes(), 0);
 });
+
+test('weight history remains accessible without rendering a curve or chart axis', () => {
+  let state = M.saveWeight(null, { date: '2026-10-20', kg: 62, note: 'first' }, now);
+  state = M.saveWeight(state, { date: '2026-10-21', kg: 62, note: 'second' }, now);
+  const c = controller({ body_log_db: JSON.stringify(state) });
+  c.window.DietBody.render();
+  const html = c.elements.viewBody.innerHTML;
+  assert.doesNotMatch(html, /body-weight-chart|body-chart-dates|<svg/);
+  assert.match(html, /id="bodyWeightHistory"/);
+  assert.match(html, /体重记录 · 2/);
+  assert.match(html, /first/);
+  assert.match(html, /second/);
+  assert.equal(c.writes(), 0);
+});

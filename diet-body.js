@@ -18,22 +18,6 @@
   function record(kind, entry, date, copy) {
     return '<div class="body-record"><div class="body-record-copy"><div class="body-record-date">' + date + '</div><div>' + copy + '</div>' + (entry.note ? '<div class="body-record-note">' + esc(entry.note) + '</div>' : '') + '</div>' + button(kind, '编辑', entry.id, ' muted') + '</div>';
   }
-  function chart(records, target) {
-    if (records.length < 2) return '';
-    const points = records.slice(-30), start = points[0].date, end = points[points.length - 1].date;
-    const values = points.map(x => Number(x.kg));
-    if (target != null) values.push(target);
-    let min = Math.min(...values), max = Math.max(...values);
-    const pad = Math.max((max - min) * .2, .5); min -= pad; max += pad;
-    const x = date => 6 + M.daysBetween(start, date) / Math.max(1, M.daysBetween(start, end)) * 308;
-    const y = kg => 76 - (Number(kg) - min) / (max - min) * 64;
-    const path = points.map((p, i) => (i ? 'L' : 'M') + x(p.date).toFixed(2) + ',' + y(p.kg).toFixed(2)).join(' ');
-    return '<svg class="body-weight-chart" viewBox="0 0 320 88" preserveAspectRatio="none" role="img" aria-label="最近 ' + points.length + ' 次体重趋势；详细数值见体重记录">' +
-      '<path d="M6 80H314" stroke="#eeeae3" stroke-width=".6" fill="none" vector-effect="non-scaling-stroke"/>' +
-      (target != null ? '<path d="M6 ' + y(target).toFixed(2) + 'H314" stroke="#d4c5aa" stroke-dasharray="3 4" fill="none" vector-effect="non-scaling-stroke"/>' : '') +
-      '<path d="' + path + '" fill="none" stroke="#b39a71" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>' +
-      points.map(p => '<circle cx="' + x(p.date).toFixed(2) + '" cy="' + y(p.kg).toFixed(2) + '" r="1.9" fill="#b39a71"><title>' + esc(p.date) + ' · ' + number(p.kg) + ' kg</title></circle>').join('') + '</svg><div class="body-chart-dates"><span>' + shortDate(start) + '</span><span>' + shortDate(end) + '</span></div>';
-  }
   function weightSection(state) {
     const all = state.weights.slice().sort((a, b) => a.date.localeCompare(b.date));
     const latest = all[all.length - 1], previous = all[all.length - 2], target = state.settings.targetWeight;
@@ -42,7 +26,7 @@
     return '<section class="body-section" aria-labelledby="bodyWeightTitle"><div class="body-section-head"><h2 id="bodyWeightTitle" data-ui="体重管理">体重管理</h2>' + button('weight', '＋ 记录') + '</div>' +
       '<div class="body-metrics"><div><div class="body-metric-label" data-ui="最近体重">最近体重</div><div class="body-metric-value">' + (latest ? number(latest.kg) : '—') + '<small>kg</small></div><div class="body-metric-note">' + (latest ? shortDate(latest.date) : '还没有记录') + '</div></div>' +
       '<div><button class="body-goal-button" type="button" data-body-action="settings" aria-label="设置目标体重" data-ui-aria-label="设置目标体重"><div class="body-metric-label" data-ui="目标体重">目标体重</div><div class="body-metric-value">' + (target != null ? number(target) : '—') + '<small>kg</small></div><div class="body-metric-note">' + (target != null ? '点击修改' : '点击设置 · 可留空') + '</div></button></div>' +
-      '<div><div class="body-metric-label" data-ui="较上次">较上次</div><div class="body-metric-value">' + change + '<small>kg</small></div><div class="body-metric-note">' + (previous ? shortDate(previous.date) : '两次记录后显示') + '</div></div></div>' + chart(all, target) +
+      '<div><div class="body-metric-label" data-ui="较上次">较上次</div><div class="body-metric-value">' + change + '<small>kg</small></div><div class="body-metric-note">' + (previous ? shortDate(previous.date) : '两次记录后显示') + '</div></div></div>' +
       (all.length ? '<details class="body-history" id="bodyWeightHistory"><summary>体重记录 · ' + all.length + '</summary>' + all.reverse().map(x => record('weight', x, shortDate(x.date), number(x.kg) + ' kg')).join('') + '</details>' : '') + '</section>';
   }
   function periodSection(state) {
